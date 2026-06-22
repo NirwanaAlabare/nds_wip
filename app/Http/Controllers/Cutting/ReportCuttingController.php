@@ -1960,6 +1960,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
+        AND form_cut_piece_detail.id not in (7207)
 		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
@@ -2324,6 +2325,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
+        AND form_cut_piece_detail.id not in (7207)
 		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
@@ -2894,6 +2896,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
+        AND form_cut_piece_detail.id not in (7207)
 		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
@@ -3258,6 +3261,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
+        AND form_cut_piece_detail.id not in (7207)
 		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
@@ -4545,7 +4549,8 @@ order by a.tgl_trans asc
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         WHERE
                             DATE(form_cut_piece.waktu_selesai) >= '$tgl_saldo' and DATE(form_cut_piece.waktu_selesai) < '$start_date'
-                                            and form_cut_piece_detail.status = 'complete'
+                            and form_cut_piece_detail.status = 'complete'
+                            AND form_cut_piece_detail.id not in (7207)
                         GROUP BY
                             form_cut_piece.id,
                             form_cut_piece_detail.group_stocker,
@@ -4719,7 +4724,8 @@ order by a.tgl_trans asc
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 WHERE
                                     DATE(form_cut_piece.waktu_selesai) >= '$start_date' and DATE(form_cut_piece.waktu_selesai) <= '$end_date'
-                                                    and form_cut_piece_detail.status = 'complete'
+                                    and form_cut_piece_detail.status = 'complete'
+                                    AND form_cut_piece_detail.id not in (7207)
                                 GROUP BY
                                     form_cut_piece.id,
                                     form_cut_piece_detail.group_stocker,
@@ -5221,6 +5227,7 @@ order by a.tgl_trans asc
                                     COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
                                     and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                                     and form_cut_piece_detail.status = 'complete'
+                                    AND form_cut_piece_detail.id not in (7207)
                             GROUP BY
                                     form_cut_piece.id,
                                     form_cut_piece_detail.group_stocker,
@@ -5576,6 +5583,7 @@ order by a.tgl_trans asc
                                                     COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
                                                     and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                                     and form_cut_piece_detail.status = 'complete'
+                                                    AND form_cut_piece_detail.id not in (7207)
                                             GROUP BY
                                                     form_cut_piece.id,
                                                     form_cut_piece_detail.group_stocker,
@@ -7278,6 +7286,7 @@ order by a.tgl_trans asc
                                                 COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
                                                 AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
                                                 AND form_cut_piece_detail.STATUS = 'complete'
+                                                AND form_cut_piece_detail.id not in (7207)
                                                 AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                         GROUP BY
                                                 form_cut_piece.id,
@@ -7537,6 +7546,7 @@ order by a.tgl_trans asc
                                                 COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$start_date."'
                                                 AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '".$end_date."'
                                                 AND form_cut_piece_detail.STATUS = 'complete'
+                                                AND form_cut_piece_detail.id not in (7207)
                                                 AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                         GROUP BY
                                                 form_cut_piece.id,
@@ -8520,6 +8530,7 @@ order by a.tgl_trans asc
                                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
                                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
                                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                                        AND form_cut_piece_detail.id not in (7207)
                                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                                 GROUP BY
                                                         form_cut_piece.id,
@@ -8779,6 +8790,7 @@ order by a.tgl_trans asc
                                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$start_date."'
                                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '".$end_date."'
                                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                                        AND form_cut_piece_detail.id not in (7207)
                                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                                 GROUP BY
                                                         form_cut_piece.id,
@@ -9563,7 +9575,7 @@ order by a.tgl_trans asc
                                         switching_out != 0 OR
                                         saldo_akhir_adjustment != 0
                                     )
-                        
+
                         ),
 
                         form_list as (
@@ -9609,7 +9621,7 @@ order by a.tgl_trans asc
                                 part_detail.id
                         )
 
-                        SELECT 
+                        SELECT
                             MAX(a.buyer) buyer,
                             MAX(a.ws) ws,
                             MAX(a.styleno) styleno,
@@ -9644,7 +9656,7 @@ order by a.tgl_trans asc
                             UNION ALL
                             SELECT * FROM form_list
                         ) a
-                        GROUP BY 
+                        GROUP BY
                             a.ws,
                             a.styleno,
                             a.color,
@@ -9786,6 +9798,7 @@ order by a.tgl_trans asc
                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
                             and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                             and form_cut_piece_detail.status = 'complete'
+                            AND form_cut_piece_detail.id not in (7207)
                     GROUP BY
                             form_cut_piece.id,
                             form_cut_piece_detail.group_stocker,
@@ -10201,6 +10214,7 @@ order by a.tgl_trans asc
                                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
                                             and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                             and form_cut_piece_detail.status = 'complete'
+                                            AND form_cut_piece_detail.id not in (7207)
                                     GROUP BY
                                             form_cut_piece.id,
                                             form_cut_piece_detail.group_stocker,
@@ -11715,6 +11729,7 @@ order by a.tgl_trans asc
                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                        AND form_cut_piece_detail.id not in (7207)
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                 GROUP BY
                                         form_cut_piece.id,
@@ -11974,6 +11989,7 @@ order by a.tgl_trans asc
                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$start_date."'
                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '".$end_date."'
                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                        AND form_cut_piece_detail.id not in (7207)
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                 GROUP BY
                                         form_cut_piece.id,
@@ -12958,6 +12974,7 @@ order by a.tgl_trans asc
                                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
                                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
                                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                                        AND form_cut_piece_detail.id not in (7207)
                                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                                 GROUP BY
                                                         form_cut_piece.id,
@@ -13217,6 +13234,7 @@ order by a.tgl_trans asc
                                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$start_date."'
                                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '".$end_date."'
                                                         AND form_cut_piece_detail.STATUS = 'complete'
+                                                        AND form_cut_piece_detail.id not in (7207)
                                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                                 GROUP BY
                                                         form_cut_piece.id,
@@ -14001,7 +14019,7 @@ order by a.tgl_trans asc
                                         switching_out != 0 OR
                                         saldo_akhir_adjustment != 0
                                     )
-                        
+
                         ),
 
                         form_list as (
@@ -14047,7 +14065,7 @@ order by a.tgl_trans asc
                                 part_detail.id
                         )
 
-                        SELECT 
+                        SELECT
                             MAX(a.buyer) buyer,
                             MAX(a.ws) ws,
                             MAX(a.styleno) styleno,
@@ -14082,7 +14100,7 @@ order by a.tgl_trans asc
                             UNION ALL
                             SELECT * FROM form_list
                         ) a
-                        GROUP BY 
+                        GROUP BY
                             a.ws,
                             a.styleno,
                             a.color,
@@ -15746,7 +15764,7 @@ order by a.tgl_trans asc
                             AND so.cancel_h = 'N'
                             AND ac.status = 'confirm'
                             AND mi.mattype = 'F'
-                            AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
+                            AND ac.dateinput > NOW() - INTERVAL 1 YEAR
                     ),
 
                     saldo_awal_cutting as (
@@ -15920,7 +15938,7 @@ order by a.tgl_trans asc
                                 color,
                                 panel
                         ) a
-                    ),  
+                    ),
 
                     query_qty_in as(
                         SELECT
@@ -16408,7 +16426,7 @@ order by a.tgl_trans asc
                     AND so.cancel_h = 'N'
                     AND ac.status = 'confirm'
                     AND mi.mattype = 'F'
-                    AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
+                    AND ac.dateinput > NOW() - INTERVAL 1 YEAR
             ),
 
             saldo_awal_cutting as (
@@ -16582,7 +16600,7 @@ order by a.tgl_trans asc
                         color,
                         panel
                 ) a
-            ),  
+            ),
 
             query_qty_in as(
                 SELECT
