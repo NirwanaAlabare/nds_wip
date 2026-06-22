@@ -40,26 +40,55 @@ class MgtReportDashboardController extends Controller
 
     public function getRawData(Request $request)
     {
-        $start_date = $request->start_date ?? date('Y-m-01');
-        $end_date   = $request->end_date   ?? date('Y-m-d');
-
         return response()->json([
             'rows' => $this->fetchRawData($request),
-            'product_costing' => $this->fetchProductCosting($start_date, $end_date),
         ]);
     }
 
-    private function fetchProductCosting(string $start_date, string $end_date): array
+    public function getProductCostingComparison(Request $request)
     {
+        return response()->json([
+            'data' => $this->fetchProductCostingComparison(),
+        ]);
+    }
+
+    private function fetchProductCostingComparison(): array
+    {
+        $start_date = date('Y-m-d', strtotime('-6 months'));
+
         return DB::connection('mysql_sb')->select("
-            SELECT mp.product_item, SUM(ac.qty) AS qty
-            FROM act_costing ac
-            INNER JOIN masterproduct mp ON ac.id_product = mp.id
-            WHERE ac.cost_date >= ? AND ac.cost_date <= ?
-            GROUP BY mp.product_item
-            ORDER BY qty DESC
-            LIMIT 7
-        ", [$start_date, $end_date]);
+            WITH ac as (
+                SELECT sum(qty) as qty_cost, product_item FROM act_costing ac
+                inner join masterproduct mp on ac.id_product = mp.id
+                where cost_date >= ? and status != 'SAMPLE'
+                group by product_item
+            ),
+            so as (
+                select sum(sd.qty) as qty_so, product_item from so
+                left join so_det sd on sd.id_so = so.id
+                left join act_costing ac on so.id_cost = ac.id
+                inner join masterproduct mp on ac.id_product = mp.id
+                where sd.cancel = 'N' and so.cancel_h = 'N' and cost_date >= ? and status != 'SAMPLE'
+                group by product_item
+            )
+            SELECT
+                COALESCE(ac.product_item, so.product_item) AS product_item,
+                COALESCE(ac.qty_cost, 0) AS qty_cost,
+                COALESCE(so.qty_so, 0)   AS qty_so
+            FROM ac
+            LEFT JOIN so ON ac.product_item = so.product_item
+
+            UNION
+
+            SELECT
+                COALESCE(ac.product_item, so.product_item) AS product_item,
+                COALESCE(ac.qty_cost, 0) AS qty_cost,
+                COALESCE(so.qty_so, 0)   AS qty_so
+            FROM ac
+            RIGHT JOIN so ON ac.product_item = so.product_item
+
+            ORDER BY product_item ASC
+        ", [$start_date, $start_date]);
     }
 
     private function fetchRawData(Request $request): array
