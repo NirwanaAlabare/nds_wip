@@ -2096,11 +2096,11 @@ class FGStokLaporanController extends Controller
         foreach ($data as $row) {
 
             $rows = [
-                $row->buyer ?: '',
-                $row->ws ?: '',
-                $row->styleno ?: '',
-                $row->color ?: '',
-                $row->size ?: '',
+                $row->buyer,
+                $row->ws,
+                $row->styleno,
+                $row->color,
+                $row->size,
 
                 (float) ($row->saldo_awal_transit ?? 0),
                 (float) ($row->qty_in_qc_reject ?? 0),
