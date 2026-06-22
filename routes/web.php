@@ -669,6 +669,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
         Route::get('/rep_mutasi_fg_stock', 'rep_mutasi_fg_stock')->name('rep_mutasi_fg_stock');
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
+        Route::get('/rep_mutasi_global_fg_stock', 'rep_mutasi_global_fg_stock')->name('rep_mutasi_global_fg_stock');
+        Route::get('/export_excel_rep_mutasi_global_fg_stock', 'export_excel_rep_mutasi_global_fg_stock')->name('export_excel_rep_mutasi_global_fg_stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
@@ -1204,6 +1206,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-bom-additional', 'exportExcel')->name('export-excel-bom-additional');
     });
 
+    // Input Barcode SO (Multi SO)
+    Route::controller(Marketing_SOController::class)->prefix('so-barcode')->middleware('marketing')->group(function () {
+        Route::get('/', 'barcodeInputPage')->name('so-barcode-input-page');
+        Route::get('/get-so-list', 'getBarcodeSOList')->name('so-barcode-get-so-list');
+        Route::get('/get-details', 'getBarcodeDetails')->name('so-barcode-get-details');
+        Route::post('/save', 'saveBarcode')->name('so-barcode-save');
+    });
+
     // Master SO
     Route::controller(Marketing_SOController::class)->prefix("master-marketing-so")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-marketing-so');
@@ -1229,6 +1239,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
         Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');
+        Route::get('/merge-candidates/{id}', 'getMergeCandidates')->name('so-merge-candidates');
+        Route::get('/merge-source-detail/{id}', 'getMergeSourceDetail')->name('so-merge-source-detail');
+        Route::post('/execute-merge', 'executeMerge')->name('so-execute-merge');
+        Route::get('/input-barcode/{id}', 'inputBarcodePage')->name('so-input-barcode');
+        Route::post('/save-barcode', 'saveBarcode')->name('so-save-barcode');
     });
 
     // QC Inspect Kain

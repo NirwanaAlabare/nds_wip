@@ -170,6 +170,42 @@ class CeisaService
     }
 
     /**
+     * Kirim dokumen BC 2.7 ke CEISA.
+     */
+    public function kirimDokumenBc27($payload, $isFinal = 'false')
+    {
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    /**
+     * Kirim dokumen BC 3.0 ke CEISA
+     */
+    public function kirimDokumenBc30($payload, $isFinal = 'false')
+    {
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    /**
      * Delete draft dokumen dari CEISA
      */
     public function deleteDraft($nomorAju)

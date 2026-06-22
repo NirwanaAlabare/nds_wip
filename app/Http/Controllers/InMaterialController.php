@@ -31,9 +31,11 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class InMaterialController extends Controller
 {
+    use ChecksClosingPeriode;
     /**
      * Display a listing of the resource.
      *
@@ -121,7 +123,7 @@ class InMaterialController extends Controller
         $kode_gr = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT(current_date(), '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT(current_date(), '%m'),DATE_FORMAT(current_date(), '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) kode FROM bpb WHERE MONTH(bpbdate) = MONTH(current_date()) AND YEAR(bpbdate) = YEAR(current_date()) AND LEFT(bpbno_int,2) = 'GK'");
         $no_po = DB::connection('mysql_sb')->select("select pono from po_header where podate >= '2024-01-01' and app = 'A' and jenis = 'P'");
 
-        return view('inmaterial.create-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
+        return view('inmaterial.create-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function lokmaterial($id)
@@ -597,6 +599,15 @@ public function updatedet(Request $request)
         if (intval($request['jumlah_qty']) > 0) {
 
             $tglbpb = $request['txt_tgl_gr'];
+
+            $min_tgl_ro = $this->getMinTglRo();
+            if ($min_tgl_ro && $tglbpb < $min_tgl_ro) {
+                return ['status' => 400, 'message' => "Tgl BPB tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+            }
+            if ($this->isTglRoClosed($tglbpb)) {
+                return ['status' => 400, 'message' => "Tgl BPB $tglbpb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+            }
+
             $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0))) no_dok FROM whs_inmaterial_fabric WHERE MONTH(tgl_dok) = MONTH('" . $tglbpb . "') AND YEAR(tgl_dok) = YEAR('" . $tglbpb . "') AND LEFT(no_dok,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
             // dd($Mattype1);
@@ -653,6 +664,8 @@ public function updatedet(Request $request)
             $bcno = $request['txt_reg_num'];
             $bcdate = $request['txt_tgl_reg'];
             $no_po = $request['txt_po'];
+            $cek_ppn = DB::connection('mysql_sb')->select("select tax from po_header where pono = '" . $no_po . "'");
+            $ppn_po = $cek_ppn ? $cek_ppn[0]->tax : 0;
             $no_ws = $request['txt_wsglobal'];
             $inmaterialDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
@@ -695,6 +708,7 @@ public function updatedet(Request $request)
                         "jenis_trans" => $jenis_trans,
                         "id_po_item" => $id_po_item,
                         "pono" => $pono,
+                        "ppn" => $ppn_po,
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
                     ]);
@@ -756,6 +770,7 @@ public function updatedet(Request $request)
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
                         "nilai_barang" => $nilai_subkon,
+                        "ppn" => $ppn_po,
                     ]);
                 }
             }

@@ -25,9 +25,11 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class ReqMaterialController extends Controller
 {
+    use ChecksClosingPeriode;
     /**
      * Display a listing of the resource.
      *
@@ -101,7 +103,7 @@ class ReqMaterialController extends Controller
             else '4'
             end");
 
-        return view('reqmaterial.create-reqmaterial', ['tipe_ws' => $tipe_ws,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+        return view('reqmaterial.create-reqmaterial', ['tipe_ws' => $tipe_ws,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function editrequest($bppbno)
@@ -438,6 +440,15 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
 
         $timestamp = Carbon::now();
         $tgldok = $request['req_date'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tgldok < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Request date tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tgldok)) {
+            return ['status' => 400, 'message' => "Request date $tgldok berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
         $id_supplier = $validatedRequest['dikirim_ke'];
         $tipe_mat = $request['tipe_mat'];
         $tipe_ws = $request['tipe_ws'];
