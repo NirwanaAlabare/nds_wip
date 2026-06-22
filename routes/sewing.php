@@ -122,11 +122,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // Undo History
-    Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
+    Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("role:sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
-    Route::controller(CheckOutputDetailController::class)->prefix("check-output-detail")->middleware("sewing")->group(function () {
+    Route::controller(CheckOutputDetailController::class)->prefix("check-output-detail")->middleware("role:sewing")->group(function () {
         Route::get('/', 'checkOutputDetail')->name("check-output-detail");
         Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
