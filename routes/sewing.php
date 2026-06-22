@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Sewing\CheckOutputDetailController;
 use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\MasterDefectController;
@@ -125,6 +126,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
+    Route::controller(CheckOutputDetailController::class)->prefix("check-output-detail")->middleware("sewing")->group(function () {
+        Route::get('/', 'checkOutputDetail')->name("check-output-detail");
+        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
+    });
+
     // Sewing Tools
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
@@ -137,10 +144,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
         Route::post('/fix-reject-out-detail', 'fixRejectOutDetail')->name("fix-reject-out-detail");
 
-        // Check Output Detail
-        Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
-        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
-        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
+        // DEPRECATED MOVE TO CONTROLLER PERSONAL
+        // // Check Output Detail
+        // Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
+        // Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        // Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
         // Check Output vs Master Plan
         Route::get('/check-output-master-plan', 'checkOutputMasterPlan')->name("check-output-master-plan");

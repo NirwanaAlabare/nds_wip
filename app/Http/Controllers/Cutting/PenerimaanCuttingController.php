@@ -66,7 +66,6 @@ class PenerimaanCuttingController extends Controller
                     }
                 );
 
-            // ✅ FILTER DATE (AMAN & MASUK KE recordsFiltered)
             if ($tglAwal) {
                 $data->where('penerimaan_cutting.tanggal_terima', '>=', $tglAwal);
             }
