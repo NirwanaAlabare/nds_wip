@@ -742,7 +742,7 @@ class CheckOutputDetailController extends Controller
                         left join so on so.id = so_det.id_so
                         left join act_costing on act_costing.id = so.id_cost
                         left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                        left join userpassword on userpassword.username = output_rfts_packing_po.created_by
+                        left join userpassword on userpassword.username = output_rfts_packing_po.created_by_username
                         left join laravel_nds.ppic_master_so on ppic_master_so.id = output_rfts_packing_po.po_id
                     where
                         output_rfts_packing_po.id is not null
@@ -1482,7 +1482,7 @@ class CheckOutputDetailController extends Controller
                     left join so on so.id = so_det.id_so
                     left join act_costing on act_costing.id = so.id_cost
                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                    left join userpassword on userpassword.username = output_rfts_packing_po.created_by
+                    left join userpassword on userpassword.username = output_rfts_packing_po.created_by_username
                     left join laravel_nds.ppic_master_so on ppic_master_so.id = output_rfts_packing_po.po_id
                 where
                     output_rfts_packing_po.id is not null
