@@ -62,7 +62,8 @@ class AssetMesinMasterController extends Controller
                     j.nm_jenis,
                     m.tipe,
                     k.nm_merk,
-                    COUNT(*) AS total_unit
+                    COUNT(*) AS total_unit,
+                    'PEMBELIAN' AS sumber
                 FROM asset_penerimaan_mesin a
                 INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
                 INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
@@ -70,7 +71,22 @@ class AssetMesinMasterController extends Controller
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
                 $where
                 GROUP BY m.id_jenis
-                ORDER BY j.nm_jenis ASC
+
+                UNION ALL
+
+                SELECT
+                    '-' as id_jenis,
+                    '-' as kd_jenis,
+                    '-' as kd_merk,
+                    nm_jenis,
+                    tipe,
+                    nm_merk,
+                    COUNT(*) AS total_unit,
+                    'SEWA' AS sumber
+                FROM asset_penerimaan_mesin_sewa
+                GROUP BY nm_jenis, nm_merk, tipe
+
+                ORDER BY nm_jenis ASC
             ", $bindings);
 
             return DataTables::of($data)->toJson();
@@ -93,22 +109,50 @@ class AssetMesinMasterController extends Controller
     {
         $request->validate([
             'id_jenis' => 'required',
+            'sumber' => 'required|in:PEMBELIAN,SEWA',
         ]);
 
-        $units = DB::select("
-            SELECT
-                a.id,
-                a.kode_qr,
-                a.serial_number,
-                a.foto,
-                a.lokasi,
-                ms.supplier
-            FROM asset_penerimaan_mesin a
-            LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
-            LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
-            WHERE a.id_jenis = ?
-            ORDER BY a.id DESC
-        ", [$request->id_jenis]);
+        // Baris 'sewa' hasil UNION dari asset_penerimaan_mesin_sewa (tidak punya id_jenis),
+        // jadi detailnya dicari berdasarkan kombinasi nm_jenis, nm_merk & tipe
+        if ($request->sumber === 'SEWA') {
+            $request->validate([
+                'nm_jenis' => 'nullable|string',
+                'nm_merk' => 'nullable|string',
+                'tipe' => 'nullable|string',
+            ]);
+
+            // Pakai <=> (null-safe equal) karena nm_jenis/nm_merk/tipe bisa NULL kalau unit sewa belum dilengkapi,
+            // sedangkan "= ?" di SQL tidak akan pernah cocok dengan NULL meskipun parameternya juga NULL
+            $units = DB::select("
+                SELECT
+                    a.id,
+                    a.kode_qr,
+                    a.serial_number,
+                    a.foto,
+                    a.lokasi,
+                    ms.supplier
+                FROM asset_penerimaan_mesin_sewa a
+                LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
+                LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                WHERE a.nm_jenis <=> ? AND a.nm_merk <=> ? AND a.tipe <=> ?
+                ORDER BY a.id DESC
+            ", [$request->nm_jenis, $request->nm_merk, $request->tipe]);
+        } else {
+            $units = DB::select("
+                SELECT
+                    a.id,
+                    a.kode_qr,
+                    a.serial_number,
+                    a.foto,
+                    a.lokasi,
+                    ms.supplier
+                FROM asset_penerimaan_mesin a
+                LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
+                LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                WHERE a.id_jenis = ?
+                ORDER BY a.id DESC
+            ", [$request->id_jenis]);
+        }
 
         foreach ($units as $unit) {
             $complete = !empty($unit->serial_number) && !empty($unit->foto);

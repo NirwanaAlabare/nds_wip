@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use PDF;
+use QrCode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -91,10 +92,7 @@ class AssetMesinSewaController extends Controller
             return DataTables::of($data_input)->toJson();
         }
 
-        $qrList = DB::table('asset_master_mesin_sewa_qr')
-            ->select('kode_qr')
-            ->orderBy('kode_qr', 'ASC')
-            ->get();
+        $qrList = $this->getMesinSewaQrList();
 
         // For non-AJAX (initial page load)
         return view('asset_management.mesin_sewa', [
@@ -132,6 +130,74 @@ class AssetMesinSewaController extends Controller
         return DataTables::of($data)->toJson();
     }
 
+    public function export_excel_penerimaan_mesin_sewa(Request $request)
+    {
+        $tgl_awal = $request->tgl_awal;
+        $tgl_akhir = $request->tgl_akhir;
+
+        $data = DB::select("SELECT a.id_bpb, a.tgl_trans, a.id_item, count(*) as tot_qty,
+        SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' THEN 1 ELSE 0 END) as tot_filled,
+        SUM(CASE WHEN a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_foto,
+        SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' AND a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_complete,
+        a.bpbno_int, supplier, a.nm_jenis, a.nm_merk, a.tipe, mi.itemdesc
+        FROM asset_penerimaan_mesin_sewa a
+        left join signalbit_erp.bpb on a.id_bpb = bpb.id
+        left join signalbit_erp.mastersupplier ms on bpb.id_supplier = ms.id_supplier
+        left join signalbit_erp.masteritem mi on a.id_item = mi.id_item
+        where a.tgl_trans >= ? and a.tgl_trans <= ?
+        group by a.id_bpb, a.id_item
+        order by a.tgl_trans ASC
+        ", [$tgl_awal, $tgl_akhir]);
+
+        $rows = array_map(fn($r) => (array) $r, $data);
+
+        $excel = FastExcel::create('Penerimaan Mesin Sewa');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeRow(['Laporan Penerimaan Mesin Sewa'])->applyFontStyleBold()->applyFontSize(16);
+        $sheet->writeRow(["Periode {$tgl_awal} s/d {$tgl_akhir}"])->applyFontStyleBold();
+        $sheet->writeRow([]);
+
+        $sheet->writeRow([
+            'No',
+            'Tgl Transaksi',
+            'BPB',
+            'Supplier',
+            'Jenis',
+            'Merk',
+            'Nama Mesin',
+            'Tipe',
+            'Total Unit',
+            'Sudah Lengkap',
+        ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $no = 1;
+        foreach ($rows as $r) {
+            $sheet->writeRow([
+                $no++,
+                $r['tgl_trans'] ?? '',
+                $r['bpbno_int'] ?? '',
+                $r['supplier'] ?? '',
+                $r['nm_jenis'] ?? '',
+                $r['nm_merk'] ?? '',
+                $r['itemdesc'] ?? '',
+                $r['tipe'] ?? '',
+                $r['tot_qty'] ?? 0,
+                $r['tot_complete'] ?? 0,
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = "Laporan Penerimaan Mesin Sewa {$tgl_awal} sd {$tgl_akhir}.xlsx";
+
+        // FastExcel::download() echo file langsung via header()+readfile() tanpa mengembalikan Response,
+        // sehingga Laravel ikut mengirim response kosong di belakangnya & merusak isi file xlsx.
+        // Simpan ke temp file lalu kirim lewat response()->download() bawaan Laravel supaya bersih.
+        $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('xlsx_export_') . '.xlsx';
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+    }
+
     public function get_bpb_detail_sewa(Request $request)
     {
         $data = DB::connection('mysql_sb')->select("SELECT id, b.id_item, b.bpbno, b.bpbno_int, mi.itemdesc, qty, unit, b.id_supplier FROM bpb b
@@ -162,15 +228,17 @@ class AssetMesinSewaController extends Controller
                 id_bpb,
                 bpbno,
                 bpbno_int,
+                masa_kontrak,
                 created_by,
                 created_at,
                 updated_at
-            ) VALUES (?,?,?,?,?,?,?,?)", [
+            ) VALUES (?,?,?,?,?,?,?,?,?)", [
                 $timestamp->format('Y-m-d'),
                 $request->id_item,
                 $request->id_bpb,
                 $request->bpbno,
                 $request->bpbno_int,
+                30,
                 $user,
                 $timestamp,
                 $timestamp
@@ -180,6 +248,106 @@ class AssetMesinSewaController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Mesin sewa berhasil disimpan sebanyak ' . $request->qty . ' unit',
+        ]);
+    }
+
+    public function get_mesin_sewa_qr_list(Request $request)
+    {
+        return response()->json($this->getMesinSewaQrList());
+    }
+
+    // Daftar Kode QR beserta gambar QR (svg base64) untuk ditampilkan & dipilih saat print
+    private function getMesinSewaQrList()
+    {
+        $qrList = DB::table('asset_master_mesin_sewa_qr')
+            ->select('kode_qr', 'created_by', 'created_at')
+            ->orderBy('kode_qr', 'ASC')
+            ->get();
+
+        foreach ($qrList as $row) {
+            $row->qr = base64_encode(QrCode::format('svg')->size(80)->generate($row->kode_qr));
+        }
+
+        return $qrList;
+    }
+
+    public function print_mesin_sewa_qr(Request $request)
+    {
+        $request->validate([
+            'kode_qr' => 'required|array|min:1',
+            'kode_qr.*' => 'required|string|exists:asset_master_mesin_sewa_qr,kode_qr',
+        ]);
+
+        $pdf = PDF::loadView('asset_management.print_qr_mesin_sewa_list', [
+            'kodeQrList' => $request->kode_qr,
+        ])->setPaper([0, 0, 200, 200]);
+
+        return $pdf->stream('QR Code Mesin Sewa.pdf');
+    }
+
+    public function store_mesin_sewa_qr(Request $request)
+    {
+        $request->validate([
+            'kode_qr' => 'required|string|max:20|unique:asset_master_mesin_sewa_qr,kode_qr',
+        ], [
+            'kode_qr.unique' => 'Kode QR tersebut sudah terdaftar, tidak boleh duplikat.',
+        ]);
+
+        $timestamp = Carbon::now();
+
+        DB::table('asset_master_mesin_sewa_qr')->insert([
+            'kode_qr' => $request->kode_qr,
+            'created_by' => Auth::user()->name,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kode QR berhasil disimpan.',
+        ]);
+    }
+
+    public function update_mesin_sewa_qr(Request $request)
+    {
+        $request->validate([
+            'kode_qr_old' => 'required|string|exists:asset_master_mesin_sewa_qr,kode_qr',
+            'kode_qr_new' => 'required|string|max:20',
+        ]);
+
+        $old = $request->kode_qr_old;
+        $new = $request->kode_qr_new;
+
+        if ($old === $new) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kode QR tidak berubah.',
+            ]);
+        }
+
+        $duplicate = DB::table('asset_master_mesin_sewa_qr')->where('kode_qr', $new)->exists();
+        if ($duplicate) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kode QR "' . $new . '" sudah terdaftar, tidak boleh duplikat.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($old, $new) {
+            DB::table('asset_master_mesin_sewa_qr')->where('kode_qr', $old)->update([
+                'kode_qr' => $new,
+                'updated_at' => Carbon::now(),
+            ]);
+
+            // kode_qr juga dipakai sebagai referensi di unit mesin sewa, ikut disinkronkan agar tidak orphan
+            DB::table('asset_penerimaan_mesin_sewa')->where('kode_qr', $old)->update([
+                'kode_qr' => $new,
+            ]);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kode QR berhasil diubah.',
         ]);
     }
 
@@ -206,7 +374,7 @@ class AssetMesinSewaController extends Controller
             'units' => 'required|array',
             'units.*.id' => 'required|integer',
             'units.*.serial_number' => 'nullable|string|max:255',
-            'units.*.foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'units.*.foto' => 'nullable|image|mimes:jpg,jpeg,png|max:10240',
             'units.*.kode_qr' => 'nullable|exists:asset_master_mesin_sewa_qr,kode_qr',
             'units.*.nm_jenis' => 'nullable|string|max:255',
             'units.*.nm_merk' => 'nullable|string|max:255',
@@ -223,7 +391,26 @@ class AssetMesinSewaController extends Controller
             $update = ['updated_at' => $timestamp];
 
             if (array_key_exists('serial_number', $unit)) {
-                $update['serial_number'] = $unit['serial_number'] ?: null;
+                $serialNumber = $unit['serial_number'] ?: null;
+
+                if ($serialNumber) {
+                    $idItem = DB::table('asset_penerimaan_mesin_sewa')->where('id', $unit['id'])->value('id_item');
+
+                    $duplicate = DB::table('asset_penerimaan_mesin_sewa')
+                        ->where('id_item', $idItem)
+                        ->where('serial_number', $serialNumber)
+                        ->where('id', '!=', $unit['id'])
+                        ->exists();
+
+                    if ($duplicate) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Serial Number "' . $serialNumber . '" sudah digunakan pada jenis mesin yang sama',
+                        ], 422);
+                    }
+                }
+
+                $update['serial_number'] = $serialNumber;
             }
 
             if (array_key_exists('kode_qr', $unit)) {
@@ -258,6 +445,12 @@ class AssetMesinSewaController extends Controller
                 $tglAwalKontrak = array_key_exists('tgl_awal_kontrak', $update) ? $update['tgl_awal_kontrak'] : $current->tgl_awal_kontrak;
                 $masaKontrak = array_key_exists('masa_kontrak', $update) ? $update['masa_kontrak'] : $current->masa_kontrak;
 
+                // Default Masa Kontrak ke 30 hari kalau Tanggal Terima sudah diisi tapi Masa Kontrak belum pernah diisi
+                if ($tglAwalKontrak && !$masaKontrak) {
+                    $masaKontrak = 30;
+                    $update['masa_kontrak'] = 30;
+                }
+
                 $update['tgl_akhir_kontrak'] = ($tglAwalKontrak && $masaKontrak)
                     ? Carbon::parse($tglAwalKontrak)->addDays((int) $masaKontrak)->format('Y-m-d')
                     : null;
@@ -276,19 +469,5 @@ class AssetMesinSewaController extends Controller
             'status' => 'success',
             'message' => 'Data unit mesin sewa berhasil disimpan.',
         ]);
-    }
-
-    public function print_qr_mesin_sewa(Request $request, $id)
-    {
-        $unit = DB::table('asset_penerimaan_mesin_sewa')->where('id', $id)->first();
-
-        if (!$unit || !$unit->kode_qr) {
-            abort(404);
-        }
-
-        $pdf = PDF::loadView('asset_management.print_qr_mesin', ['kode_qr' => $unit->kode_qr])
-            ->setPaper([0, 0, 200, 200]);
-
-        return $pdf->stream('QR-' . $unit->kode_qr . '.pdf');
     }
 }
