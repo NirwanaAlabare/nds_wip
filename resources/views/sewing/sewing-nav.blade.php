@@ -69,6 +69,12 @@
                     Undo Output History <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('check-output-detail') }}"
+                    class="dropdown-item {{ $routeName == 'check-output-detail' ? 'active' : '' }}">
+                    Check Output Detail <i class="fa-solid fa-circle-info"></i>
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">
