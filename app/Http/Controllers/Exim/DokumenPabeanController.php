@@ -108,6 +108,15 @@ class DokumenPabeanController extends Controller
                     if ($row->jenis_dok == 'BC 4.0' && $jenis == 'Pemasukan') {
                         $editUrl = route('dokumen-pabean-edit', ['id' => $row->trx_no_par, 'trx' => $jenis]);
                     }
+
+                    if($row->jenis_dok == 'BC 2.7' && $jenis == 'Pemasukan') {
+                        $editUrl = route('dokumen-pabean-edit-bc27', ['id' => $row->trx_no_par]);
+                    }
+
+                    if($row->jenis_dok == 'BC 3.0') {
+                        $editUrl = route('dokumen-pabean-edit-bc30', ['id' => $row->trx_no_par]);
+                    }
+
                     $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
                     if($row->ceisa_status == 1) {
@@ -770,9 +779,15 @@ class DokumenPabeanController extends Controller
 
         $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
 
-        // Redirect ke form BC 2.3 jika jenis_bc adalah '23'
+        // Redirect ke form spesifik berdasarkan jenis_bc
         if ($ceisaInfo && $ceisaInfo->jenis_bc == '23') {
             return $this->editBc23($id, $request);
+        }
+        if ($ceisaInfo && in_array($ceisaInfo->jenis_bc, ['27', '2.7'])) {
+            return $this->editBc27($id, $request);
+        }
+        if ($ceisaInfo && in_array($ceisaInfo->jenis_bc, ['30', '3.0'])) {
+            return $this->editBc30($id, $request);
         }
 
         $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
@@ -1260,7 +1275,7 @@ class DokumenPabeanController extends Controller
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
-                    'jenis_bc'     => '23',
+                    'jenis_bc'     => '2.3',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bpbno_int') ?? null
                 ]
@@ -1662,4 +1677,35 @@ class DokumenPabeanController extends Controller
             ], 500);
         }
     }
+
+    public function editBc27($id, Request $request)
+    {
+        return app(\App\Services\Bc27Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc27($id, Request $request)
+    {
+        return app(\App\Services\Bc27Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc27($id, Request $request)
+    {
+        return app(\App\Services\Bc27Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->sendCeisa($id, $request);
+    }
 }
+
