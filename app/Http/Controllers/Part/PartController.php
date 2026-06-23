@@ -412,7 +412,7 @@ class PartController extends Controller
             $partDetailSecondaryStore = PartDetailSecondary::insert($partDetailSecondaryData);
 
             // Part Form IN
-            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
+            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.panel", $partStore->panel)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
             foreach ($formCutData as $formCut) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
 
@@ -1604,6 +1604,7 @@ class PartController extends Controller
                 form_cut_input.id form_cut_id,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
+                form_cut_input.waktu_selesai,
                 DATE ( form_cut_input.waktu_selesai ) tanggal_selesai,
                 users.NAME nama_meja,
                 marker_input.id marker_id,
@@ -1613,7 +1614,7 @@ class PartController extends Controller
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel,
-                CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut,
+                CONCAT(form_cut_input.no_cut, (CASE WHEN form_split.id IS NOT NULL THEN part_split.suffix ELSE '' END)) no_cut,
                 form_cut_input.total_lembar,
                 part_form.kode kode_part_form,
                 part.kode kode_part,
@@ -1631,7 +1632,8 @@ class PartController extends Controller
                 LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `marker_input_detail`.`so_det_id`
                 LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `master_sb_ws`.`size`
                 LEFT JOIN `users` ON `users`.`id` = `form_cut_input`.`no_meja`
-                LEFT JOIN part_split ON part_split.part_id = part.id and part_split.form_id = form_cut_input.id
+                LEFT JOIN part_split ON part_split.part_id = part.id
+                LEFT JOIN form_cut_input form_split ON form_split.id = part_split.form_id and form_cut_input.waktu_selesai >= form_split.waktu_selesai
             WHERE
                 part_form.id IS NOT NULL
                 AND `marker_input_detail`.`ratio` > 0
@@ -1647,6 +1649,7 @@ class PartController extends Controller
                 form_cut_piece.id form_cut_id,
                 null as id_marker,
                 form_cut_piece.no_form,
+                form_cut_piece.waktu_selesai,
                 DATE ( form_cut_piece.waktu_selesai ) tanggal_selesai,
                 null nama_meja,
                 form_cut_piece.id marker_id,
@@ -1681,6 +1684,7 @@ class PartController extends Controller
             GROUP BY
                 form_cut_piece.id
             order by
+                waktu_selesai asc,
                 CAST(no_cut AS UNSIGNED) asc,
                 color asc
             ");

@@ -1803,12 +1803,13 @@ class CuttingFormManualController extends Controller
             }
         }
 
-        $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
+        $formCutInputSimilarLatestData = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->
             where("marker_input.panel", $formCutInputData->marker->panel)->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            count();
+            orderBy("form_cut_input.waktu_selesai", "desc")->
+            first();
+        $formCutInputSimilarLatest = $formCutInputSimilarLatestData ? $formCutInputSimilarLatestData->no_cut : 0;
 
         $finishTime = $request->finishTime;
         $waktuSelesai = (empty($finishTime) || !strtotime($finishTime)) ? Carbon::now() : Carbon::parse($finishTime);
@@ -1822,7 +1823,7 @@ class CuttingFormManualController extends Controller
             "cons_act_nosr" => $request->consActNoSr,
             "unit_cons_act_nosr" => $request->unitConsActNoSr,
             "total_lembar" => $request->totalLembar,
-            "no_cut" => $formCutInputSimilarCount + 1,
+            "no_cut" => $formCutInputSimilarLatest + 1,
             "cons_ws_uprate" => $request->consWsUprate,
             "cons_marker_uprate" => $request->consMarkerUprate,
             "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
@@ -1895,6 +1896,16 @@ class CuttingFormManualController extends Controller
                 "form_id" => $formCutInputData->id,
                 "created_at" => Carbon::now(),
                 "updated_at" => Carbon::now(),
+            ]);
+        }
+
+        // check part split
+        $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
+        if ($partSplit) {
+
+            // reset no. cut
+            $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                'no_cut' => 1
             ]);
         }
 

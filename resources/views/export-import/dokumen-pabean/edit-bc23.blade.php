@@ -1664,20 +1664,18 @@
             theme: 'bootstrap4',
             placeholder: 'Cari Pelabuhan...',
             allowClear: true,
+            language: {
+                inputTooShort: function (args) {
+                    var remain = args.minimum - args.input.length;
+                    return "Masukkan " + remain + " karakter atau lebih";
+                }
+            },
             ajax: {
                 url: '{{ route("ceisa.pelabuhan") }}',
                 dataType: 'json',
                 delay: 250,
-                data: function (params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.results
-                    };
-                },
+                data: function (params) { return { q: params.term }; },
+                processResults: function (data) { return { results: data.results }; },
                 cache: true
             },
             minimumInputLength: 2

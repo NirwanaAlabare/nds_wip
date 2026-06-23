@@ -3553,7 +3553,77 @@ order by  ws asc, color asc
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-                $rawData = DB::select("SELECT
+                $rawData = DB::select("
+WITH
+            
+manajemen_roll as (
+    select
+        mrk.act_costing_ws,
+        COALESCE(b.id_roll, '-') id_roll,
+        b.id_item,
+        b.unit unit_roll,
+        ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll
+    from
+        form_cut_input a
+        left join form_cut_input_detail b on a.id = b.form_cut_id
+        left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+        LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+        LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+        left join users meja on meja.id = a.no_meja
+        left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+        left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+        left join scanned_item on scanned_item.id_roll = b.id_roll
+    where
+        (a.cancel = 'N'  OR a.cancel IS NULL)
+        AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+        AND a.status = 'SELESAI PENGERJAAN'
+        and b.status != 'not complete'
+        and b.id_item is not null
+        and a.waktu_selesai >= '" . $start_date. " 00:00:00'
+        and a.waktu_selesai <= '" . $end_date . " 23:59:59'
+    group by
+        b.id
+    UNION ALL
+    select
+        form_cut_piping.act_costing_ws,
+        form_cut_piping.id_roll,
+        scanned_item.id_item,
+        form_cut_piping.unit unit_roll,
+        form_cut_piping.piping total_pemakaian_roll
+    from
+        form_cut_piping
+        LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+        LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+        left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+        left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+    where
+        scanned_item.id_item is not null
+        and form_cut_piping.updated_at >= '" . $start_date. " 00:00:00'
+        and form_cut_piping.updated_at <= '" . $end_date . " 23:59:59'
+    group by
+        form_cut_piping.id
+    UNION ALL
+    SELECT
+        form_cut_piece.act_costing_ws,
+        form_cut_piece_detail.id_roll,
+        COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+        form_cut_piece_detail.qty_unit unit_roll,
+        form_cut_piece_detail.qty_pemakaian total_pemakaian_roll
+    FROM
+        form_cut_piece
+        LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+        LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+        LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+        LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+    WHERE
+        form_cut_piece_detail.STATUS = 'complete'
+        and form_cut_piece.waktu_selesai >= '" . $start_date. " 00:00:00'
+        and form_cut_piece.waktu_selesai <= '" . $end_date . " 23:59:59'
+    GROUP BY
+        form_cut_piece_detail.id
+)
+                
+SELECT
 ws,
 buyer,
 styleno,
@@ -3561,34 +3631,63 @@ color,
 $barcode,
 mut.id_item,
 mi.itemdesc,
-ROUND(SUM(saldo_awal), 2) AS saldo_awal,
+ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) AS saldo_awal,
 ROUND(SUM(qty_in), 2) AS penerimaan,
 ROUND(SUM(qty_pakai), 2) AS pemakaian,
 ROUND(SUM(sr), 2) AS short_roll,
 ROUND(SUM(gr_p), 2) AS gr_panel,
 ROUND(SUM(gr_g), 2) AS gr_set,
 ROUND(SUM(qty_retur), 2) AS retur,
+ROUND(SUM(qty_adjustment),2) AS adjustment,
 ROUND(
 SUM(saldo_awal)
+    + SUM(qty_adjustment_before)
     + SUM(qty_in)
     - SUM(qty_pakai)
     + SUM(sr)
     - SUM(gr_p)
     - SUM(gr_g)
     - SUM(qty_retur)
+    + SUM(qty_adjustment)
 , 2) AS saldo_akhir,
 satuan
 from
 (
 select
-ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan
+ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans >= '$start_date' and tgl_trans <= '$end_date'
 GROUP BY $groupBy
 UNION ALL
 select
-ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan
+ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
 GROUP BY $groupBy
+UNION ALL
+SELECT
+    wip_adjustment_fabric.ws, 
+    wip_adjustment_fabric.id_roll,
+    wip_adjustment_fabric.id_item,
+    0 saldo_awal,
+    0 qty_in,
+    manajemen_roll.total_pemakaian_roll qty_pakai,
+    0 sr,
+    0 gr_p,
+    0 gr_g,
+    0 qty_retur,
+    0 saldo,
+    wip_adjustment_fabric.satuan,
+    SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
+    SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
+FROM
+    wip_adjustment_fabric
+LEFT JOIN manajemen_roll ON manajemen_roll.act_costing_ws = wip_adjustment_fabric.ws AND
+    manajemen_roll.id_roll = wip_adjustment_fabric.id_roll AND
+    manajemen_roll.id_item = wip_adjustment_fabric.id_item AND
+    manajemen_roll.unit_roll = wip_adjustment_fabric.satuan
+WHERE
+    wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
+GROUP BY
+    $groupBy
 ) mut
 LEFT JOIN signalbit_erp.masteritem mi on mut.id_item = mi.id_item
 LEFT JOIN (
@@ -3605,21 +3704,24 @@ SELECT
 ) k on mut.ws = k.kpno
 GROUP BY $groupBy
 HAVING
-    ROUND(SUM(saldo_awal), 2) <> 0
+    ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
     OR ROUND(SUM(qty_pakai), 2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
+    OR ROUND(SUM(qty_adjustment), 2) <> 0
     OR ROUND(
         SUM(saldo_awal)
+        + SUM(qty_adjustment_before)
         + SUM(qty_in)
         - SUM(qty_pakai)
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
-        - SUM(qty_retur),
+        - SUM(qty_retur)
+        + SUM(qty_adjustment),
     2) <> 0
 order by ws asc, color asc
         ");
@@ -3664,6 +3766,75 @@ order by ws asc, color asc
         }
 
         $data = DB::select("
+            WITH
+            
+            manajemen_roll as (
+                select
+                    mrk.act_costing_ws,
+                    COALESCE(b.id_roll, '-') id_roll,
+                    b.id_item,
+                    b.unit unit_roll,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll
+                from
+                    form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                where
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+                    AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    AND a.status = 'SELESAI PENGERJAAN'
+                    and b.status != 'not complete'
+                    and b.id_item is not null
+                    and a.waktu_selesai >= '" . $start_date. " 00:00:00'
+                    and a.waktu_selesai <= '" . $end_date . " 23:59:59'
+                group by
+                    b.id
+                UNION ALL
+                select
+                    form_cut_piping.act_costing_ws,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    form_cut_piping.unit unit_roll,
+                    form_cut_piping.piping total_pemakaian_roll
+                from
+                    form_cut_piping
+                    LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at >= '" . $start_date. " 00:00:00'
+                    and form_cut_piping.updated_at <= '" . $end_date . " 23:59:59'
+                group by
+                    form_cut_piping.id
+                UNION ALL
+                SELECT
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece_detail.id_roll,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll
+                FROM
+                    form_cut_piece
+                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                    LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    form_cut_piece_detail.STATUS = 'complete'
+                    and form_cut_piece.waktu_selesai >= '" . $start_date. " 00:00:00'
+                    and form_cut_piece.waktu_selesai <= '" . $end_date . " 23:59:59'
+                GROUP BY
+                    form_cut_piece_detail.id
+            )
+
             SELECT
                 ws,
                 buyer,
@@ -3673,22 +3844,25 @@ order by ws asc, color asc
                 mut.id_item,
                 mi.itemdesc,
 
-                ROUND(SUM(saldo_awal),2) AS saldo_awal,
+                ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
                 ROUND(SUM(qty_pakai),2) AS pemakaian,
                 ROUND(SUM(sr),2) AS short_roll,
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
                 ROUND(SUM(qty_retur),2) AS retur,
+                ROUND(SUM(qty_adjustment),2) AS adjustment,
 
                 ROUND(
                     SUM(saldo_awal)
+                    + SUM(qty_adjustment_before)
                     + SUM(qty_in)
                     - SUM(qty_pakai)
                     + SUM(sr)
                     - SUM(gr_p)
                     - SUM(gr_g)
                     - SUM(qty_retur)
+                    + SUM(qty_adjustment)
                 ,2) AS saldo_akhir,
                 satuan
 
@@ -3703,7 +3877,9 @@ order by ws asc, color asc
                     SUM(gr_g) gr_g,
                     SUM(qty_retur) qty_retur,
                     SUM(saldo) saldo,
-                    satuan
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans BETWEEN ? AND ?
                 GROUP BY $groupBy
@@ -3714,10 +3890,40 @@ order by ws asc, color asc
                     ws, id_roll, id_item,
                     SUM(saldo) saldo_awal,
                     0,0,0,0,0,0,0,
-                    satuan
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans = ?
                 GROUP BY $groupBy
+
+                UNION ALL
+
+                SELECT
+                    wip_adjustment_fabric.ws, 
+                    wip_adjustment_fabric.id_roll,
+                    wip_adjustment_fabric.id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    manajemen_roll.total_pemakaian_roll qty_pakai,
+                    0 sr,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    0 saldo,
+                    wip_adjustment_fabric.satuan,
+                    SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
+                    SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
+                FROM
+                    wip_adjustment_fabric
+                LEFT JOIN manajemen_roll ON manajemen_roll.act_costing_ws = wip_adjustment_fabric.ws AND
+                    manajemen_roll.id_roll = wip_adjustment_fabric.id_roll AND
+                    manajemen_roll.id_item = wip_adjustment_fabric.id_item AND
+                    manajemen_roll.unit_roll = wip_adjustment_fabric.satuan
+                WHERE
+                    wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
+                GROUP BY
+                    $groupBy
             ) mut
 
             LEFT JOIN signalbit_erp.masteritem mi
@@ -3738,21 +3944,24 @@ order by ws asc, color asc
 
             GROUP BY $groupBy
 HAVING
-    ROUND(SUM(saldo_awal), 2) <> 0
+    ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
     OR ROUND(SUM(qty_pakai), 2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
+    OR ROUND(SUM(qty_adjustment), 2) <> 0
     OR ROUND(
         SUM(saldo_awal)
+        + SUM(qty_adjustment_before)
         + SUM(qty_in)
         - SUM(qty_pakai)
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
-        - SUM(qty_retur),
+        - SUM(qty_retur)
+        + SUM(qty_adjustment),
     2) <> 0
 
             ORDER BY ws ASC, color ASC
@@ -3803,6 +4012,7 @@ HAVING
             'Ganti Reject Set',
             'Ganti Reject Panel',
             'Retur',
+            'Adjustment',
             'Saldo Akhir',
         ]);
 
@@ -3838,6 +4048,7 @@ HAVING
                 (float) $row->gr_set,
                 (float) $row->gr_panel,
                 (float) $row->retur,
+                (float) $row->adjustment,
                 (float) $row->saldo_akhir,
             ]);
 

@@ -451,12 +451,14 @@ class CuttingFormPieceController extends Controller
         if ($id) {
             $currentForm = FormCutPiece::where("id", $id)->first();
 
-            $formCutPieceSimilarLatest = FormCutPiece::
+            $formCutPieceSimilarLatestData = FormCutPiece::
                 where("form_cut_piece.act_costing_ws", $currentForm->act_costing_ws)->
                 where("form_cut_piece.color", $currentForm->color)->
                 where("form_cut_piece.panel", $currentForm->panel)->
                 where("form_cut_piece.status", "complete")->
-                max("form_cut_piece.no_cut");
+                orderBy("form_cut_piece.waktu_selesai", "desc")->
+                first();
+            $formCutPieceSimilarLatest = $formCutPieceSimilarLatestData ? $formCutPieceSimilarLatestData->no_cut : 0;
 
             // delete incomplete detail
             $currentFormDetail = $currentForm->formCutPieceDetails()->where('status', 'incomplete')->get();

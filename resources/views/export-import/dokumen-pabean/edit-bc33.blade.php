@@ -27,7 +27,7 @@
         '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6 - PEMBERITAHUAN PABEAN PENGELUARAN BARANG DARI KAWASAN PABEAN UNTUK DITIMBUN DI PUSAT LOGISTIK BERIKAT',
         '20' => 'BC 2.0 - PEMBERITAHUAN IMPOR BARANG', '21' => 'PIBK/IMPOR KHUSUS', '23' => 'BC 2.7 - PEMBERITAHUAN IMPOR BARANG UNTUK DITIMBUN DI TEMPAT PENIMBUNAN BERIKAT',
         '25' => 'BC 2.5 - PEMBERITAHUAN IMPOR BARANG DARI TEMPAT PENIMBUNAN BERIKAT', '27' => 'BC 2.7 - PEMBERITAHUAN PENGELUARAN UNTUK DIANGKUT DARI TEMPAT PENIMBUNAN BERIKAT KE TEMPAT PENIMBUNAN BERIKAT LAINNYA',
-        '28' => 'BC 2.8 - PEMBERITAHUAN IMPOR BARANG DARI PUSAT LOGISTIK BERIKAT', '30' => 'BC 3.0 - PEMBERITAHUAN EKSPOR NARAMG',
+        '28' => 'BC 2.8 - PEMBERITAHUAN IMPOR BARANG DARI PUSAT LOGISTIK BERIKAT', '30' => 'BC 3.0 - PEMBERITAHUAN EKSPOR BARANG',
         '33' => 'BC 3.3 - PEMBERITAHUAN EKSPOR BARANG MELALUI/DARI PUSAT LOGISTIK BERIKAT', '40' => 'BC 4.0 - PEMBERITAHUAN PEMASUKAN BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN KE TEMPAT PENIMBUNAN BERIKAT',
         '41' => 'BC 4.1 - PEMBERITAHUAN PENGELUARAN KEMBALI BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN DARI TEMPAT PENIMBUNAN BERIKAT', '50' => 'KITE',
         '51' => 'FTZ 01', '52' => 'FTZ 02', '53' => 'FTZ 03', '65' => 'BC 1.1 KONSOLIDASI PJT',
@@ -145,11 +145,11 @@
 <div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">
-            <i class="fas fa-edit"></i> BC 3.0 - PEMBERITAHUAN EKSPOR BARANG
+            <i class="fas fa-edit"></i> BC 3.3 - PEMBERITAHUAN EKSPOR BARANG
         </h5>
     </div>
 
-    <form action="{{ route('dokumen-pabean-update_draft_bc30', $header->bppbno ?? $header->trx_no_par) }}" method="POST" id="form-edit-ceisa" enctype="multipart/form-data">
+    <form action="{{ route('dokumen-pabean-update_draft_bc33', $header->bppbno ?? $header->trx_no_par) }}" method="POST" id="form-edit-ceisa" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="card-body">
@@ -157,19 +157,19 @@
                 <strong>No. Transaksi:</strong> {{ $header->trx_no_par }} |
                 <strong>Supplier:</strong> {{ $header->supplier ?? '-' }}
                 <input type="hidden" name="bppbno_int" value="{{ $header->bppbno_int ?? '' }}">
-                <input type="hidden" name="kodeDokumen" value="30">
+                <input type="hidden" name="kodeDokumen" value="33">
                 <input type="hidden" name="asalData" value="S">
                 <input type="hidden" name="disclaimer" value="1">
             </div>
 
             <ul class="nav nav-tabs" id="ceisaTab" role="tablist">
-                <li class="nav-item"><a class="nav-link active" id="header-tab" data-toggle="tab" href="#tab-header" role="tab">Header & PKB</a></li>
+                <li class="nav-item"><a class="nav-link active" id="header-tab" data-toggle="tab" href="#tab-header" role="tab">Header</a></li>
                 <li class="nav-item"><a class="nav-link" id="entitas-tab" data-toggle="tab" href="#tab-entitas" role="tab">Entitas</a></li>
-                <li class="nav-item"><a class="nav-link" id="dokumen-tab" data-toggle="tab" href="#tab-dokumen" role="tab">Dokumen Pelengkap</a></li>
-                <li class="nav-item"><a class="nav-link" id="pengangkut-tab" data-toggle="tab" href="#tab-pengangkut" role="tab">Pengangkutan</a></li>
+                <li class="nav-item"><a class="nav-link" id="dokumen-tab" data-toggle="tab" href="#tab-dokumen" role="tab">Dokumen</a></li>
+                <li class="nav-item"><a class="nav-link" id="pengangkut-tab" data-toggle="tab" href="#tab-pengangkut" role="tab">Pengangkut</a></li>
                 <li class="nav-item"><a class="nav-link" id="kemasan-tab" data-toggle="tab" href="#tab-kemasan" role="tab">Kemasan & Peti Kemas</a></li>
-                <li class="nav-item"><a class="nav-link" id="transaksi-tab" data-toggle="tab" href="#tab-transaksi" role="tab">Transaksi & Keuangan</a></li>
-                <li class="nav-item"><a class="nav-link" id="barang-tab" data-toggle="tab" href="#tab-barang" role="tab">Data Barang</a></li>
+                <li class="nav-item"><a class="nav-link" id="transaksi-tab" data-toggle="tab" href="#tab-transaksi" role="tab">Transaksi</a></li>
+                <li class="nav-item"><a class="nav-link" id="barang-tab" data-toggle="tab" href="#tab-barang" role="tab">Barang</a></li>
                 <li class="nav-item"><a class="nav-link" id="pungutan-tab" data-toggle="tab" href="#tab-pungutan" role="tab">Pungutan</a></li>
                 <li class="nav-item"><a class="nav-link" id="pernyataan-tab" data-toggle="tab" href="#tab-pernyataan" role="tab">Pernyataan</a></li>
             </ul>
@@ -177,239 +177,140 @@
             <div class="tab-content mt-3" id="ceisaTabContent">
 
                 <div class="tab-pane fade show active" id="tab-header" role="tabpanel">
-                    <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Data Utama</div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Nomor Aju</label>
-                                        <div class="col-sm-8"><input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}" readonly></div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Tanggal Aju</label>
-                                        <div class="col-sm-8"><input type="date" name="tanggalAju" class="form-control form-control-sm" value="{{ $ceisaInfo->tanggal_aju ?? date('Y-m-d') }}"></div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Kantor Pabean Pemuatan</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeKantorMuat" class="form-control form-control-sm select2bs4">
-                                                <option value="">Pilih Kantor Pabean Pemuatan</option>
-                                                @foreach($kantorList as $val => $label)
-                                                    <option value="{{ $val }}" {{ ($dataDetail['kodeKantorMuat'] ?? '050500') == $val ? 'selected' : '' }}>{{ $val }} - {{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Pelabuhan Muat Ekspor </label>
-                                        <div class="col-sm-8">
-                                            <select name="kodePelEkspor" class="form-control form-control-sm select2-pelabuhan">
-                                                <option value="">Pilih Pelabuhan Muat Ekspor</option>
-                                                @if(!empty($dataDetail['kodePelEkspor']))
-                                                    <option value="{{ $dataDetail['kodePelEkspor'] }}" selected>{{ $dataDetail['kodePelEkspor'] }}</option>
-                                                @endif
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Kantor Pabean Ekspor</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeKantorEkspor" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">Pilih Kantor Pabean Ekspor</option>
-                                                @foreach($kantorList as $val => $label)
-                                                    <option value="{{ $val }}" {{ ($dataDetail['kodeKantorEkspor'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Jenis Ekspor</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeJenisEkspor" class="form-control form-control-sm select2bs4">
-                                                @php $jenisEkspor = $dataDetail['kodeJenisEkspor'] ?? '' @endphp
-                                                <option value="">Pilih Jenis Ekspor</option>
-                                                <option value="1" {{ $jenisEkspor == '1' ? 'selected' : '' }}>1 - Ekspor Biasa</option>
-                                                <option value="2" {{ $jenisEkspor == '2' ? 'selected' : '' }}>2 - Ekspor Sementara</option>
-                                                <option value="4" {{ $jenisEkspor == '4' ? 'selected' : '' }}>4 - Ekspor Barang yang akan Diimpor Kembali</option>
-                                                <option value="5" {{ $jenisEkspor == '5' ? 'selected' : '' }}>5 - Re Ekspor Lainnya</option>
-                                                <option value="6" {{ $jenisEkspor == '6' ? 'selected' : '' }}>6 - Ekspor Barang Eks Impor Sementara</option>
-                                                <option value="7" {{ $jenisEkspor == '7' ? 'selected' : '' }}>7 - Ekspor Gabungan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Kategori Ekspor</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeKategoriEkspor" class="form-control form-control-sm select2bs4">
-                                                @php $katEkspor = $dataDetail['kodeKategoriEkspor'] ?? '' @endphp
-                                                <option value="">Pilih Kategori Ekspor</option>
-                                                <option {{ ($katEkspor ?? '') == '61' ? 'selected' : '' }} value="61">61 - BKC Yang Belum Dilunasi Cukainya</option>
-                                                <option {{ ($katEkspor ?? '') == '51' ? 'selected' : '' }} value="51">51 - PLB</option>
-                                                <option {{ ($katEkspor ?? '') == '46' ? 'selected' : '' }} value="46">46 - TPB Dari Kawasan Daur Ulang Berikat</option>
-                                                <option {{ ($katEkspor ?? '') == '45' ? 'selected' : '' }} value="45">45 - TPB Dari Tempat Lelang Berikat</option>
-                                                <option {{ ($katEkspor ?? '') == '44' ? 'selected' : '' }} value="44">44 - TPB Dari Toko Bebas Bea</option>
-                                                <option {{ ($katEkspor ?? '') == '43' ? 'selected' : '' }} value="43">43 - TPB Dari Tempat Pameran Berikat</option>
-                                                <option {{ ($katEkspor ?? '') == '42' ? 'selected' : '' }} value="42">42 - TPB Dari Gudang Berikat</option>
-                                                <option {{ ($katEkspor ?? '') == '41' ? 'selected' : '' }} value="41">41 - TPB Dari Kawasan Berikat</option>
-                                                <option {{ ($katEkspor ?? '') == '38' ? 'selected' : '' }} value="38">38 - Khusus Brg Keperluan Penelitian</option>
-                                                <option {{ ($katEkspor ?? '') == '37' ? 'selected' : '' }} value="37">37 - Khusus Brg Contoh</option>
-                                                <option {{ ($katEkspor ?? '') == '36' ? 'selected' : '' }} value="36">36 - Khusus Brg Cinderamata</option>
-                                                <option {{ ($katEkspor ?? '') == '35' ? 'selected' : '' }} value="35">35 - Khusus Brg Keperluan Ibadah Utk Umum Sosial Pendidikan Budaya/Olahraga dan Bencana Alam</option>
-                                                <option {{ ($katEkspor ?? '') == '34' ? 'selected' : '' }} value="34">34 - Khusus Brg Pindahan</option>
-                                                <option {{ ($katEkspor ?? '') == '33' ? 'selected' : '' }} value="33">33 - Khusus Brg Kiriman</option>
-                                                <option {{ ($katEkspor ?? '') == '32' ? 'selected' : '' }} value="32">32 - Khusus Brg Perwakilan Badan Internasional</option>
-                                                <option {{ ($katEkspor ?? '') == '31' ? 'selected' : '' }} value="31">31 - Khusus Brg Perwakilan Negara Asing</option>
-                                                <option {{ ($katEkspor ?? '') == '23' ? 'selected' : '' }} value="23">23 - KITE dengan pembebasan dan pengembalian</option>
-                                                <option {{ ($katEkspor ?? '') == '22' ? 'selected' : '' }} value="22">22 - Yg pd saat imp mndpt fas pengembalian BM(NIPER dgn pengembalian)</option>
-                                                <option {{ ($katEkspor ?? '') == '21' ? 'selected' : '' }} value="21">21 - Yg pd saat imp mndpt fas pembebasan BM(NIPER dgn pembebasan)</option>
-                                                <option {{ ($katEkspor ?? '') == '10' ? 'selected' : '' }} value="10">10 - Umum</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Cara Perdagangan</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeCaraDagang" class="form-control form-control-sm select2bs4">
-                                                @php $caraDagang = $dataDetail['kodeCaraDagang'] ?? '' @endphp
-                                                <option value="">Pilih Cara Perdagangan</option>
-                                                <option value="1" {{ $caraDagang == '1' ? 'selected' : '' }}>1 - Biasa</option>
-                                                <option value="2" {{ $caraDagang == '2' ? 'selected' : '' }}>2 - IMB - Imbal Dagang</option>
-                                                <option value="3" {{ $caraDagang == '3' ? 'selected' : '' }}>3 - PMK - Pembayaran dimuka / Advance Payment</option>
-                                                <option value="4" {{ $caraDagang == '4' ? 'selected' : '' }}>4 - KMD Bertahap - Pembayaran Kemudian / Open Account Tunai</option>
-                                                <option value="5" {{ $caraDagang == '5' ? 'selected' : '' }}>5 - KMD Tunai - Pembayaran Kemudian / Open Account Tunai</option>
-                                                <option value="6" {{ $caraDagang == '6' ? 'selected' : '' }}>6 - SLC - Sight Letter of Credit</option>
-                                                <option value="7" {{ $caraDagang == '7' ? 'selected' : '' }}>7 - ULC - Usance Letter of Credit</option>
-                                                <option value="8" {{ $caraDagang == '8' ? 'selected' : '' }}>8 - RLC - Red Clause Letter of Credit</option>
-                                                <option value="9" {{ $caraDagang == '9' ? 'selected' : '' }}>9 - WSI - Wessel Inkaso / Collection Draft</option>
-                                                <option value="10" {{ $caraDagang == '10' ? 'selected' : '' }}>10 - KON - Konsinyasi / Consignment</option>
-                                                <option value="11" {{ $caraDagang == '11' ? 'selected' : '' }}>11 - ICA - Inter Company Account</option>
-                                                <option value="12" {{ $caraDagang == '12' ? 'selected' : '' }}>12 - PDN Tunai - Pembayaran di Dalam Negeri Tunai</option>
-                                                <option value="13" {{ $caraDagang == '13' ? 'selected' : '' }}>13 - TT - Pembayaran di Dalam Negeri melalui Telegraph Transfer</option>
-                                                <option value="14" {{ $caraDagang == '14' ? 'selected' : '' }}>14 - NCV - Dilakukan tanpa pembayaran</option>
-                                                <option value="15" {{ $caraDagang == '15' ? 'selected' : '' }}>15 - Lainnya</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Cara Pembayaran</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeCaraBayar" class="form-control form-control-sm select2bs4">
-                                                @php $caraBayar = $dataDetail['kodeCaraBayar'] ?? '' @endphp
-                                                <option value="">Pilih Cara Pembayaran</option>
-                                                <option value="1" {{ $caraBayar == '1' ? 'selected' : '' }}>1 - BIASA/TUNAI</option>
-                                                <option value="2" {{ $caraBayar == '2' ? 'selected' : '' }}>2 - BERKALA</option>
-                                                <option value="3" {{ $caraBayar == '3' ? 'selected' : '' }}>3 - DENGAN JAMINAN</option>
-                                                <option value="4" {{ $caraBayar == '4' ? 'selected' : '' }}>4 - PERHITUNGAN KEMUDIAN</option>
-                                                <option value="5" {{ $caraBayar == '5' ? 'selected' : '' }}>5 - KONSINYASI (CONSIGNMENT)</option>
-                                                <option value="6" {{ $caraBayar == '6' ? 'selected' : '' }}>6 - USANCE LETTER OF CREDIT</option>
-                                                <option value="7" {{ $caraBayar == '7' ? 'selected' : '' }}>7 - RED CLAUSE LETTER OF CREDIT</option>
-                                                <option value="8" {{ $caraBayar == '8' ? 'selected' : '' }}>8 - INTER-COMPANY ACCOUNT</option>
-                                                <option value="9" {{ $caraBayar == '9' ? 'selected' : '' }}>9 - GABUNGAN/LAINNYA</option>
-                                                <option value="10" {{ $caraBayar == '10' ? 'selected' : '' }}>10 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA BERTAHAP</option>
-                                                <option value="11" {{ $caraBayar == '11' ? 'selected' : '' }}>11 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA TUNAI</option>
-                                                <option value="12" {{ $caraBayar == '12' ? 'selected' : '' }}>12 - DILAKUKAN DI DN DENGAN PEMBAYARAN UANG TUNAI</option>
-                                                <option value="13" {{ $caraBayar == '13' ? 'selected' : '' }}>13 - DILAKUKAN DI DN DENGAN PEMBAYARAN MELALUI TELEGRAPH</option>
-                                                <option value="14" {{ $caraBayar == '14' ? 'selected' : '' }}>14 - DILAKUKAN TANPA PEMBAYARAN</option>
-                                                <option value="15" {{ $caraBayar == '15' ? 'selected' : '' }}>15 - PEMBAYARAN DIMUKA (ADVANCE PAYMENT)</option>
-                                                <option value="16" {{ $caraBayar == '16' ? 'selected' : '' }}>16 - SIGHT LETTER OF CREDIT</option>
-                                                <option value="17" {{ $caraBayar == '17' ? 'selected' : '' }}>17 - INKASO (COLLECTION DRAFT)</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Komoditas</label>
-                                        <div class="col-sm-8">
-                                            <select name="flagMigas" class="form-control form-control-sm select2bs4">
-                                                <option value="">Pilih Komoditas</option>
-                                                <option value="2" {{ ($dataDetail['flagMigas'] ?? '') == '2' ? 'selected' : '' }}>2 - NON MIGAS</option>
-                                                <option value="1" {{ ($dataDetail['flagMigas'] ?? '') == '1' ? 'selected' : '' }}>1 - MIGAS</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Barang Kiriman & Curah</label>
-                                        <div class="col-sm-4 pr-1">
-                                            <select name="flagBarkir" class="form-control form-control-sm select2bs4">
-                                                <option value="">Pilih Barang Kiriman</option>
-                                                <option value="T" {{ ($dataDetail['flagBarkir'] ?? '') == 'T' ? 'selected' : '' }}>T - Non Kiriman</option>
-                                                <option value="Y" {{ ($dataDetail['flagBarkir'] ?? '') == 'Y' ? 'selected' : '' }}>Y - Kiriman</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-sm-4 pl-1">
-                                            <select name="flagCurah" class="form-control form-control-sm select2bs4">
-                                                <option value="">Pilih Barang Curah</option>
-                                                <option value="2" {{ ($dataDetail['flagCurah'] ?? '') == '2' ? 'selected' : '' }}>2 - Non Curah</option>
-                                                <option value="1" {{ ($dataDetail['flagCurah'] ?? '') == '1' ? 'selected' : '' }}>1 - Curah</option>
-                                            </select>
-                                        </div>
+                    <div class="row">
+                        <!-- Kolom 1 -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengajuan</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm">Nomor Aju</label>
+                                        <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card shadow-sm mb-3 mt-4 border">
-                        <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #0080ff;">Data PKB (Pemberitahuan Kesiapan Barang)</div>
-                        <div class="card-body bg-light">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <fieldset class="border rounded px-3 pb-3 mb-3 bg-white">
-                                        <legend class="w-auto px-2 mb-0 text-dark font-weight-bold" style="font-size: 13px;">Permintaan Pemeriksaan</legend>
-                                        <div class="form-group row mb-2 mt-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Tanggal PKB</label>
-                                            <div class="col-sm-8"><input type="date" class="form-control form-control-sm" name="kesiapanBarang[0][tanggalPkb]" value="{{ $dataDetail['kesiapanBarang'][0]['tanggalPkb'] ?? date('Y-m-d') }}"></div>
-                                        </div>
-                                        <div class="form-group row mb-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Alamat Barang</label>
-                                            <div class="col-sm-8"><textarea class="form-control form-control-sm " name="kesiapanBarang[0][alamat]" rows="2">{{ $dataDetail['kesiapanBarang'][0]['alamat'] ?? '' }}</textarea></div>
-                                        </div>
-                                        <div class="form-group row mb-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Contact Person (PIC)</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][namaPic]" value="{{ $dataDetail['kesiapanBarang'][0]['namaPic'] ?? '' }}"></div>
-                                        </div>
-                                        <div class="form-group row mb-2">
-                                            <label class="col-sm-4 col-form-label text-sm">No. Telp PIC</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][nomorTelpPic]" value="{{ $dataDetail['kesiapanBarang'][0]['nomorTelpPic'] ?? '' }}"></div>
-                                        </div>
-                                    </fieldset>
+                        <!-- Kolom 2 -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Kantor Pabean</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Pelabuhan Muat Asal</label>
+                                        <select name="kodePelMuatAsal" class="form-control form-control-sm select2-pelabuhan ">
+                                            <option value="">Pilih Pelabuhan Muat Asal</option>
+                                            @if(!empty($dataDetail['kodePelMuatAsal']))
+                                                <option value="{{ $dataDetail['kodePelMuatAsal'] }}" selected>{{ $dataDetail['kodePelMuatAsal'] }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Kantor Pabean Muat</label>
+                                        <select name="kodeKantorMuat" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">Pilih Kantor Pabean Muat</option>
+                                            @foreach($kantorList as $val => $label)
+                                                <option value="{{ $val }}" {{ ($dataDetail['kodeKantorMuat'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Kantor Pabean Pengawasan</label>
+                                        <select name="kodeKantorPengawasan" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">Pilih Kantor Pabean Pengawasan</option>
+                                            @foreach($kantorList as $val => $label)
+                                                <option value="{{ $val }}" {{ ($dataDetail['kodeKantorPengawasan'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <fieldset class="border rounded px-3 pb-3 mb-3 bg-white">
-                                        <legend class="w-auto px-2 mb-0 text-dark font-weight-bold" style="font-size: 13px;">Kondisi & Tempat Siap Periksa</legend>
-                                        <div class="form-group row mb-2 mt-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Waktu Siap Periksa</label>
-                                            <div class="col-sm-8"><input type="datetime-local" class="form-control form-control-sm" name="kesiapanBarang[0][waktuSiapPeriksa]" value="{{ isset($dataDetail['kesiapanBarang'][0]['waktuSiapPeriksa']) ? date('Y-m-d H:i', strtotime($dataDetail['kesiapanBarang'][0]['waktuSiapPeriksa'])) : date('Y-m-d H:i') }}"></div>
-                                        </div>
-                                        <div class="form-group row mb-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Lokasi Siap Periksa</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][lokasiSiapPeriksa]" value="{{ $dataDetail['kesiapanBarang'][0]['lokasiSiapPeriksa'] ?? '' }}"></div>
-                                        </div>
-                                        <div class="form-group row mb-2">
-                                            <label class="col-sm-4 col-form-label text-sm">Jenis Gudang Simpan</label>
-                                            <div class="col-sm-8">
-                                                <select class="form-control form-control-sm select2bs4" name="kesiapanBarang[0][kodeJenisGudang]">
-                                                    <option value="">Pilih Tempat Simpan</option>
-                                                    <option value="2" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '2' ? 'selected' : '' }}>2 - GUDANG PABRIK</option>
-                                                    <option value="1" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '1' ? 'selected' : '' }}>1 - GUDANG VEEM</option>
-                                                    <option value="3" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '3' ? 'selected' : '' }}>3 - GUDANG KONSOLIDASI</option>
-                                                    <option value="4" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '4' ? 'selected' : '' }}>4 - LAINNYA</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row mb-0">
-                                            <label class="col-sm-4 col-form-label text-sm">Jenis Barang</label>
-                                            <div class="col-sm-8">
-                                                <select class="form-control form-control-sm select2bs4" name="kesiapanBarang[0][kodeJenisBarang]">
-                                                    <option value="">Pilih Jenis Barang</option>
-                                                    <option value="1" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisBarang'] ?? '') == '1' ? 'selected' : '' }}>1 - BARANG EKSPOR GABUNGAN</option>
-                                                    <option value="2" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisBarang'] ?? '') == '2' ? 'selected' : '' }}>2 - BAHAN/BARANG ASAL IMP FASILITAS</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </fieldset>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 3 -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Keterangan Lain</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Jenis Ekspor</label>
+                                        <select name="kodeJenisEkspor" class="form-control form-control-sm select2bs4 ">
+                                            @php $jenisEkspor = $dataDetail['kodeJenisEkspor'] ?? '' @endphp
+                                            <option value="">Pilih Jenis Ekspor</option>
+                                            <option value="1" {{ $jenisEkspor == '1' ? 'selected' : '' }}>1 - Ekspor Biasa</option>
+                                            <option value="2" {{ $jenisEkspor == '2' ? 'selected' : '' }}>2 - Ekspor Sementara</option>
+                                            <option value="4" {{ $jenisEkspor == '4' ? 'selected' : '' }}>4 - Ekspor Barang yang akan Diimpor Kembali</option>
+                                            <option value="5" {{ $jenisEkspor == '5' ? 'selected' : '' }}>5 - Re Ekspor Lainnya</option>
+                                            <option value="6" {{ $jenisEkspor == '6' ? 'selected' : '' }}>6 - Ekspor Barang Eks Impor Sementara</option>
+                                            <option value="7" {{ $jenisEkspor == '7' ? 'selected' : '' }}>7 - Ekspor Gabungan</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Kategori Ekspor</label>
+                                        <select name="kodeKategoriEkspor" class="form-control form-control-sm select2bs4 ">
+                                            @php $katEkspor = $dataDetail['kodeKategoriEkspor'] ?? '' @endphp
+                                            <option value="">Pilih Kategori Ekspor</option>
+                                            <option value="4" {{ $katEkspor == '4' ? 'selected' : '' }}>4 - Ekspor Dari - Asal KB</option>
+                                            <option value="3" {{ $katEkspor == '3' ? 'selected' : '' }}>3 - Ekspor Melalui - Asal KB</option>
+                                            <option value="2" {{ $katEkspor == '2' ? 'selected' : '' }}>2 - Ekspor Dari - Umum</option>
+                                            <option value="1" {{ $katEkspor == '1' ? 'selected' : '' }}>1 - Ekspor Melalui - Umum</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Cara Dagang</label>
+                                        <select name="kodeCaraDagang" class="form-control form-control-sm select2bs4 ">
+                                            @php $caraDagang = $dataDetail['kodeCaraDagang'] ?? '' @endphp
+                                            <option value="">Pilih Cara Dagang</option>
+                                            <option value="1" {{ $caraDagang == '1' ? 'selected' : '' }}>1 - Biasa</option>
+                                            <option value="2" {{ $caraDagang == '2' ? 'selected' : '' }}>2 - IMB - Imbal Dagang</option>
+                                            <option value="3" {{ $caraDagang == '3' ? 'selected' : '' }}>3 - PMK - Pembayaran dimuka / Advance Payment</option>
+                                            <option value="4" {{ $caraDagang == '4' ? 'selected' : '' }}>4 - KMD Bertahap - Pembayaran Kemudian / Open Account Tunai</option>
+                                            <option value="5" {{ $caraDagang == '5' ? 'selected' : '' }}>5 - KMD Tunai - Pembayaran Kemudian / Open Account Tunai</option>
+                                            <option value="6" {{ $caraDagang == '6' ? 'selected' : '' }}>6 - SLC - Sight Letter of Credit</option>
+                                            <option value="7" {{ $caraDagang == '7' ? 'selected' : '' }}>7 - ULC - Usance Letter of Credit</option>
+                                            <option value="8" {{ $caraDagang == '8' ? 'selected' : '' }}>8 - RLC - Red Clause Letter of Credit</option>
+                                            <option value="9" {{ $caraDagang == '9' ? 'selected' : '' }}>9 - WSI - Wessel Inkaso / Collection Draft</option>
+                                            <option value="10" {{ $caraDagang == '10' ? 'selected' : '' }}>10 - KON - Konsinyasi / Consignment</option>
+                                            <option value="11" {{ $caraDagang == '11' ? 'selected' : '' }}>11 - ICA - Inter Company Account</option>
+                                            <option value="12" {{ $caraDagang == '12' ? 'selected' : '' }}>12 - PDN Tunai - Pembayaran di Dalam Negeri Tunai</option>
+                                            <option value="13" {{ $caraDagang == '13' ? 'selected' : '' }}>13 - TT - Pembayaran di Dalam Negeri melalui Telegraph Transfer</option>
+                                            <option value="14" {{ $caraDagang == '14' ? 'selected' : '' }}>14 - NCV - Dilakukan tanpa pembayaran</option>
+                                            <option value="15" {{ $caraDagang == '15' ? 'selected' : '' }}>15 - Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Cara Pembayaran</label>
+                                        <select name="kodeCaraBayar" class="form-control form-control-sm select2bs4 ">
+                                            @php $caraBayar = $dataDetail['kodeCaraBayar'] ?? '' @endphp
+                                            <option value="">Pilih Cara Pembayaran</option>
+                                            <option value="1" {{ $caraBayar == '1' ? 'selected' : '' }}>1 - BIASA/TUNAI</option>
+                                            <option value="2" {{ $caraBayar == '2' ? 'selected' : '' }}>2 - BERKALA</option>
+                                            <option value="3" {{ $caraBayar == '3' ? 'selected' : '' }}>3 - DENGAN JAMINAN</option>
+                                            <option value="4" {{ $caraBayar == '4' ? 'selected' : '' }}>4 - PERHITUNGAN KEMUDIAN</option>
+                                            <option value="5" {{ $caraBayar == '5' ? 'selected' : '' }}>5 - KONSINYASI (CONSIGNMENT)</option>
+                                            <option value="6" {{ $caraBayar == '6' ? 'selected' : '' }}>6 - USANCE LETTER OF CREDIT</option>
+                                            <option value="7" {{ $caraBayar == '7' ? 'selected' : '' }}>7 - RED CLAUSE LETTER OF CREDIT</option>
+                                            <option value="8" {{ $caraBayar == '8' ? 'selected' : '' }}>8 - INTER-COMPANY ACCOUNT</option>
+                                            <option value="9" {{ $caraBayar == '9' ? 'selected' : '' }}>9 - GABUNGAN/LAINNYA</option>
+                                            <option value="10" {{ $caraBayar == '10' ? 'selected' : '' }}>10 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA BERTAHAP</option>
+                                            <option value="11" {{ $caraBayar == '11' ? 'selected' : '' }}>11 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA TUNAI</option>
+                                            <option value="12" {{ $caraBayar == '12' ? 'selected' : '' }}>12 - DILAKUKAN DI DN DENGAN PEMBAYARAN UANG TUNAI</option>
+                                            <option value="13" {{ $caraBayar == '13' ? 'selected' : '' }}>13 - DILAKUKAN DI DN DENGAN PEMBAYARAN MELALUI TELEGRAPH</option>
+                                            <option value="14" {{ $caraBayar == '14' ? 'selected' : '' }}>14 - DILAKUKAN TANPA PEMBAYARAN</option>
+                                            <option value="15" {{ $caraBayar == '15' ? 'selected' : '' }}>15 - PEMBAYARAN DIMUKA (ADVANCE PAYMENT)</option>
+                                            <option value="16" {{ $caraBayar == '16' ? 'selected' : '' }}>16 - SIGHT LETTER OF CREDIT</option>
+                                            <option value="17" {{ $caraBayar == '17' ? 'selected' : '' }}>17 - INKASO (COLLECTION DRAFT)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Jenis BC 3.3</label>
+                                        <select name="jenisBc33" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">Pilih Jenis BC 3.3</option>
+                                            @php $jenisBc33 = $dataDetail['jenisBc33'] ?? '' @endphp
+                                            <option value="" {{ $jenisBc33 == '' ? 'selected' : '' }}>-- Pilih Jenis --</option>
+                                            <option value="1" {{ $jenisBc33 == '1' ? 'selected' : '' }}>1 - Standar</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -418,17 +319,18 @@
 
                 <div class="tab-pane fade" id="tab-entitas" role="tabpanel">
                     <div class="row">
+                        <!-- Eksportir -->
                         <div class="col-md-6">
                             <div class="card shadow-sm mb-3 border">
-                                <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Eksportir</div>
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Eksportir</div>
                                 <div class="card-body">
                                     <input type="hidden" name="entitas[2][kodeEntitas]" value="2">
                                     <input type="hidden" name="entitas[2][seriEntitas]" value="1">
                                     <div class="form-group mb-2">
-                                        <label class="small mb-0">Nomor Identitas</label>
+                                        <label class="small mb-0 ">Nomor Identitas</label>
                                         <div class="row">
                                             <div class="col-4 pr-1">
-                                                <select name="entitas[2][kodeJenisIdentitas]" class="form-control form-control-sm">
+                                                <select name="entitas[2][kodeJenisIdentitas]" class="form-control form-control-sm ">
                                                     <option value="6" {{ ($dataDetail['entitas'][2]['kodeJenisIdentitas'] ?? '6') == '6' ? 'selected' : '' }}>6 - NPWP 16 DIGIT</option>
                                                     <option value="5" {{ ($dataDetail['entitas'][2]['kodeJenisIdentitas'] ?? '') == '5' ? 'selected' : '' }}>5 - NPWP 15 DIGIT</option>
                                                 </select>
@@ -440,21 +342,18 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">NITKU</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" name="entitas[2][nitku]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU 22 Digit">
-                                            <div class="input-group-append"><button class="btn btn-primary" type="button"><i class="fas fa-sync-alt"></i></button></div>
-                                        </div>
+                                        <input type="text" name="entitas[2][nitku]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU">
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label class="small mb-0">Nama</label>
+                                        <label class="small mb-0 ">Nama</label>
                                         <input type="text" name="entitas[2][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['namaEntitas'] ?? '' }}">
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label class="small mb-0">Alamat</label>
+                                        <label class="small mb-0 ">Alamat</label>
                                         <textarea name="entitas[2][alamatEntitas]" class="form-control form-control-sm " rows="2">{{ $dataDetail['entitas'][2]['alamatEntitas'] ?? '' }}</textarea>
                                     </div>
                                     <div class="form-group mb-0">
-                                        <label class="small mb-0">Status</label>
+                                        <label class="small mb-0 ">Status</label>
                                         <select name="entitas[2][statusEntitas]" class="form-control form-control-sm select2bs4 ">
                                             <option value="">Pilih Status</option>
                                             <option value="1" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '1' ? 'selected' : '' }}>KOPERASI</option>
@@ -473,15 +372,85 @@
                             </div>
                         </div>
 
+                        <!-- Pengusaha PLB / PDPLB -->
                         <div class="col-md-6">
                             <div class="card shadow-sm mb-3 border">
-                                <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                                    <span>Pembeli <i class="fas fa-question-circle text-light"></i></span>
-                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 ml-auto" id="btn-salin-penerima" title="Salin Data Penerima"><i class="fas fa-copy text-primary"></i> Salin Penerima</button>
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengusaha PLB / PDPLB</div>
+                                <div class="card-body">
+                                    <input type="hidden" name="entitas[9][kodeEntitas]" value="9">
+                                    <input type="hidden" name="entitas[9][seriEntitas]" value="2">
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0">Nomor Identitas</label>
+                                        <div class="row">
+                                            <div class="col-4 pr-1">
+                                                <select name="entitas[9][kodeJenisIdentitas]" class="form-control form-control-sm">
+                                                    <option value="6" {{ ($dataDetail['entitas'][9]['kodeJenisIdentitas'] ?? '6') == '6' ? 'selected' : '' }}>6 - NPWP 16 DIGIT</option>
+                                                    <option value="5" {{ ($dataDetail['entitas'][9]['kodeJenisIdentitas'] ?? '') == '5' ? 'selected' : '' }}>5 - NPWP 15 DIGIT</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-8 pl-1">
+                                                <input type="text" name="entitas[9][nomorIdentitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][9]['nomorIdentitas'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0">Nama</label>
+                                        <input type="text" name="entitas[9][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][9]['namaEntitas'] ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0">Alamat</label>
+                                        <textarea name="entitas[9][alamatEntitas]" class="form-control form-control-sm " rows="2">{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? '' }}</textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0">Nomor Izin PLB</label>
+                                        <input type="text" name="nomorIzinPlb" class="form-control form-control-sm " value="{{ $dataDetail['nomorIzinPlb'] ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small mb-0">Tanggal Izin PLB</label>
+                                        <input type="date" name="tanggalIzinPlb" class="form-control form-control-sm " value="{{ $dataDetail['tanggalIzinPlb'] ?? '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Penerima -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Penerima</div>
+                                <div class="card-body">
+                                    <input type="hidden" name="entitas[8][kodeEntitas]" value="8">
+                                    <input type="hidden" name="entitas[8][seriEntitas]" value="3">
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0 ">Nama</label>
+                                        <input type="text" name="entitas[8][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][8]['namaEntitas'] ?? $header->supplier ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-0 ">Alamat</label>
+                                        <textarea name="entitas[8][alamatEntitas]" class="form-control form-control-sm " rows="2">{{ $dataDetail['entitas'][8]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}</textarea>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small mb-0 ">Negara</label>
+                                        <select name="entitas[8][kodeNegara]" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">Pilih Negara</option>
+                                            @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['entitas'][8]['kodeNegara'] ?? ''])
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pembeli -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
+                                    <span>Pembeli</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ml-auto" id="btn-salin-penerima" title="Salin Data Penerima"><i class="fas fa-copy"></i> Salin Penerima</button>
                                 </div>
                                 <div class="card-body">
                                     <input type="hidden" name="entitas[6][kodeEntitas]" value="6">
-                                    <input type="hidden" name="entitas[6][seriEntitas]" value="2">
+                                    <input type="hidden" name="entitas[6][seriEntitas]" value="4">
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">Nama</label>
                                         <input type="text" name="entitas[6][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][6]['namaEntitas'] ?? '' }}">
@@ -497,66 +466,6 @@
                                             @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['entitas'][6]['kodeNegara'] ?? ''])
                                         </select>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card shadow-sm mb-3 border">
-                                <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Penerima</div>
-                                <div class="card-body">
-                                    <input type="hidden" name="entitas[8][kodeEntitas]" value="8">
-                                    <input type="hidden" name="entitas[8][seriEntitas]" value="3">
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-0">Nama</label>
-                                        <input type="text" name="entitas[8][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][8]['namaEntitas'] ?? $header->supplier ?? '' }}">
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-0">Alamat</label>
-                                        <textarea name="entitas[8][alamatEntitas]" class="form-control form-control-sm " rows="2">{{ $dataDetail['entitas'][8]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}</textarea>
-                                    </div>
-                                    <div class="form-group mb-0">
-                                        <label class="small mb-0">Negara</label>
-                                        <select name="entitas[8][kodeNegara]" class="form-control form-control-sm select2bs4 ">
-                                            <option value="">Pilih Negara</option>
-                                            @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['entitas'][8]['kodeNegara'] ?? ''])
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="card shadow-sm mb-3 border">
-                                <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Pihak Yang Melakukan Konsolidasi</div>
-                                <div class="card-body">
-                                    <input type="hidden" name="entitas[23][kodeEntitas]" value="23">
-                                    <input type="hidden" name="entitas[23][seriEntitas]" value="4">
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-0">Kategori</label>
-                                        <select name="entitas[23][kodeKategoriKonsolidator]" class="form-control form-control-sm select2bs4 ">
-                                            <option value="">Pilih Kategori</option>
-                                            <option value="1" {{ ($dataDetail['entitas'][23]['kodeKategoriKonsolidator'] ?? '') == '1' ? 'selected' : '' }}>KONSOLIDATOR</option>
-                                            <option value="2" {{ ($dataDetail['entitas'][23]['kodeKategoriKonsolidator'] ?? '') == '2' ? 'selected' : '' }}>EKSPORTIR MANDIRI</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-0">Nomor Identitas & NITKU</label>
-                                        <div class="row">
-                                            <div class="col-4 pr-1">
-                                                <select name="entitas[23][kodeJenisIdentitas]" class="form-control form-control-sm">
-                                                    <option value="6">NPWP 16</option>
-                                                    <option value="5">NPWP 15</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-8 pl-1"><input type="text" name="entitas[23][nomorIdentitas]" class="form-control form-control-sm " placeholder="No. Identitas" value="{{ $dataDetail['entitas'][23]['nomorIdentitas'] ?? '' }}"></div>
-                                        </div>
-                                        <input type="text" name="entitas[23][nitku]" class="form-control form-control-sm  mt-1" placeholder="NITKU 22 Digit" value="{{ $dataDetail['entitas'][23]['nitku'] ?? '' }}">
-                                    </div>
-                                    <div class="form-group mb-2"><label class="small mb-0">Nama</label><input type="text" name="entitas[23][namaEntitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][23]['namaEntitas'] ?? '' }}"></div>
-                                    <div class="form-group mb-0"><label class="small mb-0">Alamat Konsolidasi</label><textarea name="entitas[23][alamatEntitas]" class="form-control form-control-sm " rows="2">{{ $dataDetail['entitas'][23]['alamatEntitas'] ?? '' }}</textarea></div>
                                 </div>
                             </div>
                         </div>
@@ -612,17 +521,21 @@
                 <div class="tab-pane fade" id="tab-dokumen" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                            <span>Dokumen Pendukung</span>
-                            <button type="button" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus text-primary"></i></button>
+                            <span>Dokumen Lampiran</span>
+                            <button type="button" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus text-primary"></i> Tambah Dokumen</button>
                         </div>
-                        <div class="card-body p-0">
-                            <table class="table table-sm table-bordered mb-0" id="table-dokumen">
+                        <div class="card-body p-0" style="overflow-x: auto;">
+                            <table class="table table-sm table-bordered mb-0" id="table-dokumen" style="min-width: 800px;">
                                 <thead class="bg-light text-center">
                                     <tr>
-                                        <th width="25%">Kode Dokumen</th>
-                                    <th width="25%">Nomor Dokumen</th>
-                                    <th width="15%">Tgl Dokumen</th>
-                                    <th width="10%">Aksi</th>
+                                        <th width="5%">Seri</th>
+                                        <th width="20%">Jenis</th>
+                                        <th width="20%">Nomor</th>
+                                        <th width="15%">Tanggal</th>
+                                        <th width="10%">Fasilitas</th>
+                                        <th width="10%">Izin</th>
+                                        <th width="10%">Kantor</th>
+                                        <th width="10%">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-dokumen">
@@ -631,11 +544,11 @@
                                     @endphp
                                     @foreach($dokumens as $index => $dok)
                                         <tr>
+                                            <td class="text-center align-middle">{{ $index + 1 }}</td>
                                             <td>
                                                 <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
                                                     <option value="">-- Pilih Kode --</option>
                                                     @foreach($referensiDokumen as $val => $text)
-                                                        {{-- Gunakan kodeDokumen (baru) atau kode (lama) --}}
                                                         <option value="{{ $val }}" {{ ($dok['kodeDokumen'] ?? $dok['kode'] ?? '') == $val ? 'selected' : '' }}>
                                                             {{ $val }} - {{ $text }}
                                                         </option>
@@ -650,6 +563,9 @@
                                                 <input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm"
                                                     value="{{ $dok['tanggalDokumen'] ?? $dok['tgl'] ?? '' }}">
                                             </td>
+                                            <td><input type="text" class="form-control form-control-sm" readonly></td>
+                                            <td><input type="text" class="form-control form-control-sm" readonly></td>
+                                            <td><input type="text" class="form-control form-control-sm" readonly></td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok"><i class="fas fa-trash-alt"></i></button>
                                             </td>
@@ -662,161 +578,126 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-pengangkut" role="tabpanel">
-                    <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Rincian Rute Pengangkutan</div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Tempat Penimbunan </label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="kodeTps" class="form-control form-control-sm " placeholder="Contoh: G001" value="{{ $dataDetail['kodeTps'] ?? '' }}">
-                                        </div>
+                    <div class="row">
+                        <!-- Pengangkutan PLB -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengangkutan PLB</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm">Kode Gudang PLB</label>
+                                        <input type="text" name="kodeGudangPlb" class="form-control form-control-sm" value="{{ $dataDetail['kodeGudangPlb'] ?? '' }}">
                                     </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Pelabuhan Muat Asal</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
-                                                @if(!empty($dataDetail['kodePelMuat']))
-                                                    <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
-                                                @endif
-                                            </select>
-                                        </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm">Cara Angkut Ke PLB</label>
+                                        <select name="caraAngkutPlb" class="form-control form-control-sm select2bs4">
+                                            <option value="">-- Pilih Cara Angkut --</option>
+                                            <option value="1" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '1' ? 'selected' : '' }}>1 - LAUT</option>
+                                            <option value="2" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '2' ? 'selected' : '' }}>2 - KERETA API</option>
+                                            <option value="3" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '3' ? 'selected' : '' }}>3 - DARAT</option>
+                                            <option value="4" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '4' ? 'selected' : '' }}>4 - UDARA</option>
+                                            <option value="5" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '5' ? 'selected' : '' }}>5 - POS</option>
+                                            <option value="6" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '6' ? 'selected' : '' }}>6 - MULTIMODA</option>
+                                            <option value="7" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '7' ? 'selected' : '' }}>7 - INSTALASI / PIPA</option>
+                                            <option value="8" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '8' ? 'selected' : '' }}>8 - PERAIRAN</option>
+                                            <option value="9" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '9' ? 'selected' : '' }}>9 - LAINNYA</option>
+                                            <option value="10" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '10' ? 'selected' : '' }}>10 - INSTALASI</option>
+                                            <option value="11" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '11' ? 'selected' : '' }}>11 - PIPA</option>
+                                            <option value="12" {{ ($dataDetail['caraAngkutPlb'] ?? '') == '12' ? 'selected' : '' }}>12 - TRANSMISI</option>
+                                        </select>
                                     </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Jenis Pengangkutan</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeJenisPengangkutan" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">-- Pilih Jenis Pengangkutan --</option>
-                                                <option value="1" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '1' ? 'selected' : '' }}>1 - SATU SARANA ANGKUT</option>
-                                                <option value="2" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '2' ? 'selected' : '' }}>2 - INSTALASI/PIPA/TRANSMISI</option>
-                                                <option value="3" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '3' ? 'selected' : '' }}>3 - ANGKUT LANJUT</option>
-                                                <option value="4" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '4' ? 'selected' : '' }}>4 - ANGKUT LANJUT MULTIMODA</option>
-                                                <option value="5" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '5' ? 'selected' : '' }}>5 - BARANG BAWAAN PENUMPANG / AWAK SARKUT</option>
-                                                <option value="6" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '6' ? 'selected' : '' }}>6 - SARANA ANGKUT LAINNYA</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Pelabuhan Tujuan</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodePelTujuan" class="form-control form-control-sm select2-pelabuhan">
-                                                @if(!empty($dataDetail['kodePelTujuan']))
-                                                    <option value="{{ $dataDetail['kodePelTujuan'] }}" selected>{{ $dataDetail['kodePelTujuan'] }}</option>
-                                                @endif
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Negara Tujuan Ekspor</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeNegaraTujuan" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">Pilih Negara</option>
-                                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['kodeNegaraTujuan'] ?? ''])
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Tgl Perkiraan Ekspor</label>
-                                        <div class="col-sm-8"><input type="date" name="tanggalEkspor" class="form-control form-control-sm " value="{{ $dataDetail['tanggalEkspor'] ?? '' }}"></div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Lokasi Pemeriksaan</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeLokasi" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">Pilih Lokasi Pemeriksaan</option>
-                                                <option value="1" {{ (old('kodeLokasi') == '1' || ($dataDetail['kodeLokasi'] ?? '') == '1') ? 'selected' : '' }}>1 - KAWASAN PABEAN TEMPAT PEMUATAN</option>
-                                                <option value="2" {{ (old('kodeLokasi') == '2' || ($dataDetail['kodeLokasi'] ?? '') == '2') ? 'selected' : '' }}>2 - GUDANG EKSPORTIR</option>
-                                                <option value="3" {{ (old('kodeLokasi') == '3' || ($dataDetail['kodeLokasi'] ?? '') == '3') ? 'selected' : '' }}>3 - TEMPAT LAIN YANG DIIZINKAN</option>
-                                                <option value="4" {{ (old('kodeLokasi') == '4' || ($dataDetail['kodeLokasi'] ?? '') == '4') ? 'selected' : '' }}>4 - TEMPAT PENIMBUNAN SEMENTARA</option>
-                                                <option value="5" {{ (old('kodeLokasi') == '5' || ($dataDetail['kodeLokasi'] ?? '') == '5') ? 'selected' : '' }}>5 - TEMPAT PENIMBUNAN PABEAN</option>
-                                                <option value="6" {{ (old('kodeLokasi') == '6' || ($dataDetail['kodeLokasi'] ?? '') == '6') ? 'selected' : '' }}>6 - TEMPAT PENIMBUNAN BERIKAT</option>
-                                                <option value="7" {{ (old('kodeLokasi') == '7' || ($dataDetail['kodeLokasi'] ?? '') == '7') ? 'selected' : '' }}>7 - TEMPAT PENIMBUTAN LAINNYA</option>
-                                                <option value="8" {{ (old('kodeLokasi') == '8' || ($dataDetail['kodeLokasi'] ?? '') == '8') ? 'selected' : '' }}>8 - GUDANG KONSOLIDATOR</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-2">
-                                        <label class="col-sm-4 col-form-label text-sm">Tanggal Periksa</label>
-                                        <div class="col-sm-8"><input type="date" name="tanggalPeriksa" class="form-control form-control-sm " value="{{ $dataDetail['tanggalPeriksa'] ?? '' }}"></div>
-                                    </div>
-                                    <div class="form-group row mb-0">
-                                        <label class="col-sm-4 col-form-label text-sm">Kantor BC Pemeriksa</label>
-                                        <div class="col-sm-8">
-                                            <select name="kodeKantorPeriksa" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">Pilih Kantor</option>
-                                                @foreach($kantorList as $val => $label)
-                                                    <option value="{{ $val }}" {{ ($dataDetail['kodeKantorPeriksa'] ?? '050500') == $val ? 'selected' : '' }}>{{ $val }} - {{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <div class="form-group mb-0">
+                                        <label class="text-sm">Tgl Masuk ke PLB</label>
+                                        <input type="date" name="tanggalMasukPlb" class="form-control form-control-sm" value="{{ $dataDetail['tanggalMasukPlb'] ?? '' }}">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                            <span>Daftar Sarana Pengangkut</span>
-                            <button type="button" id="btn-add-sarkut" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" title="Tambah Sarana Angkut"><i class="fas fa-plus text-primary"></i></button>
+                        <!-- Pengangkutan -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengangkutan</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Cara Pengangkutan</label>
+                                        <select name="kodeJenisPengangkutan" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">-- Pilih Cara Pengangkutan --</option>
+                                            <option value="1" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '1' ? 'selected' : '' }}>1 - SATU SARANA ANGKUT</option>
+                                            <option value="2" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '2' ? 'selected' : '' }}>2 - INSTALASI/PIPA/TRANSMISI</option>
+                                            <option value="3" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '3' ? 'selected' : '' }}>3 - ANGKUT LANJUT</option>
+                                            <option value="4" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '4' ? 'selected' : '' }}>4 - ANGKUT LANJUT MULTIMODA</option>
+                                            <option value="5" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '5' ? 'selected' : '' }}>5 - BARANG BAWAAN PENUMPANG / AWAK SARKUT</option>
+                                            <option value="6" {{ ($dataDetail['kodeJenisPengangkutan'] ?? '') == '6' ? 'selected' : '' }}>6 - SARANA ANGKUT LAINNYA</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Sarana Pengangkut</label>
+                                        <input type="text" name="pengangkut[0][namaPengangkut]" class="form-control form-control-sm " value="{{ $dataDetail['pengangkut'][0]['namaPengangkut'] ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">No Pengangkut (Voy/Flight)</label>
+                                        <input type="text" name="pengangkut[0][nomorPengangkut]" class="form-control form-control-sm " value="{{ $dataDetail['pengangkut'][0]['nomorPengangkut'] ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="text-sm ">Tanggal Pemuatan</label>
+                                        <input type="date" name="tanggalPemuatan" class="form-control form-control-sm " value="{{ $dataDetail['tanggalPemuatan'] ?? '' }}">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead class="bg-light text-center" style="font-size: 12px;">
-                                    <tr>
-                                        <th width="10%">Seri</th>
-                                        <th width="30%">Nama Sarana Angkut</th>
-                                        <th width="25%">No. Pengangkut (Voy/Flight)</th>
-                                        <th width="20%">Cara Angkut</th>
-                                        <th width="15%">Kode Bendera</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-sarkut">
-                                    @php $pengangkuts = $dataDetail['pengangkut'] ?? []; @endphp
-                                    @forelse($pengangkuts as $sIndex => $sarkut)
-                                    <tr>
-                                        <td class="text-center align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $sIndex + 1 }}" readonly></td>
-                                        <td><input type="text" name="pengangkut[{{ $sIndex }}][namaPengangkut]" class="form-control form-control-sm " value="{{ $sarkut['namaPengangkut'] ?? '' }}"></td>
-                                        <td><input type="text" name="pengangkut[{{ $sIndex }}][nomorPengangkut]" class="form-control form-control-sm " value="{{ $sarkut['nomorPengangkut'] ?? '' }}"></td>
-                                        <td>
-                                            <select name="pengangkut[{{ $sIndex }}][kodeCaraAngkut]" class="form-control form-control-sm ">
-                                                <option value="1" {{ ($sarkut['kodeCaraAngkut'] ?? '') == '1' ? 'selected' : '' }}>1 - LAUT</option>
-                                                <option value="4" {{ ($sarkut['kodeCaraAngkut'] ?? '') == '4' ? 'selected' : '' }}>4 - UDARA</option>
-                                                <option value="3" {{ ($sarkut['kodeCaraAngkut'] ?? '') == '3' ? 'selected' : '' }}>3 - DARAT</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" name="pengangkut[{{ $sIndex }}][kodeBendera]" class="form-control form-control-sm  text-uppercase" value="{{ $sarkut['kodeBendera'] ?? '' }}">
-                                                <div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-sarkut"><i class="fas fa-trash-alt"></i></button></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @empty
 
-                                    @endforelse
-                                </tbody>
-                            </table>
+                        <!-- Pelabuhan -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pelabuhan</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm ">Pelabuhan Muat</label>
+                                        <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan ">
+                                            <option value="">-- Pilih Pelabuhan Muat --</option>
+                                            @if(!empty($dataDetail['kodePelMuat']))
+                                                <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="text-sm">Pelabuhan Bongkar</label>
+                                        <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                                            <option value="">-- Pilih Pelabuhan Bongkar --</option>
+                                            @if(!empty($dataDetail['kodePelBongkar']))
+                                                <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="text-sm ">Pelabuhan Tujuan</label>
+                                        <select name="kodePelTujuan" class="form-control form-control-sm select2-pelabuhan ">
+                                            <option value="">-- Pilih Pelabuhan Tujuan --</option>
+                                            @if(!empty($dataDetail['kodePelTujuan']))
+                                                <option value="{{ $dataDetail['kodePelTujuan'] }}" selected>{{ $dataDetail['kodePelTujuan'] }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="tab-pane fade" id="tab-kemasan" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                            <span>Data Kemasan Ekspor</span>
-                            <button type="button" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" id="btn-add-kemasan" title="Tambah Kemasan"><i class="fas fa-plus text-primary"></i></button>
+                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
+                            <span>Data Kemasan</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 ml-auto" id="btn-add-kemasan" title="Tambah Kemasan"><i class="fas fa-plus"></i> Tambah Kemasan</button>
                         </div>
                         <div class="card-body p-0">
                             <table class="table table-sm table-bordered mb-0" id="table-kemasan">
                                 <thead class="bg-light text-center">
                                     <tr>
-                                        <th width="20%">Jumlah Kemasan</th>
-                                        <th width="40%">Jenis Kemasan</th>
-                                        <th width="30%">Merek Kemasan</th>
+                                        <th width="20%">Jumlah</th>
+                                        <th width="40%">Jenis</th>
+                                        <th width="30%">Merek</th>
                                         <th width="10%">Aksi</th>
                                     </tr>
                                 </thead>
@@ -832,7 +713,7 @@
                                         <td><input type="number" step="any" name="kemasan[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm  input-decimal" value="{{ $kemasan['jumlahKemasan'] ?? $kemasan['jumlah'] ?? 0 }}"></td>
                                         <td>
                                             <select name="kemasan[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm select2bs4 ">
-                                                <option value="">-- Pilih --</option>
+                                                <option value="">-- Pilih Jenis Kemasan --</option>
                                                 @foreach($listJenisKemasan as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kemasan['kodeJenisKemasan'] ?? $kemasan['kode'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
                                                 @endforeach
@@ -848,9 +729,9 @@
                     </div>
 
                     <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                            <span>Data Peti Kemas / Kontainer</span>
-                            <button type="button" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" id="btn-add-kontainer" title="Tambah Kontainer"><i class="fas fa-plus text-primary"></i></button>
+                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
+                            <span>Data Petikemas</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 ml-auto" id="btn-add-kontainer" title="Tambah Kontainer"><i class="fas fa-plus"></i> Tambah Petikemas</button>
                         </div>
                         <div class="card-body p-0">
                             @php
@@ -867,9 +748,9 @@
                                 <thead class="bg-light text-center">
                                     <tr>
                                         <th width="30%">Nomor Kontainer</th>
+                                        <th width="15%">Ukuran</th>
                                         <th width="20%">Jenis</th>
                                         <th width="25%">Tipe</th>
-                                        <th width="15%">Ukuran</th>
                                         <th width="10%">Aksi</th>
                                     </tr>
                                 </thead>
@@ -878,8 +759,16 @@
                                     <tr>
                                         <td><input type="text" name="kontainer[{{ $kIndex }}][nomorKontainer]" class="form-control form-control-sm text-uppercase" value="{{ $kont['nomorKontainer'] ?? '' }}"></td>
                                         <td>
+                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm">
+                                                <option value="">-- Pilih Ukuran --</option>
+                                                @foreach($listUkuranKontainer as $k => $v)
+                                                    <option value="{{ $k }}" {{ ($kont['kodeUkuranKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
                                             <select name="kontainer[{{ $kIndex }}][kodeJenisKontainer]" class="form-control form-control-sm">
-                                                <option value="">-- Pilih --</option>
+                                                <option value="">-- Pilih Jenis --</option>
                                                 @foreach($listJenisKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeJenisKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
                                                 @endforeach
@@ -887,17 +776,9 @@
                                         </td>
                                         <td>
                                             <select name="kontainer[{{ $kIndex }}][kodeTipeKontainer]" class="form-control form-control-sm">
-                                                <option value="">-- Pilih --</option>
+                                                <option value="">-- Pilih Tipe --</option>
                                                 @foreach($listTipeKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeTipeKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm">
-                                                <option value="">-- Pilih --</option>
-                                                @foreach($listUkuranKontainer as $k => $v)
-                                                    <option value="{{ $k }}" {{ ($kont['kodeUkuranKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
@@ -911,14 +792,49 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-transaksi" role="tabpanel">
-                    <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Rincian Keuangan & Nilai Ekspor</div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group mb-2"><label>Jenis Valuta</label>
+                    <div class="row">
+                        <!-- Data Penyerahan -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Data Penyerahan</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label>Daerah Asal Barang</label>
+                                        <select name="kodeDaerahAsal" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">-- Daerah Asal Barang kosong --</option>
+                                            <!-- Populasi opsi daerah asal -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label>Cara Penyerahan Barang</label>
+                                        <select name="kodeIncoterm" class="form-control form-control-sm select2bs4 ">
+                                            <option value="">-- Cara Penyerahan Barang kosong --</option>
+                                            <option value="CFR" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CFR' ? 'selected' : '' }}>CFR - COST AND FREIGHT</option>
+                                            <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
+                                            <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label>Barang Curah</label>
+                                        <select name="isBarangCurah" class="form-control form-control-sm select2bs4">
+                                            <option value="">-- Pilih Jenis Barang  --</option>
+                                            <option value="1" {{ ($dataDetail['isBarangCurah'] ?? '') == '1' ? 'selected' : '' }}>Curah</option>
+                                            <option value="2" {{ ($dataDetail['isBarangCurah'] ?? '') == '2' ? 'selected' : '' }}>Non-Curah</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nilai -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Nilai</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-2">
+                                        <label>Jenis Valuta</label>
                                         <select name="kodeValuta" class="form-control form-control-sm select2bs4 ">
-                                            <option value="">Pilih Valuta</option>
+                                            <option value="">-- Valuta Kosong --</option>
                                             <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
                                             <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
                                             <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
@@ -927,67 +843,70 @@
                                             <option value="JPY" {{ ($dataDetail['kodeValuta'] ?? '') == 'JPY' ? 'selected' : '' }}>JPY - JAPANESE YEN</option>
                                         </select>
                                     </div>
-                                    <div class="form-group mb-2"><label>NDPBM (Kurs Fiskal)</label><input type="number" step="any" name="ndpbm" class="form-control form-control-sm " value="{{ $dataDetail['ndpbm'] ?? '' }}"></div>
-                                    <div class="form-group mb-2"><label>Cara Penyerahan (Incoterm)</label>
-                                        <select name="kodeIncoterm" class="form-control form-control-sm select2bs4 ">
-                                            <option value="">-- Pilih --</option>
-                                            <option value="CFR" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CFR' ? 'selected' : '' }}>CFR - COST AND FREIGHT</option>
-                                            <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
-                                            <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 border-left">
-                                    <div class="form-group mb-2"><label>Nilai FOB Pengajuan</label><input type="number" step="any" name="fob" class="form-control form-control-sm " value="{{ $dataDetail['fob'] ?? '0.00' }}"></div>
-                                    <div class="form-group mb-2"><label>Freight</label><input type="number" step="any" name="freight" class="form-control form-control-sm " value="{{ $dataDetail['freight'] ?? '0.00' }}"></div>
-                                    <div class="row">
-                                        <div class="col-5 form-group mb-2 pr-1"><label>Tempat Asuransi</label>
-                                            <select name="kodeAsuransi" class="form-control form-control-sm "><option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'LN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option><option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? '') == 'DN' ? 'selected' : '' }}>DALAM NEGERI</option></select>
+                                    <div class="form-group mb-2">
+                                        <div class="d-flex justify-content-between align-items-end mb-1">
+                                            <label class="mb-0">NDPBM</label>
+                                            <button type="button" class="btn btn-sm btn-primary py-0 px-2" style="font-size:11px;">Sesuai valuta terbaru</button>
                                         </div>
-                                        <div class="col-7 form-group mb-2 pl-1"><label>Nilai Asuransi</label><input type="number" step="any" name="asuransi" class="form-control form-control-sm " value="{{ $dataDetail['asuransi'] ?? '0.00' }}"></div>
+                                        <input type="number" step="any" name="ndpbm" class="form-control form-control-sm" value="{{ $dataDetail['ndpbm'] ?? '' }}">
                                     </div>
-                                </div>
-                                <div class="col-md-4 border-left">
-                                    <div class="form-group mb-2"><label>Berat Kotor / Bruto (Kg)</label><input type="number" step="any" name="bruto" class="form-control form-control-sm " value="{{ $dataDetail['bruto'] ?? '0.00' }}"></div>
-                                    <div class="form-group mb-2"><label>Berat Bersih / Netto (Kg)</label><input type="number" step="any" name="netto" class="form-control form-control-sm " value="{{ $dataDetail['netto'] ?? '0.00' }}"></div>
-                                    <div class="form-group mb-2"><label>Nilai Jasa Maklon</label><input type="number" step="any" name="nilaiMaklon" class="form-control form-control-sm" value="{{ $dataDetail['nilaiMaklon'] ?? '0.00' }}"></div>
-
-                                    <div class="form-group mb-3 mt-3">
+                                    <div class="form-group mb-2">
+                                        <label>Nilai Maklon</label>
+                                        <input type="number" step="any" name="nilaiMaklon" class="form-control form-control-sm" value="{{ $dataDetail['nilaiMaklon'] ?? '' }}">
+                                    </div>
+                                    <div class="form-group mb-2 mt-3">
                                         <div class="row align-items-center">
-                                            <div class="col-sm-6">
+                                            <div class="col-sm-12 mb-1">
                                                 <label class="text-sm font-weight-bold mb-0">
                                                     <input type="checkbox" id="check-pph" name="isNilaiPph" class="mr-1" {{ !empty($dataDetail['nilaiPph']) ? 'checked' : '' }}>
-                                                    PPh Ps.22 Ekspor
+                                                    Nilai PPh Pasal 22 Ekspor
                                                 </label>
                                             </div>
-                                            <div class="col-sm-6 text-right">
-                                                <div class="fw-bold text-success mb-0" style="font-size: 14px;" id="text-nilai-pph">Rp 0,00</div>
+                                            <div class="col-sm-12">
+                                                <div class="fw-bold mb-0" style="font-size: 14px;" id="text-nilai-pph">Rp 0,00</div>
                                                 <input type="hidden" name="nilaiPph" id="val-nilai-pph" value="{{ $dataDetail['nilaiPph'] ?? '0.00' }}">
-                                            </div>
-                                            <div class="col-12 mt-1">
-                                                <small class="text-muted font-italic" style="font-size: 10px;">* PPh = 1,5% x FOB x Kurs (NDPBM)</small>
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="form-group mb-0">
+                                        <label>Jumlah Nilai Ekspor (FOB)</label>
+                                        <input type="number" step="any" name="fob" class="form-control form-control-sm " value="{{ $dataDetail['fob'] ?? '0.0000' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div class="form-group mb-0"><label>Total Pungutan Sawit</label><input type="number" step="any" name="totalDanaSawit" class="form-control form-control-sm" value="{{ $dataDetail['totalDanaSawit'] ?? '0.00' }}"></div>
+                        <!-- Berat -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-3 border">
+                                <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Berat</div>
+                                <div class="card-body">
+                                    <div class="form-group mb-3">
+                                        <label>Berat Kotor (KGM)</label>
+                                        <input type="number" step="any" name="bruto" class="form-control form-control-sm " value="{{ $dataDetail['bruto'] ?? '0.0000' }}">
+                                        <small class="" style="font-size: 10px;">Berat Kotor harus lebih besar dari 0</small>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label>Berat Bersih (Kg)</label>
+                                        <input type="number" step="any" name="netto" class="form-control form-control-sm" value="{{ $dataDetail['netto'] ?? '0.00' }}">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
-                            <span>Bank Devisa Hasil Ekspor</span>
-                            <button type="button" id="btn-add-bank" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto" title="Tambah Bank"><i class="fas fa-plus text-primary"></i></button>
+                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:14px;">
+                            <span>Bank Devisa</span>
+                            <button type="button" id="btn-add-bank" class="btn btn-sm btn-primary py-0 px-3 ml-auto">Tambah</button>
                         </div>
                         <div class="card-body p-0">
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead class="bg-light text-center" style="font-size: 12px;">
+                            <table class="table table-sm table-borderless mb-0">
+                                <thead class="text-muted" style="font-size: 12px; border-bottom: 1px solid #eee;">
                                     <tr>
                                         <th width="10%">Seri</th>
                                         <th width="30%">Kode Bank</th>
-                                        <th width="60%">Nama Bank Devisa</th>
+                                        <th width="60%">Nama Bank</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-bank">
@@ -1004,6 +923,12 @@
                                         </td>
                                     </tr>
                                     @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted">
+                                            <div class="mb-2"><i class="fas fa-box-open" style="font-size: 24px; color: #ccc;"></i></div>
+                                            No Data
+                                        </td>
+                                    </tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -1039,224 +964,265 @@
                                             <input type="hidden" name="barang[{{ $index }}][seriBarang]" value="{{ $index + 1 }}">
                                             <input type="hidden" name="barang[{{ $index }}][kodeDokumen]" value="30">
 
-                                            <!-- Layout 2 Kolom Sesuai Portal CEISA 4.0 -->
+                                            <!-- Layout Sesuai Portal CEISA 4.0 -->
                                             <div class="row">
-                                                <!-- KOLOM KIRI -->
-                                                <div class="col-md-6 pr-md-4">
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Seri</label>
-                                                        <div class="col-sm-8">
-                                                            <input type="text" class="form-control form-control-sm bg-light" value="{{ $index + 1 }}" readonly>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Pos Tarif/HS </label>
-                                                        <div class="col-sm-8">
-                                                            <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Pos Tarif</option>
-                                                                <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
-                                                                <option value="48191000" {{ ($draftItem['posTarif'] ?? '48191000') == '48191000' ? 'selected' : '' }}>48191000 - KARTON BOX</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Kode Barang </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->goods_code ?? $item->id_item ?? '-' }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Uraian Jenis Barang </label>
-                                                        <div class="col-sm-8">
-                                                            <textarea name="barang[{{ $index }}][uraian]" class="form-control form-control-sm" rows="3">{{ $draftItem['uraian'] ?? $item->itemdesc ?? '' }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Merek </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="text" name="barang[{{ $index }}][merk]" class="form-control form-control-sm" value="{{ $draftItem['merk'] ?? '-' }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Tipe </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="text" name="barang[{{ $index }}][tipe]" class="form-control form-control-sm" value="{{ $draftItem['tipe'] ?? '-' }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Ukuran </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="text" name="barang[{{ $index }}][ukuran]" class="form-control form-control-sm" value="{{ $draftItem['ukuran'] ?? '-' }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Negara Asal Barang </label>
-                                                        <div class="col-sm-8">
-                                                            <select name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Negara Asal Barang</option>
-                                                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $draftItem['kodeNegaraAsal'] ?? 'ID'])
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Daerah Asal Barang </label>
-                                                        <div class="col-sm-8">
-                                                            <select name="barang[{{ $index }}][kodeDaerahAsal]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Daerah Asal Barang</option>
-                                                                @include('export-import.dokumen-pabean.options_daerah', ['selected' => $draftItem['kodeDaerahAsal'] ?? ''])
-                                                            </select>
+                                                <!-- KOLOM KIRI: Dokumen Asal -->
+                                                <div class="col-md-4">
+                                                    <div class="card shadow-sm mb-3 border">
+                                                        <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Dokumen Asal</div>
+                                                        <div class="card-body">
+                                                            <div class="form-group mb-2">
+                                                                <label>Kode Kantor</label>
+                                                                <select name="barang[{{ $index }}][kodeKantor]" class="form-control form-control-sm  select2bs4">
+                                                                    <option value="">-- Kode Kantor kosong --</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Dokumen Asal</label>
+                                                                <select name="barang[{{ $index }}][dokumenAsal]" class="form-control form-control-sm  select2bs4">
+                                                                    <option value="">-- Jenis Dokumen kosong --</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Nomor Pengajuan</label>
+                                                                <input type="text" name="barang[{{ $index }}][nomorPengajuan]" class="form-control form-control-sm" value="">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Nomor Daftar</label>
+                                                                <input type="text" name="barang[{{ $index }}][nomorDaftar]" class="form-control form-control-sm " value="">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Tanggal Daftar</label>
+                                                                <input type="date" name="barang[{{ $index }}][tanggalDaftar]" class="form-control form-control-sm " value="">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Seri Barang Asal</label>
+                                                                <input type="text" name="barang[{{ $index }}][seriBarangAsal]" class="form-control form-control-sm " value="">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <!-- KOLOM KANAN -->
-                                                <div class="col-md-6 pl-md-4">
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Jumlah dan Satuan Barang </label>
-                                                        <div class="col-sm-4 pr-1">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
-                                                        </div>
-                                                        <div class="col-sm-4 pl-1">
-                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Kode Satuan</option>
-                                                                @foreach($listSatuanBarang as $k => $v)
-                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Kemasan </label>
-                                                        <div class="col-sm-4 pr-1">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahKemasan'] ?? 0 }}">
-                                                        </div>
-                                                        <div class="col-sm-4 pl-1">
-                                                            <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Kode Jenis Kemasan</option>
-                                                                @foreach($listJenisKemasan as $k => $v)
-                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeJenisKemasan'] ?? 'CT') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Nilai Ekspor (Nilai FOB) </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][fob]" class="form-control form-control-sm" value="{{ $draftItem['fob'] ?? (float)($item->qty * $item->price) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Berat Bersih (Kg) </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][netto]" class="form-control form-control-sm" value="{{ $draftItem['netto'] ?? (float) ($item->nw ?? $item->netto ?? 0) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Nilai Ekspor per satuan barang </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][hargaEkspor]" class="form-control form-control-sm" value="{{ $draftItem['hargaEkspor'] ?? (float)$item->price }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group mb-2 row">
-                                                        <label class="col-sm-4 col-form-label small">Jenis Ekspor</label>
-                                                        <div class="col-sm-8">
-                                                            <select name="barang[{{ $index }}][kodeJenisEkspor]" class="form-control form-control-sm select2bs4">
-                                                                <option value="">Pilih Jenis Ekspor</option>
-                                                                @php $kJe = $draftItem['kodeJenisEkspor'] ?? '1'; @endphp
-                                                                <option value="1" {{ $kJe == '1' ? 'selected' : '' }}>1 - Ekspor Biasa</option>
-                                                                <option value="2" {{ $kJe == '2' ? 'selected' : '' }}>2 - Berkala</option>
-                                                                <option value="3" {{ $kJe == '3' ? 'selected' : '' }}>3 - Fasilitas</option>
-                                                                <option value="4" {{ $kJe == '4' ? 'selected' : '' }}>4 - Re-Import</option>
-                                                                <option value="5" {{ $kJe == '5' ? 'selected' : '' }}>5 - Re-Ekspor</option>
-                                                                <option value="6" {{ $kJe == '6' ? 'selected' : '' }}>6 - Ekspor Sementara</option>
-                                                                <option value="7" {{ $kJe == '7' ? 'selected' : '' }}>7 - Ekspor Gabungan</option>
-                                                            </select>
+                                                <!-- KOLOM TENGAH: Jenis -->
+                                                <div class="col-md-4">
+                                                    <div class="card shadow-sm mb-3 border">
+                                                        <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Jenis</div>
+                                                        <div class="card-body">
+                                                            <div class="form-group mb-2">
+                                                                <label>Seri</label>
+                                                                <input type="text" class="form-control form-control-sm bg-light fw-bold" value="{{ $index + 1 }}" readonly>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <label class="mb-0">Pos Tarif/HS <i class="fas fa-info-circle text-primary"></i></label>
+                                                                </div>
+                                                                <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm  select2bs4">
+                                                                    <option value="">-- Pilihan KodeHs Kosong --</option>
+                                                                    <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
+                                                                    <option value="48191000" {{ ($draftItem['posTarif'] ?? '48191000') == '48191000' ? 'selected' : '' }}>48191000 - KARTON BOX</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Kode Barang</label>
+                                                                <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->goods_code ?? $item->id_item ?? '-' }}">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <div class="d-flex justify-content-between align-items-end mb-1">
+                                                                    <label class="mb-0">Uraian Jenis Barang</label>
+                                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2" style="font-size:11px;">Sesuai Hs</button>
+                                                                </div>
+                                                                <textarea name="barang[{{ $index }}][uraian]" class="form-control form-control-sm " rows="3">{{ $draftItem['uraian'] ?? $item->itemdesc ?? '' }}</textarea>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Tipe</label>
+                                                                <input type="text" name="barang[{{ $index }}][tipe]" class="form-control form-control-sm" value="{{ $draftItem['tipe'] ?? '-' }}">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Ukuran</label>
+                                                                <input type="text" name="barang[{{ $index }}][ukuran]" class="form-control form-control-sm" value="{{ $draftItem['ukuran'] ?? '-' }}">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <hr class="mt-4 mb-4">
+                                                <!-- KOLOM KANAN: Multi Cards -->
+                                                <div class="col-md-4">
+                                                    <!-- Keterangan Lainnya -->
+                                                    <div class="card shadow-sm mb-3 border">
+                                                        <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Keterangan Lainnya</div>
+                                                        <div class="card-body">
+                                                            <div class="form-group mb-0">
+                                                                <label>Negara</label>
+                                                                <select name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm  select2bs4">
+                                                                    <option value="">-- Negara kosong --</option>
+                                                                    @include('export-import.dokumen-pabean.options_negara', ['selected' => $draftItem['kodeNegaraAsal'] ?? 'ID'])
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                            <!-- TABEL DOKUMEN FASILITAS/LARTAS (DALAM BARANG) -->
-                                            <div class="card shadow-sm mb-4 border">
-                                                <div class="card-header text-dark fw-bold d-flex justify-content-between align-items-center px-3 py-2" style="font-size:13px; background-color: #f8f9fa;">
-                                                    <span>Dokumen Fasilitas/Lartas</span>
-                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 btn-add-dok-fasilitas" data-itemidx="{{ $index }}"><i class="fas fa-plus"></i> Tambah</button>
-                                                </div>
-                                                <div class="card-body p-0">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-borderless mb-0">
-                                                            <thead class="bg-light text-center border-bottom">
-                                                                <tr>
-                                                                    <th width="5%">Seri</th>
-                                                                    <th width="25%">Jenis</th>
-                                                                    <th width="20%">Nomor</th>
-                                                                    <th width="15%">Tanggal</th>
-                                                                    <th width="15%">Fasilitas</th>
-                                                                    <th width="15%">No Urut Izin</th>
-                                                                    <th width="5%">Aksi</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="tbody-dok-fasilitas-{{ $index }}">
-                                                                @php $dokFasilitas = $draftItem['dokFasilitas'] ?? []; @endphp
-                                                                @forelse($dokFasilitas as $fIndex => $fas)
-                                                                <tr>
-                                                                    <td class="text-center p-2"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $fIndex + 1 }}" readonly></td>
-                                                                    <td class="p-2">
-                                                                        <select name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][kodeDokumen]" class="form-control form-control-sm select2bs4">
-                                                                            <option value="">Pilih</option>
-                                                                            @foreach($referensiDokumen as $val => $text)
-                                                                                <option value="{{ $val }}" {{ ($fas['kodeDokumen'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
+                                                    <!-- Jumlah & Berat -->
+                                                    <div class="card shadow-sm mb-3 border">
+                                                        <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Jumlah & Berat</div>
+                                                        <div class="card-body">
+                                                            <div class="form-group mb-2">
+                                                                <label>Jumlah dan Satuan Barang</label>
+                                                                <div class="row">
+                                                                    <div class="col-sm-6 pr-1">
+                                                                        <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm " value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
+                                                                    </div>
+                                                                    <div class="col-sm-6 pl-1">
+                                                                        <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm  select2bs4">
+                                                                            <option value="">-- Kode Satuan --</option>
+                                                                            @foreach($listSatuanBarang as $k => $v)
+                                                                                <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
                                                                             @endforeach
                                                                         </select>
-                                                                    </td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][nomorDokumen]" class="form-control form-control-sm" value="{{ $fas['nomorDokumen'] ?? '' }}"></td>
-                                                                    <td class="p-2"><input type="date" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][tanggalDokumen]" class="form-control form-control-sm" value="{{ $fas['tanggalDokumen'] ?? '' }}"></td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][kodeFasilitas]" class="form-control form-control-sm" value="{{ $fas['kodeFasilitas'] ?? '' }}"></td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][seriIjin]" class="form-control form-control-sm" value="{{ $fas['seriIjin'] ?? '' }}"></td>
-                                                                    <td class="text-center p-2 align-middle"><button type="button" class="btn btn-sm btn-outline-danger btn-hapus-dok-fas"><i class="fas fa-trash-alt"></i></button></td>
-                                                                </tr>
-                                                                @empty
-                                                                @endforelse
-                                                            </tbody>
-                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Kemasan</label>
+                                                                <div class="row">
+                                                                    <div class="col-sm-6 pr-1">
+                                                                        <input type="number" step="any" name="barang[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahKemasan'] ?? 0 }}">
+                                                                    </div>
+                                                                    <div class="col-sm-6 pl-1">
+                                                                        <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm  select2bs4">
+                                                                            <option value="">-- Kode Jenis --</option>
+                                                                            @foreach($listJenisKemasan as $k => $v)
+                                                                                <option value="{{ $k }}" {{ ($draftItem['kodeJenisKemasan'] ?? 'CT') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group mb-0">
+                                                                <label>Berat Bersih</label>
+                                                                <input type="number" step="any" name="barang[{{ $index }}][netto]" class="form-control form-control-sm " value="{{ $draftItem['netto'] ?? (float) ($item->nw ?? $item->netto ?? 0) }}">
+                                                                <small class="" style="font-size: 10px;">Berat Bersih harus lebih besar dari 0</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Harga -->
+                                                    <div class="card shadow-sm mb-3 border">
+                                                        <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Harga</div>
+                                                        <div class="card-body">
+                                                            <div class="form-group mb-2">
+                                                                <label>FOB</label>
+                                                                <input type="number" step="any" name="barang[{{ $index }}][fob]" class="form-control form-control-sm" value="{{ $draftItem['fob'] ?? (float)($item->qty * $item->price) }}">
+                                                            </div>
+                                                            <div class="form-group mb-2">
+                                                                <label>Volume</label>
+                                                                <input type="number" step="any" name="barang[{{ $index }}][volume]" class="form-control form-control-sm" value="{{ $draftItem['volume'] ?? '0.00' }}">
+                                                            </div>
+                                                            <div class="form-group mb-0">
+                                                                <label>Nilai Barang</label>
+                                                                <input type="number" step="any" name="barang[{{ $index }}][hargaEkspor]" class="form-control form-control-sm" value="{{ $draftItem['hargaEkspor'] ?? (float)$item->price }}">
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- TABEL ENTITAS BARANG (DALAM BARANG) -->
-                                            <div class="card shadow-sm mb-0 border">
-                                                <div class="card-header text-dark fw-bold d-flex justify-content-between align-items-center px-3 py-2" style="font-size:13px; background-color: #f8f9fa;">
-                                                    <span>Entitas Barang</span>
-                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 btn-add-entitas-barang" data-itemidx="{{ $index }}"><i class="fas fa-plus text-primary"></i> Tambah</button>
+                                            <div class="row mt-2">
+                                                <!-- TABEL ENTITAS BARANG (DALAM BARANG) -->
+                                                <div class="col-md-6">
+                                                    <div class="card shadow-sm mb-0 border">
+                                                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
+                                                            <span>Pemilik Barang</span>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 ml-auto btn-add-entitas-barang" data-itemidx="{{ $index }}"><i class="fas fa-plus"></i> Tambah</button>
+                                                        </div>
+                                                        <div class="card-body p-0">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-borderless mb-0">
+                                                                    <thead class="text-muted text-center border-bottom" style="font-size:12px;">
+                                                                        <tr>
+                                                                            <th width="10%">Seri</th>
+                                                                            <th width="25%">No Identitas</th>
+                                                                            <th width="30%">Nama</th>
+                                                                            <th width="30%">Alamat</th>
+                                                                            <th width="5%">Aksi</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="tbody-entitas-barang-{{ $index }}">
+                                                                        @php $entitasBarang = $draftItem['entitasBarang'] ?? []; @endphp
+                                                                        @forelse($entitasBarang as $ebIndex => $entBrg)
+                                                                        <tr>
+                                                                            <td class="text-center p-2 align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $ebIndex + 1 }}" readonly></td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][nomorIdentitas]" class="form-control form-control-sm" value="{{ $entBrg['nomorIdentitas'] ?? '' }}"></td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][namaEntitas]" class="form-control form-control-sm" value="{{ $entBrg['namaEntitas'] ?? '' }}"></td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][alamatEntitas]" class="form-control form-control-sm" value="{{ $entBrg['alamatEntitas'] ?? '' }}"></td>
+                                                                            <td class="text-center p-2 align-middle"><button type="button" class="btn btn-sm btn-outline-danger btn-hapus-entitas-brg"><i class="fas fa-trash-alt"></i></button></td>
+                                                                        </tr>
+                                                                        @empty
+                                                                        <tr>
+                                                                            <td colspan="5" class="text-center py-4 text-muted">
+                                                                                <div class="mb-2"><i class="fas fa-box-open" style="font-size: 24px; color: #ccc;"></i></div>
+                                                                                No Data
+                                                                            </td>
+                                                                        </tr>
+                                                                        @endforelse
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="card-body p-0">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-borderless mb-0">
-                                                            <thead class="bg-light text-center border-bottom">
-                                                                <tr>
-                                                                    <th width="10%">Seri</th>
-                                                                    <th width="25%">No Identitas</th>
-                                                                    <th width="30%">Nama</th>
-                                                                    <th width="30%">Alamat</th>
-                                                                    <th width="5%">Aksi</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="tbody-entitas-barang-{{ $index }}">
-                                                                @php $entitasBarang = $draftItem['entitasBarang'] ?? []; @endphp
-                                                                @forelse($entitasBarang as $ebIndex => $entBrg)
-                                                                <tr>
-                                                                    <td class="text-center p-2 align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $ebIndex + 1 }}" readonly></td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][nomorIdentitas]" class="form-control form-control-sm" value="{{ $entBrg['nomorIdentitas'] ?? '' }}"></td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][namaEntitas]" class="form-control form-control-sm" value="{{ $entBrg['namaEntitas'] ?? '' }}"></td>
-                                                                    <td class="p-2"><input type="text" name="barang[{{ $index }}][entitasBarang][{{ $ebIndex }}][alamatEntitas]" class="form-control form-control-sm" value="{{ $entBrg['alamatEntitas'] ?? '' }}"></td>
-                                                                    <td class="text-center p-2 align-middle"><button type="button" class="btn btn-sm btn-outline-danger btn-hapus-entitas-brg"><i class="fas fa-trash-alt"></i></button></td>
-                                                                </tr>
-                                                                @empty
-                                                                @endforelse
-                                                            </tbody>
-                                                        </table>
+
+                                                <!-- TABEL DOKUMEN FASILITAS/LARTAS (DALAM BARANG) -->
+                                                <div class="col-md-6">
+                                                    <div class="card shadow-sm mb-0 border">
+                                                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
+                                                            <span>Dokumen Fasilitas/Lartas</span>
+                                                            <button type="button" class="btn btn-sm btn-primary py-0 px-2 ml-auto btn-add-dok-fasilitas" data-itemidx="{{ $index }}"><i class="fas fa-plus"></i> Tambah</button>
+                                                        </div>
+                                                        <div class="card-body p-0">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-borderless mb-0">
+                                                                    <thead class="text-muted text-center border-bottom" style="font-size:12px;">
+                                                                        <tr>
+                                                                            <th width="5%">Seri</th>
+                                                                            <th width="25%">Jenis</th>
+                                                                            <th width="20%">Nomor</th>
+                                                                            <th width="15%">Tanggal</th>
+                                                                            <th width="15%">Fasilitas</th>
+                                                                            <th width="15%">No Urut Izin</th>
+                                                                            <th width="5%">Aksi</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="tbody-dok-fasilitas-{{ $index }}">
+                                                                        @php $dokFasilitas = $draftItem['dokFasilitas'] ?? []; @endphp
+                                                                        @forelse($dokFasilitas as $fIndex => $fas)
+                                                                        <tr>
+                                                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $fIndex + 1 }}" readonly></td>
+                                                                            <td class="p-2">
+                                                                                <select name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][kodeDokumen]" class="form-control form-control-sm select2bs4">
+                                                                                    <option value="">Pilih</option>
+                                                                                    @foreach($referensiDokumen as $val => $text)
+                                                                                        <option value="{{ $val }}" {{ ($fas['kodeDokumen'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
+                                                                                    @endforeach
+                                                                                </select>
+                                                                            </td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][nomorDokumen]" class="form-control form-control-sm" value="{{ $fas['nomorDokumen'] ?? '' }}"></td>
+                                                                            <td class="p-2"><input type="date" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][tanggalDokumen]" class="form-control form-control-sm" value="{{ $fas['tanggalDokumen'] ?? '' }}"></td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][kodeFasilitas]" class="form-control form-control-sm" value="{{ $fas['kodeFasilitas'] ?? '' }}"></td>
+                                                                            <td class="p-2"><input type="text" name="barang[{{ $index }}][dokFasilitas][{{ $fIndex }}][seriIjin]" class="form-control form-control-sm" value="{{ $fas['seriIjin'] ?? '' }}"></td>
+                                                                            <td class="text-center p-2 align-middle"><button type="button" class="btn btn-sm btn-outline-danger btn-hapus-dok-fas"><i class="fas fa-trash-alt"></i></button></td>
+                                                                        </tr>
+                                                                        @empty
+                                                                        <tr>
+                                                                            <td colspan="7" class="text-center py-4 text-muted">
+                                                                                <div class="mb-2"><i class="fas fa-box-open" style="font-size: 24px; color: #ccc;"></i></div>
+                                                                                No Data
+                                                                            </td>
+                                                                        </tr>
+                                                                        @endforelse
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1272,35 +1238,49 @@
 
                 <div class="tab-pane fade" id="tab-pungutan" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
-                        <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
+                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:14px;">
                             <span>Pungutan</span>
-                            <button type="button" class="btn btn-sm btn-light btn-add-action py-0 px-2 ml-auto"><i class="fas fa-sync-alt text-primary"></i> Generate</button>
+                            <button type="button" class="btn btn-sm btn-primary py-0 px-3 ml-auto"><i class="fas fa-sync-alt"></i> Generate Pungutan</button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-sm table-borderless mb-0">
-                                    <thead class="bg-light text-center border-bottom">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="bg-light text-center" style="font-size: 12px;">
                                         <tr>
-                                            <th class="align-middle">Pungutan</th>
-                                            <th class="align-middle">Dibayar</th>
-                                            <th class="align-middle">Ditanggung Pemerintah</th>
-                                            <th class="align-middle">Ditunda</th>
-                                            <th class="align-middle">Tidak Dipungut</th>
-                                            <th class="align-middle">Dibebaskan</th>
-                                            <th class="align-middle">Sudah Dilunasi</th>
+                                            <th class="align-middle">
+                                                Pungutan<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Dibayar<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Ditanggung Pemerintah<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Ditunda<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Tidak Dipungut<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Dibebaskan<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
+                                            <th class="align-middle">
+                                                Sudah Dilunasi<br>
+                                                <input type="text" class="form-control form-control-sm mt-1 font-weight-normal" placeholder="Search" style="font-size: 11px;">
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
-                                            <td class="text-center p-2"><input type="text" class="form-control form-control-sm" disabled></td>
+                                            <td colspan="7" class="text-center py-4 text-muted">No data available</td>
                                         </tr>
-                                        <tr><td colspan="7" class="text-center py-4 text-muted">No Data</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -1574,7 +1554,7 @@
             });
         });
 
-       $('.select2-pelabuhan').select2({
+        $('.select2-pelabuhan').select2({
             theme: 'bootstrap4',
             placeholder: 'Cari Pelabuhan...',
             allowClear: true,
@@ -1594,6 +1574,7 @@
             },
             minimumInputLength: 2
         });
+
         // ==========================================
         // ENTITAS BARANG (DALAM RINCIAN BARANG)
         // ==========================================
@@ -1616,3 +1597,4 @@
     });
 </script>
 @endsection
+

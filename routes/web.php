@@ -1570,6 +1570,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc30', 'editBc30')->name('dokumen-pabean-edit-bc30')->where('id', '.*');
         Route::put('/update-draft-bc30/{id}', 'updateDraftBc30')->name('dokumen-pabean-update_draft_bc30')->where('id', '.*');
         Route::post('/send-bc30/{id}', 'sendCeisaBc30')->name('dokumen-pabean-send-bc30')->where('id', '.*');
+
+        // BC 3.3 routes
+        Route::get('/{id}/edit-bc33', 'editBc33')->name('dokumen-pabean-edit-bc33')->where('id', '.*');
+        Route::put('/update-draft-bc33/{id}', 'updateDraftBc33')->name('dokumen-pabean-update_draft_bc33')->where('id', '.*');
+        Route::post('/send-bc33/{id}', 'sendCeisaBc33')->name('dokumen-pabean-send-bc33')->where('id', '.*');
     });
 
     // WHS Soljer
@@ -2031,3 +2036,7 @@ Route::get('/bon-mutasi', function () {
 Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
 Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
 Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->name('ceisa.pelabuhan');
+
+Route::middleware(['auth', 'role:export_import'])->group(function () {
+    Route::resource('master-ceisa', \App\Http\Controllers\MasterCeisaCredentialController::class)->except(['create', 'show', 'edit']);
+});

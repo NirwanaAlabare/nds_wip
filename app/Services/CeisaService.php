@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class CeisaService
 {
+    protected $currentEnv;
     protected $baseUrl;
     protected $username;
     protected $password;
@@ -18,13 +19,75 @@ class CeisaService
     public function __construct()
     {
         $env = config('ceisa.env', 'dev');
+        $this->setEnv($env);
+    }
 
+    /**
+     * Set environment secara dinamis (live / dev)
+     */
+    public function setEnv($env)
+    {
+        $this->currentEnv   = $env;
         $this->baseUrl      = config("ceisa.base_url_{$env}");
         $this->username     = config("ceisa.username_{$env}");
         $this->password     = config("ceisa.password_{$env}");
         $this->apiKey       = config("ceisa.api_key_{$env}");
         $this->idPerusahaan = config("ceisa.id_perusahaan_{$env}");
         $this->idPlatform   = config("ceisa.id_platform_{$env}");
+
+        return $this;
+    }
+
+    /**
+     * Wajibkan penggunaan kredensial milik User yang login (Option A).
+     * Jika tidak ada, lempar Exception.
+     */
+    public function useUserCredential()
+    {
+        if (!auth()->check()) {
+            throw new \Exception('Gagal: Anda belum login.');
+        }
+
+        $userCred = \Illuminate\Support\Facades\DB::connection('mysql_sb')
+            ->table('master_ceisa_credentials')
+            ->where('username', auth()->user()->username)
+            ->first();
+
+        if (!$userCred) {
+            throw new \Exception('Gagal: Anda belum memiliki akses API CEISA. Silakan untuk membuat akun kredential CEISA.');
+        }
+
+        $this->username = $userCred->ceisa_username;
+        $this->password = $userCred->ceisa_password;
+        $this->apiKey   = $userCred->ceisa_api_key;
+
+        return $this;
+    }
+
+    /**
+     * Deteksi otomatis environment berdasarkan kodeDokumen di dalam payload.
+     * BC 2.3 ('23') dan BC 4.0 ('40') dialihkan ke live, sisanya ke dev.
+     */
+    protected function detectEnv($payload)
+    {
+        $kodeDokumen = null;
+
+        if (is_array($payload)) {
+            $kodeDokumen = $payload['kodeDokumen'] ?? ($payload['header']['kodeDokumen'] ?? null);
+        } elseif (is_string($payload)) {
+            $decoded = json_decode($payload, true);
+            if (is_array($decoded)) {
+                $kodeDokumen = $decoded['kodeDokumen'] ?? ($decoded['header']['kodeDokumen'] ?? null);
+            }
+        }
+
+        $kodeDokumen = (string) $kodeDokumen;
+
+        if (in_array($kodeDokumen, ['23', '40'])) {
+            $this->setEnv('live');
+        } else {
+            $this->setEnv('dev');
+        }
     }
 
     /**
@@ -32,11 +95,13 @@ class CeisaService
      */
     public function getToken($forceRefresh = false)
     {
+        $cacheKey = "ceisa_access_token_{$this->currentEnv}";
+
         if ($forceRefresh) {
-            Cache::forget('ceisa_access_token');
+            Cache::forget($cacheKey);
         }
 
-        return Cache::remember('ceisa_access_token', 3500, function () {
+        return Cache::remember($cacheKey, 3500, function () {
             $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
                 'username' => $this->username,
                 'password' => $this->password,
@@ -54,15 +119,12 @@ class CeisaService
     {
         $token = $this->getToken();
 
-
         $headers = [
             'Authorization'    => 'Bearer ' . $token,
             'Beacukai-Api-Key' => $this->apiKey,
             'Content-Type'     => 'application/json',
             'Accept'           => 'application/json',
         ];
-
-
 
         $timeout = (strtoupper($method) === 'GET') ? 3 : 15;
         $request = Http::timeout($timeout)->withoutVerifying()->withHeaders($headers);
@@ -83,7 +145,7 @@ class CeisaService
             || (isset($body['error']) && $body['error'] === 'invalid_token');
 
         if ($isInvalidToken && $retry) {
-            Log::warning('CEISA Token expired/invalid. Mencoba refresh token dan mengulangi request...');
+            Log::warning("CEISA Token expired/invalid untuk env {$this->currentEnv}. Mencoba refresh token dan mengulangi request...");
             $this->getToken(true);
             return $this->requestWithRetry($method, $url, $data, false);
         }
@@ -118,6 +180,9 @@ class CeisaService
      */
     public function kirimDokumen($payload, $isFinal = 'false')
     {
+        $this->useUserCredential();
+        $this->setEnv('live');
+
         $response = $this->requestWithRetry(
             'POST',
             "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
@@ -134,19 +199,22 @@ class CeisaService
     public function getStatusDraft($noAju)
     {
         try {
+            // Karena getStatusDraft tidak memiliki payload kodeDokumen,
+            // environment akan menggunakan env terakhir yang di set
+            // (bisa di set manual dengan $ceisaService->setEnv('live')->getStatusDraft(...))
             $response = $this->requestWithRetry(
                 'GET',
                 "{$this->baseUrl}/openapi/status/{$noAju}"
             );
 
-            Log::info('CEISA getStatusDraft response', [
+            Log::info("CEISA getStatusDraft response ({$this->currentEnv})", [
                 'http_status' => $response->status(),
                 'body'        => $response->json()
             ]);
 
             return $response->json();
         } catch (\Exception $e) {
-            Log::error('CEISA API Get Status Error: ' . $e->getMessage());
+            Log::error("CEISA API Get Status Error ({$this->currentEnv}): " . $e->getMessage());
             throw $e;
         }
     }
@@ -156,6 +224,9 @@ class CeisaService
      */
     public function kirimDokumenBc23($payload, $isFinal = 'false')
     {
+        $this->useUserCredential();
+        $this->setEnv('live');
+
         $response = $this->requestWithRetry(
             'POST',
             "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
@@ -174,6 +245,9 @@ class CeisaService
      */
     public function kirimDokumenBc27($payload, $isFinal = 'false')
     {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
         $response = $this->requestWithRetry(
             'POST',
             "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
@@ -192,6 +266,28 @@ class CeisaService
      */
     public function kirimDokumenBc30($payload, $isFinal = 'false')
     {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // kirim dokumen BC 3.3 ke CEISA
+    public function kirimDokumenBc33($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
         $response = $this->requestWithRetry(
             'POST',
             "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
@@ -210,6 +306,7 @@ class CeisaService
      */
     public function deleteDraft($nomorAju)
     {
+        $this->useUserCredential();
         $response = $this->requestWithRetry(
             'DELETE',
             "{$this->baseUrl}/openapi/status/{$nomorAju}"
