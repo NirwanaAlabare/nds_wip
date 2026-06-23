@@ -1459,6 +1459,7 @@ class Marketing_SOController extends Controller
                     'cfm_price'   => $act_costing_new->confirm_price ?? 0,
                     'vat'         => $request->vat ?? 0,
                     'deldate'     => $details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null,
+                    'type_ws'     => $act_costing_new ? $act_costing_new->tipe_ws : null,
                 ]);
 
                 $curr_name_so = '';
@@ -1470,7 +1471,7 @@ class Marketing_SOController extends Controller
                 // save ke so
                 $id_so = $mysql_sb->table('so')->insertGetId([
                     'id_cost'   => $id_cost,
-                    'buyerno'   => $details->po ? $details->first()->po : '',
+                    'buyerno'   => $details->first()->po ?? '',
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
