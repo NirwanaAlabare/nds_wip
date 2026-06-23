@@ -95,6 +95,15 @@
 
             <div class="row">
                 <div class="col-md-3 form-group">
+                    <label>Tipe WS</label>
+                     <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
+                        <option value="">Pilih Tipe WS</option>
+                        <option value="GLOBAL" {{ $costing->tipe_ws == 'GLOBAL' ? 'selected' : '' }}>GLOBAL</option>
+                        <option value="STD" {{ $costing->tipe_ws == 'STD' ? 'selected' : '' }}>STD</option>
+                        <option value="DTH" {{ $costing->tipe_ws == 'DTH' ? 'selected' : '' }}>DTH</option>
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
                     <label>Product Type</label>
                     <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple>
                         @php
