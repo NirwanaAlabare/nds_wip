@@ -141,6 +141,7 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use App\Http\Controllers\AssetDashboardController;
 use App\Http\Controllers\AssetMasterLokasiController;
 use App\Http\Controllers\AssetMasterJenisMesinController;
+use App\Http\Controllers\AssetMasterRakSparepartController;
 use App\Http\Controllers\AssetMesinTambahController;
 use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinMasterController;
@@ -1479,6 +1480,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_kd_merk/store', 'store_kd_merk')->name('store_kd_merk');
         Route::post('/asset_kd_merk/update', 'update_kd_merk')->name('update_kd_merk');
     });
+    // Master Asset Management Rak Sparepart
+    Route::controller(AssetMasterRakSparepartController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_master_rak_sparepart', 'asset_master_rak_sparepart')->name('asset_master_rak_sparepart');
+        Route::post('/asset_rak_sparepart/store', 'store_rak_sparepart')->name('store_rak_sparepart');
+        Route::get('/asset_rak_sparepart/show', 'show_rak_sparepart')->name('show_rak_sparepart');
+        Route::post('/asset_rak_sparepart/update', 'update_rak_sparepart')->name('update_rak_sparepart');
+        Route::post('/asset_rak_sparepart/delete', 'delete_rak_sparepart')->name('delete_rak_sparepart');
+    });
     // Master Asset Management Tambah Mesin (Pembelian Mesin)
     Route::controller(AssetMesinTambahController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_tambah', 'asset_mesin_tambah')->name('asset_mesin_tambah');
@@ -1509,6 +1518,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_sewa/qr/store', 'store_mesin_sewa_qr')->name('store_mesin_sewa_qr');
         Route::post('/asset_mesin_sewa/qr/update', 'update_mesin_sewa_qr')->name('update_mesin_sewa_qr');
         Route::get('/asset_mesin_sewa/qr/print', 'print_mesin_sewa_qr')->name('print_mesin_sewa_qr');
+        Route::get('/asset_mesin_sewa/qr/usage', 'get_mesin_sewa_qr_usage')->name('asset_mesin_sewa_qr_usage');
     });
 
 

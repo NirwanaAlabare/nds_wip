@@ -1429,6 +1429,11 @@
                                         <a href="{{ route('asset_master_lokasi') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_lokasi' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-location-dot"></i>Master lokasi</a>
+
+                                        <div class="mega-dropdown-col-title">Spareparts</div>
+                                        <a href="{{ route('asset_master_rak_sparepart') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_rak_sparepart' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Master Rak</a>
                                     </div>
                                     <div class="mega-dropdown-col">
                                         <div class="mega-dropdown-col-title">Mesin</div>

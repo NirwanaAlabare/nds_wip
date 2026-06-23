@@ -6,14 +6,6 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
 
-    <!-- DataTables CSS -->
-    {{-- <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}"> --}}
-    <!-- jQuery -->
-    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
-
-
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -444,7 +436,7 @@
                 }
             },
             columns: [{
-                    data: 'tgl_trans'
+                    data: 'tgl_trans_fix'
                 }, // Tgl Transaksi
                 {
                     data: 'bpbno_int'
@@ -700,11 +692,11 @@
                         </td>
                         <td class="text-center align-middle">
                             ${qrSrc ? `
-                                                <img class="unit-qr-img" src="${qrSrc}" data-unit-id="${unit.id}"
-                                                    title="Klik untuk print PDF" style="display:none;">
-                                                <span class="unit-qr-locked text-muted"
-                                                    title="Isi Serial Number & Foto dahulu"><i class="fas fa-lock"></i></span>
-                                            ` : '<span class="text-muted">-</span>'}
+                                                    <img class="unit-qr-img" src="${qrSrc}" data-unit-id="${unit.id}"
+                                                        title="Klik untuk print PDF" style="display:none;">
+                                                    <span class="unit-qr-locked text-muted"
+                                                        title="Isi Serial Number & Foto dahulu"><i class="fas fa-lock"></i></span>
+                                                ` : '<span class="text-muted">-</span>'}
                         </td>
                     </tr>`);
                     });
@@ -938,7 +930,8 @@
                 },
                 didOpen: () => {
                     let scale = 1;
-                    document.querySelector('.unit-preview-zoom-img').addEventListener('wheel', function(e) {
+                    document.querySelector('.unit-preview-zoom-img').addEventListener('wheel', function(
+                        e) {
                         e.preventDefault();
                         scale = Math.min(Math.max(scale + (e.deltaY < 0 ? 0.2 : -0.2), 1), 4);
                         this.style.transform = `scale(${scale})`;
