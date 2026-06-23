@@ -1586,6 +1586,7 @@ class Marketing_SOController extends Controller
                         'product_set'  => $d->product_set ?? null,
                         'dest'    => $d->market ?? null,
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
+                        'sku'   => '-',
                     ];
                 }
 
