@@ -146,6 +146,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 sii_in.tgl_trans < '".$dateFrom."' AND
+                                                sii_in.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -178,6 +179,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 sii_in.tgl_trans < '".$dateFrom."' AND
+                                                sii_in.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -213,6 +215,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 sii.tgl_trans < '".$dateFrom."' AND
+                                                sii.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -245,6 +248,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 sii.tgl_trans < '".$dateFrom."' AND
+                                                sii.tgl_trans >= '2026-05-01' AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                                 (pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -283,6 +287,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 si.tgl_trans < '".$dateFrom."' AND
+                                                si.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -321,6 +326,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 si.tgl_trans < '".$dateFrom."' AND
+                                                si.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -357,6 +363,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 wo.tgl_form < '".$dateFrom."' AND
+                                                wo.tgl_form >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -391,6 +398,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 wo.tgl_form < '".$dateFrom."' AND
+                                                wo.tgl_form >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -431,6 +439,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 si.tgl_trans < '".$dateFrom."' AND
+                                                si.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -469,6 +478,7 @@ class DcReportController extends Controller
                                         WHERE
                                                 si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                 si.tgl_trans < '".$dateFrom."' AND
+                                                si.tgl_trans >= '2026-05-01' AND
                                                 s.id is not null AND
                                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1318,7 +1328,13 @@ class DcReportController extends Controller
                                 0 terima_repaired_secondary_luar,
                                 0 terima_good_secondary_luar,
                                 0 loading,
-                                0 current_saldo_akhir
+                                0 current_saldo_akhir,
+                                0 kirim_secondary_dalam_before,
+                                0 terima_repaired_secondary_dalam_before,
+                                0 terima_good_secondary_dalam_before,
+                                0 kirim_secondary_luar_before,
+                                0 terima_repaired_secondary_luar_before,
+                                0 terima_good_secondary_luar_before
                         from
                                 dc_in_dump
                                 left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -1351,7 +1367,13 @@ class DcReportController extends Controller
                                 SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                                 SUM(terima_good_secondary_luar) terima_good_secondary_luar,
                                 SUM(loading) loading_qty,
-                                SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir
+                                SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir,
+                                SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
+                                SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
+                                SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
+                                SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
+                                SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
+                                SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before
                             from (
                                 select
                                         GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
@@ -1375,7 +1397,13 @@ class DcReportController extends Controller
                                         sum(dc_current_saldo.terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                                         sum(dc_current_saldo.terima_good_secondary_luar) terima_good_secondary_luar,
                                         sum(dc_current_saldo.loading_qty) loading,
-                                        SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir
+                                        SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir,
+                                        0 as kirim_secondary_dalam_before,
+                                        0 as terima_repaired_secondary_dalam_before,
+                                        0 as terima_good_secondary_dalam_before,
+                                        0 as kirim_secondary_luar_before,
+                                        0 as terima_repaired_secondary_luar_before,
+                                        0 as terima_good_secondary_luar_before
                                 from
                                         dc_current_saldo
                                 GROUP BY
@@ -1406,7 +1434,13 @@ class DcReportController extends Controller
                                         0 terima_repaired_secondary_luar,
                                         0 terima_good_secondary_luar,
                                         0 loading,
-                                        0 as current_saldo_akhir
+                                        0 as current_saldo_akhir,
+                                        SUM(kirim_secondary_dalam) as kirim_secondary_dalam_before,
+                                        SUM(terima_repaired_secondary_dalam) as terima_repaired_secondary_dalam_before,
+                                        SUM(terima_good_secondary_dalam) as terima_good_secondary_dalam_before,
+                                        SUM(kirim_secondary_luar) as kirim_secondary_luar_before,
+                                        SUM(terima_repaired_secondary_luar) as terima_repaired_secondary_luar_before,
+                                        SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before
                                 from
                                         dc_before_saldo
                                         left join master_sb_ws msb on msb.id_so_det = dc_before_saldo.so_det_id
@@ -1440,7 +1474,13 @@ class DcReportController extends Controller
                                         0 terima_repaired_secondary_luar,
                                         0 terima_good_secondary_luar,
                                         0 loading,
-                                        qty_in current_saldo_akhir
+                                        qty_in current_saldo_akhir,
+                                        0 as kirim_secondary_dalam_before,
+                                        0 as terima_repaired_secondary_dalam_before,
+                                        0 as terima_good_secondary_dalam_before,
+                                        0 as kirim_secondary_luar_before,
+                                        0 as terima_repaired_secondary_luar_before,
+                                        0 as terima_good_secondary_luar_before
                                 from
                                         dc_in_dump
                                         left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -1476,7 +1516,14 @@ class DcReportController extends Controller
                                         terima_repaired_secondary_luar,
                                         terima_good_secondary_luar,
                                         loading,
-                                        current_saldo_akhir
+                                        current_saldo_akhir,
+                                        kirim_secondary_dalam_before,
+                                        terima_repaired_secondary_dalam_before,
+                                        terima_good_secondary_dalam_before,
+                                        kirim_secondary_luar_before,
+                                        terima_repaired_secondary_luar_before,
+                                        terima_good_secondary_luar_before
+
                                 from
                                         dc_in_dump_before
                             ) current_saldo
@@ -1511,10 +1558,20 @@ class DcReportController extends Controller
                         SUM(terima_good_secondary_luar) terima_good_secondary_luar,
                         SUM(loading_qty) loading_qty,
                         SUM(current_saldo_akhir) current_saldo_akhir,
+                        SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
+                        SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
+                        SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
+                        SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
+                        SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
+                        SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before,
                         SUM(qty_adjustment) adjustment,
                         SUM(switching_in) switching_in,
                         SUM(switching_out) switching_out,
-                        (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment
+                        (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment,
+                        SUM(qty_adjustment_secondary_dalam_before) qty_adjustment_secondary_dalam_before,
+                        SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
+                        SUM(qty_adjustment_secondary_luar_before) qty_adjustment_secondary_luar_before,
+                        SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar
                     from (
                         select
                             stockers,
@@ -1535,12 +1592,22 @@ class DcReportController extends Controller
                             terima_good_secondary_luar,
                             loading_qty,
                             current_saldo_akhir,
+                            kirim_secondary_dalam_before,
+                            terima_repaired_secondary_dalam_before,
+                            terima_good_secondary_dalam_before,
+                            kirim_secondary_luar_before,
+                            terima_repaired_secondary_luar_before,
+                            terima_good_secondary_luar_before,
                             0 as qty_adjustment_before,
                             0 qty_adjustment,
                             0 as switching_in_before,
                             0 switching_in,
                             0 as switching_out_before,
-                            0 switching_out
+                            0 switching_out,
+                            0 as qty_adjustment_secondary_dalam_before,
+                            0 as qty_adjustment_secondary_dalam,
+                            0 as qty_adjustment_secondary_luar_before,
+                            0 as qty_adjustment_secondary_luar
                         FROM
                             dc_saldo
                         UNION ALL
@@ -1563,12 +1630,22 @@ class DcReportController extends Controller
                             0 terima_good_secondary_luar,
                             0 loading_qty,
                             0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
                             SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_before,
                             SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment,
                             0 switching_in_before,
                             0 as switching_in,
                             0 as switching_out_before,
-                            0 as switching_out
+                            0 as switching_out,
+                            0 as qty_adjustment_secondary_dalam_before,
+                            0 as qty_adjustment_secondary_dalam,
+                            0 as qty_adjustment_secondary_luar_before,
+                            0 as qty_adjustment_secondary_luar
                         FROM
                             wip_adjustment
                         WHERE
@@ -1596,12 +1673,22 @@ class DcReportController extends Controller
                             0 terima_good_secondary_luar,
                             0 loading_qty,
                             0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
                             0 as qty_adjustment_before,
                             0 as qty_adjustment,
                             0 as switching_in_before,
                             0 as switching_in,
                             SUM(IF(from_tgl_saldo < '".$dateFrom."',qty,0)) switching_out_before,
-                            SUM(IF(from_tgl_saldo >= '".$dateFrom."',qty,0)) as switching_out
+                            SUM(IF(from_tgl_saldo >= '".$dateFrom."',qty,0)) as switching_out,
+                            0 as qty_adjustment_secondary_dalam_before,
+                            0 as qty_adjustment_secondary_dalam,
+                            0 as qty_adjustment_secondary_luar_before,
+                            0 as qty_adjustment_secondary_luar
                         FROM
                             wip_switching_adj
                         where
@@ -1629,12 +1716,22 @@ class DcReportController extends Controller
                             0 terima_good_secondary_luar,
                             0 loading_qty,
                             0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
                             0 as qty_adjustment_before,
                             0 as qty_adjustment,
                             SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) switching_in_before,
                             SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as switching_in,
                             0 as switching_out_before,
-                            0 as switching_out
+                            0 as switching_out,
+                            0 as qty_adjustment_secondary_dalam_before,
+                            0 as qty_adjustment_secondary_dalam,
+                            0 as qty_adjustment_secondary_luar_before,
+                            0 as qty_adjustment_secondary_luar
                         FROM
                             wip_switching_adj
                         WHERE
@@ -1642,9 +1739,95 @@ class DcReportController extends Controller
                             type_report = 'DC'
                         GROUP BY
                             no_ws, color, size, panel, part
-                    ) dc
-                    group by
-                        ws, color, size, panel, COALESCE(nama_part, '')
+                        UNION ALL
+                        select
+                            null stockers,
+                            no_ws ws,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel,
+                            part nama_part,
+                            0 current_saldo_awal,
+                            0 qty_in,
+                            0 kirim_secondary_dalam,
+                            0 terima_repaired_secondary_dalam,
+                            0 terima_good_secondary_dalam,
+                            0 kirim_secondary_luar,
+                            0 terima_repaired_secondary_luar,
+                            0 terima_good_secondary_luar,
+                            0 loading_qty,
+                            0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
+                            0 qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 switching_in_before,
+                            0 as switching_in,
+                            0 as switching_out_before,
+                            0 as switching_out,
+                            SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_dalam_before,
+                            SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_dalam,
+                            0 as qty_adjustment_secondary_luar_before,
+                            0 as qty_adjustment_secondary_luar
+                        FROM
+                            wip_adjustment
+                        WHERE
+                            tgl_saldo <= '$dateTo' and
+                            type_report = 'DC_SECONDARY_DALAM'
+                        GROUP BY
+                            ws, color, size, panel, part
+                        UNION ALL
+                        select
+                            null stockers,
+                            no_ws ws,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel,
+                            part nama_part,
+                            0 current_saldo_awal,
+                            0 qty_in,
+                            0 kirim_secondary_dalam,
+                            0 terima_repaired_secondary_dalam,
+                            0 terima_good_secondary_dalam,
+                            0 kirim_secondary_luar,
+                            0 terima_repaired_secondary_luar,
+                            0 terima_good_secondary_luar,
+                            0 loading_qty,
+                            0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
+                            0 qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 switching_in_before,
+                            0 as switching_in,
+                            0 as switching_out_before,
+                            0 as switching_out,
+                            0 as qty_adjustment_secondary_dalam_before,
+                            0 as qty_adjustment_secondary_dalam,
+                            SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_luar_before,
+                            SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_luar
+                        FROM
+                            wip_adjustment
+                        WHERE
+                            tgl_saldo <= '$dateTo' and
+                            type_report = 'DC_SECONDARY_LUAR'
+                        GROUP BY
+                            ws, color, size, panel, part
+                        ) dc
+                        group by
+                                ws, color, size, panel, COALESCE(nama_part, '')
                     having
                         (
                             current_saldo_awal_adjustment != 0 OR
@@ -1687,10 +1870,20 @@ class DcReportController extends Controller
                                 0 terima_good_secondary_luar,
                                 0 loading_qty,
                                 0 current_saldo_akhir,
+                                0 kirim_secondary_dalam_before,
+                                0 terima_repaired_secondary_dalam_before,
+                                0 terima_good_secondary_dalam_before,
+                                0 kirim_secondary_luar_before,
+                                0 terima_repaired_secondary_luar_before,
+                                0 terima_good_secondary_luar_before,
                                 0 adjustment,
                                 0 switching_in,
                                 0 switching_out,
-                                0 current_saldo_akhir_adjustment
+                                0 current_saldo_akhir_adjustment,
+                                0 as qty_adjustment_secondary_dalam_before,
+                                0 as qty_adjustment_secondary_dalam,
+                                0 as qty_adjustment_secondary_luar_before,
+                                0 as qty_adjustment_secondary_luar
                         from
                                 dc
                                 left join part on part.act_costing_ws = dc.ws and part.panel = dc.panel
@@ -1728,7 +1921,93 @@ class DcReportController extends Controller
                     SUM(adjustment) adjustment,
                     SUM(switching_in) switching_in,
                     SUM(switching_out) switching_out,
-                    SUM(current_saldo_akhir_adjustment) current_saldo_akhir_adjustment
+                    SUM(current_saldo_akhir_adjustment) current_saldo_akhir_adjustment,
+                    SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
+                    SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
+                    (
+                    CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                        (
+                                SUM(kirim_secondary_dalam_before)
+                                -
+                                SUM(terima_repaired_secondary_dalam_before)
+                                -
+                                SUM(terima_good_secondary_dalam_before)
+                                +
+                                SUM(qty_adjustment_secondary_dalam_before)
+                        )
+                    END
+                    ) saldo_awal_secondary_dalam,
+                    (
+                    (
+                        CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                                (
+                                SUM(kirim_secondary_dalam_before)
+                                -
+                                SUM(terima_repaired_secondary_dalam_before)
+                                -
+                                SUM(terima_good_secondary_dalam_before)
+                                +
+                                SUM(qty_adjustment_secondary_dalam_before)
+                                )
+                        END
+                    )
+                    +
+                    SUM(kirim_secondary_dalam)
+                    -
+                    SUM(terima_repaired_secondary_dalam)
+                    -
+                    SUM(terima_good_secondary_dalam)
+                    +
+                    SUM(qty_adjustment_secondary_dalam)
+                    ) saldo_akhir_secondary_dalam,
+                    (
+                    CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                        (
+                                SUM(kirim_secondary_luar_before)
+                                -
+                                SUM(terima_repaired_secondary_luar_before)
+                                -
+                                SUM(terima_good_secondary_luar_before)
+                                +
+                                SUM(qty_adjustment_secondary_luar_before)
+                        )
+                    END
+                    ) saldo_awal_secondary_luar,
+                    (
+                    (
+                        CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                                (
+                                SUM(kirim_secondary_luar_before)
+                                -
+                                SUM(terima_repaired_secondary_luar_before)
+                                -
+                                SUM(terima_good_secondary_luar_before)
+                                +
+                                SUM(qty_adjustment_secondary_luar_before)
+                                )
+                        END
+                    )
+                    +
+                    SUM(kirim_secondary_luar)
+                    -
+                    SUM(terima_repaired_secondary_luar)
+                    -
+                    SUM(terima_good_secondary_luar)
+                    +
+                    SUM(qty_adjustment_secondary_luar)
+                    ) saldo_akhir_secondary_luar
                 FROM (
                     select * from dc
                     UNION
@@ -1886,6 +2165,7 @@ class DcReportController extends Controller
                                     WHERE
                                             sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             sii_in.tgl_trans < '".$dateFrom."' AND
+                                            sii_in.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1918,6 +2198,7 @@ class DcReportController extends Controller
                                     WHERE
                                             sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             sii_in.tgl_trans < '".$dateFrom."' AND
+                                            sii_in.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1953,6 +2234,7 @@ class DcReportController extends Controller
                                     WHERE
                                             sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             sii.tgl_trans < '".$dateFrom."' AND
+                                            sii.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1985,6 +2267,7 @@ class DcReportController extends Controller
                                     WHERE
                                             sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             sii.tgl_trans < '".$dateFrom."' AND
+                                            sii.tgl_trans >= '2026-05-01' AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -2023,6 +2306,7 @@ class DcReportController extends Controller
                                     WHERE
                                             si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             si.tgl_trans < '".$dateFrom."' AND
+                                            si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2061,6 +2345,7 @@ class DcReportController extends Controller
                                     WHERE
                                             si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             si.tgl_trans < '".$dateFrom."' AND
+                                            si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2097,6 +2382,7 @@ class DcReportController extends Controller
                                     WHERE
                                             wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             wo.tgl_form < '".$dateFrom."' AND
+                                            wo.tgl_form >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2131,6 +2417,7 @@ class DcReportController extends Controller
                                     WHERE
                                             wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             wo.tgl_form < '".$dateFrom."' AND
+                                            wo.tgl_form >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2171,6 +2458,7 @@ class DcReportController extends Controller
                                     WHERE
                                             si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             si.tgl_trans < '".$dateFrom."' AND
+                                            si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2209,6 +2497,7 @@ class DcReportController extends Controller
                                     WHERE
                                             si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             si.tgl_trans < '".$dateFrom."' AND
+                                            si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -3058,7 +3347,13 @@ class DcReportController extends Controller
                             0 terima_repaired_secondary_luar,
                             0 terima_good_secondary_luar,
                             0 loading,
-                            0 current_saldo_akhir
+                            0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before
                     from
                             dc_in_dump
                             left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -3091,7 +3386,13 @@ class DcReportController extends Controller
                             SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                             SUM(terima_good_secondary_luar) terima_good_secondary_luar,
                             SUM(loading) loading_qty,
-                            SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir
+                            SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir,
+                            SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
+                            SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
+                            SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
+                            SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
+                            SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
+                            SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before
                         from (
                             select
                                     GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
@@ -3115,7 +3416,13 @@ class DcReportController extends Controller
                                     sum(dc_current_saldo.terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                                     sum(dc_current_saldo.terima_good_secondary_luar) terima_good_secondary_luar,
                                     sum(dc_current_saldo.loading_qty) loading,
-                                    SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir
+                                    SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir,
+                                    0 as kirim_secondary_dalam_before,
+                                    0 as terima_repaired_secondary_dalam_before,
+                                    0 as terima_good_secondary_dalam_before,
+                                    0 as kirim_secondary_luar_before,
+                                    0 as terima_repaired_secondary_luar_before,
+                                    0 as terima_good_secondary_luar_before
                             from
                                     dc_current_saldo
                             GROUP BY
@@ -3146,7 +3453,13 @@ class DcReportController extends Controller
                                     0 terima_repaired_secondary_luar,
                                     0 terima_good_secondary_luar,
                                     0 loading,
-                                    0 as current_saldo_akhir
+                                    0 as current_saldo_akhir,
+                                    SUM(kirim_secondary_dalam) as kirim_secondary_dalam_before,
+                                    SUM(terima_repaired_secondary_dalam) as terima_repaired_secondary_dalam_before,
+                                    SUM(terima_good_secondary_dalam) as terima_good_secondary_dalam_before,
+                                    SUM(kirim_secondary_luar) as kirim_secondary_luar_before,
+                                    SUM(terima_repaired_secondary_luar) as terima_repaired_secondary_luar_before,
+                                    SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before
                             from
                                     dc_before_saldo
                                     left join master_sb_ws msb on msb.id_so_det = dc_before_saldo.so_det_id
@@ -3180,7 +3493,13 @@ class DcReportController extends Controller
                                     0 terima_repaired_secondary_luar,
                                     0 terima_good_secondary_luar,
                                     0 loading,
-                                    qty_in current_saldo_akhir
+                                    qty_in current_saldo_akhir,
+                                    0 as kirim_secondary_dalam_before,
+                                    0 as terima_repaired_secondary_dalam_before,
+                                    0 as terima_good_secondary_dalam_before,
+                                    0 as kirim_secondary_luar_before,
+                                    0 as terima_repaired_secondary_luar_before,
+                                    0 as terima_good_secondary_luar_before
                             from
                                     dc_in_dump
                                     left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -3216,7 +3535,13 @@ class DcReportController extends Controller
                                     terima_repaired_secondary_luar,
                                     terima_good_secondary_luar,
                                     loading,
-                                    current_saldo_akhir
+                                    current_saldo_akhir,
+                                    kirim_secondary_dalam_before,
+                                    terima_repaired_secondary_dalam_before,
+                                    terima_good_secondary_dalam_before,
+                                    kirim_secondary_luar_before,
+                                    terima_repaired_secondary_luar_before,
+                                    terima_good_secondary_luar_before
                             from
                                     dc_in_dump_before
                         ) current_saldo
@@ -3251,10 +3576,20 @@ class DcReportController extends Controller
                     SUM(terima_good_secondary_luar) terima_good_secondary_luar,
                     SUM(loading_qty) loading_qty,
                     SUM(current_saldo_akhir) current_saldo_akhir,
+                    SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
+                    SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
+                    SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
+                    SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
+                    SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
+                    SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before,
                     SUM(qty_adjustment) adjustment,
                     SUM(switching_in) switching_in,
                     SUM(switching_out) switching_out,
-                    (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment
+                    (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment,
+                    SUM(qty_adjustment_secondary_dalam_before) qty_adjustment_secondary_dalam_before,
+                    SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
+                    SUM(qty_adjustment_secondary_luar_before) qty_adjustment_secondary_luar_before,
+                    SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar
                 from (
                     select
                         stockers,
@@ -3275,12 +3610,22 @@ class DcReportController extends Controller
                         terima_good_secondary_luar,
                         loading_qty,
                         current_saldo_akhir,
+                        kirim_secondary_dalam_before,
+                        terima_repaired_secondary_dalam_before,
+                        terima_good_secondary_dalam_before,
+                        kirim_secondary_luar_before,
+                        terima_repaired_secondary_luar_before,
+                        terima_good_secondary_luar_before,
                         0 as qty_adjustment_before,
                         0 qty_adjustment,
                         0 as switching_in_before,
                         0 switching_in,
                         0 as switching_out_before,
-                        0 switching_out
+                        0 switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar
                     FROM
                         dc_saldo
                     UNION ALL
@@ -3303,12 +3648,22 @@ class DcReportController extends Controller
                         0 terima_good_secondary_luar,
                         0 loading_qty,
                         0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_before,
                         SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment,
                         0 switching_in_before,
                         0 as switching_in,
                         0 as switching_out_before,
-                        0 as switching_out
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar
                     FROM
                         wip_adjustment
                     WHERE
@@ -3336,12 +3691,22 @@ class DcReportController extends Controller
                         0 terima_good_secondary_luar,
                         0 loading_qty,
                         0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
                         0 as switching_in,
                         SUM(IF(from_tgl_saldo < '".$dateFrom."',qty,0)) switching_out_before,
-                        SUM(IF(from_tgl_saldo >= '".$dateFrom."',qty,0)) as switching_out
+                        SUM(IF(from_tgl_saldo >= '".$dateFrom."',qty,0)) as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar
                     FROM
                         wip_switching_adj
                     where
@@ -3369,12 +3734,22 @@ class DcReportController extends Controller
                         0 terima_good_secondary_luar,
                         0 loading_qty,
                         0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) switching_in_before,
                         SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as switching_in,
                         0 as switching_out_before,
-                        0 as switching_out
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar
                     FROM
                         wip_switching_adj
                     WHERE
@@ -3382,6 +3757,92 @@ class DcReportController extends Controller
                         type_report = 'DC'
                     GROUP BY
                         no_ws, color, size, panel, part
+                    UNION ALL
+                    select
+                        null stockers,
+                        no_ws ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        panel,
+                        part nama_part,
+                        0 current_saldo_awal,
+                        0 qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading_qty,
+                        0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_dalam_before,
+                        SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar
+                    FROM
+                        wip_adjustment
+                    WHERE
+                        tgl_saldo <= '$dateTo' and
+                        type_report = 'DC_SECONDARY_DALAM'
+                    GROUP BY
+                        ws, color, size, panel, part
+                    UNION ALL
+                    select
+                        null stockers,
+                        no_ws ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        panel,
+                        part nama_part,
+                        0 current_saldo_awal,
+                        0 qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading_qty,
+                        0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_luar_before,
+                        SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_luar
+                    FROM
+                        wip_adjustment
+                    WHERE
+                        tgl_saldo <= '$dateTo' and
+                        type_report = 'DC_SECONDARY_LUAR'
+                    GROUP BY
+                        ws, color, size, panel, part
                 ) dc
                 group by
                     ws, color, size, panel, COALESCE(nama_part, '')
@@ -3427,10 +3888,20 @@ class DcReportController extends Controller
                             0 terima_good_secondary_luar,
                             0 loading_qty,
                             0 current_saldo_akhir,
+                            0 kirim_secondary_dalam_before,
+                            0 terima_repaired_secondary_dalam_before,
+                            0 terima_good_secondary_dalam_before,
+                            0 kirim_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before,
+                            0 terima_good_secondary_luar_before,
                             0 adjustment,
                             0 switching_in,
                             0 switching_out,
-                            0 current_saldo_akhir_adjustment
+                            0 current_saldo_akhir_adjustment,
+                            0 qty_adjustment_secondary_dalam_before,
+                            0 qty_adjustment_secondary_dalam,
+                            0 qty_adjustment_secondary_luar_before,
+                            0 qty_adjustment_secondary_luar
                     from
                             dc
                             left join part on part.act_costing_ws = dc.ws and part.panel = dc.panel
@@ -3468,7 +3939,93 @@ class DcReportController extends Controller
                 SUM(adjustment) adjustment,
                 SUM(switching_in) switching_in,
                 SUM(switching_out) switching_out,
-                SUM(current_saldo_akhir_adjustment) current_saldo_akhir_adjustment
+                SUM(current_saldo_akhir_adjustment) current_saldo_akhir_adjustment,
+                SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
+                SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
+                (
+                CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                        (
+                                SUM(kirim_secondary_dalam_before)
+                                -
+                                SUM(terima_repaired_secondary_dalam_before)
+                                -
+                                SUM(terima_good_secondary_dalam_before)
+                                +
+                                SUM(qty_adjustment_secondary_dalam_before)
+                        )
+                END
+                ) saldo_awal_secondary_dalam,
+                (
+                (
+                        CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                                (
+                                SUM(kirim_secondary_dalam_before)
+                                -
+                                SUM(terima_repaired_secondary_dalam_before)
+                                -
+                                SUM(terima_good_secondary_dalam_before)
+                                +
+                                SUM(qty_adjustment_secondary_dalam_before)
+                                )
+                        END
+                )
+                +
+                SUM(kirim_secondary_dalam)
+                -
+                SUM(terima_repaired_secondary_dalam)
+                -
+                SUM(terima_good_secondary_dalam)
+                +
+                SUM(qty_adjustment_secondary_dalam)
+                ) saldo_akhir_secondary_dalam,
+                (
+                CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                        (
+                                SUM(kirim_secondary_luar_before)
+                                -
+                                SUM(terima_repaired_secondary_luar_before)
+                                -
+                                SUM(terima_good_secondary_luar_before)
+                                +
+                                SUM(qty_adjustment_secondary_luar_before)
+                        )
+                END
+                ) saldo_awal_secondary_luar,
+                (
+                (
+                        CASE 
+                        WHEN '".$dateFrom."' < '2026-06-01'
+                        THEN 0
+                        ELSE
+                                (
+                                SUM(kirim_secondary_luar_before)
+                                -
+                                SUM(terima_repaired_secondary_luar_before)
+                                -
+                                SUM(terima_good_secondary_luar_before)
+                                +
+                                SUM(qty_adjustment_secondary_luar_before)
+                                )
+                        END
+                )
+                +
+                SUM(kirim_secondary_luar)
+                -
+                SUM(terima_repaired_secondary_luar)
+                -
+                SUM(terima_good_secondary_luar)
+                +
+                SUM(qty_adjustment_secondary_luar)
+                ) saldo_akhir_secondary_luar
             FROM (
                 select * from dc
                 UNION
@@ -3480,132 +4037,190 @@ class DcReportController extends Controller
                 ws, color, size, panel, COALESCE(nama_part, '')
         ");
 
+        $fileName = 'laporan-dc';
 
-        // Create Excel file using FastExcel
-        $excel = FastExcel::create('Laporan DC');
-        $sheet = $excel->getSheet();
+        $excel = FastExcel::create($fileName);
+        
+        $sheet = $excel->sheet();
 
-        // Title
-        $sheet->writeTo('A1', 'LAPORAN DC', ['font-size' => 16, 'font-bold' => true]);
-        $sheet->mergeCells('A1:P1');
+        $sheet->writeRow(
+            ['Laporan DC'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        // Period
-        $sheet->writeTo('A2', 'Periode : ' . $from . ' s/d ' . $to);
-        $sheet->mergeCells('A2:P2');
+        $sheet->writeRow(
+            ['Periode ' . $dateFrom . ' s/d ' . $dateTo],
+            [
+                'halign' => 'center',
+            ]
+        );
 
-        // Headers
-        $sheet->writeTo('A4', 'No. WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('B4', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('C4', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('D4', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('E4', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('F4', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G4', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H4', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I4', 'Masuk')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J4', 'Kirim Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K4', 'Terima Rep Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L4', 'Terima Good Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M4', 'Kirim Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N4', 'Terima Rep Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O4', 'Terima Good Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P4', 'Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('Q4', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('R4', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q4', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R4', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeRow(['']);
 
-        // Data rows - chunk by 10,000
-        $row = 5;
-        $totalSaldoAwal = 0;
-        $totalMasuk = 0;
-        $totalKirimSecDalam = 0;
-        $totalTerimaRepairedSecDalam = 0;
-        $totalTerimaGoodSecDalam = 0;
-        $totalKirimSecLuar = 0;
-        $totalTerimaRepairedSecLuar = 0;
-        $totalTerimaGoodSecLuar = 0;
-        $totalLoading = 0;
-        $totalSaldoAkhir = 0;
-        $totalAdjustment = 0;
-        $totalSwitchingIn = 0;
-        $totalSwitchingOut = 0;
+        $sheet->writeRow([
+            'No. WS','Buyer','Style','Color','Size', 'Panel', 'Part',
+            'Saldo Awal','Masuk','Kirim Sec Dalam','Terima Rep Sec Dalam','Terima Good Sec Dalam', 'Kirim Sec Luar', 'Terima Rep Sec Luar', 'Terima Good Sec Luar', 'Loading', 'Adjustment', 'Saldo Akhir',
+            'Mutasi Secondary Dalam','','','','','',
+            'Mutasi Secondary Luar','','','','',''
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
-        collect($dataReport)->chunk(10000)->each(function ($chunk) use ($sheet, &$row, &$totalSaldoAwal, &$totalMasuk, &$totalKirimSecDalam, &$totalTerimaRepairedSecDalam, &$totalTerimaGoodSecDalam, &$totalKirimSecLuar, &$totalTerimaRepairedSecLuar, &$totalTerimaGoodSecLuar, &$totalLoading, &$totalSaldoAkhir, &$totalAdjustment, &$totalSwitchingIn, &$totalSwitchingOut) {
-            foreach ($chunk as $data) {
-                $saldoAwal = $data->current_saldo_awal_adjustment ?? 0;
-                $masuk = $data->qty_in ?? 0;
-                $kirimDalam = $data->kirim_secondary_dalam ?? 0;
-                $repDalam = $data->terima_repaired_secondary_dalam ?? 0;
-                $goodDalam = $data->terima_good_secondary_dalam ?? 0;
-                $kirimLuar = $data->kirim_secondary_luar ?? 0;
-                $repLuar = $data->terima_repaired_secondary_luar ?? 0;
-                $goodLuar = $data->terima_good_secondary_luar ?? 0;
-                $loading = $data->loading_qty ?? 0;
-                $adjustment = $data->adjustment ?? 0;
-                $switchingIn = $data->switching_in ?? 0;
-                $switchingOut = $data->switching_out ?? 0;
+        $sheet->mergeCells('A4:A5');
+        $sheet->mergeCells('B4:B5');
+        $sheet->mergeCells('C4:C5');
+        $sheet->mergeCells('D4:D5');
+        $sheet->mergeCells('E4:E5');
+        $sheet->mergeCells('F4:F5');
+        $sheet->mergeCells('G4:G5');
+        $sheet->mergeCells('H4:H5');
+        $sheet->mergeCells('I4:I5');
+        $sheet->mergeCells('J4:J5');
+        $sheet->mergeCells('K4:K5');
+        $sheet->mergeCells('L4:L5');
+        $sheet->mergeCells('M4:M5');
+        $sheet->mergeCells('N4:N5');
+        $sheet->mergeCells('O4:O5');
+        $sheet->mergeCells('P4:P5');
+        $sheet->mergeCells('Q4:Q5');
+        $sheet->mergeCells('R4:R5');
+
+        $sheet->mergeCells('S4:X4');
+        $sheet->mergeCells('Y4:AD4');
+
+        $sheet->setCellStyle('A4:G4', [
+            'fill'   => '#ADD8E6',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('H4:R4', [
+            'fill'   => '#FFFFE0',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('S4:X4', [
+            'fill'   => '#FFD966',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('Y4:AD4', [
+            'fill'   => '#90EE90',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->writeRow([
+            '','','','','','','','','','','','','','','','','','',
+            'Saldo Awal Secondary',
+            'Terima DC',
+            'Kirim Rep ke DC',
+            'Kirim Good ke DC',
+            'Adjustment',
+            'Saldo Akhir Secondary',
+            'Saldo Awal Secondary',
+            'Terima DC',
+            'Kirim Rep ke DC',
+            'Kirim Good ke DC',
+            'Adjustment',
+            'Saldo Akhir Secondary',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $sheet->setCellStyle('A5:G5', [
+            'fill'   => '#ADD8E6',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('H5:R5', [
+            'fill'   => '#FFFFE0',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('S5:X5', [
+            'fill'   => '#FFD966',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('Y5:AD5', [
+            'fill'   => '#90EE90',
+            'text-align' => 'center',
+        ]);
+
+        foreach ($dataReport as $row) {
+                $saldoAwal = $row->current_saldo_awal_adjustment ?? 0;
+                $masuk = $row->qty_in ?? 0;
+                $kirimDalam = $row->kirim_secondary_dalam ?? 0;
+                $repDalam = $row->terima_repaired_secondary_dalam ?? 0;
+                $goodDalam = $row->terima_good_secondary_dalam ?? 0;
+                $kirimLuar = $row->kirim_secondary_luar ?? 0;
+                $repLuar = $row->terima_repaired_secondary_luar ?? 0;
+                $goodLuar = $row->terima_good_secondary_luar ?? 0;
+                $loading = $row->loading_qty ?? 0;
+                $adjustment = $row->adjustment ?? 0;
+                $switchingIn = $row->switching_in ?? 0;
+                $switchingOut = $row->switching_out ?? 0;
 
                 $saldoAkhir = $saldoAwal + $masuk - $kirimDalam + $repDalam + $goodDalam - $kirimLuar + $repLuar + $goodLuar - $loading + ($adjustment + $switchingIn - $switchingOut);
 
-                $totalSaldoAwal += $saldoAwal;
-                $totalMasuk += $masuk;
-                $totalKirimSecDalam += $kirimDalam;
-                $totalTerimaRepairedSecDalam += $repDalam;
-                $totalTerimaGoodSecDalam += $goodDalam;
-                $totalKirimSecLuar += $kirimLuar;
-                $totalTerimaRepairedSecLuar += $repLuar;
-                $totalTerimaGoodSecLuar += $goodLuar;
-                $totalLoading += $loading;
-                $totalAdjustment += $adjustment;
-                $totalSwitchingIn += $switchingIn;
-                $totalSwitchingOut += $switchingOut;
-                $totalSaldoAkhir += $saldoAkhir;
+                $rows = [
+                        $row->ws,
+                        $row->buyer,
+                        $row->style,
+                        $row->color,
+                        $row->size,
+                        $row->panel,
+                        $row->nama_part,
 
-                $sheet->writeTo('A' . $row, $data->ws)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('B' . $row, $data->buyer)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('C' . $row, $data->style)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('D' . $row, $data->color)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('E' . $row, $data->size)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('F' . $row, $data->panel ?? '-')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('G' . $row, $data->nama_part)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('H' . $row, $saldoAwal)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('I' . $row, $masuk)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('J' . $row, $kirimDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('K' . $row, $repDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('L' . $row, $goodDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('M' . $row, $kirimLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('N' . $row, $repLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('O' . $row, $goodLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('P' . $row, $loading)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                // $sheet->writeTo('Q' . $row, $switchingOut)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                // $sheet->writeTo('R' . $row, $switchingIn)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('Q' . $row, $adjustment)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('R' . $row, $saldoAkhir)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                        (float) ($saldoAwal),
+                        (float) ($masuk),
+                        (float) ($kirimDalam),
+                        (float) ($repDalam),
+                        (float) ($goodDalam),
+                        (float) ($kirimLuar),
+                        (float) ($repLuar),
+                        (float) ($goodLuar),
+                        (float) ($loading),
+                        (float) ($adjustment),
+                        (float) ($saldoAkhir),
 
-                $row++;
-            }
-        });
+                        (float) ($row->saldo_awal_secondary_dalam ?? 0),
+                        (float) ($row->kirim_secondary_dalam ?? 0),
+                        (float) ($row->terima_repaired_secondary_dalam ?? 0),
+                        (float) ($row->terima_good_secondary_dalam ?? 0),
+                        (float) ($row->qty_adjustment_secondary_dalam ?? 0),
+                        (float) ($row->saldo_akhir_secondary_dalam ?? 0),
+                        (float) ($row->saldo_awal_secondary_luar ?? 0),
+                        (float) ($row->kirim_secondary_luar ?? 0),
+                        (float) ($row->terima_repaired_secondary_luar ?? 0),
+                        (float) ($row->terima_good_secondary_luar ?? 0),
+                        (float) ($row->qty_adjustment_secondary_luar ?? 0),
+                        (float) ($row->saldo_akhir_secondary_luar ?? 0),
+            ];
 
-        // Total row
-        $sheet->writeTo('A' . $row, 'TOTAL')->applyFontStyleBold();
-        $sheet->writeTo('H' . $row, $totalSaldoAwal)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I' . $row, $totalMasuk)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J' . $row, $totalKirimSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K' . $row, $totalTerimaRepairedSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L' . $row, $totalTerimaGoodSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M' . $row, $totalKirimSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N' . $row, $totalTerimaRepairedSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O' . $row, $totalTerimaGoodSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P' . $row, $totalLoading)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('Q' . $row, $totalSwitchingOut)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('R' . $row, $totalSwitchingIn)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q' . $row, $totalAdjustment)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R' . $row, $totalSaldoAkhir)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
 
-        $sheet->mergeCells('A'.$row.':G'.$row.'')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        return $excel->download('Laporan WIP DC ' . $from . ' - ' . $to . '.xlsx');
+        $sheet->setColWidth('AA', 20);
+        $sheet->setColWidth('AB', 20);
+        $sheet->setColWidth('AC', 20);
+        $sheet->setColWidth('AD', 20);
+
+        return $excel->download();
     }
 
     public function report_mutasi_wip_dc_set(Request $request){

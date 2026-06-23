@@ -108,7 +108,7 @@ class AssetMesinTambahController extends Controller
     {
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
-        $data = DB::select("SELECT id_bpb, tgl_trans, a.id_item, a.id_jenis, count(*) as tot_qty, bcno, jenis_dok,
+        $data = DB::select("SELECT id_bpb, tgl_trans, DATE_FORMAT(tgl_trans, '%d-%m-%Y') as tgl_trans_fix, a.id_item, a.id_jenis, count(*) as tot_qty, bcno, jenis_dok,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' THEN 1 ELSE 0 END) as tot_filled,
         SUM(CASE WHEN a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_foto,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' AND a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_complete,
@@ -120,9 +120,9 @@ left join signalbit_erp.mastersupplier ms on bpb.id_supplier = ms.id_supplier
 left join asset_master_kd_jenis d on c.kd_jenis = d.kd_jenis
 left join asset_master_kd_merk e on c.kd_merk = e.kd_merk
 left join signalbit_erp.masteritem mi on a.id_item = mi.id_item
-where a.tgl_trans >= '$tgl_awal' and a.tgl_trans <= '$tgl_akhir'
+where a.tgl_trans >= ? and a.tgl_trans <= ?
 group by id_bpb, id_item
-");
+", [$tgl_awal, $tgl_akhir]);
 
         return DataTables::of($data)->toJson();
     }
@@ -175,7 +175,7 @@ group by id_bpb, id_item
         foreach ($rows as $r) {
             $sheet->writeRow([
                 $no++,
-                $r['tgl_trans'] ?? '',
+                $r['tgl_trans_fix'] ?? '',
                 $r['bpbno_int'] ?? '',
                 $r['supplier'] ?? '',
                 $r['nm_jenis'] ?? '',

@@ -63,7 +63,7 @@ class StockerService
                     stocker_input.shade,
                     stocker_input.group_stocker,
                     stocker_input.notes,
-                    form_cut_input.no_cut,
+                    CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
                     master_sb_ws.dest,
                     COALESCE(GROUP_CONCAT(DISTINCT master_secondary.proses), single_master_secondary.proses) as proses,
@@ -87,6 +87,10 @@ class StockerService
                 leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                leftJoin(DB::raw("part_split"), function ($join) {
+                    $join->on("part_split.part_id", "=", "part.id");
+                    $join->on("part_split.form_id", "=", "form_cut_input.id");
+                })->
                 where("stocker_input.form_cut_id", $formCutId);
                 if ($stockerId) {
                     $stockerSql->where("stocker_input.id", $stockerId);

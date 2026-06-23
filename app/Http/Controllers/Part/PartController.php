@@ -1613,7 +1613,7 @@ class PartController extends Controller
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel,
-                form_cut_input.no_cut,
+                CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut,
                 form_cut_input.total_lembar,
                 part_form.kode kode_part_form,
                 part.kode kode_part,
@@ -1631,6 +1631,7 @@ class PartController extends Controller
                 LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `marker_input_detail`.`so_det_id`
                 LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `master_sb_ws`.`size`
                 LEFT JOIN `users` ON `users`.`id` = `form_cut_input`.`no_meja`
+                LEFT JOIN part_split ON part_split.part_id = part.id and part_split.form_id = form_cut_input.id
             WHERE
                 part_form.id IS NOT NULL
                 AND `marker_input_detail`.`ratio` > 0
