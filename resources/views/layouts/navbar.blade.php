@@ -1051,6 +1051,12 @@
                                     BOM Additional &nbsp;<i class="fa-solid fa-plus-circle fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('so-barcode-input-page') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-so-barcode' ? 'active' : '' }}">
+                                    Input Barcode SO &nbsp;<i class="fa-solid fa-barcode fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
