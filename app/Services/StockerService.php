@@ -544,6 +544,8 @@ class StockerService
                 CAST(no_cut AS UNSIGNED) ASC
         "));
 
+        $partSplit = DB::table("part_split")->where("part_id", $partId)->get();
+
         $rangeAwal = 0;
         $sizeRangeAkhir = collect();
 
@@ -555,8 +557,11 @@ class StockerService
 
         // Loop over all forms
         foreach ($formCutInputs as $formCut) {
-            // Reset cumulative data on color switch
-            if ($formCut->color != $currentColor) {
+            // Part Split
+            $currentPartSplit = $partSplit->where("split_at", $currentNumber+1)->first();
+
+            // Reset cumulative data on split
+            if ($currentPartSplit) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
 
@@ -565,6 +570,18 @@ class StockerService
 
                 $currentColor = $formCut->color;
                 $currentNumber = 0;
+            } else {
+                // Reset cumulative data on color switch
+                if ($formCut->color != $currentColor) {
+                    $rangeAwal = 0;
+                    $sizeRangeAkhir = collect();
+
+                    $rangeAwalAdd = 0;
+                    $sizeRangeAkhirAdd = collect();
+
+                    $currentColor = $formCut->color;
+                    $currentNumber = 0;
+                }
             }
 
             // Type Checking
