@@ -43,28 +43,40 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
-                            {{-- <th>No WsColorSize</th> --}}
-                            {{-- <th>No WsColorPart</th> --}}
-                            <th>No. WS</th>
-                            <th>Buyer</th>
-                            <th>Style</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Panel</th>
-                            <th>Part</th>
-                            <th>Saldo Awal</th>
-                            <th>Masuk</th>
-                            <th>Kirim Sec Dalam</th>
-                            <th>Terima Repaired Sec Dalam</th>
-                            <th>Terima Good Sec Dalam</th>
-                            <th>Kirim Sec Luar</th>
-                            <th>Terima Repaired Sec Luar</th>
-                            <th>Terima Good Sec Luar</th>
-                            <th>Loading</th>
-                            {{-- <th>Switching OUT</th>
-                            <th>Switching IN</th> --}}
+                            <th rowspan="2">No. WS</th>
+                            <th rowspan="2">Buyer</th>
+                            <th rowspan="2">Style</th>
+                            <th rowspan="2">Color</th>
+                            <th rowspan="2">Size</th>
+                            <th rowspan="2">Panel</th>
+                            <th rowspan="2">Part</th>
+                            <th rowspan="2">Saldo Awal</th>
+                            <th rowspan="2">Masuk</th>
+                            <th rowspan="2">Kirim Sec Dalam</th>
+                            <th rowspan="2">Terima Repaired Sec Dalam</th>
+                            <th rowspan="2">Terima Good Sec Dalam</th>
+                            <th rowspan="2">Kirim Sec Luar</th>
+                            <th rowspan="2">Terima Repaired Sec Luar</th>
+                            <th rowspan="2">Terima Good Sec Luar</th>
+                            <th rowspan="2">Loading</th>
+                            <th rowspan="2">Adjustment</th>
+                            <th rowspan="2">Saldo Akhir</th>
+                            <th colspan="6">Mutasi Secondary Dalam</th>
+                            <th colspan="6">Mutasi Secondary Luar</th>
+                        </tr>
+                        <tr>
+                            <th>Saldo Awal Secondary</th>
+                            <th>Terima DC</th>
+                            <th>Kirim Rep ke DC</th>
+                            <th>Kirim Good ke DC</th>
                             <th>Adjustment</th>
-                            <th>Saldo Akhir</th>
+                            <th>Saldo Akhir Secondary</th>
+                            <th>Saldo Awal Secondary</th>
+                            <th>Terima DC</th>
+                            <th>Kirim Rep ke DC</th>
+                            <th>Kirim Good ke DC</th>
+                            <th>Adjustment</th>
+                            <th>Saldo Akhir Secondary</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -80,8 +92,18 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            {{-- <th></th>
-                            <th></th> --}}
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                             <th></th>
                         </tr>
                     </tfoot>
@@ -156,9 +178,6 @@
                 { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
-                // { data: 'current_saldo_akhir', defaultContent: 0 },
-                // { data: 'switching_out', defaultContent: 0 },
-                // { data: 'switching_in', defaultContent: 0 },
                 { data: 'adjustment', defaultContent: 0 },
                 {
                     data: null,
@@ -179,6 +198,18 @@
                         return saldoAwal + masuk - ksd + trsd + tgsd - ksl + trsl + tgsl - loading + (adjustment + switchingIn - switchingOut);
                     }
                 },
+                { data: 'saldo_awal_secondary_dalam', defaultContent: 0 },
+                { data: 'kirim_secondary_dalam', defaultContent: 0 },
+                { data: 'terima_repaired_secondary_dalam', defaultContent: 0 },
+                { data: 'terima_good_secondary_dalam', defaultContent: 0 },
+                { data: 'qty_adjustment_secondary_dalam', defaultContent: 0 },
+                { data: 'saldo_akhir_secondary_dalam', defaultContent: 0 },
+                { data: 'saldo_awal_secondary_luar', defaultContent: 0 },
+                { data: 'kirim_secondary_luar', defaultContent: 0 },
+                { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
+                { data: 'terima_good_secondary_luar', defaultContent: 0 },
+                { data: 'qty_adjustment_secondary_luar', defaultContent: 0 },
+                { data: 'saldo_akhir_secondary_luar', defaultContent: 0 },
             ],
 
             columnDefs: [
@@ -258,7 +289,7 @@
                     totalSaldoAkhir += intVal(r.current_saldo_awal_adjustment) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading) + (intVal(r.adjustment) + intVal(r.switching_in) - intVal(r.switching_out));
                 });
 
-                $(api.column(16).footer()).html(totalSaldoAkhir);
+                $(api.column(17).footer()).html(totalSaldoAkhir);
             }
         });
 
