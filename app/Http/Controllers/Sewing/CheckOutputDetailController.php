@@ -78,11 +78,13 @@ class CheckOutputDetailController extends Controller
 
         $kodeFilterYs = "";
         $kodeFilterOutput = "";
+        $kodeFilterOutputFinishing = "";
         if ($request->kode && strlen($request->kode) > 0) {
             $kodeList = addQuotesAround($request->kode);
 
             $kodeFilterYs = " and ys.id_year_sequence in (".$kodeList.")";
             $kodeFilterOutput = " and kode_numbering in (".$kodeList.")";
+            $kodeFilterOutputFinishing = " and output_secondary_in.kode_numbering in (".$kodeList.")";
         }
 
         $additionalFilter = "";
@@ -356,7 +358,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput;
@@ -367,7 +369,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput;
 
         $filterRejectFinishingProses = $tglPlan."
@@ -376,7 +378,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput;
@@ -818,11 +820,13 @@ class CheckOutputDetailController extends Controller
 
         $kodeFilterYs = "";
         $kodeFilterOutput = "";
+        $kodeFilterOutputFinishing = "";
         if ($request->kode && strlen($request->kode) > 0) {
             $kodeList = addQuotesAround($request->kode);
 
             $kodeFilterYs = " and ys.id_year_sequence in (".$kodeList.")";
             $kodeFilterOutput = " and kode_numbering in (".$kodeList.")";
+            $kodeFilterOutputFinishing = " and output_secondary_in.kode_numbering in (".$kodeList.")";
         }
 
         $additionalFilter = "";
@@ -1096,7 +1100,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput;
@@ -1108,7 +1112,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput;
 
 
@@ -1118,7 +1122,7 @@ class CheckOutputDetailController extends Controller
                     ".$styleFilterOutput."
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
-                    ".$kodeFilterOutput."
+                    ".$kodeFilterOutputFinishing."
                     ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput;
@@ -1579,7 +1583,7 @@ class CheckOutputDetailController extends Controller
         ]);
 
         $sheet->setCellStyle('T2:Z2', [
-            'fill' => '#DDA0DD', 
+            'fill' => '#DDA0DD',
             'text-align' => 'center',
         ]);
 
