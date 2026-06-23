@@ -196,6 +196,7 @@ class StockerController extends Controller
                 form_cut_input.no_meja,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
+                form_cut_input.waktu_selesai,
                 DATE(form_cut_input.waktu_selesai) tgl_form_cut,
                 marker_input.id marker_id,
                 marker_input.act_costing_ws ws,
@@ -238,16 +239,18 @@ class StockerController extends Controller
             groupBy("form_cut_input.id")->
             first();
 
-        $dataPartForm = PartForm::selectRaw("part_form.form_id, CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut")->
+        $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.waktu_selesai, CONCAT(form_cut_input.no_cut, (CASE WHEN form_split.id IS NOT NULL THEN part_split.suffix ELSE '' END)) no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("part_split", function ($join){
-                $join->on("part_split.part_id", "=", "part_form.part_id");
-                $join->on("part_split.form_id", "=", "form_cut_input.id");
+            leftJoin("part_split", "part_split.part_id", "=", "part_form.part_id")->
+            leftJoin(DB::raw("form_cut_input as form_split"), function ($join) {
+                $join->on("form_split.id", "=", "part_split.form_id");
+                $join->on("form_cut_input.waktu_selesai", ">=", "form_split.waktu_selesai");
             })->
             whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("part_form.part_id", $dataSpreading->part_id)->
             whereRaw("(form_cut_input.no_cut <= ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
+            orderBy("form_cut_input.waktu_selesai", "desc")->
             get();
 
         $dataPartDetail = PartDetail::selectRaw("
@@ -322,10 +325,12 @@ class StockerController extends Controller
             whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("form_cut_input.waktu_selesai", "<=", $dataSpreading->waktu_selesai)->
             where("part_form.part_id", $dataSpreading->part_id)->
             whereRaw("(stocker_input.cancel != 'Y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
             // where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            orderBy("form_cut_input.waktu_selesai", "desc")->
             orderBy("form_cut_input.no_cut", "desc")->
             orderBy("form_cut_input.no_form", "desc")->
             get();
@@ -507,7 +512,15 @@ class StockerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        $partSplit = DB::table("part_split")->where("part_id", $dataSpreading->part_id)->where("form_id", $dataSpreading->id)->first();
+        $partSplit = DB::table("part_split")->selectRaw("
+                part_split.id,
+                part_split.split_at,
+                part_split.suffix,
+                form_cut_input.waktu_selesai
+            ")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "part_split.form_id")->
+            where("part_id", $dataSpreading->part_id)->
+            first();
 
         return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "dataStockerCom" => $dataStockerCom, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
