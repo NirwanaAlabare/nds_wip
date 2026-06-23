@@ -456,7 +456,7 @@ class CuttingFormPieceController extends Controller
                 where("form_cut_piece.color", $currentForm->color)->
                 where("form_cut_piece.panel", $currentForm->panel)->
                 where("form_cut_piece.status", "complete")->
-                orderBy("form_cut_input.waktu_selesai", "desc")->
+                orderBy("form_cut_piece.waktu_selesai", "desc")->
                 first();
             $formCutPieceSimilarLatest = $formCutPieceSimilarLatestData ? $formCutPieceSimilarLatestData->no_cut : 0;
 
