@@ -77,6 +77,28 @@
         text-align: center;
         color: #6c757d;
     }
+
+    #bellNotifMesinSewa {
+        font-size: 1.6rem;
+        transition: color .2s ease-in-out;
+    }
+
+    #bellNotifMesinSewa.notif-blink {
+        animation: notif-bell-blink 1s ease-in-out infinite;
+        color: #ffc107;
+    }
+
+    @keyframes notif-bell-blink {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: .25;
+        }
+    }
 </style>
 
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
@@ -1452,13 +1474,21 @@
                             <li>
                                 <div class="mega-dropdown-body">
                                     <div class="mega-dropdown-col">
-                                        <div class="mega-dropdown-col-title">Data Aset</div>
+                                        <div class="mega-dropdown-col-title">Penerimaan</div>
                                         <a href="{{ route('asset_mesin_tambah') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_tambah' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-plus"></i>Tambah Mesin (Pembelian)</a>
                                         <a href="{{ route('asset_mesin_sewa') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-plus"></i>Tambah Mesin (Sewa)</a>
+
+                                        <div class="mega-dropdown-col-title">Pengeluaran</div>
+                                        <a href="{{ route('asset_mesin_sewa_pengeluaran') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-minus"></i>Pengeluaran Mesin Cutt Off (Sewa)</a>
+                                    </div>
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Data Aset</div>
                                         <a href="{{ route('asset_mesin_master') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_master' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Mesin</a>
@@ -1616,6 +1646,94 @@
                 </li>
             --}}
 
+            <!-- NOTIFICATION: Kontrak Mesin Sewa Akan Berakhir (H-2) - khusus modul Asset -->
+            @if ($page == 'dashboard-asset')
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="far fa-bell" id="bellNotifMesinSewa"></i>
+                        <span class="badge badge-warning navbar-badge d-none" id="badgeNotifMesinSewa">0</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end"
+                        style="width: 340px; max-width: 90vw; white-space: normal;">
+                        <span class="dropdown-header" id="headerNotifMesinSewa">Kontrak Sewa Mesin</span>
+                        <div class="dropdown-divider"></div>
+                        <div id="listNotifMesinSewa">
+                            <span class="dropdown-item text-muted">Memuat...</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ route('asset_mesin_sewa') }}" class="dropdown-item dropdown-footer">Lihat Semua
+                            Mesin Sewa</a>
+                    </div>
+                </li>
+            @endif
+
+            <!-- Modal Detail Notifikasi Kontrak Mesin Sewa -->
+            @if ($page == 'dashboard-asset')
+                <div class="modal fade" id="DetailNotifMesinSewaModal" tabindex="-1"
+                    aria-labelledby="DetailNotifMesinSewaModalLabel" aria-hidden="true" data-bs-backdrop="false">
+                    <div class="modal-dialog modal-md">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning">
+                                <h5 class="modal-title" id="DetailNotifMesinSewaModalLabel">Detail Kontrak Sewa
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <th width="40%">No BPB</th>
+                                        <td id="detailNotifBpbno">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Jenis</th>
+                                        <td id="detailNotifJenis">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Merk</th>
+                                        <td id="detailNotifMerk">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tipe</th>
+                                        <td id="detailNotifTipe">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Serial Number</th>
+                                        <td id="detailNotifSerial">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Lokasi</th>
+                                        <td id="detailNotifLokasi">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Masa Kontrak</th>
+                                        <td id="detailNotifMasaKontrak">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tgl Awal Kontrak</th>
+                                        <td id="detailNotifTglAwal">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tgl Akhir Kontrak</th>
+                                        <td id="detailNotifTglAkhir">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Sisa Hari</th>
+                                        <td id="detailNotifSisaHari">-</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="modal-footer">
+                                <a href="{{ route('asset_mesin_sewa') }}" class="btn btn-primary btn-sm">Lihat di
+                                    Mesin Sewa</a>
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- USER OFFCANVAS -->
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
@@ -1627,3 +1745,105 @@
         </ul>
     </div>
 </nav>
+
+@if ($page == 'dashboard-asset')
+    @push('scripts')
+        <script>
+            let notifMesinSewaItems = [];
+
+            function loadNotifMesinSewa() {
+                $.ajax({
+                    url: '{{ route('asset_mesin_sewa_notifikasi') }}',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(res) {
+                        let $badge = $('#badgeNotifMesinSewa');
+                        let $list = $('#listNotifMesinSewa');
+
+                        notifMesinSewaItems = res.items;
+
+                        if (res.count > 0) {
+                            $badge.text(res.count).removeClass('d-none');
+                            $('#bellNotifMesinSewa').addClass('notif-blink');
+                        } else {
+                            $badge.addClass('d-none');
+                            $('#bellNotifMesinSewa').removeClass('notif-blink');
+                        }
+
+                        $('#headerNotifMesinSewa').text('Kontrak Sewa Akan Berakhir (' + res.count + ')');
+
+                        $list.empty();
+                        if (res.items.length === 0) {
+                            $list.append(
+                                '<span class="dropdown-item text-muted">Tidak ada kontrak yang akan berakhir</span>'
+                            );
+                        } else {
+                            res.items.forEach(function(item, idx) {
+                                let label = item.sisa_hari <= 0 ? 'Berakhir hari ini' : ('H-' + item
+                                    .sisa_hari);
+                                $list.append(
+                                    '<a href="javascript:void(0)" class="dropdown-item d-flex justify-content-between align-items-start" onclick="showDetailNotifMesinSewa(' +
+                                    idx + ')" style="white-space: normal;">' +
+                                    '<span class="pe-2"><i class="fas fa-exclamation-triangle text-warning mr-2"></i>' +
+                                    item.nm_jenis + ' ' + item.nm_merk + ' - ' + item.serial_number +
+                                    '</span>' +
+                                    '<span class="text-muted text-sm flex-shrink-0">' + label +
+                                    '</span>' +
+                                    '</a><div class="dropdown-divider"></div>'
+                                );
+                            });
+                        }
+
+                        let $marqueeWrap = $('#marqueeNotifMesinSewa');
+                        let $marqueeText = $('#marqueeNotifMesinSewaText');
+                        if ($marqueeWrap.length) {
+                            if (res.count > 0) {
+                                let parts = res.items.map(function(item) {
+                                    let label = item.sisa_hari <= 0 ? 'BERAKHIR HARI INI' : ('H-' + item
+                                        .sisa_hari);
+                                    return item.nm_jenis + ' ' + item.nm_merk + ' (' + item
+                                        .serial_number + ') - ' + label;
+                                });
+                                $marqueeText.text('⚠ KONTRAK SEWA MESIN AKAN BERAKHIR: ' + parts.join(
+                                    '   |   '));
+                                $marqueeWrap.removeClass('d-none');
+                            } else {
+                                $marqueeWrap.addClass('d-none');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+
+            function showDetailNotifMesinSewa(idx) {
+                let item = notifMesinSewaItems[idx];
+                if (!item) {
+                    return;
+                }
+
+                let sisaHariLabel = item.sisa_hari <= 0 ? 'Berakhir hari ini' : ('H-' + item.sisa_hari);
+
+                $('#detailNotifBpbno').text(item.bpbno_int || '-');
+                $('#detailNotifJenis').text(item.nm_jenis || '-');
+                $('#detailNotifMerk').text(item.nm_merk || '-');
+                $('#detailNotifTipe').text(item.tipe || '-');
+                $('#detailNotifSerial').text(item.serial_number || '-');
+                $('#detailNotifLokasi').text(item.lokasi || '-');
+                $('#detailNotifMasaKontrak').text(item.masa_kontrak || '-');
+                $('#detailNotifTglAwal').text(item.tgl_awal_kontrak || '-');
+                $('#detailNotifTglAkhir').text(item.tgl_akhir_kontrak || '-');
+                $('#detailNotifSisaHari').text(sisaHariLabel);
+
+                $('#DetailNotifMesinSewaModal').modal('show');
+            }
+
+            $(document).ready(function() {
+                loadNotifMesinSewa();
+                setInterval(loadNotifMesinSewa, 5 * 60 * 1000);
+            });
+        </script>
+    @endpush
+@endif

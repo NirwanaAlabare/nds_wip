@@ -16,6 +16,24 @@ use Illuminate\Support\Facades\Log;
 
 class AssetMesinSewaController extends Controller
 {
+    public function get_notif_mesin_sewa(Request $request)
+    {
+        $items = DB::select("
+            SELECT id, bpbno_int, nm_jenis, nm_merk, tipe, serial_number, lokasi,
+                   masa_kontrak, tgl_awal_kontrak, tgl_akhir_kontrak,
+                   DATEDIFF(tgl_akhir_kontrak, CURDATE()) AS sisa_hari
+            FROM asset_penerimaan_mesin_sewa
+            WHERE status = 'ACTIVE'
+                AND tgl_akhir_kontrak BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)
+            ORDER BY tgl_akhir_kontrak ASC
+        ");
+
+        return response()->json([
+            'count' => count($items),
+            'items' => $items,
+        ]);
+    }
+
     public function asset_mesin_sewa(Request $request)
     {
         $tgl_trans = '2026-05-01';
@@ -228,6 +246,7 @@ class AssetMesinSewaController extends Controller
                 bpbno,
                 bpbno_int,
                 masa_kontrak,
+                status,
                 created_by,
                 created_at,
                 updated_at
@@ -238,6 +257,7 @@ class AssetMesinSewaController extends Controller
                 $request->bpbno,
                 $request->bpbno_int,
                 30,
+                'ACTIVE',
                 $user,
                 $timestamp,
                 $timestamp
