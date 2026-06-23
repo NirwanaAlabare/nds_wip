@@ -80,6 +80,15 @@
 
             <div class="row">
                 <div class="col-md-3 form-group">
+                    <label>Tipe WS</label>
+                     <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
+                        <option value="">Pilih Tipe WS</option>
+                        <option value="GLOBAL">GLOBAL</option>
+                        <option value="STD">STD</option>
+                        <option value="DTH">DTH</option>
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
                     <label>Product Type (Set)</label>
                     <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
                         @foreach ($master_set as $m_set)
