@@ -1332,7 +1332,7 @@ class CuttingFormController extends Controller
         }
 
         // check part split
-        $partSplit = DB::table("part")->where('part_id', $partId)->where("split_at", ($formCutInputSimilarLatest + 1))->first();
+        $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
         if ($partSplit) {
 
             // reset no. cut
