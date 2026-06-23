@@ -279,8 +279,6 @@
                 $(api.column(14).footer()).html(sumCol(14));
                 $(api.column(15).footer()).html(sumCol(15));
                 $(api.column(16).footer()).html(sumCol(16));
-                // $(api.column(17).footer()).html(sumCol(17));
-                // $(api.column(18).footer()).html(sumCol(18));
 
                 let totalSaldoAkhir = 0;
 
@@ -290,6 +288,19 @@
                 });
 
                 $(api.column(17).footer()).html(totalSaldoAkhir);
+
+                $(api.column(18).footer()).html(sumCol(18));
+                $(api.column(19).footer()).html(sumCol(19));
+                $(api.column(20).footer()).html(sumCol(20));
+                $(api.column(21).footer()).html(sumCol(21));
+                $(api.column(22).footer()).html(sumCol(22));
+                $(api.column(23).footer()).html(sumCol(23));
+                $(api.column(24).footer()).html(sumCol(24));
+                $(api.column(25).footer()).html(sumCol(25));
+                $(api.column(26).footer()).html(sumCol(26));
+                $(api.column(27).footer()).html(sumCol(27));
+                $(api.column(28).footer()).html(sumCol(28));
+                $(api.column(29).footer()).html(sumCol(29));
             }
         });
 
