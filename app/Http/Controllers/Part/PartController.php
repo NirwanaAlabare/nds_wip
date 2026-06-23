@@ -412,7 +412,7 @@ class PartController extends Controller
             $partDetailSecondaryStore = PartDetailSecondary::insert($partDetailSecondaryData);
 
             // Part Form IN
-            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
+            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.panel", $partStore->panel)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
             foreach ($formCutData as $formCut) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
 
