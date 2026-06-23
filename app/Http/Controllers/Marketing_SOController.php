@@ -1453,7 +1453,7 @@ class Marketing_SOController extends Controller
                     'smv_min'     => $request->smv ?? ($act_costing_new ? $act_costing_new->smv_min : 0),
                     'id_product'  => $request->id_product_item ?? null,
                     'notes'       => $request->notes ?? null,
-                    'mkt_order'   => $request->marketing_order ?? null,
+                    'mkt_order'   => $request->marketing_order == 1 ? 'BANDUNG' : ($request->marketing_order == 2 ? 'JAKARTA' : ''),
                     'dateinput'   => now(),
                     'aktif'       => 'Y',
                     'cfm_price'   => $act_costing_new->confirm_price ?? 0,
