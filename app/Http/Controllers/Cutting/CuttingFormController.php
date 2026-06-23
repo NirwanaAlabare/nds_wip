@@ -1230,12 +1230,16 @@ class CuttingFormController extends Controller
         }
 
         // Get latest no. cut
-        $formCutInputSimilarLatest = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
+        $formCutInputSimilarLatestData = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->
             where("marker_input.panel", $formCutInputData->marker->panel)->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            max("form_cut_input.no_cut");
+            where("form_cut_input.id", "!=", $formCutInputData->id)->
+            orderBy("form_cut_input.waktu_selesai", "desc")->
+            first();
+
+        $formCutInputSimilarLatest = $formCutInputSimilarLatestData ? $formCutInputSimilarLatestData->no_cut : 0;
 
         // Update the Form to be Finished
         $finishTime = $request->finishTime;
@@ -1324,6 +1328,16 @@ class CuttingFormController extends Controller
                 "form_id" => $formCutInputData->id,
                 "created_at" => Carbon::now(),
                 "updated_at" => Carbon::now(),
+            ]);
+        }
+
+        // check part split
+        $partSplit = DB::table("part")->where('part_id', $partId)->where("split_at", ($formCutInputSimilarLatest + 1))->first();
+        if ($partSplit) {
+
+            // reset no. cut
+            $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                'no_cut' => 1
             ]);
         }
 

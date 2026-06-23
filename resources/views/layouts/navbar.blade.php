@@ -1051,6 +1051,12 @@
                                     BOM Additional &nbsp;<i class="fa-solid fa-plus-circle fa-sm"></i>
                                 </a>
                             </li>
+                            {{-- <li>
+                                <a href="{{ route('so-barcode-input-page') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-so-barcode' ? 'active' : '' }}">
+                                    Input Barcode SO &nbsp;<i class="fa-solid fa-barcode fa-sm"></i>
+                                </a>
+                            </li> --}}
                         </ul>
                     </li>
                 @endif
@@ -1429,6 +1435,11 @@
                                         <a href="{{ route('asset_master_lokasi') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_lokasi' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-location-dot"></i>Master lokasi</a>
+
+                                        <div class="mega-dropdown-col-title">Spareparts</div>
+                                        <a href="{{ route('asset_master_rak_sparepart') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_rak_sparepart' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Master Rak</a>
                                     </div>
                                     <div class="mega-dropdown-col">
                                         <div class="mega-dropdown-col-title">Mesin</div>

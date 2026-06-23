@@ -39,8 +39,7 @@ class AssetMesinSewaController extends Controller
             INNER JOIN masteritem mi ON mi.id_item = b.id_item
             WHERE b.bpbdate >= '$tgl_trans'
                 AND b.bpbno LIKE 'N%'
-                AND mi.n_code_category = '4'
-                AND mi.goods_code LIKE 'SEW%'
+                AND mi.n_code_category = '6'
                 AND b.cancel = 'N'
             GROUP BY b.id_item, b.bpbno
         ),
@@ -114,7 +113,7 @@ class AssetMesinSewaController extends Controller
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
 
-        $data = DB::select("SELECT id_bpb, tgl_trans, a.id_item, count(*) as tot_qty, bcno, jenis_dok,
+        $data = DB::select("SELECT id_bpb, tgl_trans,DATE_FORMAT(tgl_trans, '%d-%m-%Y') as tgl_trans_fix, a.id_item, count(*) as tot_qty, bcno, jenis_dok,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' THEN 1 ELSE 0 END) as tot_filled,
         SUM(CASE WHEN a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_foto,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' AND a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_complete,
@@ -123,9 +122,9 @@ class AssetMesinSewaController extends Controller
         left join signalbit_erp.bpb on a.id_bpb = bpb.id
         left join signalbit_erp.mastersupplier ms on bpb.id_supplier = ms.id_supplier
         left join signalbit_erp.masteritem mi on a.id_item = mi.id_item
-        where a.tgl_trans >= '$tgl_awal' and a.tgl_trans <= '$tgl_akhir'
+        where a.tgl_trans >= ? and a.tgl_trans <= ?
         group by id_bpb, id_item
-        ");
+        ", [$tgl_awal, $tgl_akhir]);
 
         return DataTables::of($data)->toJson();
     }
@@ -135,7 +134,7 @@ class AssetMesinSewaController extends Controller
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
 
-        $data = DB::select("SELECT a.id_bpb, a.tgl_trans, a.id_item, count(*) as tot_qty,
+        $data = DB::select("SELECT a.id_bpb, a.tgl_trans,DATE_FORMAT(tgl_trans, '%d-%m-%Y') as tgl_trans_fix, a.id_item, count(*) as tot_qty,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' THEN 1 ELSE 0 END) as tot_filled,
         SUM(CASE WHEN a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_foto,
         SUM(CASE WHEN a.serial_number IS NOT NULL AND a.serial_number <> '' AND a.foto IS NOT NULL AND a.foto <> '' THEN 1 ELSE 0 END) as tot_complete,
@@ -175,7 +174,7 @@ class AssetMesinSewaController extends Controller
         foreach ($rows as $r) {
             $sheet->writeRow([
                 $no++,
-                $r['tgl_trans'] ?? '',
+                $r['tgl_trans_fix'] ?? '',
                 $r['bpbno_int'] ?? '',
                 $r['supplier'] ?? '',
                 $r['nm_jenis'] ?? '',
@@ -260,7 +259,7 @@ class AssetMesinSewaController extends Controller
     private function getMesinSewaQrList()
     {
         $qrList = DB::table('asset_master_mesin_sewa_qr')
-            ->select('kode_qr', 'created_by', 'created_at')
+            ->select('kode_qr', 'status', 'created_by', 'created_at')
             ->orderBy('kode_qr', 'ASC')
             ->get();
 
@@ -285,26 +284,78 @@ class AssetMesinSewaController extends Controller
         return $pdf->stream('QR Code Mesin Sewa.pdf');
     }
 
+    // Cari unit mesin sewa yang sedang memakai suatu Kode QR (kalau ada), untuk ditampilkan di tombol History
+    public function get_mesin_sewa_qr_usage(Request $request)
+    {
+        $request->validate([
+            'kode_qr' => 'required|string|exists:asset_master_mesin_sewa_qr,kode_qr',
+        ]);
+
+        $unit = DB::selectOne("
+            SELECT a.bpbno_int, a.serial_number, a.nm_jenis, a.nm_merk, a.tipe,
+                supplier, mi.itemdesc, a.tgl_awal_kontrak, a.tgl_akhir_kontrak
+            FROM asset_penerimaan_mesin_sewa a
+            LEFT JOIN signalbit_erp.bpb ON a.id_bpb = bpb.id
+            LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.id_supplier
+            LEFT JOIN signalbit_erp.masteritem mi ON a.id_item = mi.id_item
+            WHERE a.kode_qr = ?
+        ", [$request->kode_qr]);
+
+        return response()->json($unit);
+    }
+
+    // Kode QR selalu dibuat dengan format tetap RENT_xxx (xxx = nomor urut, minimal 3 digit) supaya
+    // konsisten & bisa digenerate banyak sekaligus lewat range nomor "Dari" - "Sampai".
     public function store_mesin_sewa_qr(Request $request)
     {
         $request->validate([
-            'kode_qr' => 'required|string|max:20|unique:asset_master_mesin_sewa_qr,kode_qr',
-        ], [
-            'kode_qr.unique' => 'Kode QR tersebut sudah terdaftar, tidak boleh duplikat.',
+            'dari' => 'required|integer|min:1',
+            'sampai' => 'required|integer|min:1|gte:dari',
         ]);
 
-        $timestamp = Carbon::now();
+        $dari = (int) $request->dari;
+        $sampai = (int) $request->sampai;
 
-        DB::table('asset_master_mesin_sewa_qr')->insert([
-            'kode_qr' => $request->kode_qr,
+        if (($sampai - $dari + 1) > 500) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Maksimal 500 Kode QR sekali generate.',
+            ], 422);
+        }
+
+        $padLength = max(3, strlen((string) $sampai));
+        $kodeQrList = [];
+        for ($i = $dari; $i <= $sampai; $i++) {
+            $kodeQrList[] = 'RENT_' . str_pad((string) $i, $padLength, '0', STR_PAD_LEFT);
+        }
+
+        $duplicates = DB::table('asset_master_mesin_sewa_qr')
+            ->whereIn('kode_qr', $kodeQrList)
+            ->pluck('kode_qr');
+
+        if ($duplicates->isNotEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kode QR berikut sudah terdaftar, tidak boleh duplikat: ' . $duplicates->implode(', '),
+            ], 422);
+        }
+
+        $timestamp = Carbon::now();
+        $rows = array_map(fn($kodeQr) => [
+            'kode_qr' => $kodeQr,
+            'status' => 'AVAILABLE',
             'created_by' => Auth::user()->name,
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
-        ]);
+        ], $kodeQrList);
+
+        DB::table('asset_master_mesin_sewa_qr')->insert($rows);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Kode QR berhasil disimpan.',
+            'message' => count($kodeQrList) > 1
+                ? count($kodeQrList) . ' Kode QR berhasil disimpan (' . $kodeQrList[0] . ' s/d ' . end($kodeQrList) . ').'
+                : 'Kode QR ' . $kodeQrList[0] . ' berhasil disimpan.',
         ]);
     }
 
@@ -414,7 +465,40 @@ class AssetMesinSewaController extends Controller
             }
 
             if (array_key_exists('kode_qr', $unit)) {
-                $update['kode_qr'] = $unit['kode_qr'] ?: null;
+                $newKodeQr = $unit['kode_qr'] ?: null;
+                $oldKodeQr = DB::table('asset_penerimaan_mesin_sewa')->where('id', $unit['id'])->value('kode_qr');
+
+                if ($newKodeQr && $newKodeQr !== $oldKodeQr) {
+                    $usedByOther = DB::table('asset_penerimaan_mesin_sewa')
+                        ->where('kode_qr', $newKodeQr)
+                        ->where('id', '!=', $unit['id'])
+                        ->exists();
+
+                    if ($usedByOther) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Kode QR "' . $newKodeQr . '" sudah dipakai unit lain.',
+                        ], 422);
+                    }
+                }
+
+                $update['kode_qr'] = $newKodeQr;
+
+                // Kode QR adalah stiker fisik 1:1 dengan unit, jadi status di master ikut disinkronkan:
+                // QR lama dilepas balik jadi Available, QR baru ditandai Used.
+                if ($newKodeQr !== $oldKodeQr) {
+                    if ($oldKodeQr) {
+                        DB::table('asset_master_mesin_sewa_qr')->where('kode_qr', $oldKodeQr)->update([
+                            'status' => 'AVAILABLE',
+                        ]);
+                    }
+
+                    if ($newKodeQr) {
+                        DB::table('asset_master_mesin_sewa_qr')->where('kode_qr', $newKodeQr)->update([
+                            'status' => 'USED',
+                        ]);
+                    }
+                }
             }
 
             if (array_key_exists('nm_jenis', $unit)) {

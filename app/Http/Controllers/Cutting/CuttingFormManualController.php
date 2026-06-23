@@ -1803,12 +1803,14 @@ class CuttingFormManualController extends Controller
             }
         }
 
-        $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
+        $formCutInputSimilarLatestData = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->
             where("marker_input.panel", $formCutInputData->marker->panel)->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            count();
+            orderBy("form_cut_input.waktu_selesai", "desc")->
+            first();
+
+        $formCutInputSimilarLatest = $formCutInputSimilarLatestData ? $formCutInputSimilarLatestData->no_cut : 0;
 
         $finishTime = $request->finishTime;
         $waktuSelesai = (empty($finishTime) || !strtotime($finishTime)) ? Carbon::now() : Carbon::parse($finishTime);
