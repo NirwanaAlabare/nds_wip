@@ -144,6 +144,7 @@ use App\Http\Controllers\AssetMasterJenisMesinController;
 use App\Http\Controllers\AssetMasterRakSparepartController;
 use App\Http\Controllers\AssetMesinTambahController;
 use App\Http\Controllers\AssetMesinSewaController;
+use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use Illuminate\Support\Facades\Route;
 
@@ -1520,7 +1521,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_sewa/qr/print', 'print_mesin_sewa_qr')->name('print_mesin_sewa_qr');
         Route::get('/asset_mesin_sewa/qr/usage', 'get_mesin_sewa_qr_usage')->name('asset_mesin_sewa_qr_usage');
     });
+    // Notifikasi navbar: kontrak mesin sewa H-2 menjelang berakhir (semua role login bisa lihat, sama seperti navbar lainnya)
+    Route::get('/asset_mesin_sewa/notifikasi', [AssetMesinSewaController::class, 'get_notif_mesin_sewa'])->name('asset_mesin_sewa_notifikasi');
 
+    // Master Asset Management Tambah Mesin (Sewa Mesin)
+    Route::controller(AssetMesinSewaPengeluaranController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_sewa_pengeluaran', 'asset_mesin_sewa_pengeluaran')->name('asset_mesin_sewa_pengeluaran');
+        Route::get('/asset_mesin_sewa_pengeluaran/list', 'get_pengeluaran_mesin_sewa')->name('asset_mesin_sewa_pengeluaran_list');
+        Route::get('/asset_mesin_sewa_pengeluaran/export_excel', 'export_excel_pengeluaran_mesin_sewa')->name('export_excel_pengeluaran_mesin_sewa');
+        Route::get('/asset_mesin_sewa_pengeluaran/unit_list', 'get_active_unit_mesin_sewa')->name('asset_mesin_sewa_pengeluaran_unit_list');
+        Route::post('/asset_mesin_sewa_pengeluaran/store', 'store_pengeluaran_mesin_sewa')->name('store_pengeluaran_mesin_sewa');
+    });
 
     // Export Import (EXIM)
 
