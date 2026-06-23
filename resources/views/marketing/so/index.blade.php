@@ -197,6 +197,100 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Merge SO --}}
+<div class="modal fade" id="modal-merge-so" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-code-branch"></i> Merge / Pindah Detail SO</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                {{-- Info SO Sumber --}}
+                <div class="alert alert-info py-2 mb-3">
+                    <strong><i class="fas fa-arrow-right"></i> SO Sumber:</strong>
+                    <span id="merge-src-info">-</span>
+                </div>
+
+                {{-- Pilih SO Tujuan --}}
+                <div class="form-group row align-items-center mb-3">
+                    <label class="col-md-2 col-form-label font-weight-bold">SO Tujuan:</label>
+                    <div class="col-md-6">
+                        <select id="merge-dst-select" class="form-control select2bs4">
+                            <option value="">-- Pilih SO Tujuan --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted" id="merge-dst-info"></small>
+                    </div>
+                </div>
+
+                {{-- Opsi No PO setelah Merge --}}
+                <div class="form-group row align-items-start mb-3">
+                    <label class="col-md-2 col-form-label font-weight-bold">No PO Hasil:</label>
+                    <div class="col-md-10">
+                        <div class="custom-control custom-radio mb-1">
+                            <input type="radio" id="po_opt_combine" name="po_merge_option" value="combine" class="custom-control-input" checked>
+                            <label class="custom-control-label" for="po_opt_combine">
+                                Gabungkan <span class="text-muted small">(misal: <i>PO-001, PO-002</i>)</span>
+                            </label>
+                        </div>
+                        <div class="custom-control custom-radio mb-1">
+                            <input type="radio" id="po_opt_dst" name="po_merge_option" value="use_dst" class="custom-control-input">
+                            <label class="custom-control-label" for="po_opt_dst">
+                                Pakai No PO Tujuan saja <span class="badge badge-info" id="badge-po-dst">-</span>
+                            </label>
+                        </div>
+                        <div class="custom-control custom-radio mb-1">
+                            <input type="radio" id="po_opt_manual" name="po_merge_option" value="manual" class="custom-control-input">
+                            <label class="custom-control-label" for="po_opt_manual">
+                                Ketik Manual:
+                                <input type="text" id="po_manual_input" class="form-control form-control-sm d-inline-block ml-1" style="width:220px;" placeholder="Tulis No PO..." disabled>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {{-- Tabel Detail SO Sumber --}}
+                <div class="table-responsive" style="max-height: 55vh; overflow-y:auto;">
+                    <table class="table table-bordered table-sm table-hover" id="table-merge-detail" style="font-size:12px;">
+                        <thead class="bg-light text-center">
+                            <tr>
+                                <th width="3%">
+                                    <input type="checkbox" id="check-all-merge" title="Pilih Semua">
+                                </th>
+                                <th>No</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Product Set</th>
+                                <th>Style</th>
+                                <th>Qty</th>
+                                <th>Ex FTY</th>
+                                <th>Dest</th>
+                            </tr>
+                        </thead>
+                        <tbody id="merge-detail-body">
+                            <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2">
+                    <span class="badge badge-primary" id="merge-selected-count">0 baris dipilih</span>
+                    <span class="ml-3 text-muted small">Centang baris yang ingin dipindahkan ke SO Tujuan.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" id="btn-execute-merge" onclick="executeMerge()">
+                    <i class="fas fa-code-branch"></i> Pindahkan Detail
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('custom-script')
@@ -522,5 +616,177 @@
                 }
             });
         }
+
+        // =============================================
+        // MERGE SO JAVASCRIPT
+        // =============================================
+
+        let merge_so_src_id = null;
+
+        function openMergeModal(id) {
+            merge_so_src_id = id;
+            $('#merge-detail-body').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
+            $('#merge-src-info').text('Memuat...');
+            $('#merge-dst-select').html('<option value="">-- Pilih SO Tujuan --</option>');
+            $('#merge-dst-info').text('');
+            $('#merge-selected-count').text('0 baris dipilih');
+
+            let url = "{{ route('so-merge-candidates', ':id') }}".replace(':id', id);
+
+            $.getJSON(url, function(res) {
+                if (res.status !== 200) {
+                    Swal.fire('Gagal', res.message || 'Error', 'error');
+                    return;
+                }
+
+                $('#merge-src-info').text(res.source.so_no + ' | PO: ' + (res.source.no_po || '-'));
+
+                if (res.candidates.length === 0) {
+                    $('#merge-dst-select').html('<option value="">-- Tidak ada SO dengan BOM yang sama --</option>');
+                } else {
+                    let opts = '<option value="">-- Pilih SO Tujuan --</option>';
+                    res.candidates.forEach(function(c) {
+                        opts += `<option value="${c.id}" data-kpno="${c.kpno}" data-po="${c.no_po}" data-qty="${c.qty}">${c.so_no} | WS: ${c.kpno} | PO: ${c.no_po || '-'} | Qty: ${Number(c.qty).toLocaleString()}</option>`;
+                    });
+                    $('#merge-dst-select').html(opts);
+                }
+
+                if (typeof $.fn.select2 !== 'undefined') {
+                    $('#merge-dst-select').select2({ dropdownParent: $('#modal-merge-so') });
+                }
+
+                loadMergeDetail(id);
+            }).fail(function() {
+                Swal.fire('Error', 'Gagal memuat data kandidat SO', 'error');
+            });
+
+            $('#merge-dst-select').on('change', function() {
+                let opt = $(this).find(':selected');
+                if ($(this).val()) {
+                    $('#merge-dst-info').html(`<b>WS:</b> ${opt.data('kpno')} | <b>Qty saat ini:</b> ${Number(opt.data('qty')).toLocaleString()}`);
+                    // Update badge no PO tujuan
+                    let poDst = opt.data('po') || '-';
+                    $('#badge-po-dst').text(poDst);
+                } else {
+                    $('#merge-dst-info').text('');
+                    $('#badge-po-dst').text('-');
+                }
+            });
+
+            // Enable/disable input manual
+            $(document).off('change', 'input[name=po_merge_option]').on('change', 'input[name=po_merge_option]', function() {
+                if ($(this).val() === 'manual') {
+                    $('#po_manual_input').prop('disabled', false).focus();
+                } else {
+                    $('#po_manual_input').prop('disabled', true);
+                }
+            });
+
+            $('#modal-merge-so').modal('show');
+        }
+
+        function loadMergeDetail(id) {
+            let url = "{{ route('so-merge-source-detail', ':id') }}".replace(':id', id);
+            $.getJSON(url, function(res) {
+                if (res.status !== 200) return;
+                let rows = '';
+                res.data.forEach(function(d, i) {
+                    rows += `
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox" class="merge-check" value="${d.id}">
+                            </td>
+                            <td class="text-center">${i + 1}</td>
+                            <td>${d.color || '-'}</td>
+                            <td>${d.size || '-'}</td>
+                            <td>${d.product_set || '-'}</td>
+                            <td>${d.styleno_prod || '-'}</td>
+                            <td class="text-right">${Number(d.qty).toLocaleString()}</td>
+                            <td class="text-center">${d.deldate_det || '-'}</td>
+                            <td>${d.dest || '-'}</td>
+                        </tr>`;
+                });
+                $('#merge-detail-body').html(rows || '<tr><td colspan="9" class="text-center text-muted">Tidak ada data</td></tr>');
+
+                // Event: update counter
+                $(document).on('change', '.merge-check', function() {
+                    let count = $('.merge-check:checked').length;
+                    $('#merge-selected-count').text(count + ' baris dipilih');
+                });
+            });
+        }
+
+        // Check All
+        $('#check-all-merge').on('change', function() {
+            $('.merge-check').prop('checked', $(this).is(':checked'));
+            let count = $('.merge-check:checked').length;
+            $('#merge-selected-count').text(count + ' baris dipilih');
+        });
+
+        function executeMerge() {
+            let id_so_dst = $('#merge-dst-select').val();
+            let det_ids   = [];
+            $('.merge-check:checked').each(function() {
+                det_ids.push($(this).val());
+            });
+
+            if (!id_so_dst) {
+                Swal.fire('Perhatian', 'Silakan pilih SO Tujuan terlebih dahulu.', 'warning');
+                return;
+            }
+            if (det_ids.length === 0) {
+                Swal.fire('Perhatian', 'Centang minimal 1 baris detail yang akan dipindahkan.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Konfirmasi Merge',
+                html: `Anda akan memindahkan <b>${det_ids.length} baris</b> dari SO Sumber ke SO Tujuan.<br><small class="text-muted">Jika SO Sumber kosong setelah dipindah, SO tersebut otomatis di-void.</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Pindahkan!',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc3545'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                    let po_merge_option = $('input[name=po_merge_option]:checked').val();
+                    let po_manual       = $('#po_manual_input').val();
+
+                    $.ajax({
+                        url: "{{ route('so-execute-merge') }}",
+                        type: 'POST',
+                        data: {
+                            _token          : "{{ csrf_token() }}",
+                            id_so_src       : merge_so_src_id,
+                            id_so_dst       : id_so_dst,
+                            det_ids         : det_ids,
+                            po_merge_option : po_merge_option,
+                            po_manual       : po_manual
+                        },
+                        success: function(res) {
+                            if (res.status === 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    html: res.message + `<br><small>Qty SO Sumber: <b>${Number(res.qty_src || 0).toLocaleString()}</b> | Qty SO Tujuan: <b>${Number(res.qty_dst || 0).toLocaleString()}</b></small>`
+                                }).then(function() {
+                                    $('#modal-merge-so').modal('hide');
+                                    table.ajax.reload(null, false);
+                                });
+                            } else {
+                                Swal.fire('Gagal', res.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            let msg = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan server';
+                            Swal.fire('Error!', msg, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
     </script>
 @endsection

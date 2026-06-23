@@ -94,6 +94,7 @@
                     <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
                     <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
                     <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
+                    <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
                     <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
                     <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
                     <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>

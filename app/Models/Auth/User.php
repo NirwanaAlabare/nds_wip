@@ -65,4 +65,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserRole::class, 'user_id', 'id');
     }
+
+    /**
+     * Get the master CEISA credential for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function ceisaCredential()
+    {
+        return $this->hasOne(\App\Models\MasterCeisaCredential::class, 'user_id', 'id');
+    }
 }
