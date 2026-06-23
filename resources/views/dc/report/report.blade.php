@@ -61,8 +61,8 @@
                             <th rowspan="2">Loading</th>
                             <th rowspan="2">Adjustment</th>
                             <th rowspan="2">Saldo Akhir</th>
-                            <th colspan="6">Mutasi Secondary Dalam</th>
-                            <th colspan="6">Mutasi Secondary Luar</th>
+                            <th class="text-center" colspan="6">Mutasi Secondary Dalam</th>
+                            <th class="text-center" colspan="6">Mutasi Secondary Luar</th>
                         </tr>
                         <tr>
                             <th>Saldo Awal Secondary</th>
