@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
-class Bc30Service
+class Bc33Service
 {
     protected $ceisaService;
 
@@ -55,7 +55,7 @@ class Bc30Service
         ];
 
 
-        return view('export-import.dokumen-pabean.edit-bc30', [
+        return view('export-import.dokumen-pabean.edit-bc33', [
             'page'          => 'dashboard-export-import',
             'subPageGroup'  => 'export-import',
             'subPage'       => 'dokumen-pabean-list',
@@ -70,16 +70,16 @@ class Bc30Service
         ]);
     }
 
-    // GENERATE NOMOR AJU BC 3.0
+    // GENERATE NOMOR AJU BC 3.3
     private function generateNomorAju($db)
     {
         $currentYear = date('Y');
         $today       = date('Ymd');
-        $prefix      = '000030NIW779';
+        $prefix      = '000033NIW77920';
 
         $lastCeisa = $db->table('bpb_ceisa')
             ->where('nomor_aju', 'like', $prefix . $currentYear . '%')
-            ->where('jenis_bc', '3.0')
+            ->where('jenis_bc', '3.3')
             ->orderBy('nomor_aju', 'desc')
             ->first();
 
@@ -92,7 +92,7 @@ class Bc30Service
         return $prefix . $today . '0001';
     }
 
-    // UPDATE DRAFT BC 3.0
+    // UPDATE DRAFT BC 3.3
     public function updateDraft($id, Request $request)
     {
         DB::connection('mysql_sb')->beginTransaction();
@@ -266,7 +266,7 @@ class Bc30Service
                 $brg['jumlahSatuan']      = (float) ($brg['jumlahSatuan'] ?? 0);
                 $brg['jumlahKemasan']     = (float) ($brg['jumlahKemasan'] ?? 0);
                 $brg['seriBarang']        = (int) ($brg['seriBarang'] ?? 0);
-                $brg['kodeDokumen']       = '30';
+                $brg['kodeDokumen']       = '33';
 
                 // Format Tarif Barang (Jika Ada)
                 if (isset($brg['barangTarif']) && is_array($brg['barangTarif'])) {
@@ -286,7 +286,7 @@ class Bc30Service
             $payloadJson = [
                 'asalData'              => 'S',
                 'disclaimer'            => '1',
-                'kodeDokumen'           => '30',
+                'kodeDokumen'           => '33',
 
                 // Header Dokumen
                 'nomorAju'              => $request->input('nomorAju', ''),
@@ -363,7 +363,7 @@ class Bc30Service
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
-                    'jenis_bc'     => '30',
+                    'jenis_bc'     => '33',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bppbno_int') ?? null,
                 ]
@@ -371,11 +371,11 @@ class Bc30Service
 
             DB::connection('mysql_sb')->commit();
 
-            return back()->with('success', 'Data draft BC 3.0 berhasil disimpan!');
+            return back()->with('success', 'Data draft BC 3.3 berhasil disimpan!');
 
         } catch (\Exception $e) {
             DB::connection('mysql_sb')->rollBack();
-            Log::error('Error Update Draft BC 3.0: ' . $e->getMessage() . ' di baris ' . $e->getLine());
+            Log::error('Error Update Draft BC 3.3: ' . $e->getMessage() . ' di baris ' . $e->getLine());
 
             return redirect()->back()
                 ->withInput()
@@ -383,7 +383,7 @@ class Bc30Service
         }
     }
 
-    // SEND CEISA BC 3.0
+    // SEND CEISA BC 3.3
     public function sendCeisa($id, Request $request)
     {
         $db = DB::connection('mysql_sb');
@@ -422,7 +422,7 @@ class Bc30Service
                 }
             }
             if (!$hasInvoice) {
-                throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan INVOICE (Kode 380). Silakan tambahkan terlebih dahulu di Tab Dokumen Pelengkap.');
+                throw new \Exception('Validasi Gagal: Dokumen BC 3.3 wajib melampirkan INVOICE (Kode 380). Silakan tambahkan terlebih dahulu di Tab Dokumen Pelengkap.');
             }
 
             $payloadKemasan = [];
@@ -590,7 +590,7 @@ class Bc30Service
                     'hargaSatuan'       => (float) ($brg['hargaSatuan'] ?? 0),
                     'kodeJenisEkspor'   => $brg['kodeJenisEkspor'] ?? '1',
                     'hargaPatokan'      => (float) ($brg['hargaPatokan'] ?? 0),
-                    'kodeDokumen'       => '30',
+                    'kodeDokumen'       => '33',
                     'barangTarif'       => $barangTarif,
                     'dokFasilitas'      => $barangDokumen,
                     'entitasBarang'     => $entitasBarang,
@@ -614,7 +614,7 @@ class Bc30Service
                 'idPlatform'            => config('ceisa.id_platform_dev', ''),
                 'asalData'              => 'S',
                 'disclaimer'            => '1',
-                'kodeDokumen'           => '30',
+                'kodeDokumen'           => '33',
                 'nomorAju'              => $ceisaInfo->nomor_aju ?? '',
                 'tanggalAju'            => $draft['tanggalAju'] ?? date('Y-m-d'),
 
@@ -688,7 +688,7 @@ class Bc30Service
 
                 return response()->json([
                     'status'         => 200,
-                    'message'        => 'Dokumen BC 3.0 berhasil dikirim ke CEISA!',
+                    'message'        => 'Dokumen BC 3.3 berhasil dikirim ke CEISA!',
                     'data_payload'   => $finalPayload,
                     'ceisa_response' => $responseCeisa['body'],
                 ]);

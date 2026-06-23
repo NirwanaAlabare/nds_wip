@@ -25,8 +25,8 @@
         </div>
         <div class="card-body">
             @php
-                $dataPartFormPrevious = $dataPartForm->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc("no_cut")->first();
-                $dataPartFormNext = $dataPartForm->where("no_cut", ">", $dataSpreading->no_cut)->sortBy("no_cut")->first();
+                $dataPartFormPrevious = $dataPartForm->where("waktu_selesai", "<", $dataSpreading->waktu_selesai)->sortByDesc("waktu_selesai")->first();
+                $dataPartFormNext = $dataPartForm->where("waktu_selesai", ">", $dataSpreading->waktu_selesai)->sortBy("waktu_selesai")->first();
             @endphp
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
@@ -36,8 +36,8 @@
                 </div>
                 <div>
                     <select class="form-select form-select-sm" name="gotocut" id="gotocut" onchange="redirectToCut(this)">
-                        @foreach ($dataPartForm->sortBy("no_cut") as $dpf)
-                            <option value="{{ route("show-stocker")."/".$dpf->form_id }}" {{ $dpf->no_cut == $dataSpreading->no_cut ? "selected='true'" : "" }}>{{ $dpf->no_cut }}</option>
+                        @foreach ($dataPartForm->sortBy("waktu_selesai") as $dpf)
+                            <option value="{{ route("show-stocker")."/".$dpf->form_id }}" {{ $dpf->form_id == $dataSpreading->form_cut_id ? "selected='true'" : "" }}>{{ $dpf->no_cut }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -117,6 +117,10 @@ class DokumenPabeanController extends Controller
                         $editUrl = route('dokumen-pabean-edit-bc30', ['id' => $row->trx_no_par]);
                     }
 
+                    if($row->jenis_dok == 'BC 3.3' && $jenis == 'Pengeluaran') {
+                        $editUrl = route('dokumen-pabean-edit-bc33', ['id' => $row->trx_no_par]);
+                    }
+
                     $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
                     if($row->ceisa_status == 1) {
@@ -1318,17 +1322,54 @@ class DokumenPabeanController extends Controller
             $tanggalAju = date('Y-m-d');
 
             $payloadDokumen = [];
-            $seriDok = 1;
+            $invoiceDok = null;
+            $transportDok = null;
+            $otherDoks = [];
             foreach (($draft['dok'] ?? []) as $d) {
                 if (!empty($d['kode']) && !empty($d['nomor'])) {
-                    $payloadDokumen[] = [
-                        "kodeDokumen"    => trim(explode(' - ', $d['kode'])[0]),
+                    $kode = trim(explode(' - ', $d['kode'])[0]);
+                    $doc = [
+                        "kodeDokumen"    => $kode,
                         "nomorDokumen"   => $d['nomor'],
-                        "seriDokumen"    => $seriDok++,
                         "tanggalDokumen" => !empty($d['tgl']) ? $d['tgl'] : date('Y-m-d')
                     ];
+                    if ($kode === '380' && !$invoiceDok) {
+                        $invoiceDok = $doc;
+                    } elseif (in_array($kode, ['705', '740']) && !$transportDok) {
+                        $transportDok = $doc;
+                    } else {
+                        $otherDoks[] = $doc;
+                    }
                 }
             }
+            
+            if ($transportDok) {
+                array_unshift($otherDoks, $transportDok);
+            } else {
+                // Default fallback if B/L is missing in the frontend
+                array_unshift($otherDoks, [
+                    "kodeDokumen"    => "705",
+                    "nomorDokumen"   => "-",
+                    "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
+                ]);
+            }
+
+            if ($invoiceDok) {
+                array_unshift($otherDoks, $invoiceDok);
+            } else {
+                // Default fallback if Invoice is missing in the frontend
+                array_unshift($otherDoks, [
+                    "kodeDokumen"    => "380",
+                    "nomorDokumen"   => $header->invno ?? "-",
+                    "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
+                ]);
+            }
+
+            $seriDok = 1;
+            $payloadDokumen = array_map(function($d) use (&$seriDok) {
+                $d['seriDokumen'] = $seriDok++;
+                return $d;
+            }, $otherDoks);
 
             $hasInvoice = false;
             $hasTransport = false;
@@ -1340,9 +1381,9 @@ class DokumenPabeanController extends Controller
                 if (in_array($kodeStr, ['705', '740', '704', '741'])) $hasTransport = true;
             }
 
-            if (!$hasInvoice || !$hasTransport) {
-                throw new \Exception("Validasi Gagal: Dokumen BC 2.3 wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740). Silakan tambahkan di tab Dokumen Pendukung.");
-            }
+            // if (!$hasInvoice || !$hasTransport) {
+            //     throw new \Exception("Validasi Gagal: Dokumen BC 2.3 wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740). Silakan tambahkan di tab Dokumen Pendukung.");
+            // }
 
             $payloadKontainer = [];
             $seriKont = 1;
@@ -1406,16 +1447,17 @@ class DokumenPabeanController extends Controller
                 $totalDiskon += (float) ($brg['diskon'] ?? 0);
 
                 $barangTarif = [];
+                $pungutanMap = [];
                 if (!empty($brg['barangTarif']) && is_array($brg['barangTarif'])) {
                     foreach ($brg['barangTarif'] as $tarif) {
-                            $kodeJenisPungutan = !empty($tarif['kodeJenisPungutan']) ? $tarif['kodeJenisPungutan'] : "BM";
+                            $kodeJenisPungutan = !empty($tarif['kodeJenisPungutan']) ? strtoupper(trim($tarif['kodeJenisPungutan'])) : "BM";
                             $kodeFasilitasTarif = !empty($tarif['kodeFasilitasTarif']) ? $tarif['kodeFasilitasTarif'] : "3";
                             $tarifPersen = (float) ($tarif['tarif'] ?? 0);
                             $tarifFasilitas = (float) ($tarif['tarifFasilitas'] ?? ($kodeFasilitasTarif == '1' ? 0 : 100));
 
                             $cifRupiah = (float)($brg['cif'] ?? 0) * (float)($brg['ndpbm'] ?? 0);
                             $bmAmount = $cifRupiah * ($kodeJenisPungutan == 'BM' ? $tarifPersen / 100 : 0);
-                            $nilaiDasar = ($kodeJenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + ($cifRupiah * 0.1));
+                            $nilaiDasar = ($kodeJenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + ($cifRupiah * 0.1)); // simplified
                             $taxAmount = $nilaiDasar * ($tarifPersen / 100);
 
                             $nilaiFasilitas = 0;
@@ -1432,7 +1474,7 @@ class DokumenPabeanController extends Controller
                             $finalNilaiBayar = (float) ($tarif['nilaiBayar'] ?? 0) > 0 ? (float) ($tarif['nilaiBayar'] ?? 0) : round($nilaiBayar);
                             $finalNilaiFasilitas = (float) ($tarif['nilaiFasilitas'] ?? 0) > 0 ? (float) ($tarif['nilaiFasilitas'] ?? 0) : round($nilaiFasilitas);
 
-                            $barangTarif[] = [
+                            $pungutanMap[$kodeJenisPungutan] = [
                                 "kodeJenisTarif"     => $kodeJenisTarif,
                                 "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
                                 "kodeFasilitasTarif" => $kodeFasilitasTarif,
@@ -1447,48 +1489,35 @@ class DokumenPabeanController extends Controller
                             ];
                     }
                 }
-                if (empty($barangTarif)) {
-                    $barangTarif = [
-                        [
+
+                // Force the order: BM, PPH, PPN (as required by CEISA BC 2.3 schema)
+                $orderedKeys = ['BM', 'PPH', 'PPN'];
+                foreach ($orderedKeys as $pkey) {
+                    if (isset($pungutanMap[$pkey])) {
+                        $barangTarif[] = $pungutanMap[$pkey];
+                    } else {
+                        // Default empty entry if missing
+                        $barangTarif[] = [
                             "kodeJenisTarif" => "1",
                             "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
                             "kodeFasilitasTarif" => "3",
                             "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "BM",
+                            "kodeJenisPungutan" => $pkey,
                             "nilaiBayar" => 0,
                             "nilaiFasilitas" => 0,
                             "nilaiSudahDilunasi" => 0,
                             "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
                             "tarif" => 0,
                             "tarifFasilitas" => 100
-                        ],
-                        [
-                            "kodeJenisTarif" => "1",
-                            "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
-                            "kodeFasilitasTarif" => "3",
-                            "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "PPH",
-                            "nilaiBayar" => 0,
-                            "nilaiFasilitas" => 0,
-                            "nilaiSudahDilunasi" => 0,
-                            "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif" => 0,
-                            "tarifFasilitas" => 100
-                        ],
-                        [
-                            "kodeJenisTarif" => "1",
-                            "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
-                            "kodeFasilitasTarif" => "3",
-                            "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "PPN",
-                            "nilaiBayar" => 0,
-                            "nilaiFasilitas" => 0,
-                            "nilaiSudahDilunasi" => 0,
-                            "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif" => 0,
-                            "tarifFasilitas" => 100
-                        ]
-                    ];
+                        ];
+                    }
+                }
+                
+                // Add any other pungutan (CUKAI, PPNBM) if user inputted them, after the mandatory 3
+                foreach ($pungutanMap as $k => $v) {
+                    if (!in_array($k, $orderedKeys)) {
+                        $barangTarif[] = $v;
+                    }
                 }
 
                 $barangDokumen = [];
@@ -1706,6 +1735,21 @@ class DokumenPabeanController extends Controller
     public function sendCeisaBc30($id, Request $request)
     {
         return app(\App\Services\Bc30Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc33($id, Request $request)
+    {
+        return app(\App\Services\Bc33Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc33($id, Request $request)
+    {
+        return app(\App\Services\Bc33Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc33($id, Request $request)
+    {
+        return app(\App\Services\Bc33Service::class)->sendCeisa($id, $request);
     }
 }
 

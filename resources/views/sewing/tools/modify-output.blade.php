@@ -1105,6 +1105,7 @@
             let line = document.getElementById("line").value;
             let masterPlanId = document.getElementById("master_plan").value;
             let soDetId = document.getElementById(prefix+"size").value;
+            let poId = document.getElementById(prefix+"po").value;
             let qty = document.getElementById(prefix+"qty").value;
 
             if (tanggal && line && masterPlanId && soDetId && (qty > 0)) {
@@ -1118,6 +1119,7 @@
                         line: line,
                         master_plan_id: masterPlanId,
                         so_det_id: soDetId,
+                        po_id: poId,
                         qty: qty,
                         type: prefix,
                         dept: dept,

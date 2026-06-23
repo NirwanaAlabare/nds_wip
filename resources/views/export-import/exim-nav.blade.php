@@ -12,6 +12,12 @@
                     Dokumen Pabean <i class="fa-solid fa-file-signature fa-sm"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('master-ceisa.index') }}"
+                    class="dropdown-item {{ request()->routeIs('master-ceisa.*') ? 'active' : '' }}">
+                    Master CEISA Kredensial <i class="fa-solid fa-users-cog fa-sm"></i>
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">
