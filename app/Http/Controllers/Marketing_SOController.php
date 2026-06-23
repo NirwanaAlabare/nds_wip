@@ -19,7 +19,7 @@ class Marketing_SOController extends Controller
 
             $query = $mysql_sb->table('so')
                 ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
-                ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+                ->leftJoin('mastersupplier as ms', 'act.id_buyer', '=', 'ms.Id_Supplier')
                 ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
                 ->select([
                     'so.id',
@@ -1453,12 +1453,13 @@ class Marketing_SOController extends Controller
                     'smv_min'     => $request->smv ?? ($act_costing_new ? $act_costing_new->smv_min : 0),
                     'id_product'  => $request->id_product_item ?? null,
                     'notes'       => $request->notes ?? null,
-                    'mkt_order'   => $request->marketing_order ?? null,
+                    'mkt_order'   => $request->marketing_order == 1 ? 'BANDUNG' : ($request->marketing_order == 2 ? 'JAKARTA' : ''),
                     'dateinput'   => now(),
                     'aktif'       => 'Y',
                     'cfm_price'   => $act_costing_new->confirm_price ?? 0,
                     'vat'         => $request->vat ?? 0,
                     'deldate'     => $details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null,
+                    'type_ws'     => $act_costing_new ? $act_costing_new->tipe_ws : null,
                 ]);
 
                 $curr_name_so = '';
@@ -1470,7 +1471,7 @@ class Marketing_SOController extends Controller
                 // save ke so
                 $id_so = $mysql_sb->table('so')->insertGetId([
                     'id_cost'   => $id_cost,
-                    'buyerno'   => $request->id_buyer,
+                    'buyerno'   => $details->first()->po ?? '',
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
@@ -1682,7 +1683,8 @@ class Marketing_SOController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
         $header = $mysql_sb->table('so')
-            ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+            ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+            ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
             ->select('so.so_no', 'so.so_no as kpno', 'ms.Supplier as buyer', 'so.style')
             ->where('so.id', $id)
             ->first();
@@ -2161,9 +2163,9 @@ class Marketing_SOController extends Controller
                     'acn.foto as costing_image',
                     'ac.kpno as ws'
                 )
-                ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
-                ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
                 ->leftJoin('bom_marketing as bm', 'so.id_bom', '=', 'bm.id')
+                ->leftJoin('mastersupplier as ms', 'bm.id_buyer', '=', 'ms.Id_Supplier')
+                ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
                 ->leftJoin('act_costing_new as acn', 'bm.id_costing', '=', 'acn.id')
                 ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('so.id', $id)
@@ -2394,6 +2396,270 @@ class Marketing_SOController extends Controller
         $fileName = 'Worksheet-SO-' . ($header->so_no ?? $id) . '.pdf';
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
+
+    // public function printPdfSO(Request $request, $id)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     $header = $mysql_sb->table('so')
+    //             ->select(
+    //                 'so.*',
+    //                 'so.so_no as kpno',
+    //                 'so.style',
+    //                 'ms.Supplier as buyer',
+    //                 'mp.product_group',
+    //                 'mp.product_item',
+    //                 'acn.foto as costing_image',
+    //                 'ac.kpno as ws'
+    //             )
+    //             ->leftJoin('bom_marketing as bm', 'so.id_bom', '=', 'bm.id')
+    //             ->leftJoin('mastersupplier as ms', 'bm.id_buyer', '=', 'ms.Id_Supplier')
+    //             ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
+    //             ->leftJoin('act_costing_new as acn', 'bm.id_costing', '=', 'acn.id')
+    //             ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+    //             ->where('so.id', $id)
+    //             ->first();
+
+    //         if (!$header) return abort(404, 'Data SO tidak ditemukan');
+
+    //         if (!empty($header->costing_image)) {
+    //             $url = basename($header->costing_image);
+    //             $file_path = public_path('uploads/costing/' . $url);
+    //             if (file_exists($file_path)) {
+    //                 $type = pathinfo($file_path, PATHINFO_EXTENSION);
+    //                 $data_img = file_get_contents($file_path);
+    //                 $header->image_base64 = 'data:image/' . $type . ';base64,' . base64_encode($data_img);
+    //             } else {
+    //                 $header->image_base64 = null;
+    //             }
+    //         } else {
+    //             $header->image_base64 = null;
+    //         }
+
+    //     // 2. Tarik Detail SO
+    //     $details = $mysql_sb->table('so_det')
+    //         ->leftJoin('master_colors_gmt as c', 'so_det.id_color', '=', 'c.id')
+    //         ->leftJoin('master_size_new as s', 'so_det.id_size', '=', 's.id')
+    //         ->where('so_det.id_so', $id)
+    //         ->select('c.name as color', 's.size as size_name', 's.urutan', 'so_det.qty', 'so_det.deldate_det', 'so_det.id_color', 'so_det.id_size', 'so_det.product_set')
+    //         ->orderBy('so_det.product_set', 'asc')
+    //         ->orderBy('s.urutan', 'asc')
+    //         ->get();
+
+    //     $header->ex_fty_date = $details->first()->deldate_det ?? '-';
+
+    //     // 3. Olah Array Tabel QTY (Group by Warna + Product Set)
+    //     $list_size = [];
+    //     $item_qty = [];
+
+    //     foreach ($details as $row) {
+    //         $color = $row->color ?? 'Warna Tidak Sesuai Master';
+    //         $size = $row->size_name ?? 'Size Tidak Sesuai Master';
+    //         $prod_set = (!empty($row->product_set) && $row->product_set !== '-') ? $row->product_set : '-';
+
+    //         $key = $color . '|' . $prod_set;
+
+    //         if (!isset($item_qty[$key])) {
+    //             $item_qty[$key] = [
+    //                 'color'       => $color,
+    //                 'product_set' => $prod_set,
+    //                 'sizes'       => []
+    //             ];
+    //         }
+    //         if (!isset($item_qty[$key]['sizes'][$size])) {
+    //             $item_qty[$key]['sizes'][$size] = 0;
+    //         }
+
+    //         $item_qty[$key]['sizes'][$size] += $row->qty;
+
+    //         if (!in_array($size, $list_size)) $list_size[] = $size;
+    //     }
+
+    //     // 4. Tarik Master Group
+    //     $master_groups = $mysql_sb->table('mastergroup')
+    //         ->whereNotNull('root_group')
+    //         ->orderBy('root_group', 'asc')
+    //         ->pluck('nama_group')
+    //         ->toArray();
+
+    //     $group_names = array_map(function($n) { return strtoupper(trim($n)); }, $master_groups);
+
+    //     // 5. Tarik BOM (Gabung Material & Manufacturing dalam 1 Query biar ngebut!)
+    //     $all_bom_items = $mysql_sb->table('bom_marketing_detail as bmd')
+    //         ->select(
+    //             'bmd.category', 'mg.nama_group', 'c.name as color_gmt', 'bmd.id_color', 'bmd.id_size', 'bmd.id_set',
+    //             'bmd.shell', 'bmd.notes as description', 's.size as size_gmt', 'i.color as color_item', 'i.size as size_item',
+    //             'bmd.qty as cons', 'bmd.unit', 'mset.nama as product_set',
+    //             DB::raw("
+    //                 CASE
+    //                     WHEN bmd.category = 'Manufacturing'
+    //                     THEN CONCAT(IFNULL(i.itemdesc,''), ' ', IFNULL(i.color,''), ' ', IFNULL(i.size,''), ' ', IFNULL(i.add_info,''))
+    //                     ELSE i.itemdesc
+    //                 END as item_name
+    //             ")
+    //         )
+    //         ->leftJoin('masteritem as i', 'bmd.id_item', '=', 'i.id_item')
+    //         ->leftJoin('mastercontents as mc', 'bmd.id_contents', '=', 'mc.id')
+    //         ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
+    //         ->leftJoin('mastersubgroup as msg', 'mt.id_sub_group', '=', 'msg.id')
+    //         ->leftJoin('mastergroup as mg', 'msg.id_group', '=', 'mg.id')
+    //         ->leftJoin('master_colors_gmt as c', 'bmd.id_color', '=', 'c.id')
+    //         ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
+    //         ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
+    //         ->leftJoin('master_set as mset', 'bmd.id_set', '=', 'mset.id')
+    //         ->where('bmd.id_bom_marketing', $header->id_bom)
+    //         ->whereNotNull('bmd.id_item')
+    //         ->get();
+
+    //     // 6. Olah Hitungan Kuantiti Material & Pisahkan per Kategori
+    //     $materials_by_group = [];
+    //     $materials_mfg = [];
+    //     $detail_collection = collect($details);
+
+    //     foreach ($all_bom_items as $mat) {
+    //         // Filter kuantiti sesuai syarat material (Warna, Size, Product Set)
+    //         $query = $detail_collection;
+    //         if ($mat->id_color) $query = $query->where('id_color', $mat->id_color);
+    //         if ($mat->id_size)  $query = $query->where('id_size', $mat->id_size);
+    //         if ($mat->id_set)   $query = $query->where('product_set', $mat->product_set);
+
+    //         $mat_qty = $query->sum('qty');
+
+    //         if ($mat_qty <= 0) continue; // Skip kalau bahan ini nggak kepakai di SO ini
+
+    //         $mat->qty = $mat_qty;
+    //         $mat->cons = (float) ($mat->cons ?? 0);
+
+    //         // Secara default, ambil nama warna bajunya
+    //         $c_name = strtoupper(trim($mat->color_gmt ?? '-'));
+
+    //         // ---------------------------------------------------------
+    //         // [MODIFIKASI] PENGELOMPOKAN GLOBAL
+    //         // Khusus Manufacturing, Packing, & Sewing -> Jadikan 1 grup global ('-')
+    //         // agar QTY-nya tergabung & tidak terbelah-belah per warna baju.
+    //         // ---------------------------------------------------------
+    //         if ($mat->category === 'Manufacturing') {
+    //             $c_name = '-';
+    //         } elseif ($mat->category === 'Material') {
+    //             $g_name_upper = strtoupper(trim($mat->nama_group ?? ''));
+    //             if (str_contains($g_name_upper, 'PACKING') || str_contains($g_name_upper, 'SEWING')) {
+    //                 $c_name = '-';
+    //             }
+    //         }
+
+    //         // Pisahkan masuk ke Array Material atau Manufacturing
+    //         if ($mat->category === 'Material' && in_array($mat->nama_group, $master_groups)) {
+    //             $g_name = strtoupper(trim($mat->nama_group));
+    //             $materials_by_group[$g_name][$c_name][] = $mat;
+    //         } elseif ($mat->category === 'Manufacturing') {
+    //             $materials_mfg[$c_name][] = $mat;
+    //         }
+    //     }
+
+    //     foreach ($materials_by_group as $g_name => $color_groups) {
+    //         $is_fabric = str_contains($g_name, 'FABRIC');
+    //         foreach ($color_groups as $c_name => $items) {
+    //             $merged = [];
+    //             foreach ($items as $item) {
+    //                 if ($is_fabric) {
+    //                     $key = implode('|', [
+    //                         trim($item->shell ?? ''),
+    //                         trim($item->item_name ?? ''),
+    //                         trim($item->description ?? ''),
+    //                         trim($item->color_item ?? ''),
+    //                         (string)(float)($item->cons ?? 0),
+    //                         trim($item->unit ?? ''),
+    //                         trim($item->product_set ?? '')
+    //                     ]);
+    //                 } else {
+    //                     $key = implode('|', [
+    //                         trim($item->item_name ?? ''),
+    //                         trim($item->description ?? ''),
+    //                         trim($item->color_item ?? ''),
+    //                         trim($item->size_item ?? ''),
+    //                         (string)(float)($item->cons ?? 0),
+    //                         trim($item->unit ?? ''),
+    //                         trim($item->product_set ?? '')
+    //                     ]);
+    //                 }
+
+    //                 if (!isset($merged[$key])) {
+    //                     $merged[$key] = clone $item;
+    //                     if ($is_fabric) {
+    //                         $merged[$key]->size_gmt_array = [];
+    //                         if (!empty($item->size_gmt) && trim($item->size_gmt) !== '-') {
+    //                             $merged[$key]->size_gmt_array[] = trim($item->size_gmt);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     $merged[$key]->qty += $item->qty;
+    //                     if ($is_fabric) {
+    //                         $clean_size_gmt = trim($item->size_gmt ?? '');
+    //                         if (!empty($clean_size_gmt) && $clean_size_gmt !== '-' && !in_array($clean_size_gmt, $merged[$key]->size_gmt_array)) {
+    //                             $merged[$key]->size_gmt_array[] = $clean_size_gmt;
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             if ($is_fabric) {
+    //                 foreach ($merged as $k => $m) {
+    //                     if (count($m->size_gmt_array) > 0) {
+    //                         $m->size_gmt = implode(', ', $m->size_gmt_array);
+    //                     } else {
+    //                         $m->size_gmt = 'ALL SIZE';
+    //                     }
+    //                     unset($m->size_gmt_array);
+    //                 }
+    //             }
+
+    //             $materials_by_group[$g_name][$c_name] = array_values($merged);
+    //         }
+    //     }
+
+    //     foreach ($materials_mfg as $c_name => $items) {
+    //         $merged = [];
+    //         foreach ($items as $item) {
+    //             $key = implode('|', [
+    //                 trim($item->item_name ?? ''),
+    //                 trim($item->description ?? ''),
+    //                 trim($item->color_item ?? ''),
+    //                 trim($item->size_item ?? ''),
+    //                 (string)(float)($item->cons ?? 0),
+    //                 trim($item->unit ?? '')
+    //             ]);
+
+    //             if (!isset($merged[$key])) {
+    //                 $merged[$key] = clone $item;
+    //             } else {
+    //                 $merged[$key]->qty += $item->qty;
+    //             }
+    //         }
+    //         $materials_mfg[$c_name] = array_values($merged);
+    //     }
+
+    //     // Sorting Huruf Abjad
+    //     foreach ($materials_by_group as $g_name => $color_groups) {
+    //         ksort($color_groups);
+    //         $materials_by_group[$g_name] = $color_groups;
+    //     }
+    //     ksort($materials_mfg);
+
+    //     $view_data = [
+    //         'header'        => $header,
+    //         'details'       => array_values($item_qty), // Reset index biar gampang di loop di Blade
+    //         'sizes'         => $list_size,
+    //         'materials'     => $materials_by_group,
+    //         'materials_mfg' => $materials_mfg,
+    //         'group_names'   => $group_names
+    //     ];
+
+    //     PDF::setOption(['dpi' => 150, 'defaultFont' => 'courier']);
+    //     $pdf = PDF::loadView('marketing.so.pdf_ws', $view_data)->setPaper('a4', 'landscape');
+
+    //     $fileName = 'Worksheet-SO-' . ($header->so_no ?? $id) . '.pdf';
+    //     return $pdf->stream(str_replace("/", "_", $fileName));
+    // }
 
     public function getBomCostingData(Request $request)
     {
@@ -2696,7 +2962,8 @@ class Marketing_SOController extends Controller
                     bmd.unit,
                     bmd.id_supplier,
                     UPPER(bmd.rule_bom) as rule_bom,
-                    bmd.shell as id_panel
+                    bmd.shell as id_panel,
+                    mi.itemdesc as notes
                 FROM so_det sd
                 INNER JOIN bom_marketing_detail bmd
                     ON  bmd.id_bom_marketing = ?
@@ -2713,7 +2980,7 @@ class Marketing_SOController extends Controller
 
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
-                ->where('add_item', 'N')
+                ->where('cancel', 'N')
                 ->get();
 
             $existing_map = [];
@@ -2781,7 +3048,8 @@ class Marketing_SOController extends Controller
                         'username' => $username,
                         'dateinput' => now(),
                         'id_panel' => $req->id_panel,
-                        'posno' => $posno_map[$req->id_item]
+                        'posno' => $posno_map[$req->id_item],
+                        'notes' => $req->notes ?? null,
                     ];
                     $insert_count++;
                 }
@@ -3132,7 +3400,7 @@ class Marketing_SOController extends Controller
 
         $so = $mysql_sb->table('so as s')
             ->leftJoin('act_costing as ac', 's.id_cost', '=', 'ac.id')
-            ->leftJoin('mastersupplier as ms', 's.buyerno', '=', 'ms.Supplier')
+            ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
             ->where('s.id', $id)
             ->select('s.id', 's.so_no', 's.no_po', 's.style', 's.brand', 's.qty', 'ac.kpno', 'ms.Supplier as buyer')
             ->first();
@@ -3217,7 +3485,7 @@ class Marketing_SOController extends Controller
 
         $query = $mysql_sb->table('so as s')
             ->leftJoin('act_costing as ac', 's.id_cost', '=', 'ac.id')
-            ->leftJoin('mastersupplier as ms', 's.buyerno', '=', 'ms.Supplier')
+            ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
             ->where('s.cancel_h', 'N')
             ->orderByDesc('s.d_insert');
 

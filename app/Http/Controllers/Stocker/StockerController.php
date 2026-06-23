@@ -238,9 +238,13 @@ class StockerController extends Controller
             groupBy("form_cut_input.id")->
             first();
 
-        $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.no_cut")->
+        $dataPartForm = PartForm::selectRaw("part_form.form_id, CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("part_split", function ($join){
+                $join->on("part_split.part_id", "=", "part_form.part_id");
+                $join->on("part_split.form_id", "=", "form_cut_input.id");
+            })->
             whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("part_form.part_id", $dataSpreading->part_id)->
             whereRaw("(form_cut_input.no_cut <= ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
@@ -502,6 +506,8 @@ class StockerController extends Controller
         }
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        $partSplit = DB::table("part_split")->where("part_id", $dataSpreading->part_id)->where("form_id", $dataSpreading->id)->first();
 
         return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "dataStockerCom" => $dataStockerCom, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }

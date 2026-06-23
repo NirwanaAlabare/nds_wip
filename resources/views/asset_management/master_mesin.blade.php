@@ -131,6 +131,7 @@
                 <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
                     <thead class="bg-sb">
                         <tr>
+                            <th scope="col" class="text-center align-middle">Sumber</th>
                             <th scope="col" class="text-center align-middle">Kode Jenis</th>
                             <th scope="col" class="text-center align-middle">Jenis</th>
                             <th scope="col" class="text-center align-middle">Kode Merk</th>
@@ -162,6 +163,7 @@
                             </th>
                             <th><input type="text" class="form-control form-control-sm col-filter" data-col="4"
                                     placeholder="Cari..."></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -240,6 +242,9 @@
                 }
             },
             columns: [{
+                    data: 'sumber'
+                }, // Sumber
+                {
                     data: 'kd_jenis'
                 }, // Kode Jenis
                 {
@@ -308,7 +313,11 @@
                 type: 'GET',
                 url: '{{ route('asset_mesin_master_unit') }}',
                 data: {
-                    id_jenis: row.id_jenis
+                    id_jenis: row.id_jenis,
+                    sumber: row.sumber,
+                    nm_jenis: row.nm_jenis,
+                    nm_merk: row.nm_merk,
+                    tipe: row.tipe
                 },
                 success: function(units) {
                     units.forEach(function(unit, i) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QR Mesin</title>
+    <title>QR Mesin Sewa</title>
     <style>
         @page {
             margin: 10px;
@@ -23,8 +23,11 @@
     </style>
 </head>
 <body>
-    <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(300)->generate($kode_qr)) !!}">
-    <h5>{{ $kode_qr }}</h5>
-    <h5>{{ $serial_number }}</h5>
+    @foreach ($kodeQrList as $kode)
+        <div @if (!$loop->last) style="page-break-after: always;" @endif>
+            <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(300)->generate($kode)) !!}">
+            <h5>{{ $kode }}</h5>
+        </div>
+    @endforeach
 </body>
 </html>
