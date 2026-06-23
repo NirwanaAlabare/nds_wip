@@ -63,7 +63,7 @@ class StockerService
                     stocker_input.shade,
                     stocker_input.group_stocker,
                     stocker_input.notes,
-                    CONCAT(form_cut_input.no_cut, COALESCE(part_split.suffix, '')) no_cut,
+                    CONCAT(form_cut_input.no_cut, (CASE WHEN form_split.id IS NOT NULL THEN part_split.suffix ELSE '' END)) no_cut,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
                     master_sb_ws.dest,
                     COALESCE(GROUP_CONCAT(DISTINCT master_secondary.proses), single_master_secondary.proses) as proses,
@@ -87,9 +87,10 @@ class StockerService
                 leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                leftJoin(DB::raw("part_split"), function ($join) {
-                    $join->on("part_split.part_id", "=", "part.id");
-                    $join->on("part_split.form_id", "=", "form_cut_input.id");
+                leftJoin("part_split", "part_split.part_id", "=", "part.id")->
+                leftJoin(DB::raw("form_cut_input as form_split"), function ($join) {
+                    $join->on("form_split.id", "=", "part_split.form_id");
+                    $join->on("form_split.waktu_selesai", ">=", "form_split.waktu_selesai");
                 })->
                 where("stocker_input.form_cut_id", $formCutId);
                 if ($stockerId) {
@@ -155,7 +156,7 @@ class StockerService
                     stocker_input.shade,
                     stocker_input.group_stocker,
                     stocker_input.notes,
-                    form_cut_input.no_cut,
+                    CONCAT(form_cut_input.no_cut, (CASE WHEN form_split.id IS NOT NULL THEN part_split.suffix ELSE '' END)) no_cut,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
                     master_sb_ws.dest
                 ")->
@@ -169,11 +170,17 @@ class StockerService
                 })->
                 leftJoin(DB::raw("part as part_com"), "part_com.id", "=", "part_detail_com.part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("part_form as part_form_source", "part_form_source.form_id", "=", "form_cut_input.id")->
                 leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")->
                 leftJoin("stocker_ws_additional_detail", "stocker_ws_additional_detail.stocker_additional_id", "=", "stocker_ws_additional.id")->
                 leftJoin("master_size_new", "master_size_new.size", "=", "stocker_ws_additional_detail.size")->
                 leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                leftJoin("part_split", "part_split.part_id", "=", "part_form_source.part_id")->
+                leftJoin(DB::raw("form_cut_input as form_split"), function ($join) {
+                    $join->on("form_split.id", "=", "part_split.form_id");
+                    $join->on("form_cut_input.waktu_selesai", ">=", "form_split.waktu_selesai");
+                })->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
                 where("form_cut_input.id", $formCutId);
                 if ($noWs) {
@@ -562,7 +569,7 @@ class StockerService
         // Loop over all forms
         foreach ($formCutInputs as $formCut) {
             // Part Split
-            $currentPartSplit = $partSplit->where("split_at", $currentNumber+1)->first();
+            $currentPartSplit = $partSplit->where("form_id", $formCut->id_form)->first();
 
             // Reset cumulative data on split
             if ($currentPartSplit) {
