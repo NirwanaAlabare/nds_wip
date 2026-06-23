@@ -3561,34 +3561,59 @@ color,
 $barcode,
 mut.id_item,
 mi.itemdesc,
-ROUND(SUM(saldo_awal), 2) AS saldo_awal,
+ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) AS saldo_awal,
 ROUND(SUM(qty_in), 2) AS penerimaan,
 ROUND(SUM(qty_pakai), 2) AS pemakaian,
 ROUND(SUM(sr), 2) AS short_roll,
 ROUND(SUM(gr_p), 2) AS gr_panel,
 ROUND(SUM(gr_g), 2) AS gr_set,
 ROUND(SUM(qty_retur), 2) AS retur,
+ROUND(SUM(qty_adjustment),2) AS adjustment,
 ROUND(
 SUM(saldo_awal)
+    + SUM(qty_adjustment_before)
     + SUM(qty_in)
     - SUM(qty_pakai)
     + SUM(sr)
     - SUM(gr_p)
     - SUM(gr_g)
     - SUM(qty_retur)
+    + SUM(qty_adjustment)
 , 2) AS saldo_akhir,
 satuan
 from
 (
 select
-ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan
+ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans >= '$start_date' and tgl_trans <= '$end_date'
 GROUP BY $groupBy
 UNION ALL
 select
-ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan
+ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
 GROUP BY $groupBy
+UNION ALL
+SELECT
+    ws, 
+    id_roll,
+    id_item,
+    0 saldo_awal,
+    0 qty_in,
+    0 qty_pakai,
+    0 sr,
+    0 gr_p,
+    0 gr_g,
+    0 qty_retur,
+    0 saldo,
+    satuan,
+    SUM(IF(tgl_saldo < '{$start_date}',qty,0)) qty_adjustment_before,
+    SUM(IF(tgl_saldo >= '{$start_date}',qty,0)) qty_adjustment
+FROM
+    wip_adjustment_fabric
+WHERE
+    tgl_saldo <= '{$end_date}'
+GROUP BY
+    $groupBy
 ) mut
 LEFT JOIN signalbit_erp.masteritem mi on mut.id_item = mi.id_item
 LEFT JOIN (
@@ -3605,21 +3630,24 @@ SELECT
 ) k on mut.ws = k.kpno
 GROUP BY $groupBy
 HAVING
-    ROUND(SUM(saldo_awal), 2) <> 0
+    ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
     OR ROUND(SUM(qty_pakai), 2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
+    OR ROUND(SUM(qty_adjustment), 2) <> 0
     OR ROUND(
         SUM(saldo_awal)
+        + SUM(qty_adjustment_before)
         + SUM(qty_in)
         - SUM(qty_pakai)
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
-        - SUM(qty_retur),
+        - SUM(qty_retur)
+        + SUM(qty_adjustment),
     2) <> 0
 order by ws asc, color asc
         ");
@@ -3673,22 +3701,25 @@ order by ws asc, color asc
                 mut.id_item,
                 mi.itemdesc,
 
-                ROUND(SUM(saldo_awal),2) AS saldo_awal,
+                ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
                 ROUND(SUM(qty_pakai),2) AS pemakaian,
                 ROUND(SUM(sr),2) AS short_roll,
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
                 ROUND(SUM(qty_retur),2) AS retur,
+                ROUND(SUM(qty_adjustment),2) AS adjustment,
 
                 ROUND(
                     SUM(saldo_awal)
+                    + SUM(qty_adjustment_before)
                     + SUM(qty_in)
                     - SUM(qty_pakai)
                     + SUM(sr)
                     - SUM(gr_p)
                     - SUM(gr_g)
                     - SUM(qty_retur)
+                    + SUM(qty_adjustment)
                 ,2) AS saldo_akhir,
                 satuan
 
@@ -3703,7 +3734,9 @@ order by ws asc, color asc
                     SUM(gr_g) gr_g,
                     SUM(qty_retur) qty_retur,
                     SUM(saldo) saldo,
-                    satuan
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans BETWEEN ? AND ?
                 GROUP BY $groupBy
@@ -3714,10 +3747,36 @@ order by ws asc, color asc
                     ws, id_roll, id_item,
                     SUM(saldo) saldo_awal,
                     0,0,0,0,0,0,0,
-                    satuan
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans = ?
                 GROUP BY $groupBy
+
+                UNION ALL
+
+                SELECT
+                    ws, 
+                    id_roll,
+                    id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    0 qty_pakai,
+                    0 sr,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    0 saldo,
+                    satuan,
+                    SUM(IF(tgl_saldo < '{$start_date}',qty,0)) qty_adjustment_before,
+                    SUM(IF(tgl_saldo >= '{$start_date}',qty,0)) qty_adjustment
+                FROM
+                    wip_adjustment_fabric
+                WHERE
+                    tgl_saldo <= '{$end_date}'
+                GROUP BY
+                    $groupBy
             ) mut
 
             LEFT JOIN signalbit_erp.masteritem mi
@@ -3738,21 +3797,24 @@ order by ws asc, color asc
 
             GROUP BY $groupBy
 HAVING
-    ROUND(SUM(saldo_awal), 2) <> 0
+    ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
     OR ROUND(SUM(qty_pakai), 2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
+    OR ROUND(SUM(qty_adjustment), 2) <> 0
     OR ROUND(
         SUM(saldo_awal)
+        + SUM(qty_adjustment_before)
         + SUM(qty_in)
         - SUM(qty_pakai)
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
-        - SUM(qty_retur),
+        - SUM(qty_retur)
+        + SUM(qty_adjustment),
     2) <> 0
 
             ORDER BY ws ASC, color ASC
@@ -3803,6 +3865,7 @@ HAVING
             'Ganti Reject Set',
             'Ganti Reject Panel',
             'Retur',
+            'Adjustment',
             'Saldo Akhir',
         ]);
 
@@ -3838,6 +3901,7 @@ HAVING
                 (float) $row->gr_set,
                 (float) $row->gr_panel,
                 (float) $row->retur,
+                (float) $row->adjustment,
                 (float) $row->saldo_akhir,
             ]);
 

@@ -103,6 +103,7 @@
                             <th class="text-center align-middle">Ganti Reject Set</th>
                             <th class="text-center align-middle">Ganti Reject Panel</th>
                             <th class="text-center align-middle">Retur</th>
+                            <th class="text-center align-middle">Adjustment</th>
                             <th class="text-center align-middle">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -119,6 +120,7 @@
                             <th class="text-end"></th> <!-- Ganti Reject Set -->
                             <th class="text-end"></th> <!-- Ganti Reject Panel -->
                             <th class="text-end"></th> <!-- Retur -->
+                            <th class="text-end"></th> <!-- Adjustment -->
                             <th class="text-end"></th> <!-- Saldo Akhir -->
                             <th class="text-center"></th> <!-- Satuan -->
                         </tr>
@@ -280,6 +282,10 @@
                         className: 'text-end'
                     },
                     {
+                        data: 'adjustment',
+                        className: 'text-end'
+                    },
+                    {
                         data: 'saldo_akhir',
                         className: 'text-end'
                     },
@@ -305,7 +311,7 @@
                     };
 
                     // daftar kolom numerik (index sesuai columns di DataTables)
-                    var colsToSum = [8, 9, 10, 11, 12, 13, 14, 15]; // saldo_awal ... saldo_akhir
+                    var colsToSum = [8, 9, 10, 11, 12, 13, 14, 15, 16]; // saldo_awal ... saldo_akhir
 
                     colsToSum.forEach(function(colIndex) {
                         var total = api
