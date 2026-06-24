@@ -837,7 +837,7 @@ class CheckOutputDetailController extends Controller
         }
 
         if ($request->tanggal_loading_akhir) {
-            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) <= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -853,7 +853,7 @@ class CheckOutputDetailController extends Controller
             if ($request->tanggal_plan_akhir) {
                 $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
             }
-            $additionalFilter .= "output.kode_numbering is not null";
+            $additionalFilter .= " and output.kode_numbering is not null";
         }
 
         // Sewing/Packing
@@ -868,7 +868,7 @@ class CheckOutputDetailController extends Controller
             $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
             $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
 
-            $additionalFilter .= " and output.tgl is not null";
+            $additionalFilter .= " and output.tgl is not null and output.tgl between '".$tglAwalOutput."' and '".$tglAkhirOutput."'";
         }
 
         $tglOutputPck = "";
@@ -882,7 +882,7 @@ class CheckOutputDetailController extends Controller
             $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
             $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
 
-            $additionalFilter .= " and output_packing.tgl is not null";
+            $additionalFilter .= " and output_packing.tgl is not null and output_packing.tgl between '".$tglAwalPacking."' and '".$tglAkhirPacking."'";
         }
 
         // Sewing
@@ -989,7 +989,7 @@ class CheckOutputDetailController extends Controller
             $backDateOutput = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
             $backDateDefect = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
             $backDateReject = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
-            $additionalFilter .= " and output.tgl is not null";
+            $additionalFilter .= " and output.tgl is not null and (output.tgl_plan != output.tgl)";
         }
 
         // Backdate
@@ -1000,7 +1000,7 @@ class CheckOutputDetailController extends Controller
             $backDateOutputPck = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
             $backDateDefectPck = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
             $backDateRejectPck = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
-            $additionalFilter .= " and output_packing.tgl is not null";
+            $additionalFilter .= " and output_packing.tgl is not null and (output_packing.tgl_plan != output_packing.tgl)";
         }
 
         $filterYs = $buyerFilterYs."
@@ -1059,8 +1059,8 @@ class CheckOutputDetailController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
-                    ".$lineOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchDefectPck."
@@ -1074,8 +1074,8 @@ class CheckOutputDetailController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
-                    ".$lineOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$missmatchOutputPck."
                     ".$backDateOutputPck;
 
@@ -1087,8 +1087,8 @@ class CheckOutputDetailController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
-                    ".$lineOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchRejectPck."
@@ -1105,7 +1105,6 @@ class CheckOutputDetailController extends Controller
                     ".$defectOutput."
                     ".$allocationOutput;
 
-
         $filterRftFinishingProses = $tglPlan."
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
@@ -1114,7 +1113,6 @@ class CheckOutputDetailController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutputFinishing."
                     ".$lineOutput;
-
 
         $filterRejectFinishingProses = $tglPlan."
                     ".$buyerFilterOutput."
@@ -1504,6 +1502,17 @@ class CheckOutputDetailController extends Controller
         })->
         leftJoin(DB::raw("laravel_nds.loading_line as loading"), "loading.stocker_id", "=", "stk.id")->
         leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id")->
+        whereRaw("
+            ys.id is not null
+            ".$tglLoading."
+            ".$lineLoading."
+            ".$statusOutput."
+            ".$statusPacking."
+            ".$crossLineLoading."
+            ".$crossLineOutput."
+            ".$crossLineOutput."
+            ".$additionalFilter."
+        ")->
         orderBy("ys.id_year_sequence")
         ->get();
 

@@ -65,6 +65,40 @@
             @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup, 'routeName' => Route::current()->getName()])
         @endif
 
+        <!-- Notifikasi Marquee: Kontrak Mesin Sewa Akan Berakhir (H-2) - khusus modul Asset -->
+        @if ($page == 'dashboard-asset')
+            <style>
+                .notif-marquee-wrap {
+                    overflow: hidden;
+                    white-space: nowrap;
+                    background: #ffc107;
+                    color: #000;
+                }
+
+                .notif-marquee-text {
+                    display: inline-block;
+                    padding-left: 100%;
+                    animation: notif-marquee-scroll 20s linear infinite;
+                    font-weight: bold;
+                    padding-top: 6px;
+                    padding-bottom: 6px;
+                }
+
+                @keyframes notif-marquee-scroll {
+                    0% {
+                        transform: translateX(0);
+                    }
+
+                    100% {
+                        transform: translateX(-100%);
+                    }
+                }
+            </style>
+            <div class="notif-marquee-wrap d-none" id="marqueeNotifMesinSewa">
+                <span class="notif-marquee-text" id="marqueeNotifMesinSewaText"></span>
+            </div>
+        @endif
+
         <!-- Offcanvas -->
         @include('layouts.offcanvas')
 

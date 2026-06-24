@@ -294,6 +294,7 @@ class StockerController extends Controller
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
+                form_cut_input.waktu_selesai,
                 MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 UPPER(TRIM(marker_input.color)) color,
                 marker_input_detail.so_det_id,
