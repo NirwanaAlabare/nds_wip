@@ -3631,35 +3631,44 @@ color,
 $barcode,
 mut.id_item,
 mi.itemdesc,
-ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) AS saldo_awal,
-ROUND(SUM(qty_in), 2) AS penerimaan,
-ROUND(SUM(qty_pakai), 2) AS pemakaian,
-ROUND(SUM(sr), 2) AS short_roll,
-ROUND(SUM(gr_p), 2) AS gr_panel,
-ROUND(SUM(gr_g), 2) AS gr_set,
-ROUND(SUM(qty_retur), 2) AS retur,
+ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
+ROUND(SUM(qty_in),2) AS penerimaan,
+ROUND(
+    CASE 
+        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+        ELSE SUM(qty_pakai_adjustment)
+    END
+,2) AS pemakaian,
+ROUND(SUM(sr),2) AS short_roll,
+ROUND(SUM(gr_p),2) AS gr_panel,
+ROUND(SUM(gr_g),2) AS gr_set,
+ROUND(SUM(qty_retur),2) AS retur,
 ROUND(SUM(qty_adjustment),2) AS adjustment,
 ROUND(
-SUM(saldo_awal)
+    SUM(saldo_awal)
     + SUM(qty_adjustment_before)
     + SUM(qty_in)
-    - SUM(qty_pakai)
+    - 
+    CASE 
+        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+        ELSE SUM(qty_pakai_adjustment)
+    END
     + SUM(sr)
     - SUM(gr_p)
     - SUM(gr_g)
     - SUM(qty_retur)
     + SUM(qty_adjustment)
-, 2) AS saldo_akhir,
+,2) AS saldo_akhir,
 satuan
 from
 (
 select
-ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
+ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, 0 qty_pakai_adjustment, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans >= '$start_date' and tgl_trans <= '$end_date'
 GROUP BY $groupBy
 UNION ALL
 select
-ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
+ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
 GROUP BY $groupBy
 UNION ALL
@@ -3669,7 +3678,8 @@ SELECT
     wip_adjustment_fabric.id_item,
     0 saldo_awal,
     0 qty_in,
-    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai,
+    0 qty_pakai,
+    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai_adjustment,
     0 sr,
     0 gr_p,
     0 gr_g,
@@ -3706,7 +3716,12 @@ GROUP BY $groupBy
 HAVING
     ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
-    OR ROUND(SUM(qty_pakai), 2) <> 0
+    OR ROUND(
+        CASE 
+            WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+            ELSE SUM(qty_pakai_adjustment)
+        END
+    ,2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
@@ -3716,7 +3731,11 @@ HAVING
         SUM(saldo_awal)
         + SUM(qty_adjustment_before)
         + SUM(qty_in)
-        - SUM(qty_pakai)
+        -
+        CASE 
+            WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+            ELSE SUM(qty_pakai_adjustment)
+        END
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
@@ -3846,7 +3865,12 @@ order by ws asc, color asc
 
                 ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
-                ROUND(SUM(qty_pakai),2) AS pemakaian,
+                ROUND(
+                    CASE 
+                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
+                ,2) AS pemakaian,
                 ROUND(SUM(sr),2) AS short_roll,
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
@@ -3857,7 +3881,11 @@ order by ws asc, color asc
                     SUM(saldo_awal)
                     + SUM(qty_adjustment_before)
                     + SUM(qty_in)
-                    - SUM(qty_pakai)
+                    - 
+                    CASE 
+                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
                     + SUM(sr)
                     - SUM(gr_p)
                     - SUM(gr_g)
@@ -3872,6 +3900,7 @@ order by ws asc, color asc
                     0 saldo_awal,
                     SUM(qty_in) qty_in,
                     SUM(qty_pakai) qty_pakai,
+                    0 qty_pakai_adjustment,
                     SUM(sr) sr,
                     SUM(gr_p) gr_p,
                     SUM(gr_g) gr_g,
@@ -3889,7 +3918,7 @@ order by ws asc, color asc
                 SELECT
                     ws, id_roll, id_item,
                     SUM(saldo) saldo_awal,
-                    0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,
                     satuan,
                     0 qty_adjustment_before,
                     0 qty_adjustment
@@ -3905,7 +3934,8 @@ order by ws asc, color asc
                     wip_adjustment_fabric.id_item,
                     0 saldo_awal,
                     0 qty_in,
-                    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai,
+                    0 qty_pakai,
+                    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai_adjustment,
                     0 sr,
                     0 gr_p,
                     0 gr_g,
@@ -3946,7 +3976,12 @@ order by ws asc, color asc
 HAVING
     ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
     OR ROUND(SUM(qty_in), 2) <> 0
-    OR ROUND(SUM(qty_pakai), 2) <> 0
+    OR ROUND(
+        CASE 
+            WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+            ELSE SUM(qty_pakai_adjustment)
+        END
+    ,2) <> 0
     OR ROUND(SUM(sr), 2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
@@ -3956,7 +3991,11 @@ HAVING
         SUM(saldo_awal)
         + SUM(qty_adjustment_before)
         + SUM(qty_in)
-        - SUM(qty_pakai)
+        -
+        CASE 
+            WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+            ELSE SUM(qty_pakai_adjustment)
+        END
         + SUM(sr)
         - SUM(gr_p)
         - SUM(gr_g)
