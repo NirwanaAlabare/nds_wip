@@ -871,10 +871,10 @@
                 }
             });
 
-            let hargaOk = false;
-            $('input[name$="[hargaPenyerahan]"]').each(function() {
-                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
-            });
+            // let hargaOk = false;
+            // $('input[name$="[hargaPenyerahan]"]').each(function() {
+            //     if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
+            // });
             // if (!hargaOk) {
             //     errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
             //     if (!firstTab) firstTab = '#tab-header';
