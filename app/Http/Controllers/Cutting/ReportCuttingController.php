@@ -3680,7 +3680,15 @@ SELECT
     0 saldo_awal,
     0 qty_in,
     0 qty_pakai,
-    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai_adjustment,
+    COALESCE(
+    (
+        SELECT SUM(mr.total_pemakaian_roll)
+        FROM manajemen_roll mr
+        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+        AND mr.id_roll = wip_adjustment_fabric.id_roll
+        AND mr.id_item = wip_adjustment_fabric.id_item
+        AND mr.unit_roll = wip_adjustment_fabric.satuan
+    ), 0) qty_pakai_adjustment,
     0 sr,
     0 gr_p,
     0 gr_g,
@@ -3691,10 +3699,6 @@ SELECT
     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
 FROM
     wip_adjustment_fabric
-LEFT JOIN manajemen_roll ON manajemen_roll.act_costing_ws = wip_adjustment_fabric.ws AND
-    manajemen_roll.id_roll = wip_adjustment_fabric.id_roll AND
-    manajemen_roll.id_item = wip_adjustment_fabric.id_item AND
-    manajemen_roll.unit_roll = wip_adjustment_fabric.satuan
 WHERE
     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
 GROUP BY
@@ -3936,7 +3940,15 @@ order by ws asc, color asc
                     0 saldo_awal,
                     0 qty_in,
                     0 qty_pakai,
-                    COALESCE(manajemen_roll.total_pemakaian_roll, 0) AS qty_pakai_adjustment,
+                    COALESCE(
+                    (
+                        SELECT SUM(mr.total_pemakaian_roll)
+                        FROM manajemen_roll mr
+                        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                        AND mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) qty_pakai_adjustment,
                     0 sr,
                     0 gr_p,
                     0 gr_g,
@@ -3947,10 +3959,6 @@ order by ws asc, color asc
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
                 FROM
                     wip_adjustment_fabric
-                LEFT JOIN manajemen_roll ON manajemen_roll.act_costing_ws = wip_adjustment_fabric.ws AND
-                    manajemen_roll.id_roll = wip_adjustment_fabric.id_roll AND
-                    manajemen_roll.id_item = wip_adjustment_fabric.id_item AND
-                    manajemen_roll.unit_roll = wip_adjustment_fabric.satuan
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
                 GROUP BY
