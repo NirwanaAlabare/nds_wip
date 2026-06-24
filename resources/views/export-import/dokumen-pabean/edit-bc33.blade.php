@@ -1016,11 +1016,7 @@
                                                                 <div class="d-flex align-items-center mb-1">
                                                                     <label class="mb-0">Pos Tarif/HS <i class="fas fa-info-circle text-primary"></i></label>
                                                                 </div>
-                                                                <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm  select2bs4">
-                                                                    <option value="">-- Pilihan KodeHs Kosong --</option>
-                                                                    <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
-                                                                    <option value="48191000" {{ ($draftItem['posTarif'] ?? '48191000') == '48191000' ? 'selected' : '' }}>48191000 - KARTON BOX</option>
-                                                                </select>
+                                                                <input type="text" name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm" value="{{ $draftItem['posTarif'] ?? '48191000' }}" placeholder="Masukkan Pos Tarif/HS">
                                                             </div>
                                                             <div class="form-group mb-2">
                                                                 <label>Kode Barang</label>
