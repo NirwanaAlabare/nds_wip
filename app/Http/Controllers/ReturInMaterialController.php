@@ -639,6 +639,7 @@ class ReturInMaterialController extends Controller
             'jns_retur' => $request['txt_jns_rtr'],
             'no_faktur' => $request['txt_faktur'],
             'tgl_faktur' => $request['txt_tgl_faktur'],
+            'tipe_retur' => $request['txt_tipe'],
         ]);
 
         $inmaterialDetailData2 = [];
@@ -1241,16 +1242,22 @@ public function createribarcode()
     return view('retur_inmaterial.create-retur-inmaterial-barcode', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
 }
 
-private function queryBarcodeDetailRi(array $id_barcode_array)
+private function queryBarcodeDetailRi(array $id_barcode_array, $tipe = null)
 {
     $placeholders = implode(',', array_fill(0, count($id_barcode_array), '?'));
+    $tipe = $tipe ? $tipe : "standard";
+
+    $qtyColumn = "COALESCE(scanned_item.qty, wbd.qty_out) AS qty";
+    if ($tipe != "standard") {
+        $qtyColumn = "wbd.qty_out AS qty";
+    }
 
     $sql = "SELECT
             wbd.id_roll,
             wbd.no_bppb,
             wbd.id_item,
             wbd.id_jo,
-            wbd.qty_out AS qty,
+            $qtyColumn,
             wbd.satuan AS unit,
             '' id_bppb,
             '' id_so_det,
@@ -1265,6 +1272,7 @@ private function queryBarcodeDetailRi(array $id_barcode_array)
         LEFT JOIN so ON so.id = jd.id_so
         LEFT JOIN act_costing ac ON ac.id = so.id_cost
         LEFT JOIN (select no_barcode, no_po from whs_barcode_in) p on p.no_barcode = wbd.id_roll
+        LEFT JOIN laravel_nds.scanned_item on scanned_item.id_roll = wbd.id_roll
         WHERE wbd.no_bppb not like '%MT%' and wbd.id_roll IN ($placeholders)
         GROUP BY
             wbd.id_roll,
@@ -1385,10 +1393,20 @@ private function insertBarcodeRiTemp($det_item, array $qty_overrides = [])
     return count($insert);
 }
 
+public function checkBarcodeRiTemp()
+{
+    $username = Auth::user()->name;
+
+    $totalTemp = InMaterialBarcodeRiTemp::where('created_by', $username)->count();
+
+    return $totalTemp;
+}
+
 public function saveBarcodeRiTemp(Request $request)
 {
     $id_barcode_array = $request->input('id_barcode', []);
     $selections = $request->input('selections', []);
+    $tipe = $request->tipe;
 
     if (!is_array($id_barcode_array) || count($id_barcode_array) == 0) {
         return response()->json(['saved' => 0, 'not_found' => [], 'duplicate' => [], 'need_selection' => []]);
@@ -1403,7 +1421,7 @@ public function saveBarcodeRiTemp(Request $request)
     // a barcode can belong to more than one GK/OUT (no_bppb) document with different qty,
     // so determining the right qty needs both the barcode and the chosen no_bppb -
     // ambiguous barcodes are held back and returned as need_selection instead of guessed
-    $det_item = $this->queryBarcodeDetailRi($id_barcode_array);
+    $det_item = $this->queryBarcodeDetailRi($id_barcode_array, $tipe);
 
     $found_barcodes = $det_item->pluck('id_roll')->unique()->values()->toArray();
     $not_found = array_values(array_diff($id_barcode_array, $found_barcodes));
