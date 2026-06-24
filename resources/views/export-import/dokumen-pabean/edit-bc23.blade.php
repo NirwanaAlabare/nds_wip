@@ -224,18 +224,7 @@
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Pos Tarif/HS</label>
-                                                        <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
-                                                            <option value="">Pilih Pos Tarif/HS</option>
-                                                            <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
-                                                            <option value="01012900" {{ ($draftItem['posTarif'] ?? '') == '01012900' ? 'selected' : '' }}>01012900 - LAIN-LAIN</option>
-                                                            <option value="01013010" {{ ($draftItem['posTarif'] ?? '') == '01013010' ? 'selected' : '' }}>01013010 - BIBIT</option>
-                                                            <option value="01013090" {{ ($draftItem['posTarif'] ?? '') == '01013090' ? 'selected' : '' }}>01013090 - LAIN-LAIN</option>
-                                                            <option value="01019000" {{ ($draftItem['posTarif'] ?? '') == '01019000' ? 'selected' : '' }}>01019000 - LAIN-LAIN</option>
-                                                            <option value="01022100" {{ ($draftItem['posTarif'] ?? '') == '01022100' ? 'selected' : '' }}>01022100 - BIBIT</option>
-                                                            <option value="01022910" {{ ($draftItem['posTarif'] ?? '') == '01022910' ? 'selected' : '' }}>01022910 - SAPI JANTAN</option>
-                                                            <option value="01022911" {{ ($draftItem['posTarif'] ?? '') == '01022911' ? 'selected' : '' }}>01022911 - OXEN</option>
-                                                            <option value="01022919" {{ ($draftItem['posTarif'] ?? '') == '01022919' ? 'selected' : '' }}>01022919 - LAIN-LAIN</option>
-                                                        </select>
+                                                        <input type="text" name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm" value="{{ $draftItem['posTarif'] ?? '' }}" placeholder="Masukkan Pos Tarif/HS">
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Kode Barang</label>
@@ -550,7 +539,7 @@
                     <div class="section-title mt-0"><i class="fas fa-building"></i> Entitas Pengusaha TPB (Kode: 3)</div>
                     <div class="row">
                         <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[3][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['namaEntitas'] ?? 'NIRWANA ALABARE GARMENT' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP (15/16 Digit)</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
+                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
                         <div class="col-md-4 form-group"><label>NIB</label><input type="text" name="entitas[3][nibEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nibEntitas'] ?? '0220103231143' }}"></div>
                         <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[3][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['alamatEntitas'] ?? 'JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007' }}"></div>
                         <div class="col-md-2 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[3][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
@@ -720,7 +709,6 @@
 
                 <div class="tab-pane fade" id="tab-pengangkut" role="tabpanel">
                     <div class="d-flex justify-content-end mb-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt"></i> Verifikasi Berdasarkan data BC/AWB</button>
                     </div>
                     <div class="row">
                         <!-- BC 1.1 -->
@@ -759,7 +747,8 @@
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Cara Pengangkutan</label>
                                         <select name="pengangkut[caraPengangkutan]" class="form-control form-control-sm select2bs4">
-                                            <option value="1" {{ ($dataDetail['pengangkut']['caraPengangkutan'] ?? '1') == '1' ? 'selected' : '' }}>1 - LAUT</option>
+                                            <option value=""> -- Pilih Cara Pengangkutan -- </option>
+                                            <option value="1" {{ ($dataDetail['pengangkut']['caraPengangkutan'] ?? '') == '1' ? 'selected' : '' }}>1 - LAUT</option>
                                             <option value="2" {{ ($dataDetail['pengangkut']['caraPengangkutan'] ?? '') == '2' ? 'selected' : '' }}>2 - UDARA</option>
                                             <option value="3" {{ ($dataDetail['pengangkut']['caraPengangkutan'] ?? '') == '3' ? 'selected' : '' }}>3 - DARAT</option>
                                             <option value="4" {{ ($dataDetail['pengangkut']['caraPengangkutan'] ?? '') == '4' ? 'selected' : '' }}>4 - KERETA API</option>
@@ -768,7 +757,7 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nama Sarana Angkut</label>
-                                        <input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'CONTAINER' }}">
+                                        <input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? '' }}">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nomor Voy/flight/kepali/lainnya</label>
@@ -815,7 +804,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Tempat Penimbunan</label>
-                                        <input type="text" name="kodeTempPenimbunan" class="form-control form-control-sm" value="{{ $dataDetail['kodeTempPenimbunan'] ?? 'IDBDJ' }}">
+                                        <input type="text" name="kodeTempPenimbunan" class="form-control form-control-sm" value="{{ $dataDetail['kodeTempPenimbunan'] ?? '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -843,7 +832,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $pungutanList = ['BM', 'BMAD', 'BMTP', 'BMI', 'BMP', 'CUKAI', 'PPN', 'PPNBM', 'PPH'];
+                                    $pungutanList = ['BM', 'PPN', 'PPNBM', 'PPH'];
                                 @endphp
                                 @foreach($pungutanList as $pung)
                                 <tr>
@@ -998,8 +987,8 @@
                                         <label class="small text-muted mb-0">Jasa Kena Pajak</label>
                                         <select name="kodeJasaKenaPajak" class="form-control form-control-sm">
                                             <option value="">Pilih Jasa Kena Pajak</option>
-                                            <option value="1" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '1') == '1' ? 'selected' : '' }}>1 - PEMBELIAN BKP</option>
-                                            <option value="2" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '2') == '2' ? 'selected' : '' }}>2 - PENERIMA JASA JKP</option>
+                                            <option value="1" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '') == '1' ? 'selected' : '' }}>1 - PEMBELIAN BKP</option>
+                                            <option value="2" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '') == '2' ? 'selected' : '' }}>2 - PENERIMA JASA JKP</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1561,7 +1550,7 @@
 
             let total3 = 0, total5 = 0, total6 = 0, total7 = 0;
 
-            ['BM', 'BMAD', 'BMTP', 'BMI', 'BMP', 'CUKAI', 'PPN', 'PPNBM', 'PPH'].forEach(function(jenis) {
+            ['BM', 'PPN', 'PPNBM', 'PPH'].forEach(function(jenis) {
                 let idPrefix = '#text-' + jenis.toLowerCase() + '-';
                 if ($(idPrefix + 'ditangguhkan').length) {
                     $(idPrefix + 'ditangguhkan').text(formatIdr(dataPungutan[jenis]['3']));

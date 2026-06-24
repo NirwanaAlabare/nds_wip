@@ -201,18 +201,7 @@
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Pos Tarif/HS</label>
-                                                        <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
-                                                            <option value="">Pilih Pos Tarif/HS</option>
-                                                            <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
-                                                            <option value="01012900" {{ ($draftItem['posTarif'] ?? '') == '01012900' ? 'selected' : '' }}>01012900 - LAIN-LAIN</option>
-                                                            <option value="01013010" {{ ($draftItem['posTarif'] ?? '') == '01013010' ? 'selected' : '' }}>01013010 - BIBIT</option>
-                                                            <option value="01013090" {{ ($draftItem['posTarif'] ?? '') == '01013090' ? 'selected' : '' }}>01013090 - LAIN-LAIN</option>
-                                                            <option value="01019000" {{ ($draftItem['posTarif'] ?? '') == '01019000' ? 'selected' : '' }}>01019000 - LAIN-LAIN</option>
-                                                            <option value="01022100" {{ ($draftItem['posTarif'] ?? '') == '01022100' ? 'selected' : '' }}>01022100 - BIBIT</option>
-                                                            <option value="01022910" {{ ($draftItem['posTarif'] ?? '') == '01022910' ? 'selected' : '' }}>01022910 - SAPI JANTAN</option>
-                                                            <option value="01022911" {{ ($draftItem['posTarif'] ?? '') == '01022911' ? 'selected' : '' }}>01022911 - OXEN</option>
-                                                            <option value="01022919" {{ ($draftItem['posTarif'] ?? '') == '01022919' ? 'selected' : '' }}>01022919 - LAIN-LAIN</option>
-                                                        </select>
+                                                        <input type="text" name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm" value="{{ $draftItem['posTarif'] ?? '' }}" placeholder="Masukkan Pos Tarif/HS">
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Kode Barang</label>
@@ -371,7 +360,7 @@
                     <div class="section-title mt-0"><i class="fas fa-building"></i> Entitas Pengusaha TPB (Kode: 3)</div>
                     <div class="row">
                         <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[3][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['namaEntitas'] ?? 'NIRWANA ALABARE GARMENT' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP (15/16 Digit)</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
+                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
                         <div class="col-md-4 form-group"><label>NIB</label><input type="text" name="entitas[3][nibEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nibEntitas'] ?? '0220103231143' }}"></div>
                         <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[3][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['alamatEntitas'] ?? 'JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007' }}"></div>
                         <div class="col-md-2 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[3][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
@@ -882,14 +871,14 @@
                 }
             });
 
-            let hargaOk = false;
-            $('input[name$="[hargaPenyerahan]"]').each(function() {
-                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
-            });
-            if (!hargaOk) {
-                errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
-                if (!firstTab) firstTab = '#tab-header';
-            }
+            // let hargaOk = false;
+            // $('input[name$="[hargaPenyerahan]"]').each(function() {
+            //     if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
+            // });
+            // if (!hargaOk) {
+            //     errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
+            //     if (!firstTab) firstTab = '#tab-header';
+            // }
 
             if (errors.length > 0) {
                 if (firstTab) {

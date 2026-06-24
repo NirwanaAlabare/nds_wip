@@ -89,7 +89,7 @@
                         </div>
                     </div>
 
-                    
+
 
                 </div>
             </div>
@@ -190,6 +190,18 @@
                             <div class="form-group">
                                 <label><small>Tujuan Pemasukan</small></label>
                                 <select class="form-control select2bs4" id="txt_tujuan" name="txt_tujuan" style="width: 100%;">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Tipe</small></label>
+                                <select class="form-control select2bs4" id="txt_tipe" name="txt_tipe" style="width: 100%;">
+                                    <option value="standard">STANDARD</option>
+                                    <option value="flexible">FLEXIBLE</option>
                                 </select>
                             </div>
                         </div>
@@ -592,6 +604,25 @@
     datatable.on('xhr.dt', function (e, settings, json) {
         let data = (json && json.data) ? json.data : [];
         $('#jumlah_data').val(data.length);
+
+        // Lock Tipe Retur
+        if (data.length > 0) {
+            $('#txt_tipe').data('locked', true);
+        } else {
+            $('#txt_tipe').data('locked', false);
+        }
+
+        $('#txt_tipe').on('select2:opening', function(e) {
+            if ($(this).data('locked')) {
+                e.preventDefault();
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sudah ada data di Detail',
+                    text: 'Tipe tidak dapat diubah karena sudah terdapat data detail.'
+                });
+            }
+        });
     });
 
     datatable.on('draw.dt', function () {
@@ -611,6 +642,7 @@
 
     function sendBarcodeList(btn) {
         let input = $('#bulk_barcode_input_main').val();
+        let tipe = $('#txt_tipe').val();
         if (!input) return;
 
         let barcodes = [...new Set(input.split(/[\s,;]+/).map(b => b.trim()).filter(b => b !== ''))];
@@ -627,6 +659,7 @@
             type: 'post',
             data: {
                 id_barcode: barcodes,
+                tipe: tipe
             },
             success: function (res) {
                 if (res) {

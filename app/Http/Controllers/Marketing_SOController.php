@@ -3050,7 +3050,7 @@ class Marketing_SOController extends Controller
                         'dateinput' => now(),
                         'id_panel' => $req->id_panel,
                         'posno' => $posno_map[$req->id_item],
-                        'notes' => $req->notes ?? null,
+                        'notes' => null,
                     ];
                     $insert_count++;
                 }
