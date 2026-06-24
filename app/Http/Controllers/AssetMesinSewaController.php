@@ -23,7 +23,7 @@ class AssetMesinSewaController extends Controller
                    masa_kontrak, tgl_awal_kontrak, tgl_akhir_kontrak,
                    DATEDIFF(tgl_akhir_kontrak, CURDATE()) AS sisa_hari
             FROM asset_penerimaan_mesin_sewa
-            WHERE status = 'ACTIVE'
+            WHERE status <> 'CUTT OFF'
                 AND tgl_akhir_kontrak BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)
             ORDER BY tgl_akhir_kontrak ASC
         ");
@@ -257,7 +257,7 @@ class AssetMesinSewaController extends Controller
                 $request->bpbno,
                 $request->bpbno_int,
                 30,
-                'ACTIVE',
+                'IDLE',
                 $user,
                 $timestamp,
                 $timestamp

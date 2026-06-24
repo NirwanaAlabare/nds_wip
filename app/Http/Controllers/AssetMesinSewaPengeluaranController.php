@@ -184,7 +184,7 @@ class AssetMesinSewaPengeluaranController extends Controller
             LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
             LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.id_supplier
             LEFT JOIN signalbit_erp.masteritem mi ON a.id_item = mi.id_item
-            WHERE a.status = 'ACTIVE' AND a.tgl_akhir_kontrak >= CURDATE()
+            WHERE a.status <> 'CUTT OFF' AND a.tgl_akhir_kontrak >= CURDATE()
             ORDER BY a.serial_number ASC
         ");
 
@@ -203,7 +203,8 @@ class AssetMesinSewaPengeluaranController extends Controller
         $timestamp = Carbon::now();
 
         DB::transaction(function () use ($request, $timestamp, $user) {
-            // Format no_trans: RENT/OUT/<bulan+tahun 2 digit>/<urutan 3 digit>, urutan reset tiap bulan
+            // Format no_trans: RENT/OUT/<bulan+tahun 2 digit>/<urutan 4 digit>, urutan reset tiap bulan
+            // (otomatis reset ke 0001 juga saat ganti tahun, karena periode menyertakan tahun)
             $periode = $timestamp->format('my'); // contoh: 0626 untuk Juni 2026
             $prefix = "RENT/OUT/{$periode}/";
 
@@ -213,14 +214,14 @@ class AssetMesinSewaPengeluaranController extends Controller
                 ->lockForUpdate()
                 ->value('no_trans');
 
-            $urutan = $lastNoTrans ? (int) substr($lastNoTrans, -3) : 0;
+            $urutan = $lastNoTrans ? (int) substr($lastNoTrans, -4) : 0;
 
             $rows = [];
             foreach ($request->id_unit as $id) {
                 $urutan++;
                 $rows[] = [
                     'id_penerimaan_sewa' => $id,
-                    'no_trans' => $prefix . sprintf('%03d', $urutan),
+                    'no_trans' => $prefix . sprintf('%04d', $urutan),
                     'tgl_trans' => $timestamp->format('Y-m-d'),
                     'created_by' => $user,
                     'created_at' => $timestamp,

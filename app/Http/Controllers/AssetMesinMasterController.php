@@ -130,6 +130,8 @@ class AssetMesinMasterController extends Controller
                     a.serial_number,
                     a.foto,
                     a.lokasi,
+                    a.bpbno_int,
+                    a.status,
                     ms.supplier
                 FROM asset_penerimaan_mesin_sewa a
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
@@ -145,6 +147,8 @@ class AssetMesinMasterController extends Controller
                     a.serial_number,
                     a.foto,
                     a.lokasi,
+                    a.bpbno_int,
+                    a.status,
                     ms.supplier
                 FROM asset_penerimaan_mesin a
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id

@@ -1489,6 +1489,9 @@
                                                 class="fa-solid fa-plus"></i>Tambah Mesin (Sewa)</a>
 
                                         <div class="mega-dropdown-col-title">Pengeluaran</div>
+                                        <a href="{{ route('asset_mesin_pengeluaran') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-minus"></i>Pengeluaran Mesin (Pembelian)</a>
                                         <a href="{{ route('asset_mesin_sewa_pengeluaran') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa_pengeluaran' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-minus"></i>Pengeluaran Mesin Cutt Off (Sewa)</a>

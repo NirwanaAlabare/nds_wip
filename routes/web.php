@@ -143,6 +143,7 @@ use App\Http\Controllers\AssetMasterLokasiController;
 use App\Http\Controllers\AssetMasterJenisMesinController;
 use App\Http\Controllers\AssetMasterRakSparepartController;
 use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinPengeluaranController;
 use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
@@ -1499,6 +1500,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/unit', 'get_penerimaan_mesin_unit')->name('asset_mesin_tambah_unit');
         Route::post('/asset_mesin_tambah/unit/store', 'store_penerimaan_mesin_unit')->name('store_penerimaan_mesin_unit');
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
+    });
+    // Master Asset Management Pengeluaran Mesin Replacement (Pembelian)
+    Route::controller(AssetMesinPengeluaranController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_pengeluaran', 'asset_mesin_pengeluaran')->name('asset_mesin_pengeluaran');
+        Route::get('/asset_mesin_pengeluaran/list', 'get_pengeluaran_mesin')->name('asset_mesin_pengeluaran_list');
+        Route::get('/asset_mesin_pengeluaran/export_excel', 'export_excel_pengeluaran_mesin')->name('export_excel_pengeluaran_mesin');
+        Route::get('/asset_mesin_pengeluaran/unit_list', 'get_active_unit_mesin')->name('asset_mesin_pengeluaran_unit_list');
+        Route::get('/asset_mesin_pengeluaran/search_item', 'search_item_sparepart')->name('asset_mesin_pengeluaran_search_item');
+        Route::post('/asset_mesin_pengeluaran/store', 'store_pengeluaran_mesin')->name('store_pengeluaran_mesin');
+        Route::get('/asset_mesin_pengeluaran/service', 'get_pengeluaran_mesin_service')->name('asset_mesin_pengeluaran_service');
+        Route::post('/asset_mesin_pengeluaran/service/store', 'store_pengeluaran_mesin_service')->name('store_pengeluaran_mesin_service');
+        Route::delete('/asset_mesin_pengeluaran/service/{id}', 'delete_pengeluaran_mesin_service')->name('delete_pengeluaran_mesin_service');
     });
     // Master Asset Management Master Mesin
     Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
