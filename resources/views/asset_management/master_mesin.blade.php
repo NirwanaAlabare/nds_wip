@@ -188,6 +188,8 @@
                                     <th scope="col">Serial Number</th>
                                     <th scope="col">Lokasi</th>
                                     <th scope="col">Supplier</th>
+                                    <th scope="col">No BPB</th>
+                                    <th scope="col">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="unitTableBody"></tbody>
@@ -324,6 +326,8 @@
                         <td class="align-middle">${unit.serial_number ?? '-'}</td>
                         <td class="align-middle">${unit.lokasi ?? '-'}</td>
                         <td class="align-middle">${unit.supplier ?? '-'}</td>
+                        <td class="align-middle">${unit.bpbno_int ?? '-'}</td>
+                        <td class="align-middle">${unit.status ?? '-'}</td>
                     </tr>`);
                     });
 

@@ -270,6 +270,7 @@ group by id_bpb, id_item
 
             $update = [
                 'serial_number' => $serialNumber,
+                'status' => 'IDLE',
                 'updated_at' => $timestamp,
             ];
 
