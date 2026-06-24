@@ -718,11 +718,12 @@ class ReportCuttingController extends Controller
                         '" . $rollId->tgl_dok . "' tanggal_return
                     FROM
                         `form_cut_piece_detail`
+                        left join form_cut_piece on form_cut_piece.id = form_cut_piece_detail.form_id
                     WHERE
                         `id_roll` IS NOT NULL
                         AND `id_roll` = '" . $rollId->id_roll . "'
                         AND form_cut_piece.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
-                        AND status = 'complete'
+                        AND form_cut_piece.status = 'complete'
                     GROUP BY
                         `id_item`,
                         `id_roll`
@@ -3555,7 +3556,7 @@ order by  ws asc, color asc
             } else {
                 $rawData = DB::select("
 WITH
-            
+
 manajemen_roll as (
     select
         mrk.act_costing_ws,
@@ -3622,7 +3623,7 @@ manajemen_roll as (
     GROUP BY
         form_cut_piece_detail.id
 )
-                
+
 SELECT
 ws,
 buyer,
@@ -3673,7 +3674,7 @@ from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
 GROUP BY $groupBy
 UNION ALL
 SELECT
-    wip_adjustment_fabric.ws, 
+    wip_adjustment_fabric.ws,
     wip_adjustment_fabric.id_roll,
     wip_adjustment_fabric.id_item,
     0 saldo_awal,
@@ -3786,7 +3787,7 @@ order by ws asc, color asc
 
         $data = DB::select("
             WITH
-            
+
             manajemen_roll as (
                 select
                     mrk.act_costing_ws,
@@ -3929,7 +3930,7 @@ order by ws asc, color asc
                 UNION ALL
 
                 SELECT
-                    wip_adjustment_fabric.ws, 
+                    wip_adjustment_fabric.ws,
                     wip_adjustment_fabric.id_roll,
                     wip_adjustment_fabric.id_item,
                     0 saldo_awal,
