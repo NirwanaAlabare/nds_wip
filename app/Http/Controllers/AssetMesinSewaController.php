@@ -220,7 +220,7 @@ class AssetMesinSewaController extends Controller
         $data = DB::connection('mysql_sb')->select("SELECT id, b.id_item, b.bpbno, b.bpbno_int, mi.itemdesc, qty, unit, b.id_supplier FROM bpb b
                 INNER JOIN mastersupplier ms ON ms.Id_Supplier = b.id_supplier
                 INNER JOIN masteritem mi on b.id_item = mi.id_item
-                WHERE bpbno = ? AND mi.n_code_category = '4' AND mi.goods_code LIKE 'SEW%' AND b.cancel = 'N'", [$request->bpbno]);
+                WHERE bpbno = ? AND mi.n_code_category = '6' AND b.cancel = 'N'", [$request->bpbno]);
 
         return DataTables::of($data)->toJson();
     }

@@ -186,6 +186,43 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="card bg-light mb-3">
+                        <div class="card-body py-2">
+                            <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted py-1" style="width: 110px;">Serial Number</td>
+                                        <td class="text-muted py-1" style="width: 12px;">:</td>
+                                        <td class="py-1"><strong id="infoSerialNumber">-</strong></td>
+                                        <td class="text-muted py-1" style="width: 80px;">BPB</td>
+                                        <td class="text-muted py-1" style="width: 12px;">:</td>
+                                        <td class="py-1"><strong id="infoBpb">-</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted py-1">Nama Mesin</td>
+                                        <td class="text-muted py-1">:</td>
+                                        <td class="py-1" colspan="4"><strong id="infoNamaMesin">-</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted py-1">Jenis</td>
+                                        <td class="text-muted py-1">:</td>
+                                        <td class="py-1"><strong id="infoJenis">-</strong></td>
+                                        <td class="text-muted py-1">Merk</td>
+                                        <td class="text-muted py-1">:</td>
+                                        <td class="py-1"><strong id="infoMerk">-</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted py-1">Tipe</td>
+                                        <td class="text-muted py-1">:</td>
+                                        <td class="py-1"><strong id="infoTipe">-</strong></td>
+                                        <td class="text-muted py-1">Supplier</td>
+                                        <td class="text-muted py-1">:</td>
+                                        <td class="py-1"><strong id="infoSupplier">-</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <div class="row mb-3 align-items-center">
                         <label for="cboItemSparepart" class="col-md-3 col-form-label"><small><b>Item :</b></small></label>
                         <div class="col-md-9">
@@ -458,20 +495,18 @@
                     render: function(data, type, row) {
                         if (row.status !== 'SERVICE') return '-';
 
-                        return '<button type="button" class="btn btn-sm btn-outline-secondary btn-lihat-sparepart" data-id="' +
-                            row.id_penerimaan + '" data-serial="' + (row.serial_number ?? '-') +
-                            '"><i class="fas fa-wrench"></i> Sparepart</button>';
+                        return '<button type="button" class="btn btn-sm btn-outline-secondary btn-lihat-sparepart">' +
+                            '<i class="fas fa-wrench"></i> Sparepart</button>';
                     }
                 }, // Act
             ],
         });
 
         // Tombol Sparepart di tabel riwayat utama (hanya muncul untuk transaksi berstatus SERVICE):
-        // buka modal sparepart untuk unit yang sudah tersimpan tersebut
+        // buka modal sparepart untuk unit yang sudah tersimpan tersebut, sekaligus tampilkan info mesinnya
         $(document).on('click', '.btn-lihat-sparepart', function() {
-            let id = $(this).data('id');
-            let serial = $(this).data('serial');
-            openServiceModal(id, serial);
+            let row = datatable.row($(this).closest('tr')).data();
+            openServiceModal(row);
         });
 
         // Map id unit -> data mesin (hasil load dropdown), dipakai saat tombol Add diklik supaya tidak perlu request ulang
@@ -603,11 +638,20 @@
         // di tabel riwayat utama), karena tiap baris langsung tersimpan ke DB lewat AJAX, bukan ditampung dulu di memory
         let currentServiceUnitId = null;
 
-        // Buka modal sparepart untuk unit tertentu (id_penerimaan), dipanggil dari tombol Sparepart di tabel riwayat
-        function openServiceModal(unitId, serialNumber) {
-            currentServiceUnitId = unitId;
+        // Buka modal sparepart untuk unit tertentu, dipanggil dari tombol Sparepart di tabel riwayat.
+        // "row" adalah data baris datatable (lihat kolom Act), dipakai untuk isi info mesin di dalam modal
+        function openServiceModal(row) {
+            currentServiceUnitId = row.id_penerimaan;
 
-            $('#ServiceSparepartModalLabel').text('Sparepart Service - ' + (serialNumber || '-'));
+            $('#ServiceSparepartModalLabel').text('Sparepart Service');
+            $('#infoSerialNumber').text(row.serial_number || '-');
+            $('#infoNamaMesin').text(row.itemdesc || '-');
+            $('#infoJenis').text(row.nm_jenis || '-');
+            $('#infoMerk').text(row.nm_merk || '-');
+            $('#infoTipe').text(row.tipe || '-');
+            $('#infoBpb').text(row.bpbno_int || '-');
+            $('#infoSupplier').text(row.supplier || '-');
+
             $('#cboItemSparepart').val(null).trigger('change');
             $('#txtDescSparepart').val('');
             loadSparepartServiceList();
