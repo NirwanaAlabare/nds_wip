@@ -1868,7 +1868,7 @@ class CheckOutputQrDetailController extends Controller
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Check Output Detail'],
+            ['Check Output QR Detail'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 16,
