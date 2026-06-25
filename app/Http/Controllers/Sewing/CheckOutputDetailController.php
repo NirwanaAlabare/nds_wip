@@ -411,8 +411,26 @@ class CheckOutputDetailController extends Controller
         $outputPackingQuery = "";
         $outputFinishingProsesgQuery = "";
 
-        $filterOutput = trim(str_replace("\n", "", $tglOutput)) && trim(str_replace("\n", "", $tglDefect)) && trim(str_replace("\n", "", $tglReject));
-        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) && trim(str_replace("\n", "", $tglDefectPck)) && trim(str_replace("\n", "", $tglRejectPck));
+        $filterOutput = trim(str_replace("\n", "", $tglOutput)) || trim(str_replace("\n", "", $tglDefect)) || trim(str_replace("\n", "", $tglReject)) ||
+            trim(str_replace("\n", "", $lineOutput)) ||
+            trim(str_replace("\n", "", $defectOutput)) ||
+            trim(str_replace("\n", "", $allocationOutput)) ||
+            trim(str_replace("\n", "", $missmatchDefect)) ||
+            trim(str_replace("\n", "", $backDateDefect)) ||
+            trim(str_replace("\n", "", $missmatchOutput)) ||
+            trim(str_replace("\n", "", $backDateOutput)) ||
+            trim(str_replace("\n", "", $missmatchReject)) ||
+            trim(str_replace("\n", "", $backDateReject));
+        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) || trim(str_replace("\n", "", $tglDefectPck)) || trim(str_replace("\n", "", $tglRejectPck)) ||
+            trim(str_replace("\n", "", $linePacking)) ||
+            trim(str_replace("\n", "", $defectPacking)) ||
+            trim(str_replace("\n", "", $allocationPacking)) ||
+            trim(str_replace("\n", "", $missmatchDefectPck)) ||
+            trim(str_replace("\n", "", $backDateDefectPck)) ||
+            trim(str_replace("\n", "", $missmatchOutputPck)) ||
+            trim(str_replace("\n", "", $backDateOutputPck)) ||
+            trim(str_replace("\n", "", $missmatchRejectPck)) ||
+            trim(str_replace("\n", "", $backDateRejectPck));
 
         if ($filterOutput || $filterPacking) {
             $callbackFilterOutput = "";
@@ -1306,8 +1324,26 @@ class CheckOutputDetailController extends Controller
         $outputPackingQuery = "";
         $outputFinishingProsesgQuery = "";
 
-        $filterOutput = trim(str_replace("\n", "", $tglOutput)) && trim(str_replace("\n", "", $tglDefect)) && trim(str_replace("\n", "", $tglReject));
-        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) && trim(str_replace("\n", "", $tglDefectPck)) && trim(str_replace("\n", "", $tglRejectPck));
+        $filterOutput = trim(str_replace("\n", "", $tglOutput)) || trim(str_replace("\n", "", $tglDefect)) || trim(str_replace("\n", "", $tglReject)) ||
+            trim(str_replace("\n", "", $lineOutput)) ||
+            trim(str_replace("\n", "", $defectOutput)) ||
+            trim(str_replace("\n", "", $allocationOutput)) ||
+            trim(str_replace("\n", "", $missmatchDefect)) ||
+            trim(str_replace("\n", "", $backDateDefect)) ||
+            trim(str_replace("\n", "", $missmatchOutput)) ||
+            trim(str_replace("\n", "", $backDateOutput)) ||
+            trim(str_replace("\n", "", $missmatchReject)) ||
+            trim(str_replace("\n", "", $backDateReject));
+        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) || trim(str_replace("\n", "", $tglDefectPck)) || trim(str_replace("\n", "", $tglRejectPck)) ||
+            trim(str_replace("\n", "", $linePacking)) ||
+            trim(str_replace("\n", "", $defectPacking)) ||
+            trim(str_replace("\n", "", $allocationPacking)) ||
+            trim(str_replace("\n", "", $missmatchDefectPck)) ||
+            trim(str_replace("\n", "", $backDateDefectPck)) ||
+            trim(str_replace("\n", "", $missmatchOutputPck)) ||
+            trim(str_replace("\n", "", $backDateOutputPck)) ||
+            trim(str_replace("\n", "", $missmatchRejectPck)) ||
+            trim(str_replace("\n", "", $backDateRejectPck));
 
         if ($filterOutput || $filterPacking) {
             $callbackFilterOutput = "";
