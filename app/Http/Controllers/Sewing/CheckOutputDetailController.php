@@ -406,6 +406,240 @@ class CheckOutputDetailController extends Controller
 
         ini_set("max_execution_time", 3600);
 
+        // New Filter Callback
+        $outputQuery = "";
+        $outputPackingQuery = "";
+        $outputFinishingProsesgQuery = "";
+
+        $filterOutput = trim(str_replace("\n", "", $filterRftOutput)) && trim(str_replace("\n", "", $filterDefectOutput)) && trim(str_replace("\n", "", $filterRejectOutput));
+        $filterPacking = trim(str_replace("\n", "", $filterRftPck)) && trim(str_replace("\n", "", $filterDefectPck)) && trim(str_replace("\n", "", $filterRejectPck));
+        $filterFinishingProses = trim(str_replace("\n", "", $filterRftFinishingProses)) && trim(str_replace("\n", "", $filterDefectFinishingProses));
+
+        if ($filterOutput || $filterPacking || $filterFinishingProses) {
+            $callbackFilterOutput = "";
+            $callbackFilterPacking = "";
+            $callbackFilterFinishingProses = "";
+
+            // Output
+            if ($filterOutput) {
+                $outputQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        where
+                            output_rfts.id is not null
+                            AND output_rfts.status = 'NORMAL'
+                            {$filterRftOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rejects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectOutput}
+                            {$callbackFilterOutput}
+                ";
+
+                $callbackFilterPacking .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .=  " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Packing
+            if ($filterPacking) {
+                $outputPackingQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects_packing as output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_defects.created_by
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts_packing as output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rfts.created_by
+                        where
+                            output_rfts.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects_packing as output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rejects.created_by
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectPck}
+                            {$callbackFilterPacking}
+                ";
+
+                $callbackFilterOutput .=" and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Finishing Proses
+            if ($filterFinishingProses) {
+                $outputFinishingProsesgQuery = "
+                        select
+                        kode_numbering
+                        from
+                            output_secondary_out_defect
+                            left join output_secondary_out on output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                            left join output_secondary_in on output_secondary_in.id = output_secondary_out.secondary_in_id
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_out_defect.created_by_username
+                            left join output_defect_types on output_defect_types.id = output_secondary_out_defect.defect_type_id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_out_defect.id is not null
+                            {$filterDefectFinishingProses}
+                            {$callbackFilterFinishingProses}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_secondary_in
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_in.created_by_username
+                            left join output_secondary_out on output_secondary_out.secondary_in_id = output_secondary_in.id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_in.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftFinishingProses}
+                            {$callbackFilterFinishingProses}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_secondary_out_reject
+                            left join output_secondary_out on output_secondary_out.id = output_secondary_out_reject.secondary_out_id
+                            left join output_secondary_in on output_secondary_in.id = output_secondary_out.secondary_in_id
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_out_reject.created_by_username
+                            left join output_defect_types on output_defect_types.id = output_secondary_out_reject.defect_type_id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_out_reject.status = 'mati'
+                            {$filterRejectFinishingProses}
+                            {$callbackFilterFinishingProses}
+                ";
+
+                $callbackFilterOutput .= "  and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputFinishingProsesgQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterPacking .= "  and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputFinishingProsesgQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+            }
+        }
+        // End New Filter Callback
+
         $outputList = DB::connection("mysql_sb")->table(DB::raw("
                 (
                     select
@@ -772,9 +1006,10 @@ class CheckOutputDetailController extends Controller
                 ".$crossLineOutput."
                 ".$crossLineOutput."
                 ".$additionalFilter."
-            ");
+            ")->get();
 
-        return Datatables::queryBuilder($outputList)->toJson();
+        // return Datatables::queryBuilder($outputList)->toJson();
+        return Datatables::of($outputList)->toJson();
     }
 
     public function checkOutputDetailExport(Request $request) {
@@ -1145,6 +1380,240 @@ class CheckOutputDetailController extends Controller
         if (!trim(str_replace("\n", "", $filterRftFinishingProses))  && !trim(str_replace("\n", "", $filterDefectFinishingProses))  && !trim(str_replace("\n", "", $filterRejectFinishingProses))) {
             $callbackFilterFinishingProses = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
+
+        // New Filter Callback
+        $outputQuery = "";
+        $outputPackingQuery = "";
+        $outputFinishingProsesgQuery = "";
+
+        $filterOutput = trim(str_replace("\n", "", $filterRftOutput)) && trim(str_replace("\n", "", $filterDefectOutput)) && trim(str_replace("\n", "", $filterRejectOutput));
+        $filterPacking = trim(str_replace("\n", "", $filterRftPck)) && trim(str_replace("\n", "", $filterDefectPck)) && trim(str_replace("\n", "", $filterRejectPck));
+        $filterFinishingProses = trim(str_replace("\n", "", $filterRftFinishingProses)) && trim(str_replace("\n", "", $filterDefectFinishingProses));
+
+        if ($filterOutput || $filterPacking || $filterFinishingProses) {
+            $callbackFilterOutput = "";
+            $callbackFilterPacking = "";
+            $callbackFilterFinishingProses = "";
+
+            // Output
+            if ($filterOutput) {
+                $outputQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        where
+                            output_rfts.id is not null
+                            AND output_rfts.status = 'NORMAL'
+                            {$filterRftOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rejects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectOutput}
+                            {$callbackFilterOutput}
+                ";
+
+                $callbackFilterPacking .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .=  " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Packing
+            if ($filterPacking) {
+                $outputPackingQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects_packing as output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_defects.created_by
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts_packing as output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rfts.created_by
+                        where
+                            output_rfts.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects_packing as output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rejects.created_by
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectPck}
+                            {$callbackFilterPacking}
+                ";
+
+                $callbackFilterOutput .=" and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Finishing Proses
+            if ($filterFinishingProses) {
+                $outputFinishingProsesgQuery = "
+                        select
+                        kode_numbering
+                        from
+                            output_secondary_out_defect
+                            left join output_secondary_out on output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                            left join output_secondary_in on output_secondary_in.id = output_secondary_out.secondary_in_id
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_out_defect.created_by_username
+                            left join output_defect_types on output_defect_types.id = output_secondary_out_defect.defect_type_id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_out_defect.id is not null
+                            {$filterDefectFinishingProses}
+                            {$callbackFilterFinishingProses}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_secondary_in
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_in.created_by_username
+                            left join output_secondary_out on output_secondary_out.secondary_in_id = output_secondary_in.id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_in.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftFinishingProses}
+                            {$callbackFilterFinishingProses}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_secondary_out_reject
+                            left join output_secondary_out on output_secondary_out.id = output_secondary_out_reject.secondary_out_id
+                            left join output_secondary_in on output_secondary_in.id = output_secondary_out.secondary_in_id
+                            left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_secondary_out_reject.created_by_username
+                            left join output_defect_types on output_defect_types.id = output_secondary_out_reject.defect_type_id
+                            left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                        where
+                            output_secondary_out_reject.status = 'mati'
+                            {$filterRejectFinishingProses}
+                            {$callbackFilterFinishingProses}
+                ";
+
+                $callbackFilterOutput .= "  and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputFinishingProsesgQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterPacking .= "  and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputFinishingProsesgQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+            }
+        }
+        // End New Filter Callback
 
         $data = DB::connection("mysql_sb")->table(DB::raw("
             (
