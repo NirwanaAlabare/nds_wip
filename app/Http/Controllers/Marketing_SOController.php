@@ -2240,7 +2240,7 @@ class Marketing_SOController extends Controller
         $all_bom_items = $mysql_sb->table('bom_marketing_detail as bmd')
             ->select(
                 'bmd.category', 'mg.nama_group', 'c.name as color_gmt', 'bmd.id_color', 'bmd.id_size', 'bmd.id_set',
-                'bmd.shell', 'bmd.notes as description', 's.size as size_gmt', 'i.color as color_item', 'i.size as size_item',
+                'mpnl.nama_panel as shell', 'bmd.notes as description', 's.size as size_gmt', 'i.color as color_item', 'i.size as size_item',
                 'bmd.qty as cons', 'bmd.unit', 'mset.nama as product_set',
                 DB::raw("
                     CASE
@@ -2259,6 +2259,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
             ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
             ->leftJoin('master_set as mset', 'bmd.id_set', '=', 'mset.id')
+            ->leftJoin('masterpanel as mpnl', 'bmd.shell', '=', 'mpnl.id')
             ->where('bmd.id_bom_marketing', $header->id_bom)
             ->whereNotNull('bmd.id_item')
             ->get();
