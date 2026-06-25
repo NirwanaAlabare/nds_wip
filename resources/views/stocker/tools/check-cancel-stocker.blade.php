@@ -29,6 +29,9 @@
                         <tr class="text-center">
                             <th>No</th>
                             <th>ID QR Stocker</th>
+                            <th>No. WS</th>
+                            <th>Color</th>
+                            <th>Size</th>
                             <th>No. Form</th>
                             <th>So Det ID</th>
                             <th>Notes</th>
@@ -106,6 +109,9 @@
                 columns: [
                     { data: null, render: function (d, t, r, m) { return m.row + 1; }, orderable: false, className: 'text-center' },
                     { data: 'id_qr_stocker', defaultContent: '-' },
+                    { data: 'ws', defaultContent: '-' },
+                    { data: 'color', defaultContent: '-' },
+                    { data: 'size', defaultContent: '-' },
                     { data: 'no_form', defaultContent: '-' },
                     { data: 'so_det_id', defaultContent: '-', className: 'text-center' },
                     { data: 'notes', defaultContent: '-' },
