@@ -357,64 +357,84 @@ class Marketing_BomController extends Controller
                     foreach ($target_colors as $cId) {
                         foreach ($target_sizes as $sId) {
 
-                            $existingQuery = $mysql_sb->table('bom_marketing_detail')
-                                ->where('id_bom_marketing', $bom_id)
-                                ->where('id_contents', $id_content)
-                                ->where('id_color', $cId)
-                                ->where('id_size', $sId)
-                                ->where('id_set', $id_set);
+                            // $existingQuery = $mysql_sb->table('bom_marketing_detail')
+                            //     ->where('id_bom_marketing', $bom_id)
+                            //     ->where('id_contents', $id_content)
+                            //     ->where('id_color', $cId)
+                            //     ->where('id_size', $sId)
+                            //     ->where('id_set', $id_set);
 
-                            if ($id_item_val) {
-                                $existingQuery->where('id_item', $id_item_val);
-                            } else {
-                                $existingQuery->whereNull('id_item');
-                            }
+                            // if ($id_item_val) {
+                            //     $existingQuery->where('id_item', $id_item_val);
+                            // } else {
+                            //     $existingQuery->whereNull('id_item');
+                            // }
 
-                            if ($item_desc) {
-                                $existingQuery->where('item_desc', $item_desc);
-                            } else {
-                                $existingQuery->where(function($q) {
-                                    $q->whereNull('item_desc')->orWhere('item_desc', '');
-                                });
-                            }
+                            // if ($item_desc) {
+                            //     $existingQuery->where('item_desc', $item_desc);
+                            // } else {
+                            //     $existingQuery->where(function($q) {
+                            //         $q->whereNull('item_desc')->orWhere('item_desc', '');
+                            //     });
+                            // }
 
-                            $existing = $existingQuery->first();
+                            // $existing = $existingQuery->first();
 
-                            if ($existing) {
-                                $mysql_sb->table('bom_marketing_detail')
-                                    ->where('id', $existing->id)
-                                    ->update([
-                                        'id_set'            => $id_set,
-                                        'item_desc'         => $item_desc,
-                                        'id_supplier'       => $id_supplier,
-                                        'unit'              => $request->unit,
-                                        'id_currency'       => $currency,
-                                        'qty'               => $qty,
-                                        'notes'             => $request->notes,
-                                        'shell'             => $request->shell,
-                                        'id_costing_detail' => $id_costing_detail,
-                                    ]);
-                            } else {
-                                $details_to_insert[] = [
-                                    'id_bom_marketing'  => $bom_id,
-                                    'id_contents'       => $id_content,
-                                    'id_set'            => $id_set,
-                                    'item_desc'         => $item_desc,
-                                    'rule_bom'          => $rule_bom,
-                                    'unit'              => $request->unit,
-                                    'notes'             => $request->notes,
-                                    'shell'             => $request->shell,
-                                    'id_color'          => $cId,
-                                    'id_size'           => $sId,
-                                    'id_item'           => $id_item_val,
-                                    'id_supplier'       => $id_supplier,
-                                    'id_currency'       => $currency,
-                                    'qty'               => $qty,
-                                    'category'          => $category,
-                                    'created_at'        => now(),
-                                    'id_costing_detail' => $id_costing_detail,
-                                ];
-                            }
+                            // if ($existing) {
+                            //     $mysql_sb->table('bom_marketing_detail')
+                            //         ->where('id', $existing->id)
+                            //         ->update([
+                            //             'id_set'            => $id_set,
+                            //             'item_desc'         => $item_desc,
+                            //             'id_supplier'       => $id_supplier,
+                            //             'unit'              => $request->unit,
+                            //             'id_currency'       => $currency,
+                            //             'qty'               => $qty,
+                            //             'notes'             => $request->notes,
+                            //             'shell'             => $request->shell,
+                            //             'id_costing_detail' => $id_costing_detail,
+                            //         ]);
+                            // } else {
+                            //     $details_to_insert[] = [
+                            //         'id_bom_marketing'  => $bom_id,
+                            //         'id_contents'       => $id_content,
+                            //         'id_set'            => $id_set,
+                            //         'item_desc'         => $item_desc,
+                            //         'rule_bom'          => $rule_bom,
+                            //         'unit'              => $request->unit,
+                            //         'notes'             => $request->notes,
+                            //         'shell'             => $request->shell,
+                            //         'id_color'          => $cId,
+                            //         'id_size'           => $sId,
+                            //         'id_item'           => $id_item_val,
+                            //         'id_supplier'       => $id_supplier,
+                            //         'id_currency'       => $currency,
+                            //         'qty'               => $qty,
+                            //         'category'          => $category,
+                            //         'created_at'        => now(),
+                            //         'id_costing_detail' => $id_costing_detail,
+                            //     ];
+                            // }
+
+                            $details_to_insert[] = [
+                                'id_bom_marketing'  => $bom_id,
+                                'id_contents'       => $id_content,
+                                'id_set'            => $id_set,
+                                'item_desc'         => $item_desc,
+                                'rule_bom'          => $rule_bom,
+                                'unit'              => $request->unit,
+                                'notes'             => $request->notes,
+                                'shell'             => $request->shell,
+                                'id_color'          => $cId,
+                                'id_size'           => $sId,
+                                'id_item'           => $id_item_val,
+                                'id_supplier'       => $id_supplier,
+                                'id_currency'       => $currency,
+                                'qty'               => $qty,
+                                'category'          => $category,
+                                'created_at'        => now(),
+                                'id_costing_detail' => $id_costing_detail,
+                            ];
                         }
                     }
                 }
