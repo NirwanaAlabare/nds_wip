@@ -502,6 +502,9 @@ class StockerToolsController extends Controller
         $data = Stocker::selectRaw("
                 stocker_input.id,
                 stocker_input.id_qr_stocker,
+                master_sb_ws.ws,
+                master_sb_ws.color,
+                master_sb_ws.size,
                 form_cut_input.no_form,
                 stocker_input.so_det_id,
                 stocker_input.notes,
@@ -509,6 +512,7 @@ class StockerToolsController extends Controller
                 stocker_input.created_at
             ")
             ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
             ->where('stocker_input.notes', 'LIKE', '%CANCEL')
             ->orderBy('stocker_input.created_at', 'desc');
 
@@ -713,21 +717,18 @@ class StockerToolsController extends Controller
     public function checkStokerTidakValidList(Request $request)
     {
         $dateFrom = $request->date_from ?? date("Y-m-d", strtotime("-30 days"));
-        $dateTo   = $request->date_to ?? date("Y-m-d");
+        $dateTo = $request->date_to ?? date("Y-m-d");
 
-        $data = DB::select("
-            SELECT
-                stocker_input.*
-            FROM stocker_input
-            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-            WHERE
-                stocker_input.updated_at BETWEEN ? AND ? AND
-                stocker_input.form_cut_id is not null AND
-                form_cut_input.id is null
-            ORDER BY stocker_input.id DESC
-        ", [$dateFrom . " 00:00:00", $dateTo . " 23:59:59"]);
+        $data = Stocker::select('stocker_input.*')
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->whereBetween('stocker_input.created_at', [$dateFrom . " 00:00:00", $dateTo . " 23:59:59"])
+            ->whereNotNull('stocker_input.form_cut_id')
+            ->whereNull('form_cut_input.id')
+            ->orderBy('stocker_input.id', 'desc');
 
-        return DataTables::of($data)->make(true);
+        return DataTables::eloquent($data)
+            ->addIndexColumn()
+            ->toJson();
     }
 
     public function checkStockerByFilter()

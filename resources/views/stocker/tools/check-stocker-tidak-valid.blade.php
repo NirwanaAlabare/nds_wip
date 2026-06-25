@@ -224,9 +224,10 @@
                 //     { data: 'color_correct', defaultContent: '<span class="text-muted">Tidak ditemukan</span>', render: function(data) { return data ?? '<span class="text-muted fst-italic">Tidak ditemukan</span>'; }},
                 //     { data: 'keterangan', className: 'text-center' },
                 // ],
-                // columnDefs: [
-                //     { targets: [7, 8, 9, 10, 11], createdCell: function(td) { $(td).css('white-space', 'nowrap'); } }
-                // ],
+                columnDefs: [
+                    { targets: "_all", className: 'text-center text-nowrap' }
+                    // { targets: [7, 8, 9, 10, 11], createdCell: function(td) { $(td).css('white-space', 'nowrap'); } }
+                ],
                 // order: [[3, 'desc']],
                 pageLength: 25,
                 language: { processing: '<i class="fa fa-spinner fa-spin"></i> Memuat data...' }
