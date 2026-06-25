@@ -17,6 +17,13 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        #myTable td.wrap-col {
+            white-space: normal !important;
+            word-break: break-word;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -34,6 +41,7 @@
                                 <th class="text-center align-middle" style="color: black;">Buyer</th>
                                 <th class="text-center align-middle" style="color: black;">WS</th>
                                 <th class="text-center align-middle" style="color: black;">Style</th>
+                                <th class="text-center align-middle" style="color: black;">Style Production</th>
                                 <th class="text-center align-middle" style="color: black;">Price</th>
                                 <th class="text-center align-middle" style="color: black;">Number of Changes</th>
                                 @php
@@ -59,7 +67,8 @@
                                 <tr>
                                     <td>{{ $ws['buyer'] }}</td>
                                     <td>{{ $ws['kpno'] }}</td>
-                                    <td>{{ $ws['styleno'] }}</td>
+                                    <td class="wrap-col">{{ $ws['styleno'] }}</td>
+                                    <td class="wrap-col">{{ $ws['styleno_prod'] }}</td>
                                     <td>{{ number_format($ws['price_act'], 2, '.', ',') }}</td>
                                     <td class="text-center">{{ $ws['total_changes'] }}</td>
 
@@ -140,7 +149,7 @@
         $(document).ready(function() {
             var table = $('#myTable').DataTable({
                 ordering: true,
-                responsive: true,
+                responsive: false,
                 processing: true,
                 serverSide: false,
                 paging: true,
@@ -149,8 +158,13 @@
                 scrollX: true,
                 scrollCollapse: true,
                 fixedColumns: {
-                    leftColumns: 5
+                    leftColumns: 6
                 },
+
+                columnDefs: [{
+                    targets: [2, 3],
+                    width: '220px'
+                }],
 
                 // Ubah default page length menjadi 25
                 pageLength: 15,
