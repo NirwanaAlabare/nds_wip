@@ -1489,6 +1489,9 @@
                                                 class="fa-solid fa-plus"></i>Tambah Mesin (Sewa)</a>
 
                                         <div class="mega-dropdown-col-title">Pengeluaran</div>
+                                        <a href="{{ route('asset_mesin_pengeluaran') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-minus"></i>Pengeluaran Mesin (Pembelian)</a>
                                         <a href="{{ route('asset_mesin_sewa_pengeluaran') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa_pengeluaran' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-minus"></i>Pengeluaran Mesin Cutt Off (Sewa)</a>
@@ -1498,6 +1501,13 @@
                                         <a href="{{ route('asset_mesin_master') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_master' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Mesin</a>
+                                    </div>
+
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Spareparts</div>
+                                        <a href="{{ route('asset_mesin_spareparts_tambah') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_spareparts_tambah' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-plus"></i>Tambah Spareparts (Pembelian)</a>
                                     </div>
                                 </div>
                             </li>

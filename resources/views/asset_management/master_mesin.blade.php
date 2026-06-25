@@ -79,6 +79,21 @@
             cursor: pointer;
         }
 
+        .unit-foto-img {
+            height: 50px;
+            width: 50px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .unit-preview-zoom-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            object-fit: contain;
+            cursor: zoom-in;
+            transition: transform 0.1s ease-out;
+        }
+
         .td-truncate {
             max-width: 220px;
             overflow: hidden;
@@ -184,10 +199,13 @@
                             <thead class="bg-sb">
                                 <tr>
                                     <th scope="col" class="text-center">No</th>
+                                    <th scope="col" class="text-center">Foto</th>
                                     <th scope="col" class="text-center">QR Code</th>
                                     <th scope="col">Serial Number</th>
                                     <th scope="col">Lokasi</th>
                                     <th scope="col">Supplier</th>
+                                    <th scope="col">No BPB</th>
+                                    <th scope="col">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="unitTableBody"></tbody>
@@ -312,18 +330,29 @@
                     tipe: row.tipe
                 },
                 success: function(units) {
+                    // Folder upload foto unit berbeda antara mesin pembelian & sewa
+                    let fotoFolder = row.sumber === 'SEWA' ? 'gambar_penerimaan_mesin_sewa' :
+                        'gambar_penerimaan_mesin';
+
                     units.forEach(function(unit, i) {
                         let qrCell = unit.qr ?
                             `<img class="unit-qr-img" src="data:image/svg+xml;base64,${unit.qr}" data-unit-id="${unit.id}" title="Klik untuk print PDF">` :
                             `<span class="text-muted" title="Lengkapi Serial Number & Foto dahulu"><i class="fas fa-lock"></i></span>`;
 
+                        let fotoCell = unit.foto ?
+                            `<img class="unit-foto-img" src="/nds_wip/public/storage/${fotoFolder}/${unit.foto}" title="Klik untuk lihat foto">` :
+                            `<span class="text-muted">-</span>`;
+
                         $body.append(`
                     <tr>
                         <td class="text-center align-middle">${i + 1}</td>
+                        <td class="text-center align-middle">${fotoCell}</td>
                         <td class="text-center align-middle">${qrCell}</td>
                         <td class="align-middle">${unit.serial_number ?? '-'}</td>
                         <td class="align-middle">${unit.lokasi ?? '-'}</td>
                         <td class="align-middle">${unit.supplier ?? '-'}</td>
+                        <td class="align-middle">${unit.bpbno_int ?? '-'}</td>
+                        <td class="align-middle">${unit.status ?? '-'}</td>
                     </tr>`);
                     });
 
@@ -362,6 +391,31 @@
         $(document).on('click', '.unit-qr-img', function() {
             let unitId = $(this).data('unit-id');
             window.open(`{{ url('/asset_mesin_tambah/unit') }}/${unitId}/print_qr`, '_blank');
+        });
+
+        // Klik thumbnail foto untuk melihat versi lebih besar, scroll mouse di atas gambar untuk zoom in/out
+        $(document).on('click', '.unit-foto-img', function() {
+            Swal.fire({
+                imageUrl: this.src,
+                imageAlt: 'Preview',
+                width: 'auto',
+                showConfirmButton: false,
+                showCloseButton: true,
+                background: '#fff',
+                customClass: {
+                    image: 'unit-preview-zoom-img'
+                },
+                didOpen: () => {
+                    let scale = 1;
+                    document.querySelector('.unit-preview-zoom-img').addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        scale = Math.min(Math.max(scale + (e.deltaY < 0 ? 0.2 : -0.2), 1), 4);
+                        this.style.transform = `scale(${scale})`;
+                    }, {
+                        passive: false
+                    });
+                }
+            });
         });
     </script>
 @endsection

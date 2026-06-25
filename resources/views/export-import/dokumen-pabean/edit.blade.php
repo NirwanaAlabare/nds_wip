@@ -871,14 +871,14 @@
                 }
             });
 
-            let hargaOk = false;
-            $('input[name$="[hargaPenyerahan]"]').each(function() {
-                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
-            });
-            if (!hargaOk) {
-                errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
-                if (!firstTab) firstTab = '#tab-header';
-            }
+            // let hargaOk = false;
+            // $('input[name$="[hargaPenyerahan]"]').each(function() {
+            //     if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
+            // });
+            // if (!hargaOk) {
+            //     errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
+            //     if (!firstTab) firstTab = '#tab-header';
+            // }
 
             if (errors.length > 0) {
                 if (firstTab) {

@@ -143,9 +143,11 @@ use App\Http\Controllers\AssetMasterLokasiController;
 use App\Http\Controllers\AssetMasterJenisMesinController;
 use App\Http\Controllers\AssetMasterRakSparepartController;
 use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinPengeluaranController;
 use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
+use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1500,6 +1502,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_tambah/unit/store', 'store_penerimaan_mesin_unit')->name('store_penerimaan_mesin_unit');
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
     });
+    // Master Asset Management Pengeluaran Mesin Replacement (Pembelian)
+    Route::controller(AssetMesinPengeluaranController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_pengeluaran', 'asset_mesin_pengeluaran')->name('asset_mesin_pengeluaran');
+        Route::get('/asset_mesin_pengeluaran/list', 'get_pengeluaran_mesin')->name('asset_mesin_pengeluaran_list');
+        Route::get('/asset_mesin_pengeluaran/export_excel', 'export_excel_pengeluaran_mesin')->name('export_excel_pengeluaran_mesin');
+        Route::get('/asset_mesin_pengeluaran/unit_list', 'get_active_unit_mesin')->name('asset_mesin_pengeluaran_unit_list');
+        Route::get('/asset_mesin_pengeluaran/search_item', 'search_item_sparepart')->name('asset_mesin_pengeluaran_search_item');
+        Route::post('/asset_mesin_pengeluaran/store', 'store_pengeluaran_mesin')->name('store_pengeluaran_mesin');
+        Route::get('/asset_mesin_pengeluaran/service', 'get_pengeluaran_mesin_service')->name('asset_mesin_pengeluaran_service');
+        Route::post('/asset_mesin_pengeluaran/service/store', 'store_pengeluaran_mesin_service')->name('store_pengeluaran_mesin_service');
+        Route::delete('/asset_mesin_pengeluaran/service/{id}', 'delete_pengeluaran_mesin_service')->name('delete_pengeluaran_mesin_service');
+    });
     // Master Asset Management Master Mesin
     Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
@@ -1531,6 +1545,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_sewa_pengeluaran/export_excel', 'export_excel_pengeluaran_mesin_sewa')->name('export_excel_pengeluaran_mesin_sewa');
         Route::get('/asset_mesin_sewa_pengeluaran/unit_list', 'get_active_unit_mesin_sewa')->name('asset_mesin_sewa_pengeluaran_unit_list');
         Route::post('/asset_mesin_sewa_pengeluaran/store', 'store_pengeluaran_mesin_sewa')->name('store_pengeluaran_mesin_sewa');
+    });
+
+    // Asset Management Tambah Spareparts mesin
+    Route::controller(AssetMesinTambahSparepartsController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_spareparts_tambah', 'asset_mesin_spareparts_tambah')->name('asset_mesin_spareparts_tambah');
+        Route::get('/asset_mesin_spareparts_tambah/list', 'get_penerimaan_spareparts_mesin')->name('asset_mesin_spareparts_tambah_list');
+        Route::get('/asset_mesin_spareparts_tambah/export_excel', 'export_excel_spareparts_mesin')->name('export_excel_spareparts_mesin');
+        Route::get('/asset_mesin_spareparts_tambah/bpb_detail', 'get_bpb_detail')->name('asset_mesin_spareparts_tambah_bpb_detail');
+        Route::get('/asset_mesin_spareparts_tambah/rak_select', 'get_rak_select')->name('asset_mesin_spareparts_tambah_rak_select');
+        Route::post('/asset_mesin_spareparts_tambah/penerimaan/store', 'store_penerimaan_spareparts_mesin')->name('store_penerimaan_spareparts_mesin');
     });
 
     // Export Import (EXIM)
