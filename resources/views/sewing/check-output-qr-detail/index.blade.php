@@ -15,7 +15,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title">
-                <i class="fa fa-solid fa-info-circle fa-sm"></i> Check Output Detail
+                <i class="fa fa-solid fa-info-circle fa-sm"></i> Check Output QR Detail
             </h5>
         </div>
         <div class="card-body">
@@ -445,7 +445,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             type: 'post',
-            url: '{{ route('check-output-detail-list') }}',
+            url: '{{ route('check-output-qr-detail-list') }}',
             dataType: 'json',
             dataSrc: 'data',
             scrollY: '400px',
@@ -594,7 +594,7 @@
         });
 
         await $.ajax({
-            url: "{{ route("check-output-detail-export") }}",
+            url: "{{ route("check-output-qr-detail-export") }}",
             type: "post",
             data: {
                 buyer : $('#buyer').val(),

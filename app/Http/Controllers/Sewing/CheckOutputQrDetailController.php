@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Yajra\DataTables\Facades\DataTables;
 
-class CheckOutputDetailController extends Controller
+class CheckOutputQrDetailController extends Controller
 {
-    public function checkOutputDetail() {
+    public function checkOutputQrDetail() {
         $buyers = DB::connection("mysql_sb")->select("
             SELECT
                 Id_Supplier as id,
@@ -35,10 +35,10 @@ class CheckOutputDetailController extends Controller
 
         $defectTypes = DB::connection("mysql_sb")->table("output_defect_types")->whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc")->get();
 
-        return view("sewing.check-output-detail.index", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes, "page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-sewing", "subPage" => "check-output-detail",]);
+        return view("sewing.check-output-qr-detail.index", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes, "page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-sewing", "subPage" => "check-output-qr-detail",]);
     }
 
-    public function checkOutputDetailList(Request $request) {
+    public function checkOutputQrDetailList(Request $request) {
         $buyerFilterYs = "";
         $buyerFilterOutput = "";
         if ($request->buyer) {
@@ -950,7 +950,7 @@ class CheckOutputDetailController extends Controller
         return Datatables::of($outputList)->toJson();
     }
 
-    public function checkOutputDetailExport(Request $request) {
+    public function checkOutputQrDetailExport(Request $request) {
         ini_set("max_execution_time", 3600000);
         ini_set('memory_limit', '5120000M');
 
@@ -1861,14 +1861,14 @@ class CheckOutputDetailController extends Controller
         orderBy("ys.id_year_sequence")
         ->get();
 
-        $fileName = 'check-output-detail';
+        $fileName = 'check-output-qr-detail';
 
         $excel = FastExcel::create($fileName);
 
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Check Output Detail'],
+            ['Check Output QR Detail'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 16,

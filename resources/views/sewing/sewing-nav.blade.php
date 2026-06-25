@@ -70,9 +70,9 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('check-output-detail') }}"
-                    class="dropdown-item {{ $routeName == 'check-output-detail' ? 'active' : '' }}">
-                    Check Output Detail <i class="fa-solid fa-circle-info"></i>
+                <a href="{{ route('check-output-qr-detail') }}"
+                    class="dropdown-item {{ $routeName == 'check-output-qr-detail' ? 'active' : '' }}">
+                    Check Output QR Detail <i class="fa-solid fa-circle-info"></i>
                 </a>
             </li>
         </ul>

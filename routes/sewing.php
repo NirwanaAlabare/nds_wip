@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Sewing\CheckOutputDetailController;
+use App\Http\Controllers\Sewing\CheckOutputQrDetailController;
 use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\MasterDefectController;
@@ -126,10 +126,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
-    Route::controller(CheckOutputDetailController::class)->prefix("check-output-detail")->middleware("role:sewing")->group(function () {
-        Route::get('/', 'checkOutputDetail')->name("check-output-detail");
-        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
-        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
+    Route::controller(CheckOutputQrDetailController::class)->prefix("check-output-qr-detail")->middleware("role:sewing")->group(function () {
+        Route::get('/', 'checkOutputQrDetail')->name("check-output-qr-detail");
+        Route::post('/check-output-qr-detail-list', 'checkOutputQrDetailList')->name("check-output-qr-detail-list");
+        Route::post('/check-output-qr-detail-export', 'checkOutputQrDetailExport')->name("check-output-qr-detail-export");
     });
 
     // Sewing Tools
