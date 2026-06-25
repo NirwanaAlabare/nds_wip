@@ -84,8 +84,8 @@
                      <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
                         <option value="">Pilih Tipe WS</option>
                         <option value="GLOBAL">GLOBAL</option>
-                        <option value="STD">STD</option>
-                        <option value="DTH">DTH</option>
+                        <option value="STD">STANDAR</option>
+                        {{-- <option value="DTH">DTH</option> --}}
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
