@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Yajra\DataTables\Facades\DataTables;
 
-class CheckOutputDetailController extends Controller
+class CheckOutputQrDetailController extends Controller
 {
-    public function checkOutputDetail() {
+    public function checkOutputQrDetail() {
         $buyers = DB::connection("mysql_sb")->select("
             SELECT
                 Id_Supplier as id,
@@ -35,10 +35,10 @@ class CheckOutputDetailController extends Controller
 
         $defectTypes = DB::connection("mysql_sb")->table("output_defect_types")->whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc")->get();
 
-        return view("sewing.check-output-detail.index", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes, "page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-sewing", "subPage" => "check-output-detail",]);
+        return view("sewing.check-output-qr-detail.index", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes, "page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-sewing", "subPage" => "check-output-qr-detail",]);
     }
 
-    public function checkOutputDetailList(Request $request) {
+    public function checkOutputQrDetailList(Request $request) {
         $buyerFilterYs = "";
         $buyerFilterOutput = "";
         if ($request->buyer) {
@@ -406,6 +406,178 @@ class CheckOutputDetailController extends Controller
 
         ini_set("max_execution_time", 3600);
 
+        // New Filter Callback
+        $outputQuery = "";
+        $outputPackingQuery = "";
+        $outputFinishingProsesgQuery = "";
+
+        $filterOutput = trim(str_replace("\n", "", $tglOutput)) || trim(str_replace("\n", "", $tglDefect)) || trim(str_replace("\n", "", $tglReject)) ||
+            trim(str_replace("\n", "", $lineOutput)) ||
+            trim(str_replace("\n", "", $defectOutput)) ||
+            trim(str_replace("\n", "", $allocationOutput)) ||
+            trim(str_replace("\n", "", $missmatchDefect)) ||
+            trim(str_replace("\n", "", $backDateDefect)) ||
+            trim(str_replace("\n", "", $missmatchOutput)) ||
+            trim(str_replace("\n", "", $backDateOutput)) ||
+            trim(str_replace("\n", "", $missmatchReject)) ||
+            trim(str_replace("\n", "", $backDateReject));
+        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) || trim(str_replace("\n", "", $tglDefectPck)) || trim(str_replace("\n", "", $tglRejectPck)) ||
+            trim(str_replace("\n", "", $linePacking)) ||
+            trim(str_replace("\n", "", $defectPacking)) ||
+            trim(str_replace("\n", "", $allocationPacking)) ||
+            trim(str_replace("\n", "", $missmatchDefectPck)) ||
+            trim(str_replace("\n", "", $backDateDefectPck)) ||
+            trim(str_replace("\n", "", $missmatchOutputPck)) ||
+            trim(str_replace("\n", "", $backDateOutputPck)) ||
+            trim(str_replace("\n", "", $missmatchRejectPck)) ||
+            trim(str_replace("\n", "", $backDateRejectPck));
+
+        if ($filterOutput || $filterPacking) {
+            $callbackFilterOutput = "";
+            $callbackFilterPacking = "";
+            $callbackFilterFinishingProses = "";
+
+            // Output
+            if ($filterOutput) {
+                $outputQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        where
+                            output_rfts.id is not null
+                            AND output_rfts.status = 'NORMAL'
+                            {$filterRftOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rejects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectOutput}
+                            {$callbackFilterOutput}
+                ";
+
+                $callbackFilterPacking .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .=  " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Packing
+            if ($filterPacking) {
+                $outputPackingQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects_packing as output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_defects.created_by
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts_packing as output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rfts.created_by
+                        where
+                            output_rfts.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects_packing as output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rejects.created_by
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectPck}
+                            {$callbackFilterPacking}
+                ";
+
+                $callbackFilterOutput .=" and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+        }
+        // End New Filter Callback
+
         $outputList = DB::connection("mysql_sb")->table(DB::raw("
                 (
                     select
@@ -772,12 +944,13 @@ class CheckOutputDetailController extends Controller
                 ".$crossLineOutput."
                 ".$crossLineOutput."
                 ".$additionalFilter."
-            ");
+            ")->get();
 
-        return Datatables::queryBuilder($outputList)->toJson();
+        // return Datatables::queryBuilder($outputList)->toJson();
+        return Datatables::of($outputList)->toJson();
     }
 
-    public function checkOutputDetailExport(Request $request) {
+    public function checkOutputQrDetailExport(Request $request) {
         ini_set("max_execution_time", 3600000);
         ini_set('memory_limit', '5120000M');
 
@@ -1145,6 +1318,178 @@ class CheckOutputDetailController extends Controller
         if (!trim(str_replace("\n", "", $filterRftFinishingProses))  && !trim(str_replace("\n", "", $filterDefectFinishingProses))  && !trim(str_replace("\n", "", $filterRejectFinishingProses))) {
             $callbackFilterFinishingProses = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
+
+        // New Filter Callback
+        $outputQuery = "";
+        $outputPackingQuery = "";
+        $outputFinishingProsesgQuery = "";
+
+        $filterOutput = trim(str_replace("\n", "", $tglOutput)) || trim(str_replace("\n", "", $tglDefect)) || trim(str_replace("\n", "", $tglReject)) ||
+            trim(str_replace("\n", "", $lineOutput)) ||
+            trim(str_replace("\n", "", $defectOutput)) ||
+            trim(str_replace("\n", "", $allocationOutput)) ||
+            trim(str_replace("\n", "", $missmatchDefect)) ||
+            trim(str_replace("\n", "", $backDateDefect)) ||
+            trim(str_replace("\n", "", $missmatchOutput)) ||
+            trim(str_replace("\n", "", $backDateOutput)) ||
+            trim(str_replace("\n", "", $missmatchReject)) ||
+            trim(str_replace("\n", "", $backDateReject));
+        $filterPacking = trim(str_replace("\n", "", $tglOutputPck)) || trim(str_replace("\n", "", $tglDefectPck)) || trim(str_replace("\n", "", $tglRejectPck)) ||
+            trim(str_replace("\n", "", $linePacking)) ||
+            trim(str_replace("\n", "", $defectPacking)) ||
+            trim(str_replace("\n", "", $allocationPacking)) ||
+            trim(str_replace("\n", "", $missmatchDefectPck)) ||
+            trim(str_replace("\n", "", $backDateDefectPck)) ||
+            trim(str_replace("\n", "", $missmatchOutputPck)) ||
+            trim(str_replace("\n", "", $backDateOutputPck)) ||
+            trim(str_replace("\n", "", $missmatchRejectPck)) ||
+            trim(str_replace("\n", "", $backDateRejectPck));
+
+        if ($filterOutput || $filterPacking) {
+            $callbackFilterOutput = "";
+            $callbackFilterPacking = "";
+            $callbackFilterFinishingProses = "";
+
+            // Output
+            if ($filterOutput) {
+                $outputQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        where
+                            output_rfts.id is not null
+                            AND output_rfts.status = 'NORMAL'
+                            {$filterRftOutput}
+                            {$callbackFilterOutput}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join user_sb_wip on user_sb_wip.id = output_rejects.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectOutput}
+                            {$callbackFilterOutput}
+                ";
+
+                $callbackFilterPacking .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .=  " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+
+            // Output Packing
+            if ($filterPacking) {
+                $outputPackingQuery = "
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_defects_packing as output_defects
+                            left join master_plan on master_plan.id = output_defects.master_plan_id
+                            left join so_det on so_det.id = output_defects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_defects.created_by
+                            left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                        where
+                            output_defects.id is not null
+                            {$filterDefectPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rfts_packing as output_rfts
+                            left join master_plan on master_plan.id = output_rfts.master_plan_id
+                            left join so_det on so_det.id = output_rfts.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rfts.created_by
+                        where
+                            output_rfts.id is not null
+                            and output_rfts.status = 'NORMAL'
+                            {$filterRftPck}
+                            {$callbackFilterPacking}
+                    UNION ALL
+                        select
+                            kode_numbering kode_n
+                        from
+                            output_rejects_packing as output_rejects
+                            left join master_plan on master_plan.id = output_rejects.master_plan_id
+                            left join so_det on so_det.id = output_rejects.so_det_id
+                            left join so on so.id = so_det.id_so
+                            left join act_costing on act_costing.id = so.id_cost
+                            left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            left join userpassword on userpassword.username = output_rejects.created_by
+                            left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                        where
+                            output_rejects.reject_status = 'mati'
+                            {$filterRejectPck}
+                            {$callbackFilterPacking}
+                ";
+
+                $callbackFilterOutput .=" and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = kode_numbering
+                    )";
+                $callbackFilterFinishingProses .= " and exists (
+                        SELECT
+                            1
+                        FROM (
+                            ".$outputPackingQuery ."
+                        ) k where k.kode_n = output_secondary_in.kode_numbering
+                    )";
+            }
+        }
+        // End New Filter Callback
 
         $data = DB::connection("mysql_sb")->table(DB::raw("
             (
@@ -1516,14 +1861,14 @@ class CheckOutputDetailController extends Controller
         orderBy("ys.id_year_sequence")
         ->get();
 
-        $fileName = 'check-output-detail';
+        $fileName = 'check-output-qr-detail';
 
         $excel = FastExcel::create($fileName);
 
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Check Output Detail'],
+            ['Check Output QR Detail'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 16,
