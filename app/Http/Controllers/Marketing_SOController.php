@@ -1471,7 +1471,7 @@ class Marketing_SOController extends Controller
                 // save ke so
                 $id_so = $mysql_sb->table('so')->insertGetId([
                     'id_cost'   => $id_cost,
-                    'buyerno'   => $details->first()->po ?? '',
+                    'buyerno'   => $no_po,
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
