@@ -467,6 +467,7 @@
     {{-- END OF THE LINE --}}
 
     {{-- GO TO BOTTOM --}}
+        <div id="bottom"></div>
         <button id="scroll-to-bottom" class="scroll-to-bottom-btn">
             <i class="fas fa-arrow-down"></i>
         </button>
@@ -1932,7 +1933,7 @@
 
             scrollBtn.addEventListener("click", () => {
                 const footer = document.querySelector("#finish-button");
-                if (footer) {
+                if (footer && !footer.classList.contains("d-none")) {
                     footer.scrollIntoView({ behavior: "smooth", block: "center" });
 
                     // Optional: highlight the target briefly
@@ -1943,6 +1944,9 @@
                     }, 500);
                 } else {
                     console.warn("No button found.");
+
+                    let bottom = document.querySelector("#bottom");
+                    bottom.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
             });
         // END
