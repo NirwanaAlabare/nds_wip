@@ -3563,7 +3563,8 @@ manajemen_roll as (
         COALESCE(b.id_roll, '-') id_roll,
         b.id_item,
         b.unit unit_roll,
-        ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll
+        ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+        ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
     from
         form_cut_input a
         left join form_cut_input_detail b on a.id = b.form_cut_id
@@ -3590,7 +3591,8 @@ manajemen_roll as (
         form_cut_piping.id_roll,
         scanned_item.id_item,
         form_cut_piping.unit unit_roll,
-        form_cut_piping.piping total_pemakaian_roll
+        form_cut_piping.piping total_pemakaian_roll,
+        ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll
     from
         form_cut_piping
         LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
@@ -3609,7 +3611,8 @@ manajemen_roll as (
         form_cut_piece_detail.id_roll,
         COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
         form_cut_piece_detail.qty_unit unit_roll,
-        form_cut_piece_detail.qty_pemakaian total_pemakaian_roll
+        form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+        ROUND(form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll
     FROM
         form_cut_piece
         LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -3640,7 +3643,12 @@ ROUND(
         ELSE SUM(qty_pakai_adjustment)
     END
 ,2) AS pemakaian,
-ROUND(SUM(sr),2) AS short_roll,
+ROUND(
+    CASE 
+        WHEN SUM(sr) > 0 THEN SUM(sr)
+        ELSE SUM(sr_adjustment)
+    END
+,2) AS short_roll,
 ROUND(SUM(gr_p),2) AS gr_panel,
 ROUND(SUM(gr_g),2) AS gr_set,
 ROUND(SUM(qty_retur),2) AS retur,
@@ -3654,7 +3662,11 @@ ROUND(
         WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
         ELSE SUM(qty_pakai_adjustment)
     END
-    + SUM(sr)
+    +
+    CASE 
+        WHEN SUM(sr) > 0 THEN SUM(sr)
+        ELSE SUM(sr_adjustment)
+    END
     - SUM(gr_p)
     - SUM(gr_g)
     - SUM(qty_retur)
@@ -3664,12 +3676,12 @@ satuan
 from
 (
 select
-ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, 0 qty_pakai_adjustment, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
+ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, 0 qty_pakai_adjustment, sum(sr) sr, 0 sr_adjustment, sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans >= '$start_date' and tgl_trans <= '$end_date'
 GROUP BY $groupBy
 UNION ALL
 select
-ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
+ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,0,0,satuan, 0 qty_adjustment_before, 0 qty_adjustment
 from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
 GROUP BY $groupBy
 UNION ALL
@@ -3690,6 +3702,15 @@ SELECT
         AND mr.unit_roll = wip_adjustment_fabric.satuan
     ), 0) qty_pakai_adjustment,
     0 sr,
+    COALESCE(
+    (
+        SELECT SUM(mr.short_roll)
+        FROM manajemen_roll mr
+        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+        AND mr.id_roll = wip_adjustment_fabric.id_roll
+        AND mr.id_item = wip_adjustment_fabric.id_item
+        AND mr.unit_roll = wip_adjustment_fabric.satuan
+    ), 0) sr_adjustment,
     0 gr_p,
     0 gr_g,
     0 qty_retur,
@@ -3727,7 +3748,12 @@ HAVING
             ELSE SUM(qty_pakai_adjustment)
         END
     ,2) <> 0
-    OR ROUND(SUM(sr), 2) <> 0
+    OR ROUND(
+        CASE 
+            WHEN SUM(sr) > 0 THEN SUM(sr)
+            ELSE SUM(sr_adjustment)
+        END
+    ,2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
@@ -3741,7 +3767,11 @@ HAVING
             WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
             ELSE SUM(qty_pakai_adjustment)
         END
-        + SUM(sr)
+        +
+        CASE 
+            WHEN SUM(sr) > 0 THEN SUM(sr)
+            ELSE SUM(sr_adjustment)
+        END
         - SUM(gr_p)
         - SUM(gr_g)
         - SUM(qty_retur)
@@ -3798,7 +3828,8 @@ order by ws asc, color asc
                     COALESCE(b.id_roll, '-') id_roll,
                     b.id_item,
                     b.unit unit_roll,
-                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                    ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
@@ -3825,7 +3856,8 @@ order by ws asc, color asc
                     form_cut_piping.id_roll,
                     scanned_item.id_item,
                     form_cut_piping.unit unit_roll,
-                    form_cut_piping.piping total_pemakaian_roll
+                    form_cut_piping.piping total_pemakaian_roll,
+                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll
                 from
                     form_cut_piping
                     LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
@@ -3844,7 +3876,8 @@ order by ws asc, color asc
                     form_cut_piece_detail.id_roll,
                     COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
                     form_cut_piece_detail.qty_unit unit_roll,
-                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                    ROUND(form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll
                 FROM
                     form_cut_piece
                     LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -3876,7 +3909,12 @@ order by ws asc, color asc
                         ELSE SUM(qty_pakai_adjustment)
                     END
                 ,2) AS pemakaian,
-                ROUND(SUM(sr),2) AS short_roll,
+                ROUND(
+                    CASE 
+                        WHEN SUM(sr) > 0 THEN SUM(sr)
+                        ELSE SUM(sr_adjustment)
+                    END
+                ,2) AS short_roll,
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
                 ROUND(SUM(qty_retur),2) AS retur,
@@ -3907,6 +3945,7 @@ order by ws asc, color asc
                     SUM(qty_pakai) qty_pakai,
                     0 qty_pakai_adjustment,
                     SUM(sr) sr,
+                    0 sr_adjustment,
                     SUM(gr_p) gr_p,
                     SUM(gr_g) gr_g,
                     SUM(qty_retur) qty_retur,
@@ -3923,7 +3962,7 @@ order by ws asc, color asc
                 SELECT
                     ws, id_roll, id_item,
                     SUM(saldo) saldo_awal,
-                    0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,
                     satuan,
                     0 qty_adjustment_before,
                     0 qty_adjustment
@@ -3950,6 +3989,15 @@ order by ws asc, color asc
                         AND mr.unit_roll = wip_adjustment_fabric.satuan
                     ), 0) qty_pakai_adjustment,
                     0 sr,
+                    COALESCE(
+                    (
+                        SELECT SUM(mr.short_roll)
+                        FROM manajemen_roll mr
+                        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                        AND mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) sr_adjustment,
                     0 gr_p,
                     0 gr_g,
                     0 qty_retur,
@@ -3991,7 +4039,12 @@ HAVING
             ELSE SUM(qty_pakai_adjustment)
         END
     ,2) <> 0
-    OR ROUND(SUM(sr), 2) <> 0
+    OR ROUND(
+        CASE 
+            WHEN SUM(sr) > 0 THEN SUM(sr)
+            ELSE SUM(sr_adjustment)
+        END
+    ,2) <> 0
     OR ROUND(SUM(gr_p), 2) <> 0
     OR ROUND(SUM(gr_g), 2) <> 0
     OR ROUND(SUM(qty_retur), 2) <> 0
@@ -4005,7 +4058,11 @@ HAVING
             WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
             ELSE SUM(qty_pakai_adjustment)
         END
-        + SUM(sr)
+        +
+        CASE 
+            WHEN SUM(sr) > 0 THEN SUM(sr)
+            ELSE SUM(sr_adjustment)
+        END
         - SUM(gr_p)
         - SUM(gr_g)
         - SUM(qty_retur)
