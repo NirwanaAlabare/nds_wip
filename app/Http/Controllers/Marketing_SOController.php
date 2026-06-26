@@ -2980,7 +2980,6 @@ class Marketing_SOController extends Controller
                 AND mi.id_gen IS NOT NULL
             ", [$id_jo, $id_bom, $id]);
 
-            dd(collect($required_items)->where('id_panel', 36)->values());
 
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
@@ -3014,6 +3013,7 @@ class Marketing_SOController extends Controller
 
             foreach ($required_items as $req) {
                 $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
+                \Log::info("REQ key=$key | panel=$req->id_panel | exists=" . (isset($existing_map[$key]) ? 'YES' : 'NO'));
                 $processed_keys[] = $key;
 
                 if (isset($existing_map[$key])) {
@@ -3082,6 +3082,7 @@ class Marketing_SOController extends Controller
             // Cancel yang tidak ada di required_items
             foreach ($existing_map as $key => $ext) {
                 if (!in_array($key, $processed_keys)) {
+                    \Log::info("AKAN DICANCEL: key=$key | id=$ext->id | id_panel=$ext->id_panel");
                     if ($ext->cancel != 'Y') {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update(['cancel' => 'Y']);
                         $cancel_count++;
