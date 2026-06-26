@@ -18,4 +18,9 @@ class ScannedItem extends Model
     protected static $recordEvents = ['updated', 'deleted'];
 
     protected static $logAttributes = ['*'];
+
+    public function penerimaanCutting()
+    {
+        return $this->hasMany(PenerimaanCutting::class, 'id_roll', 'id_roll');
+    }
 }

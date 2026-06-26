@@ -134,7 +134,7 @@ class CuttingFormPieceController extends Controller
     public function incompleteItem($id = 0)
     {
         if ($id) {
-            $incomplete = FormCutPieceDetail::with("scannedItem", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "asc")->get();
+            $incomplete = FormCutPieceDetail::with("scannedItem", "scannedItem.penerimaanCutting", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "asc")->get();
 
             return $incomplete ? $incomplete : null;
         }
@@ -299,7 +299,7 @@ class CuttingFormPieceController extends Controller
                                 $dataLog->toArray()
                             );
 
-                            $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem")->where("id", $storeFormCutPieceDetail->id)->first();
+                            $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem", "scannedItem.penerimaanCutting")->where("id", $storeFormCutPieceDetail->id)->first();
 
                             return array(
                                 "status" => 200,
@@ -1019,8 +1019,8 @@ class CuttingFormPieceController extends Controller
 
                         // Update Scanned Item
                         ScannedItem::where("id_roll", $d->id_roll)->update([
-                            "qty" => DB::raw("qty + ".$d->qty_pemakaian),
-                            "qty_pakai" => DB::raw("qty_pakai - ".$d->qty_pemakaian),
+                            "qty" => DB::raw("qty + ".($d->qty_pemakaian ?? 0)),
+                            "qty_pakai" => DB::raw("qty_pakai - ".($d->qty_pemakaian ?? 0)),
                         ]);
                     }
 
