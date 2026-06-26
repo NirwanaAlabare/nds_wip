@@ -2981,6 +2981,7 @@ class Marketing_SOController extends Controller
             ", [$id_jo, $id_bom, $id]);
 
 
+
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
@@ -3089,6 +3090,43 @@ class Marketing_SOController extends Controller
                     }
                 }
             }
+
+            $debug_required = [];
+            foreach ($required_items as $req) {
+                $key = $req->id_so_det . '_' . $req->id_item . '_' . (string)($req->id_panel ?? '');
+                $debug_required[] = [
+                    'key'       => $key,
+                    'so_det'    => $req->id_so_det,
+                    'item'      => $req->id_item,
+                    'panel'     => $req->id_panel,
+                    'panel_type'=> gettype($req->id_panel),
+                    'status'    => $req->status,
+                    'rule_bom'  => $req->rule_bom,
+                    'cons'      => $req->cons,
+                    'unit'      => $req->unit,
+                    'exists_in_map' => isset($existing_map[$key]) ? 'SKIP/UPDATE' : 'INSERT',
+                ];
+            }
+
+            $debug_existing = [];
+            foreach ($existing_map as $key => $ext) {
+                $debug_existing[] = [
+                    'key'       => $key,
+                    'id'        => $ext->id,
+                    'so_det'    => $ext->id_so_det,
+                    'item'      => $ext->id_item,
+                    'panel'     => $ext->id_panel,
+                    'panel_type'=> gettype($ext->id_panel),
+                    'cancel'    => $ext->cancel,
+                ];
+            }
+
+            dd([
+                'existing_map_count' => count($existing_map),
+                'required_count'     => count($required_items),
+                'existing'           => $debug_existing,
+                'required'           => $debug_required,
+            ]);
 
             // 5. Sync Costing Native (act_costing_mat, mfg, oth)
             $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
