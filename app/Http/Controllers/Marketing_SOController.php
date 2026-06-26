@@ -2980,6 +2980,8 @@ class Marketing_SOController extends Controller
                 AND mi.id_gen IS NOT NULL
             ", [$id_jo, $id_bom, $id]);
 
+            dd(collect($required_items)->where('id_panel', 36)->values());
+
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
