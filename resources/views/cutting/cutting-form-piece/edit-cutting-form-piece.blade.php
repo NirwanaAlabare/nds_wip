@@ -457,7 +457,7 @@
     {{-- FINISH --}}
         <div id="cutting-piece-finish" class="my-5 {{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 3 ? "" : "d-none") : "d-none") }}">
             <h3 class="text-center text-sb fw-bold">PROCESS FINISHED</h3>
-            <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? $currentCuttingPiece->updated_at : "-" }}</span></h5>
+            <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? ($currentCuttingPiece->waktu_selesai ? $currentCuttingPiece->waktu_selesai : $currentCuttingPiece->updated_at) : "-" }}</span></h5>
         </div>
     {{-- END OF THE LINE --}}
 
@@ -1497,7 +1497,7 @@
 
             function setFinish(data) {
                 if (data && data.updated_at) {
-                    document.getElementById("last-update").innerText = formatDateTime(data.updated_at);
+                    document.getElementById("last-update").innerText = formatDateTime(data.waktu_selesai ? data.waktu_selesai : data.updated_at);
                 }
             }
 
