@@ -54,10 +54,17 @@
                         style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-success btn-sm" id="saveRakButton" onclick="save_rak_sparepart();">
+                    <button type="button" class="btn btn-success btn-sm" id="saveRakButton"
+                        onclick="save_rak_sparepart();">
                         <i class="fas fa-save"></i> Save
                     </button>
                 </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-success btn-sm" onclick="export_excel_stok_global();">
+                    <i class="fas fa-file-excel"></i> Export Stok Global (Semua Item)
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -89,21 +96,18 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="txted_nm_rak"><small><b>Nama Rak :</b></small></label>
-                            <input type="text" id="txted_nm_rak" name="txted_nm_rak"
-                                class="form-control form-control-sm" style="text-transform: uppercase;"
-                                oninput="this.value = this.value.toUpperCase();">
+                            <input type="text" id="txted_nm_rak" name="txted_nm_rak" class="form-control form-control-sm"
+                                style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
                         </div>
                         <div class="col-md-4">
                             <label for="txted_no_rak"><small><b>No Rak :</b></small></label>
-                            <input type="text" id="txted_no_rak" name="txted_no_rak"
-                                class="form-control form-control-sm" style="text-transform: uppercase;"
-                                oninput="this.value = this.value.toUpperCase();">
+                            <input type="text" id="txted_no_rak" name="txted_no_rak" class="form-control form-control-sm"
+                                style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
                         </div>
                         <div class="col-md-4">
                             <label for="txted_desc"><small><b>Deskripsi :</b></small></label>
-                            <input type="text" id="txted_desc" name="txted_desc"
-                                class="form-control form-control-sm" style="text-transform: uppercase;"
-                                oninput="this.value = this.value.toUpperCase();">
+                            <input type="text" id="txted_desc" name="txted_desc" class="form-control form-control-sm"
+                                style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
                         </div>
                     </div>
                 </div>
@@ -111,6 +115,80 @@
                     <button type="button" class="btn btn-warning btn-sm" id="editRakButton"
                         onclick="update_rak_sparepart();">Edit</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal History Rak Sparepart -->
+    <div class="modal fade" id="HistoryRakModal" tabindex="-1" aria-labelledby="HistoryRakModalLabel"
+        aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl" style="max-width: 95vw;">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="HistoryRakModalLabel">History Rak Sparepart</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <span class="badge bg-primary">Total Jenis Item : <span id="totalItemRak">0</span></span>
+                    </div>
+
+                    <ul class="nav nav-tabs" id="historyRakTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-stok-btn" data-bs-toggle="tab"
+                                data-bs-target="#tab-stok" type="button" role="tab">
+                                <i class="fas fa-boxes"></i> Stok Saat Ini
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-riwayat-btn" data-bs-toggle="tab"
+                                data-bs-target="#tab-riwayat" type="button" role="tab">
+                                <i class="fas fa-history"></i> Riwayat Transaksi
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content border border-top-0 p-2" id="historyRakTabsContent">
+                        <div class="tab-pane fade show active" id="tab-stok" role="tabpanel">
+                            <div class="table-responsive">
+                                <table id="stokRakTable"
+                                    class="table table-bordered table-hover table-sm align-middle text-nowrap w-100">
+                                    <thead class="bg-sb">
+                                        <tr>
+                                            <th scope="col" class="text-center align-middle">Nama Barang</th>
+                                            <th scope="col" class="text-center align-middle">Goods Code</th>
+                                            <th scope="col" class="text-center align-middle">Total Masuk</th>
+                                            <th scope="col" class="text-center align-middle">Total Keluar</th>
+                                            <th scope="col" class="text-center align-middle">Stok Saat Ini</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab-riwayat" role="tabpanel">
+                            <div class="table-responsive">
+                                <table id="historyRakTable"
+                                    class="table table-bordered table-hover table-sm align-middle text-nowrap w-100">
+                                    <thead class="bg-sb">
+                                        <tr>
+                                            <th scope="col" class="text-center align-middle">Tanggal</th>
+                                            <th scope="col" class="text-center align-middle">Jenis</th>
+                                            <th scope="col" class="text-center align-middle">Nama Barang</th>
+                                            <th scope="col" class="text-center align-middle">Qty</th>
+                                            <th scope="col" class="text-center align-middle">Keterangan</th>
+                                            <th scope="col" class="text-center align-middle">Dibuat Oleh</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success btn-sm" onclick="export_excel_rak_sparepart();">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -309,7 +387,7 @@
         }
 
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             responsive: true,
             processing: true,
             serverSide: false,
@@ -332,9 +410,13 @@
                 }, // Deskripsi
                 {
                     data: 'id_rak',
-                    render: function(data) {
+                    render: function(data, type, row) {
+                        let rakLabel = (row.nm_rak ?? '') + ' - ' + (row.no_rak ?? '');
                         return `
                     <div class="text-center">
+                        <button class="btn btn-sm btn-info" onclick="showHistoryRak(${data}, '${rakLabel.replace(/'/g, "\\'")}')">
+                            <i class="fa fa-history"></i>
+                        </button>
                         <button class="btn btn-sm btn-warning" onclick="editData(${data})"
                                 data-bs-toggle="modal" data-bs-target="#EditRakModal">
                             <i class="fa fa-edit"></i>
@@ -349,5 +431,225 @@
                 }
             ],
         });
+    </script>
+    <script>
+        // Modal History Rak Sparepart: stok saat ini per item + riwayat transaksi masuk/keluar
+        let currentRakIdForHistory = null;
+
+        let stokRakTable = $("#stokRakTable").DataTable({
+            ordering: false,
+            responsive: true,
+            processing: true,
+            serverSide: false,
+            paging: true,
+            searching: true,
+            scrollX: true,
+            ajax: function(data, callback) {
+                if (!currentRakIdForHistory) {
+                    callback({
+                        data: [],
+                        recordsTotal: 0,
+                        recordsFiltered: 0
+                    });
+                    return;
+                }
+                $.ajax({
+                    url: '{{ route('get_stok_rak') }}',
+                    data: {
+                        id_rak: currentRakIdForHistory
+                    },
+                    success: callback
+                });
+            },
+            columns: [{
+                    data: 'itemdesc',
+                    render: function(data) {
+                        return data ?? '-';
+                    }
+                },
+                {
+                    data: 'goods_code',
+                    render: function(data) {
+                        return data ?? '-';
+                    }
+                },
+                {
+                    data: 'tot_masuk'
+                },
+                {
+                    data: 'tot_keluar'
+                },
+                {
+                    data: 'stok',
+                    render: function(data) {
+                        let cls = data > 0 ? 'bg-success' : 'bg-danger';
+                        return `<span class="badge ${cls}">${data}</span>`;
+                    }
+                },
+            ],
+        });
+
+        stokRakTable.on('xhr.dt', function(e, settings, json) {
+            $('#totalItemRak').text(json?.recordsTotal ?? 0);
+        });
+
+        let historyRakTable = $("#historyRakTable").DataTable({
+            ordering: false,
+            responsive: true,
+            processing: true,
+            serverSide: false,
+            paging: true,
+            searching: true,
+            scrollX: true,
+            ajax: function(data, callback) {
+                if (!currentRakIdForHistory) {
+                    callback({
+                        data: [],
+                        recordsTotal: 0,
+                        recordsFiltered: 0
+                    });
+                    return;
+                }
+                $.ajax({
+                    url: '{{ route('get_history_rak') }}',
+                    data: {
+                        id_rak: currentRakIdForHistory
+                    },
+                    success: callback
+                });
+            },
+            columns: [{
+                    data: 'tgl_trans_fix'
+                },
+                {
+                    data: 'jenis',
+                    render: function(data) {
+                        let cls = data === 'MASUK' ? 'bg-success' : 'bg-danger';
+                        return `<span class="badge ${cls}">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'itemdesc',
+                    render: function(data) {
+                        return data ?? '-';
+                    }
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        if (row.jenis === 'MASUK') {
+                            return 'BPB: ' + (row.bpbno_int ?? '-');
+                        }
+                        let ket = [];
+                        if (row.bpbno_int) ket.push('BPB: ' + row.bpbno_int);
+                        if (row.mekanik_name) ket.push('Mekanik: ' + row.mekanik_name);
+                        if (row.serial_number) ket.push('SN: ' + row.serial_number);
+                        return ket.length ? ket.join(' | ') : '-';
+                    }
+                },
+                {
+                    data: 'created_by',
+                    render: function(data) {
+                        return data ?? '-';
+                    }
+                },
+            ],
+        });
+
+        function showHistoryRak(id_rak, rakLabel) {
+            currentRakIdForHistory = id_rak;
+            $('#HistoryRakModalLabel').text('History Rak Sparepart - ' + rakLabel);
+
+            stokRakTable.ajax.reload();
+            historyRakTable.ajax.reload();
+
+            $('#HistoryRakModal').modal('show');
+        }
+
+        // Tab Riwayat Transaksi tersembunyi saat modal dibuka, jadi lebar kolomnya perlu dihitung ulang saat ditampilkan
+        $('#tab-riwayat-btn').on('shown.bs.tab', function() {
+            historyRakTable.columns.adjust();
+        });
+
+        function downloadExcelBlob(response, defaultFilename) {
+            Swal.close();
+            let blob = new Blob([response]);
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = defaultFilename;
+            link.click();
+        }
+
+        // Export Excel untuk rak yang sedang dibuka di modal History (sheet Stok Saat Ini + Riwayat Transaksi)
+        function export_excel_rak_sparepart() {
+            if (!currentRakIdForHistory) return;
+
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: 'get',
+                url: '{{ route('export_excel_rak_sparepart') }}',
+                data: {
+                    id_rak: currentRakIdForHistory
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    downloadExcelBlob(response, 'Laporan Rak Sparepart.xlsx');
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal export data ke Excel.',
+                    });
+                }
+            });
+        }
+
+        // Export Excel stok sparepart global (per id_item, dijumlah dari semua rak)
+        function export_excel_stok_global() {
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: 'get',
+                url: '{{ route('export_excel_stok_global_sparepart') }}',
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    downloadExcelBlob(response, 'Laporan Stok Sparepart Global.xlsx');
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal export data ke Excel.',
+                    });
+                }
+            });
+        }
     </script>
 @endsection

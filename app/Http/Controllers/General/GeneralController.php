@@ -962,7 +962,8 @@ class GeneralController extends Controller
                 unit,
                 rule_bom,
                 so_det_list,
-                size_list
+                size_list,
+                tanggal
             FROM (
                 SELECT
                     whs_bppb_det.id_roll,
@@ -979,7 +980,8 @@ class GeneralController extends Controller
                     whs_bppb_det.satuan unit,
                     bji.rule_bom,
                     GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
-                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list,
+                    COALESCE(penerimaan_cutting.tanggal_terima, whs_bppb_h.tgl_bppb) tanggal
                 FROM
                     laravel_nds.penerimaan_cutting
                     LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
@@ -1027,7 +1029,8 @@ class GeneralController extends Controller
                 scanned_item.unit,
                 scanned_item.berat_amparan,
                 scanned_item.so_det_list,
-                scanned_item.size_list
+                scanned_item.size_list,
+                penerimaan_cutting.tanggal_terima tanggal
             ")->
             leftJoin(DB::raw("
                 (
@@ -1074,6 +1077,7 @@ class GeneralController extends Controller
                         id_roll
                 ) pemakaian
             "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
+            leftJoin('penerimaan_cutting', 'penerimaan_cutting.id_roll', '=', 'scanned_item.id_roll')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
@@ -1099,6 +1103,10 @@ class GeneralController extends Controller
                     $scannedItemUpdate->save();
 
                     if (floatval($scannedItemUpdate->qty) > 0) {
+                        $scannedItemUpdate = ScannedItem::selectRaw("scanned_item.*, penerimaan_cutting.tanggal_terima tanggal")->where("scanned_item.id_roll", $id)->
+                            leftJoin("penerimaan_cutting", "penerimaan_cutting.id_roll", "=", "scanned_item.id_roll")->
+                            first();
+
                         return json_encode($scannedItemUpdate);
                     }
                 }
@@ -1176,7 +1184,8 @@ class GeneralController extends Controller
                 roll_qty qty,
                 lot_no lot,
                 bpb.unit,
-                kode_rak
+                kode_rak,
+                bpb.bpbdate tanggal
             FROM
                 bpb_roll br
                 INNER JOIN bpb_roll_h brh ON br.id_h = brh.id

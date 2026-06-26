@@ -148,6 +148,7 @@ use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
+use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1490,6 +1491,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_rak_sparepart/show', 'show_rak_sparepart')->name('show_rak_sparepart');
         Route::post('/asset_rak_sparepart/update', 'update_rak_sparepart')->name('update_rak_sparepart');
         Route::post('/asset_rak_sparepart/delete', 'delete_rak_sparepart')->name('delete_rak_sparepart');
+        Route::get('/asset_rak_sparepart/stok', 'get_stok_rak')->name('get_stok_rak');
+        Route::get('/asset_rak_sparepart/history', 'get_history_rak')->name('get_history_rak');
+        Route::get('/asset_rak_sparepart/export_excel', 'export_excel_rak')->name('export_excel_rak_sparepart');
+        Route::get('/asset_rak_sparepart/export_excel_global', 'export_excel_stok_global')->name('export_excel_stok_global_sparepart');
     });
     // Master Asset Management Tambah Mesin (Pembelian Mesin)
     Route::controller(AssetMesinTambahController::class)->middleware('role:asset')->group(function () {
@@ -1557,6 +1562,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_spareparts_tambah/penerimaan/store', 'store_penerimaan_spareparts_mesin')->name('store_penerimaan_spareparts_mesin');
     });
 
+    // Asset Management Pengeluaran Spareparts mesin
+    Route::controller(AssetMesinPengeluaranSparepartsController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_spareparts_pengeluaran', 'asset_mesin_spareparts_pengeluaran')->name('asset_mesin_spareparts_pengeluaran');
+        Route::get('/asset_mesin_spareparts_pengeluaran/list', 'get_pengeluaran_spareparts_mesin')->name('asset_mesin_spareparts_pengeluaran_list');
+        Route::get('/asset_mesin_spareparts_pengeluaran/export_excel', 'export_excel_pengeluaran_spareparts_mesin')->name('export_excel_pengeluaran_spareparts_mesin');
+        Route::get('/asset_mesin_spareparts_pengeluaran/sparepart_select', 'get_sparepart_select')->name('asset_mesin_spareparts_pengeluaran_sparepart_select');
+        Route::get('/asset_mesin_spareparts_pengeluaran/rak_by_sparepart', 'get_rak_by_sparepart')->name('asset_mesin_spareparts_pengeluaran_rak_by_sparepart');
+        Route::get('/asset_mesin_spareparts_pengeluaran/unit_mesin_select', 'get_unit_mesin_select')->name('asset_mesin_spareparts_pengeluaran_unit_mesin_select');
+        Route::get('/asset_mesin_spareparts_pengeluaran/mekanik_select', 'get_mekanik_select')->name('asset_mesin_spareparts_pengeluaran_mekanik_select');
+        Route::post('/asset_mesin_spareparts_pengeluaran/store', 'store_pengeluaran_spareparts_mesin')->name('store_pengeluaran_spareparts_mesin');
+    });
     // Export Import (EXIM)
 
     Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');
@@ -1579,6 +1595,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-draft-status/{noAju}', 'getDraftData')->name('dokumen-pabean-status')->where('noAju', '.*');
         Route::delete('/delete-ceisa-draft/{noAju}', 'deleteDraft')->name('dokumen-pabean-delete-draft')->where('noAju', '.*');
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
+         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
+        Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
 
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');

@@ -15,13 +15,29 @@ class IE_Laporan_Controller extends Controller
     public function IE_lap_recap_smv(Request $request)
     {
         $user = Auth::user()->name;
-        $rawData = DB::connection('mysql_sb')->select("SELECT ac.kpno, ac.styleno, ms.supplier as buyer, id_ws, smv, tgl_plan, DATE_FORMAT(tgl_plan, '%d-%m-%Y') AS tgl_plan_fix
+        $rawData = DB::connection('mysql_sb')->select("WITH a as (
+SELECT ac.kpno, ac.styleno, ms.supplier as buyer, id_ws, smv, tgl_plan, DATE_FORMAT(tgl_plan, '%d-%m-%Y') AS tgl_plan_fix
         from master_plan mp
 		inner join act_costing ac on mp.id_ws = ac.id
 		inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
         where id_ws is not null and tgl_plan is not null and mp.cancel = 'N'
         group by id_ws, smv
         order by ms.supplier asc, ac.styleno asc, tgl_plan asc
+),
+b as (
+SELECT
+    ac.id as id_ws,
+    GROUP_CONCAT(DISTINCT sd.styleno_prod ORDER BY sd.styleno_prod SEPARATOR ', ') AS styleno_prod
+FROM so_det sd
+INNER JOIN so ON sd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+GROUP BY ac.id
+)
+
+SELECT * FROM a
+left JOIN b on a.id_ws = b.id_ws
+
+
         ");
 
         $groupedData = [];
@@ -34,6 +50,7 @@ class IE_Laporan_Controller extends Controller
                     'id_ws' => $ws,
                     'kpno' => $row->kpno,
                     'styleno' => $row->styleno,
+                    'styleno_prod' => $row->styleno_prod,
                     'buyer' => $row->buyer,
                     'details' => []
                 ];
@@ -86,12 +103,22 @@ select rate, tanggal from masterrate where v_codecurr = 'HARIAN'
 ),
 mr_n as (
 select max(rate) max_rate from masterrate where v_codecurr = 'HARIAN'
+),
+sp as (
+SELECT
+    ac.id as id_ws,
+    GROUP_CONCAT(DISTINCT sd.styleno_prod ORDER BY sd.styleno_prod SEPARATOR ', ') AS styleno_prod
+FROM so_det sd
+INNER JOIN so ON sd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+GROUP BY ac.id
 )
 
 select
 a.id_ws,
 ac.kpno,
 ac.styleno,
+sp.styleno_prod,
 ms.supplier as buyer,
 a.price,
 a.jenis_rate,
@@ -114,6 +141,7 @@ case
 		end as price_act_upd
 from a
 left join act_costing_mfg_log b on a.id_ws = b.id_act_cost
+LEFT JOIN sp on a.id_ws = sp.id_ws
 inner join act_costing ac on a.id_ws = ac.id
 inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 LEFT JOIN mr on ac.deldate = mr.tanggal
@@ -131,6 +159,7 @@ order by ms.supplier asc, ac.styleno asc, b.created_at asc
                     'id_ws' => $ws,
                     'kpno' => $row->kpno,
                     'styleno' => $row->styleno,
+                    'styleno_prod' => $row->styleno_prod,
                     'buyer' => $row->buyer,
                     'price_act' => $row->price_act,
                     'details' => []

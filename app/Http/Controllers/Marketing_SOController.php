@@ -1471,7 +1471,7 @@ class Marketing_SOController extends Controller
                 // save ke so
                 $id_so = $mysql_sb->table('so')->insertGetId([
                     'id_cost'   => $id_cost,
-                    'buyerno'   => $details->first()->po ?? '',
+                    'buyerno'   => $no_po,
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
@@ -2240,7 +2240,7 @@ class Marketing_SOController extends Controller
         $all_bom_items = $mysql_sb->table('bom_marketing_detail as bmd')
             ->select(
                 'bmd.category', 'mg.nama_group', 'c.name as color_gmt', 'bmd.id_color', 'bmd.id_size', 'bmd.id_set',
-                'bmd.shell', 'bmd.notes as description', 's.size as size_gmt', 'i.color as color_item', 'i.size as size_item',
+                'mpnl.nama_panel as shell', 'bmd.notes as description', 's.size as size_gmt', 'i.color as color_item', 'i.size as size_item',
                 'bmd.qty as cons', 'bmd.unit', 'mset.nama as product_set',
                 DB::raw("
                     CASE
@@ -2259,6 +2259,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
             ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
             ->leftJoin('master_set as mset', 'bmd.id_set', '=', 'mset.id')
+            ->leftJoin('masterpanel as mpnl', 'bmd.shell', '=', 'mpnl.id')
             ->where('bmd.id_bom_marketing', $header->id_bom)
             ->whereNotNull('bmd.id_item')
             ->get();
@@ -2979,6 +2980,8 @@ class Marketing_SOController extends Controller
                 AND mi.id_gen IS NOT NULL
             ", [$id_jo, $id_bom, $id]);
 
+
+
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
@@ -2986,13 +2989,17 @@ class Marketing_SOController extends Controller
 
             $existing_map = [];
             foreach ($existing_items as $item) {
-                $key = $item->id_so_det . '_' . $item->id_item;
+                $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel;
                 $existing_map[$key] = $item;
             }
 
-            $posno_map = $mysql_sb->table('bom_jo_item')
-                ->where('id_jo', $id_jo)
-                ->pluck('posno', 'id_item')->toArray();
+            // Ambil posno yang sudah ada per id_item
+            $posno_map = [];
+            foreach ($existing_items as $item) {
+                if (!isset($posno_map[$item->id_item])) {
+                    $posno_map[$item->id_item] = $item->posno;
+                }
+            }
 
             $current_max_posno = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
@@ -3003,68 +3010,80 @@ class Marketing_SOController extends Controller
             $insert_count = 0;
             $update_count = 0;
             $cancel_count = 0;
-
             $to_insert = [];
 
             foreach ($required_items as $req) {
-                $key = $req->id_so_det . '_' . $req->id_item;
+                $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
+                \Log::info("REQ key=$key | panel=$req->id_panel | exists=" . (isset($existing_map[$key]) ? 'YES' : 'NO'));
                 $processed_keys[] = $key;
 
                 if (isset($existing_map[$key])) {
+                    // Sudah ada dan sama persis — skip atau update jika ada perubahan
                     $ext = $existing_map[$key];
                     if ($ext->cons != $req->cons ||
                         $ext->unit != $req->unit ||
-                        $ext->id_supplier != $req->id_supplier ||
                         $ext->rule_bom != $req->rule_bom ||
-                        $ext->id_panel != $req->id_panel ||
                         $ext->cancel == 'Y'
                     ) {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update([
-                            'cons' => $req->cons,
-                            'unit' => $req->unit,
-                            'id_supplier' => $req->id_supplier,
-                            'rule_bom' => $req->rule_bom,
-                            'id_panel' => $req->id_panel,
-                            'cancel' => 'N'
+                            'cons'       => $req->cons,
+                            'unit'       => $req->unit,
+                            'rule_bom'   => $req->rule_bom,
+                            'id_panel'   => $req->id_panel,
+                            'cancel'     => 'N'
                         ]);
                         $update_count++;
                     }
                 } else {
+                    // Cek apakah ada existing dengan id_item sama tapi id_panel berbeda
+                    // Pakai posno yang sama jika id_item sudah pernah ada
                     if (!isset($posno_map[$req->id_item])) {
                         $posno_counter++;
-                        $posno_map[$req->id_item] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+                        $posno_map[$req->id_item . '_' . $req->id_panel] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+                    }
+
+                    // Ambil posno: kalau id_item sudah ada (panel lain), pakai posno yang sama
+                    $existing_posno = $mysql_sb->table('bom_jo_item')
+                        ->where('id_jo', $id_jo)
+                        ->where('id_item', $req->id_item)
+                        ->value('posno');
+
+                    if (!$existing_posno) {
+                        $posno_counter++;
+                        $existing_posno = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
                     }
 
                     $to_insert[] = [
-                        'id_jo' => $req->id_jo,
-                        'id_so_det' => $req->id_so_det,
-                        'status' => $req->status,
-                        'id_item' => $req->id_item,
-                        'cons' => $req->cons,
-                        'unit' => $req->unit,
-                        'id_supplier' => $req->id_supplier,
-                        'rule_bom' => $req->rule_bom,
-                        'cancel' => 'N',
-                        'add_item' => 'N',
-                        'username' => $username,
-                        'dateinput' => now(),
-                        'id_panel' => $req->id_panel,
-                        'posno' => $posno_map[$req->id_item],
-                        'notes' => null,
+                        'id_jo'      => $req->id_jo,
+                        'id_so_det'  => $req->id_so_det,
+                        'status'     => $req->status,
+                        'id_item'    => $req->id_item,
+                        'cons'       => $req->cons,
+                        'unit'       => $req->unit,
+                        'id_supplier'=> $req->id_supplier,
+                        'rule_bom'   => $req->rule_bom,
+                        'cancel'     => 'N',
+                        'add_item'   => 'N',
+                        'username'   => $username,
+                        'dateinput'  => now(),
+                        'id_panel'   => $req->id_panel,
+                        'posno'      => $existing_posno,
+                        'notes'      => null,
                     ];
                     $insert_count++;
                 }
             }
 
             if (count($to_insert) > 0) {
-                $chunks = array_chunk($to_insert, 500);
-                foreach ($chunks as $chunk) {
+                foreach (array_chunk($to_insert, 500) as $chunk) {
                     $mysql_sb->table('bom_jo_item')->insert($chunk);
                 }
             }
 
+            // Cancel yang tidak ada di required_items
             foreach ($existing_map as $key => $ext) {
                 if (!in_array($key, $processed_keys)) {
+                    \Log::info("AKAN DICANCEL: key=$key | id=$ext->id | id_panel=$ext->id_panel");
                     if ($ext->cancel != 'Y') {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update(['cancel' => 'Y']);
                         $cancel_count++;

@@ -1508,6 +1508,9 @@
                                         <a href="{{ route('asset_mesin_spareparts_tambah') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_spareparts_tambah' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-plus"></i>Tambah Spareparts (Pembelian)</a>
+                                        <a href="{{ route('asset_mesin_spareparts_pengeluaran') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_spareparts_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-minus"></i>Pengeluaran Spareparts (Pembelian)</a>
                                     </div>
                                 </div>
                             </li>
