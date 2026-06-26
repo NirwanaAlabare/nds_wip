@@ -1019,8 +1019,8 @@ class CuttingFormPieceController extends Controller
 
                         // Update Scanned Item
                         ScannedItem::where("id_roll", $d->id_roll)->update([
-                            "qty" => DB::raw("qty + ".$d->qty_pemakaian),
-                            "qty_pakai" => DB::raw("qty_pakai - ".$d->qty_pemakaian),
+                            "qty" => DB::raw("qty + ".($d->qty_pemakaian ?? 0)),
+                            "qty_pakai" => DB::raw("qty_pakai - ".($d->qty_pemakaian ?? 0)),
                         ]);
                     }
 
