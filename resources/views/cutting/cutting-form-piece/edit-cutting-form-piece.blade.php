@@ -324,6 +324,10 @@
                         <div class="row row-gap-3">
                             <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
                             <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly>
+                            <div class="col-md-12">
+                                <label class="form-label">Tanggal Terima</label>
+                                <input type="date" class="form-control" id="tanggal_roll" name="tanggal_roll" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? ($currentCuttingPieceDetail->scannedItem->penerimaanCutting && $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first() ? $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first()->tanggal_terima : null) : null) : null }}" readonly>
+                            </div>
                             <div class="col-md-4">
                                 <label class="form-label">Group</label>
                                 <input type="text" class="form-control" id="group_roll" name="group_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->group_roll : null }}">
@@ -973,8 +977,8 @@
                     await switchMethod(document.getElementById("switch-method"), false);
                 }
 
+                document.getElementById("tanggal_roll").value = item.scanned_item && item.scanned_item.penerimaan_cutting && item.scanned_item.penerimaan_cutting[0] ? item.scanned_item.penerimaan_cutting[0]['tanggal_terima'] : "";
                 document.getElementById("group_roll").removeAttribute("readonly");
-
                 document.getElementById("kode_barang").value = item.id_roll ? item.id_roll : "";
                 document.getElementById("id_detail").value = item.id ? item.id : "";
                 document.getElementById("id_roll").value = item.id_roll ? item.id_roll : "";
@@ -1049,6 +1053,7 @@
 
                 // ✅ Value map from item
                 const valueMap = {
+                    tanggal_roll: item.scanned_item?.penerimaan_cutting[0]?.tanggal_terima,
                     id_detail: item.id,
                     group_roll: item.group_roll,
                     lot: item.lot,

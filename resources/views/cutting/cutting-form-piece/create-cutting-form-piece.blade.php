@@ -257,6 +257,12 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal Terima</label>
+                                <input type="date" class="form-control" name="tanggal_item" id="tanggal_item" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? ($currentCuttingPieceDetail->scannedItem->penerimaanCutting && $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first() ? $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first()->tanggal_terima : null) : null) : null }}" readonly>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">ID Item</label>
@@ -318,6 +324,10 @@
                         <div class="row row-gap-3">
                             <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
                             <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly>
+                            <div class="col-md-12">
+                                <label class="form-label">Tanggal Terima</label>
+                                <input type="date" class="form-control" id="tanggal_roll" name="tanggal_roll" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? ($currentCuttingPieceDetail->scannedItem->penerimaanCutting && $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first() ? $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first()->tanggal_terima : null) : null) : null }}" readonly>
+                            </div>
                             <div class="col-md-4">
                                 <label class="form-label">Group</label>
                                 <input type="text" class="form-control" id="group_roll" name="group_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->group_roll : null }}">
@@ -1134,6 +1144,7 @@
 
                                         currentScannedItem = res;
 
+                                        document.getElementById("tanggal_item").value = res.tanggal;
                                         document.getElementById("id_item").value = res.id_item;
                                         document.getElementById("detail_item").value = res.detail_item;
                                         document.getElementById("qty_item").value = res.qty;
@@ -1344,8 +1355,6 @@
                         dataType: "json",
                         success: async function (response) {
                             if (response && response.length > 0) {
-                                console.log("item", response);
-
                                 for (let i = 0; i < response.length; i++) {
                                     if (response[i].status == 'incomplete') {
                                         await setProcessThree(response[i]);
@@ -1393,6 +1402,7 @@
 
                 document.getElementById("group_roll").removeAttribute("readonly");
 
+                document.getElementById("tanggal_roll").value = item.scanned_item && item.scanned_item.penerimaan_cutting && item.scanned_item.penerimaan_cutting[0] ? item.scanned_item.penerimaan_cutting[0]['tanggal_terima'] : "";
                 document.getElementById("kode_barang").value = item.id_roll ? item.id_roll : "";
                 document.getElementById("id_detail").value = item.id ? item.id : "";
                 document.getElementById("id_roll").value = item.id_roll ? item.id_roll : "";
