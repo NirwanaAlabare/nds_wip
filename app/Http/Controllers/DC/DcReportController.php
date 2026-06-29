@@ -2576,10 +2576,20 @@ class DcReportController extends Controller
                             terima_repaired_secondary_luar != 0 OR
                             terima_good_secondary_luar != 0 OR
                             loading_qty != 0 OR
+                            kirim_secondary_dalam_before != 0 OR
+                            terima_repaired_secondary_dalam_before != 0 OR
+                            terima_good_secondary_dalam_before != 0 OR
+                            kirim_secondary_luar_before != 0 OR
+                            terima_repaired_secondary_luar_before != 0 OR
+                            terima_good_secondary_luar_before != 0 OR
                             current_saldo_akhir_adjustment != 0 OR
                             adjustment != 0 OR
                             switching_in != 0 OR
-                            switching_out != 0
+                            switching_out != 0 OR
+                            qty_adjustment_secondary_dalam_before != 0 OR
+                            qty_adjustment_secondary_dalam != 0 OR
+                            qty_adjustment_secondary_luar_before != 0 OR
+                            qty_adjustment_secondary_luar != 0
                         )
                 ),
 
@@ -5331,10 +5341,20 @@ class DcReportController extends Controller
                         terima_repaired_secondary_luar != 0 OR
                         terima_good_secondary_luar != 0 OR
                         loading_qty != 0 OR
+                        kirim_secondary_dalam_before != 0 OR
+                        terima_repaired_secondary_dalam_before != 0 OR
+                        terima_good_secondary_dalam_before != 0 OR
+                        kirim_secondary_luar_before != 0 OR
+                        terima_repaired_secondary_luar_before != 0 OR
+                        terima_good_secondary_luar_before != 0 OR
                         current_saldo_akhir_adjustment != 0 OR
                         adjustment != 0 OR
                         switching_in != 0 OR
-                        switching_out != 0
+                        switching_out != 0 OR
+                        qty_adjustment_secondary_dalam_before != 0 OR
+                        qty_adjustment_secondary_dalam != 0 OR
+                        qty_adjustment_secondary_luar_before != 0 OR
+                        qty_adjustment_secondary_luar != 0
                     )
             ),
 
