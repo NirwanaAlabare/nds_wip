@@ -82,6 +82,12 @@ class DokumenPabeanController extends Controller
             $data->groupBy("{$tbl}.{$fldno}")
                  ->orderBy("{$tbl}.{$fldtgl}", 'desc');
 
+            $currentUser = auth()->user();
+            $isAllowedRollback = $currentUser && (
+                in_array(strtolower($currentUser->username ?? ''), ['deti', 'admin']) ||
+                in_array(strtolower($currentUser->name ?? ''), ['deti', 'admin'])
+            );
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->editColumn('tanggal', function ($row) {
@@ -96,7 +102,7 @@ class DokumenPabeanController extends Controller
                 ->addColumn('pono', function ($row) use ($jenis) {
                     return $jenis == 'Pemasukan' ? ($row->pono ?? '-') : '-';
                 })
-                ->addColumn('action', function($row) use ($jenis) {
+                ->addColumn('action', function($row) use ($jenis, $isAllowedRollback) {
                     $noAju = $row->nomor_aju_ceisa ?? '';
                     $tglAju = ($row->tanggal_aju && $row->tanggal_aju != '0000-00-00') ? $row->tanggal_aju : '';
 
@@ -109,7 +115,7 @@ class DokumenPabeanController extends Controller
                         $editUrl = route('dokumen-pabean-edit', ['id' => $row->trx_no_par, 'trx' => $jenis]);
                     }
 
-                    if($row->jenis_dok == 'BC 2.7' && $jenis == 'Pemasukan') {
+                    if($row->jenis_dok == 'BC 2.7') {
                         $editUrl = route('dokumen-pabean-edit-bc27', ['id' => $row->trx_no_par]);
                     }
 
@@ -125,6 +131,9 @@ class DokumenPabeanController extends Controller
 
                     if($row->ceisa_status == 1) {
                         $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Status CEISA" data-noaju="' . $noAju . '" data-jenis_bc="' . $row->jenis_dok . '"><i class="fas fa-check"></i></button>';
+                        if ($isAllowedRollback) {
+                            $btn .= '<button type="button" class="btn btn-sm btn-warning mr-1 btn-rollback" title="Rollback Status CEISA" data-id="' . $row->trx_no_par . '" data-noaju="' . ($noAju ?: 'BELUM ADA') . '"><i class="fas fa-undo"></i></button>';
+                        }
                     } else {
                         $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim"
                             data-id="' . $row->trx_no_par . '"
@@ -133,10 +142,6 @@ class DokumenPabeanController extends Controller
                             data-jenis_bc="' . $row->jenis_dok . '"
                             title="Kirim ke CEISA"><i class="fas fa-paper-plane"></i></button>';
                     }
-
-                    // if(!empty($noAju)) {
-                    //     $btn .= '<button type="button" class="btn btn-sm btn-danger mr-1 btn-delete-draft" title="Hapus Draft CEISA" data-noaju="' . $noAju . '"><i class="fas fa-trash"></i></button>';
-                    // }
 
                     $btn .= '</div>';
 
@@ -457,7 +462,7 @@ class DokumenPabeanController extends Controller
             }
 
             $payload = [
-                "idPlatform"           => config('ceisa.id_platform_dev', ''),
+                "idPlatform"           => config('ceisa.id_platform_live', ''),
                 "asalData"             => "S",
                 "asuransi"             => (float) ($draft['asuransi'] ?? 0.00),
                 "bruto"                => max((float) ($draft['bruto'] ?? $header->berat_kotor ?? 0.00), (float) ($draft['netto'] ?? $header->berat_bersih ?? 0.00)),
@@ -832,14 +837,17 @@ class DokumenPabeanController extends Controller
                         ->orderBy('nomor_aju', 'desc')
                         ->first();
 
+        $localSeq = 0;
         if ($lastCeisa && $lastCeisa->nomor_aju && strlen($lastCeisa->nomor_aju) === 26) {
-            $lastNoAju = $lastCeisa->nomor_aju;
-            $lastSeq   = (int) substr($lastNoAju, -6);
-            $nextSeq   = str_pad($lastSeq + 1, 6, '0', STR_PAD_LEFT);
-            return $prefix . $today . $nextSeq;
+            $localSeq = (int) substr($lastCeisa->nomor_aju, -6);
         }
 
-        return $prefix . $today . '000001';
+        $ceisaSeq = $this->ceisaService->getLastSequenceFromCeisa($prefix . $currentYear, '40');
+
+        $maxSeq  = max($localSeq, $ceisaSeq);
+        $nextSeq = str_pad($maxSeq + 1, 6, '0', STR_PAD_LEFT);
+
+        return $prefix . $today . $nextSeq;
     }
 
     public function updateDraft($id, Request $request)
@@ -941,25 +949,140 @@ class DokumenPabeanController extends Controller
     {
         try {
 
-            $responseCeisa = $this->ceisaService->getStatusDraft($noAju);
+            $responseCeisa = $this->ceisaService->getStatus($noAju);
 
-            if ($responseCeisa && isset($responseCeisa['status']) && in_array(strtolower($responseCeisa['status']), ['ok', 'success'])) {
+            if ($responseCeisa['successful'] && isset($responseCeisa['body']['status']) && in_array(strtolower($responseCeisa['body']['status']), ['ok', 'success'])) {
                 return response()->json([
                     'status'         => 200,
                     'message'        => 'Status draft berhasil ditarik dari CEISA!',
-                    'ceisa_response' => $responseCeisa
+                    'ceisa_response' => $responseCeisa['body']
                 ]);
             } else {
                 return response()->json([
                     'status'         => 404,
-                    'message'        => 'Draft tidak ditemukan di server CEISA.',
-                    'ceisa_error'    => $responseCeisa
+                    'message'        => 'Draft/Respon tidak ditemukan di server CEISA.',
+                    'ceisa_error'    => $responseCeisa['body'] ?? 'Tidak ada respon dari CEISA'
                 ], 404);
             }
 
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 500,
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getResponData($noAju, Request $request)
+    {
+        try {
+            $jenisBcInput = $request->input('jenis_bc', 'BC 4.0');
+            $currentYear  = date('Y');
+            $today        = date('Ymd');
+            $prefix       = '000040NIW345';
+            $jenisBcCeisa = '40';
+
+            if ($jenisBcInput == 'BC 2.3') {
+                $prefix = '000023NIW345';
+                $jenisBcCeisa = '23';
+            } elseif ($jenisBcInput == 'BC 2.7') {
+                $prefix = '000027NIW345';
+                $jenisBcCeisa = '27';
+            } elseif ($jenisBcInput == 'BC 3.0') {
+                $prefix = '000030NIW779';
+                $jenisBcCeisa = '30';
+            } elseif ($jenisBcInput == 'BC 3.3') {
+                $prefix = '000033NIW779';
+                $jenisBcCeisa = '33';
+            } elseif ($jenisBcInput == 'BC 4.0') {
+                $prefix = '000040NIW345';
+                $jenisBcCeisa = '40';
+            }
+
+            $db = DB::connection('mysql_sb');
+            $query = $db->table('bpb_ceisa')->where('nomor_aju', 'like', $prefix . $currentYear . '%');
+            if ($jenisBcInput == 'BC 2.3') {
+                $query->where(function($q) { $q->where('jenis_bc', '2.3')->orWhere('jenis_bc', '23'); });
+            } elseif ($jenisBcInput == 'BC 2.7') {
+                $query->where(function($q) { $q->where('jenis_bc', '2.7')->orWhere('jenis_bc', '27'); });
+            } elseif ($jenisBcInput == 'BC 3.0') {
+                $query->where('jenis_bc', '3.0');
+            } elseif ($jenisBcInput == 'BC 3.3') {
+                $query->where('jenis_bc', '3.3');
+            }
+            $lastCeisa = $query->orderBy('nomor_aju', 'desc')->first();
+
+            $localSeq = 0;
+            $localLastNoAju = '-';
+            if ($lastCeisa && $lastCeisa->nomor_aju && strlen($lastCeisa->nomor_aju) === 26) {
+                $localLastNoAju = $lastCeisa->nomor_aju;
+                $localSeq = (int) substr($localLastNoAju, -6);
+            }
+
+            $ceisaSeq = $this->ceisaService->getLastSequenceFromCeisa($prefix . $currentYear, $jenisBcCeisa);
+
+            $maxSeq  = max($localSeq, $ceisaSeq);
+            $nextSeq = str_pad($maxSeq + 1, 6, '0', STR_PAD_LEFT);
+            $nextNoAju = $prefix . $today . $nextSeq;
+
+            $responseCeisa = $this->ceisaService->cekStatus();
+
+            return response()->json([
+                'status'         => 200,
+                'message'        => 'Data Last Sequence dan Respon berhasil ditarik!',
+                'sequence_info'  => [
+                    'jenis_bc'         => $jenisBcInput,
+                    'prefix'           => $prefix . $currentYear,
+                    'local_last_noaju' => $localLastNoAju,
+                    'local_seq'        => $localSeq,
+                    'ceisa_seq'        => $ceisaSeq,
+                    'max_seq'          => $maxSeq,
+                    'next_seq'         => $nextSeq,
+                    'next_noaju'       => $nextNoAju
+                ],
+                'ceisa_response' => $responseCeisa
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function rollbackStatus($id, Request $request)
+    {
+        try {
+            $currentUser = auth()->user();
+            $isAllowedRollback = $currentUser && (
+                in_array(strtolower($currentUser->username ?? ''), ['deti', 'admin']) ||
+                in_array(strtolower($currentUser->name ?? ''), ['deti', 'admin'])
+            );
+
+            if (!$isAllowedRollback) {
+                return response()->json([
+                    'status' => 403,
+                    'message' => 'Anda tidak memiliki akses untuk melakukan rollback status.'
+                ], 403);
+            }
+
+            $db = DB::connection('mysql_sb');
+            $db->table('bpb_ceisa')
+               ->where('bpbno', $id)
+               ->orWhere('bpbno_int', $id)
+               ->update([
+                   'status' => 0,
+                   'updated_at' => \Carbon\Carbon::now()
+               ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Status CEISA berhasil di-rollback. Anda sekarang dapat mengirim ulang dokumen ini.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
         }
@@ -1166,13 +1289,17 @@ class DokumenPabeanController extends Controller
                         ->orderBy('nomor_aju', 'desc')
                         ->first();
 
+        $localSeq = 0;
         if ($lastCeisa && $lastCeisa->nomor_aju && strlen($lastCeisa->nomor_aju) === 26) {
-            $lastSeq = (int) substr($lastCeisa->nomor_aju, -6);
-            $nextSeq = str_pad($lastSeq + 1, 6, '0', STR_PAD_LEFT);
-            return $prefix . $today . $nextSeq;
+            $localSeq = (int) substr($lastCeisa->nomor_aju, -6);
         }
 
-        return $prefix . $today . '000001';
+        $ceisaSeq = $this->ceisaService->getLastSequenceFromCeisa($prefix . $currentYear, '23');
+
+        $maxSeq  = max($localSeq, $ceisaSeq);
+        $nextSeq = str_pad($maxSeq + 1, 6, '0', STR_PAD_LEFT);
+
+        return $prefix . $today . $nextSeq;
     }
 
     public function updateDraftBc23($id, Request $request)
@@ -1260,9 +1387,11 @@ class DokumenPabeanController extends Controller
                     $brg['freight'] = (float) ($brg['freight'] ?? 0);
                     $brg['hargaSatuan'] = (float) ($brg['hargaSatuan'] ?? 0);
                     $brg['netto'] = (float) ($brg['netto'] ?? 0);
+                    $brg['bruto'] = (float) ($brg['bruto'] ?? $brg['netto'] ?? 0);
                     $brg['jumlahSatuan'] = (float) ($brg['jumlahSatuan'] ?? 0);
                     $brg['jumlahKemasan'] = (float) ($brg['jumlahKemasan'] ?? 0);
                     $brg['biayaTambahan'] = (float) ($brg['biayaTambahan'] ?? 0);
+                    $brg['nilaiBarang'] = (float) ($brg['nilaiBarang'] ?? $brg['cif'] ?? 0);
                     return $brg;
                 }, $request->input('barang', [])),
                 'bc11Nomor'         => $request->input('nomorBc11', ''),
@@ -1342,7 +1471,7 @@ class DokumenPabeanController extends Controller
                     }
                 }
             }
-            
+
             if ($transportDok) {
                 array_unshift($otherDoks, $transportDok);
             } else {
@@ -1403,7 +1532,7 @@ class DokumenPabeanController extends Controller
             $seriKem = 1;
             foreach (($draft['kemasan'] ?? []) as $k) {
                 $payloadKemasan[] = [
-                    "jumlahKemasan"    => (float) ($k['jumlahKemasan'] ?? 0),
+                    "jumlahKemasan"    => (int) ($k['jumlahKemasan'] ?? 0),
                     "kodeJenisKemasan" => $k['kodeJenisKemasan'] ?? "CT",
                     "merkKemasan"      => $k['merkKemasan'] ?? "-",
                     "seriKemasan"      => $seriKem++
@@ -1512,7 +1641,7 @@ class DokumenPabeanController extends Controller
                         ];
                     }
                 }
-                
+
                 // Add any other pungutan (CUKAI, PPNBM) if user inputted them, after the mandatory 3
                 foreach ($pungutanMap as $k => $v) {
                     if (!in_array($k, $orderedKeys)) {
@@ -1523,7 +1652,9 @@ class DokumenPabeanController extends Controller
                 $barangDokumen = [];
                 foreach (($brg['barangDokumen'] ?? []) as $bd) {
                     if (!empty($bd['seriDokumen'])) {
-                        $barangDokumen[] = ["seriDokumen" => $bd['seriDokumen']];
+                        $barangDokumen[] = [
+                            "seriDokumen" => (string) $bd['seriDokumen']
+                        ];
                     }
                 }
 
@@ -1546,13 +1677,13 @@ class DokumenPabeanController extends Controller
                     "kodeDokumen"       => "23",
                     "kodeJenisKemasan"  => $brg['kodeJenisKemasan'] ?? "",
                     "kodeKategoriBarang"=> $brg['kodeKategoriBarang'] ?? "",
-                    "kodeNegaraAsal"    => !empty($brg['kodeNegaraAsal']) ? $brg['kodeNegaraAsal'] : "ID",
+                    "kodeNegaraAsal"    => !empty($brg['kodeNegaraAsal']) ? $brg['kodeNegaraAsal'] : "",
                     "kodePerhitungan"   => $brg['kodePerhitungan'] ?? "0",
                     "kodeSatuanBarang"  => $brg['kodeSatuanBarang'] ?? "",
                     "merk"              => $brg['merk'] ?? "-",
-                    "ndpbm"             => (float) ($brg['ndpbm'] ?? 0),
+                    "ndpbm"             => (float) ($brg['ndpbm'] ?? $draft['ndpbm'] ?? 0),
                     "netto"             => (float) ($brg['netto'] ?? 0),
-                    "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? 0),
+                    "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? $brg['cif'] ?? 0),
                     "nilaiTambah"       => (float) ($brg['nilaiTambah'] ?? 0),
                     "posTarif"          => $brg['posTarif'] ?? "",
                     "seriBarang"        => (int) ($brg['seriBarang'] ?? ($index + 1)),
@@ -1580,28 +1711,28 @@ class DokumenPabeanController extends Controller
                     "seriEntitas"        => 1,
                 ],
                 [
-                    "alamatEntitas" => $entitasDraft[9]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
-                    "kodeEntitas"   => "5",
-                    "kodeNegara"    => $entitasDraft[9]['kodeNegara'] ?? "ID",
-                    "namaEntitas"   => $entitasDraft[9]['namaEntitas'] ?? $header->supplier ?? "",
-                    "seriEntitas"   => 2,
+                    "alamatEntitas"      => $entitasDraft[5]['alamatEntitas'] ?? $entitasDraft[9]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
+                    "kodeEntitas"        => "5",
+                    "kodeNegara"         => $entitasDraft[5]['kodeNegara'] ?? $entitasDraft[9]['kodeNegara'] ?? "",
+                    "namaEntitas"        => $entitasDraft[5]['namaEntitas'] ?? $entitasDraft[9]['namaEntitas'] ?? $header->supplier ?? "",
+                    "seriEntitas"        => 3,
                 ],
                 [
                     "alamatEntitas"      => $entitasDraft[7]['alamatEntitas'] ?? "",
                     "kodeEntitas"        => "7",
-                    "kodeJenisApi"       => $entitasDraft[7]['kodeJenisApi'] ?? "",
+                    "kodeJenisApi"       => "",
                     "kodeJenisIdentitas" => $entitasDraft[7]['kodeJenisIdentitas'] ?? "5",
                     "kodeStatus"         => $entitasDraft[7]['kodeStatus'] ?? "5",
                     "namaEntitas"        => $entitasDraft[7]['namaEntitas'] ?? "",
                     "nomorIdentitas"     => $entitasDraft[7]['nomorIdentitas'] ?? "",
                     "nomorIjinEntitas"   => $entitasDraft[7]['nomorIjinEntitas'] ?? "",
                     "tanggalIjinEntitas" => $entitasDraft[7]['tanggalIjinEntitas'] ?? "",
-                    "seriEntitas"        => 3,
+                    "seriEntitas"        => 7,
                 ],
             ];
 
             $payload = [
-                "idPlatform"       => config('ceisa.id_platform_dev', ''),
+                "idPlatform"       => config('ceisa.id_platform_live', ''),
                 "asalData"         => "S",
                 "asuransi"         => $totalAsuransi > 0 ? $totalAsuransi : (float) ($draft['asuransi'] ?? 0),
                 "biayaPengurang"   => (float) ($draft['biayaPengurang'] ?? 0),
@@ -1637,7 +1768,6 @@ class DokumenPabeanController extends Controller
                 "posBc11"          => $draft['posBc11'] ?? "",
                 "seri"             => (int) ($draft['seri'] ?? 0),
                 "subposBc11"       => $draft['subposBc11'] ?? "",
-                "subsubposBc11"    => $draft['subsubposBc11'] ?? "",
                 "tanggalBc11"      => $draft['tanggalBc11'] ?? "",
                 "tanggalTiba"      => $draft['tanggalTiba'] ?? "",
                 "tanggalTtd"       => $draft['tanggalTtd'] ?? date('Y-m-d'),
@@ -1652,11 +1782,6 @@ class DokumenPabeanController extends Controller
                 ]],
                 "kontainer"        => $payloadKontainer,
                 "kemasan"          => $payloadKemasan,
-                "pungutan"         => [[
-                    "kodeFasilitasTarif" => "3",
-                    "kodeJenisPungutan"  => $draft['pungutan']['jenis'] ?? "",
-                    "nilaiPungutan"      => (float) ($draft['pungutan']['nilai'] ?? 0)
-                ]],
                 "barang"           => $arrayBarang,
             ];
 
@@ -1668,8 +1793,11 @@ class DokumenPabeanController extends Controller
             if (empty($payload['tanggalTiba'])) $payload['tanggalTiba'] = date('Y-m-d');
 
             foreach ($payload['entitas'] as &$ent) {
-                if (empty($ent['tanggalIjinEntitas'])) {
+                if ($ent['kodeEntitas'] === '3' && empty($ent['tanggalIjinEntitas'])) {
                     $ent['tanggalIjinEntitas'] = date('Y-m-d');
+                }
+                if ($ent['kodeEntitas'] === '7' && (empty($ent['nomorIjinEntitas']) || $ent['nomorIjinEntitas'] === 'nomor_ijin_entitas')) {
+                    unset($ent['nomorIjinEntitas'], $ent['tanggalIjinEntitas']);
                 }
             }
             unset($ent);
