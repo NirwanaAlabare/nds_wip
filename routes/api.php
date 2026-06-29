@@ -8,6 +8,7 @@ use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\DashboardWipLineController;
 use App\Http\Controllers\InMaterialController;
 use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\api_asset_mesinController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -26,6 +27,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // User API
 Route::get('user/get-api', [UserController::class, 'getApi']);
 Route::post('user/store-api', [UserController::class, 'storeApi']);
+Route::post('user/login-api', [UserController::class, 'loginApi']);
 
 // DASHBOARD WIP LINE
 Route::controller(DashboardWipLineController::class)->prefix("trigger-wip-line")->group(function () {
@@ -70,4 +72,12 @@ Route::controller(OutMaterialController::class)->prefix("mutasi-item-fabric")->g
 //mutasi item Fabric
 Route::controller(OutMaterialController::class)->prefix("mutasi-fabric-subcont")->group(function () {
     Route::post('mutasi-material/mutasi-fabric-subcont', 'mutasi_fabric_subcont');
+});
+
+
+// Master Asset Management Lokasi
+Route::controller(api_asset_mesinController::class)->group(function () {
+    Route::get('/asset_master_lokasi', 'asset_master_lokasi_api');
+    Route::get('/asset_mekanik_cek_qr', 'asset_mekanik_cek_qr_api');
+    Route::post('/asset_mekanik_insert_ticket', 'asset_mekanik_insert_ticket_api');
 });
