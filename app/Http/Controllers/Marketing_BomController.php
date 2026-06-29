@@ -125,7 +125,6 @@ class Marketing_BomController extends Controller
         $costings = $costings->orderBy('id', 'desc')->get();
 
          $shell = $mysql_sb->table('masterpanel')
-                ->where('nama_panel', 'LIKE', 'shell' . '%')
                 ->orderBy('id', 'desc')
                 ->get();
 
@@ -425,7 +424,6 @@ class Marketing_BomController extends Controller
                                 'unit'              => $request->unit,
                                 'notes'             => $request->notes,
                                 'shell'             => $request->shell,
-                                'panel'             => $request->panel,
                                 'id_color'          => $cId,
                                 'id_size'           => $sId,
                                 'id_item'           => $id_item_val,
@@ -504,9 +502,6 @@ class Marketing_BomController extends Controller
                 })
                 ->filterColumn('nama_panel', function($query, $keyword) {
                     $query->whereRaw("mp.nama_panel like ?", ["%{$keyword}%"]);
-                })
-                ->filterColumn('panel', function($query, $keyword) {
-                    $query->whereRaw("d.panel like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('currency', function($query, $keyword) {
                     $query->whereRaw("cur.nama_pilihan like ?", ["%{$keyword}%"]);
@@ -589,7 +584,6 @@ class Marketing_BomController extends Controller
                 'price'    => $request->price,
                 'unit'     => $request->unit,
                 'shell'    => $request->shell,
-                'panel'    => $request->panel,
                 'id_currency'  => $request->id_currency,
             ]);
 
