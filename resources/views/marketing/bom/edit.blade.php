@@ -179,6 +179,18 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label><small class="fw-bold">Panel</small></label>
+                        <select name="panel" id="panel" class="form-control select2bs4">
+                            <option value="">Pilih Panel</option>
+                            <option value="ITEM BODY">ITEM BODY</option>
+                            <option value="ITEM COLLAR">ITEM COLLAR</option>
+                            <option value="ITEM LINNING">ITEM LINNING</option>
+                            <option value="ITEM PIPING">ITEM PIPING</option>
+                            <option value="ITEM RIB">ITEM RIB</option>
+                            <option value="ITEM CUFF">ITEM CUFF</option>
+                        </select>
+                    </div>
                     <div class="form-group hidden">
                         <label><small class="fw-bold">Currency</small></label>
                         <select name="currency" id="currency" class="form-control select2bs ">
@@ -309,6 +321,7 @@
                         <th width="5%">Cons</th>
                         <th width="10%">Unit</th>
                         <th width="5%">Shell</th>
+                        <th width="8%">Panel</th>
                         <th width="10%">Action</th>
                     </tr>
                     <tr class="filter-row">
@@ -323,6 +336,7 @@
                         <th></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="9"></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="10"></th>
+                        <th><input type="text" class="form-control form-control-sm column-search" data-column="11"></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -440,6 +454,18 @@
                                 @foreach ($shell as $data)
                                     <option value="{{ $data->id }}">{{ $data->nama_panel }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                           <label><small class="fw-bold">Panel</small></label>
+                            <select name="panel" id="edit_panel" class="form-control select2bs4-edit">
+                                <option value="">Pilih Panel</option>
+                                <option value="ITEM BODY">ITEM BODY</option>
+                                <option value="ITEM COLLAR">ITEM COLLAR</option>
+                                <option value="ITEM LINNING">ITEM LINNING</option>
+                                <option value="ITEM PIPING">ITEM PIPING</option>
+                                <option value="ITEM RIB">ITEM RIB</option>
+                                <option value="ITEM CUFF">ITEM CUFF</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -1065,7 +1091,7 @@
                         if (res.status == 200) {
                             Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
 
-                            $('#item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
+                            $('#item_contents, #rule_bom, #unit, #shell, #panel, select[name="id_supplier"]').val('').trigger('change');
                             $(form).find('textarea[name="notes"]').val('');
                             $("#itemTable tbody").empty();
                             $('#batch-fill-section').hide();
@@ -1135,6 +1161,7 @@
                 },
                 { data: 'unit', name: 'unit', className: 'text-center' },
                 { data: 'nama_panel', name: 'nama_panel', className: 'text-center' },
+                { data: 'panel', name: 'panel', className: 'text-center', render: data => data ? data : '-' },
                 {
                     data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',
                     render: data => `
@@ -1201,6 +1228,7 @@
         $('#edit_id_currency').val(edit_data.id_currency);
         $('#edit_unit').val(edit_data.unit);
         $('#edit_shell').val(edit_data.shell);
+        $('#edit_panel').val(edit_data.panel);
 
         $('.select2bs4-edit').select2({
             theme: 'bootstrap4',
@@ -1213,6 +1241,7 @@
         $('#edit_id_size').val(edit_data.id_size).trigger('change.select2');
         $('#edit_unit').val(edit_data.unit).trigger('change.select2');
         $('#edit_shell').val(edit_data.shell).trigger('change.select2');
+        $('#edit_panel').val(edit_data.panel).trigger('change.select2');
         $('#edit_id_currency').val(edit_data.id_currency).trigger('change.select2');
     });
 
