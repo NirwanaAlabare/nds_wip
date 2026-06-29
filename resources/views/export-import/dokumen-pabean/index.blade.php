@@ -274,6 +274,14 @@
              actionUrl = '{{ route("dokumen-pabean-send-bc30", ":id") }}';
         }
 
+        if(jenisBc === 'BC 2.7') {
+             actionUrl = '{{ route("dokumen-pabean-send-bc27", ":id") }}';
+        }
+
+        if(jenisBc === 'BC 3.3') {
+             actionUrl = '{{ route("dokumen-pabean-send-bc33", ":id") }}';
+        }
+
         actionUrl = actionUrl.replace(':id', trxNo);
 
         Swal.fire({
@@ -502,6 +510,53 @@
             error: function(xhr) {
                 let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
                 showErrorSwal(res);
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-rollback', function() {
+        let trxNo = $(this).data('id');
+        let noAju = $(this).data('noaju');
+        let actionUrl = '{{ route("dokumen-pabean-rollback", ":id") }}';
+        actionUrl = actionUrl.replace(':id', trxNo);
+
+        Swal.fire({
+            title: 'Rollback Status CEISA?',
+            text: "Status pengiriman dokumen " + trxNo + " (No. Aju: " + noAju + ") akan di-reset sehingga Anda dapat melakukan pengiriman ulang ke CEISA.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f0ad4e',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-undo"></i> Ya, Rollback!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Rollback...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                            refreshTable();
+                        } else {
+                            showErrorSwal(res);
+                        }
+                    },
+                    error: function(xhr) {
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
+                    }
+                });
             }
         });
     });

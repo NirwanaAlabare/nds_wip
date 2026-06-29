@@ -125,7 +125,6 @@ class Marketing_BomController extends Controller
         $costings = $costings->orderBy('id', 'desc')->get();
 
          $shell = $mysql_sb->table('masterpanel')
-                ->where('nama_panel', 'LIKE', 'shell' . '%')
                 ->orderBy('id', 'desc')
                 ->get();
 

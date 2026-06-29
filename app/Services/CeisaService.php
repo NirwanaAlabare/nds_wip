@@ -38,10 +38,7 @@ class CeisaService
         return $this;
     }
 
-    /**
-     * Wajibkan penggunaan kredensial milik User yang login (Option A).
-     * Jika tidak ada, lempar Exception.
-     */
+
     public function useUserCredential()
     {
         if (!auth()->check()) {
@@ -64,10 +61,6 @@ class CeisaService
         return $this;
     }
 
-    /**
-     * Deteksi otomatis environment berdasarkan kodeDokumen di dalam payload.
-     * BC 2.3 ('23') dan BC 4.0 ('40') dialihkan ke live, sisanya ke dev.
-     */
     protected function detectEnv($payload)
     {
         $kodeDokumen = null;
@@ -90,9 +83,6 @@ class CeisaService
         }
     }
 
-    /**
-     * Dapatkan token, opsional untuk memaksa refresh token baru.
-     */
     public function getToken($forceRefresh = false)
     {
         $cacheKey = "ceisa_access_token_{$this->currentEnv}";
@@ -129,8 +119,6 @@ class CeisaService
         $timeout = (strtoupper($method) === 'GET') ? 3 : 15;
         $request = Http::timeout($timeout)->withoutVerifying()->withHeaders($headers);
 
-        // GET: $data dikirim sebagai query string
-        // POST/PUT/PATCH: $data dikirim sebagai JSON body
         if (strtoupper($method) === 'GET') {
             $response = $request->get($url, $data);
         } else {
@@ -158,6 +146,7 @@ class CeisaService
      */
     public function cekStatus()
     {
+        $this->useUserCredential();
         $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/status", [
             'idPerusahaan' => $this->idPerusahaan
         ]);
@@ -183,6 +172,10 @@ class CeisaService
         $this->useUserCredential();
         $this->setEnv('live');
 
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
         $response = $this->requestWithRetry(
             'POST',
             "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
@@ -199,9 +192,6 @@ class CeisaService
     public function getStatusDraft($noAju)
     {
         try {
-            // Karena getStatusDraft tidak memiliki payload kodeDokumen,
-            // environment akan menggunakan env terakhir yang di set
-            // (bisa di set manual dengan $ceisaService->setEnv('live')->getStatusDraft(...))
             $response = $this->requestWithRetry(
                 'GET',
                 "{$this->baseUrl}/openapi/status/{$noAju}"
@@ -225,7 +215,7 @@ class CeisaService
     public function kirimDokumenBc23($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('live');
+        $this->setEnv('dev');
 
         $response = $this->requestWithRetry(
             'POST',
@@ -327,5 +317,109 @@ class CeisaService
         );
 
         return $response->json();
+    }
+
+    function getTps($kata)
+    {
+        // Jika input berupa 6 digit angka (kode kantor pabean, misal 050500 untuk Bandung),
+        // gunakan endpoint /openapi/tps/{kodeKantor}
+        if (is_numeric($kata) && strlen($kata) === 6) {
+            $url = "{$this->baseUrl}/openapi/tps/{$kata}";
+        } else {
+            $url = "{$this->baseUrl}/openapi/tps/kata/{$kata}";
+        }
+
+        $response = $this->requestWithRetry(
+            'GET',
+            $url
+        );
+
+        return $response->json();
+    }
+
+    /**
+     * Tarik detail lengkap dokumen dari CEISA berdasarkan jenis dokumen dan nomor aju.
+     * Sangat berguna untuk sinkronisasi data dari Portal CEISA ke lokal (mengatasi tabrakan no aju).
+     * Contoh jenisDokumen: '27', '23', '30', '33'
+     */
+    public function getDocumentDetail($jenisDokumen, $nomorAju)
+    {
+        $this->useUserCredential();
+
+        if (in_array((string)$jenisDokumen, ['23', '40'])) {
+            $this->setEnv('live');
+        } else {
+            $this->setEnv('dev');
+        }
+
+        $response = $this->requestWithRetry(
+            'GET',
+            "{$this->baseUrl}/openapi/document/detail/{$jenisDokumen}/{$nomorAju}"
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    /**
+     * Tarik riwayat status dan respon dokumen dari CEISA berdasarkan nomor aju.
+     */
+    public function getStatus($nomorAju)
+    {
+        $this->useUserCredential();
+
+        $response = $this->requestWithRetry(
+            'GET',
+            "{$this->baseUrl}/openapi/status/{$nomorAju}"
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    /**
+     * Mengambil sequence terakhir (6 digit) dari server CEISA berdasarkan prefix Nomor Aju.
+     * Mencegah tabrakan nomor aju antara lokal dan portal CEISA.
+     */
+    public function getLastSequenceFromCeisa($prefix, $jenisBc)
+    {
+        try {
+            $this->useUserCredential();
+            if (in_array((string)$jenisBc, ['23', '40', '2.3', '4.0'])) {
+                $this->setEnv('live');
+            } else {
+                $this->setEnv('dev');
+            }
+
+            $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/status", [
+                'idPerusahaan' => $this->idPerusahaan
+            ]);
+
+            $body = $response->json();
+            $maxSeq = 0;
+
+            if (isset($body['dataStatus']) && is_array($body['dataStatus'])) {
+                foreach ($body['dataStatus'] as $item) {
+                    $noAju = $item['nomorAju'] ?? '';
+                    if (str_starts_with($noAju, $prefix) && strlen($noAju) === 26) {
+                        $seq = (int) substr($noAju, -6);
+                        if ($seq > $maxSeq) {
+                            $maxSeq = $seq;
+                        }
+                    }
+                }
+            }
+
+            return $maxSeq;
+        } catch (\Exception $e) {
+            Log::error("Error getLastSequenceFromCeisa: " . $e->getMessage());
+            return 0;
+        }
     }
 }

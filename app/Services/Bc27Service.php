@@ -16,7 +16,7 @@ class Bc27Service
         $this->ceisaService = $ceisaService;
     }
 
-public function edit($id, Request $request)
+        public function edit($id, Request $request)
     {
         $db = DB::connection('mysql_sb');
 
@@ -28,6 +28,17 @@ public function edit($id, Request $request)
                 $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
             })
             ->first();
+
+        if (!$header) {
+            $header = $db->table('bppb as a')
+                ->select('a.*', 'a.bppbno as bpbno', 'a.bppbno_int as bpbno_int', 'a.bppbdate as bpbdate', 'ms.supplier', 'ms.alamat as alamat_supplier', 'ms.npwp as npwp_supplier',
+                         DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trx_no_par"))
+                ->leftJoin('mastersupplier as ms', 'a.id_supplier', '=', 'ms.id_supplier')
+                ->where(function($query) use ($id) {
+                    $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+                })
+                ->first();
+        }
 
         if (!$header) abort(404, 'Data Transaksi Tidak Ditemukan');
 
@@ -42,6 +53,16 @@ public function edit($id, Request $request)
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
                 })
                 ->get();
+
+        if ($items->isEmpty()) {
+            $items = $db->table('bppb as a')
+                ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+                ->select('a.*', 'a.bppbno as bpbno', 'a.bppbno_int as bpbno_int', 'a.bppbdate as bpbdate', 'mi.goods_code', 'mi.itemdesc')
+                ->where(function($query) use ($id) {
+                    $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+                })
+                ->get();
+        }
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
 
@@ -73,13 +94,17 @@ public function edit($id, Request $request)
                         ->orderBy('nomor_aju', 'desc')
                         ->first();
 
+        $localSeq = 0;
         if ($lastCeisa && $lastCeisa->nomor_aju && strlen($lastCeisa->nomor_aju) === 26) {
-            $lastSeq = (int) substr($lastCeisa->nomor_aju, -6);
-            $nextSeq = str_pad($lastSeq + 1, 6, '0', STR_PAD_LEFT);
-            return $prefix . $today . $nextSeq;
+            $localSeq = (int) substr($lastCeisa->nomor_aju, -6);
         }
 
-        return $prefix . $today . '000001';
+        $ceisaSeq = $this->ceisaService->getLastSequenceFromCeisa($prefix . $currentYear, '27');
+
+        $maxSeq  = max($localSeq, $ceisaSeq);
+        $nextSeq = str_pad($maxSeq + 1, 6, '0', STR_PAD_LEFT);
+
+        return $prefix . $today . $nextSeq;
     }
 
     public function updateDraft($id, Request $request)
@@ -117,9 +142,12 @@ public function edit($id, Request $request)
 
             $payloadJson = [
                 'kodeKantor'         => $request->input('kodeKantor', '050500'),
-                'jenisTpb'          => $request->input('jenisTPB', '1'),
+                'kodeKantorTujuan'   => $request->input('kodeKantorTujuan', ''),
+                'jenisTpb'           => $request->input('jenisTPB', '1'),
+                'jenisTpbTujuan'     => $request->input('jenisTpbTujuan', ''),
                 'kodeKantorBongkar'  => $request->input('kodeKantorBongkar', ''),
                 'kodeTujuanTpb'      => $request->input('kodeTujuanTpb', ''),
+                'kodeTujuanPengiriman' => $request->input('kodeTujuanPengiriman', '1'),
                 'kodeTutupPu'        => $request->input('kodeTutupPu', ''),
                 'bruto'              => (float) $request->input('bruto', 0),
                 'netto'              => (float) $request->input('netto', 0),
@@ -134,6 +162,16 @@ public function edit($id, Request $request)
                 'kodeKenaPajak'      => $request->input('kodeKenaPajak', '1'),
                 'ndpbm'              => (float) $request->input('ndpbm', 0) <= 0 && $request->input('kodeValuta', 'IDR') === 'IDR' ? 1 : (float) $request->input('ndpbm', 0),
                 'nilaiBarang'        => (float) $request->input('nilaiBarang', 0),
+                'nilaiJasa'          => (float) $request->input('nilaiJasa', 0),
+                'nilaiUangMuka'      => (float) $request->input('nilaiUangMuka', $request->input('uangMuka', 0)),
+                'uangMuka'           => (float) $request->input('nilaiUangMuka', $request->input('uangMuka', 0)),
+                'diskon'             => (float) $request->input('diskon', 0),
+                'dasarPengenaanPajak'=> (float) $request->input('dasarPengenaanPajak', 0),
+                'nilaiPabean'        => (float) $request->input('nilaiPabean', 0),
+                'tarifPPN'           => (float) $request->input('tarifPPN', 0),
+                'nilaiPPN'           => (float) $request->input('nilaiPPN', 0),
+                'tarifPPnBM'         => (float) $request->input('tarifPPnBM', 0),
+                'nilaiPPnBM'         => (float) $request->input('nilaiPPnBM', 0),
                 'kodeIncoterm'       => $request->input('kodeIncoterm', ''),
                 'kodeValuta'         => $request->input('kodeValuta', 'IDR'),
                 'kodePelMuat'        => $request->input('kodePelMuat', ''),
@@ -175,6 +213,11 @@ public function edit($id, Request $request)
                     $brg['jumlahSatuan'] = (float) ($brg['jumlahSatuan'] ?? 0);
                     $brg['jumlahKemasan'] = (float) ($brg['jumlahKemasan'] ?? 0);
                     $brg['biayaTambahan'] = (float) ($brg['biayaTambahan'] ?? 0);
+                    $brg['hargaPenyerahan'] = (float) ($brg['hargaPenyerahan'] ?? 0);
+                    $brg['hargaPabrikasi'] = (float) ($brg['hargaPabrikasi'] ?? 0);
+                    $brg['nilaiPenggantian'] = (float) ($brg['nilaiPenggantian'] ?? 0);
+                    $brg['kategoriBarang'] = $brg['kategoriBarang'] ?? $brg['kodeKategoriBarang'] ?? '';
+                    $brg['kodeKategoriBarang'] = $brg['kategoriBarang'];
                     return $brg;
                 }, $request->input('barang', [])),
                 'bc11Nomor'         => $request->input('nomorBc11', ''),
@@ -224,6 +267,15 @@ public function edit($id, Request $request)
                 })
                 ->first();
 
+            if (!$header) {
+                $header = $db->table('bppb as a')
+                    ->join('mastersupplier as ms', 'a.id_supplier', '=', 'ms.id_supplier')
+                    ->where(function($query) use ($id) {
+                        $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+                    })
+                    ->first();
+            }
+
             if (!$header) throw new \Exception("Data transaksi tidak ditemukan!");
 
             $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
@@ -238,6 +290,7 @@ public function edit($id, Request $request)
             foreach (($draft['dok'] ?? []) as $d) {
                 if (!empty($d['kode']) && !empty($d['nomor'])) {
                     $payloadDokumen[] = [
+                        "idDokumen"      => !empty($d['idDokumen']) ? strval($d['idDokumen']) : "",
                         "kodeDokumen"    => trim(explode(' - ', $d['kode'])[0]),
                         "nomorDokumen"   => $d['nomor'],
                         "seriDokumen"    => $seriDok++,
@@ -253,23 +306,32 @@ public function edit($id, Request $request)
                 $kodeStr = trim($kodeStr);
 
                 if ($kodeStr === '380') $hasInvoice = true;
-                if (in_array($kodeStr, ['705', '740', '704', '741'])) $hasTransport = true;
+                if (in_array($kodeStr, ['705', '740', '704', '741', '640'])) $hasTransport = true;
             }
 
             if (!$hasInvoice || !$hasTransport) {
-                throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740). Silakan tambahkan di tab Dokumen Pendukung.");
+                throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L / AWB / Delivery Order (705/740/640). Silakan tambahkan di tab Dokumen Pendukung.");
             }
 
             $payloadKontainer = [];
             $seriKont = 1;
             foreach (($draft['kontainer'] ?? []) as $k) {
                 if (!empty($k['nomorKontainer'])) {
+                    $jenisKont = strval($k['kodeJenisKontainer'] ?? '');
+                    if (!in_array($jenisKont, ["4", "7", "8"])) $jenisKont = "4";
+
+                    $tipeKont = strval($k['kodeTipeKontainer'] ?? '');
+                    if (!in_array($tipeKont, ["1", "2", "3", "4", "5", "6", "7", "8", "99"])) $tipeKont = "1";
+
+                    $ukuranKont = strval($k['kodeUkuranKontainer'] ?? '');
+                    if (!in_array($ukuranKont, ["20", "40", "45", "60"])) $ukuranKont = "20";
+
                     $payloadKontainer[] = [
-                        "kodeJenisKontainer"  => $k['kodeJenisKontainer'],
-                        "kodeTipeKontainer"   => $k['kodeTipeKontainer'],
-                        "kodeUkuranKontainer" => $k['kodeUkuranKontainer'],
+                        "seriKontainer"       => $seriKont++,
                         "nomorKontainer"      => strtoupper(trim($k['nomorKontainer'])),
-                        "seriKontainer"       => $seriKont++
+                        "kodeUkuranKontainer" => $ukuranKont,
+                        "kodeJenisKontainer"  => $jenisKont,
+                        "kodeTipeKontainer"   => $tipeKont
                     ];
                 }
             }
@@ -278,9 +340,9 @@ public function edit($id, Request $request)
             $seriKem = 1;
             foreach (($draft['kemasan'] ?? []) as $k) {
                 $payloadKemasan[] = [
-                    "jumlahKemasan"    => (float) ($k['jumlahKemasan'] ?? 0),
-                    "kodeJenisKemasan" => $k['kodeJenisKemasan'] ?? "CT",
-                    "merkKemasan"      => $k['merkKemasan'] ?? "-",
+                    "jumlahKemasan"    => (int) ($k['jumlahKemasan'] ?? 0),
+                    "kodeJenisKemasan" => !empty($k['kodeJenisKemasan']) ? strval($k['kodeJenisKemasan']) : "CT",
+                    "merkKemasan"      => !empty($k['merkKemasan']) ? strval($k['merkKemasan']) : "-",
                     "seriKemasan"      => $seriKem++
                 ];
             }
@@ -321,173 +383,213 @@ public function edit($id, Request $request)
                 $totalAsuransi += (float) ($brg['asuransi'] ?? 0);
                 $totalDiskon += (float) ($brg['diskon'] ?? 0);
 
-                $barangTarif = [];
-                if (!empty($brg['barangTarif']) && is_array($brg['barangTarif'])) {
-                    foreach ($brg['barangTarif'] as $tarif) {
-                            $kodeJenisPungutan = !empty($tarif['kodeJenisPungutan']) ? $tarif['kodeJenisPungutan'] : "BM";
-                            $kodeFasilitasTarif = !empty($tarif['kodeFasilitasTarif']) ? $tarif['kodeFasilitasTarif'] : "3";
-                            $tarifPersen = (float) ($tarif['tarif'] ?? 0);
-                            $tarifFasilitas = (float) ($tarif['tarifFasilitas'] ?? ($kodeFasilitasTarif == '1' ? 0 : 100));
+                $bahanBakuList = [];
+                if (!empty($brg['bahanBaku']) && is_array($brg['bahanBaku'])) {
+                    foreach ($brg['bahanBaku'] as $bbIndex => $bb) {
+                        $bbTarif = [];
+                        if (!empty($bb['bahanBakuTarif']) && is_array($bb['bahanBakuTarif'])) {
+                            foreach ($bb['bahanBakuTarif'] as $bbt) {
+                                $asalBb = strval($bbt['kodeAsalBahanBaku'] ?? "0");
+                                if (!in_array($asalBb, ["0", "1"])) $asalBb = "0";
 
-                            $cifRupiah = (float)($brg['cif'] ?? 0) * (float)($brg['ndpbm'] ?? 0);
-                            $bmAmount = $cifRupiah * ($kodeJenisPungutan == 'BM' ? $tarifPersen / 100 : 0);
-                            $nilaiDasar = ($kodeJenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + ($cifRupiah * 0.1));
-                            $taxAmount = $nilaiDasar * ($tarifPersen / 100);
+                                $jenisTarif = strval($bbt['kodeJenisTarif'] ?? "1");
+                                if (!in_array($jenisTarif, ["1", "2"])) $jenisTarif = "1";
 
-                            $nilaiFasilitas = 0;
-                            $nilaiBayar = 0;
-                            if ($kodeFasilitasTarif == '1') {
-                                $nilaiBayar = $taxAmount;
-                            } else {
-                                $nilaiFasilitas = $taxAmount * ($tarifFasilitas / 100);
-                                $nilaiBayar = $taxAmount - $nilaiFasilitas;
+                                $bbTarif[] = [
+                                    "seriBahanBaku"      => (int) ($bbt['seriBahanBaku'] ?? ($bbIndex + 1)),
+                                    "kodeJenisPungutan"  => strval($bbt['kodeJenisPungutan'] ?? "BM"),
+                                    "kodeAsalBahanBaku"  => $asalBb,
+                                    "kodeFasilitasTarif" => strval($bbt['kodeFasilitasTarif'] ?? "3"),
+                                    "nilaiBayar"         => (float) ($bbt['nilaiBayar'] ?? 0),
+                                    "nilaiFasilitas"     => (float) ($bbt['nilaiFasilitas'] ?? 0),
+                                    "nilaiSudahDilunasi" => (float) ($bbt['nilaiSudahDilunasi'] ?? 0),
+                                    "tarif"              => (float) ($bbt['tarif'] ?? 0),
+                                    "tarifFasilitas"     => (float) ($bbt['tarifFasilitas'] ?? 100),
+                                    "jumlahSatuan"       => (float) ($bbt['jumlahSatuan'] ?? $bb['jumlahSatuan'] ?? 0),
+                                    "kodeJenisTarif"     => $jenisTarif,
+                                    "jumlahKemasan"      => (int) ($bbt['jumlahKemasan'] ?? 0),
+                                ];
                             }
-
-                            $kodeJenisTarif = !empty($tarif['kodeJenisTarif']) ? $tarif['kodeJenisTarif'] : "1";
-
-                            $finalNilaiBayar = (float) ($tarif['nilaiBayar'] ?? 0) > 0 ? (float) ($tarif['nilaiBayar'] ?? 0) : round($nilaiBayar);
-                            $finalNilaiFasilitas = (float) ($tarif['nilaiFasilitas'] ?? 0) > 0 ? (float) ($tarif['nilaiFasilitas'] ?? 0) : round($nilaiFasilitas);
-
-                            $barangTarif[] = [
-                                "kodeJenisTarif"     => $kodeJenisTarif,
-                                "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
-                                "kodeFasilitasTarif" => $kodeFasilitasTarif,
-                                "kodeSatuanBarang"   => !empty($tarif['kodeSatuanBarang']) ? $tarif['kodeSatuanBarang'] : (!empty($brg['kodeSatuanBarang']) ? $brg['kodeSatuanBarang'] : ""),
-                                "kodeJenisPungutan"  => $kodeJenisPungutan,
-                                "nilaiBayar"         => $finalNilaiBayar,
-                                "nilaiFasilitas"     => $finalNilaiFasilitas,
-                                "nilaiSudahDilunasi" => (float) ($tarif['nilaiSudahDilunasi'] ?? 0),
-                                "seriBarang"         => (int) ($brg['seriBarang'] ?? ($index + 1)),
-                                "tarif"              => $tarifPersen,
-                                "tarifFasilitas"     => $tarifFasilitas,
+                        }
+                        if (empty($bbTarif)) {
+                            $bbTarif[] = [
+                                "seriBahanBaku"      => (int) ($bbIndex + 1),
+                                "kodeJenisPungutan"  => "BM",
+                                "kodeAsalBahanBaku"  => "0",
+                                "kodeFasilitasTarif" => "3",
+                                "nilaiBayar"         => 0,
+                                "nilaiFasilitas"     => 0,
+                                "nilaiSudahDilunasi" => 0,
+                                "tarif"              => 0,
+                                "tarifFasilitas"     => 100,
+                                "jumlahSatuan"       => (float) ($bb['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
+                                "kodeJenisTarif"     => "1",
+                                "jumlahKemasan"      => (int) ($bb['jumlahKemasan'] ?? $brg['jumlahKemasan'] ?? 0),
                             ];
+                        }
+
+                        $asalBbMain = strval($bb['kodeAsalBahanBaku'] ?? "0");
+                        if (!in_array($asalBbMain, ["0", "1"])) $asalBbMain = "0";
+
+                        $nomorAjuAsal = strval($bb['nomorAjuDokAsal'] ?? "");
+                        if (!preg_match('/^[A-Za-z0-9]{26}$/', $nomorAjuAsal)) {
+                            $nomorAjuAsal = "00000000000000000000000000";
+                        }
+
+                        $bahanBakuList[] = [
+                            "cif"                   => (float) ($bb['cif'] ?? 0),
+                            "cifRupiah"             => (float) ($bb['cifRupiah'] ?? 0),
+                            "hargaPenyerahan"       => (float) ($bb['hargaPenyerahan'] ?? 0),
+                            "hargaPerolehan"        => (float) ($bb['hargaPerolehan'] ?? 0),
+                            "jumlahSatuan"          => (float) ($bb['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
+                            "kodeSatuanBarang"      => strval($bb['kodeSatuanBarang'] ?? $brg['kodeSatuanBarang'] ?? ""),
+                            "kodeAsalBahanBaku"     => $asalBbMain,
+                            "kodeBarang"            => strval($bb['kodeBarang'] ?? $brg['kodeBarang'] ?? ""),
+                            "kodeDokAsal"           => strval($bb['kodeDokAsal'] ?? "23"),
+                            "kodeKantor"            => strval($bb['kodeKantor'] ?? $draft['kodeKantor'] ?? "050500"),
+                            "merkBarang"            => strval($bb['merkBarang'] ?? $brg['merk'] ?? "-"),
+                            "ndpbm"                 => (float) ($bb['ndpbm'] ?? $bb['ndbpm'] ?? $draft['ndpbm'] ?? 0),
+                            "netto"                 => (float) ($bb['netto'] ?? $brg['netto'] ?? 0),
+                            "nomorAjuDokAsal"       => $nomorAjuAsal,
+                            "nomorDaftarDokAsal"    => strval($bb['nomorDaftarDokAsal'] ?? ""),
+                            "posTarif"              => strval($bb['posTarif'] ?? $brg['posTarif'] ?? ""),
+                            "seriBahanBaku"         => (int) ($bb['seriBahanBaku'] ?? ($bbIndex + 1)),
+                            "seriBarang"            => (int) ($bb['seriBarang'] ?? ($index + 1)),
+                            "seriBarangDokAsal"     => (int) ($bb['seriBarangDokAsal'] ?? 1),
+                            "seriIjin"              => (int) ($bb['seriIjin'] ?? 1),
+                            "spesifikasiLainBarang" => strval($bb['spesifikasiLainBarang'] ?? $brg['spesifikasiLain'] ?? "-"),
+                            "tanggalDaftarDokAsal"  => strval($bb['tanggalDaftarDokAsal'] ?? date('Y-m-d')),
+                            "tipeBarang"            => strval($bb['tipeBarang'] ?? $brg['tipe'] ?? "-"),
+                            "ukuranBarang"          => strval($bb['ukuranBarang'] ?? $brg['ukuran'] ?? "-"),
+                            "uraianBarang"          => strval($bb['uraianBarang'] ?? $brg['uraian'] ?? "-"),
+                            "nilaiJasa"             => (float) ($bb['nilaiJasa'] ?? 0),
+                            "bahanBakuTarif"        => $bbTarif,
+                        ];
                     }
                 }
-                if (empty($barangTarif)) {
-                    $barangTarif = [
-                        [
-                            "kodeJenisTarif" => "1",
-                            "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
+
+                if (empty($bahanBakuList)) {
+                    $asalBbFallback = strval($brg['kodeAsalBahanBaku'] ?? "0");
+                    if (!in_array($asalBbFallback, ["0", "1"])) $asalBbFallback = "0";
+
+                    $bahanBakuList[] = [
+                        "cif"                   => (float) ($brg['cif'] ?? 0),
+                        "cifRupiah"             => (float) ($brg['cifRupiah'] ?? 0),
+                        "hargaPenyerahan"       => (float) ($hargaPenyerahanItem),
+                        "hargaPerolehan"        => (float) ($brg['hargaPerolehan'] ?? 0),
+                        "jumlahSatuan"          => (float) ($brg['jumlahSatuan'] ?? 0),
+                        "kodeSatuanBarang"      => strval($brg['kodeSatuanBarang'] ?? ""),
+                        "kodeAsalBahanBaku"     => $asalBbFallback,
+                        "kodeBarang"            => strval($brg['kodeBarang'] ?? ""),
+                        "kodeDokAsal"           => "23",
+                        "kodeKantor"            => strval($draft['kodeKantor'] ?? "050500"),
+                        "merkBarang"            => strval($brg['merk'] ?? "-"),
+                        "ndpbm"                 => (float) ($brg['ndpbm'] ?? $draft['ndpbm'] ?? 0),
+                        "netto"                 => (float) ($brg['netto'] ?? 0),
+                        "nomorAjuDokAsal"       => "00000000000000000000000000",
+                        "nomorDaftarDokAsal"    => "",
+                        "posTarif"              => strval($brg['posTarif'] ?? ""),
+                        "seriBahanBaku"         => 1,
+                        "seriBarang"            => (int) ($index + 1),
+                        "seriBarangDokAsal"     => 1,
+                        "seriIjin"              => 1,
+                        "spesifikasiLainBarang" => strval($brg['spesifikasiLain'] ?? "-"),
+                        "tanggalDaftarDokAsal"  => date('Y-m-d'),
+                        "tipeBarang"            => strval($brg['tipe'] ?? "-"),
+                        "ukuranBarang"          => strval($brg['ukuran'] ?? "-"),
+                        "uraianBarang"          => strval($brg['uraian'] ?? "-"),
+                        "nilaiJasa"             => (float) ($brg['nilaiJasa'] ?? 0),
+                        "bahanBakuTarif"        => [[
+                            "seriBahanBaku"      => 1,
+                            "kodeJenisPungutan"  => "BM",
+                            "kodeAsalBahanBaku"  => "0",
                             "kodeFasilitasTarif" => "3",
-                            "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "BM",
-                            "nilaiBayar" => 0,
-                            "nilaiFasilitas" => 0,
+                            "nilaiBayar"         => 0,
+                            "nilaiFasilitas"     => 0,
                             "nilaiSudahDilunasi" => 0,
-                            "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif" => 0,
-                            "tarifFasilitas" => 100
-                        ],
-                        [
-                            "kodeJenisTarif" => "1",
-                            "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
-                            "kodeFasilitasTarif" => "3",
-                            "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "PPH",
-                            "nilaiBayar" => 0,
-                            "nilaiFasilitas" => 0,
-                            "nilaiSudahDilunasi" => 0,
-                            "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif" => 0,
-                            "tarifFasilitas" => 100
-                        ],
-                        [
-                            "kodeJenisTarif" => "1",
-                            "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
-                            "kodeFasilitasTarif" => "3",
-                            "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan" => "PPN",
-                            "nilaiBayar" => 0,
-                            "nilaiFasilitas" => 0,
-                            "nilaiSudahDilunasi" => 0,
-                            "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif" => 0,
-                            "tarifFasilitas" => 100
-                        ]
+                            "tarif"              => 0,
+                            "tarifFasilitas"     => 100,
+                            "jumlahSatuan"       => (float) ($brg['jumlahSatuan'] ?? 0),
+                            "kodeJenisTarif"     => "1",
+                            "jumlahKemasan"      => (int) ($brg['jumlahKemasan'] ?? 0),
+                        ]],
                     ];
                 }
 
-                $barangDokumen = [];
-                foreach (($brg['barangDokumen'] ?? []) as $bd) {
-                    if (!empty($bd['seriDokumen'])) {
-                        $barangDokumen[] = ["seriDokumen" => $bd['seriDokumen']];
-                    }
-                }
-
                 $arrayBarang[] = [
-                    "asuransi"          => (float) ($brg['asuransi'] ?? 0),
                     "cif"               => (float) ($brg['cif'] ?? 0),
                     "cifRupiah"         => (float) ($brg['cifRupiah'] ?? 0),
-                    "diskon"            => (float) ($brg['diskon'] ?? 0),
-                    "fob"               => (float) ($brg['fob'] ?? 0),
-                    "freight"           => (float) ($brg['freight'] ?? 0),
                     "hargaEkspor"       => (float) ($brg['hargaEkspor'] ?? 0),
                     "hargaPenyerahan"   => $hargaPenyerahanItem,
                     "hargaPerolehan"    => (float) ($brg['hargaPerolehan'] ?? 0),
-                    "hargaSatuan"       => (float) ($brg['hargaSatuan'] ?? 0),
                     "isiPerKemasan"     => (float) ($brg['isiPerKemasan'] ?? 0),
-                    "jumlahKemasan"     => (float) ($brg['jumlahKemasan'] ?? 0),
                     "jumlahSatuan"      => (float) ($brg['jumlahSatuan'] ?? 0),
-                    "kodeAsalBahanBaku" => $brg['kodeAsalBahanBaku'] ?? "0",
                     "kodeBarang"        => strval($brg['kodeBarang'] ?? ''),
                     "kodeDokumen"       => "27",
-                    "kodeJenisKemasan"  => $brg['kodeJenisKemasan'] ?? "",
-                    "kodeKategoriBarang"=> $brg['kodeKategoriBarang'] ?? "",
-                    "kodeNegaraAsal"    => !empty($brg['kodeNegaraAsal']) ? $brg['kodeNegaraAsal'] : "ID",
-                    "kodePerhitungan"   => $brg['kodePerhitungan'] ?? "0",
-                    "kodeSatuanBarang"  => $brg['kodeSatuanBarang'] ?? "",
-                    "merk"              => $brg['merk'] ?? "-",
+                    "kodeSatuanBarang"  => strval($brg['kodeSatuanBarang'] ?? ""),
+                    "merk"              => !empty($brg['merk']) ? strval($brg['merk']) : "-",
                     "ndpbm"             => (float) ($brg['ndpbm'] ?? 0),
                     "netto"             => (float) ($brg['netto'] ?? 0),
-                    "bruto"             => (float) ($brg['bruto'] ?? 0),
-                    "volume"            => (float) ($brg['volume'] ?? 0),
                     "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? 0),
-                    "nilaiTambah"       => (float) ($brg['nilaiTambah'] ?? 0),
-                    "posTarif"          => $brg['posTarif'] ?? "",
-                    "seriBarang"        => (int) ($brg['seriBarang'] ?? ($index + 1)),
-                    "spesifikasiLain"   => $brg['spesifikasiLain'] ?? "-",
-                    "tipe"              => $brg['tipe'] ?? "",
-                    "ukuran"            => $brg['ukuran'] ?? "",
-                    "uraian"            => $brg['uraian'] ?? "",
-                    "idBarang"          => $brg['idBarang'] ?? "",
-                    "barangTarif"       => $barangTarif,
-                    "barangDokumen"     => $barangDokumen,
+                    "nilaiJasa"         => (float) ($brg['nilaiJasa'] ?? 0),
+                    "posTarif"          => strval($brg['posTarif'] ?? ""),
+                    "seriBarang"        => strval($brg['seriBarang'] ?? ($index + 1)),
+                    "spesifikasiLain"   => !empty($brg['spesifikasiLain']) ? strval($brg['spesifikasiLain']) : "-",
+                    "tipe"              => !empty($brg['tipe']) ? strval($brg['tipe']) : "-",
+                    "uangMuka"          => (float) ($brg['uangMuka'] ?? $brg['nilaiUangMuka'] ?? 0),
+                    "ukuran"            => !empty($brg['ukuran']) ? strval($brg['ukuran']) : "-",
+                    "uraian"            => !empty($brg['uraian']) ? strval($brg['uraian']) : "-",
+                    "bahanBaku"         => $bahanBakuList,
                 ];
             }
 
             $entitasDraft = $draft['entitas'] ?? [];
+            $jenisId3 = strval($entitasDraft[3]['kodeJenisIdentitas'] ?? "5");
+            if (!in_array($jenisId3, ["2", "3", "4", "5", "6"])) $jenisId3 = "5";
+
+            $jenisId7 = strval($entitasDraft[7]['kodeJenisIdentitas'] ?? "5");
+            if (!in_array($jenisId7, ["2", "3", "4", "5", "6"])) $jenisId7 = "5";
+
+            $jenisId8 = strval($entitasDraft[8]['kodeJenisIdentitas'] ?? "5");
+            if (!in_array($jenisId8, ["2", "3", "4", "5", "6"])) $jenisId8 = "5";
+
             $payloadEntitas = [
                 [
-                    "alamatEntitas"      => $entitasDraft[3]['alamatEntitas'] ?? "",
+                    "alamatEntitas"      => !empty($entitasDraft[3]['alamatEntitas']) ? strval($entitasDraft[3]['alamatEntitas']) : "-",
                     "kodeEntitas"        => "3",
-                    "kodeJenisIdentitas" => $entitasDraft[3]['kodeJenisIdentitas'] ?? "5",
-                    "namaEntitas"        => $entitasDraft[3]['namaEntitas'] ?? "",
-                    "nibEntitas"         => $entitasDraft[3]['nibEntitas'] ?? "",
-                    "nomorIdentitas"     => $entitasDraft[3]['nomorIdentitas'] ?? "",
-                    "nomorIjinEntitas"   => $entitasDraft[3]['nomorIjinEntitas'] ?? "",
-                    "tanggalIjinEntitas" => $entitasDraft[3]['tanggalIjinEntitas'] ?? "",
+                    "kodeJenisIdentitas" => $jenisId3,
+                    "namaEntitas"        => !empty($entitasDraft[3]['namaEntitas']) ? strval($entitasDraft[3]['namaEntitas']) : "-",
+                    "nibEntitas"         => !empty($entitasDraft[3]['nibEntitas']) ? strval($entitasDraft[3]['nibEntitas']) : "",
+                    "nomorIdentitas"     => !empty($entitasDraft[3]['nomorIdentitas']) ? strval($entitasDraft[3]['nomorIdentitas']) : "-",
+                    "nomorIjinEntitas"   => !empty($entitasDraft[3]['nomorIjinEntitas']) ? strval($entitasDraft[3]['nomorIjinEntitas']) : "-",
                     "seriEntitas"        => 1,
+                    "tanggalIjinEntitas" => !empty($entitasDraft[3]['tanggalIjinEntitas']) ? strval($entitasDraft[3]['tanggalIjinEntitas']) : date('Y-m-d'),
                 ],
                 [
-                    "alamatEntitas" => $entitasDraft[8]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
-                    "kodeEntitas"   => "8",
-                    "kodeNegara"    => $entitasDraft[8]['kodeNegara'] ?? "ID",
-                    "namaEntitas"   => $entitasDraft[8]['namaEntitas'] ?? $header->supplier ?? "",
-                    "nibEntitas"    => $entitasDraft[8]['nibEntitas'] ?? "",
-                    "nomorIdentitas"=> $entitasDraft[8]['nomorIdentitas'] ?? "",
-                    "seriEntitas"   => 2,
-                ],
-                [
-                    "alamatEntitas"      => $entitasDraft[7]['alamatEntitas'] ?? "",
+                    "alamatEntitas"      => !empty($entitasDraft[7]['alamatEntitas']) ? strval($entitasDraft[7]['alamatEntitas']) : "-",
                     "kodeEntitas"        => "7",
-                    "kodeJenisApi"       => $entitasDraft[7]['kodeJenisApi'] ?? "",
-                    "kodeJenisIdentitas" => $entitasDraft[7]['kodeJenisIdentitas'] ?? "5",
-                    "kodeStatus"         => $entitasDraft[7]['kodeStatus'] ?? "5",
-                    "namaEntitas"        => $entitasDraft[7]['namaEntitas'] ?? "",
-                    "nomorIdentitas"     => $entitasDraft[7]['nomorIdentitas'] ?? "",
-                    "nomorIjinEntitas"   => $entitasDraft[7]['nomorIjinEntitas'] ?? "",
-                    "tanggalIjinEntitas" => $entitasDraft[7]['tanggalIjinEntitas'] ?? "",
+                    "kodeJenisApi"       => !empty($entitasDraft[7]['kodeJenisApi']) ? strval($entitasDraft[7]['kodeJenisApi']) : "02",
+                    "kodeJenisIdentitas" => $jenisId7,
+                    "kodeStatus"         => !empty($entitasDraft[7]['kodeStatus']) ? strval($entitasDraft[7]['kodeStatus']) : "5",
+                    "namaEntitas"        => !empty($entitasDraft[7]['namaEntitas']) ? strval($entitasDraft[7]['namaEntitas']) : "-",
+                    "nibEntitas"         => !empty($entitasDraft[7]['nibEntitas']) ? strval($entitasDraft[7]['nibEntitas']) : "",
+                    "nomorIdentitas"     => !empty($entitasDraft[7]['nomorIdentitas']) ? strval($entitasDraft[7]['nomorIdentitas']) : "-",
+                    "nomorIjinEntitas"   => !empty($entitasDraft[7]['nomorIjinEntitas']) ? strval($entitasDraft[7]['nomorIjinEntitas']) : "-",
+                    "seriEntitas"        => 2,
+                    "tanggalIjinEntitas" => !empty($entitasDraft[7]['tanggalIjinEntitas']) ? strval($entitasDraft[7]['tanggalIjinEntitas']) : date('Y-m-d'),
+                ],
+                [
+                    "alamatEntitas"      => !empty($entitasDraft[8]['alamatEntitas']) ? strval($entitasDraft[8]['alamatEntitas']) : (!empty($header->alamat_supplier) ? strval($header->alamat_supplier) : "-"),
+                    "kodeEntitas"        => "8",
+                    "kodeJenisApi"       => !empty($entitasDraft[8]['kodeJenisApi']) ? strval($entitasDraft[8]['kodeJenisApi']) : "02",
+                    "kodeJenisIdentitas" => $jenisId8,
+                    "kodeStatus"         => !empty($entitasDraft[8]['kodeStatus']) ? strval($entitasDraft[8]['kodeStatus']) : "5",
+                    "namaEntitas"        => !empty($entitasDraft[8]['namaEntitas']) ? strval($entitasDraft[8]['namaEntitas']) : (!empty($header->supplier) ? strval($header->supplier) : "-"),
+                    "nibEntitas"         => !empty($entitasDraft[8]['nibEntitas']) ? strval($entitasDraft[8]['nibEntitas']) : "",
+                    "nomorIdentitas"     => !empty($entitasDraft[8]['nomorIdentitas']) ? strval($entitasDraft[8]['nomorIdentitas']) : "-",
+                    "nomorIjinEntitas"   => !empty($entitasDraft[8]['nomorIjinEntitas']) ? strval($entitasDraft[8]['nomorIjinEntitas']) : "-",
                     "seriEntitas"        => 3,
+                    "tanggalIjinEntitas" => !empty($entitasDraft[8]['tanggalIjinEntitas']) ? strval($entitasDraft[8]['tanggalIjinEntitas']) : date('Y-m-d'),
                 ],
             ];
 
@@ -496,13 +598,27 @@ public function edit($id, Request $request)
                 foreach ($draft['pungutan'] as $p) {
                     if (isset($p['kodeJenisPungutan'])) {
                         $payloadPungutan[] = [
+                            "idPungutan"         => !empty($p['idPungutan']) ? strval($p['idPungutan']) : "11",
                             "kodeFasilitasTarif" => $p['kodeFasilitasTarif'] ?? "3",
                             "kodeJenisPungutan"  => $p['kodeJenisPungutan'],
-                            "nilaiPungutan"      => (float) ($p['nilaiPungutan'] ?? 0)
+                            "nilaiPungutan"      => round((float) ($p['nilaiPungutan'] ?? 0), 2)
                         ];
                     }
                 }
             }
+
+            $nilaiBarangHeader = (float) ($draft['nilaiBarang'] ?? 0);
+            if ($nilaiBarangHeader <= 0 && $totalHargaPenyerahan > 0) {
+                $nilaiBarangHeader = $totalHargaPenyerahan;
+            } elseif ($nilaiBarangHeader <= 0 && $totalCif > 0) {
+                $nilaiBarangHeader = $totalCif;
+            }
+
+            $jenisTpb = !empty($draft['jenisTpb']) ? strval($draft['jenisTpb']) : "1";
+            if (!in_array($jenisTpb, ["1", "2", "3", "4", "5", "6", "7", "8"])) $jenisTpb = "1";
+
+            $tujuanPengiriman = !empty($draft['kodeTujuanPengiriman']) ? strval($draft['kodeTujuanPengiriman']) : "1";
+            if (!in_array($tujuanPengiriman, ["1", "2", "3", "4", "5"])) $tujuanPengiriman = "1";
 
             $payload = [
                 "idPlatform"       => config('ceisa.id_platform_dev', ''),
@@ -512,68 +628,49 @@ public function edit($id, Request $request)
                 "biayaTambahan"    => (float) ($draft['biayaTambahan'] ?? 0),
                 "bruto"            => (float) ($draft['bruto'] ?? 0),
                 "cif"              => $totalCif > 0 ? $totalCif : (float) ($draft['cif'] ?? 0),
-                "fob"              => $totalFob > 0 ? $totalFob : (float) ($draft['fob'] ?? 0),
+                "dasarPengenaanPajak" => (float) ($draft['dasarPengenaanPajak'] ?? 0),
+                "disclaimer"       => "0",
                 "freight"          => $totalFreight > 0 ? $totalFreight : (float) ($draft['freight'] ?? 0),
                 "hargaPenyerahan"  => (float) ($draft['hargaPenyerahan'] ?? $totalHargaPenyerahan),
-                "jabatanTtd"       => $draft['jabatanTtd'] ?? "",
-                "jumlahKontainer"  => (int) ($draft['jumlahKontainer'] ?? 0),
-                "kodeAsuransi"     => $draft['kodeAsuransi'] ?? "LN",
+                "jabatanTtd"       => !empty($draft['jabatanTtd']) ? strval($draft['jabatanTtd']) : "-",
+                "jumlahKontainer"  => (int) ($draft['jumlahKontainer'] ?? count($payloadKontainer)),
                 "kodeDokumen"      => "27",
-                "kodeIncoterm"     => $draft['kodeIncoterm'] ?? "",
-                "kodeKantor"       => $draft['kodeKantor'] ?? "050500",
-                "kodeKantorBongkar"=> $draft['kodeKantorBongkar'] ?? "",
-                "kodeKenaPajak"    => $draft['kodeKenaPajak'] ?? "1",
-                "kodePelBongkar"   => $draft['kodePelBongkar'] ?? "",
-                "kodePelMuat"      => $draft['kodePelMuat'] ?? "",
-                "kodePelTransit"   => $draft['kodePelTransit'] ?? "",
-                "kodeTps"          => $draft['kodeTps'] ?? "",
-                "kodeTujuanTpb"    => $draft['kodeTujuanTpb'] ?? "",
-                "kodeTutupPu"      => $draft['kodeTutupPu'] ?? "",
-                "kodeValuta"       => $draft['kodeValuta'] ?? "IDR",
-                "kotaTtd"          => $draft['kotaTtd'] ?? "",
-                "namaTtd"          => $draft['namaTtd'] ?? "",
+                "kodeJenisTpb"     => $jenisTpb,
+                "kodeKantor"       => !empty($draft['kodeKantor']) ? strval($draft['kodeKantor']) : "050500",
+                "kodeKantorTujuan" => !empty($draft['kodeKantorTujuan']) ? strval($draft['kodeKantorTujuan']) : (!empty($draft['kodeKantorBongkar']) ? strval($draft['kodeKantorBongkar']) : "050500"),
+                "kodeTps"          => !empty($draft['kodeTps']) ? strval($draft['kodeTps']) : "UTPK",
+                "kodeTujuanPengiriman" => $tujuanPengiriman,
+                "kodeTujuanTpb"    => !empty($draft['kodeTujuanTpb']) ? strval($draft['kodeTujuanTpb']) : "1",
+                "kodeValuta"       => !empty($draft['kodeValuta']) ? strval($draft['kodeValuta']) : "USD",
+                "kotaTtd"          => !empty($draft['kotaTtd']) ? strval($draft['kotaTtd']) : "kota_ttd",
+                "namaTtd"          => !empty($draft['namaTtd']) ? strval($draft['namaTtd']) : "nama_ttd",
                 "ndpbm"            => (float) ($draft['ndpbm'] ?? 0),
                 "netto"            => (float) ($draft['netto'] ?? 0),
-                "nik"              => $draft['nik'] ?? "",
-                "nilaiBarang"      => (float) ($draft['nilaiBarang'] ?? 0),
+                "nik"              => !empty($draft['nik']) ? strval($draft['nik']) : (!empty($entitasDraft[3]['nomorIdentitas']) ? strval($entitasDraft[3]['nomorIdentitas']) : "0000000000000000"),
+                "nilaiBarang"      => $nilaiBarangHeader,
+                "nilaiJasa"        => (float) ($draft['nilaiJasa'] ?? 0),
                 "nomorAju"         => $nomorAju,
-                "nomorBc11"        => $draft['nomorBc11'] ?? "",
-                "posBc11"          => $draft['posBc11'] ?? "",
                 "seri"             => (int) ($draft['seri'] ?? 0),
-                "subposBc11"       => $draft['subposBc11'] ?? "",
-                "subsubposBc11"    => $draft['subsubposBc11'] ?? "",
-                "tanggalBc11"      => $draft['tanggalBc11'] ?? "",
-                "tanggalTiba"      => $draft['tanggalTiba'] ?? "",
-                "volume"           => (float) ($draft['volume'] ?? 0),
-                "tanggalTtd"       => $draft['tanggalTtd'] ?? date('Y-m-d'),
+                "tanggalAju"       => $tanggalAju,
+                "tanggalTtd"       => !empty($draft['tanggalTtd']) ? strval($draft['tanggalTtd']) : date('Y-m-d'),
+                "uangMuka"         => (float) ($draft['uangMuka'] ?? $draft['nilaiUangMuka'] ?? 0),
+                "vd"               => (float) ($draft['vd'] ?? 0),
+                "ppnPajak"         => (float) ($draft['nilaiPPN'] ?? 0),
+                "ppnbmPajak"       => (float) ($draft['nilaiPPnBM'] ?? 0),
+                "tarifPpnPajak"    => (float) ($draft['tarifPPN'] ?? 0),
+                "tarifPpnbmPajak"  => (float) ($draft['tarifPPnBM'] ?? 0),
                 "entitas"          => $payloadEntitas,
                 "dokumen"          => $payloadDokumen,
                 "pengangkut"       => [[
-                    "namaPengangkut"  => $draft['pengangkut']['nama'] ?? "",
-                    "nomorPengangkut" => $draft['pengangkut']['nomor'] ?? "",
-                    "kodeBendera"     => !empty($draft['pengangkut']['kodeBendera']) ? $draft['pengangkut']['kodeBendera'] : "ID",
-                    "kodeCaraAngkut"  => !empty($draft['pengangkut']['kodeCaraAngkut']) ? (string)$draft['pengangkut']['kodeCaraAngkut'] : "1",
-                    "seriPengangkut"  => 1
+                    "namaPengangkut"  => !empty($draft['pengangkut']['nama']) ? strval($draft['pengangkut']['nama']) : "-",
+                    "nomorPengangkut" => !empty($draft['pengangkut']['nomor']) ? strval($draft['pengangkut']['nomor']) : "-",
+                    "seriPengangkut"  => "1"
                 ]],
                 "kontainer"        => $payloadKontainer,
                 "kemasan"          => $payloadKemasan,
                 "pungutan"         => $payloadPungutan,
                 "barang"           => $arrayBarang,
             ];
-
-            $dateFields = ['tanggalBc11'];
-            foreach ($dateFields as $f) {
-                if (empty($payload[$f])) unset($payload[$f]);
-            }
-            if (empty($payload['kodeTutupPu'])) $payload['kodeTutupPu'] = "11";
-            if (empty($payload['tanggalTiba'])) $payload['tanggalTiba'] = date('Y-m-d');
-
-            foreach ($payload['entitas'] as &$ent) {
-                if (empty($ent['tanggalIjinEntitas'])) {
-                    $ent['tanggalIjinEntitas'] = date('Y-m-d');
-                }
-            }
-            unset($ent);
 
             $responseCeisa = $this->ceisaService->kirimDokumenBc27($payload);
 

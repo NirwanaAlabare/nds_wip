@@ -140,6 +140,147 @@
         }
         $dataDetail['dok'] = $dokMap;
     }
+
+    $mapNamaTps = [
+        // Tanjung Priok / Jakarta (040300)
+        'KOJA' => 'KOJA - KSO BPK KOJA',
+        'JICT' => 'JICT - PT JAKARTA INTERNATIONAL CONTAINER TERMINAL',
+        '3T01' => '3T01 - PT MUSTIKA ALAM LESTARI (MAL)',
+        '1T01' => '1T01 - PT PELABUHAN INDONESIA II CABANG TANJUNG PRIOK',
+        '1T02' => '1T02 - TERMINAL 3 TANJUNG PRIOK',
+        'KJT1' => 'KJT1 - TERMINAL PETIKEMAS KOJA',
+        'NPCT' => 'NPCT - NEW PRIOK CONTAINER TERMINAL ONE (NPCT1)',
+        'DWKA' => 'DWKA - PT DWIPA KHARISMA MITRA TANJUNG PRIOK',
+        'AGTP' => 'AGTP - PT AIRIN TANJUNG PRIOK',
+        'MIPR' => 'MIPR - PT MULTI INTIPARNA TANJUNG PRIOK',
+
+        // Soekarno-Hatta / Tangerang / Jakarta (050100)
+        'JASA' => 'JASA - PT JASA ANGKASA SEMESTA (JAS) CARGO SOEKARNO HATTA',
+        'GARU' => 'GARU - PT GARUDA INDONESIA CARGO SOEKARNO HATTA',
+        'UNPA' => 'UNPA - PT UNIAIR INDOTAMA CARGO SOEKARNO HATTA',
+        'FEDX' => 'FEDX - PT FEDERAL EXPRESS SOEKARNO HATTA',
+        'DHLX' => 'DHLX - PT BIROTIKA SEMESTA (DHL EXPRESS) SOEKARNO HATTA',
+        'UPSX' => 'UPSX - PT UPS CARDIG INTERNATIONAL SOEKARNO HATTA',
+        'TNTX' => 'TNTX - PT SKYLIFT CONSOLIDATOR (TNT EXPRESS) SOEKARNO HATTA',
+        'GAPU' => 'GAPU - PT GAPURA ANGKASA CARGO SOEKARNO HATTA',
+        'ANGK' => 'ANGK - PT ANGKASA PURA II CARGO SOEKARNO HATTA',
+
+        // Tanjung Perak / Surabaya (070100)
+        'TPS1' => 'TPS1 - PT TERMINAL PETIKEMAS SURABAYA (TPS)',
+        'BJTI' => 'BJTI - PT BERLIAN JASA TERMINAL INDONESIA',
+        'TTL1' => 'TTL1 - PT TERMINAL TELUK LAMONG',
+        'MTPS' => 'MTPS - PT MIRAH TERMINAL PETIKEMAS SURABAYA',
+        'DWKS' => 'DWKS - PT DWIPA KHARISMA MITRA SURABAYA',
+        'ISPS' => 'ISPS - PT INDOLINE SURABAYA',
+
+        // Juanda / Sidoarjo / Surabaya (070200)
+        'JASJ' => 'JASJ - PT JASA ANGKASA SEMESTA (JAS) CARGO JUANDA',
+        'GAPJ' => 'GAPJ - PT GAPURA ANGKASA CARGO JUANDA',
+        'GARJ' => 'GARJ - PT GARUDA INDONESIA CARGO JUANDA',
+        'DHLJ' => 'DHLJ - PT BIROTIKA SEMESTA (DHL) JUANDA',
+
+        // Tanjung Emas / Semarang (060100)
+        'TPK2' => 'TPK2 - TERMINAL PETIKEMAS SEMARANG (TPKS)',
+        'SRIS' => 'SRIS - PT SARI RANA INDAH SEMARANG',
+        'DHLS' => 'DHLS - PT BIROTIKA SEMESTA SEMARANG',
+        'GAPM' => 'GAPM - PT GAPURA ANGKASA CARGO AHMAD YANI SEMARANG',
+
+        // Belawan / Medan (010700)
+        'BICT' => 'BICT - BELAWAN INTERNATIONAL CONTAINER TERMINAL',
+        'TPKB' => 'TPKB - TERMINAL PETIKEMAS BELAWAN',
+        'BTLP' => 'BTLP - PT BELAWAN TERMINAL LOGISTIK PERSERO',
+
+        // Kualanamu / Medan (010800)
+        'JASK' => 'JASK - PT JASA ANGKASA SEMESTA CARGO KUALANAMU',
+        'GAPK' => 'GAPK - PT GAPURA ANGKASA CARGO KUALANAMU',
+        'GARK' => 'GARK - PT GARUDA INDONESIA CARGO KUALANAMU',
+
+        // Ngurah Rai / Denpasar / Bali (080100)
+        'JASD' => 'JASD - PT JASA ANGKASA SEMESTA CARGO NGURAH RAI',
+        'GAPD' => 'GAPD - PT GAPURA ANGKASA CARGO NGURAH RAI',
+        'GARD' => 'GARD - PT GARUDA INDONESIA CARGO NGURAH RAI',
+
+        // Batam / Kepulauan Riau (020100)
+        'BTBP' => 'BTBP - PT BATAM PERSERO BEKAS / BATU AMPAR',
+        'BICT2' => 'BICT2 - BATAM INTERNATIONAL CONTAINER TERMINAL',
+        'DHLB' => 'DHLB - PT BIROTIKA SEMESTA BATAM',
+        'CGKB2' => 'CGKB2 - TPS CARGO BANDARA HANG NADIM BATAM',
+
+        // Makassar / Sulawesi Selatan (100100)
+        'TPKM' => 'TPKM - TERMINAL PETIKEMAS MAKASSAR (PELINDO IV)',
+        'GAPG' => 'GAPG - PT GAPURA ANGKASA CARGO SULTAN HASANUDDIN MAKASSAR',
+        'GARM' => 'GARM - PT GARUDA INDONESIA CARGO MAKASSAR',
+
+        // Balikpapan / Kalimantan Timur (120100)
+        'KKT1' => 'KKT1 - PT KALTIM KARIANGAU TERMINAL (KKT) BALIKPAPAN',
+        'GAPB' => 'GAPB - PT GAPURA ANGKASA CARGO SEPINGGAN BALIKPAPAN',
+
+        // Cikarang / Bekasi (050300)
+        'CDP1' => 'CDP1 - CIKARANG DRY PORT (PT CIKARANG INLAND PORT)',
+        'MTB1' => 'MTB1 - PT MITRA TATA BUANA CIKARANG',
+
+        // Bandung (050500)
+        'BDRB' => 'BDRB - PT BHANDA GHARA REKSA (BGR) GEDEBAGE BANDUNG',
+        'GDBG' => 'GDBG - TPS GEDEBAGE BANDUNG',
+        'PTKB' => 'PTKB - TPS PT POS INDONESIA BANDUNG',
+        'CGKB' => 'CGKB - TPS CARGO BANDARA HUSEIN SASTRANEGARA BANDUNG',
+
+        // Tangerang / Serpong (050200)
+        'BSDT' => 'BSDT - TPS BSD TANGERANG KOTA',
+        'IKGT' => 'IKGT - PT INDO KOR GUNA TANGERANG',
+
+        // Merak / Banten (040100)
+        'IKPT' => 'IKPT - PT INDAH KIAT PULP & PAPER MERAK BANTEN',
+        'CMPT' => 'CMPT - PT CIWANDAN MULTI PURPOSES TERMINAL MERAK',
+
+        // Tanjung Pinang / Kepri (020200)
+        'TPTP' => 'TPTP - TERMINAL PETIKEMAS TANJUNG PINANG',
+        'KIPT' => 'KIPT - KIJANG PORT TERMINAL',
+
+        // Palembang (030100)
+        'BMTP2' => 'BMTP2 - BOOM BARU TERMINAL PETIKEMAS PALEMBANG (PELINDO II)',
+        'GAPP' => 'GAPP - PT GAPURA ANGKASA CARGO PALEMBANG',
+
+        // Lampung / Panjang (030400)
+        'TPKP' => 'TPKP - TERMINAL PETIKEMAS PANJANG (PELINDO II)',
+        'PJPG' => 'PJPG - PELABUHAN PANJANG',
+
+        // Pontianak (130100)
+        'TPKN' => 'TPKN - TERMINAL PETIKEMAS PONTIANAK (PELINDO II)',
+        'SUPN' => 'SUPN - TPS CARGO BANDARA SUPADIO PONTIANAK',
+
+        // Banjarmasin (130300)
+        'TPPB' => 'TPPB - TERMINAL PETIKEMAS TRISAKTI BANJARMASIN (PELINDO III)',
+        'BDJB' => 'BDJB - TPS CARGO BANDARA SYAMSUDIN NOOR BANJARMASIN',
+
+        // Samarinda (120200)
+        'PSMD' => 'PSMD - PALARAN SAMARINDA CONTAINER TERMINAL (PT PSP)',
+
+        // Bitung / Manado (110100)
+        'TPBI' => 'TPBI - TERMINAL PETIKEMAS BITUNG (PELINDO IV)',
+        'MDCB' => 'MDCB - TPS CARGO BANDARA SAM RATULANGI MANADO',
+
+        // Ambon (140100)
+        'TPKA' => 'TPKA - TERMINAL PETIKEMAS AMBON (PELINDO IV)',
+        'AMQB' => 'AMQB - TPS CARGO BANDARA PATTIMURA AMBON',
+
+        // Jayapura / Papua (140200)
+        'TPKJ' => 'TPKJ - TERMINAL PETIKEMAS JAYAPURA (PELINDO IV)',
+        'DJJB' => 'DJJB - TPS CARGO BANDARA SENTANI JAYAPURA',
+
+        // Sorong (140400)
+        'TPKS2' => 'TPKS2 - TERMINAL PETIKEMAS SORONG (PELINDO IV)',
+
+        // Kupang / NTT (080300)
+        'TPKK' => 'TPKK - TERMINAL PETIKEMAS TENAU KUPANG (PELINDO III)',
+
+        // Mataram / Lembar / NTB (080200)
+        'TPML' => 'TPML - TERMINAL PETIKEMAS LEMBAR MATARAM (PELINDO III)',
+    ];
+    $tpsCode = $dataDetail['kodeTps'] ?? '';
+    $tpsLabel = $mapNamaTps[$tpsCode] ?? ($dataDetail['namaTps'] ?? $tpsCode);
+    $kodeLokasiTps = $dataDetail['kodeLokasiTps'] ?? '';
+    $kodeLokasiTpsLabel = $mapNamaTps[$kodeLokasiTps] ?? ($dataDetail['namaTps'] ?? $kodeLokasiTps);
 @endphp
 
 <div class="card card-sb">
@@ -267,6 +408,21 @@
                                                 <option {{ ($katEkspor ?? '') == '21' ? 'selected' : '' }} value="21">21 - Yg pd saat imp mndpt fas pembebasan BM(NIPER dgn pembebasan)</option>
                                                 <option {{ ($katEkspor ?? '') == '10' ? 'selected' : '' }} value="10">10 - Umum</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mb-2">
+                                        <label class="col-sm-4 col-form-label text-sm">Lokasi TPS</label>
+                                        <div class="col-sm-8">
+                                            <select name="kodeLokasiTps" class="form-control form-control-sm select2-tps">
+                                                <option value="">Pilih Lokasi TPS</option>
+                                                @foreach($mapNamaTps as $code => $label)
+                                                    <option value="{{ $code }}" {{ $kodeLokasiTps == $code ? 'selected' : '' }}>{{ $label }}</option>
+                                                @endforeach
+                                                @if(!empty($kodeLokasiTps) && !isset($mapNamaTps[$kodeLokasiTps]))
+                                                    <option value="{{ $kodeLokasiTps }}" selected>{{ $kodeLokasiTpsLabel }}</option>
+                                                @endif
+                                            </select>
+                                            <small class="text-muted">Ketik nama atau kode TPS (Contoh: KOJA, JICT, dll)</small>
                                         </div>
                                     </div>
                                     <div class="form-group row mb-2">
@@ -670,7 +826,16 @@
                                     <div class="form-group row mb-2">
                                         <label class="col-sm-4 col-form-label text-sm">Tempat Penimbunan </label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="kodeTps" class="form-control form-control-sm " placeholder="Contoh: G001" value="{{ $dataDetail['kodeTps'] ?? '' }}">
+                                            <select name="kodeTps" class="form-control form-control-sm select2-tps-penimbunan">
+                                                <option value="">Pilih Tempat Penimbunan</option>
+                                                @foreach($mapNamaTps as $code => $label)
+                                                    <option value="{{ $code }}" {{ $tpsCode == $code ? 'selected' : '' }}>{{ $label }}</option>
+                                                @endforeach
+                                                @if(!empty($tpsCode) && !isset($mapNamaTps[$tpsCode]))
+                                                    <option value="{{ $tpsCode }}" selected>{{ $tpsLabel }}</option>
+                                                @endif
+                                            </select>
+                                            <small class="text-muted">Ketik nama atau kode TPS Tempat Penimbunan</small>
                                         </div>
                                     </div>
                                     <div class="form-group row mb-2">
@@ -995,10 +1160,15 @@
                                     @forelse($banks as $bIndex => $bank)
                                     <tr>
                                         <td class="text-center align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $bIndex + 1 }}" readonly></td>
-                                        <td><input type="text" name="bankDevisa[{{ $bIndex }}][kodeBank]" class="form-control form-control-sm" value="{{ $bank['kodeBank'] ?? '' }}"></td>
+                                        <td>
+                                            <select name="bankDevisa[{{ $bIndex }}][kodeBank]" class="form-control form-control-sm select2bs4 select-bank">
+                                                <option value="">Pilih Bank</option>
+                                                @include('export-import.dokumen-pabean.options_bank', ['selected' => $bank['kodeBank'] ?? '', 'selectedName' => $bank['namaBank'] ?? ''])
+                                            </select>
+                                        </td>
                                         <td>
                                             <div class="input-group input-group-sm">
-                                                <input type="text" name="bankDevisa[{{ $bIndex }}][namaBank]" class="form-control form-control-sm" value="{{ $bank['namaBank'] ?? '' }}">
+                                                <input type="text" name="bankDevisa[{{ $bIndex }}][namaBank]" class="form-control form-control-sm input-nama-bank" value="{{ $bank['namaBank'] ?? '' }}" placeholder="Nama Bank">
                                                 <div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-bank"><i class="fas fa-trash-alt"></i></button></div>
                                             </div>
                                         </td>
@@ -1447,17 +1617,29 @@
         $(document).on('click', '.btn-hapus-sarkut', function() { $(this).closest('tr').remove(); });
 
         // ================= BANK HANDLER =================
+        const optBankHtml = `
+            <option value="">Pilih Bank</option>
+            @include('export-import.dokumen-pabean.options_bank')
+        `;
         let bankIndex = {{ count($banks ?? []) }};
         $('#btn-add-bank').on('click', function() {
             let tr = `<tr>
                 <td class="text-center align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="${bankIndex + 1}" readonly></td>
-                <td><input type="text" name="bankDevisa[${bankIndex}][kodeBank]" class="form-control form-control-sm "></td>
-                <td><div class="input-group input-group-sm"><input type="text" name="bankDevisa[${bankIndex}][namaBank]" class="form-control form-control-sm "><div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-bank"><i class="fas fa-trash-alt"></i></button></div></div></td>
+                <td><select name="bankDevisa[${bankIndex}][kodeBank]" class="form-control form-control-sm select2bs4-dynamic select-bank">${optBankHtml}</select></td>
+                <td><div class="input-group input-group-sm"><input type="text" name="bankDevisa[${bankIndex}][namaBank]" class="form-control form-control-sm input-nama-bank" placeholder="Nama Bank"><div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-bank"><i class="fas fa-trash-alt"></i></button></div></div></td>
             </tr>`;
             $('#tbody-bank').append(tr);
+            $(`select[name="bankDevisa[${bankIndex}][kodeBank]"]`).select2({ theme: 'bootstrap4', width: '100%' });
             bankIndex++;
         });
         $(document).on('click', '.btn-hapus-bank', function() { $(this).closest('tr').remove(); });
+        $(document).on('change', '.select-bank', function() {
+            let selectedOption = $(this).find('option:selected');
+            let bankName = selectedOption.data('name') || '';
+            if (bankName) {
+                $(this).closest('tr').find('.input-nama-bank').val(bankName);
+            }
+        });
 
         // ================= JS PEMILIK BARANG =================
         let pemilikIndex = {{ count($pemiliks ?? []) }};
@@ -1589,6 +1771,17 @@
                 cache: true
             },
             minimumInputLength: 2
+        });
+
+       $('.select2-tps').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Cari Lokasi TPS...',
+            allowClear: true
+        });
+       $('.select2-tps-penimbunan').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Cari Tempat Penimbunan...',
+            allowClear: true
         });
         // ==========================================
         // ENTITAS BARANG (DALAM RINCIAN BARANG)
