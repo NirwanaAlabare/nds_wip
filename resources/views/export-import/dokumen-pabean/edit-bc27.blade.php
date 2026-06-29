@@ -356,9 +356,21 @@
                                                         <label class="small text-muted mb-0">Harga Pabrikasi</label>
                                                         <input type="number" step="any" name="barang[{{ $index }}][hargaPabrikasi]" class="form-control form-control-sm" value="{{ $draftItem['hargaPabrikasi'] ?? 0 }}">
                                                     </div>
-                                                    <div class="form-group mb-0">
+                                                    <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Nilai Penggantian/Nilai Jasa</label>
                                                         <input type="number" step="any" name="barang[{{ $index }}][nilaiPenggantian]" class="form-control form-control-sm" value="{{ $draftItem['nilaiPenggantian'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small text-muted mb-0">FOB</label>
+                                                        <input type="number" step="any" name="barang[{{ $index }}][fob]" class="form-control form-control-sm" value="{{ $draftItem['fob'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small text-muted mb-0">Freight</label>
+                                                        <input type="number" step="any" name="barang[{{ $index }}][freight]" class="form-control form-control-sm" value="{{ $draftItem['freight'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="small text-muted mb-0">Asuransi</label>
+                                                        <input type="number" step="any" name="barang[{{ $index }}][asuransi]" class="form-control form-control-sm" value="{{ $draftItem['asuransi'] ?? 0 }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -556,7 +568,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nomor Identitas (NPWP)</label>
-                                        <input type="text" name="entitas[8][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][8]['nomorIdentitas'] ?? '' }}" placeholder="NPWP 15/16 digit">
+                                        <input type="text" name="entitas[8][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][8]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}" placeholder="NPWP 15/16 digit">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NITKU</label>
@@ -593,7 +605,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NPWP</label>
-                                        <input type="text" name="entitas[7][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['nomorIdentitas'] ?? '' }}" placeholder="NPWP 15/16 digit">
+                                        <input type="text" name="entitas[7][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}" placeholder="NPWP 15/16 digit">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NITKU</label>
@@ -601,11 +613,11 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nama</label>
-                                        <input type="text" name="entitas[7][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['namaEntitas'] ?? '' }}">
+                                        <input type="text" name="entitas[7][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['namaEntitas'] ?? $header->supplier ?? '' }}">
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Alamat</label>
-                                        <textarea name="entitas[7][alamatEntitas]" class="form-control form-control-sm" rows="2">{{ $dataDetail['entitas'][7]['alamatEntitas'] ?? '' }}</textarea>
+                                        <textarea name="entitas[7][alamatEntitas]" class="form-control form-control-sm" rows="2">{{ $dataDetail['entitas'][7]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -865,9 +877,13 @@
                                         <label class="small text-muted mb-0">Nilai Pabean dalam Rupiah</label>
                                         <input type="number" step="any" name="nilaiPabean" class="form-control form-control-sm" value="{{ $dataDetail['nilaiPabean'] ?? 0 }}">
                                     </div>
-                                    <div class="form-group mb-0">
+                                    <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Harga Penyerahan/Harga Jual/Harga Barang</label>
                                         <input type="number" step="any" name="hargaPenyerahan" class="form-control form-control-sm" value="{{ $dataDetail['hargaPenyerahan'] ?? 0 }}">
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small text-muted mb-0">Nilai Barang</label>
+                                        <input type="number" step="any" name="nilaiBarang" class="form-control form-control-sm" value="{{ $dataDetail['nilaiBarang'] ?? 0 }}">
                                     </div>
                                 </div>
                             </div>
@@ -1071,7 +1087,6 @@
 
 @section('custom-script')
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https:
 <script>
     $(document).ready(function() {
 

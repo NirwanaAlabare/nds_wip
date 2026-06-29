@@ -2180,7 +2180,14 @@ class DcReportController extends Controller
                                         msb.size,
                                         dc_before_saldo_secondary.part_detail_id
                                 HAVING
-                                        current_saldo_awal != 0
+                                        (
+                                            kirim_secondary_dalam_before != 0 OR
+                                            terima_repaired_secondary_dalam_before != 0 OR
+                                            terima_good_secondary_dalam_before != 0 OR
+                                            kirim_secondary_luar_before != 0 OR
+                                            terima_repaired_secondary_luar_before != 0 OR
+                                            terima_good_secondary_luar_before != 0
+                                        )
                                 UNION ALL
                                 select
                                         '' stockers,
@@ -4929,7 +4936,14 @@ class DcReportController extends Controller
                                     msb.size,
                                     dc_before_saldo_secondary.part_detail_id
                             HAVING
-                                    current_saldo_awal != 0
+                                (
+                                    kirim_secondary_dalam_before != 0 OR
+                                    terima_repaired_secondary_dalam_before != 0 OR
+                                    terima_good_secondary_dalam_before != 0 OR
+                                    kirim_secondary_luar_before != 0 OR
+                                    terima_repaired_secondary_luar_before != 0 OR
+                                    terima_good_secondary_luar_before != 0
+                                )
                             UNION ALL
                             select
                                     '' stockers,

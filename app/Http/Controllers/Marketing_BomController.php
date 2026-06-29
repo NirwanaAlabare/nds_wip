@@ -125,7 +125,6 @@ class Marketing_BomController extends Controller
         $costings = $costings->orderBy('id', 'desc')->get();
 
          $shell = $mysql_sb->table('masterpanel')
-                ->where('nama_panel', 'LIKE', 'shell' . '%')
                 ->orderBy('id', 'desc')
                 ->get();
 
@@ -560,7 +559,7 @@ class Marketing_BomController extends Controller
                     ->where('g.id', $id_contents)
                     ->select(
                         'a.id_item as isi',
-                        DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc) as tampil")
+                        DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc, IF(b.add_info IS NOT NULL AND b.add_info != '' AND b.add_info != '-', CONCAT(' [', b.add_info, ']'), '')) as tampil")
                     )
                     ->groupBy('a.id_gen')
                     ->get();
@@ -996,7 +995,7 @@ class Marketing_BomController extends Controller
                 ->where('g.id', $id_contents)
                 ->select(
                     'a.id_item as isi',
-                    DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc) as tampil")
+                    DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc, IF(b.add_info IS NOT NULL AND b.add_info != '' AND b.add_info != '-', CONCAT(' [', b.add_info, ']'), '')) as tampil")
                 )
                 ->groupBy('a.id_gen')
                 ->get();
