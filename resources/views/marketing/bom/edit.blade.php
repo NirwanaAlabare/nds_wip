@@ -183,12 +183,12 @@
                         <label><small class="fw-bold">Panel</small></label>
                         <select name="panel" id="panel" class="form-control select2bs4">
                             <option value="">Pilih Panel</option>
-                            <option value="ITEM BODY">ITEM BODY</option>
-                            <option value="ITEM COLLAR">ITEM COLLAR</option>
-                            <option value="ITEM LINNING">ITEM LINNING</option>
-                            <option value="ITEM PIPING">ITEM PIPING</option>
-                            <option value="ITEM RIB">ITEM RIB</option>
-                            <option value="ITEM CUFF">ITEM CUFF</option>
+                            <option value="BODY">BODY</option>
+                            <option value="COLLAR">COLLAR</option>
+                            <option value="LINING">LINING</option>
+                            <option value="PIPING">PIPING</option>
+                            <option value="RIB">RIB</option>
+                            <option value="CUFF">CUFF</option>
                         </select>
                     </div>
                     <div class="form-group hidden">
@@ -460,12 +460,12 @@
                            <label><small class="fw-bold">Panel</small></label>
                             <select name="panel" id="edit_panel" class="form-control select2bs4-edit">
                                 <option value="">Pilih Panel</option>
-                                <option value="ITEM BODY">ITEM BODY</option>
-                                <option value="ITEM COLLAR">ITEM COLLAR</option>
-                                <option value="ITEM LINNING">ITEM LINNING</option>
-                                <option value="ITEM PIPING">ITEM PIPING</option>
-                                <option value="ITEM RIB">ITEM RIB</option>
-                                <option value="ITEM CUFF">ITEM CUFF</option>
+                                <option value="BODY">BODY</option>
+                                <option value="COLLAR">COLLAR</option>
+                                <option value="LINING">LINING</option>
+                                <option value="PIPING">PIPING</option>
+                                <option value="RIB">RIB</option>
+                                <option value="CUFF">CUFF</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-2">
