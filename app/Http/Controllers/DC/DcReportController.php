@@ -706,7 +706,7 @@ class DcReportController extends Controller
                                                 CURRENT_TIMESTAMP() created_at,
                                                 CURRENT_TIMESTAMP() updated_at
                                         from
-                                                dc_report_rekap
+                                                dc_rekap
                                         where
                                                 tanggal < '".$dateFrom."'
                         ) saldo_dc
@@ -2030,7 +2030,7 @@ class DcReportController extends Controller
                                                 CURRENT_TIMESTAMP() created_at,
                                                 CURRENT_TIMESTAMP() updated_at
                                         from
-                                                dc_report_rekap
+                                                dc_rekap
                                         where
                                                 tanggal < '".$dateFrom."'
                         ) saldo_dc
@@ -2672,7 +2672,7 @@ class DcReportController extends Controller
                     SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
                     SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
                     (
-                    CASE 
+                    CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -2689,7 +2689,7 @@ class DcReportController extends Controller
                     ) saldo_awal_secondary_dalam,
                     (
                     (
-                        CASE 
+                        CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -2714,7 +2714,7 @@ class DcReportController extends Controller
                     SUM(qty_adjustment_secondary_dalam)
                     ) saldo_akhir_secondary_dalam,
                     (
-                    CASE 
+                    CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -2731,7 +2731,7 @@ class DcReportController extends Controller
                     ) saldo_awal_secondary_luar,
                     (
                     (
-                        CASE 
+                        CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -3472,7 +3472,7 @@ class DcReportController extends Controller
                                             CURRENT_TIMESTAMP() created_at,
                                             CURRENT_TIMESTAMP() updated_at
                                     from
-                                            dc_report_rekap
+                                            dc_rekap
                                     where
                                             tanggal < '".$dateFrom."'
                     ) saldo_dc
@@ -4796,7 +4796,7 @@ class DcReportController extends Controller
                                             CURRENT_TIMESTAMP() created_at,
                                             CURRENT_TIMESTAMP() updated_at
                                     from
-                                            dc_report_rekap
+                                            dc_rekap
                                     where
                                             tanggal < '".$dateFrom."'
                     ) saldo_dc
@@ -5437,7 +5437,7 @@ class DcReportController extends Controller
                 SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
                 SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
                 (
-                CASE 
+                CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -5454,7 +5454,7 @@ class DcReportController extends Controller
                 ) saldo_awal_secondary_dalam,
                 (
                 (
-                        CASE 
+                        CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -5479,7 +5479,7 @@ class DcReportController extends Controller
                 SUM(qty_adjustment_secondary_dalam)
                 ) saldo_akhir_secondary_dalam,
                 (
-                CASE 
+                CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -5496,7 +5496,7 @@ class DcReportController extends Controller
                 ) saldo_awal_secondary_luar,
                 (
                 (
-                        CASE 
+                        CASE
                         WHEN '".$dateFrom."' < '2026-06-01'
                         THEN 0
                         ELSE
@@ -5534,7 +5534,7 @@ class DcReportController extends Controller
         $fileName = 'laporan-dc';
 
         $excel = FastExcel::create($fileName);
-        
+
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
@@ -6374,7 +6374,7 @@ class DcReportController extends Controller
                                                 CURRENT_TIMESTAMP() created_at,
                                                 CURRENT_TIMESTAMP() updated_at
                                         from
-                                                dc_report_rekap
+                                                dc_rekap
                                         where
                                                 tanggal < '".$dateFrom."'
                         ) saldo_dc
@@ -6984,7 +6984,7 @@ class DcReportController extends Controller
                                         AND so.cancel_h = 'N'
                                         AND ac.status = 'confirm'
                                         AND mi.mattype = 'F'
-                                        AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
+                                        AND ac.dateinput > NOW() - INTERVAL 1 YEAR
                         ),
 
                         dc_saldo AS (
@@ -8073,7 +8073,7 @@ class DcReportController extends Controller
                                             CURRENT_TIMESTAMP() created_at,
                                             CURRENT_TIMESTAMP() updated_at
                                     from
-                                            dc_report_rekap
+                                            dc_rekap
                                     where
                                             tanggal < '".$dateFrom."'
                     ) saldo_dc
@@ -8683,7 +8683,7 @@ class DcReportController extends Controller
                                 AND so.cancel_h = 'N'
                                 AND ac.status = 'confirm'
                                 AND mi.mattype = 'F'
-                                AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
+                                AND ac.dateinput > NOW() - INTERVAL 1 YEAR
                 ),
 
                 dc_saldo AS (
