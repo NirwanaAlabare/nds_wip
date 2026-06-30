@@ -133,6 +133,9 @@
                     <label>Confirm Price</label>
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal text-right" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Marketing Order</label>
                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
@@ -144,9 +147,6 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Shipment Type</label>
                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
@@ -154,7 +154,48 @@
                         <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
                     </select>
                 </div>
-                <div class="col-md-9 form-group">
+                <div class="col-md-3 form-group">
+                    <label>Delivery Date *</label>
+                    <input type="date" name="deldate" id="deldate" class="form-control" value="{{ $costing->deldate }}" required>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Status *</label>
+                    <select name="status" id="status" class="form-control select2bs4" required>
+                        <option value="">Pilih Status</option>
+                        <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
+                        <option value="CANCEL" {{ $costing->status == 'CANCEL' ? 'selected' : '' }}>CANCEL</option>
+                        <option value="SAMPLE" {{ $costing->status == 'SAMPLE' ? 'selected' : '' }}>SAMPLE</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-2 form-group">
+                    <label>Unit</label>
+                    <select name="unit" id="unit" class="form-control select2bs4" required>
+                        <option value="">Pilih Satuan</option>
+                        @foreach ($units as $u)
+                            <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Main Destination #</label>
+                    @php
+                        $saved_dests = $costing->main_dest ? explode(',', $costing->main_dest) : [];
+                        $saved_dests = array_map('trim', $saved_dests);
+                    @endphp
+                    <select name="main_dest[]" id="main_dest" class="form-control select2bs4" multiple>
+                        @foreach ($destinations as $dest)
+                            <option value="{{ $dest->country_name }}" {{ in_array($dest->country_name, $saved_dests) ? 'selected' : '' }}>{{ $dest->country_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Market</label>
+                    <input type="text" name="market" id="market" class="form-control" value="{{ $costing->market }}" placeholder="Market">
+                </div>
+                <div class="col-md-4 form-group">
                     <label for="notes">Notes</label>
                     <textarea id="notes" name="notes" rows="1" class="form-control">{{ $costing->notes }}</textarea>
                 </div>

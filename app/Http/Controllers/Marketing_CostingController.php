@@ -192,6 +192,11 @@ class Marketing_CostingController extends Controller
             'created_by'      => Auth::user()->name,
             'confirm_price'   => str_replace(',', '', $request->confirm_price),
             'season_id'       => $request->season_id,
+            'main_dest'       => is_array($request->main_dest) ? implode(', ', $request->main_dest) : $request->main_dest,
+            'market'          => Str::upper($request->market ?? ''),
+            'deldate'         => $request->deldate,
+            'status'          => $request->status,
+            'unit'            => $request->unit,
         ]);
 
         $mandatory_others = $db->table('masterothers')->where('costing_header', 'Y')->get();
@@ -268,6 +273,9 @@ class Marketing_CostingController extends Controller
             'confirm_price'   => $original->confirm_price,
             'main_dest'       => $original->main_dest,
             'market'          => $original->market,
+            'deldate'         => $original->deldate,
+            'status'          => $original->status,
+            'unit'            => $original->unit,
             'created_at'      => $now,
             'updated_at'      => $now,
             'created_by'      => Auth::user()->name,
@@ -551,6 +559,9 @@ class Marketing_CostingController extends Controller
                 'rate_to_idr'     => str_replace(',', '', $request->rate_to_idr),
                 'rate_from_idr'   => str_replace(',', '', $request->rate_from_idr),
                 'confirm_price'   => str_replace(',', '', $request->confirm_price),
+                'deldate'         => $request->deldate,
+                'status'          => $request->status,
+                'unit'            => $request->unit,
                 'updated_at'      => now(),
             ];
 
