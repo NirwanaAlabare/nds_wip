@@ -2728,7 +2728,19 @@ class SewingToolsController extends Controller
                                         select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, reject_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
                                     "
                                     :
-                                    ""
+                                    (
+                                        $department == "_packing_po" ?
+                                        "
+                                        UNION
+                                        select output_rejects.master_plan_id, output_rejects.so_det_id, output_rejects.created_by, created_by_username, created_by_line, output_rejects.kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, 'mati' as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rfts".$department." as output_rejects
+                                        LEFT JOIN output_rejects orj ON orj.id = output_rejects.reject_id and output_rejects.department = 'qc'
+                                        LEFT JOIN output_rejects_packing orp ON orp.id = output_rejects.reject_id and output_rejects.department = 'packing'
+                                        left join output_defect_types on output_defect_types.id = COALESCE(orj.reject_type_id, orp.reject_type_id)
+                                        WHERE output_rejects.type = 'reject' and output_rejects.kode_numbering in (".$kodeNumbering.")
+                                        "
+                                        :
+                                        ""
+                                    )
                             )
                             ."
                         ) output
@@ -2860,15 +2872,25 @@ class SewingToolsController extends Controller
 
                             break;
                         case 'mati' :
+                            $tableName = $department != '_packing_po' ? "output_rejects".$department : "output_rfts".$department;
+
                             // Undo REJECT
-                            $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $output->id)->first();
+                            $reject = DB::connection("mysql_sb")->table($tableName)->where('id', $output->id)->first();
 
                             $deleteReject = null;
                             if ($reject && $reject->id) {
-                                $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
+                                $deleteReject = DB::connection("mysql_sb")->table($tableName)->where('id', $reject->id)->delete();
                             }
 
                             if ($deleteReject) {
+                                $insertArr = "";
+
+                                if ($department != '_packing_po') {
+                                    $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
+                                } else {
+                                    $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
+                                }
+
                                 DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
@@ -5657,8 +5679,11 @@ class SewingToolsController extends Controller
                     })->first();
 
                     if ($currentPo) {
+                        Log::channel('modifyPackingPo')->info(["update packing po", "by ".(Auth::user()->id." - ".Auth::user()->username), $packingPo]);
+
                         // Update PO ID
                         $packingPo->po_id = $currentPo->id;
+                        $packingPo->timestamps = false;
                         $packingPo->save();
 
                         $message .= $packingPo->kode_numbering." berhasil diubah <br>";
