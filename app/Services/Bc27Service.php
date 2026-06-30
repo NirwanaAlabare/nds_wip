@@ -234,7 +234,7 @@ class Bc27Service
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
-                    'jenis_bc'     => '27',
+                    'jenis_bc'     => '2.7',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bpbno_int') ?? null
                 ]

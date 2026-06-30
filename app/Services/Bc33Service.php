@@ -436,7 +436,7 @@ class Bc33Service
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
-                    'jenis_bc'     => '33',
+                    'jenis_bc'     => '3.3',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bppbno_int') ?? null,
                 ]

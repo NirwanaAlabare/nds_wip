@@ -291,6 +291,25 @@ class CeisaService
         ];
     }
 
+    // kirim dokumen BC 4.1 ke CEISA
+    public function kirimDokumenBc41($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
     /**
      * Delete draft dokumen dari CEISA
      */

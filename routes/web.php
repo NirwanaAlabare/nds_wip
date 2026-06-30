@@ -149,6 +149,7 @@ use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
+Use App\Http\Controllers\Marketing_ApprovalCenterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1125,6 +1126,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_data_dash_marketing_top_buyer', 'get_data_dash_marketing_top_buyer')->name('get_data_dash_marketing_top_buyer');
     });
 
+    // Approval Center
+    Route::get('/marketing/approval-center', [Marketing_ApprovalCenterController::class, 'index'])->middleware('marketing')->name('marketing-approval-center');
+
     // Master
     // Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
     //     Route::get('/', 'index')->name('master-costing');
@@ -1617,6 +1621,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc33', 'editBc33')->name('dokumen-pabean-edit-bc33')->where('id', '.*');
         Route::put('/update-draft-bc33/{id}', 'updateDraftBc33')->name('dokumen-pabean-update_draft_bc33')->where('id', '.*');
         Route::post('/send-bc33/{id}', 'sendCeisaBc33')->name('dokumen-pabean-send-bc33')->where('id', '.*');
+
+        // BC 4.1 routes
+        Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
+        Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
+        Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
     });
 
     // WHS Soljer

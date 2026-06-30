@@ -1034,7 +1034,7 @@
                 @if ($page == 'dashboard-marketing')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' ? 'active' : '' }}">Master</a>
+                            class="nav-link dropdown-toggle {{ ($subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval'])) ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('master-costing') }}"
@@ -1043,36 +1043,23 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('master-costing-approval') }}"
-                                    class="dropdown-item {{ $subPage == 'marketing-master-costing-approval' ? 'active' : '' }}">
-                                    Approval Costing <i class="fa-solid fa-check fa-sm"></i>
-                                </a>
-                            </li>
-                            <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
-                                    BOM <i class="fa-solid fa-receipt fa-sm"></i>
+                                    Bill of Material (BOM) <i class="fa-solid fa-receipt fa-sm"></i>
                                 </a>
                             </li>
-                            <li>
-                                <a href="{{ route('master-bom-approval') }}"
-                                    class="dropdown-item {{ $subPage == 'marketing-master-bom-approval' ? 'active' : '' }}">
-                                    Approval BOM <i class="fa-solid fa-check fa-sm"></i>
-                                </a>
-                            </li>
-
                             <li>
                                 <a href="{{ route('master-marketing-so') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-so' ? 'active' : '' }}">
                                     Sales Order <i class="fa-solid fa-file-invoice-dollar fa-sm"></i>
                                 </a>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a href="{{ route('master-bom-additional') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom-additional' ? 'active' : '' }}">
                                     BOM Additional &nbsp;<i class="fa-solid fa-plus-circle fa-sm"></i>
                                 </a>
-                            </li>
+                            </li> --}}
                             {{-- <li>
                                 <a href="{{ route('so-barcode-input-page') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-so-barcode' ? 'active' : '' }}">
@@ -1080,6 +1067,10 @@
                                 </a>
                             </li> --}}
                         </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('marketing-approval-center') }}" class="nav-link {{ ($subPageGroup == 'marketing-approval' || in_array($subPage, ['marketing-approval-center', 'marketing-master-costing-approval', 'marketing-master-bom-approval'])) ? 'active' : '' }}">Approval</a>
                     </li>
                 @endif
 
