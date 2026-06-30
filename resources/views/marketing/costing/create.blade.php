@@ -109,6 +109,9 @@
                     <label>Confirm Price</label>
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal text-right" placeholder="0.00">
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Marketing Order</label>
                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
@@ -118,9 +121,6 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Shipment Type</label>
                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
@@ -128,7 +128,44 @@
                         <option value="export">EXPORT</option>
                     </select>
                 </div>
-                <div class="col-md-9 form-group">
+                <div class="col-md-3 form-group">
+                    <label>Delivery Date *</label>
+                    <input type="date" name="deldate" id="deldate" class="form-control" required>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Status *</label>
+                    <select name="status" id="status" class="form-control select2bs4" required>
+                        <option value="">Pilih Status</option>
+                        <option value="CONFIRM">CONFIRM</option>
+                        <option value="CANCEL">CANCEL</option>
+                        <option value="SAMPLE">SAMPLE</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-2 form-group">
+                    <label>Unit</label>
+                    <select name="unit" id="unit" class="form-control select2bs4" required>
+                        <option value="">Pilih Satuan</option>
+                        @foreach ($units as $u)
+                            <option value="{{ $u->nama_pilihan }}" {{ $u->nama_pilihan == 'PCS' ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Main Destination #</label>
+                    <select name="main_dest[]" id="main_dest" class="form-control select2bs4" multiple>
+                        @foreach ($destinations as $dest)
+                            <option value="{{ $dest->country_name }}">{{ $dest->country_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Market</label>
+                    <input type="text" name="market" id="market" class="form-control" placeholder="Market">
+                </div>
+                <div class="col-md-4 form-group">
                     <label for="notes">Notes</label>
                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Tambahkan catatan jika ada..."></textarea>
                 </div>

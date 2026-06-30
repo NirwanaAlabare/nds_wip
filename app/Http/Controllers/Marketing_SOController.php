@@ -1458,8 +1458,12 @@ class Marketing_SOController extends Controller
                     'aktif'       => 'Y',
                     'cfm_price'   => $act_costing_new->confirm_price ?? 0,
                     'vat'         => $request->vat ?? 0,
-                    'deldate'     => $details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null,
+                    'deldate'     => ($act_costing_new && $act_costing_new->deldate) ? $act_costing_new->deldate : ($details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null),
                     'type_ws'     => $act_costing_new ? $act_costing_new->tipe_ws : null,
+                    'id_smode'    => $act_costing_new ? $act_costing_new->ship_mode : null,
+                    'status'      => ($act_costing_new && $act_costing_new->status) ? $act_costing_new->status : 'CONFIRM',
+                    'unit'        => ($act_costing_new && $act_costing_new->unit) ? $act_costing_new->unit : 'PCS',
+                    'main_dest'   => $act_costing_new ? $act_costing_new->main_dest : null,
                 ]);
 
                 $curr_name_so = '';
@@ -1488,7 +1492,7 @@ class Marketing_SOController extends Controller
                     'smv'       => $request->smv ?? ($act_costing_new ? $act_costing_new->smv : null),
                     'marketing_order' => $request->marketing_order ?? null,
                     'notes'     => $request->notes ?? null,
-                    'unit'      => 'PCS',
+                    'unit'      => ($act_costing_new && $act_costing_new->unit) ? $act_costing_new->unit : 'PCS',
                     'id_season' => $act_costing_new->season_id ?? null,
                     'jns_so'    => $request->jns_so,
                     'fob'        => $request->fob ?? 0,
@@ -3035,23 +3039,12 @@ class Marketing_SOController extends Controller
                         $update_count++;
                     }
                 } else {
-                    // Cek apakah ada existing dengan id_item sama tapi id_panel berbeda
-                    // Pakai posno yang sama jika id_item sudah pernah ada
+                    // Gunakan posno yang sama untuk id_item yang sama (berlaku untuk semua size/color/panel dari item tersebut)
                     if (!isset($posno_map[$req->id_item])) {
                         $posno_counter++;
-                        $posno_map[$req->id_item . '_' . $req->id_panel] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+                        $posno_map[$req->id_item] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
                     }
-
-                    // Ambil posno: kalau id_item sudah ada (panel lain), pakai posno yang sama
-                    $existing_posno = $mysql_sb->table('bom_jo_item')
-                        ->where('id_jo', $id_jo)
-                        ->where('id_item', $req->id_item)
-                        ->value('posno');
-
-                    if (!$existing_posno) {
-                        $posno_counter++;
-                        $existing_posno = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
-                    }
+                    $existing_posno = $posno_map[$req->id_item];
 
                     $to_insert[] = [
                         'id_jo'      => $req->id_jo,
