@@ -38,6 +38,7 @@ class AssetMasterLokasiController extends Controller
         ]);
     }
 
+
     public function store_main_lokasi(Request $request)
     {
         $request->validate([

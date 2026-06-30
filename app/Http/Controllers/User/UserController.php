@@ -135,6 +135,28 @@ class UserController extends Controller
         ], JsonResponse::HTTP_OK);
     }
 
+    public function loginApi(Request $request)
+    {
+        $request->validate([
+            "username" => "required|string",
+            "password" => "required|string",
+        ]);
+
+        $user = User::where("username", $request->username)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'data' => null,
+                'message' => 'Username atau password salah'
+            ], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        return response()->json([
+            'data' => $user,
+            'message' => 'Login berhasil'
+        ], JsonResponse::HTTP_OK);
+    }
+
     public function storeApi(StoreUserRequest $request)
     {
         try {
