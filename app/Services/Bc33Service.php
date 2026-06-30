@@ -41,8 +41,13 @@ class Bc33Service
         $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
         $items = $db->table('bppb as a')
-            ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
-            ->select('a.*', 'mi.goods_code', 'mi.itemdesc')
+            ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+            ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+            ->select(
+                'a.*', 
+                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
+                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+            )
             ->where(function ($query) use ($id) {
                 $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
             })
