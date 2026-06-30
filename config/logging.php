@@ -275,5 +275,12 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'modifyPackingPo' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifyPackingPo/modifyPackingPo.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 ];
