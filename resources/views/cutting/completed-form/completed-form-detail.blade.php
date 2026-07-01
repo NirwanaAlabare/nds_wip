@@ -1351,8 +1351,26 @@
                 td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain));
                 td22.innerHTML = (latestStatus != 'extension complete' ? Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0).round(2) : Number(Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2));
                 td23.innerHTML = (latestStatus != 'extension complete' ? Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0).round(2) : Number(Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2));
-                td24.innerHTML = (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )).round(2));
-                td25.innerHTML = (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2));
+                td24.innerHTML = Number((
+                    latestStatus != 'extension complete'
+                        ? ((Number(data.total_pemakaian_roll) || 0) + (Number(data.sisa_kain) || 0) - (Number(data.qty) || 0))
+                        : ((Number(data.total_pemakaian_roll) || 0) + (Number(latestTotalPemakaian) || 0) + (Number(data.sisa_kain) || 0) - (Number(latestQty) || 0))
+                ).toFixed(2)) || 0;
+                td25.innerHTML = Number.isFinite(
+                        ((latestStatus != 'extension complete'
+                            ? ((Number(data.total_pemakaian_roll) || 0) + (Number(data.sisa_kain) || 0) - (Number(data.qty) || 0)) /
+                                (Number(data.qty) || 0)
+                            : ((Number(data.total_pemakaian_roll) || 0) + (Number(latestTotalPemakaian) || 0) + (Number(data.sisa_kain) || 0) - (Number(latestQty) || 0)) /
+                                (Number(latestQty) || 0)
+                        ) * 100)
+                    )
+                        ? (((latestStatus != 'extension complete'
+                            ? ((Number(data.total_pemakaian_roll) || 0) + (Number(data.sisa_kain) || 0) - (Number(data.qty) || 0)) /
+                                (Number(data.qty) || 0)
+                            : ((Number(data.total_pemakaian_roll) || 0) + (Number(latestTotalPemakaian) || 0) + (Number(data.sisa_kain) || 0) - (Number(latestQty) || 0)) /
+                                (Number(latestQty) || 0)
+                        ) * 100).toFixed(2))
+                        : "0.00";
             } else {
                 td1.innerHTML = '';
                 td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
