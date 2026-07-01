@@ -79,5 +79,6 @@ Route::controller(OutMaterialController::class)->prefix("mutasi-fabric-subcont")
 Route::controller(api_asset_mesinController::class)->group(function () {
     Route::get('/asset_master_lokasi', 'asset_master_lokasi_api');
     Route::get('/asset_mekanik_cek_qr', 'asset_mekanik_cek_qr_api');
+    Route::get('/asset_mekanik_show_ticket_api', 'asset_mekanik_show_ticket_api');
     Route::post('/asset_mekanik_insert_ticket', 'asset_mekanik_insert_ticket_api');
 });

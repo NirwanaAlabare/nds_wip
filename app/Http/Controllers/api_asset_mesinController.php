@@ -45,6 +45,36 @@ class api_asset_mesinController extends Controller
         ]);
     }
 
+    public function asset_mekanik_show_ticket_api(Request $request)
+    {
+        // Join ke asset_penerimaan_mesin (lewat kode_qr) & asset_master_lokasi
+        // (lewat id_lok) supaya list tiket langsung bawa nama mesin & lokasi,
+        // bukan cuma id/kode mentah — dipakai TicketCard di app Flutter.
+        $data = DB::select("
+            SELECT
+                t.id,
+                t.no_ticket,
+                t.tgl_trans,
+                t.`desc`,
+                t.status,
+                t.created_by,
+                t.created_at,
+                CONCAT(jenis.nm_jenis, ' - S/N ', pm.serial_number) AS machine_name,
+                CONCAT(main.main_lokasi, ' - ', det.sub_lokasi) AS line
+            FROM asset_mekanik_ticket t
+            LEFT JOIN asset_penerimaan_mesin pm ON pm.kode_qr = t.kode_qr COLLATE utf8mb4_unicode_ci
+            LEFT JOIN asset_master_kd_jenis jenis ON jenis.id_jenis = pm.id_jenis
+            LEFT JOIN asset_master_lokasi_det det ON det.id = t.id_lok
+            LEFT JOIN asset_master_main_lokasi main ON main.id = det.id_main_lokasi
+            ORDER BY t.created_at DESC
+        ");
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+        ]);
+    }
+
     public function asset_mekanik_insert_ticket_api(Request $request)
     {
         $request->validate([
