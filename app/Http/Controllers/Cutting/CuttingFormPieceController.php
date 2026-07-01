@@ -1008,6 +1008,13 @@ class CuttingFormPieceController extends Controller
                     $formCutPieceDetailIds = [];
                     $formCutPieceDetailSizeIds = [];
                     foreach ($formCutPieceDetails as $d) {
+
+                        // Log Detail
+                        logHistory(
+                            $d->id,
+                            $d->toArray()
+                        );
+
                         // Piece Detail
                         array_push($formCutPieceDetailIds, $d->id);
 
@@ -1022,6 +1029,15 @@ class CuttingFormPieceController extends Controller
                             "qty" => DB::raw("qty + ".($d->qty_pemakaian ?? 0)),
                             "qty_pakai" => DB::raw("qty_pakai - ".($d->qty_pemakaian ?? 0)),
                         ]);
+
+                        // Log Detail Size
+                        $currentCutPieceDetailSizes = $d->formCutPieceDetailSizes;
+                        foreach ($currentCutPieceDetailSizes as $ds) {
+                            logHistory(
+                                $ds->id,
+                                $ds->toArray()
+                            );
+                        }
                     }
 
                     FormCutPieceDetail::whereIn("id", $formCutPieceDetailIds)->delete();
