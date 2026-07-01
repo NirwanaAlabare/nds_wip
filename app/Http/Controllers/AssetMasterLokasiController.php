@@ -27,6 +27,18 @@ class AssetMasterLokasiController extends Controller
         }
 
         $mainLokasiList = DB::select("SELECT id, main_lokasi FROM asset_master_main_lokasi ORDER BY main_lokasi ASC");
+        $subLokasiList = DB::select("
+            SELECT DISTINCT sub_lokasi
+            FROM asset_master_lokasi_det
+            WHERE sub_lokasi IS NOT NULL AND sub_lokasi != ''
+            ORDER BY sub_lokasi ASC
+        ");
+        $divisiList = DB::select("
+            SELECT DISTINCT divisi
+            FROM asset_master_lokasi_det
+            WHERE divisi IS NOT NULL AND divisi != ''
+            ORDER BY divisi ASC
+        ");
 
         // For non-AJAX (initial page load)
         return view('asset_management.master_lokasi', [
@@ -35,6 +47,8 @@ class AssetMasterLokasiController extends Controller
             'subPage' => 'asset_master_lokasi',
             'containerFluid' => true,
             'mainLokasiList' => $mainLokasiList,
+            'subLokasiList' => $subLokasiList,
+            'divisiList' => $divisiList,
         ]);
     }
 
