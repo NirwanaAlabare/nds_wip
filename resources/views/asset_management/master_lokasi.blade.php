@@ -105,12 +105,14 @@
                 <div class="col-md-3">
                     <label for="txtsub_lokasi"><small><b>Sub Lokasi :</b></small></label>
                     <input type="text" id="txtsub_lokasi" name="txtsub_lokasi" class="form-control form-control-sm"
-                        style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                        autocomplete="on" style="text-transform: uppercase;"
+                        oninput="this.value = this.value.toUpperCase();">
                 </div>
                 <div class="col-md-3">
                     <label for="txtdivisi"><small><b>Divisi :</b></small></label>
                     <input type="text" id="txtdivisi" name="txtdivisi" class="form-control form-control-sm"
-                        style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                        autocomplete="on" style="text-transform: uppercase;"
+                        oninput="this.value = this.value.toUpperCase();">
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-success btn-sm" id="saveLokasiButton"
@@ -389,7 +391,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengupdate.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengupdate.',
                         });
                     }
                 });
@@ -435,7 +438,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menghapus.',
                         });
                     }
                 });
@@ -603,7 +607,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menghapus.',
                         });
                     }
                 });
@@ -628,8 +633,7 @@
             ajax: {
                 url: '{{ route('asset_master_lokasi') }}',
             },
-            columns: [
-                {
+            columns: [{
                     data: 'main_lokasi'
                 }, // Main Lokasi
                 {
