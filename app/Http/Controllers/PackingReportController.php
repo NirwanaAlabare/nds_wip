@@ -750,14 +750,14 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         if ($request->ajax()) {
 
             $data_mut = DB::select("
-
-                WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
+                WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft_before, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
 
                 /* ================= SALDO AWAL (INJECT) ================= */
                     SELECT
                         id_so_det AS so_det_id,
                         CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
                         0 AS pl_saldo_awal_keluar,
+                        0 AS pl_rft_before,
                         0 AS pl_rft,
                         0 AS pl_reject,
                         0 AS pl_keluar,
@@ -777,7 +777,13 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     SELECT
                         so_det_id,
                         COUNT(*) AS pl_saldo_awal_masuk,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0
+                        0, 
+                        SUM(
+                            type = 'RFT'
+                            AND updated_at >= '2026-05-01 00:00:00'
+                            AND updated_at < '{$tgl_awal} 00:00:00'
+                        ) AS pl_rft_before,
+                        0, 0, 0, 0, 0, 0, 0, 0
                     FROM
                         signalbit_erp.output_rfts_packing_po
                     WHERE
@@ -794,7 +800,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         pms.id_so_det AS so_det_id,
                         0 AS pl_saldo_awal_masuk,
                         SUM( tg.qty ) AS pl_saldo_awal_keluar,
-                        0, 0, 0, 0, 0, 0, 0, 0
+                        0, 0, 0, 0, 0, 0, 0, 0, 0
                     FROM
                         laravel_nds.packing_trf_garment tg
                         JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
@@ -810,7 +816,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING LINE PERIODE MASUK ================= */
                     SELECT
                         so_det_id,
-                        0, 0,
+                        0, 0, 0,
                         SUM( type = 'RFT' ) AS pl_rft,
                         SUM( type = 'REJECT' ) AS pl_reject,
                         0, 0, 0, 0, 0, 0
@@ -827,7 +833,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING LINE PERIODE KELUAR (TRF GARMENT) ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0, 0, 0, 0,
+                        0, 0, 0, 0, 0,
                         SUM( tg.qty ) AS pl_keluar,
                         0, 0, 0, 0, 0
                     FROM
@@ -844,7 +850,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA) ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
                         SUM( pi.qty ) AS pc_saldo_awal_masuk,
                         0, 0, 0, 0
                     FROM
@@ -862,7 +868,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA RETURN - BPPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0,
                         SUM( qty ) AS pc_saldo_awal_masuk,
                         0, 0, 0, 0
                     FROM
@@ -882,7 +888,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORY FG IN - BPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
                         SUM( qty ) AS pc_saldo_awal_keluar,
                         0, 0, 0
                     FROM
@@ -901,7 +907,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL PERIODE MASUK ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0,
                         SUM( pi.qty ) AS pc_terima,
                         0, 0
                     FROM
@@ -918,7 +924,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
                         SUM( qty ) AS pc_terima_return,
                         0
                     FROM signalbit_erp.bppb b
@@ -934,7 +940,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL PERIODE FG IN KELUAR (BPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         SUM( qty ) AS pc_fg_in
                     FROM
                         signalbit_erp.bpb
@@ -956,6 +962,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     msw.size,
                     msw.buyer,
                     (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
+                    SUM( pl_rft_before ) AS pl_rft_before,
                     SUM( pl_rft ) AS pl_rft,
                     SUM( pl_reject ) AS pl_reject,
                     SUM( pl_keluar ) AS pl_keluar,
@@ -989,6 +996,43 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         mb.color,
                         mb.size,
                         date(updated_at) tgl_finishing,
+                        COUNT(*) as tpl_in_before,
+                        0 tpl_in
+                    from signalbit_erp.output_rfts_packing a
+                    INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                    LEFT JOIN (
+                        SELECT
+                        sd.id as id_so_det,
+                        ac.kpno as ws,
+                        supplier as buyer,
+                        styleno,
+                        color,
+                        size,
+                        dest
+                        FROM signalbit_erp.so_det sd
+                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                        WHERE jd.cancel = 'N'
+                    ) mb on a.so_det_id = mb.id_so_det
+                    where 
+                    updated_at >= '2026-05-01 00:00:00'
+                    AND updated_at < '{$tgl_awal} 00:00:00'
+                    and mp.cancel = 'N'
+                    group by so_det_id, date(updated_at)
+                
+                    UNION ALL
+
+                    select
+                        so_det_id,
+                        mb.ws,
+                        mb.buyer,
+                        mb.styleno,
+                        mb.color,
+                        mb.size,
+                        date(updated_at) tgl_finishing,
+                        0 tpl_in_before,
                         COUNT(*) tpl_in
                     from signalbit_erp.output_rfts_packing a
                     INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
@@ -1016,7 +1060,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     /* ================= MAIN SELECT ================= */
                         select
                         urutan, ws, color, style, a.size, buyer,
-                        sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                        sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft_before) pl_rft_before, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
                         (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
                         sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
                         sum(pc_terima_return) pc_terima_return,
@@ -1029,7 +1073,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                             UNION ALL
 
                             select msn.urutan, ws, color, styleno style, a.size, buyer,
-                            COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
+                            COALESCE(packing_saldo_awal, 0) pl_saldo_awal, 0 AS pl_rft_before, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
                             COALESCE( pc_saldo_awal, 0) pc_saldo_awal,  COALESCE( pc_terima, 0) pc_terima, 0 pc_terima_return,  COALESCE( pc_packing_scan, 0) pc_fg_in, 0 pc_saldo_akhir
                             from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
 
@@ -1037,9 +1081,25 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                             select msn.urutan, ws, color, styleno style, a.size, buyer,
                             (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                            0 pl_rft_before,
                             0 pl_rft,
                             0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
                             (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                            from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+
+                            UNION ALL
+
+                            select msn.urutan, ws, color, styleno style, a.size, buyer,
+                            0 pl_saldo_awal,
+                            IF(
+                                tgl_saldo >= '2026-05-01 00:00:00'
+                                AND tgl_saldo < '{$tgl_awal} 00:00:00',
+                                COALESCE(packing_rft,0),
+                                0
+                            ) AS pl_rft_before,
+                            0 pl_rft,
+                            0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                            0 pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
                             from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
                         ) a
                         GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
@@ -1047,11 +1107,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                 select
                 urutan, ws, color, style, a.size, buyer,
-                SUM(tpl_adjustment_before) tpl_saldo_awal,
+                SUM(tpl_in_before) - SUM(pl_rft_before) + SUM(tpl_adjustment_before) tpl_saldo_awal,
                 SUM(tpl_in) tpl_in,
                 SUM(pl_rft) tpl_out,
                 SUM(tpl_adjustment) tpl_adjustment,
-                SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
+                SUM(tpl_in_before) - SUM(pl_rft_before) + SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
                 sum(pl_saldo_awal) pl_saldo_awal,
                 sum(pl_rft) pl_rft,
                 sum(pl_reject) pl_reject,
@@ -1082,6 +1142,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 (
                     select
                         main_select.*,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1113,6 +1174,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         saldo_finishing.size,
                         saldo_finishing.buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1122,7 +1184,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
-                        saldo_finishing.tpl_in,
+                        SUM(saldo_finishing.tpl_in_before) tpl_in_before,
+                        SUM(saldo_finishing.tpl_in) tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
                         0 as qty_adjustment_before,
@@ -1142,6 +1205,12 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_transaction_out_before,
                         0 as pc_switching_transaction_out
                     from saldo_finishing
+                    GROUP BY
+                        saldo_finishing.ws,
+                        saldo_finishing.color,
+                        saldo_finishing.styleno,
+                        saldo_finishing.size,
+                        saldo_finishing.buyer
 
                     UNION ALL
                     select
@@ -1152,6 +1221,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         size,
                         buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1161,6 +1231,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) tpl_adjustment_before,
                         SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as tpl_adjustment,
@@ -1197,6 +1268,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         size,
                         buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1206,6 +1278,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1241,6 +1314,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         from_size,
                         from_buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1250,6 +1324,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1285,6 +1360,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         size,
                         buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1294,6 +1370,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1331,6 +1408,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         size,
                         buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1340,6 +1418,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1375,6 +1454,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         from_size,
                         from_buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1384,6 +1464,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1419,6 +1500,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         size,
                         buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1428,6 +1510,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1464,6 +1547,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         master_sb_ws.size,
                         master_sb_ws.buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1473,6 +1557,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1508,6 +1593,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         master_sb_ws.size,
                         master_sb_ws.buyer,
                         0 pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject,
                         0 pl_keluar,
@@ -1517,6 +1603,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in_before,
                         0 tpl_in,
                         0 tpl_adjustment_before,
                         0 tpl_adjustment,
@@ -1585,13 +1672,14 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         );
 
         $data = DB::select("
-            WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
+            WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft_before, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
 
             /* ================= SALDO AWAL (INJECT) ================= */
                 SELECT
                     id_so_det AS so_det_id,
                     CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
                     0 AS pl_saldo_awal_keluar,
+                    0 AS pl_rft_before,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     0 AS pl_keluar,
@@ -1611,7 +1699,13 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SELECT
                     so_det_id,
                     COUNT(*) AS pl_saldo_awal_masuk,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0
+                    0, 
+                    SUM(
+                        type = 'RFT'
+                        AND updated_at >= '2026-05-01 00:00:00'
+                        AND updated_at < '{$tgl_awal} 00:00:00'
+                    ) AS pl_rft_before,
+                    0, 0, 0, 0, 0, 0, 0, 0
                 FROM
                     signalbit_erp.output_rfts_packing_po
                 WHERE
@@ -1628,7 +1722,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     pms.id_so_det AS so_det_id,
                     0 AS pl_saldo_awal_masuk,
                     SUM( tg.qty ) AS pl_saldo_awal_keluar,
-                    0, 0, 0, 0, 0, 0, 0, 0
+                    0, 0, 0, 0, 0, 0, 0, 0, 0
                 FROM
                     laravel_nds.packing_trf_garment tg
                     JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
@@ -1644,7 +1738,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING LINE PERIODE MASUK ================= */
                 SELECT
                     so_det_id,
-                    0, 0,
+                    0, 0, 0,
                     SUM( type = 'RFT' ) AS pl_rft,
                     SUM( type = 'REJECT' ) AS pl_reject,
                     0, 0, 0, 0, 0, 0
@@ -1661,7 +1755,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING LINE PERIODE KELUAR (TRF GARMENT) ================= */
                 SELECT
                     pms.id_so_det AS so_det_id,
-                    0, 0, 0, 0,
+                    0, 0, 0, 0, 0,
                     SUM( tg.qty ) AS pl_keluar,
                     0, 0, 0, 0, 0
                 FROM
@@ -1678,7 +1772,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA) ================= */
                 SELECT
                     pms.id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
                     SUM( pi.qty ) AS pc_saldo_awal_masuk,
                     0, 0, 0, 0
                 FROM
@@ -1696,7 +1790,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA RETURN - BPPB) ================= */
                 SELECT
                     id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
                     SUM( qty ) AS pc_saldo_awal_masuk,
                     0, 0, 0, 0
                 FROM
@@ -1716,7 +1810,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORY FG IN - BPB) ================= */
                 SELECT
                     id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0,
                     SUM( qty ) AS pc_saldo_awal_keluar,
                     0, 0, 0
                 FROM
@@ -1735,7 +1829,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL PERIODE MASUK ================= */
                 SELECT
                     pms.id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0,
                     SUM( pi.qty ) AS pc_terima,
                     0, 0
                 FROM
@@ -1752,7 +1846,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) ================= */
                 SELECT
                     id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0,
                     SUM( qty ) AS pc_terima_return,
                     0
                 FROM signalbit_erp.bppb b
@@ -1768,7 +1862,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING CENTRAL PERIODE FG IN KELUAR (BPB) ================= */
                 SELECT
                     id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     SUM( qty ) AS pc_fg_in
                 FROM
                     signalbit_erp.bpb
@@ -1790,6 +1884,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 msw.size,
                 msw.buyer,
                 (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
+                SUM( pl_rft_before ) AS pl_rft_before,
                 SUM( pl_rft ) AS pl_rft,
                 SUM( pl_reject ) AS pl_reject,
                 SUM( pl_keluar ) AS pl_keluar,
@@ -1823,6 +1918,43 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     mb.color,
                     mb.size,
                     date(updated_at) tgl_finishing,
+                    COUNT(*) as tpl_in_before,
+                    0 tpl_in
+                from signalbit_erp.output_rfts_packing a
+                INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                LEFT JOIN (
+                    SELECT
+                    sd.id as id_so_det,
+                    ac.kpno as ws,
+                    supplier as buyer,
+                    styleno,
+                    color,
+                    size,
+                    dest
+                    FROM signalbit_erp.so_det sd
+                    INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                    INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                    WHERE jd.cancel = 'N'
+                ) mb on a.so_det_id = mb.id_so_det
+                where 
+                updated_at >= '2026-05-01 00:00:00'
+                AND updated_at < '{$tgl_awal} 00:00:00'
+                and mp.cancel = 'N'
+                group by so_det_id, date(updated_at)
+            
+                UNION ALL
+
+                select
+                    so_det_id,
+                    mb.ws,
+                    mb.buyer,
+                    mb.styleno,
+                    mb.color,
+                    mb.size,
+                    date(updated_at) tgl_finishing,
+                    0 tpl_in_before,
                     COUNT(*) tpl_in
                 from signalbit_erp.output_rfts_packing a
                 INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
@@ -1850,7 +1982,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= MAIN SELECT ================= */
                     select
                     urutan, ws, color, style, a.size, buyer,
-                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft_before) pl_rft_before, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
                     (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
                     sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
                     sum(pc_terima_return) pc_terima_return,
@@ -1863,7 +1995,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         UNION ALL
 
                         select msn.urutan, ws, color, styleno style, a.size, buyer,
-                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
+                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, 0 AS pl_rft_before, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
                         COALESCE( pc_saldo_awal, 0) pc_saldo_awal,  COALESCE( pc_terima, 0) pc_terima, 0 pc_terima_return,  COALESCE( pc_packing_scan, 0) pc_fg_in, 0 pc_saldo_akhir
                         from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
 
@@ -1871,9 +2003,25 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                         select msn.urutan, ws, color, styleno style, a.size, buyer,
                         (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                        0 pl_rft_before,
                         0 pl_rft,
                         0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
                         (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+
+                        UNION ALL
+
+                        select msn.urutan, ws, color, styleno style, a.size, buyer,
+                        0 pl_saldo_awal,
+                        IF(
+                            tgl_saldo >= '2026-05-01 00:00:00'
+                            AND tgl_saldo < '{$tgl_awal} 00:00:00',
+                            COALESCE(packing_rft,0),
+                            0
+                        ) AS pl_rft_before,
+                        0 pl_rft,
+                        0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                        0 pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
                         from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
                     ) a
                     GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
@@ -1881,11 +2029,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
             select
             urutan, ws, color, style, a.size, buyer,
-            SUM(tpl_adjustment_before) tpl_saldo_awal,
+            SUM(tpl_in_before) - SUM(pl_rft_before) + SUM(tpl_adjustment_before) tpl_saldo_awal,
             SUM(tpl_in) tpl_in,
             SUM(pl_rft) tpl_out,
             SUM(tpl_adjustment) tpl_adjustment,
-            SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
+            SUM(tpl_in_before) - SUM(pl_rft_before) + SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
             sum(pl_saldo_awal) pl_saldo_awal,
             sum(pl_rft) pl_rft,
             sum(pl_reject) pl_reject,
@@ -1916,6 +2064,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             (
                 select
                     main_select.*,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -1947,6 +2096,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     saldo_finishing.size,
                     saldo_finishing.buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -1956,7 +2106,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
-                    saldo_finishing.tpl_in,
+                    SUM(saldo_finishing.tpl_in_before) tpl_in_before,
+                    SUM(saldo_finishing.tpl_in) tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
                     0 as qty_adjustment_before,
@@ -1976,6 +2127,12 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out
                 from saldo_finishing
+                GROUP BY
+                    saldo_finishing.ws,
+                    saldo_finishing.color,
+                    saldo_finishing.styleno,
+                    saldo_finishing.size,
+                    saldo_finishing.buyer
 
                 UNION ALL
                 select
@@ -1986,6 +2143,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     size,
                     buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -1995,6 +2153,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) tpl_adjustment_before,
                     SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as tpl_adjustment,
@@ -2031,6 +2190,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     size,
                     buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2040,6 +2200,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2075,6 +2236,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from_size,
                     from_buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2084,6 +2246,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2119,6 +2282,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     size,
                     buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2128,6 +2292,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2165,6 +2330,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     size,
                     buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2174,6 +2340,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2209,6 +2376,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from_size,
                     from_buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2218,6 +2386,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2253,6 +2422,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     size,
                     buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2262,6 +2432,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2298,6 +2469,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     master_sb_ws.size,
                     master_sb_ws.buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2307,6 +2479,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,
@@ -2342,6 +2515,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     master_sb_ws.size,
                     master_sb_ws.buyer,
                     0 pl_saldo_awal,
+                    0 pl_rft_before,
                     0 pl_rft,
                     0 pl_reject,
                     0 pl_keluar,
@@ -2351,6 +2525,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in_before,
                     0 tpl_in,
                     0 tpl_adjustment_before,
                     0 tpl_adjustment,

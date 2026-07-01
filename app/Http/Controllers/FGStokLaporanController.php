@@ -931,7 +931,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -963,7 +963,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb_scan a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -1126,7 +1126,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb_scan a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -1592,7 +1592,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -1624,7 +1624,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb_scan a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -1755,7 +1755,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 
@@ -1787,7 +1787,7 @@ class FGStokLaporanController extends Controller
                         FROM fg_stok_bpb_scan a
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
-                        AND a.sumber_pemasukan = 'SEWING'
+                        AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
                         UNION ALL
 

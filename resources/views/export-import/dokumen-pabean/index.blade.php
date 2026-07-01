@@ -282,6 +282,10 @@
              actionUrl = '{{ route("dokumen-pabean-send-bc33", ":id") }}';
         }
 
+        if(jenisBc === 'BC 4.1') {
+             actionUrl = '{{ route("dokumen-pabean-send-bc41", ":id") }}';
+        }
+
         actionUrl = actionUrl.replace(':id', trxNo);
 
         Swal.fire({

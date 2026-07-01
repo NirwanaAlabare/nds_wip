@@ -47,8 +47,13 @@ class Bc27Service
         $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
         $items = $db->table('bpb as a')
-                ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
-                ->select('a.*', 'mi.goods_code', 'mi.itemdesc')
+                ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+                ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+                ->select(
+                    'a.*', 
+                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
+                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+                )
                 ->where(function($query) use ($id) {
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
                 })
@@ -56,8 +61,13 @@ class Bc27Service
 
         if ($items->isEmpty()) {
             $items = $db->table('bppb as a')
-                ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
-                ->select('a.*', 'a.bppbno as bpbno', 'a.bppbno_int as bpbno_int', 'a.bppbdate as bpbdate', 'mi.goods_code', 'mi.itemdesc')
+                ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+                ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+                ->select(
+                    'a.*', 'a.bppbno as bpbno', 'a.bppbno_int as bpbno_int', 'a.bppbdate as bpbdate',
+                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
+                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+                )
                 ->where(function($query) use ($id) {
                     $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
                 })
@@ -234,7 +244,7 @@ class Bc27Service
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
-                    'jenis_bc'     => '27',
+                    'jenis_bc'     => '2.7',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bpbno_int') ?? null
                 ]
