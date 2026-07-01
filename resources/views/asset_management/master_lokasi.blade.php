@@ -105,12 +105,14 @@
                 <div class="col-md-3">
                     <label for="txtsub_lokasi"><small><b>Sub Lokasi :</b></small></label>
                     <input type="text" id="txtsub_lokasi" name="txtsub_lokasi" class="form-control form-control-sm"
-                        style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                        autocomplete="off" list="subLokasiSuggestions" style="text-transform: uppercase;"
+                        oninput="this.value = this.value.toUpperCase();">
                 </div>
                 <div class="col-md-3">
                     <label for="txtdivisi"><small><b>Divisi :</b></small></label>
                     <input type="text" id="txtdivisi" name="txtdivisi" class="form-control form-control-sm"
-                        style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                        autocomplete="off" list="divisiSuggestions" style="text-transform: uppercase;"
+                        oninput="this.value = this.value.toUpperCase();">
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-success btn-sm" id="saveLokasiButton"
@@ -121,6 +123,17 @@
             </div>
 
             <div class="table-responsive">
+                <datalist id="subLokasiSuggestions">
+                    @foreach ($subLokasiList as $row)
+                        <option value="{{ $row->sub_lokasi }}">
+                    @endforeach
+                </datalist>
+                <datalist id="divisiSuggestions">
+                    @foreach ($divisiList as $row)
+                        <option value="{{ $row->divisi }}">
+                    @endforeach
+                </datalist>
+
                 <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
                     <thead class="bg-sb">
                         <tr>
@@ -214,13 +227,15 @@
                         <div class="col-md-4">
                             <label for="txted_sub_lokasi"><small><b>Sub Lokasi :</b></small></label>
                             <input type="text" id="txted_sub_lokasi" name="txted_sub_lokasi"
-                                class="form-control form-control-sm" style="text-transform: uppercase;"
+                                class="form-control form-control-sm" autocomplete="off" list="subLokasiSuggestions"
+                                style="text-transform: uppercase;"
                                 oninput="this.value = this.value.toUpperCase();">
                         </div>
                         <div class="col-md-4">
                             <label for="txted_divisi"><small><b>Divisi :</b></small></label>
                             <input type="text" id="txted_divisi" name="txted_divisi"
-                                class="form-control form-control-sm" style="text-transform: uppercase;"
+                                class="form-control form-control-sm" autocomplete="off" list="divisiSuggestions"
+                                style="text-transform: uppercase;"
                                 oninput="this.value = this.value.toUpperCase();">
                         </div>
                     </div>
@@ -270,6 +285,22 @@
 
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
+        }
+
+        function addDatalistOption(listId, value) {
+            value = (value || '').trim().toUpperCase();
+
+            if (!value) {
+                return;
+            }
+
+            let exists = $('#' + listId + ' option').filter(function() {
+                return this.value.toUpperCase() === value;
+            }).length > 0;
+
+            if (!exists) {
+                $('<option></option>').val(value).appendTo('#' + listId);
+            }
         }
 
         function save_main_lokasi() {
@@ -389,7 +420,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengupdate.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengupdate.',
                         });
                     }
                 });
@@ -435,7 +467,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menghapus.',
                         });
                     }
                 });
@@ -468,6 +501,9 @@
                     divisi: divisi
                 },
                 success: function(response) {
+                    addDatalistOption('subLokasiSuggestions', sub_lokasi);
+                    addDatalistOption('divisiSuggestions', divisi);
+
                     $('#txtsub_lokasi').val('');
                     $('#txtdivisi').val('');
                     $('#cbomain_lokasi').val(null).trigger('change');
@@ -543,6 +579,9 @@
                     divisi: divisi
                 },
                 success: function(response) {
+                    addDatalistOption('subLokasiSuggestions', sub_lokasi);
+                    addDatalistOption('divisiSuggestions', divisi);
+
                     $('#EditLokasiModal').modal('hide');
                     dataTableReload();
 
@@ -603,7 +642,8 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus.',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menghapus.',
                         });
                     }
                 });
@@ -628,8 +668,7 @@
             ajax: {
                 url: '{{ route('asset_master_lokasi') }}',
             },
-            columns: [
-                {
+            columns: [{
                     data: 'main_lokasi'
                 }, // Main Lokasi
                 {

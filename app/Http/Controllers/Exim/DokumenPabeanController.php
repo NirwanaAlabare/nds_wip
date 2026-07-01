@@ -127,6 +127,10 @@ class DokumenPabeanController extends Controller
                         $editUrl = route('dokumen-pabean-edit-bc33', ['id' => $row->trx_no_par]);
                     }
 
+                    if($row->jenis_dok == 'BC 4.1' && $jenis == 'Pengeluaran') {
+                        $editUrl = route('dokumen-pabean-edit-bc41', ['id' => $row->trx_no_par]);
+                    }
+
                     $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
                     if($row->ceisa_status == 1) {
@@ -1878,6 +1882,21 @@ class DokumenPabeanController extends Controller
     public function sendCeisaBc33($id, Request $request)
     {
         return app(\App\Services\Bc33Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc41($id, Request $request)
+    {
+        return app(\App\Services\Bc41Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc41($id, Request $request)
+    {
+        return app(\App\Services\Bc41Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc41($id, Request $request)
+    {
+        return app(\App\Services\Bc41Service::class)->sendCeisa($id, $request);
     }
 }
 
