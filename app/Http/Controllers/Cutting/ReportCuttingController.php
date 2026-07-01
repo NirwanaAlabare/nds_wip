@@ -3557,6 +3557,76 @@ order by  ws asc, color asc
                 $rawData = DB::select("
                     WITH
 
+                    manajemen_roll_before as (
+                        select
+                            mrk.act_costing_ws,
+                            COALESCE(b.id_roll, '-') id_roll,
+                            b.id_item,
+                            b.unit unit_roll,
+                            ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                            ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
+                        from
+                            form_cut_input a
+                            left join form_cut_input_detail b on a.id = b.form_cut_id
+                            left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                            LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                            LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+                            left join users meja on meja.id = a.no_meja
+                            left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = b.id_roll
+                        where
+                            (a.cancel = 'N'  OR a.cancel IS NULL)
+                            AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                            AND a.status = 'SELESAI PENGERJAAN'
+                            and b.status != 'not complete'
+                            and b.id_item is not null
+                            and a.waktu_selesai > '2026-05-01 00:00:00'
+                            and a.waktu_selesai <= '" . $start_date . " 23:59:59'
+                        group by
+                            b.id
+                        UNION ALL
+                        select
+                            form_cut_piping.act_costing_ws,
+                            form_cut_piping.id_roll,
+                            scanned_item.id_item,
+                            form_cut_piping.unit unit_roll,
+                            form_cut_piping.piping total_pemakaian_roll,
+                            ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll
+                        from
+                            form_cut_piping
+                            LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                            LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                        where
+                            scanned_item.id_item is not null
+                            and form_cut_piping.updated_at > '2026-05-01 00:00:00'
+                            and form_cut_piping.updated_at <= '" . $start_date . " 23:59:59'
+                        group by
+                            form_cut_piping.id
+                        UNION ALL
+                        SELECT
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece_detail.id_roll,
+                            COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+                            form_cut_piece_detail.qty_unit unit_roll,
+                            form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                            ROUND(form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll
+                        FROM
+                            form_cut_piece
+                            LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                            LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                            LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                            LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                        WHERE
+                            form_cut_piece_detail.STATUS = 'complete'
+                            and form_cut_piece.waktu_selesai > '2026-05-01 00:00:00'
+                            and form_cut_piece.waktu_selesai <= '" . $start_date . " 23:59:59'
+                        GROUP BY
+                            form_cut_piece_detail.id
+                    ),
+
                     manajemen_roll as (
                         select
                             mrk.act_costing_ws,
@@ -3627,6 +3697,23 @@ order by  ws asc, color asc
                             form_cut_piece_detail.id
                     ),
 
+                    retur_before as (
+                        SELECT
+                            whs_lokasi_inmaterial.no_ws,
+                            whs_lokasi_inmaterial.no_barcode,
+                            whs_lokasi_inmaterial.id_item,
+                            whs_lokasi_inmaterial.qty_aktual,
+                            whs_lokasi_inmaterial.satuan
+                        FROM
+                            signalbit_erp.whs_lokasi_inmaterial
+                        LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                        WHERE
+                            whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                            AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
+                            and whs_inmaterial_fabric.tgl_dok > '2026-05-01 00:00:00'
+                            and whs_inmaterial_fabric.tgl_dok <= '" . $start_date . " 23:59:59'
+                    ),
+
                     retur as (
                         SELECT
                             whs_lokasi_inmaterial.no_ws,
@@ -3653,7 +3740,31 @@ order by  ws asc, color asc
                         mut.id_item,
                         mi.itemdesc,
 
-                        ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
+                        ROUND(
+                            SUM(saldo_awal)
+                            - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                THEN SUM(qty_pakai_adjustment_before)
+                                ELSE 0
+                            END
+                            + CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(sr_before), 0) = 0
+                                THEN SUM(sr_adjustment_before)
+                                ELSE 0
+                            END
+                            - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                THEN SUM(qty_retur_adjustment_before)
+                                ELSE 0
+                            END
+                            + COALESCE(SUM(qty_adjustment_before), 0),
+                        2) AS saldo_awal,
                         ROUND(SUM(qty_in),2) AS penerimaan,
                         ROUND(
                             CASE 
@@ -3678,10 +3789,32 @@ order by  ws asc, color asc
                             END
                         ,2) AS retur,
                         ROUND(SUM(qty_adjustment),2) AS adjustment,
-
                         ROUND(
-                            SUM(saldo_awal)
-                            + SUM(qty_adjustment_before)
+                            (
+                                SUM(saldo_awal)
+                                - CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                    THEN SUM(qty_pakai_adjustment_before)
+                                    ELSE 0
+                                END
+                                + CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_before), 0) = 0
+                                    THEN SUM(sr_adjustment_before)
+                                    ELSE 0
+                                END
+                                - CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                    THEN SUM(qty_retur_adjustment_before)
+                                    ELSE 0
+                                END
+                                + COALESCE(SUM(qty_adjustment_before), 0)
+                            )
                             + SUM(qty_in)
                             - 
                             CASE 
@@ -3722,7 +3855,13 @@ order by  ws asc, color asc
                             SUM(saldo) saldo,
                             satuan,
                             0 qty_adjustment_before,
-                            0 qty_adjustment
+                            0 qty_adjustment,
+                            0 qty_pakai_adjustment_before,
+                            0 sr_adjustment_before,
+                            0 qty_retur_adjustment_before,
+                            0 qty_pakai_before,
+                            0 sr_before,
+                            0 qty_retur_before
                         FROM mut_cut_fab_saldo_tmp
                         WHERE tgl_trans BETWEEN ? AND ?
                         GROUP BY $groupBy
@@ -3735,9 +3874,34 @@ order by  ws asc, color asc
                             0,0,0,0,0,0,0,0,0,0,
                             satuan,
                             0 qty_adjustment_before,
-                            0 qty_adjustment
+                            0 qty_adjustment,
+                            0 qty_pakai_adjustment_before,
+                            0 sr_adjustment_before,
+                            0 qty_retur_adjustment_before,
+                            0 qty_pakai_before,
+                            0 sr_before,
+                            0 qty_retur_before
                         FROM mut_cut_fab_saldo_tmp
                         WHERE tgl_trans = ?
+                        GROUP BY $groupBy
+
+                        UNION ALL
+
+                        SELECT
+                            ws, id_roll, id_item,
+                            0 saldo_awal,
+                            0,0,0,0,0,0,0,0,0,0,
+                            satuan,
+                            0 qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 qty_pakai_adjustment_before,
+                            0 sr_adjustment_before,
+                            0 qty_retur_adjustment_before,
+                            SUM(qty_pakai) qty_pakai_before,
+                            SUM(sr) sr_before,
+                            SUM(qty_retur) qty_retur_before
+                        FROM mut_cut_fab_saldo_tmp
+                        WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
                         GROUP BY $groupBy
 
                         UNION ALL
@@ -3783,7 +3947,37 @@ order by  ws asc, color asc
                             0 saldo,
                             wip_adjustment_fabric.satuan,
                             SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
-                            SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
+                            SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
+                            COALESCE(
+                            (
+                                SELECT SUM(mr.total_pemakaian_roll)
+                                FROM manajemen_roll_before mr
+                                WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                                AND mr.id_roll = wip_adjustment_fabric.id_roll
+                                AND mr.id_item = wip_adjustment_fabric.id_item
+                                AND mr.unit_roll = wip_adjustment_fabric.satuan
+                            ), 0) qty_pakai_adjustment_before,
+                            COALESCE(
+                            (
+                                SELECT SUM(mr.short_roll)
+                                FROM manajemen_roll_before mr
+                                WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                                AND mr.id_roll = wip_adjustment_fabric.id_roll
+                                AND mr.id_item = wip_adjustment_fabric.id_item
+                                AND mr.unit_roll = wip_adjustment_fabric.satuan
+                            ), 0) sr_adjustment_before,
+                            COALESCE(
+                            (
+                                SELECT SUM(retur_before.qty_aktual)
+                                FROM retur_before
+                                WHERE retur_before.no_ws = wip_adjustment_fabric.ws
+                                AND retur_before.no_barcode = wip_adjustment_fabric.id_roll
+                                AND retur_before.id_item = wip_adjustment_fabric.id_item
+                                AND retur_before.satuan = wip_adjustment_fabric.satuan
+                            ), 0) qty_retur_adjustment_before,
+                            0 qty_pakai_before,
+                            0 sr_before,
+                            0 qty_retur_before
                         FROM
                             wip_adjustment_fabric
                         WHERE
@@ -3806,7 +4000,31 @@ order by  ws asc, color asc
                     ) k ON mut.ws = k.kpno
                     GROUP BY $groupBy
                     HAVING
-                        ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
+                        ROUND(
+                            SUM(saldo_awal)
+                            - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                THEN SUM(qty_pakai_adjustment_before)
+                                ELSE 0
+                            END
+                            + CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(sr_before), 0) = 0
+                                THEN SUM(sr_adjustment_before)
+                                ELSE 0
+                            END
+                            - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                    AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                THEN SUM(qty_retur_adjustment_before)
+                                ELSE 0
+                            END
+                            + COALESCE(SUM(qty_adjustment_before), 0),
+                        2) <> 0
                         OR ROUND(SUM(qty_in), 2) <> 0
                         OR ROUND(
                             CASE 
@@ -3826,8 +4044,31 @@ order by  ws asc, color asc
                         OR ROUND(SUM(qty_retur), 2) <> 0
                         OR ROUND(SUM(qty_adjustment), 2) <> 0
                         OR ROUND(
-                            SUM(saldo_awal)
-                            + SUM(qty_adjustment_before)
+                            (
+                                SUM(saldo_awal)
+                                - CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                    THEN SUM(qty_pakai_adjustment_before)
+                                    ELSE 0
+                                END
+                                + CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_before), 0) = 0
+                                    THEN SUM(sr_adjustment_before)
+                                    ELSE 0
+                                END
+                                - CASE
+                                    WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                    THEN SUM(qty_retur_adjustment_before)
+                                    ELSE 0
+                                END
+                                + COALESCE(SUM(qty_adjustment_before), 0)
+                            )
                             + SUM(qty_in)
                             -
                             CASE 
@@ -3894,6 +4135,76 @@ order by  ws asc, color asc
 
         $data = DB::select("
             WITH
+
+            manajemen_roll_before as (
+                select
+                    mrk.act_costing_ws,
+                    COALESCE(b.id_roll, '-') id_roll,
+                    b.id_item,
+                    b.unit unit_roll,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                    ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
+                from
+                    form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                where
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+                    AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    AND a.status = 'SELESAI PENGERJAAN'
+                    and b.status != 'not complete'
+                    and b.id_item is not null
+                    and a.waktu_selesai > '2026-05-01 00:00:00'
+                    and a.waktu_selesai <= '" . $start_date . " 23:59:59'
+                group by
+                    b.id
+                UNION ALL
+                select
+                    form_cut_piping.act_costing_ws,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    form_cut_piping.unit unit_roll,
+                    form_cut_piping.piping total_pemakaian_roll,
+                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll
+                from
+                    form_cut_piping
+                    LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at > '2026-05-01 00:00:00'
+                    and form_cut_piping.updated_at <= '" . $start_date . " 23:59:59'
+                group by
+                    form_cut_piping.id
+                UNION ALL
+                SELECT
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece_detail.id_roll,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                    ROUND(form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll
+                FROM
+                    form_cut_piece
+                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                    LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    form_cut_piece_detail.STATUS = 'complete'
+                    and form_cut_piece.waktu_selesai > '2026-05-01 00:00:00'
+                    and form_cut_piece.waktu_selesai <= '" . $start_date . " 23:59:59'
+                GROUP BY
+                    form_cut_piece_detail.id
+            ),
 
             manajemen_roll as (
                 select
@@ -3965,6 +4276,23 @@ order by  ws asc, color asc
                     form_cut_piece_detail.id
             ),
 
+            retur_before as (
+                SELECT
+                    whs_lokasi_inmaterial.no_ws,
+                    whs_lokasi_inmaterial.no_barcode,
+                    whs_lokasi_inmaterial.id_item,
+                    whs_lokasi_inmaterial.qty_aktual,
+                    whs_lokasi_inmaterial.satuan
+                FROM
+                    signalbit_erp.whs_lokasi_inmaterial
+                LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                WHERE
+                    whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                    AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
+                    and whs_inmaterial_fabric.tgl_dok > '2026-05-01 00:00:00'
+                    and whs_inmaterial_fabric.tgl_dok <= '" . $start_date . " 23:59:59'
+            ),
+
             retur as (
                 SELECT
                     whs_lokasi_inmaterial.no_ws,
@@ -3991,7 +4319,31 @@ order by  ws asc, color asc
                 mut.id_item,
                 mi.itemdesc,
 
-                ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before) ,2) AS saldo_awal,
+                ROUND(
+                    SUM(saldo_awal)
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                        THEN SUM(qty_pakai_adjustment_before)
+                        ELSE 0
+                    END
+                    + CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_before), 0) = 0
+                        THEN SUM(sr_adjustment_before)
+                        ELSE 0
+                    END
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_before), 0) = 0
+                        THEN SUM(qty_retur_adjustment_before)
+                        ELSE 0
+                    END
+                    + COALESCE(SUM(qty_adjustment_before), 0),
+                2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
                 ROUND(
                     CASE 
@@ -4016,10 +4368,32 @@ order by  ws asc, color asc
                     END
                 ,2) AS retur,
                 ROUND(SUM(qty_adjustment),2) AS adjustment,
-
                 ROUND(
-                    SUM(saldo_awal)
-                    + SUM(qty_adjustment_before)
+                    (
+                        SUM(saldo_awal)
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                            THEN SUM(qty_pakai_adjustment_before)
+                            ELSE 0
+                        END
+                        + CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_before), 0) = 0
+                            THEN SUM(sr_adjustment_before)
+                            ELSE 0
+                        END
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_before), 0) = 0
+                            THEN SUM(qty_retur_adjustment_before)
+                            ELSE 0
+                        END
+                        + COALESCE(SUM(qty_adjustment_before), 0)
+                    )
                     + SUM(qty_in)
                     - 
                     CASE 
@@ -4060,7 +4434,13 @@ order by  ws asc, color asc
                     SUM(saldo) saldo,
                     satuan,
                     0 qty_adjustment_before,
-                    0 qty_adjustment
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans BETWEEN ? AND ?
                 GROUP BY $groupBy
@@ -4073,9 +4453,34 @@ order by  ws asc, color asc
                     0,0,0,0,0,0,0,0,0,0,
                     satuan,
                     0 qty_adjustment_before,
-                    0 qty_adjustment
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans = ?
+                GROUP BY $groupBy
+
+                UNION ALL
+
+                SELECT
+                    ws, id_roll, id_item,
+                    0 saldo_awal,
+                    0,0,0,0,0,0,0,0,0,0,
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    SUM(qty_pakai) qty_pakai_before,
+                    SUM(sr) sr_before,
+                    SUM(qty_retur) qty_retur_before
+                FROM mut_cut_fab_saldo_tmp
+                WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
                 GROUP BY $groupBy
 
                 UNION ALL
@@ -4121,7 +4526,37 @@ order by  ws asc, color asc
                     0 saldo,
                     wip_adjustment_fabric.satuan,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
-                    SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment
+                    SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
+                    COALESCE(
+                    (
+                        SELECT SUM(mr.total_pemakaian_roll)
+                        FROM manajemen_roll_before mr
+                        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                        AND mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) qty_pakai_adjustment_before,
+                    COALESCE(
+                    (
+                        SELECT SUM(mr.short_roll)
+                        FROM manajemen_roll_before mr
+                        WHERE mr.act_costing_ws = wip_adjustment_fabric.ws
+                        AND mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) sr_adjustment_before,
+                    COALESCE(
+                    (
+                        SELECT SUM(retur_before.qty_aktual)
+                        FROM retur_before
+                        WHERE retur_before.no_ws = wip_adjustment_fabric.ws
+                        AND retur_before.no_barcode = wip_adjustment_fabric.id_roll
+                        AND retur_before.id_item = wip_adjustment_fabric.id_item
+                        AND retur_before.satuan = wip_adjustment_fabric.satuan
+                    ), 0) qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before
                 FROM
                     wip_adjustment_fabric
                 WHERE
@@ -4144,7 +4579,31 @@ order by  ws asc, color asc
             ) k ON mut.ws = k.kpno
             GROUP BY $groupBy
             HAVING
-                ROUND(SUM(saldo_awal) + SUM(qty_adjustment_before), 2) <> 0
+                ROUND(
+                    SUM(saldo_awal)
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                        THEN SUM(qty_pakai_adjustment_before)
+                        ELSE 0
+                    END
+                    + CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_before), 0) = 0
+                        THEN SUM(sr_adjustment_before)
+                        ELSE 0
+                    END
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_before), 0) = 0
+                        THEN SUM(qty_retur_adjustment_before)
+                        ELSE 0
+                    END
+                    + COALESCE(SUM(qty_adjustment_before), 0),
+                2) <> 0
                 OR ROUND(SUM(qty_in), 2) <> 0
                 OR ROUND(
                     CASE 
@@ -4164,8 +4623,31 @@ order by  ws asc, color asc
                 OR ROUND(SUM(qty_retur), 2) <> 0
                 OR ROUND(SUM(qty_adjustment), 2) <> 0
                 OR ROUND(
-                    SUM(saldo_awal)
-                    + SUM(qty_adjustment_before)
+                    (
+                        SUM(saldo_awal)
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                            THEN SUM(qty_pakai_adjustment_before)
+                            ELSE 0
+                        END
+                        + CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_before), 0) = 0
+                            THEN SUM(sr_adjustment_before)
+                            ELSE 0
+                        END
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_before), 0) = 0
+                            THEN SUM(qty_retur_adjustment_before)
+                            ELSE 0
+                        END
+                        + COALESCE(SUM(qty_adjustment_before), 0)
+                    )
                     + SUM(qty_in)
                     -
                     CASE 
