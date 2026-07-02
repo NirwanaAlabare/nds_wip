@@ -226,6 +226,13 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+
+    <script>
+        // Modul Asset: senyapkan alert bawaan DataTables saat ajax gagal, cukup dicatat di console
+        $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
+            console.error('DataTable ajax error:', message);
+        };
+    </script>
     <script>
         function dataTableReload() {
             datatable.ajax.reload();

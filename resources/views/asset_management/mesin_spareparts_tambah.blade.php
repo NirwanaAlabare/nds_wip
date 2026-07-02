@@ -238,6 +238,13 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        // Modul Asset: senyapkan alert bawaan DataTables saat ajax gagal, cukup dicatat di console
+        $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
+            console.error('DataTable ajax error:', message);
+        };
+    </script>
+
+    <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
