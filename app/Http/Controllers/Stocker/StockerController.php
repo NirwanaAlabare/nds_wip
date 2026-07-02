@@ -4228,76 +4228,76 @@ class StockerController extends Controller
             where("stocker_input.form_cut_id", $formCutId)->
             count();
 
-        if ($dcInCount < 1) {
-            $formData = FormCutInput::selectRaw("
-                    form_cut_input.id form_id,
-                    form_cut_input.no_form,
-                    form_cut_input.no_cut,
-                    part_form.part_id part_id
-                ")->
-                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-                where("form_cut_input.id", $formCutId)->
-                where("form_cut_input.no_form", $noForm)->
-                first();
-
-            $message = "";
-            $index = array_keys($request->mod_so_det_id);
-
-            foreach ($index as $i) {
-                $soDetId = $request->mod_so_det_id[$i];
-                $ratio = $request->mod_ratio[$i];
-                $size = $request->mod_size[$i];
-                $originalQty = $request->mod_original_qty[$i];
-                $modifiedQty = $request->mod_qty_cut[$i];
-                $differenceQty = $request->mod_difference_qty[$i];
-                $note = $request->mod_note[$i];
-                $groupStocker = $request->mod_group_stocker[$i];
-
-                // $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                //     where("stocker_input.form_cut_id", $formCutId)->
-                //     where("stocker_input.so_det_id", $soDetId)->
-                //     where("stocker_input.ratio", $ratio)->
-                //     count();
-
-                // if ($dcInCount < 1) {
-                    $createModifySizeQty = ModifySizeQty::updateOrCreate([
-                        "form_cut_id" => $formCutId,
-                        "no_form" => $noForm,
-                        "so_det_id" => $soDetId,
-                        "group_stocker" => $groupStocker,
-                    ],[
-                        "original_qty" => $originalQty,
-                        "modified_qty" => $modifiedQty,
-                        "difference_qty" => $differenceQty,
-                        "note" => $note,
-                        "created_by" => Auth::user()->id,
-                        "created_by_username" => Auth::user()->username
-                    ]);
-
-                    if ($createModifySizeQty) {
-                        $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") berhasil di simpan. <br>";
-                    } else {
-                        $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") gagal di simpan. <br>";
-                    }
-                // }
-            }
-
-            if ($message != "") {
-                // Adjust stocker data
-                $stockerService->reorderStockerNumbering($formData->part_id);
-
-                return array(
-                    'status' => 200,
-                    'message' => $message,
-                    'redirect' => '',
-                    'table' => '',
-                    'additional' => [],
-                );
-            }
-        } else {
+        if ($dcInCount > 1) {
             return array(
                 'status' => 400,
                 'message' => 'Stocker Form ini sudah di scan di DC',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
+        }
+
+        $formData = FormCutInput::selectRaw("
+                form_cut_input.id form_id,
+                form_cut_input.no_form,
+                form_cut_input.no_cut,
+                part_form.part_id part_id
+            ")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            where("form_cut_input.id", $formCutId)->
+            where("form_cut_input.no_form", $noForm)->
+            first();
+
+        $message = "";
+        $index = array_keys($request->mod_so_det_id);
+
+        foreach ($index as $i) {
+            $soDetId = $request->mod_so_det_id[$i];
+            $ratio = $request->mod_ratio[$i];
+            $size = $request->mod_size[$i];
+            $originalQty = $request->mod_original_qty[$i];
+            $modifiedQty = $request->mod_qty_cut[$i];
+            $differenceQty = $request->mod_difference_qty[$i];
+            $note = $request->mod_note[$i];
+            $groupStocker = $request->mod_group_stocker[$i];
+
+            // $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            //     where("stocker_input.form_cut_id", $formCutId)->
+            //     where("stocker_input.so_det_id", $soDetId)->
+            //     where("stocker_input.ratio", $ratio)->
+            //     count();
+
+            // if ($dcInCount < 1) {
+                $createModifySizeQty = ModifySizeQty::updateOrCreate([
+                    "form_cut_id" => $formCutId,
+                    "no_form" => $noForm,
+                    "so_det_id" => $soDetId,
+                    "group_stocker" => $groupStocker,
+                ],[
+                    "original_qty" => $originalQty,
+                    "modified_qty" => $modifiedQty,
+                    "difference_qty" => $differenceQty,
+                    "note" => $note,
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
+                ]);
+
+                if ($createModifySizeQty) {
+                    $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") berhasil di simpan. <br>";
+                } else {
+                    $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") gagal di simpan. <br>";
+                }
+            // }
+        }
+
+        if ($message != "") {
+            // Adjust stocker data
+            $stockerService->reorderStockerNumbering($formData->part_id);
+
+            return array(
+                'status' => 200,
+                'message' => $message,
                 'redirect' => '',
                 'table' => '',
                 'additional' => [],
@@ -4540,77 +4540,79 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
+
+            // DC IN check
             $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 where("stocker_input.form_cut_id", $validatedRequest['form_cut_id'])->
                 count();
 
-            if ($dcInCount < 1) {
-                $result = [];
-                for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-                    if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
-                        if ($request["type"] && $request["type"] == "piece") {
-                            $storeSeparateStocker = StockerSeparate::create([
-                                "form_piece_id" => $validatedRequest["form_cut_id"],
-                                "no_form" => $validatedRequest["no_form"],
-                                "so_det_id" => $request["so_det_id"][$i],
-                                "group_roll" => $request["group"][$i],
-                                "group_stocker" => $request["group_stocker"][$i],
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username,
-                            ]);
-                        } else {
-                            $storeSeparateStocker = StockerSeparate::create([
-                                "form_cut_id" => $validatedRequest["form_cut_id"],
-                                "no_form" => $validatedRequest["no_form"],
-                                "so_det_id" => $request["so_det_id"][$i],
-                                "group_roll" => $request["group"][$i],
-                                "group_stocker" => $request["group_stocker"][$i],
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username,
-                            ]);
-                        }
-
-                        $rangeAwal = $request["range_awal"][$i];
-                        if ($storeSeparateStocker) {
-                            for ($j = 0; $j < count($request["separate_qty"][$i]); $j++) {
-                                if ($storeSeparateStocker->id) {
-                                    $storeSeparateStockerDetail = StockerSeparateDetail::create([
-                                        "separate_id" => $storeSeparateStocker->id,
-                                        "urutan" => $j+1,
-                                        "qty" => $request["separate_qty"][$i][$j],
-                                        "range_awal" => $rangeAwal,
-                                        "range_akhir" => $rangeAwal + ($request["separate_qty"][$i][$j] - 1),
-                                    ]);
-
-                                    if ($storeSeparateStockerDetail) {
-                                        $rangeAwal = $rangeAwal + ($request["separate_qty"][$i][$j] - 1) + 1;
-                                    }
-
-                                    array_push($result, $request["so_det_id"][$i]);
-                                }
-                            }
-                        }
-                    } else {
-                        StockerSeparate::where("form_cut_id", $validatedRequest["form_cut_id"])->
-                            where("no_form", $validatedRequest["no_form"])->
-                            where("so_det_id", $request["so_det_id"][$i])->
-                            where("group_roll", $request["group"][$i])->
-                            where("group_stocker", $request["group_stocker"][$i])->
-                            delete();
-                    }
-                }
-
-                return array(
-                    "status" => 200,
-                    "message" => "Proses Selesai",
-                    "data" => $result
-                );
-            } else {
+            if ($dcInCount > 1) {
                 return array(
                     "status" => 400,
                     "message" => "Stocker Form ini sudah di scan di DC"
                 );
             }
+
+            $result = [];
+            for ($i = 0; $i < count($request["so_det_id"]); $i++) {
+                if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
+                    if ($request["type"] && $request["type"] == "piece") {
+                        $storeSeparateStocker = StockerSeparate::create([
+                            "form_piece_id" => $validatedRequest["form_cut_id"],
+                            "no_form" => $validatedRequest["no_form"],
+                            "so_det_id" => $request["so_det_id"][$i],
+                            "group_roll" => $request["group"][$i],
+                            "group_stocker" => $request["group_stocker"][$i],
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]);
+                    } else {
+                        $storeSeparateStocker = StockerSeparate::create([
+                            "form_cut_id" => $validatedRequest["form_cut_id"],
+                            "no_form" => $validatedRequest["no_form"],
+                            "so_det_id" => $request["so_det_id"][$i],
+                            "group_roll" => $request["group"][$i],
+                            "group_stocker" => $request["group_stocker"][$i],
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]);
+                    }
+
+                    $rangeAwal = $request["range_awal"][$i];
+                    if ($storeSeparateStocker) {
+                        for ($j = 0; $j < count($request["separate_qty"][$i]); $j++) {
+                            if ($storeSeparateStocker->id) {
+                                $storeSeparateStockerDetail = StockerSeparateDetail::create([
+                                    "separate_id" => $storeSeparateStocker->id,
+                                    "urutan" => $j+1,
+                                    "qty" => $request["separate_qty"][$i][$j],
+                                    "range_awal" => $rangeAwal,
+                                    "range_akhir" => $rangeAwal + ($request["separate_qty"][$i][$j] - 1),
+                                ]);
+
+                                if ($storeSeparateStockerDetail) {
+                                    $rangeAwal = $rangeAwal + ($request["separate_qty"][$i][$j] - 1) + 1;
+                                }
+
+                                array_push($result, $request["so_det_id"][$i]);
+                            }
+                        }
+                    }
+                } else {
+                    StockerSeparate::where("form_cut_id", $validatedRequest["form_cut_id"])->
+                        where("no_form", $validatedRequest["no_form"])->
+                        where("so_det_id", $request["so_det_id"][$i])->
+                        where("group_roll", $request["group"][$i])->
+                        where("group_stocker", $request["group_stocker"][$i])->
+                        delete();
+                }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "Proses Selesai",
+                "data" => $result
+            );
         }
 
         return array(

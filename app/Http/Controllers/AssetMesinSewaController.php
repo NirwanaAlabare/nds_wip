@@ -36,7 +36,7 @@ class AssetMesinSewaController extends Controller
 
     public function asset_mesin_sewa(Request $request)
     {
-        $tgl_trans = '2026-05-01';
+        $tgl_trans = '2024-01-01';
         $supplierList = DB::connection('mysql_sb')->table('mastersupplier')
             ->select('id_supplier', 'Supplier')
             ->where('tipe_sup', '=', 'S')
