@@ -45,9 +45,10 @@ class LapDetPengeluaranController extends Controller
             //     ";
             // }
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
+            $data_pemasukan = DB::connection('mysql_sb')->select("select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,IFNULL(ro.no_po,'-') no_po, no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
         from whs_bppb_h a
         inner join whs_bppb_det b on b.no_bppb = a.no_bppb
+        left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
         inner join masteritem s on b.id_item=s.id_item
         left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=b.id_jo
         left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req
@@ -55,7 +56,7 @@ class LapDetPengeluaranController extends Controller
         left join act_costing ac on so.id_cost=ac.id
         where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $request->dateFrom . "' and '" . $request->dateTo . "' GROUP BY b.id_jo,b.id_item,b.satuan,b.no_bppb order by a.no_bppb)
         UNION
-        (select a.no_mut bpbno,'' bppbno_req,a.tgl_mut bpbdate,a.no_invoice invno,'INHOUSE' jenis_dok,right(a.no_aju,6) no_aju,a.tgl_aju, lpad(a.no_daftar,6,'0') bcno,a.tgl_daftar bcdate,'Mutasi Lokasi' supplier,a.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, qty,'0' qty_good, qty_reject, a.unit,'' berat_bersih,a.deskripsi remark,a.username,a.confirm_by,tmpjo.kpno ws,tmpjo.styleno,a.curr,if(z.tipe_com !='Regular','0',a.price)price, tmpjo.kpno idws_act,'' jenis_trans, 'Mutasi Lokasi', a.id_jo from (select mut.no_ws,a.no_mut,a.tgl_mut,c.type_bc,c.no_aju,c.tgl_aju, c.no_daftar,c.tgl_daftar,GROUP_CONCAT(DISTINCT a.namasupp) supplier, c.no_po,c.no_invoice,a.id_item, sum(qty_mutasi) qty,sum(qty_mutasi) as qty_good,'0' as qty_reject, a.unit,mut.deskripsi,CONCAT(mut.created_by,' (',mut.created_at, ') ') username,CONCAT(mut.approved_by,' (',mut.approved_date, ') ') confirm_by,'IDR' curr,0 price, c.type_pch,a.id_jo from whs_mut_lokasi a
+        (select a.no_mut bpbno,'' bppbno_req,a.tgl_mut bpbdate,'-' no_po,a.no_invoice invno,'INHOUSE' jenis_dok,right(a.no_aju,6) no_aju,a.tgl_aju, lpad(a.no_daftar,6,'0') bcno,a.tgl_daftar bcdate,'Mutasi Lokasi' supplier,a.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, qty,'0' qty_good, qty_reject, a.unit,'' berat_bersih,a.deskripsi remark,a.username,a.confirm_by,tmpjo.kpno ws,tmpjo.styleno,a.curr,if(z.tipe_com !='Regular','0',a.price)price, tmpjo.kpno idws_act,'' jenis_trans, 'Mutasi Lokasi', a.id_jo from (select mut.no_ws,a.no_mut,a.tgl_mut,c.type_bc,c.no_aju,c.tgl_aju, c.no_daftar,c.tgl_daftar,GROUP_CONCAT(DISTINCT a.namasupp) supplier, c.no_po,c.no_invoice,a.id_item, sum(qty_mutasi) qty,sum(qty_mutasi) as qty_good,'0' as qty_reject, a.unit,mut.deskripsi,CONCAT(mut.created_by,' (',mut.created_at, ') ') username,CONCAT(mut.approved_by,' (',mut.approved_date, ') ') confirm_by,'IDR' curr,0 price, c.type_pch,a.id_jo from whs_mut_lokasi a
         inner join whs_mut_lokasi_h mut on mut.no_mut = a.no_mut
         left join whs_inmaterial_fabric c on c.no_dok = a.no_bpb
         where a.status = 'Y' GROUP BY a.no_mut,id_item, id_jo,unit) a
@@ -113,9 +114,10 @@ class LapDetPengeluaranController extends Controller
     // ==============================
     // SQL
     // ==============================
-    $sql = "select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
+    $sql = "select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,IFNULL(ro.no_po,'-') no_po, no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
         from whs_bppb_h a
         inner join whs_bppb_det b on b.no_bppb = a.no_bppb
+        left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
         inner join masteritem s on b.id_item=s.id_item
         left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=b.id_jo
         left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req
@@ -123,7 +125,7 @@ class LapDetPengeluaranController extends Controller
         left join act_costing ac on so.id_cost=ac.id
         where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $from . "' and '" . $to . "' GROUP BY b.id_jo,b.id_item,b.satuan,b.no_bppb order by a.no_bppb)
         UNION
-        (select a.no_mut bpbno,'' bppbno_req,a.tgl_mut bpbdate,a.no_invoice invno,'INHOUSE' jenis_dok,right(a.no_aju,6) no_aju,a.tgl_aju, lpad(a.no_daftar,6,'0') bcno,a.tgl_daftar bcdate,'Mutasi Lokasi' supplier,a.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, qty,'0' qty_good, qty_reject, a.unit,'' berat_bersih,a.deskripsi remark,a.username,a.confirm_by,tmpjo.kpno ws,tmpjo.styleno,a.curr,if(z.tipe_com !='Regular','0',a.price)price, tmpjo.kpno idws_act,'' jenis_trans, 'Mutasi Lokasi', a.id_jo from (select mut.no_ws,a.no_mut,a.tgl_mut,c.type_bc,c.no_aju,c.tgl_aju, c.no_daftar,c.tgl_daftar,GROUP_CONCAT(DISTINCT a.namasupp) supplier, c.no_po,c.no_invoice,a.id_item, sum(qty_mutasi) qty,sum(qty_mutasi) as qty_good,'0' as qty_reject, a.unit,mut.deskripsi,CONCAT(mut.created_by,' (',mut.created_at, ') ') username,CONCAT(mut.approved_by,' (',mut.approved_date, ') ') confirm_by,'IDR' curr,0 price, c.type_pch,a.id_jo from whs_mut_lokasi a
+        (select a.no_mut bpbno,'' bppbno_req,a.tgl_mut bpbdate,'-' no_po,a.no_invoice invno,'INHOUSE' jenis_dok,right(a.no_aju,6) no_aju,a.tgl_aju, lpad(a.no_daftar,6,'0') bcno,a.tgl_daftar bcdate,'Mutasi Lokasi' supplier,a.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, qty,'0' qty_good, qty_reject, a.unit,'' berat_bersih,a.deskripsi remark,a.username,a.confirm_by,tmpjo.kpno ws,tmpjo.styleno,a.curr,if(z.tipe_com !='Regular','0',a.price)price, tmpjo.kpno idws_act,'' jenis_trans, 'Mutasi Lokasi', a.id_jo from (select mut.no_ws,a.no_mut,a.tgl_mut,c.type_bc,c.no_aju,c.tgl_aju, c.no_daftar,c.tgl_daftar,GROUP_CONCAT(DISTINCT a.namasupp) supplier, c.no_po,c.no_invoice,a.id_item, sum(qty_mutasi) qty,sum(qty_mutasi) as qty_good,'0' as qty_reject, a.unit,mut.deskripsi,CONCAT(mut.created_by,' (',mut.created_at, ') ') username,CONCAT(mut.approved_by,' (',mut.approved_date, ') ') confirm_by,'IDR' curr,0 price, c.type_pch,a.id_jo from whs_mut_lokasi a
         inner join whs_mut_lokasi_h mut on mut.no_mut = a.no_mut
         left join whs_inmaterial_fabric c on c.no_dok = a.no_bpb
         where a.status = 'Y' GROUP BY a.no_mut,id_item, id_jo,unit) a
@@ -150,7 +152,7 @@ class LapDetPengeluaranController extends Controller
     $sheet->writeRow(['Laporan Pengeluaran Detail Item'])->applyFontStyleBold()->applyFontSize(16);
     $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
     $sheet->writeRow([]); // kosong
-    $sheet->mergeCells('A1:AF1');
+    $sheet->mergeCells('A1:AG1');
     $sheet->writeRow(['']);
 
 
@@ -160,6 +162,7 @@ class LapDetPengeluaranController extends Controller
         'No BPPB',
         'No Req',
         'Tgl BPPB',
+        'No PO',
         'Inv #',
         'Jenis Dok',
         'Jenis Pengeluaran',
@@ -189,7 +192,7 @@ class LapDetPengeluaranController extends Controller
         'Panel',
         'Color Garment',
     ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-    $sheet->mergeCells('A2:AF2');
+    $sheet->mergeCells('A2:AG2');
     // DATA
     $maxLen = [];
     $no = 1;
@@ -200,6 +203,7 @@ foreach ($rows as $r) {
         $r['bppbno'] ?? '',
         $r['bppbno_req'] ?? '',
         $r['bppbdate'] ?? '',
+        $r['no_po'] ?? '',
         $r['invno'] ?? '',
         $r['jenis_dok'] ?? '',
         $r['jenis_pengeluaran'] ?? '',

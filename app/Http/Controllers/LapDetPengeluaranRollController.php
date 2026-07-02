@@ -36,9 +36,10 @@ class LapDetPengeluaranRollController extends Controller
             }
 
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+            $data_pemasukan = DB::connection('mysql_sb')->select("select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
+left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
 inner join masteritem s on b.id_item=s.id_item 
 left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=b.id_jo 
 left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req 
@@ -46,7 +47,7 @@ left join so on tmpjod.id_so=so.id
 left join act_costing ac on so.id_cost=ac.id  
 where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $request->dateFrom . "' and '" . $request->dateTo . "' GROUP BY b.id order by a.no_bppb) a
 UNION
-select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
+select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb, '-' no_po,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
 rak_asal,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
@@ -91,9 +92,10 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $requ
     // ==============================
     // SQL
     // ==============================
-    $sql = "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+    $sql = "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
+left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
 inner join masteritem s on b.id_item=s.id_item 
 left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=b.id_jo 
 left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req 
@@ -101,7 +103,7 @@ left join so on tmpjod.id_so=so.id
 left join act_costing ac on so.id_cost=ac.id  
 where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $from . "' and '" . $to . "' GROUP BY b.id order by a.no_bppb) a
 UNION
-select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
+select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb, no_po,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
 rak_asal,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
@@ -128,7 +130,7 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $from
     $sheet->writeRow(['Laporan Pengeluaran Detail Roll'])->applyFontStyleBold()->applyFontSize(16);
     $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
     $sheet->writeRow([]); // kosong
-    $sheet->mergeCells('A1:X1');
+    $sheet->mergeCells('A1:Y1');
     $sheet->writeRow(['']);
 
 
@@ -137,6 +139,7 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $from
         'No',
         'No Bppb',
         'Tgl Bppb',
+        'No PO',
         'No Req',
         'Tujuan',
         'No barcode',
@@ -159,7 +162,7 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $from
         'Nama User',
         'Approve By',
     ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-    $sheet->mergeCells('A2:X2');
+    $sheet->mergeCells('A2:Y2');
     // DATA
     $maxLen = [];
     $no = 1;
@@ -169,6 +172,7 @@ foreach ($rows as $r) {
         $no++,
         $r['no_bppb'] ?? '',
         $r['tgl_bppb'] ?? '',
+        $r['no_po'] ?? '',
         $r['no_req'] ?? '',
         $r['tujuan'] ?? '',
         $r['no_barcode'] ?? '',
