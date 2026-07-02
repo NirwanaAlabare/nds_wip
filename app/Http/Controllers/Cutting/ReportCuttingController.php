@@ -3767,14 +3767,14 @@ order by  ws asc, color asc
                         2) AS saldo_awal,
                         ROUND(SUM(qty_in),2) AS penerimaan,
                         ROUND(
-                            CASE 
+                            CASE
                                 WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                                 ELSE SUM(qty_pakai_adjustment)
                             END
                         ,2) AS pemakaian,
                         ROUND(
-                            CASE 
-                                WHEN COALESCE(SUM(sr),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(sr),0) <> 0
                                     THEN SUM(sr)
                                 ELSE SUM(sr_adjustment)
                             END
@@ -3782,8 +3782,8 @@ order by  ws asc, color asc
                         ROUND(SUM(gr_p),2) AS gr_panel,
                         ROUND(SUM(gr_g),2) AS gr_set,
                         ROUND(
-                            CASE 
-                                WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(qty_retur),0) <> 0
                                     THEN SUM(qty_retur)
                                 ELSE SUM(qty_retur_adjustment)
                             END
@@ -3816,22 +3816,22 @@ order by  ws asc, color asc
                                 + COALESCE(SUM(qty_adjustment_before), 0)
                             )
                             + SUM(qty_in)
-                            - 
-                            CASE 
+                            -
+                            CASE
                                 WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                                 ELSE SUM(qty_pakai_adjustment)
                             END
-                            + 
-                            CASE 
-                                WHEN COALESCE(SUM(sr),0) <> 0 
+                            +
+                            CASE
+                                WHEN COALESCE(SUM(sr),0) <> 0
                                     THEN SUM(sr)
                                 ELSE SUM(sr_adjustment)
                             END
                             - SUM(gr_p)
                             - SUM(gr_g)
                             -
-                            CASE 
-                                WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(qty_retur),0) <> 0
                                     THEN SUM(qty_retur)
                                 ELSE SUM(qty_retur_adjustment)
                             END
@@ -4027,14 +4027,14 @@ order by  ws asc, color asc
                         2) <> 0
                         OR ROUND(SUM(qty_in), 2) <> 0
                         OR ROUND(
-                            CASE 
+                            CASE
                                 WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                                 ELSE SUM(qty_pakai_adjustment)
                             END
                         ,2) <> 0
                         OR ROUND(
-                            CASE 
-                                WHEN COALESCE(SUM(sr),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(sr),0) <> 0
                                     THEN SUM(sr)
                                 ELSE SUM(sr_adjustment)
                             END
@@ -4071,21 +4071,21 @@ order by  ws asc, color asc
                             )
                             + SUM(qty_in)
                             -
-                            CASE 
+                            CASE
                                 WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                                 ELSE SUM(qty_pakai_adjustment)
                             END
                             +
-                            CASE 
-                                WHEN COALESCE(SUM(sr),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(sr),0) <> 0
                                     THEN SUM(sr)
                                 ELSE SUM(sr_adjustment)
                             END
                             - SUM(gr_p)
                             - SUM(gr_g)
                             -
-                            CASE 
-                                WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                            CASE
+                                WHEN COALESCE(SUM(qty_retur),0) <> 0
                                     THEN SUM(qty_retur)
                                 ELSE SUM(qty_retur_adjustment)
                             END
@@ -4346,14 +4346,14 @@ order by  ws asc, color asc
                 2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
                 ROUND(
-                    CASE 
+                    CASE
                         WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
                 ,2) AS pemakaian,
                 ROUND(
-                    CASE 
-                        WHEN COALESCE(SUM(sr),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(sr),0) <> 0
                             THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
@@ -4361,8 +4361,8 @@ order by  ws asc, color asc
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
                 ROUND(
-                    CASE 
-                        WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(qty_retur),0) <> 0
                             THEN SUM(qty_retur)
                         ELSE SUM(qty_retur_adjustment)
                     END
@@ -4395,22 +4395,22 @@ order by  ws asc, color asc
                         + COALESCE(SUM(qty_adjustment_before), 0)
                     )
                     + SUM(qty_in)
-                    - 
-                    CASE 
+                    -
+                    CASE
                         WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
-                    + 
-                    CASE 
-                        WHEN COALESCE(SUM(sr),0) <> 0 
+                    +
+                    CASE
+                        WHEN COALESCE(SUM(sr),0) <> 0
                             THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
                     - SUM(gr_p)
                     - SUM(gr_g)
                     -
-                    CASE 
-                        WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(qty_retur),0) <> 0
                             THEN SUM(qty_retur)
                         ELSE SUM(qty_retur_adjustment)
                     END
@@ -4525,7 +4525,7 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment,
                     0 saldo,
                     wip_adjustment_fabric.satuan,
-                    SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
+                    ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                     COALESCE(
                     (
@@ -4606,14 +4606,14 @@ order by  ws asc, color asc
                 2) <> 0
                 OR ROUND(SUM(qty_in), 2) <> 0
                 OR ROUND(
-                    CASE 
+                    CASE
                         WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
                 ,2) <> 0
                 OR ROUND(
-                    CASE 
-                        WHEN COALESCE(SUM(sr),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(sr),0) <> 0
                             THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
@@ -4650,21 +4650,21 @@ order by  ws asc, color asc
                     )
                     + SUM(qty_in)
                     -
-                    CASE 
+                    CASE
                         WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
                     +
-                    CASE 
-                        WHEN COALESCE(SUM(sr),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(sr),0) <> 0
                             THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
                     - SUM(gr_p)
                     - SUM(gr_g)
                     -
-                    CASE 
-                        WHEN COALESCE(SUM(qty_retur),0) <> 0 
+                    CASE
+                        WHEN COALESCE(SUM(qty_retur),0) <> 0
                             THEN SUM(qty_retur)
                         ELSE SUM(qty_retur_adjustment)
                     END
