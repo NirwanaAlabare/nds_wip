@@ -228,7 +228,7 @@ group by id_bpb, id_item
         ?string $id_item = null,
         ?string $id_supplier = null,
         ?string $ids = null,
-        bool $pinkBackground = false
+        ?string $bgColorHex = null
     ) {
         $query = DB::table('asset_penerimaan_mesin as a')
             ->select('a.id', 'a.serial_number', 'a.kode_qr')
@@ -260,8 +260,8 @@ group by id_bpb, id_item
 
         foreach ($units as $unit) {
             $qr = QrCode::format('svg')->size(80);
-            if ($pinkBackground) {
-                $qr->backgroundColor(248, 187, 208);
+            if ($bgColorHex && preg_match('/^[0-9a-fA-F]{6}$/', $bgColorHex)) {
+                $qr->backgroundColor(...array_map('hexdec', str_split($bgColorHex, 2)));
             }
             $unit->qr = base64_encode($qr->generate($unit->kode_qr));
         }
@@ -302,6 +302,9 @@ group by id_bpb, id_item
 
     public function print_qr_list_mesin(Request $request)
     {
+        $color = ltrim((string) $request->color, '#');
+        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'f8bbd0';
+
         $units = $this->get_penerimaan_mesin_qr_units(
             $request->tgl_awal,
             $request->tgl_akhir,
@@ -309,11 +312,12 @@ group by id_bpb, id_item
             $request->id_item,
             $request->id_supplier,
             $request->ids,
-            true
+            $color
         );
 
         return view('asset_management.print_qr_mesin_list', [
             'units' => $units,
+            'color' => $color,
         ]);
     }
 

@@ -371,10 +371,18 @@
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary btn-sm" id="btnDoPrintQr"><i
-                            class="fas fa-print"></i> Cetak</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                <div class="modal-footer justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="qrPrintColor" class="col-form-label mb-0"><small><b>Warna
+                                    Background :</b></small></label>
+                        <input type="color" id="qrPrintColor" class="form-control form-control-sm p-1"
+                            style="width: 50px; height: 32px;" value="#f8bbd0">
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnDoPrintQr"><i
+                                class="fas fa-print"></i> Cetak</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1200,7 +1208,8 @@
             }
 
             let params = new URLSearchParams({
-                ids: ids.join(',')
+                ids: ids.join(','),
+                color: $('#qrPrintColor').val().replace('#', '')
             });
 
             window.open(
