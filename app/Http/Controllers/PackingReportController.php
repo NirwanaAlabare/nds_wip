@@ -1778,6 +1778,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0, 0, 0, 0
                 FROM
                     laravel_nds.packing_packing_in pi
+                    JOIN packing_trf_garment b on pi.id_trf_garment = b.id
                     JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
                 WHERE
                     pms.id_so_det IS NOT NULL
@@ -1835,6 +1836,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0, 0
                 FROM
                     laravel_nds.packing_packing_in pi
+                    JOIN packing_trf_garment b on pi.id_trf_garment = b.id
                     JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
                 WHERE
                     pms.id_so_det IS NOT NULL
