@@ -115,6 +115,11 @@
             cursor: zoom-in;
             transition: transform 0.1s ease-out;
         }
+
+        #printQrListBody img {
+            width: 50px;
+            height: 50px;
+        }
     </style>
 @endsection
 
@@ -124,10 +129,13 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus"></i> Tambah Mesin</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
+            <div class="mb-3 d-flex justify-content-between align-items-center">
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                     data-bs-target="#NewMesinModal">
                     <i class="fas fa-plus"></i> New
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnPrintQrUnit">
+                    <i class="fas fa-qrcode"></i> Print QR
                 </button>
             </div>
             <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
@@ -292,6 +300,89 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Preview Print QR Code (bulk, untuk unit yang QR-nya sudah aktif) -->
+    <div class="modal fade" id="PrintQrPreviewModal" tabindex="-1" aria-labelledby="PrintQrPreviewModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="PrintQrPreviewModalLabel">Preview Print QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
+                        <div>
+                            <label for="qrTglAwal" class="col-form-label"><small><b>Tgl Awal :</b></small></label>
+                            <input type="date" id="qrTglAwal" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
+                            <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label for="qrBpbno" class="col-form-label"><small><b>No BPB :</b></small></label>
+                            <select id="qrBpbno" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 180px;">
+                                <option value="">Semua BPB</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="qrMesin" class="col-form-label"><small><b>Mesin :</b></small></label>
+                            <select id="qrMesin" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 220px;">
+                                <option value="">Semua Mesin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
+                            <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 200px;">
+                                <option value="">Semua Supplier</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnFilterPrintQr">
+                            <i class="fas fa-search"></i> Tampilkan
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <p class="text-muted mb-0"><small><i class="fas fa-circle-info"></i> Centang Kode QR yang
+                                mau dicetak. Tiap Kode QR akan dicetak berdampingan 2x supaya bisa dilipat jadi 2
+                                sisi (bolak-balik).</small></p>
+                        <span class="badge bg-primary" id="qrCheckedCounter">0/0 terpilih</span>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="bg-sb text-white" style="position: sticky; top: 0;">
+                                <tr>
+                                    <th class="text-center" style="width: 40px;">
+                                        <input type="checkbox" id="qrCheckAll">
+                                    </th>
+                                    <th class="text-center" style="width: 70px;">Preview</th>
+                                    <th>Kode QR</th>
+                                    <th>Serial Number</th>
+                                </tr>
+                            </thead>
+                            <tbody id="printQrListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="qrPrintColor" class="col-form-label mb-0"><small><b>Warna
+                                    Background :</b></small></label>
+                        <input type="color" id="qrPrintColor" class="form-control form-control-sm p-1"
+                            style="width: 50px; height: 32px;" value="#f8bbd0">
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnDoPrintQr"><i
+                                class="fas fa-print"></i> Cetak</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -953,6 +1044,178 @@
         $(document).on('click', '.unit-qr-img', function() {
             let unitId = $(this).data('unit-id');
             window.open(`{{ url('/asset_mesin_tambah/unit') }}/${unitId}/print_qr`, '_blank');
+        });
+
+        // Muat ulang pilihan dropdown BPB/Mesin/Supplier di modal Print QR sesuai rentang tanggal yang aktif
+        function loadPrintQrFilterOptions() {
+            let tgl_awal = $('#qrTglAwal').val();
+            let tgl_akhir = $('#qrTglAkhir').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('asset_mesin_tambah_qr_filter_options') }}',
+                data: {
+                    tgl_awal: tgl_awal,
+                    tgl_akhir: tgl_akhir
+                },
+                success: function(rows) {
+                    let bpbSeen = new Set(),
+                        mesinSeen = new Set(),
+                        supplierSeen = new Set();
+                    let bpbOptions = '<option value="">Semua BPB</option>';
+                    let mesinOptions = '<option value="">Semua Mesin</option>';
+                    let supplierOptions = '<option value="">Semua Supplier</option>';
+
+                    rows.forEach(function(r) {
+                        if (r.bpbno_int && !bpbSeen.has(r.bpbno_int)) {
+                            bpbSeen.add(r.bpbno_int);
+                            bpbOptions += `<option value="${r.bpbno_int}">${r.bpbno_int}</option>`;
+                        }
+                        if (r.id_item && !mesinSeen.has(r.id_item)) {
+                            mesinSeen.add(r.id_item);
+                            mesinOptions +=
+                                `<option value="${r.id_item}">${r.itemdesc ?? '-'}</option>`;
+                        }
+                        if (r.id_supplier && !supplierSeen.has(r.id_supplier)) {
+                            supplierSeen.add(r.id_supplier);
+                            supplierOptions +=
+                                `<option value="${r.id_supplier}">${r.supplier ?? '-'}</option>`;
+                        }
+                    });
+
+                    $('#qrBpbno').html(bpbOptions).trigger('change');
+                    $('#qrMesin').html(mesinOptions).trigger('change');
+                    $('#qrSupplier').html(supplierOptions).trigger('change');
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Tombol Print QR di toolbar utama: buka modal preview dengan filter tanggalnya sendiri
+        // (default diisi dari filter tabel utama supaya tidak perlu isi ulang, tapi bisa diubah bebas di dalam modal)
+        $('#btnPrintQrUnit').on('click', function() {
+            $('#qrTglAwal').val($('#txttgl_awal').val());
+            $('#qrTglAkhir').val($('#txttgl_akhir').val());
+            $('#printQrListBody').empty();
+            $('#qrCheckAll').prop('checked', false);
+            updateQrCheckedCounter();
+            loadPrintQrFilterOptions();
+            $('#PrintQrPreviewModal').modal('show');
+        });
+
+        // Update badge "x/y terpilih" sesuai jumlah checkbox yang tercentang di list
+        function updateQrCheckedCounter() {
+            let total = $('.qr-row-check').length;
+            let checked = $('.qr-row-check:checked').length;
+            $('#qrCheckedCounter').text(`${checked}/${total} terpilih`);
+        }
+
+        // Dropdown BPB/Mesin/Supplier menyesuaikan otomatis tiap kali rentang tanggal diubah
+        $('#qrTglAwal, #qrTglAkhir').on('change', function() {
+            loadPrintQrFilterOptions();
+        });
+
+        // Tombol Tampilkan di dalam modal Print QR: ambil semua unit (dari semua BPB/item) yang QR-nya sudah
+        // aktif (Serial Number & Foto sudah terisi) sesuai rentang tanggal & filter BPB/Mesin/Supplier di modal ini,
+        // lalu tampilkan sebagai list checklist (semua tercentang secara default, tinggal uncheck yang tidak perlu).
+        $('#btnFilterPrintQr').on('click', function() {
+            let tgl_awal = $('#qrTglAwal').val();
+            let tgl_akhir = $('#qrTglAkhir').val();
+            let bpbno = $('#qrBpbno').val();
+            let id_item = $('#qrMesin').val();
+            let id_supplier = $('#qrSupplier').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('asset_mesin_tambah_qr_list') }}',
+                data: {
+                    tgl_awal: tgl_awal,
+                    tgl_akhir: tgl_akhir,
+                    bpbno: bpbno,
+                    id_item: id_item,
+                    id_supplier: id_supplier
+                },
+                success: function(units) {
+                    let $body = $('#printQrListBody').empty();
+                    $('#qrCheckAll').prop('checked', false);
+
+                    if (!units.length) {
+                        $body.append(
+                            '<tr><td colspan="4" class="text-center text-muted">Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.</td></tr>'
+                        );
+                        return;
+                    }
+
+                    units.forEach(function(unit) {
+                        $body.append(`
+                            <tr>
+                                <td class="text-center">
+                                    <input type="checkbox" class="qr-row-check" value="${unit.id}"
+                                        data-kode-qr="${unit.kode_qr ?? ''}" data-serial="${unit.serial_number ?? ''}" checked>
+                                </td>
+                                <td class="text-center"><img src="data:image/svg+xml;base64,${unit.qr}"></td>
+                                <td>${unit.kode_qr ?? '-'}</td>
+                                <td>${unit.serial_number ?? '-'}</td>
+                            </tr>`);
+                    });
+
+                    $('#qrCheckAll').prop('checked', true);
+                    updateQrCheckedCounter();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal memuat data QR Code.',
+                    });
+                }
+            });
+        });
+
+        // Checkbox "Check All" di header tabel
+        $('#qrCheckAll').on('change', function() {
+            $('.qr-row-check').prop('checked', $(this).is(':checked'));
+            updateQrCheckedCounter();
+        });
+
+        // Kalau ada baris yang di-uncheck manual, "Check All" ikut tidak tercentang
+        $(document).on('change', '.qr-row-check', function() {
+            let total = $('.qr-row-check').length;
+            let checked = $('.qr-row-check:checked').length;
+            $('#qrCheckAll').prop('checked', total > 0 && total === checked);
+            updateQrCheckedCounter();
+        });
+
+        // Tombol Cetak di modal Preview: hanya Kode QR yang tercentang yang ikut dicetak.
+        // Dibuka di tab baru (bukan print langsung dari dalam modal), karena modal punya area scroll terbatas
+        // sehingga hasil print bisa kepotong/tidak lengkap. Halaman baru ini full A4 & auto memunculkan dialog
+        // print saat dibuka.
+        $('#btnDoPrintQr').on('click', function() {
+            let ids = $('.qr-row-check:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (!ids.length) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Belum Ada Yang Dipilih',
+                    text: 'Centang minimal satu Kode QR yang mau dicetak.',
+                });
+                return;
+            }
+
+            let params = new URLSearchParams({
+                ids: ids.join(','),
+                color: $('#qrPrintColor').val().replace('#', '')
+            });
+
+            window.open(
+                `{{ route('asset_mesin_tambah_qr_list_print') }}?${params.toString()}`,
+                '_blank'
+            );
         });
 
         // Stacking z-index agar modal kedua tampil rapi di atas modal pertama
