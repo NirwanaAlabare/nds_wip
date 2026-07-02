@@ -639,7 +639,18 @@ CASE
             2
         )
 END AS est_tot_cost,
-ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
+ROUND(
+    COALESCE(tot_earning_rupiah, 0) -
+    CASE
+        WHEN stat_kerja = 'libur' THEN
+            COALESCE(sum_tot_labor, 0)
+        ELSE
+            COALESCE(sum_tot_labor, 0)
+            / NULLIF(c.sum_mins_avail, 0)
+            * COALESCE(a.mins_avail, 0)
+    END,
+    2
+) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
     / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)

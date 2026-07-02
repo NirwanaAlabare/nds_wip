@@ -667,7 +667,18 @@ CASE
             2
         )
 END AS est_tot_cost,
-ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
+ROUND(
+    COALESCE(tot_earning_rupiah, 0) -
+    CASE
+        WHEN stat_kerja = 'libur' THEN
+            COALESCE(sum_tot_labor, 0)
+        ELSE
+            COALESCE(sum_tot_labor, 0)
+            / NULLIF(c.sum_mins_avail, 0)
+            * COALESCE(a.mins_avail, 0)
+    END,
+    2
+) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
     / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)
@@ -1493,7 +1504,18 @@ CASE
             2
         )
 END AS est_tot_cost,
-ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
+ROUND(
+    COALESCE(tot_earning_rupiah, 0) -
+    CASE
+        WHEN stat_kerja = 'libur' THEN
+            COALESCE(sum_tot_labor, 0)
+        ELSE
+            COALESCE(sum_tot_labor, 0)
+            / NULLIF(c.sum_mins_avail, 0)
+            * COALESCE(a.mins_avail, 0)
+    END,
+    2
+) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
     / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)
@@ -1674,11 +1696,31 @@ SELECT
         $sheet->mergeCells('A1:Y1');
 
         $groupRow = [
-            'Tanggal', 'Line', 'WS Number', 'Buyer', 'Output', 'Mins. Prod', 'Mins. Avail', 'Eff',
-            'Est Earning', '', '', '',
-            'Est Full Earning', '', '', '', '',
-            'Est Earning Production', '', '', '',
-            'Est Earning Marketing', '', '', '',
+            'Tanggal',
+            'Line',
+            'WS Number',
+            'Buyer',
+            'Output',
+            'Mins. Prod',
+            'Mins. Avail',
+            'Eff',
+            'Est Earning',
+            '',
+            '',
+            '',
+            'Est Full Earning',
+            '',
+            '',
+            '',
+            '',
+            'Est Earning Production',
+            '',
+            '',
+            '',
+            'Est Earning Marketing',
+            '',
+            '',
+            '',
         ];
 
         $sheet->writeRow(
@@ -1693,11 +1735,31 @@ SELECT
         );
 
         $subHeaderRow = [
-            '', '', '', '', '', '', '', '',
-            'Est Earning', 'Est Total Cost', 'Balance', '% Of Earn',
-            'Full CM Price', 'Est Full Earning', 'Est Total Cost', 'Balance', '% Of Earn',
-            'Est Earning Prod', 'Est Cost Prod', 'Balance', '% Of Earn',
-            'Est Earning Mkt', 'Est Cost Mkt', 'Balance', '% Of Earn',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'Est Earning',
+            'Est Total Cost',
+            'Balance',
+            '% Of Earn',
+            'Full CM Price',
+            'Est Full Earning',
+            'Est Total Cost',
+            'Balance',
+            '% Of Earn',
+            'Est Earning Prod',
+            'Est Cost Prod',
+            'Balance',
+            '% Of Earn',
+            'Est Earning Mkt',
+            'Est Cost Mkt',
+            'Balance',
+            '% Of Earn',
         ];
 
         $sheet->writeRow(
