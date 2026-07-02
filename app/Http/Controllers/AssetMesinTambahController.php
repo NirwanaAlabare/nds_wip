@@ -221,6 +221,102 @@ group by id_bpb, id_item
         return response()->json($units);
     }
 
+    private function get_penerimaan_mesin_qr_units(
+        ?string $tgl_awal,
+        ?string $tgl_akhir,
+        ?string $bpbno = null,
+        ?string $id_item = null,
+        ?string $id_supplier = null,
+        ?string $ids = null,
+        bool $pinkBackground = false
+    ) {
+        $query = DB::table('asset_penerimaan_mesin as a')
+            ->select('a.id', 'a.serial_number', 'a.kode_qr')
+            ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id');
+
+        if ($ids) {
+            $query->whereIn('a.id', array_filter(explode(',', $ids)));
+        } else {
+            $query->whereBetween('a.tgl_trans', [$tgl_awal, $tgl_akhir])
+                ->when($bpbno, function ($query) use ($bpbno) {
+                    $query->where('a.bpbno_int', $bpbno);
+                })
+                ->when($id_item, function ($query) use ($id_item) {
+                    $query->where('a.id_item', $id_item);
+                })
+                ->when($id_supplier, function ($query) use ($id_supplier) {
+                    $query->where('bpb.id_supplier', $id_supplier);
+                });
+        }
+
+        $units = $query->whereNotNull('a.serial_number')
+            ->where('a.serial_number', '<>', '')
+            ->whereNotNull('a.foto')
+            ->where('a.foto', '<>', '')
+            ->whereNotNull('a.kode_qr')
+            ->where('a.kode_qr', '<>', '')
+            ->orderBy('a.id', 'ASC')
+            ->get();
+
+        foreach ($units as $unit) {
+            $qr = QrCode::format('svg')->size(80);
+            if ($pinkBackground) {
+                $qr->backgroundColor(248, 187, 208);
+            }
+            $unit->qr = base64_encode($qr->generate($unit->kode_qr));
+        }
+
+        return $units;
+    }
+
+    public function get_penerimaan_mesin_qr_list(Request $request)
+    {
+        $units = $this->get_penerimaan_mesin_qr_units(
+            $request->tgl_awal,
+            $request->tgl_akhir,
+            $request->bpbno,
+            $request->id_item,
+            $request->id_supplier
+        );
+
+        return response()->json($units);
+    }
+
+    public function get_penerimaan_mesin_qr_filter_options(Request $request)
+    {
+        $tgl_awal = $request->tgl_awal;
+        $tgl_akhir = $request->tgl_akhir;
+
+        $data = DB::select("
+            SELECT DISTINCT a.bpbno_int, a.id_item, mi.itemdesc, bpb.id_supplier, ms.supplier
+            FROM asset_penerimaan_mesin a
+            LEFT JOIN signalbit_erp.bpb ON a.id_bpb = bpb.id
+            LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.id_supplier
+            LEFT JOIN signalbit_erp.masteritem mi ON a.id_item = mi.id_item
+            WHERE a.tgl_trans >= ? AND a.tgl_trans <= ?
+            ORDER BY mi.itemdesc ASC
+        ", [$tgl_awal, $tgl_akhir]);
+
+        return response()->json($data);
+    }
+
+    public function print_qr_list_mesin(Request $request)
+    {
+        $units = $this->get_penerimaan_mesin_qr_units(
+            $request->tgl_awal,
+            $request->tgl_akhir,
+            $request->bpbno,
+            $request->id_item,
+            $request->id_supplier,
+            $request->ids,
+            true
+        );
+
+        return view('asset_management.print_qr_mesin_list', [
+            'units' => $units,
+        ]);
+    }
+
     public function print_qr_mesin(Request $request, $id)
     {
         $unit = DB::table('asset_penerimaan_mesin')->where('id', $id)->first();
