@@ -1807,14 +1807,16 @@ class CuttingFormPilotController extends Controller
             ]);
         }
 
-        // check part split
-        $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
-        if ($partSplit) {
+        if ($partData && $formCutInputData) {
+            // check part split
+            $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
+            if ($partSplit) {
 
-            // reset no. cut
-            $updateFormCutInput = FormCutInput::where("id", $id)->update([
-                'no_cut' => 1
-            ]);
+                // reset no. cut
+                $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                    'no_cut' => 1
+                ]);
+            }
         }
 
         app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
