@@ -53,6 +53,7 @@
                 <tr>
                     <th>No Bppb</th>
                     <th>Tgl Bppb</th>
+                    <th>no PO</th>
                     <th>No Req</th>
                     <th>Tujuan</th>
                     <th>No barcode</th>
@@ -118,6 +119,9 @@
                 },
                 {
                     data: 'tgl_bppb'
+                },
+                {
+                    data: 'no_po'
                 },
                 {
                     data: 'no_req'

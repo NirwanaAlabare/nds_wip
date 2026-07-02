@@ -54,6 +54,7 @@
                     <th>No BPPB</th>
                     <th>No Req</th>
                     <th>Tgl BPPB</th>
+                    <th>No PO</th>
                     <th>Inv #</th>
                     <th>Jenis Dok</th>
                     <th>Jenis Pengeluaran</th>
@@ -129,6 +130,9 @@
                 },
                 {
                     data: 'bppbdate'
+                },
+                {
+                    data: 'no_po'
                 },
                 {
                     data: 'invno'
