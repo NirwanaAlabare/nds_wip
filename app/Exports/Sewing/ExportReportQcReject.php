@@ -198,8 +198,8 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
                                 WHERE jd.cancel = 'N'
                             ) mb on b.so_det_id = mb.id_so_det
                             WHERE
-                                a.created_at >= '{$tglAwal}'
-                                AND a.created_at <= '{$tglAkhir}'
+                                DATE(a.created_at) >= '{$tglAwal}'
+                                AND DATE(a.created_at) <= '{$tglAkhir}'
                                 AND b.status = 'rejected'
                                 AND mp.cancel = 'N'
                             GROUP BY so_det_id, ws, color, size, DATE(a.created_at)
