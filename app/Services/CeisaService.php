@@ -208,6 +208,26 @@ class CeisaService
             throw $e;
         }
     }
+    /**
+     * Kirim dokumen BC 2.5 ke CEISA.
+     */
+    public function kirimDokumenBc25($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
 
     /**
      * Kirim dokumen BC 2.3 ke CEISA.
@@ -274,6 +294,44 @@ class CeisaService
 
     // kirim dokumen BC 3.3 ke CEISA
     public function kirimDokumenBc33($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // kirim dokumen BC 2.6.1 ke CEISA
+    public function kirimDokumenBc261($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // kirim dokumen BC 2.6.2 ke CEISA
+    public function kirimDokumenBc262($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
         $this->setEnv('dev');

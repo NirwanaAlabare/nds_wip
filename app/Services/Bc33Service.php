@@ -44,7 +44,7 @@ class Bc33Service
             ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
             ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->select(
-                'a.*', 
+                'a.*',
                 DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
                 DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
             )
@@ -482,7 +482,6 @@ class Bc33Service
 
             $draft = json_decode($ceisaInfo->payload_json, true);
 
-            // Ambil semua item bppb untuk fallback data Dokumen Asal per barang
             $bppbItems = $db->table('bppb as a')
                 ->where(function ($query) use ($id) {
                     $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
@@ -639,11 +638,9 @@ class Bc33Service
                 $payloadEntitas[] = $kon;
             }
 
-            // Membersihkan tanggal / nomor izin yang kosong agar tidak error validasi format date
             foreach ($payloadEntitas as &$ent) {
                 if (empty($ent['tanggalIjinEntitas'])) {
                     if (!empty($ent['nomorIjinEntitas'])) {
-                        // Jika ada nomorIjinEntitas tapi tanggalIjinEntitas kosong, berikan fallback tanggalAju agar tidak merah di portal CEISA
                         $ent['tanggalIjinEntitas'] = $draft['tanggalAju'] ?? date('Y-m-d');
                     } else {
                         unset($ent['tanggalIjinEntitas']);

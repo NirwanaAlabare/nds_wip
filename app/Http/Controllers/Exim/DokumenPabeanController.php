@@ -82,11 +82,7 @@ class DokumenPabeanController extends Controller
             $data->groupBy("{$tbl}.{$fldno}")
                  ->orderBy("{$tbl}.{$fldtgl}", 'desc');
 
-            $currentUser = auth()->user();
-            $isAllowedRollback = $currentUser && (
-                in_array(strtolower($currentUser->username ?? ''), ['deti', 'admin']) ||
-                in_array(strtolower($currentUser->name ?? ''), ['deti', 'admin'])
-            );
+            // Rollback button is allowed for all users
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -102,7 +98,7 @@ class DokumenPabeanController extends Controller
                 ->addColumn('pono', function ($row) use ($jenis) {
                     return $jenis == 'Pemasukan' ? ($row->pono ?? '-') : '-';
                 })
-                ->addColumn('action', function($row) use ($jenis, $isAllowedRollback) {
+                ->addColumn('action', function($row) use ($jenis) {
                     $noAju = $row->nomor_aju_ceisa ?? '';
                     $tglAju = ($row->tanggal_aju && $row->tanggal_aju != '0000-00-00') ? $row->tanggal_aju : '';
 
@@ -119,6 +115,10 @@ class DokumenPabeanController extends Controller
                         $editUrl = route('dokumen-pabean-edit-bc27', ['id' => $row->trx_no_par]);
                     }
 
+                    if($row->jenis_dok == 'BC 2.5' || $row->jenis_dok == '25' || $row->jenis_dok == '2.5') {
+                        $editUrl = route('dokumen-pabean-edit-bc25', ['id' => $row->trx_no_par]);
+                    }
+
                     if($row->jenis_dok == 'BC 3.0') {
                         $editUrl = route('dokumen-pabean-edit-bc30', ['id' => $row->trx_no_par]);
                     }
@@ -131,13 +131,19 @@ class DokumenPabeanController extends Controller
                         $editUrl = route('dokumen-pabean-edit-bc41', ['id' => $row->trx_no_par]);
                     }
 
+                    if($row->jenis_dok == 'BC 2.6.1' && $jenis == 'Pengeluaran') {
+                        $editUrl = route('dokumen-pabean-edit-bc261', ['id' => $row->trx_no_par]);
+                    }
+
+                    if($row->jenis_dok == 'BC 2.6.2' && $jenis == 'Pemasukan') {
+                        $editUrl = route('dokumen-pabean-edit-bc262', ['id' => $row->trx_no_par]);
+                    }
+
                     $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
                     if($row->ceisa_status == 1) {
                         $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Status CEISA" data-noaju="' . $noAju . '" data-jenis_bc="' . $row->jenis_dok . '"><i class="fas fa-check"></i></button>';
-                        if ($isAllowedRollback) {
-                            $btn .= '<button type="button" class="btn btn-sm btn-warning mr-1 btn-rollback" title="Rollback Status CEISA" data-id="' . $row->trx_no_par . '" data-noaju="' . ($noAju ?: 'BELUM ADA') . '"><i class="fas fa-undo"></i></button>';
-                        }
+                        $btn .= '<button type="button" class="btn btn-sm btn-warning mr-1 btn-rollback" title="Rollback Status CEISA" data-id="' . $row->trx_no_par . '" data-noaju="' . ($noAju ?: 'BELUM ADA') . '"><i class="fas fa-undo"></i></button>';
                     } else {
                         $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim"
                             data-id="' . $row->trx_no_par . '"
@@ -792,12 +798,14 @@ class DokumenPabeanController extends Controller
 
         $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
 
-        // Redirect ke form spesifik berdasarkan jenis_bc
         if ($ceisaInfo && $ceisaInfo->jenis_bc == '23') {
             return $this->editBc23($id, $request);
         }
         if ($ceisaInfo && in_array($ceisaInfo->jenis_bc, ['27', '2.7'])) {
             return $this->editBc27($id, $request);
+        }
+        if ($ceisaInfo && in_array($ceisaInfo->jenis_bc, ['25', '2.5', 'BC 2.5'])) {
+            return $this->editBc25($id, $request);
         }
         if ($ceisaInfo && in_array($ceisaInfo->jenis_bc, ['30', '3.0'])) {
             return $this->editBc30($id, $request);
@@ -1058,19 +1066,6 @@ class DokumenPabeanController extends Controller
     public function rollbackStatus($id, Request $request)
     {
         try {
-            $currentUser = auth()->user();
-            $isAllowedRollback = $currentUser && (
-                in_array(strtolower($currentUser->username ?? ''), ['deti', 'admin']) ||
-                in_array(strtolower($currentUser->name ?? ''), ['deti', 'admin'])
-            );
-
-            if (!$isAllowedRollback) {
-                return response()->json([
-                    'status' => 403,
-                    'message' => 'Anda tidak memiliki akses untuk melakukan rollback status.'
-                ], 403);
-            }
-
             $db = DB::connection('mysql_sb');
             $db->table('bpb_ceisa')
                ->where('bpbno', $id)
@@ -1897,6 +1892,51 @@ class DokumenPabeanController extends Controller
     public function sendCeisaBc41($id, Request $request)
     {
         return app(\App\Services\Bc41Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc261($id, Request $request)
+    {
+        return app(\App\Services\Bc261Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc261($id, Request $request)
+    {
+        return app(\App\Services\Bc261Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc261($id, Request $request)
+    {
+        return app(\App\Services\Bc261Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc262($id, Request $request)
+    {
+        return app(\App\Services\Bc262Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc262($id, Request $request)
+    {
+        return app(\App\Services\Bc262Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc262($id, Request $request)
+    {
+        return app(\App\Services\Bc262Service::class)->sendCeisa($id, $request);
+    }
+
+    public function editBc25($id, Request $request)
+    {
+        return app(\App\Services\Bc25Service::class)->edit($id, $request);
+    }
+
+    public function updateDraftBc25($id, Request $request)
+    {
+        return app(\App\Services\Bc25Service::class)->updateDraft($id, $request);
+    }
+
+    public function sendCeisaBc25($id, Request $request)
+    {
+        return app(\App\Services\Bc25Service::class)->sendCeisa($id, $request);
     }
 }
 

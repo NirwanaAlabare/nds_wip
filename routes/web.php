@@ -1629,6 +1629,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
         Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
+
+
+         // BC 2.5 routes
+        Route::get('/{id}/edit-bc25', 'editBc25')->name('dokumen-pabean-edit-bc25')->where('id', '.*');
+        Route::put('/update-draft-bc25/{id}', 'updateDraftBc25')->name('dokumen-pabean-update_draft_bc25')->where('id', '.*');
+        Route::post('/send-bc25/{id}', 'sendCeisaBc25')->name('dokumen-pabean-send-bc25')->where('id', '.*');
+
+
+        // BC 2.6.1 routes
+        Route::get('/{id}/edit-bc261', 'editBc261')->name('dokumen-pabean-edit-bc261')->where('id', '.*');
+        Route::put('/update-draft-bc261/{id}', 'updateDraftBc261')->name('dokumen-pabean-update_draft_bc261')->where('id', '.*');
+        Route::post('/send-bc261/{id}', 'sendCeisaBc261')->name('dokumen-pabean-send-bc261')->where('id', '.*');
+
+        // BC 2.6.2 routes
+        Route::get('/{id}/edit-bc262', 'editBc262')->name('dokumen-pabean-edit-bc262')->where('id', '.*');
+        Route::put('/update-draft-bc262/{id}', 'updateDraftBc262')->name('dokumen-pabean-update_draft_bc262')->where('id', '.*');
+        Route::post('/send-bc262/{id}', 'sendCeisaBc262')->name('dokumen-pabean-send-bc262')->where('id', '.*');
     });
 
     // WHS Soljer

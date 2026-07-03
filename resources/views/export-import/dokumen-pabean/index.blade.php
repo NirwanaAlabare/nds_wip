@@ -96,6 +96,7 @@
                     <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
                     <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
                     <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
+                    <option value="BC 2.6.1" {{ $jenis_bc == 'BC 2.6.1' ? 'selected' : '' }}>BC 2.6.1</option>
                     <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
                     <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
                     <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
@@ -266,6 +267,10 @@
             actionUrl = '{{ route("dokumen-pabean-send-bc23", ":id") }}';
         }
 
+        if(jenisBc === 'BC 2.5' || jenisBc === '25' || jenisBc === '2.5') {
+            actionUrl = '{{ route("dokumen-pabean-send-bc25", ":id") }}';
+        }
+
         if(jenisBc === 'BC 4.0') {
              actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
         }
@@ -284,6 +289,14 @@
 
         if(jenisBc === 'BC 4.1') {
              actionUrl = '{{ route("dokumen-pabean-send-bc41", ":id") }}';
+        }
+
+        if(jenisBc === 'BC 2.6.1') {
+             actionUrl = '{{ route("dokumen-pabean-send-bc261", ":id") }}';
+        }
+
+        if(jenisBc === 'BC 2.6.2') {
+             actionUrl = '{{ route("dokumen-pabean-send-bc262", ":id") }}';
         }
 
         actionUrl = actionUrl.replace(':id', trxNo);
