@@ -21,7 +21,7 @@
 <div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">
-            <i class="fas fa-edit"></i> BC 4.1 - PEMBERITAHUAN PENGELUARAN BARANG DARI TEMPAT PENIMBUNAN BERIKAT KE TEMPAT LAIN DALAM DAERAH PABEAN
+            <i class="fas fa-edit"></i> BC 4.1 - PEMBERITAHUAN PENGELUARAN KEMBALI BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN DARI TEMPAT PENIMBUNAN BERIKAT
         </h5>
     </div>
 
@@ -51,23 +51,23 @@
 
             <div class="tab-content mt-3" id="ceisaTabContent">
 
-                <!-- ================= TAB 1: HEADER ================= -->
+
                 <div class="tab-pane fade show active" id="tab-header" role="tabpanel">
                     <div class="row">
-                        <!-- Pengajuan -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengajuan</div>
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="text-sm">Nomor Aju</label>
-                                        <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}">
+                                        <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}"\>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Kantor Pabean -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Kantor Pabean</div>
@@ -85,7 +85,7 @@
                             </div>
                         </div>
 
-                        <!-- TPB / Tujuan Pengiriman -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Informasi TPB</div>
@@ -120,10 +120,10 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 2: ENTITAS ================= -->
+
                 <div class="tab-pane fade" id="tab-entitas" role="tabpanel">
                     <div class="row">
-                        <!-- Pengusaha TPB (Kode 3) -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pengusaha TPB (Asal)</div>
@@ -161,7 +161,7 @@
                             </div>
                         </div>
 
-                        <!-- Penerima Barang / Pembeli BKP (Kode 8) -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Penerima Barang / Pembeli</div>
@@ -187,7 +187,7 @@
                             </div>
                         </div>
 
-                        <!-- Pemilik Barang (Kode 7) -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold px-3 py-2 bg-light text-dark" style="font-size:13px;">Pemilik Barang</div>
@@ -215,7 +215,7 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 3: DOKUMEN ================= -->
+
                 <div class="tab-pane fade" id="tab-dokumen" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header text-white fw-bold d-flex align-items-center px-3 py-2" style="font-size:13px; background-color: #001f3f;">
@@ -271,7 +271,7 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 4: PENGANGKUT ================= -->
+
                 <div class="tab-pane fade" id="tab-pengangkut" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
@@ -318,9 +318,9 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 5: KEMASAN & PETI KEMAS ================= -->
+
                 <div class="tab-pane fade" id="tab-kemasan" role="tabpanel">
-                    <!-- Kemasan -->
+
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
                             <span>Data Kemasan</span>
@@ -362,7 +362,7 @@
                         </div>
                     </div>
 
-                    <!-- Peti Kemas -->
+
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
                             <span>Data Petikemas (Kontainer)</span>
@@ -428,10 +428,10 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 6: TRANSAKSI ================= -->
+
                 <div class="tab-pane fade" id="tab-transaksi" role="tabpanel">
                     <div class="row">
-                        <!-- Nilai Transaksi -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Nilai Transaksi</div>
@@ -460,7 +460,7 @@
                             </div>
                         </div>
 
-                        <!-- Perhitungan Pajak -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Perhitungan Pajak</div>
@@ -489,7 +489,7 @@
                             </div>
                         </div>
 
-                        <!-- Fisik (Volume & Berat) -->
+
                         <div class="col-md-4">
                             <div class="card shadow-sm mb-3 border">
                                 <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Volume & Berat</div>
@@ -514,7 +514,7 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 7: BARANG ================= -->
+
                 <div class="tab-pane fade" id="tab-barang" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">
@@ -540,11 +540,11 @@
                                     <div id="collapseBarang{{ $index }}" class="collapse {{ $index == 0 ? 'show' : '' }}" data-parent="#accordionBarang">
                                         <div class="card-body py-3 px-3 bg-white">
 
-                                            <!-- Hidden inputs wajib -->
+
                                             <input type="hidden" name="barang[{{ $index }}][seriBarang]" value="{{ $index + 1 }}">
 
                                             <div class="row">
-                                                <!-- KOLOM KIRI: Identifikasi -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Identifikasi Barang</div>
@@ -581,7 +581,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- KOLOM TENGAH: Kuantitas & Nilai -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Kuantitas & Nilai</div>
@@ -654,7 +654,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- KOLOM KANAN: Bahan Baku Lokal -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:13px;">
@@ -708,46 +708,14 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 8: PUNGUTAN ================= -->
+
                 <div class="tab-pane fade" id="tab-pungutan" role="tabpanel">
-                    <div class="card shadow-sm mb-3 border">
-                        <div class="card-header fw-bold d-flex align-items-center px-3 py-2 bg-light text-dark" style="font-size:14px;">
-                            <span>Pungutan</span>
-                            <button type="button" class="btn btn-sm btn-primary py-0 px-3 ml-auto"><i class="fas fa-sync-alt"></i> Generate Pungutan</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered mb-0">
-                                    <thead class="bg-light" style="font-size: 12px;">
-                                        <tr>
-                                            <th width="60%" class="align-middle">Pungutan</th>
-                                            <th width="40%" class="align-middle">Dibayar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tbody-pungutan">
-                                        @php $pungutans = $dataDetail['pungutan'] ?? []; @endphp
-                                        @forelse($pungutans as $pIdx => $pung)
-                                        <tr>
-                                            <td>
-                                                <input type="text" name="pungutan[{{ $pIdx }}][kodePungutan]" class="form-control form-control-sm" value="{{ $pung['kodePungutan'] ?? '' }}" placeholder="Kode Pungutan">
-                                            </td>
-                                            <td>
-                                                <input type="number" step="any" name="pungutan[{{ $pIdx }}][dibayar]" class="form-control form-control-sm" value="{{ $pung['dibayar'] ?? '0.00' }}" placeholder="0.00">
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Pembayaran Pungutan</div>
                         <div class="card-body">
                             <div class="row">
-                                <!-- Col 1: Cara Bayar -->
+
                                 <div class="col-md-4 border-right">
                                     <h6 class="font-weight-bold text-muted mb-3" style="font-size: 13px;">Lokasi Bayar</h6>
                                     <div class="form-group mb-2">
@@ -755,7 +723,7 @@
                                         <input type="text" name="caraBayar" class="form-control form-control-sm fw-bold" value="{{ $dataDetail['caraBayar'] ?? 'BANK' }}" readonly>
                                     </div>
                                 </div>
-                                <!-- Col 2: Wajib Bayar -->
+
                                 <div class="col-md-4 border-right">
                                     <h6 class="font-weight-bold text-muted mb-3" style="font-size: 13px;">Wajib Bayar</h6>
                                     <div class="form-group mb-2">
@@ -774,7 +742,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <!-- Col 3: Bukti Bayar -->
+
                                 <div class="col-md-4">
                                     <h6 class="font-weight-bold text-muted mb-3" style="font-size: 13px;">Bukti Bayar</h6>
                                     <div class="form-group mb-2">
@@ -791,7 +759,7 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 9: PERNYATAAN ================= -->
+
                 <div class="tab-pane fade" id="tab-pernyataan" role="tabpanel">
                     <div class="card shadow-sm mb-3 border">
                         <div class="card-header text-white fw-bold px-3 py-2" style="font-size:13px; background-color: #001f3f;">Pernyataan & Penandatangan</div>

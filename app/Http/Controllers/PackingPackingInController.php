@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -241,8 +242,27 @@ order by created_at desc
 
     public function store(Request $request)
     {
-        $timestamp = Carbon::now();
         $user = Auth::user()->name;
+
+        $lockKey = 'packing_packing_in_store_' . $user;
+        if (!Cache::add($lockKey, true, 5)) {
+            return array(
+                "status" => 300,
+                "message" => 'Data sebelumnya masih diproses, mohon tunggu beberapa detik lalu coba lagi.',
+                "additional" => [],
+            );
+        }
+
+        try {
+            return $this->storePackingIn($request, $user);
+        } finally {
+            Cache::forget($lockKey);
+        }
+    }
+
+    private function storePackingIn(Request $request, string $user)
+    {
+        $timestamp = Carbon::now();
         $JmlArray               = $_POST['txtqty'];
         $id_trf_garmentArray    = $_POST['id_trf_garment'];
         $status              = implode(',', $_POST['status']);

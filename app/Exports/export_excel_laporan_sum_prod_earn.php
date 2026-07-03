@@ -119,21 +119,21 @@ SELECT
                     sum(a.tot_output) tot_output,
                     sum(d_rfts.tot_rfts) tot_rfts,
                     op.tot_output_line,
-                    so.curr,
-                    CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end AS cm_price,
+                    ac.curr,
 					acm.allowance,
-                    round(
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end,2) AS earning,
+                    acm.price AS cm_price,
+ROUND(
+    SUM(a.tot_output) * acm.price
+, 2) AS earning,
                     COALESCE(mr.kurs_tengah,mkb.kurs_tengah) kurs_tengah,
-                    round(
-                    if (so.curr = 'IDR',
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end,
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end * COALESCE(mr.kurs_tengah,mkb.kurs_tengah)
-                    ),2) tot_earning_rupiah,
+                    ROUND(
+                        SUM(a.tot_output) * CASE
+                            WHEN acm.jenis_rate = 'B'
+                                THEN acm.price
+                            ELSE
+                                acm.price * COALESCE(mr.kurs_tengah,mkb.kurs_tengah)
+                        END
+                    , 2) tot_earning_rupiah,
                     round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
                     round(sum(a.tot_output) * mp.smv,2) mins_prod,
                     round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,

@@ -149,7 +149,7 @@ use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
-Use App\Http\Controllers\Marketing_ApprovalCenterController;
+use App\Http\Controllers\Marketing_ApprovalCenterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1602,7 +1602,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-draft-status/{noAju}', 'getDraftData')->name('dokumen-pabean-status')->where('noAju', '.*');
         Route::delete('/delete-ceisa-draft/{noAju}', 'deleteDraft')->name('dokumen-pabean-delete-draft')->where('noAju', '.*');
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
-         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
+        Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
         Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
 
         // BC 2.3 routes
@@ -1629,6 +1629,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
         Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
+
+
+         // BC 2.5 routes
+        Route::get('/{id}/edit-bc25', 'editBc25')->name('dokumen-pabean-edit-bc25')->where('id', '.*');
+        Route::put('/update-draft-bc25/{id}', 'updateDraftBc25')->name('dokumen-pabean-update_draft_bc25')->where('id', '.*');
+        Route::post('/send-bc25/{id}', 'sendCeisaBc25')->name('dokumen-pabean-send-bc25')->where('id', '.*');
+
+
+        // BC 2.6.1 routes
+        Route::get('/{id}/edit-bc261', 'editBc261')->name('dokumen-pabean-edit-bc261')->where('id', '.*');
+        Route::put('/update-draft-bc261/{id}', 'updateDraftBc261')->name('dokumen-pabean-update_draft_bc261')->where('id', '.*');
+        Route::post('/send-bc261/{id}', 'sendCeisaBc261')->name('dokumen-pabean-send-bc261')->where('id', '.*');
+
+        // BC 2.6.2 routes
+        Route::get('/{id}/edit-bc262', 'editBc262')->name('dokumen-pabean-edit-bc262')->where('id', '.*');
+        Route::put('/update-draft-bc262/{id}', 'updateDraftBc262')->name('dokumen-pabean-update_draft_bc262')->where('id', '.*');
+        Route::post('/send-bc262/{id}', 'sendCeisaBc262')->name('dokumen-pabean-send-bc262')->where('id', '.*');
     });
 
     // WHS Soljer
@@ -1720,6 +1737,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(PurchasingReportController::class)->prefix("report")->middleware('role:purchasing')->group(function () {
         Route::get('/item-report', 'itemReport')->name('item-report-purchasing');
         Route::get('/item-report/export', 'exportItemReport')->name('export-item-report-purchasing');
+        Route::get('/history-item-purchasing', 'historyItemPurchasing')->name('history-item-purchasing');
+        Route::get('/history-item-purchasing/search-item', 'searchItemPurchasing')->name('history-item-purchasing-search-item');
+        Route::get('/history-item-purchasing/export', 'exportHistoryItemPurchasing')->name('history-item-purchasing-export');
     });
 
     Route::controller(PengeluaranGudangInputanAccesoriesController::class)->prefix("pengeluaran-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
