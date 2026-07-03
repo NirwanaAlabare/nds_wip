@@ -16,7 +16,7 @@
                     $qtyBefore = intval($ratio->ratio) * intval($currentBeforeSeparate);
 
                     if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
-                        $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+                        $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStockerSeparate)->where("so_det_id", $ratio->so_det_id)->first();
 
                         if ($modifyThisStocker) {
                             $qty = $qty + $modifyThisStocker->difference_qty;
