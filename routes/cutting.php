@@ -453,6 +453,9 @@ Route::middleware('auth')->group(function () {
             // Delete redundant roll
             Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
 
+            // Restore from activity log
+            Route::post('/restore-activity-log', 'restoreActivityLog')->name('restore-activity-log');
+
             // Import Cutting Manual
             Route::post('/preview-import-cutting-manual', 'previewImportCuttingManual')->name('preview-import-cutting-manual');
             Route::post('/import-cutting-manual', 'importCuttingManual')->name('import-cutting-manual');
