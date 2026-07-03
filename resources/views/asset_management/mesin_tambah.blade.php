@@ -130,10 +130,16 @@
         </div>
         <div class="card-body">
             <div class="mb-3 d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                    data-bs-target="#NewMesinModal">
-                    <i class="fas fa-plus"></i> New
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#NewMesinModal">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#InjectMesinModal">
+                        <i class="fas fa-syringe"></i> Inject
+                    </button>
+                </div>
                 <button type="button" class="btn btn-outline-primary btn-sm" id="btnPrintQrUnit">
                     <i class="fas fa-qrcode"></i> Print QR
                 </button>
@@ -219,6 +225,53 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Inject Mesin (tambah unit mesin manual tanpa BPB, mis. koreksi stok) -->
+    <div class="modal fade" id="InjectMesinModal" tabindex="-1" aria-labelledby="InjectMesinModalLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="InjectMesinModalLabel">Inject Mesin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3"><small><i class="fas fa-circle-info"></i> Dipakai untuk menambahkan
+                            unit mesin secara manual tanpa BPB (mis. koreksi stok). Nomor Inject akan dibuat otomatis
+                            dan reset setiap bulan.</small></p>
+                    <div class="row mb-3 align-items-center">
+                        <label for="txtinject_tanggal" class="col-md-4 col-form-label"><small><b>Tanggal
+                                    :</b></small></label>
+                        <div class="col-md-8">
+                            <input type="date" id="txtinject_tanggal" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row mb-3 align-items-center">
+                        <label for="cbojenis_inject" class="col-md-4 col-form-label"><small><b>Jenis
+                                    :</b></small></label>
+                        <div class="col-md-8">
+                            <select id="cbojenis_inject" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 100%;">
+                                <option value="">-- Pilih Jenis --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3 align-items-center">
+                        <label for="txtinject_qty" class="col-md-4 col-form-label"><small><b>Qty :</b></small></label>
+                        <div class="col-md-8">
+                            <input type="number" id="txtinject_qty" class="form-control form-control-sm" min="1"
+                                value="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success btn-sm" id="saveInjectMesinButton"
+                        onclick="save_inject_mesin();">Save</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -740,6 +793,98 @@
             });
         }
 
+        // Reset & isi ulang dropdown Jenis (semua jenis, tidak difilter supplier karena tidak ada BPB) tiap modal Inject dibuka
+        $('#InjectMesinModal').on('show.bs.modal', function() {
+            $('#txtinject_tanggal').val('{{ now()->format('Y-m-d') }}');
+            $('#txtinject_qty').val(1);
+
+            let options = jenisList
+                .map(j => `<option value="${j.id_jenis}">${j.jenis} - ${j.merk} - ${j.tipe}</option>`)
+                .join('');
+            $('#cbojenis_inject').html('<option value="">-- Pilih Jenis --</option>' + options).val('')
+                .trigger('change');
+        });
+
+        function save_inject_mesin() {
+            let tanggal = $('#txtinject_tanggal').val();
+            let id_jenis = $('#cbojenis_inject').val();
+            let qty = parseInt($('#txtinject_qty').val()) || 0;
+
+            if (!tanggal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal wajib diisi',
+                });
+                return;
+            }
+            if (!id_jenis) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Jenis wajib diisi',
+                });
+                return;
+            }
+            if (qty < 1) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Qty minimal 1',
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Simpan Inject Mesin?',
+                text: 'Akan menambahkan ' + qty + ' unit mesin secara manual.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Tidak'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                let $btn = $('#saveInjectMesinButton');
+                $btn.prop('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    url: '{{ route('store_inject_mesin') }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        tgl_trans: tanggal,
+                        id_jenis: id_jenis,
+                        qty: qty
+                    },
+                    success: function(response) {
+                        $('#InjectMesinModal').modal('hide');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Mesin Berhasil Di-inject',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            dataTableReload();
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menyimpan.',
+                        });
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+        }
+
         // Buka modal Unit Mesin: 1 tab per unit (sejumlah tot_qty), input Serial Number & Foto
         function openMesinUnitModal(row) {
             $('#MesinUnitModalLabel').text(row.itemdesc ?? '-');
@@ -760,7 +905,8 @@
                 url: '{{ route('asset_mesin_tambah_unit') }}',
                 data: {
                     id_bpb: row.id_bpb,
-                    id_item: row.id_item
+                    id_item: row.id_item,
+                    bpbno_int: row.bpbno_int
                 },
                 success: function(units) {
                     units.forEach(function(unit, i) {
