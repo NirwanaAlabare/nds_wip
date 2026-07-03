@@ -1507,6 +1507,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/export_excel', 'export_excel_penerimaan_mesin')->name('export_excel_penerimaan_mesin');
         Route::get('/asset_mesin_tambah/bpb_detail', 'get_bpb_detail')->name('asset_mesin_tambah_bpb_detail');
         Route::post('/asset_mesin_tambah/penerimaan/store', 'store_penerimaan_mesin')->name('store_penerimaan_mesin');
+        Route::post('/asset_mesin_tambah/inject/store', 'store_inject')->name('store_inject_mesin');
         Route::get('/asset_mesin_tambah/unit', 'get_penerimaan_mesin_unit')->name('asset_mesin_tambah_unit');
         Route::post('/asset_mesin_tambah/unit/store', 'store_penerimaan_mesin_unit')->name('store_penerimaan_mesin_unit');
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
