@@ -286,7 +286,7 @@
 <div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">
-            <i class="fas fa-edit"></i> BC 3.3 - PEMBERITAHUAN EKSPOR BARANG
+            <i class="fas fa-edit"></i> BC 3.3 - PEMBERITAHUAN EKSPOR BARANG MELALUI/DARI PUSAT LOGISTIK BERIKAT
         </h5>
     </div>
 
@@ -1091,7 +1091,7 @@
                                     <div class="form-group mb-2">
                                         <label>Jenis Valuta</label>
                                         <select name="kodeValuta" class="form-control form-control-sm select2bs4 ">
-                                            <option value="">-- Valuta Kosong --</option>
+                                            <option value="">-- Valuta --</option>
                                             <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
                                             <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
                                             <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
@@ -1263,7 +1263,7 @@
                                                             <div class="form-group mb-2">
                                                                 <label>Kode Kantor</label>
                                                                 <select name="barang[{{ $index }}][kodeKantor]" class="form-control form-control-sm  select2bs4">
-                                                                    <option value="">-- Kode Kantor kosong --</option>
+                                                                    <option value="">-- Kode Kantor --</option>
                                                                     @foreach($kantorList as $kKtr => $vKtr)
                                                                         <option value="{{ $kKtr }}" {{ $defaultKodeKantor == $kKtr ? 'selected' : '' }}>{{ $kKtr }} - {{ $vKtr }}</option>
                                                                     @endforeach
@@ -1272,7 +1272,7 @@
                                                             <div class="form-group mb-2">
                                                                 <label>Dokumen Asal</label>
                                                                 <select name="barang[{{ $index }}][kodeJenisDokAsal]" class="form-control form-control-sm  select2bs4">
-                                                                    <option value="">-- Jenis Dokumen kosong --</option>
+                                                                    <option value="">-- Jenis Dokumen --</option>
                                                                     @foreach($referensiDokumenAsal as $val => $text)
                                                                         <option value="{{ $val }}" {{ $defaultJenisDok == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
                                                                     @endforeach
@@ -1349,7 +1349,7 @@
                                                             <div class="form-group mb-0">
                                                                 <label>Negara</label>
                                                                 <select name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm  select2bs4">
-                                                                    <option value="">-- Negara kosong --</option>
+                                                                    <option value="">-- Negara --</option>
                                                                     @include('export-import.dokumen-pabean.options_negara', ['selected' => $draftItem['kodeNegaraAsal'] ?? 'ID'])
                                                                 </select>
                                                             </div>

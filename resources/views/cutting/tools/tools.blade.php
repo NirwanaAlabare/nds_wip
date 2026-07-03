@@ -204,6 +204,17 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#restoreLogModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0">
+                                    <i class="fa-solid fa-undo"></i> Restore from Log
+                                </h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -790,6 +801,7 @@
                                 <table class="table table-bordered w-100" id="datatable-logs-cutting">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Tanggal</th>
                                             <th>Subject ID</th>
                                             <th>Activity</th>
@@ -945,6 +957,33 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- Restore from Log Modal --}}
+    <div class="modal fade" id="restoreLogModal" tabindex="-1" aria-labelledby="restoreLogModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="restoreLogModalLabel">
+                        <i class="fa fa-undo"></i> Restore Data dari Activity Log
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-1">
+                        <label class="form-label">Log ID</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="log_id_restore" name="log_id_restore" placeholder="Masukkan ID dari activity_log..." />
+                            <button class="btn btn-primary" type="button" id="btn-restore" onclick="restoreLog()">
+                                <i class="fa fa-undo"></i>
+                                Restore
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Hanya event `deleted` atau `updated` yang bisa dipulihkan.</small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -2302,6 +2341,9 @@
                 },
                 columns: [
                     {
+                        data: 'id'
+                    },
+                    {
                         data: 'created_at'
                     },
                     {
@@ -2323,7 +2365,7 @@
                 ],
                 columnDefs: [
                     {
-                        targets: [4],
+                        targets: [5],
                         render: (data) => {
                             if (!data || data === '-') return '-';
                             return `
@@ -2702,6 +2744,59 @@
                 }
             });
         }
+
+        function restoreLog() {
+            let logId = $('#log_id_restore').val();
+
+            if (!logId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Gagal',
+                    text: 'Harap masukkan Log ID.',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Anda Yakin?',
+                text: `Akan memulihkan data dari log ID #${logId}. Tindakan ini tidak dapat diurungkan.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Lanjutkan!',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('restore-activity-log') }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            log_id: logId
+                        },
+                        success: function(res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: res.message,
+                                showConfirmButton: true,
+                            });
+                        },
+                        error: function(jqXHR) {
+                            let res = jqXHR.responseJSON;
+                            let message = (res && res.message ? res.message : 'Terjadi kesalahan.');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: message,
+                                showConfirmButton: true,
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endsection
-

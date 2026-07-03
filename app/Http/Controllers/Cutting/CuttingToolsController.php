@@ -47,6 +47,62 @@ class CuttingToolsController extends Controller
         ]);
     }
 
+    public function restoreActivityLog(Request $request)
+    {
+        $validatedRequest = $request->validate([
+            "log_id" => "required|numeric",
+        ]);
+
+        try {
+            $log = DB::table('activity_log')->where('id', $validatedRequest['log_id'])->first();
+
+            if (!$log) {
+                return response()->json(['message' => 'Log tidak ditemukan.'], 404);
+            }
+
+            if (!in_array($log->description, ['deleted', 'updated'])) {
+                return response()->json(['message' => 'Hanya bisa melakukan restore untuk event "deleted" atau "updated".'], 400);
+            }
+
+            $modelClass = $log->subject_type;
+            if (!class_exists($modelClass)) {
+                return response()->json(['message' => 'Model class tidak valid: ' . $modelClass], 400);
+            }
+
+            $properties = json_decode($log->properties, true);
+
+            if ($log->description == 'deleted') {
+                $attributes = $properties['attributes'] ?? null;
+
+                if (!$attributes) {
+                    return response()->json(['message' => 'Tidak ada data atribut untuk direstore dari log "deleted".'], 400);
+                }
+
+                $modelClass::create($attributes);
+                $message = 'Data dari log #' . $log->id . ' berhasil dibuat ulang.';
+            } elseif ($log->description == 'updated') {
+                $oldAttributes = $properties['old'] ?? null;
+                $modelId = $log->subject_id;
+
+                if (!$oldAttributes || !$modelId) {
+                    return response()->json(['message' => 'Tidak ada data "old" atau "subject_id" untuk direstore dari log "updated".'], 400);
+                }
+
+                $model = $modelClass::find($modelId);
+                if (!$model) {
+                    return response()->json(['message' => 'Data dengan ID ' . $modelId . ' tidak ditemukan untuk diupdate.'], 404);
+                }
+
+                $model->update($oldAttributes);
+                $message = 'Data dengan ID ' . $modelId . ' berhasil dikembalikan ke kondisi sebelum diupdate (dari log #' . $log->id . ').';
+            }
+
+            return response()->json(['message' => $message]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function getRollQty(Request $request) {
         $id = $request->id;
 
@@ -1399,6 +1455,7 @@ class CuttingToolsController extends Controller
 
         $data = DB::table('activity_log')
             ->select(
+                'activity_log.id',
                 'activity_log.created_at',
                 'activity_log.description as activity',
                 'activity_log.subject_id',

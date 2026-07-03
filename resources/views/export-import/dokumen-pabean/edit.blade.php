@@ -57,7 +57,7 @@
 <div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">
-            <i class="fas fa-edit"></i> Edit Dokumen Pabean
+            <i class="fas fa-edit"></i> BC 4.0 - PEMBERITAHUAN PEMASUKAN BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN KE TEMPAT PENIMBUNAN BERIKAT
         </h5>
     </div>
 
