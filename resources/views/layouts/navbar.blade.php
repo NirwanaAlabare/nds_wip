@@ -1034,7 +1034,7 @@
                 @if ($page == 'dashboard-marketing')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ ($subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval'])) ? 'active' : '' }}">Master</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval']) ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('master-costing') }}"
@@ -1070,7 +1070,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('marketing-approval-center') }}" class="nav-link {{ ($subPageGroup == 'marketing-approval' || in_array($subPage, ['marketing-approval-center', 'marketing-master-costing-approval', 'marketing-master-bom-approval'])) ? 'active' : '' }}">Approval</a>
+                        <a href="{{ route('marketing-approval-center') }}"
+                            class="nav-link {{ $subPageGroup == 'marketing-approval' || in_array($subPage, ['marketing-approval-center', 'marketing-master-costing-approval', 'marketing-master-bom-approval']) ? 'active' : '' }}">Approval</a>
                     </li>
                 @endif
 
@@ -1311,6 +1312,12 @@
                                 <a href="{{ route('item-report-purchasing') }}"
                                     class="dropdown-item {{ $subPage == 'item-report-purchasing' ? 'active' : '' }}">
                                     List Item Purchase Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('history-item-purchasing') }}"
+                                    class="dropdown-item {{ $subPage == 'history-item-purchasing' ? 'active' : '' }}">
+                                    History Pembelian <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
