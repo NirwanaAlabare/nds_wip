@@ -262,7 +262,7 @@ class PurchasingReportController extends Controller
 
         $item = DB::connection('mysql_sb')->table('masteritem')
             ->where('id_item', $id_item)
-            ->first(['id_item', 'goods_code', 'itemdesc', 'add_info', 'color']);
+            ->first(['id_item', 'goods_code', 'itemdesc', 'add_info', 'color', 'size']);
 
         $itemLabel = $item
             ? trim(($item->goods_code ?: '-') . ' - ' . ($item->itemdesc ?: '-'))
@@ -281,6 +281,7 @@ class PurchasingReportController extends Controller
         $sheet->writeRow(['ID Item : ' . $id_item], ['font-size' => 12]);
         $sheet->writeRow(['Item : ' . $itemLabel], ['font-size' => 12]);
         $sheet->writeRow(['Color : ' . ($item && $item->color ? $item->color : '-')], ['font-size' => 12]);
+        $sheet->writeRow(['Size : ' . ($item && $item->size ? $item->size : '-')], ['font-size' => 12]);
         $sheet->writeRow(['Keterangan : ' . ($item && $item->add_info ? $item->add_info : '-')], ['font-size' => 12]);
         $sheet->writeRow(['']);
 
@@ -332,10 +333,11 @@ class PurchasingReportController extends Controller
                         ->orWhere('goods_code', 'like', "%{$search}%")
                         ->orWhere('itemdesc', 'like', "%{$search}%")
                         ->orWhere('add_info', 'like', "%{$search}%")
-                        ->orWhere('color', 'like', "%{$search}%");
+                        ->orWhere('color', 'like', "%{$search}%")
+                        ->orWhere('size', 'like', "%{$search}%");
                 })
                 ->orderBy('itemdesc')
-                ->get(['id_item', 'goods_code', 'itemdesc', 'add_info', 'color']);
+                ->get(['id_item', 'goods_code', 'itemdesc', 'add_info', 'color', 'size']);
         }
 
         return response()->json([
@@ -344,6 +346,10 @@ class PurchasingReportController extends Controller
 
                 if ($item->color) {
                     $text .= ' - ' . $item->color;
+                }
+
+                if ($item->size) {
+                    $text .= ' - ' . $item->size;
                 }
 
                 if ($item->add_info) {
