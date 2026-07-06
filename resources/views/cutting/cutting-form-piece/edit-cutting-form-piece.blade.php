@@ -384,7 +384,7 @@
                                                     <td>{{ $size->size }}</td>
                                                     <td>{{ $size->dest }}</td>
                                                     <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
-                                                    <td><input type="number" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
+                                                    <td><input type="number" step="any" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -1183,7 +1183,7 @@
                             <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control detail-qty${suffix}" data-so-det='${row.so_det_id}' data-row='${index}' onkeyup="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')" onchange="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')"/>
                         </td>
                         <td>
-                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control detail-qty-actual${suffix}" readonly />
+                            <input type="number" step="any" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control detail-qty-actual${suffix}" readonly />
                         </td>
                     </tr>
                 `).join("");

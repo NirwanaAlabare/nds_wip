@@ -175,6 +175,7 @@
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         let isAdmin = "{{ auth()->user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
+                        let isAqmal = "{{ (auth()->user()->id == 233 ? 1 : 0)  }}";
                         console.log(isAdmin);
                         let editRoute = "";
                         if (row.process == 3) {
@@ -201,7 +202,7 @@
                         let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data-bs-toggle="tooltip" data-bs-title="Hapus Form PCS" data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
                         // return buttonDetail+buttonEdit+(isAdmin > 0 ? buttonDelete : '');
-                        return buttonDetail + buttonEdit + (isAdmin > 0 ? buttonEditProcessStatus : '') + (isAdmin > 0 ? buttonDelete : '');
+                        return buttonDetail + buttonEdit + (isAdmin > 0 || isAqmal > 0 ? buttonEditProcessStatus : '') + (isAdmin > 0 ? buttonDelete : '');
                     }
                 },
                 {
