@@ -1505,6 +1505,12 @@
                                         <a href="{{ route('asset_mesin_sewa_pengeluaran') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa_pengeluaran' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-minus"></i>Pengeluaran Mesin Cutt Off (Sewa)</a>
+
+                                        <div class="mega-dropdown-col-title">Report</div>
+                                        <a href="{{ route('asset_mesin_report_stok_jenis_area') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-warehouse"></i>Stok Mesin Per Area, Jenis dan
+                                            Status</a>
                                     </div>
                                     <div class="mega-dropdown-col">
                                         <div class="mega-dropdown-col-title">Data Aset</div>
