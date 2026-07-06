@@ -51,13 +51,18 @@ class Bc30Service
             ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
             ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->select(
-                'a.*', 
+                'a.id_item',
                 DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
-                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+                DB::raw("MAX(a.unit) as unit"),
+                DB::raw('SUM(a.qty) as qty'),
+                DB::raw('AVG(a.price) as price'),
+                DB::raw('SUM(a.qty * a.price) as total_harga')
             )
             ->where(function ($query) use ($id) {
                 $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
             })
+            ->groupBy('a.id_item')
             ->get();
 
 
@@ -449,21 +454,25 @@ class Bc30Service
                 }
             }
 
-            if (!$invoice) {
-                throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan INVOICE (Kode 380). Silakan tambahkan terlebih dahulu di Tab Dokumen Pendukung.');
-            }
-            if (!$packingList) {
-                throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan PACKING LIST (Kode 217). Silakan tambahkan terlebih dahulu di Tab Dokumen Pendukung.');
-            }
+            // if (!$invoice) {
+            //     throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan INVOICE (Kode 380). Silakan tambahkan terlebih dahulu di Tab Dokumen Pendukung.');
+            // }
+            // if (!$packingList) {
+            //     throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan PACKING LIST (Kode 217). Silakan tambahkan terlebih dahulu di Tab Dokumen Pendukung.');
+            // }
 
             $payloadDokumen = [];
             $seriDok = 1;
 
-            $invoice['seriDokumen'] = $seriDok++;
-            $payloadDokumen[] = $invoice;
+            if ($invoice) {
+                $invoice['seriDokumen'] = $seriDok++;
+                $payloadDokumen[] = $invoice;
+            }
 
-            $packingList['seriDokumen'] = $seriDok++;
-            $payloadDokumen[] = $packingList;
+            if ($packingList) {
+                $packingList['seriDokumen'] = $seriDok++;
+                $payloadDokumen[] = $packingList;
+            }
 
             foreach ($otherDocs as $od) {
                 $od['seriDokumen'] = $seriDok++;
