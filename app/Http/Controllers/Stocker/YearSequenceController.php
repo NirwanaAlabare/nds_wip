@@ -2458,7 +2458,7 @@ class YearSequenceController extends Controller
                     $sewingService->missMasterPlan(addQuotesAround(implode("\n", $safeArr)), false);
 
                     // Re-align packing PO
-                    $sewingService->missPackingPo();
+                    $sewingService->missPackingPo(addQuotesAround(implode("\n", $safeArr)));
 
                     activity()
                         ->causedBy(auth()->user())
