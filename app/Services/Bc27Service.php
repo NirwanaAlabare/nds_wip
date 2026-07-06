@@ -57,7 +57,6 @@ class Bc27Service
                     DB::raw('SUM(a.qty) as qty'),
                     DB::raw('AVG(a.price) as price'),
                     DB::raw('SUM(a.qty * a.price) as total_harga'),
-                    DB::raw("MAX(a.nw) as nw")
                 )
                 ->where(function($query) use ($id) {
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
