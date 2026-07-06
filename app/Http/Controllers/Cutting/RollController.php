@@ -1720,6 +1720,7 @@ from signalbit_erp.jo_det jd
         $qty_roll = $request->qty_roll;
         $qty_sisa = $request->qty_sisa;
         $qty_pakai = $request->qty_pakai;
+        $unit = $request->unit;
         $today     = date('Y-m-d');
 
         // Update scanned item (roll detail & qty)
@@ -1738,6 +1739,7 @@ from signalbit_erp.jo_det jd
             'qty_roll'              => $qty_roll,
             'qty_pakai'             => $qty_pakai,
             'sisa_kain'             => $qty_sisa,
+            'unit'                  => $unit,
             'created_by'            => $user,
             'created_at'            => $timestamp,
             'updated_at'            => $timestamp,
