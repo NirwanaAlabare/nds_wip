@@ -80,8 +80,12 @@ where status IN ('ACTIVE','IDLE','BREAKDOWN') group by lokasi, nm_jenis
         $bindings = [];
 
         if ($request->filled('lokasi')) {
-            $where .= ' AND a.lokasi = ?';
-            $bindings[] = $request->lokasi;
+            if ($request->lokasi === '__NULL__') {
+                $where .= ' AND a.lokasi IS NULL';
+            } else {
+                $where .= ' AND a.lokasi = ?';
+                $bindings[] = $request->lokasi;
+            }
         }
         if ($request->filled('nm_jenis')) {
             $where .= ' AND j.nm_jenis = ?';
