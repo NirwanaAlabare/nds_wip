@@ -492,7 +492,7 @@ class CuttingService
             $additionalQuerySub = " and id_roll = '".$rollId."'";
             $additionalQuerySubGr = " and barcode = '".$rollId."'";
         } else {
-            $additionalQuery = "WHERE si.qty != sub.sisa_kain";
+            $additionalQuery = "WHERE si.qty != latest_sisa_overall.sisa_kain";
             $additionalQuerySub = "";
             $additionalQuerySubGr = "";
         }
