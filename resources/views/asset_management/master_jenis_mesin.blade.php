@@ -235,7 +235,8 @@
                             <label for="txtnew_kd_jenis"><small><b>Kode Jenis :</b></small></label>
                             <input type="text" id="txtnew_kd_jenis" name="txtnew_kd_jenis"
                                 class="form-control form-control-sm" placeholder="contoh: SN untuk SINGLE NEEDLE"
-                                style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                                style="text-transform: uppercase;"
+                                oninput="this.value = this.value.toUpperCase().replace(/\s/g, '');">
                         </div>
                         <div class="col-md-7">
                             <label for="txtnew_nm_jenis"><small><b>Nama Jenis :</b></small></label>
@@ -300,7 +301,8 @@
                             <label for="txtnew_kd_merk"><small><b>Kode Merk :</b></small></label>
                             <input type="text" id="txtnew_kd_merk" name="txtnew_kd_merk"
                                 class="form-control form-control-sm" placeholder="contoh: JK untuk JUKI"
-                                style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                                style="text-transform: uppercase;"
+                                oninput="this.value = this.value.toUpperCase().replace(/\s/g, '');">
                         </div>
                         <div class="col-md-7">
                             <label for="txtnew_nm_merk"><small><b>Nama Merk :</b></small></label>
@@ -441,6 +443,14 @@
                 return;
             }
 
+            if (/\s/.test(kd_jenis)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode Jenis tidak boleh mengandung spasi',
+                });
+                return;
+            }
+
             let isEdit = !!id_jenis;
             let $btn = $('#saveJenisButton');
             $btn.prop('disabled', true);
@@ -542,6 +552,14 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Kode Merk dan Nama Merk wajib diisi',
+                });
+                return;
+            }
+
+            if (/\s/.test(kd_merk)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode Merk tidak boleh mengandung spasi',
                 });
                 return;
             }
