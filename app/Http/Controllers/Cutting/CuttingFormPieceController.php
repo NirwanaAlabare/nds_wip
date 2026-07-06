@@ -961,6 +961,35 @@ class CuttingFormPieceController extends Controller
     //     );
     // }
 
+    public function updateWaktuSelesai(Request $request)
+    {
+        $formCutPiece = FormCutPiece::where("id", $request->id)->first();
+
+        if ($formCutPiece) {
+            $waktuSelesai = $request->waktu_selesai ? Carbon::parse($request->waktu_selesai) : Carbon::now();
+
+            $formCutPiece->waktu_selesai = $waktuSelesai;
+            $formCutPiece->save();
+
+            logHistory(
+                $formCutPiece->id,
+                $formCutPiece->toArray()
+            );
+
+            return array(
+                "status" => 200,
+                "message" => "Waktu selesai berhasil diupdate.",
+                "additional" => $formCutPiece
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi kesalahan.",
+            "additional" => []
+        );
+    }
+
     /**
      * Remove the specified resource from storage.
      *

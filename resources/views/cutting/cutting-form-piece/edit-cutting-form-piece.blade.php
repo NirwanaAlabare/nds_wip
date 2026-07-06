@@ -462,6 +462,18 @@
         <div id="cutting-piece-finish" class="my-5 {{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 3 ? "" : "d-none") : "d-none") }}">
             <h3 class="text-center text-sb fw-bold">PROCESS FINISHED</h3>
             <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? ($currentCuttingPiece->waktu_selesai ? $currentCuttingPiece->waktu_selesai : $currentCuttingPiece->updated_at) : "-" }}</span></h5>
+            <div class="row justify-content-center mt-3">
+                <div class="col-md-6">
+                    <form action="{{ route('update-waktu-selesai-cutting-piece') }}" method="POST" onsubmit="updateWaktuSelesai(this, event)">
+                        @method("PUT")
+                        <input type="hidden" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : '' }}">
+                        <div class="input-group">
+                            <input type="datetime-local" class="form-control" name="waktu_selesai" value="{{ $currentCuttingPiece && $currentCuttingPiece->waktu_selesai ? \Carbon\Carbon::parse($currentCuttingPiece->waktu_selesai)->format('Y-m-d\TH:i') : '' }}">
+                            <button type="submit" class="btn btn-success">Update Waktu Selesai</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     {{-- END OF THE LINE --}}
 
@@ -1769,5 +1781,53 @@
             function summaryReload() {
                 $("#summary-table").DataTable().ajax.reload();
             }
+
+        // Update Waktu Selesai
+        function updateWaktuSelesai(form, event) {
+            showLoading();
+
+            event.preventDefault();
+
+            $.ajax({
+                url: form.action,
+                type: form.method,
+                data: {
+                    id: $("#id").val(),
+                    waktu_selesai: form.waktu_selesai.value,
+                },
+                dataType: "json",
+                success: function(res) {
+                    hideLoading();
+
+                    if (res.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message ?? 'Waktu selesai berhasil diperbarui'
+                        });
+
+                        // Update the displayed time
+                        if (res.additional && res.additional.waktu_selesai) {
+                            document.getElementById("last-update").innerText = formatDateTime(res.additional.waktu_selesai);
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message ?? 'Gagal memperbarui waktu selesai'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan server'
+                    });
+                }
+            });
+        }
     </script>
 @endsection
