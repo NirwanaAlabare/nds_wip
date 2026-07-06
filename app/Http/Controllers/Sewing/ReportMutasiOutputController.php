@@ -57,124 +57,67 @@ class ReportMutasiOutputController extends Controller
         
         $query = "WITH
             saldo_loading as (
-                SELECT
-                    id_so_det,
-                    tanggal_loading,
-                    SUM(qty_loading) as qty_loading
-                FROM (
+                WITH loading_line_qty as (
                     SELECT
-                            b.so_det_id AS id_so_det,
-                            a.tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line a
-                            INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                        ll.tanggal_loading,
+                        s.id_qr_stocker,
+                        pd.id AS part_detail_id,
+                        s.so_det_id,
+                        COALESCE(
+                            MIN(ll.qty) OVER (
+                                PARTITION BY
+                                    COALESCE(p_com.panel, p.panel),
+                                    s.form_cut_id,
+                                    s.form_reject_id,
+                                    s.form_piece_id,
+                                    s.so_det_id,
+                                    s.group_stocker,
+                                    s.ratio,
+                                    s.stocker_reject
+                            ),
+                            ll.qty
+                        ) AS loading_qty
+                    FROM laravel_nds.loading_line ll
+                    JOIN laravel_nds.stocker_input s ON s.id = ll.stocker_id
+                    LEFT JOIN laravel_nds.part_detail pd ON pd.id = s.part_detail_id
+                    LEFT JOIN laravel_nds.part p ON p.id = pd.part_id
+                    LEFT JOIN laravel_nds.part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                    LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
                     WHERE
-                            b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
-                            and (b.cancel IS NULL OR b.cancel != 'Y')
-                            and stocker_reject is null
-                    GROUP BY
-                            b.so_det_id,
-                            b.form_cut_id,
-                            b.group_stocker,
-                            b.ratio,
-                            a.tanggal_loading
-                    UNION ALL
-                    SELECT
-                            so_det_id AS id_so_det,
+                        ll.tanggal_loading BETWEEN '$start_date' AND '$end_date' 
+                        AND COALESCE(s.cancel, 'n') != 'y'
+                        AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                )
+
+                select tanggal_loading, so_det_id id_so_det, MIN(total) qty_loading FROM (
+                    select tanggal_loading, panel, ws, color, style, size, so_det_id, MIN(total) total from (
+                        select 
                             tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line
-                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-                    WHERE
-                            form_reject_id IS NOT NULL
-                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
-                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
-                            and stocker_reject is null
-                    GROUP BY
-                            so_det_id,
-                            form_reject_id,
-                            tanggal_loading
-                    UNION ALL
-                    SELECT
-                            so_det_id AS id_so_det,
-                            tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line
-                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-                    WHERE
-                            form_piece_id IS NOT NULL
-                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
-                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
-                            and stocker_reject is null
-                    GROUP BY
-                            so_det_id,
-                            form_piece_id,
-                            tanggal_loading
-                    UNION ALL
-                    SELECT
-                            b.so_det_id AS id_so_det,
-                            a.tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line a
-                            INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
-                    WHERE
-                            stocker_reject is not null and
-                            b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
-                            and (b.cancel IS NULL OR b.cancel != 'Y')
-                    GROUP BY
-                            b.so_det_id,
-                            b.form_cut_id,
-                            b.group_stocker,
-                            b.ratio,
-                            a.tanggal_loading,
-                            stocker_reject
-                    UNION ALL
-                    SELECT
-                            so_det_id AS id_so_det,
-                            tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line
-                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-                    WHERE
-                            form_reject_id IS NOT NULL
-                            and stocker_reject is not null
-                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
-                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
-                    GROUP BY
-                            so_det_id,
-                            form_reject_id,
-                            tanggal_loading,
-                            stocker_reject
-                    UNION ALL
-                    SELECT
-                            so_det_id AS id_so_det,
-                            tanggal_loading,
-                            MIN( qty ) AS qty_loading
-                    FROM
-                            laravel_nds.loading_line
-                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-                    WHERE
-                            form_piece_id IS NOT NULL
-                            and stocker_reject is not null
-                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
-                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
-                    GROUP BY
-                            so_det_id,
-                            form_piece_id,
-                            stocker_reject,
-                            tanggal_loading
-                ) loading
-                GROUP BY
-                    tanggal_loading,
-                    id_so_det
-                ORDER BY
-                    tanggal_loading asc,
-                    id_so_det asc
+                            GROUP_CONCAT(loading_line_qty.id_qr_stocker), 
+                            COALESCE(p_com.panel, p.panel) panel, 
+                            mp.nama_part, 
+                            msb.ws, 
+                            msb.styleno style, 
+                            msb.color, 
+                            msb.size, 
+                            so_det_id, 
+                            part_detail_id, 
+                            SUM(loading_qty) total 
+                        from loading_line_qty 
+                        LEFT JOIN laravel_nds.part_detail pd ON pd.id = loading_line_qty.part_detail_id
+                        LEFT JOIN laravel_nds.part p ON p.id = pd.part_id
+                        LEFT JOIN laravel_nds.part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                        LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN laravel_nds.master_part mp on mp.id = pd.master_part_id
+                        LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = loading_line_qty.so_det_id
+                        group by  
+                            so_det_id, mp.nama_part
+                    ) loading
+                    group by 
+                        so_det_id, panel
+                ) loading 
+                group by 
+                    so_det_id
             ),
             saldo_sewing as (
                             SELECT
@@ -1800,7 +1743,7 @@ class ReportMutasiOutputController extends Controller
                 FROM laravel_nds.sewing_loading_inject
                 LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = sewing_loading_inject.so_det_id
                 WHERE sewing_loading_inject.tanggal <= '$end_date' 
-                $filter_packing
+                $filter_loading
                 GROUP BY so_det_id
             ),
 
@@ -1877,8 +1820,8 @@ class ReportMutasiOutputController extends Controller
                             styleno,
                             color,
                             size,
-                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before) + (loading_inject_bef)) saldo_awal_sewing,
-                            SUM( qty_loading + loading_inject) qty_loading,
+                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before)) saldo_awal_sewing,
+                            SUM( qty_loading) qty_loading,
                             SUM( terima_gudang ) terima_gudang,
                             SUM( qty_in ) qty_in_subcont,
                             SUM( input_rework_sewing ) input_rework_sewing,
@@ -1890,7 +1833,7 @@ class ReportMutasiOutputController extends Controller
                             SUM( qty_sew_reject ) qty_sew_reject,
                             SUM( qty_sewing ) qty_sewing,
                             ROUND(SUM( qty_out ),0) qty_out_subcont,
-                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) + ((loading_inject_bef) + loading_inject)) saldo_akhir_sewing,
+                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) ) saldo_akhir_sewing,
                             SUM( saldo_awal_finishing ) saldo_awal_finishing,
                             SUM( input_rework_sewing_f ) input_rework_sewing_f,
                             SUM( input_rework_spotcleaning_f ) input_rework_spotcleaning_f,

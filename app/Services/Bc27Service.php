@@ -50,13 +50,18 @@ class Bc27Service
                 ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
                 ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
                 ->select(
-                    'a.*', 
-                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
-                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+                    'a.id_item',
+                    DB::raw("IF(mi.goods_code IS NOT NULL AND mi.goods_code != '', mi.goods_code, ms.goods_code) as goods_code"),
+                    DB::raw("IF(mi.itemdesc IS NOT NULL AND mi.itemdesc != '', mi.itemdesc, CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,''))) as itemdesc"),
+                    DB::raw("MAX(a.unit) as unit"),
+                    DB::raw('SUM(a.qty) as qty'),
+                    DB::raw('AVG(a.price) as price'),
+                    DB::raw('SUM(a.qty * a.price) as total_harga'),
                 )
                 ->where(function($query) use ($id) {
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
                 })
+                ->groupBy('a.id_item')
                 ->get();
 
         if ($items->isEmpty()) {
@@ -64,13 +69,19 @@ class Bc27Service
                 ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
                 ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
                 ->select(
-                    'a.*', 'a.bppbno as bpbno', 'a.bppbno_int as bpbno_int', 'a.bppbdate as bpbdate',
-                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', ms.goods_code, mi.goods_code) as goods_code"),
-                    DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc")
+                    'a.id_item',
+                    DB::raw("MAX(a.bppbno) as bpbno"), DB::raw("MAX(a.bppbno_int) as bpbno_int"), DB::raw("MAX(a.bppbdate) as bpbdate"),
+                    DB::raw("IF(mi.goods_code IS NOT NULL AND mi.goods_code != '', mi.goods_code, ms.goods_code) as goods_code"),
+                    DB::raw("IF(mi.itemdesc IS NOT NULL AND mi.itemdesc != '', mi.itemdesc, CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,''))) as itemdesc"),
+                    DB::raw("MAX(a.unit) as unit"),
+                    DB::raw('SUM(a.qty) as qty'),
+                    DB::raw('AVG(a.price) as price'),
+                    DB::raw('SUM(a.qty * a.price) as total_harga'),
                 )
                 ->where(function($query) use ($id) {
                     $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
                 })
+                ->groupBy('a.id_item')
                 ->get();
         }
 

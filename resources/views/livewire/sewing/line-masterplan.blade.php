@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-between align-items-end">
             <div class="mb-3">
                 <label class="mb-1">Tanggal</label>
-                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date">
+                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date" disabled>
             </div>
             <div class="mb-3">
                 <button class="btn btn-primary btn-sm" onclick="openImport()"><i class="fa fa-upload"></i> Upload Master Plan</button>
@@ -19,7 +19,7 @@
             <div class="mb-3">
                 <div class="d-flex align-items-center gap-1">
                     <label class="mb-0">Search: </label>
-                    <input type="text" class="form-control form-control-sm" wire:model.lazy="search" id="search">
+                    <input type="text" class="form-control form-control-sm" wire:model.lazy="search" id="search" disabled>
                 </div>
             </div>
         </div>
@@ -179,10 +179,14 @@
 
         $("#search").on("change", function () {
             clearFixedColumn();
+
+            $("#search").prop("disabled",true);
         });
 
-         $("#date").on("change", function () {
+        $("#date").on("change", function () {
             clearFixedColumn();
+
+            $("#date").prop('disabled',true);
         });
 
         function clearFixedColumn() {
@@ -214,7 +218,15 @@
 
             setTimeout(function () {
                 $('#datatable').DataTable().columns.adjust();
+
             }, 1000);
+
+            setTimeout(function () {
+
+                $('#search').prop("disabled",false);
+                $('#date').prop("disabled",false);
+
+            }, 1300);
         }
 
         Livewire.on("clearFixedColumn", () => {
@@ -260,7 +272,6 @@
                         console.log(res);
 
                         e.reset();
-
 
                         Swal.fire({
                             icon: 'success',
