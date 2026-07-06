@@ -281,7 +281,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/edit/{id?}', 'edit')->name('edit-cutting-piece');
             Route::put('/update', 'update')->name('update-cutting-piece');
             Route::put('/update/detail', 'updateDetail')->name('update-cutting-piece-detail');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
+            Route::put('/update/waktu-selesai', 'updateWaktuSelesai')->name('update-waktu-selesai-cutting-piece');
+            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece')->middleware("role:superadmin");
             Route::delete('/delete/detail', 'deleteDetail')->name('delete-cutting-piece-detail');
             Route::post('/update-process-status', 'updateProcessStatus')->name('update-process-status-cutting-piece');
 

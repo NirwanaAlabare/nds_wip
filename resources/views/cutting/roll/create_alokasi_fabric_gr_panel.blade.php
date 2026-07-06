@@ -230,15 +230,19 @@
                     <label for="txtqty_awal" class="form-label mb-1">
                         <small><strong>Qty Awal</strong></small>
                     </label>
-                    <input type="text" id="txtqty_awal" name="txtqty_awal"
-                        class="form-control form-control-sm border-primary" readonly>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="txtqty_awal" name="txtqty_awal" class="form-control form-control-sm border-primary" readonly>
+                        <input type="text" id="txtunit_awal" name="txtunit_awal" class="form-control form-control-sm border-primary" readonly>
+                    </div>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
                     <label for="txtqty_roll" class="form-label mb-1">
                         <small><strong>Qty Roll</strong></small>
                     </label>
-                    <input type="number" id="txtqty_roll" name="txtqty_roll"
-                        class="form-control form-control-sm border-primary" readonly>
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="txtqty_roll" name="txtqty_roll" class="form-control form-control-sm border-primary" readonly>
+                        <span class="input-group-text unit-text border-primary"></span>
+                    </div>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
                     <label for="txtunit" class="form-label mb-1">
@@ -251,22 +255,28 @@
                     <label for="txtqty_pakai" class="form-label mb-1">
                         <small><strong>Qty Pakai</strong></small>
                     </label>
-                    <input type="number" id="txtqty_pakai" name="txtqty_pakai"
-                        class="form-control form-control-sm border-primary">
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="txtqty_pakai" name="txtqty_pakai" class="form-control form-control-sm border-primary">
+                        <span class="input-group-text unit-text border-primary"></span>
+                    </div>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
                     <label for="txtqty_sisa" class="form-label mb-1">
                         <small><strong>Sisa Kain</strong></small>
                     </label>
-                    <input type="number" id="txtqty_sisa" name="txtqty_sisa"
-                        class="form-control form-control-sm border-primary">
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="txtqty_sisa" name="txtqty_sisa" class="form-control form-control-sm border-primary">
+                        <span class="input-group-text unit-text border-primary"></span>
+                    </div>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
                     <label for="txtshort_roll" class="form-label mb-1">
                         <small><strong>Short Roll</strong></small>
                     </label>
-                    <input type="number" id="txtshort_roll" name="txtshort_roll"
-                        class="form-control form-control-sm border-primary" readonly>
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="txtshort_roll" name="txtshort_roll" class="form-control form-control-sm border-primary" readonly>
+                        <span class="input-group-text unit-text border-primary"></span>
+                    </div>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
                     <label for="cbows_act" class="form-label mb-1">
@@ -441,6 +451,7 @@
                 success: function(res) {
 
                     if (typeof res === 'object' && res !== null) {
+                        console.log(res)
                         if (res.qty > 0) {
                             currentScannedItem = res;
                             document.getElementById('txtbarcode').value = res.id_roll;
@@ -448,9 +459,25 @@
                             document.getElementById('txtno_lot').value = res.lot;
                             document.getElementById('txtid_item').value = res.id_item;
                             document.getElementById('txtitem_name').value = res.detail_item;
-                            document.getElementById('txtqty_awal').value = res.qty_in;
-                            document.getElementById('txtqty_roll').value = res.qty;
-                            document.getElementById('txtunit').value = res.unit;
+                            document.getElementById('txtqty_awal').value = res.qty_in ? res.qty_in : res.qty;
+                            document.getElementById('txtunit_awal').value = res.unit;
+
+                            if (res.unit == 'YRD' || res.unit == 'YARD') {
+                                document.getElementById("txtqty_roll").value = (res.qty * 0.9144).round(2);
+                                document.getElementById("txtunit").value = 'METER';
+
+                                for(let i = 0; i < document.getElementsByClassName('unit-text').length; i++) {
+                                    document.getElementsByClassName('unit-text')[i].innerHTML = 'METER';
+                                }
+                            } else {
+                                document.getElementById("txtqty_roll").value = res.qty;
+                                document.getElementById("txtunit").value = res.unit;
+
+                                for(let i = 0; i < document.getElementsByClassName('unit-text').length; i++) {
+                                    document.getElementsByClassName('unit-text')[i].innerHTML = res.unit;
+                                }
+                            }
+
                             stopScannerFabric();
                             // ✅ Close the modal
                             const modalEl = document.getElementById('startFabricModal');
@@ -536,6 +563,7 @@
             const qty_roll = parseFloat(document.getElementById('txtqty_roll').value) || 0;
             const qty_sisa = parseFloat(document.getElementById('txtqty_sisa').value) || 0;
             const qty_pakai = parseFloat(document.getElementById('txtqty_pakai').value) || 0;
+            const unit = document.getElementById('txtunit').value;
 
             // Build summary before save
             Swal.fire({
@@ -561,7 +589,8 @@
                             ws_act: ws_act,
                             qty_roll: qty_roll,
                             qty_sisa: qty_sisa,
-                            qty_pakai: qty_pakai
+                            qty_pakai: qty_pakai,
+                            unit: unit
                         },
                         success: function(response) {
                             Swal.fire({

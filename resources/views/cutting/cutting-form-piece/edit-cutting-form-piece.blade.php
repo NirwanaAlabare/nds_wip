@@ -384,7 +384,7 @@
                                                     <td>{{ $size->size }}</td>
                                                     <td>{{ $size->dest }}</td>
                                                     <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
-                                                    <td><input type="number" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
+                                                    <td><input type="number" step="any" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -462,6 +462,18 @@
         <div id="cutting-piece-finish" class="my-5 {{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 3 ? "" : "d-none") : "d-none") }}">
             <h3 class="text-center text-sb fw-bold">PROCESS FINISHED</h3>
             <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? ($currentCuttingPiece->waktu_selesai ? $currentCuttingPiece->waktu_selesai : $currentCuttingPiece->updated_at) : "-" }}</span></h5>
+            <div class="row justify-content-center mt-3">
+                <div class="col-md-6">
+                    <form action="{{ route('update-waktu-selesai-cutting-piece') }}" method="POST" onsubmit="updateWaktuSelesai(this, event)">
+                        @method("PUT")
+                        <input type="hidden" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : '' }}">
+                        <div class="input-group">
+                            <input type="datetime-local" class="form-control" name="waktu_selesai" value="{{ $currentCuttingPiece && $currentCuttingPiece->waktu_selesai ? \Carbon\Carbon::parse($currentCuttingPiece->waktu_selesai)->format('Y-m-d\TH:i') : '' }}">
+                            <button type="submit" class="btn btn-success">Update Waktu Selesai</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     {{-- END OF THE LINE --}}
 
@@ -1183,7 +1195,7 @@
                             <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control detail-qty${suffix}" data-so-det='${row.so_det_id}' data-row='${index}' onkeyup="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')" onchange="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')"/>
                         </td>
                         <td>
-                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control detail-qty-actual${suffix}" readonly />
+                            <input type="number" step="any" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control detail-qty-actual${suffix}" readonly />
                         </td>
                     </tr>
                 `).join("");
@@ -1769,5 +1781,53 @@
             function summaryReload() {
                 $("#summary-table").DataTable().ajax.reload();
             }
+
+        // Update Waktu Selesai
+        function updateWaktuSelesai(form, event) {
+            showLoading();
+
+            event.preventDefault();
+
+            $.ajax({
+                url: form.action,
+                type: form.method,
+                data: {
+                    id: $("#id").val(),
+                    waktu_selesai: form.waktu_selesai.value,
+                },
+                dataType: "json",
+                success: function(res) {
+                    hideLoading();
+
+                    if (res.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message ?? 'Waktu selesai berhasil diperbarui'
+                        });
+
+                        // Update the displayed time
+                        if (res.additional && res.additional.waktu_selesai) {
+                            document.getElementById("last-update").innerText = formatDateTime(res.additional.waktu_selesai);
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message ?? 'Gagal memperbarui waktu selesai'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan server'
+                    });
+                }
+            });
+        }
     </script>
 @endsection

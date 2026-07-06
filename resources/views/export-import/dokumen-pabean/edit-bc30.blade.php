@@ -25,7 +25,7 @@
 
     $referensiDokumen = [
         '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6 - PEMBERITAHUAN PABEAN PENGELUARAN BARANG DARI KAWASAN PABEAN UNTUK DITIMBUN DI PUSAT LOGISTIK BERIKAT',
-        '20' => 'BC 2.0 - PEMBERITAHUAN IMPOR BARANG', '21' => 'PIBK/IMPOR KHUSUS', '23' => 'BC 2.7 - PEMBERITAHUAN IMPOR BARANG UNTUK DITIMBUN DI TEMPAT PENIMBUNAN BERIKAT',
+        '20' => 'BC 2.0 - PEMBERITAHUAN IMPOR BARANG', '21' => 'PIBK/IMPOR KHUSUS', '23' => 'BC 2.3 - PEMBERITAHUAN IMPOR BARANG UNTUK DITIMBUN DI TEMPAT PENIMBUNAN BERIKAT',
         '25' => 'BC 2.5 - PEMBERITAHUAN IMPOR BARANG DARI TEMPAT PENIMBUNAN BERIKAT', '27' => 'BC 2.7 - PEMBERITAHUAN PENGELUARAN UNTUK DIANGKUT DARI TEMPAT PENIMBUNAN BERIKAT KE TEMPAT PENIMBUNAN BERIKAT LAINNYA',
         '28' => 'BC 2.8 - PEMBERITAHUAN IMPOR BARANG DARI PUSAT LOGISTIK BERIKAT', '30' => 'BC 3.0 - PEMBERITAHUAN EKSPOR NARAMG',
         '33' => 'BC 3.3 - PEMBERITAHUAN EKSPOR BARANG MELALUI/DARI PUSAT LOGISTIK BERIKAT', '40' => 'BC 4.0 - PEMBERITAHUAN PEMASUKAN BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN KE TEMPAT PENIMBUNAN BERIKAT',
@@ -43,7 +43,7 @@
         '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
         '282' => 'DOKAP PLB - PEMBERITAHUAN PENGELUARAN DENGAN DOKUMEN PELENGKAP', '302' => 'CN Ekspor', '315' => 'KONTRAK',
         '331' => 'P3BET - PEMBERITAHUAN PENGGABUNGAN DAN PEMECAHAN BARANG EKSPOR DAN TRANSHIPMENT', '343' => 'SHIPING ORDER',
-        '380' => 'INVOICE', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
+        '380' => 'INVOICE', '630' => 'SURAT JALAN', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
         '430' => 'BANK GARANSI', '440' => 'SURAT TANDA BUKTI SETOR / STBS', '454' => 'SSPCP / SSBC', '455' => 'SURAT SETORAN PAJAK (SSP)',
         '456' => 'SKB', '457' => 'Surat Keterangan Bebas (SKB) PPh', '458' => 'SURAT KETERANGAN TIDAK DIPUNGUT (SKTD) PPN', '459' => 'Non SKB / SKTD',
         '500' => 'MOU PDE (Eksportir)', '511' => 'FTZ-01 PEMASUKAN DARI LUAR DAERAH PABEAN (IMPOR)',
@@ -279,8 +279,6 @@
     ];
     $tpsCode = $dataDetail['kodeTps'] ?? '';
     $tpsLabel = $mapNamaTps[$tpsCode] ?? ($dataDetail['namaTps'] ?? $tpsCode);
-    $kodeLokasiTps = $dataDetail['kodeLokasiTps'] ?? '';
-    $kodeLokasiTpsLabel = $mapNamaTps[$kodeLokasiTps] ?? ($dataDetail['namaTps'] ?? $kodeLokasiTps);
 @endphp
 
 <div class="card card-sb">
@@ -413,13 +411,13 @@
                                     <div class="form-group row mb-2">
                                         <label class="col-sm-4 col-form-label text-sm">Lokasi TPS</label>
                                         <div class="col-sm-8">
-                                            <select name="kodeLokasiTps" class="form-control form-control-sm select2-tps">
+                                            <select name="kodeTps" class="form-control form-control-sm select2-tps">
                                                 <option value="">Pilih Lokasi TPS</option>
                                                 @foreach($mapNamaTps as $code => $label)
-                                                    <option value="{{ $code }}" {{ $kodeLokasiTps == $code ? 'selected' : '' }}>{{ $label }}</option>
+                                                    <option value="{{ $code }}" {{ $tpsCode == $code ? 'selected' : '' }}>{{ $label }}</option>
                                                 @endforeach
-                                                @if(!empty($kodeLokasiTps) && !isset($mapNamaTps[$kodeLokasiTps]))
-                                                    <option value="{{ $kodeLokasiTps }}" selected>{{ $kodeLokasiTpsLabel }}</option>
+                                                @if(!empty($tpsCode) && !isset($mapNamaTps[$tpsCode]))
+                                                    <option value="{{ $tpsCode }}" selected>{{ $tpsLabel }}</option>
                                                 @endif
                                             </select>
                                             <small class="text-muted">Ketik nama atau kode TPS (Contoh: KOJA, JICT, dll)</small>
@@ -826,16 +824,7 @@
                                     <div class="form-group row mb-2">
                                         <label class="col-sm-4 col-form-label text-sm">Tempat Penimbunan </label>
                                         <div class="col-sm-8">
-                                            <select name="kodeTps" class="form-control form-control-sm select2-tps-penimbunan">
-                                                <option value="">Pilih Tempat Penimbunan</option>
-                                                @foreach($mapNamaTps as $code => $label)
-                                                    <option value="{{ $code }}" {{ $tpsCode == $code ? 'selected' : '' }}>{{ $label }}</option>
-                                                @endforeach
-                                                @if(!empty($tpsCode) && !isset($mapNamaTps[$tpsCode]))
-                                                    <option value="{{ $tpsCode }}" selected>{{ $tpsLabel }}</option>
-                                                @endif
-                                            </select>
-                                            <small class="text-muted">Ketik nama atau kode TPS Tempat Penimbunan</small>
+                                            <input type="text" name="kodeTps" class="form-control form-control-sm " placeholder="Contoh: G001" value="{{ $dataDetail['kodeTps'] ?? '' }}">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-2">
@@ -1776,11 +1765,6 @@
        $('.select2-tps').select2({
             theme: 'bootstrap4',
             placeholder: 'Cari Lokasi TPS...',
-            allowClear: true
-        });
-       $('.select2-tps-penimbunan').select2({
-            theme: 'bootstrap4',
-            placeholder: 'Cari Tempat Penimbunan...',
             allowClear: true
         });
         // ==========================================

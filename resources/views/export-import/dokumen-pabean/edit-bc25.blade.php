@@ -273,7 +273,7 @@
                                                                 '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
                                                                 '282' => 'DOKAP PLB - PEMBERITAHUAN PENGELUARAN DENGAN DOKUMEN PELENGKAP', '302' => 'CN Ekspor', '315' => 'KONTRAK',
                                                                 '331' => 'P3BET - PEMBERITAHUAN PENGGABUNGAN DAN PEMECAHAN BARANG EKSPOR DAN TRANSHIPMENT', '343' => 'SHIPING ORDER',
-                                                                '380' => 'INVOICE', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
+                                                                '380' => 'INVOICE', '630' => 'SURAT JALAN', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
                                                                 '430' => 'BANK GARANSI', '440' => 'SURAT TANDA BUKTI SETOR / STBS', '454' => 'SSPCP / SSBC', '455' => 'SURAT SETORAN PAJAK (SSP)',
                                                                 '456' => 'SKB', '457' => 'Surat Keterangan Bebas (SKB) PPh', '458' => 'SURAT KETERANGAN TIDAK DIPUNGUT (SKTD) PPN', '459' => 'Non SKB / SKTD',
                                                                 '500' => 'MOU PDE (Eksportir)', '511' => 'FTZ-01 PEMASUKAN DARI LUAR DAERAH PABEAN (IMPOR)',
@@ -914,7 +914,7 @@
                                 $referensiDokumen = [
                                     '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6', '20' => 'BC 2.0', '21' => 'PIBK/IMPOR KHUSUS',
                                     '23' => 'BC 2.3', '25' => 'BC 2.5', '27' => 'BC 2.7', '28' => 'BC 2.8', '30' => 'BC 3.0',
-                                    '33' => 'BC 3.3', '40' => 'BC 4.0', '41' => 'BC 4.1', '50' => 'KITE', '380' => 'INVOICE',
+                                    '33' => 'BC 3.3', '40' => 'BC 4.0', '41' => 'BC 4.1', '50' => 'KITE', '380' => 'INVOICE', '630' => 'SURAT JALAN',
                                     '705' => 'B/L', '740' => 'AWB', '999' => 'LAINNYA',
                                 ];
 
