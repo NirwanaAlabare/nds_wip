@@ -260,7 +260,7 @@
         <div class="col-lg-4">
             <div class="card card-sb h-100">
                 <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> Report Qty per Area</h5>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> Qty per Area</h5>
                 </div>
                 <div class="card-body">
                     @php
@@ -271,9 +271,13 @@
                         @forelse ($tot_per_lokasi as $row)
                             @php
                                 $percent = round(($row->total / $maxLokasi) * 100);
+                                // lokasi NULL di DB (unit belum diisi lokasi) diberi key & label sendiri,
+                                // supaya saat diklik backend bisa filter "lokasi IS NULL", bukan malah tanpa filter
+                                $lokasiKey = $row->lokasi ?? '__NULL__';
+                                $lokasiLabel = $row->lokasi ?? '(Tanpa Lokasi)';
                             @endphp
-                            <div class="hbar-row" data-lokasi="{{ $row->lokasi }}">
-                                <div class="hbar-label" title="{{ $row->lokasi }}">{{ $row->lokasi }}</div>
+                            <div class="hbar-row" data-lokasi="{{ $lokasiKey }}">
+                                <div class="hbar-label" title="{{ $lokasiLabel }}">{{ $lokasiLabel }}</div>
                                 <div class="hbar-track">
                                     <div class="hbar-fill" style="width: {{ $percent }}%; background-color: #238380;">
                                     </div>
@@ -291,7 +295,7 @@
         <div class="col-lg-4">
             <div class="card card-sb h-100">
                 <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-layer-group"></i> Report per Jenis Mesin</h5>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-layer-group"></i>Qty per Jenis Mesin</h5>
                 </div>
                 <div class="card-body">
                     @php
@@ -332,19 +336,26 @@
                             'BREAKDOWN' => ['label' => 'Breakdown', 'color' => '#ea5455', 'order' => 3],
                         ];
                         $grandTotal = collect($tot_per_status)->sum('total') ?: 1;
-                        $sortedStatus = collect($tot_per_status)->sortBy(fn($row) => $statusMeta[$row->status]['order'] ?? 99);
+                        $sortedStatus = collect($tot_per_status)->sortBy(
+                            fn($row) => $statusMeta[$row->status]['order'] ?? 99,
+                        );
                     @endphp
 
                     @forelse ($sortedStatus as $row)
                         @php
-                            $meta = $statusMeta[$row->status] ?? ['label' => ucfirst(strtolower($row->status)), 'color' => '#8a94a6'];
+                            $meta = $statusMeta[$row->status] ?? [
+                                'label' => ucfirst(strtolower($row->status)),
+                                'color' => '#8a94a6',
+                            ];
                             $percent = round(($row->total / $grandTotal) * 100);
                         @endphp
                         <div class="status-row" data-status="{{ $row->status }}">
                             <div>
                                 <span class="status-dot" style="background-color: {{ $meta['color'] }};"></span>
                                 <span class="status-row-label ms-2">{{ $meta['label'] }}</span>
-                                <span class="status-row-count ms-1">{{ $row->total }} mesin ({{ $percent }}%)</span>
+                                <span class="status-row-count ms-1">{{ $row->total }} mesin
+                                    ({{ $percent }}%)
+                                </span>
                             </div>
                             <div class="status-progress-track">
                                 <div class="status-progress-fill"
@@ -387,16 +398,22 @@
                     <tbody>
                         @forelse ($tot_per_lokasi as $lokasiRow)
                             @php
-                                $rowCells = $matrixCells->get($lokasiRow->lokasi, collect())->pluck('total', 'nm_jenis');
+                                $rowCells = $matrixCells
+                                    ->get($lokasiRow->lokasi, collect())
+                                    ->pluck('total', 'nm_jenis');
+                                $lokasiKey = $lokasiRow->lokasi ?? '__NULL__';
+                                $lokasiLabel = $lokasiRow->lokasi ?? '(Tanpa Lokasi)';
                             @endphp
-                            <tr data-lokasi="{{ $lokasiRow->lokasi }}">
-                                <th>{{ $lokasiRow->lokasi }}</th>
+                            <tr data-lokasi="{{ $lokasiKey }}">
+                                <th>{{ $lokasiLabel }}</th>
                                 @foreach ($matrixJenisCols as $nmJenis)
                                     @php $cellTotal = $rowCells->get($nmJenis, 0); @endphp
-                                    <td @if ($cellTotal) class="matrix-cell-clickable" data-lokasi="{{ $lokasiRow->lokasi }}"
-                                        data-jenis="{{ $nmJenis }}" @endif>{{ $cellTotal ?: '-' }}</td>
+                                    <td
+                                        @if ($cellTotal) class="matrix-cell-clickable" data-lokasi="{{ $lokasiKey }}"
+                                        data-jenis="{{ $nmJenis }}" @endif>
+                                        {{ $cellTotal ?: '-' }}</td>
                                 @endforeach
-                                <td class="matrix-total" data-lokasi="{{ $lokasiRow->lokasi }}">{{ $lokasiRow->total }}
+                                <td class="matrix-total" data-lokasi="{{ $lokasiKey }}">{{ $lokasiRow->total }}
                                 </td>
                             </tr>
                         @empty
@@ -497,7 +514,8 @@
         // Klik bar di "Report Qty per Area" -> detail semua jenis mesin di area tersebut
         $('.hbar-row[data-lokasi]').on('click', function() {
             let lokasi = $(this).data('lokasi');
-            openAreaJenisUnitModal(lokasi, null, null, `${lokasi} - Semua Jenis Mesin`);
+            let label = $(this).find('.hbar-label').text();
+            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
         });
 
         // Klik bar di "Report per Jenis Mesin" -> detail semua area untuk jenis tersebut
@@ -517,13 +535,15 @@
         $('#matrixTable').on('click', 'td.matrix-cell-clickable', function() {
             let lokasi = $(this).data('lokasi');
             let nmJenis = $(this).data('jenis');
-            openAreaJenisUnitModal(lokasi, nmJenis, null, `${lokasi} - ${nmJenis}`);
+            let label = $(this).closest('tr').find('th').first().text();
+            openAreaJenisUnitModal(lokasi, nmJenis, null, `${label} - ${nmJenis}`);
         });
 
         // Klik kolom Total per baris -> detail semua jenis mesin di area itu
         $('#matrixTable').on('click', 'td.matrix-total', function() {
             let lokasi = $(this).data('lokasi');
-            openAreaJenisUnitModal(lokasi, null, null, `${lokasi} - Semua Jenis Mesin`);
+            let label = $(this).closest('tr').find('th').first().text();
+            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
         });
 
         // Search di dalam modal detail unit: filter baris yang sudah dimuat
@@ -539,7 +559,7 @@
         $('#matrixSearch').on('keyup', function() {
             let keyword = $(this).val().toLowerCase();
             $('#matrixTable tbody tr[data-lokasi]').each(function() {
-                let lokasi = ($(this).data('lokasi') + '').toLowerCase();
+                let lokasi = $(this).find('th').first().text().toLowerCase();
                 $(this).toggleClass('d-none', lokasi.indexOf(keyword) === -1);
             });
         });
