@@ -250,7 +250,7 @@ class AssetMesinSewaController extends Controller
                 created_by,
                 created_at,
                 updated_at
-            ) VALUES (?,?,?,?,?,?,?,?,?)", [
+            ) VALUES (?,?,?,?,?,?,?,?,?,?)", [
                 $timestamp->format('Y-m-d'),
                 $request->id_item,
                 $request->id_bpb,
