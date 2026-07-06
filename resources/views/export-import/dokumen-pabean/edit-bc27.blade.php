@@ -188,12 +188,11 @@
                                             <select name="kodeTujuanTpb" class="form-control form-control-sm select2bs4">
                                                 <option value="">Pilih Tujuan Pengiriman</option>
                                                 @php $tujuanTpb = $dataDetail['kodeTujuanTpb'] ?? '' @endphp
-                                                <option value="1" {{ $tujuanTpb == '1' ? 'selected' : '' }}>DIJUAL/DISERAHKAN KE KAWASAN BERIKAT LAINNYA</option>
-                                                <option value="2" {{ $tujuanTpb == '2' ? 'selected' : '' }}>DIJUAL/DISERAHKAN KE GUDANG BERIKAT</option>
-                                                <option value="3" {{ $tujuanTpb == '3' ? 'selected' : '' }}>DIKIRIM UNTUK DIOLAH KE TPPB</option>
-                                                <option value="4" {{ $tujuanTpb == '4' ? 'selected' : '' }}>DIKIRIM KE TPPB UNTUK DIGABUNGKAN</option>
-                                                <option value="5" {{ $tujuanTpb == '5' ? 'selected' : '' }}>DIKIRIM KE TBB</option>
-                                                <option value="6" {{ $tujuanTpb == '6' ? 'selected' : '' }}>DIJUAL KE KAWASAN BEBAS</option>
+                                                <option value="1" {{ $tujuanTpb == '1' ? 'selected' : '' }}>1 - PENYERAHAN BKP</option>
+                                                <option value="2" {{ $tujuanTpb == '2' ? 'selected' : '' }}>2 - PENYERAHAN JKP</option>
+                                                <option value="3" {{ $tujuanTpb == '3' ? 'selected' : '' }}>3 - RETUR</option>
+                                                <option value="4" {{ $tujuanTpb == '4' ? 'selected' : '' }}>4 - NON PENYERAHAN</option>
+                                                <option value="5" {{ $tujuanTpb == '5' ? 'selected' : '' }}>5 - LAINNYA</option>
                                             </select>
                                         </div>
                                     </div>
@@ -276,13 +275,12 @@
                                                         <label class="small text-muted mb-0">Jumlah dan Satuan Barang</label>
                                                         <div class="input-group input-group-sm">
                                                             <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
-                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control" style="max-width:40%;">
-                                                                <option value="KGM" {{ ($draftItem['kodeSatuanBarang'] ?? 'KGM') == 'KGM' ? 'selected' : '' }}>KGM</option>
-                                                                <option value="PCE" {{ ($draftItem['kodeSatuanBarang'] ?? '') == 'PCE' ? 'selected' : '' }}>PCE</option>
-                                                                <option value="MTR" {{ ($draftItem['kodeSatuanBarang'] ?? '') == 'MTR' ? 'selected' : '' }}>MTR</option>
-                                                                <option value="SET" {{ ($draftItem['kodeSatuanBarang'] ?? '') == 'SET' ? 'selected' : '' }}>SET</option>
-                                                                <option value="DOZ" {{ ($draftItem['kodeSatuanBarang'] ?? '') == 'DOZ' ? 'selected' : '' }}>DOZ</option>
-                                                                <option value="YRD" {{ ($draftItem['kodeSatuanBarang'] ?? '') == 'YRD' ? 'selected' : '' }}>YRD</option>
+                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control select2bs4" >
+                                                                 @php $savedSatuan = $draftItem['kodeSatuanBarang'] ?? $item->unit ?? 'PCS'; @endphp
+                                                                <option value="">-- Pilih Satuan --</option>
+                                                                @foreach($listSatuanBarang as $kode => $label)
+                                                                    <option value="{{ $kode }}" {{ $savedSatuan == $kode ? 'selected' : '' }}>{{ $kode }} - {{ $label }}</option>
+                                                                @endforeach
                                                             </select>
                                                         </div>
                                                     </div>
@@ -302,11 +300,11 @@
                                                         <label class="small text-muted mb-0">Kemasan</label>
                                                         <div class="input-group input-group-sm">
                                                             <input type="number" step="any" name="barang[{{ $index }}][jumlahKemasan]" class="form-control" value="{{ $draftItem['jumlahKemasan'] ?? 0 }}">
-                                                            <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control" style="max-width:40%;">
-                                                                <option value="CT" {{ ($draftItem['kodeJenisKemasan'] ?? 'CT') == 'CT' ? 'selected' : '' }}>CT</option>
-                                                                <option value="BG" {{ ($draftItem['kodeJenisKemasan'] ?? '') == 'BG' ? 'selected' : '' }}>BG</option>
-                                                                <option value="PK" {{ ($draftItem['kodeJenisKemasan'] ?? '') == 'PK' ? 'selected' : '' }}>PK</option>
-                                                                <option value="RO" {{ ($draftItem['kodeJenisKemasan'] ?? '') == 'RO' ? 'selected' : '' }}>RO</option>
+                                                            <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control select2bs4" >
+                                                                <option value="">-- Pilih Jenis Kemasan --</option>
+                                                                @foreach($listJenisKemasan as $k => $v)
+                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeJenisKemasan'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                @endforeach
                                                             </select>
                                                         </div>
                                                     </div>
@@ -605,7 +603,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NPWP</label>
-                                        <input type="text" name="entitas[7][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}" placeholder="NPWP 15/16 digit">
+                                        <input type="text" name="entitas[7][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['nomorIdentitas'] ?? '' }}" placeholder="NPWP 15/16 digit">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NITKU</label>
@@ -613,11 +611,11 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nama</label>
-                                        <input type="text" name="entitas[7][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['namaEntitas'] ?? $header->supplier ?? '' }}">
+                                        <input type="text" name="entitas[7][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['namaEntitas'] ?? '' }}">
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Alamat</label>
-                                        <textarea name="entitas[7][alamatEntitas]" class="form-control form-control-sm" rows="2">{{ $dataDetail['entitas'][7]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}</textarea>
+                                        <textarea name="entitas[7][alamatEntitas]" class="form-control form-control-sm" rows="2">{{ $dataDetail['entitas'][7]['alamatEntitas'] ?? '' }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -646,6 +644,7 @@
                                     '208' => 'PENGELUARAN SEMENTARA - DIPAMERKAN', '209' => 'PENGELUARAN SEMENTARA - TUJUAN LAIN DENGAN PERSETUJUAN KEPALA KANTOR PABEAN',
                                     '210' => 'PENERIMAAN PEKERJAAN - SUBKONTRAK', '211' => 'PENERIMAAN PEKERJAAN - PERBAIKAN/ REPARASI',
                                     '212' => 'PENERIMAAN PEKERJAAN - PEKERJAAN LAIN', '213' => 'PEMUSNAHAN BARANG DI KAWASAN BERIKAT',
+                                    // '215' => 'SURAT JALAN', '216' => 'SURAT JALAN',
                                     '217' => 'PACKING LIST', '246' => 'L/C', '261' => 'BC 2.6.1 - PEMBERITAHUAN PENGELUARAN BARANG DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
                                     '262' => 'BC 2.6.2 - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG YANG DI KELUARKAN DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
                                     '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
@@ -1533,45 +1532,6 @@
 
 
         calculateTotals();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         $('.column-search').on('keyup', function() {
             $('#tab-pungutan tbody tr').show();
