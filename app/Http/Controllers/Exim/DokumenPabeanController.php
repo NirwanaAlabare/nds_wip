@@ -399,10 +399,21 @@ class DokumenPabeanController extends Controller
                     ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
                     ->where(function($query) use ($id) {
                         $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
-                    })->get();
+                    })
+                    ->select(
+                        'a.id_item',
+                        'mi.goods_code',
+                        'mi.itemdesc',
+                        'a.unit',
+                        DB::raw('SUM(a.qty) as qty'),
+                        DB::raw('AVG(a.price) as price'),
+                        DB::raw('SUM(a.qty * a.price) as total_harga')
+                    )
+                    ->groupBy('a.id_item', 'mi.goods_code', 'mi.itemdesc', 'a.unit')
+                    ->get();
 
                 foreach ($items as $index => $item) {
-                    $hargaPenyerahanItem = (float) ($item->qty * $item->price);
+                    $hargaPenyerahanItem = (float) $item->total_harga;
                     $totalHargaPenyerahan += $hargaPenyerahanItem;
 
                     $arrayBarang[] = [
@@ -417,7 +428,7 @@ class DokumenPabeanController extends Controller
                         "jumlahKemasan"    => 0.00,
                         "jumlahRealisasi"  => 0.00,
                         "jumlahSatuan"     => (float) $item->qty,
-                        "kodeBarang"       => strval($item->goods_code ?? $item->id_item),
+                        "kodeBarang"       => strval($item->goods_code ?? ''),
                         "kodeDokumen"      => "40",
                         "kodeJenisKemasan" => "NE",
                         "kodeSatuanBarang" => $item->unit,
@@ -426,7 +437,7 @@ class DokumenPabeanController extends Controller
                         "nilaiBarang"      => 0.00,
                         "posTarif"         => "48191000",
                         "seriBarang"       => ($index + 1),
-                        "spesifikasiLain"  => $item->remark ?? "-",
+                        "spesifikasiLain"  => "-",
                         "tipe"             => "TIPE BARANG",
                         "ukuran"           => "",
                         "uraian"           => $item->itemdesc ?? "Deskripsi Barang",
@@ -815,10 +826,17 @@ class DokumenPabeanController extends Controller
 
         $items = $db->table('bpb as a')
                 ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
-                ->select('a.*', 'mi.goods_code', 'mi.itemdesc')
+                ->select(
+                    'a.id_item', 'mi.goods_code', 'mi.itemdesc',
+                    DB::raw("MAX(a.unit) as unit"),
+                    DB::raw('SUM(a.qty) as qty'),
+                    DB::raw('AVG(a.price) as price'),
+                    DB::raw('SUM(a.qty * a.price) as total_harga')
+                )
                 ->where(function($query) use ($id) {
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
                 })
+                ->groupBy('a.id_item', 'mi.goods_code', 'mi.itemdesc')
                 ->get();
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
@@ -1252,10 +1270,17 @@ class DokumenPabeanController extends Controller
 
         $items = $db->table('bpb as a')
                 ->join('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
-                ->select('a.*', 'mi.goods_code', 'mi.itemdesc')
+                ->select(
+                    'a.id_item', 'mi.goods_code', 'mi.itemdesc',
+                    DB::raw("MAX(a.unit) as unit"),
+                    DB::raw('SUM(a.qty) as qty'),
+                    DB::raw('AVG(a.price) as price'),
+                    DB::raw('SUM(a.qty * a.price) as total_harga')
+                )
                 ->where(function($query) use ($id) {
                     $query->where('a.bpbno', $id)->orWhere('a.bpbno_int', $id);
                 })
+                ->groupBy('a.id_item', 'mi.goods_code', 'mi.itemdesc')
                 ->get();
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAjuBc23($db);
@@ -1473,25 +1498,27 @@ class DokumenPabeanController extends Controller
 
             if ($transportDok) {
                 array_unshift($otherDoks, $transportDok);
-            } else {
-                // Default fallback if B/L is missing in the frontend
-                array_unshift($otherDoks, [
-                    "kodeDokumen"    => "705",
-                    "nomorDokumen"   => "-",
-                    "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
-                ]);
             }
+            // else {
+            //     // Default fallback if B/L is missing in the frontend
+            //     array_unshift($otherDoks, [
+            //         "kodeDokumen"    => "705",
+            //         "nomorDokumen"   => "-",
+            //         "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
+            //     ]);
+            // }
 
             if ($invoiceDok) {
                 array_unshift($otherDoks, $invoiceDok);
-            } else {
-                // Default fallback if Invoice is missing in the frontend
-                array_unshift($otherDoks, [
-                    "kodeDokumen"    => "380",
-                    "nomorDokumen"   => $header->invno ?? "-",
-                    "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
-                ]);
             }
+            // else {
+            //     // Default fallback if Invoice is missing in the frontend
+            //     array_unshift($otherDoks, [
+            //         "kodeDokumen"    => "380",
+            //         "nomorDokumen"   => $header->invno ?? "-",
+            //         "tanggalDokumen" => $header->bpbdate ?? date('Y-m-d')
+            //     ]);
+            // }
 
             $seriDok = 1;
             $payloadDokumen = array_map(function($d) use (&$seriDok) {

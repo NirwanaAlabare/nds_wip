@@ -273,15 +273,19 @@
                                                 <div class="card-body">
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Jumlah dan Satuan Barang</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
-                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control select2bs4" >
-                                                                 @php $savedSatuan = $draftItem['kodeSatuanBarang'] ?? $item->unit ?? 'PCS'; @endphp
-                                                                <option value="">-- Pilih Satuan --</option>
-                                                                @foreach($listSatuanBarang as $kode => $label)
-                                                                    <option value="{{ $kode }}" {{ $savedSatuan == $kode ? 'selected' : '' }}>{{ $kode }} - {{ $label }}</option>
-                                                                @endforeach
-                                                            </select>
+                                                        <div class="row">
+                                                            <div class="col-7 pr-1">
+                                                                <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
+                                                            </div>
+                                                            <div class="col-5 pl-1">
+                                                                <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
+                                                                     @php $savedSatuan = $draftItem['kodeSatuanBarang'] ?? $item->unit ?? 'PCS'; @endphp
+                                                                    <option value="">-- Pilih Satuan --</option>
+                                                                    @foreach($listSatuanBarang as $kode => $label)
+                                                                        <option value="{{ $kode }}" {{ $savedSatuan == $kode ? 'selected' : '' }}>{{ $kode }} - {{ $label }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="form-group mb-2">
@@ -298,14 +302,18 @@
                                                     </div>
                                                     <div class="form-group mb-0">
                                                         <label class="small text-muted mb-0">Kemasan</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][jumlahKemasan]" class="form-control" value="{{ $draftItem['jumlahKemasan'] ?? 0 }}">
-                                                            <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control select2bs4" >
-                                                                <option value="">-- Pilih Jenis Kemasan --</option>
-                                                                @foreach($listJenisKemasan as $k => $v)
-                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeJenisKemasan'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
-                                                                @endforeach
-                                                            </select>
+                                                        <div class="row">
+                                                            <div class="col-7 pr-1">
+                                                                <input type="number" step="any" name="barang[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahKemasan'] ?? 0 }}">
+                                                            </div>
+                                                            <div class="col-5 pl-1">
+                                                                <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm select2bs4">
+                                                                    <option value="">-- Pilih Jenis Kemasan --</option>
+                                                                    @foreach($listJenisKemasan as $k => $v)
+                                                                        <option value="{{ $k }}" {{ ($draftItem['kodeJenisKemasan'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -650,7 +658,7 @@
                                     '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
                                     '282' => 'DOKAP PLB - PEMBERITAHUAN PENGELUARAN DENGAN DOKUMEN PELENGKAP', '302' => 'CN Ekspor', '315' => 'KONTRAK',
                                     '331' => 'P3BET - PEMBERITAHUAN PENGGABUNGAN DAN PEMECAHAN BARANG EKSPOR DAN TRANSHIPMENT', '343' => 'SHIPING ORDER',
-                                    '380' => 'INVOICE', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
+                                    '380' => 'INVOICE', '630' => 'SURAT JALAN', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
                                     '430' => 'BANK GARANSI', '440' => 'SURAT TANDA BUKTI SETOR / STBS', '454' => 'SSPCP / SSBC', '455' => 'SURAT SETORAN PAJAK (SSP)',
                                     '456' => 'SKB', '457' => 'Surat Keterangan Bebas (SKB) PPh', '458' => 'SURAT KETERANGAN TIDAK DIPUNGUT (SKTD) PPN', '459' => 'Non SKB / SKTD',
                                     '500' => 'MOU PDE (Eksportir)', '511' => 'FTZ-01 PEMASUKAN DARI LUAR DAERAH PABEAN (IMPOR)',

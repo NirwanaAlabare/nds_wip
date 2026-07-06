@@ -150,6 +150,7 @@ use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
+use App\Http\Controllers\MarketingReportController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1255,6 +1256,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-barcode', 'saveBarcode')->name('so-save-barcode');
     });
 
+    // Master Asset Management Lokasi
+    Route::controller(MarketingReportController::class)->middleware('marketing')->group(function () {
+        Route::get('/marketing_report_cvs_detail', 'marketing_report_cvs_detail')->name('marketing_report_cvs_detail');
+        Route::get('/marketing_report_cvs_detail/export_excel', 'export_excel_marketing_cvs_detail')->name('export_excel_marketing_cvs_detail');
+    });
+
     // QC Inspect Kain
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
@@ -1546,6 +1553,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_sewa/qr/store', 'store_mesin_sewa_qr')->name('store_mesin_sewa_qr');
         Route::post('/asset_mesin_sewa/qr/update', 'update_mesin_sewa_qr')->name('update_mesin_sewa_qr');
         Route::get('/asset_mesin_sewa/qr/print', 'print_mesin_sewa_qr')->name('print_mesin_sewa_qr');
+        Route::get('/asset_mesin_sewa/qr/print_grid', 'print_mesin_sewa_qr_grid')->name('print_mesin_sewa_qr_grid');
         Route::get('/asset_mesin_sewa/qr/usage', 'get_mesin_sewa_qr_usage')->name('asset_mesin_sewa_qr_usage');
     });
     // Notifikasi navbar: kontrak mesin sewa H-2 menjelang berakhir (semua role login bisa lihat, sama seperti navbar lainnya)
@@ -1632,7 +1640,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
 
 
-         // BC 2.5 routes
+        // BC 2.5 routes
         Route::get('/{id}/edit-bc25', 'editBc25')->name('dokumen-pabean-edit-bc25')->where('id', '.*');
         Route::put('/update-draft-bc25/{id}', 'updateDraftBc25')->name('dokumen-pabean-update_draft_bc25')->where('id', '.*');
         Route::post('/send-bc25/{id}', 'sendCeisaBc25')->name('dokumen-pabean-send-bc25')->where('id', '.*');

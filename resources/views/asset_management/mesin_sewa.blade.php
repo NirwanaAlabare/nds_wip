@@ -260,9 +260,12 @@
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" id="txtSearchQr" class="form-control" placeholder="Cari Kode QR...">
                         </div>
-                        <button type="button" id="btnPrintSelectedQr" class="btn btn-success btn-sm">
-                            <i class="fas fa-print"></i> Print Terpilih
-                        </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <small class="text-muted"><span id="qrSelectedCount">0</span> Kode QR dipilih</small>
+                            <button type="button" id="btnPrintSelectedQr" class="btn btn-success btn-sm">
+                                <i class="fas fa-print"></i> Print Terpilih
+                            </button>
+                        </div>
                     </div>
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table id="qrCodeTable" class="table table-bordered table-hover table-sm align-middle mb-0">
@@ -344,6 +347,14 @@
         $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
             console.error('DataTable ajax error:', message);
         };
+
+        // Backend mengirim tanggal format yyyy-mm-dd, ditampilkan dd-mm-yyyy
+        function formatTglIndo(tgl) {
+            if (!tgl) return '-';
+            const [y, m, d] = tgl.substring(0, 10).split('-');
+            if (!y || !m || !d) return tgl;
+            return `${d}-${m}-${y}`;
+        }
     </script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
@@ -593,6 +604,7 @@
 
                     let $body = $('#qrCodeTableBody').empty();
                     $('#chkSelectAllQr').prop('checked', false);
+                    updateSelectedQrCount();
 
                     if (!rows.length) {
                         $body.append(
@@ -682,7 +694,15 @@
         // Centang/hapus centang semua baris sekaligus
         $(document).on('change', '#chkSelectAllQr', function() {
             $('.qr-row-checkbox').prop('checked', $(this).is(':checked'));
+            updateSelectedQrCount();
         });
+
+        // Jumlah Kode QR yang sedang dicentang, ditampilkan di sebelah tombol Print Terpilih
+        $(document).on('change', '.qr-row-checkbox', updateSelectedQrCount);
+
+        function updateSelectedQrCount() {
+            $('#qrSelectedCount').text($('.qr-row-checkbox:checked').length);
+        }
 
         // Cari Kode QR di tabel modal berdasarkan teks yang diketik (cocok di kolom Kode QR/Dibuat Oleh)
         function filterQrCodeTable() {
@@ -729,15 +749,23 @@
                 return;
             }
 
-            openPrintQrCode(selected);
+            openPrintQrCodeGrid(selected);
         });
 
-        // Buka PDF QR Code (1 atau beberapa sekaligus) di tab baru untuk di-print
+        // Buka PDF QR Code (satu kode, dari klik gambar QR-nya langsung) di tab baru untuk di-print
         function openPrintQrCode(kodeQrArray) {
             let query = $.param({
                 kode_qr: kodeQrArray
             });
             window.open(`{{ route('print_mesin_sewa_qr') }}?${query}`, '_blank');
+        }
+
+        // Print Kode QR terpilih (bisa banyak sekaligus) dalam format stiker grid A4, seperti Print QR di halaman Mesin
+        function openPrintQrCodeGrid(kodeQrArray) {
+            let query = $.param({
+                kode_qr: kodeQrArray
+            });
+            window.open(`{{ route('print_mesin_sewa_qr_grid') }}?${query}`, '_blank');
         }
 
         // Klik tombol Edit mengubah sel Kode QR jadi input untuk diedit di tempat
@@ -788,7 +816,7 @@
                             <tr><td><b>Tipe</b></td><td>: ${unit.tipe ?? '-'}</td></tr>
                             <tr><td><b>Serial Number</b></td><td>: ${unit.serial_number ?? '-'}</td></tr>
                             <tr><td><b>Tgl Terima</b></td><td>: ${unit.tgl_awal_kontrak ?? '-'}</td></tr>
-                            <tr><td><b>Tgl Akhir Kontrak</b></td><td>: ${unit.tgl_akhir_kontrak ?? '-'}</td></tr>
+                            <tr><td><b>Tgl Akhir Kontrak</b></td><td>: ${formatTglIndo(unit.tgl_akhir_kontrak)}</td></tr>
                         </table>
                     `,
                 });
@@ -992,7 +1020,7 @@
                                 readonly>
                         </td>
                         <td class="text-center align-middle">
-                            <span class="unit-tgl-akhir-kontrak">${unit.tgl_akhir_kontrak ?? '-'}</span>
+                            <span class="unit-tgl-akhir-kontrak">${formatTglIndo(unit.tgl_akhir_kontrak)}</span>
                         </td>
                     </tr>`);
                     });
@@ -1357,7 +1385,7 @@
             if (!tglTerima || !masaKontrak) return '-';
             let d = new Date(tglTerima + 'T00:00:00');
             d.setDate(d.getDate() + parseInt(masaKontrak));
-            return d.toISOString().slice(0, 10);
+            return formatTglIndo(d.toISOString().slice(0, 10));
         }
 
         // Masa Kontrak readonly, otomatis 30 hari begitu Tanggal Terima diisi
