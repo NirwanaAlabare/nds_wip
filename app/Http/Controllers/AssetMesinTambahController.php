@@ -121,7 +121,7 @@ left join asset_master_kd_jenis d on c.kd_jenis = d.kd_jenis
 left join asset_master_kd_merk e on c.kd_merk = e.kd_merk
 left join signalbit_erp.masteritem mi on a.id_item = mi.id_item
 where a.tgl_trans >= ? and a.tgl_trans <= ?
-group by id_bpb, id_item
+group by id_bpb, id_item, a.bpbno_int
 ", [$tgl_awal, $tgl_akhir]);
 
         return DataTables::of($data)->toJson();
@@ -145,7 +145,7 @@ group by id_bpb, id_item
         left join asset_master_kd_merk e on c.kd_merk = e.kd_merk
         left join signalbit_erp.masteritem mi on a.id_item = mi.id_item
         where a.tgl_trans >= ? and a.tgl_trans <= ?
-        group by id_bpb, id_item
+        group by id_bpb, id_item, a.bpbno_int
         order by tgl_trans ASC
         ", [$tgl_awal, $tgl_akhir]);
 
@@ -201,16 +201,23 @@ group by id_bpb, id_item
     public function get_penerimaan_mesin_unit(Request $request)
     {
         $request->validate([
-            'id_bpb' => 'required',
-            'id_item' => 'required',
+            'id_bpb' => 'nullable',
+            'id_item' => 'nullable',
+            'bpbno_int' => 'nullable',
         ]);
 
-        $units = DB::table('asset_penerimaan_mesin')
-            ->select('id', 'serial_number', 'foto', 'kode_qr')
-            ->where('id_bpb', $request->id_bpb)
-            ->where('id_item', $request->id_item)
-            ->orderBy('id', 'ASC')
-            ->get();
+        $query = DB::table('asset_penerimaan_mesin')
+            ->select('id', 'serial_number', 'foto', 'kode_qr');
+
+        if ($request->id_bpb) {
+            // Unit hasil penerimaan dari BPB: id_item bisa sama di beberapa dokumen, jadi dikunci id_bpb + id_item
+            $query->where('id_bpb', $request->id_bpb)->where('id_item', $request->id_item);
+        } else {
+            // Unit hasil Inject (tanpa BPB): id_bpb & id_item kosong, jadi dikunci nomor bpbno_int (unik per batch inject)
+            $query->whereNull('id_bpb')->where('bpbno_int', $request->bpbno_int);
+        }
+
+        $units = $query->orderBy('id', 'ASC')->get();
 
         foreach ($units as $unit) {
             $unit->qr = $unit->kode_qr
@@ -458,6 +465,77 @@ group by id_bpb, id_item
         return response()->json([
             'status' => 'success',
             'message' => 'Mesin berhasil diterima sebanyak ' . $request->qty . ' unit',
+        ]);
+    }
+
+    public function store_inject(Request $request)
+    {
+        $request->validate([
+            'tgl_trans' => 'required|date',
+            'id_jenis' => 'required|exists:asset_master_jenis_mesin,id_jenis',
+            'qty' => 'required|integer|min:1',
+        ]);
+
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $tglTrans = Carbon::parse($request->tgl_trans);
+
+        $jenis = DB::table('asset_master_jenis_mesin')
+            ->select('kd_jenis', 'kd_merk')
+            ->where('id_jenis', $request->id_jenis)
+            ->first();
+
+        // Nomor Inject: INJ/MSN/{bulan}{tahun}/{5 digit increment}, reset tiap bulan (berdasarkan tanggal transaksi)
+        $periode = $tglTrans->format('mY');
+        $bpbPrefix = 'INJ/MSN/' . $periode . '/';
+
+        $lastBpbNumber = DB::table('asset_penerimaan_mesin')
+            ->where('bpbno_int', 'LIKE', $bpbPrefix . '%')
+            ->selectRaw('MAX(CAST(SUBSTRING(bpbno_int, ?) AS UNSIGNED)) as last_number', [strlen($bpbPrefix) + 1])
+            ->value('last_number');
+
+        $bpbnoInt = $bpbPrefix . str_pad(($lastBpbNumber ?? 0) + 1, 5, '0', STR_PAD_LEFT);
+
+        $qrPrefix = $jenis->kd_jenis . '_' . $jenis->kd_merk . '_';
+
+        $lastQrNumber = DB::table('asset_penerimaan_mesin')
+            ->where('kode_qr', 'LIKE', $qrPrefix . '%')
+            ->selectRaw('MAX(CAST(SUBSTRING(kode_qr, ?) AS UNSIGNED)) as last_number', [strlen($qrPrefix) + 1])
+            ->value('last_number');
+
+        $nextQrNumber = ($lastQrNumber ?? 0) + 1;
+
+        for ($i = 0; $i < $request->qty; $i++) {
+            DB::insert("INSERT INTO asset_penerimaan_mesin (
+                tgl_trans,
+                id_item,
+                id_bpb,
+                bpbno,
+                bpbno_int,
+                id_jenis,
+                kode_qr,
+                created_by,
+                created_at,
+                updated_at
+            ) VALUES (?,?,?,?,?,?,?,?,?,?)", [
+                $tglTrans->format('Y-m-d'),
+                null,
+                null,
+                null,
+                $bpbnoInt,
+                $request->id_jenis,
+                $qrPrefix . $nextQrNumber,
+                $user,
+                $timestamp,
+                $timestamp
+            ]);
+
+            $nextQrNumber++;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Mesin berhasil di-inject sebanyak ' . $request->qty . ' unit (No: ' . $bpbnoInt . ')',
         ]);
     }
 }

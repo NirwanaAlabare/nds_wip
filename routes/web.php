@@ -149,7 +149,7 @@ use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
-Use App\Http\Controllers\Marketing_ApprovalCenterController;
+use App\Http\Controllers\Marketing_ApprovalCenterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1507,6 +1507,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/export_excel', 'export_excel_penerimaan_mesin')->name('export_excel_penerimaan_mesin');
         Route::get('/asset_mesin_tambah/bpb_detail', 'get_bpb_detail')->name('asset_mesin_tambah_bpb_detail');
         Route::post('/asset_mesin_tambah/penerimaan/store', 'store_penerimaan_mesin')->name('store_penerimaan_mesin');
+        Route::post('/asset_mesin_tambah/inject/store', 'store_inject')->name('store_inject_mesin');
         Route::get('/asset_mesin_tambah/unit', 'get_penerimaan_mesin_unit')->name('asset_mesin_tambah_unit');
         Route::post('/asset_mesin_tambah/unit/store', 'store_penerimaan_mesin_unit')->name('store_penerimaan_mesin_unit');
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
@@ -1602,7 +1603,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-draft-status/{noAju}', 'getDraftData')->name('dokumen-pabean-status')->where('noAju', '.*');
         Route::delete('/delete-ceisa-draft/{noAju}', 'deleteDraft')->name('dokumen-pabean-delete-draft')->where('noAju', '.*');
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
-         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
+        Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
         Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
 
         // BC 2.3 routes
@@ -1737,6 +1738,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(PurchasingReportController::class)->prefix("report")->middleware('role:purchasing')->group(function () {
         Route::get('/item-report', 'itemReport')->name('item-report-purchasing');
         Route::get('/item-report/export', 'exportItemReport')->name('export-item-report-purchasing');
+        Route::get('/history-item-purchasing', 'historyItemPurchasing')->name('history-item-purchasing');
+        Route::get('/history-item-purchasing/search-item', 'searchItemPurchasing')->name('history-item-purchasing-search-item');
+        Route::get('/history-item-purchasing/export', 'exportHistoryItemPurchasing')->name('history-item-purchasing-export');
     });
 
     Route::controller(PengeluaranGudangInputanAccesoriesController::class)->prefix("pengeluaran-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
