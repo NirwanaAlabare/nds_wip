@@ -233,7 +233,7 @@
     <!-- Modal Inject Mesin (tambah unit mesin manual tanpa BPB, mis. koreksi stok) -->
     <div class="modal fade" id="InjectMesinModal" tabindex="-1" aria-labelledby="InjectMesinModalLabel"
         aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
                     <h5 class="modal-title" id="InjectMesinModalLabel">Inject Mesin</h5>
@@ -247,7 +247,8 @@
                         <label for="txtinject_tanggal" class="col-md-4 col-form-label"><small><b>Tanggal
                                     :</b></small></label>
                         <div class="col-md-8">
-                            <input type="date" id="txtinject_tanggal" class="form-control form-control-sm">
+                            <input type="date" id="txtinject_tanggal" class="form-control form-control-sm"
+                                min="2026-01-01">
                         </div>
                     </div>
                     <div class="row mb-3 align-items-center">
@@ -799,7 +800,7 @@
             $('#txtinject_qty').val(1);
 
             let options = jenisList
-                .map(j => `<option value="${j.id_jenis}">${j.jenis} - ${j.merk} - ${j.tipe}</option>`)
+                .map(j => `<option value="${j.id_jenis}">${j.jenis} - ${j.merk} - ${j.tipe} (${j.supplier})</option>`)
                 .join('');
             $('#cbojenis_inject').html('<option value="">-- Pilih Jenis --</option>' + options).val('')
                 .trigger('change');
@@ -814,6 +815,13 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Tanggal wajib diisi',
+                });
+                return;
+            }
+            if (tanggal < '2026-01-01') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal minimal tahun 2026',
                 });
                 return;
             }

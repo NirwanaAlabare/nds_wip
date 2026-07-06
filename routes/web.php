@@ -149,6 +149,7 @@ use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
+use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use Illuminate\Support\Facades\Route;
@@ -1588,6 +1589,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_spareparts_pengeluaran/unit_mesin_select', 'get_unit_mesin_select')->name('asset_mesin_spareparts_pengeluaran_unit_mesin_select');
         Route::get('/asset_mesin_spareparts_pengeluaran/mekanik_select', 'get_mekanik_select')->name('asset_mesin_spareparts_pengeluaran_mekanik_select');
         Route::post('/asset_mesin_spareparts_pengeluaran/store', 'store_pengeluaran_spareparts_mesin')->name('store_pengeluaran_spareparts_mesin');
+    });
+
+    // Report Asset Management Mesin
+    Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
+        Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
+    });
+
+    // Report Asset Management Mesin
+    Route::controller(AssetMesinReportController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_report_stok_jenis_area', 'asset_mesin_report_stok_jenis_area')->name('asset_mesin_report_stok_jenis_area');
+        Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
     });
     // Export Import (EXIM)
 
