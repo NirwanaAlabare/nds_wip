@@ -385,7 +385,7 @@
                                                     <td>{{ $size->size }}</td>
                                                     <td>{{ $size->dest }}</td>
                                                     <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
-                                                    <td><input type="number" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
+                                                    <td><input type="number" step="any" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -1573,7 +1573,7 @@
                             <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control" readonly />
                         </td>
                         <td>
-                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control" readonly />
+                            <input type="number" step="any" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control" readonly />
                         </td>
                     </tr>
                 `).join("");
@@ -1666,7 +1666,7 @@
                         targets: [6],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
-                            let input = `<input type='number' class='form-control form-control-sm detail-qty-actual' id='qty_detail_actual_`+meta.row+`' name='qty_detail_actual[`+meta.row+`]' data-so-det='`+row.so_det_id+`' data-row='`+meta.row+`'">`
+                            let input = `<input type='number' step="any" class='form-control form-control-sm detail-qty-actual' id='qty_detail_actual_`+meta.row+`' name='qty_detail_actual[`+meta.row+`]' data-so-det='`+row.so_det_id+`' data-row='`+meta.row+`'">`
 
                             return input;
                         }
