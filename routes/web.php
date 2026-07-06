@@ -1553,6 +1553,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_sewa/qr/store', 'store_mesin_sewa_qr')->name('store_mesin_sewa_qr');
         Route::post('/asset_mesin_sewa/qr/update', 'update_mesin_sewa_qr')->name('update_mesin_sewa_qr');
         Route::get('/asset_mesin_sewa/qr/print', 'print_mesin_sewa_qr')->name('print_mesin_sewa_qr');
+        Route::get('/asset_mesin_sewa/qr/print_grid', 'print_mesin_sewa_qr_grid')->name('print_mesin_sewa_qr_grid');
         Route::get('/asset_mesin_sewa/qr/usage', 'get_mesin_sewa_qr_usage')->name('asset_mesin_sewa_qr_usage');
     });
     // Notifikasi navbar: kontrak mesin sewa H-2 menjelang berakhir (semua role login bisa lihat, sama seperti navbar lainnya)

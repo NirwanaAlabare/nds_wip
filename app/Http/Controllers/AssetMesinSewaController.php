@@ -36,7 +36,7 @@ class AssetMesinSewaController extends Controller
 
     public function asset_mesin_sewa(Request $request)
     {
-        $tgl_trans = '2024-01-01';
+        $tgl_trans = '2026-05-01';
         $supplierList = DB::connection('mysql_sb')->table('mastersupplier')
             ->select('id_supplier', 'Supplier')
             ->where('tipe_sup', '=', 'S')
@@ -238,6 +238,11 @@ class AssetMesinSewaController extends Controller
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
+        // tgl_awal_kontrak mengikuti tanggal BPB, bukan tanggal input, supaya masa kontrak dihitung dari saat mesin diterima
+        $masaKontrak = 30;
+        $tglAwalKontrak = DB::connection('mysql_sb')->table('bpb')->where('id', $request->id_bpb)->value('bpbdate');
+        $tglAkhirKontrak = $tglAwalKontrak ? Carbon::parse($tglAwalKontrak)->addDays($masaKontrak)->format('Y-m-d') : null;
+
         for ($i = 0; $i < $request->qty; $i++) {
             DB::insert("INSERT INTO asset_penerimaan_mesin_sewa (
                 tgl_trans,
@@ -245,18 +250,22 @@ class AssetMesinSewaController extends Controller
                 id_bpb,
                 bpbno,
                 bpbno_int,
+                tgl_awal_kontrak,
                 masa_kontrak,
+                tgl_akhir_kontrak,
                 status,
                 created_by,
                 created_at,
                 updated_at
-            ) VALUES (?,?,?,?,?,?,?,?,?,?)", [
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $timestamp->format('Y-m-d'),
                 $request->id_item,
                 $request->id_bpb,
                 $request->bpbno,
                 $request->bpbno_int,
-                30,
+                $tglAwalKontrak,
+                $masaKontrak,
+                $tglAkhirKontrak,
                 'IDLE',
                 $user,
                 $timestamp,
@@ -302,6 +311,33 @@ class AssetMesinSewaController extends Controller
         ])->setPaper([0, 0, 200, 200]);
 
         return $pdf->stream('QR Code Mesin Sewa.pdf');
+    }
+
+    // Print Kode QR terpilih dalam format stiker grid A4 (sama seperti print_qr_list_mesin di AssetMesinTambahController),
+    // dibuka lewat window.print() bawaan browser, bukan PDF stream, supaya lebih cepat untuk cetak banyak stiker sekaligus.
+    public function print_mesin_sewa_qr_grid(Request $request)
+    {
+        $request->validate([
+            'kode_qr' => 'required|array|min:1',
+            'kode_qr.*' => 'required|string|exists:asset_master_mesin_sewa_qr,kode_qr',
+        ]);
+
+        $color = ltrim((string) $request->color, '#');
+        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'f8bbd0';
+
+        $codes = collect($request->kode_qr)->map(function ($kodeQr) use ($color) {
+            $qr = QrCode::format('svg')->size(80)->backgroundColor(...array_map('hexdec', str_split($color, 2)));
+
+            return (object) [
+                'kode_qr' => $kodeQr,
+                'qr' => base64_encode($qr->generate($kodeQr)),
+            ];
+        });
+
+        return view('asset_management.print_qr_mesin_sewa_grid', [
+            'codes' => $codes,
+            'color' => $color,
+        ]);
     }
 
     // Cari unit mesin sewa yang sedang memakai suatu Kode QR (kalau ada), untuk ditampilkan di tombol History
