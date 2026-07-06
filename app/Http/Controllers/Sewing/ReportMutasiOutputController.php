@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Sewing;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use DB;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use App\Exports\export_excel_mut_output;
+use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\export_excel_mut_output;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Yajra\DataTables\Facades\DataTables;
 
 
 
@@ -2650,14 +2651,14 @@ class ReportMutasiOutputController extends Controller
 
         // Isi value + apply bold + border
         $headers = [
-            'A2:E2'   => 'Jenis Produk',
-            'F2:T2'   => 'Sewing',
-            'U2:AF2'  => 'QC Finishing',
-            'AG2:AN2' => 'Finishing',
-            'AO2:AS2' => 'Defect Sewing',
-            'AT2:AX2' => 'Defect Spotcleaning',
-            'AY2:BC2' => 'Defect Mending',
-            'BD2:BI2' => 'QC Reject',
+            'A2:E2'   => ['text' => 'Jenis Produk', 'color' => '#ADD8E6'], // Light Blue
+            'F2:T2'   => ['text' => 'Sewing', 'color' => '#FFF2CC'], // Light Yellow
+            'U2:AF2'  => ['text' => 'QC Finishing', 'color' => '#F4CCCC'], // Pink
+            'AG2:AN2' => ['text' => 'Finishing', 'color' => '#B0C4DE'], // LightSteelBlue
+            'AO2:AS2' => ['text' => 'Defect Sewing', 'color' => '#FFE5B4'], // Peach
+            'AT2:AX2' => ['text' => 'Defect Spotcleaning', 'color' => '#E6E6FA'], // Lavender
+            'AY2:BC2' => ['text' => 'Defect Mending', 'color' => '#FFF2CC'], // Light Yellow
+            'BD2:BI2' => ['text' => 'QC Reject', 'color' => '#F4CCCC'], // Pink
         ];
 
         foreach ($headers as $range => $value) {
@@ -2706,16 +2707,17 @@ class ReportMutasiOutputController extends Controller
                 $cell = $col . $row;
 
                 if ($cell === $start) {
-                    // ✅ hanya start cell yang ada value + center
-                    $sheet->writeTo($cell, $value, [
-                        'font-style' => 'bold',
-                        'border'     => 'thin',
-                        'text-align' => 'center'
+                    $sheet->writeTo($cell, $value['text'], [
+                        'font-style'     => 'bold',
+                        'border'         => 'thin',
+                        'fill-color'     => $value['color'],
+                        'text-align'     => 'center',
+                        'vertical-align' => 'center',
                     ]);
                 } else {
-                    // ❌ cell lain kosong, jangan dikasih style alignment
                     $sheet->writeTo($cell, '', [
-                        'border' => 'thin',
+                        'border'     => 'thin',
+                        'fill-color' => $value['color'],
                     ]);
                 }
             }
@@ -2726,82 +2728,130 @@ class ReportMutasiOutputController extends Controller
             $sheet->mergeCells($range);
         }
 
-        $sheet->writeTo('A3', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('B3', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('C3', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('D3', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('E3', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $style = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#ADD8E6',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('A3', 'Buyer', $style);
+        $sheet->writeTo('B3', 'WS', $style);
+        $sheet->writeTo('C3', 'Style', $style);
+        $sheet->writeTo('D3', 'Color', $style);
+        $sheet->writeTo('E3', 'Size', $style);
 
         // SEWING (F:T = 15 kolom)
-        $sheet->writeTo('F3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G3', 'Terima Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H3', 'Terima Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I3', 'In Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R3', 'Out Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $styleLightYellow = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#FFF2CC',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('F3', 'Saldo Awal', $styleLightYellow);
+        $sheet->writeTo('G3', 'Terima Loading', $styleLightYellow);
+        $sheet->writeTo('H3', 'Terima Gudang Stok', $styleLightYellow);
+        $sheet->writeTo('I3', 'In Subcont', $styleLightYellow);
+        $sheet->writeTo('J3', 'Output Rework Sewing', $styleLightYellow);
+        $sheet->writeTo('K3', 'Output Rework Spotcleaning', $styleLightYellow);
+        $sheet->writeTo('L3', 'Output Rework Mending', $styleLightYellow);
+        $sheet->writeTo('M3', 'Defect Sewing', $styleLightYellow);
+        $sheet->writeTo('N3', 'Defect Spotcleaning', $styleLightYellow);
+        $sheet->writeTo('O3', 'Defect Mending', $styleLightYellow);
+        $sheet->writeTo('P3', 'Reject', $styleLightYellow);
+        $sheet->writeTo('Q3', 'Output', $styleLightYellow);
+        $sheet->writeTo('R3', 'Out Subcont', $styleLightYellow);
+        $sheet->writeTo('S3', 'Adjustment', $styleLightYellow);
+        $sheet->writeTo('T3', 'Saldo Akhir', $styleLightYellow);
 
         // QC FINISHING (U:AF = 12 kolom)
-        $sheet->writeTo('U3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('X3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Y3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Z3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AA3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AB3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AC3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AD3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AE3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AF3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $stylePink = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#F4CCCC',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('U3', 'Saldo Awal', $stylePink);
+        $sheet->writeTo('V3', 'Terima Sewing', $stylePink);
+        $sheet->writeTo('W3', 'Output Rework Sewing', $stylePink);
+        $sheet->writeTo('X3', 'Output Rework Spotcleaning', $stylePink);
+        $sheet->writeTo('Y3', 'Output Rework Mending', $stylePink);
+        $sheet->writeTo('Z3', 'Defect Sewing', $stylePink);
+        $sheet->writeTo('AA3', 'Defect Spotcleaning', $stylePink);
+        $sheet->writeTo('AB3', 'Defect Mending', $stylePink);
+        $sheet->writeTo('AC3', 'Reject', $stylePink);
+        $sheet->writeTo('AD3', 'Output', $stylePink);
+        $sheet->writeTo('AE3', 'Adjustment', $stylePink);
+        $sheet->writeTo('AF3', 'Saldo Akhir', $stylePink);
 
         // FINISHING (AG:AN = 8 kolom)
-        $sheet->writeTo('AG3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AH3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AI3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AJ3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AK3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AL3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AM3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AN3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $styleLightSteelBlue = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#B0C4DE',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('AG3', 'Saldo Awal', $styleLightSteelBlue);
+        $sheet->writeTo('AH3', 'Terima', $styleLightSteelBlue);
+        $sheet->writeTo('AI3', 'Rework', $styleLightSteelBlue);
+        $sheet->writeTo('AJ3', 'Defect', $styleLightSteelBlue);
+        $sheet->writeTo('AK3', 'Reject', $styleLightSteelBlue);
+        $sheet->writeTo('AL3', 'Output', $styleLightSteelBlue);
+        $sheet->writeTo('AM3', 'Adjustment', $styleLightSteelBlue);
+        $sheet->writeTo('AN3', 'Saldo Akhir', $styleLightSteelBlue);
 
         // DEFECT SEWING (AO:AS = 5 kolom)
-        $sheet->writeTo('AO3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AP3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AQ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AR3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AS3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $stylePeach = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#FFE5B4',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('AO3', 'Saldo Awal', $stylePeach);
+        $sheet->writeTo('AP3', 'Terima', $stylePeach);
+        $sheet->writeTo('AQ3', 'Keluar', $stylePeach);
+        $sheet->writeTo('AR3', 'Adjustment', $stylePeach);
+        $sheet->writeTo('AS3', 'Saldo Akhir', $stylePeach);
 
         // DEFECT SPOTCLEANING (AT:AX = 5 kolom)
-        $sheet->writeTo('AT3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AU3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AV3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AW3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AX3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $styleLavender = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#E6E6FA',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('AT3', 'Saldo Awal', $styleLavender);
+        $sheet->writeTo('AU3', 'Terima', $styleLavender);
+        $sheet->writeTo('AV3', 'Keluar', $styleLavender);
+        $sheet->writeTo('AW3', 'Adjustment', $styleLavender);
+        $sheet->writeTo('AX3', 'Saldo Akhir', $styleLavender);
 
         // DEFECT MENDING (AY:BC = 5 kolom)
-        $sheet->writeTo('AY3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AZ3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BA3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BB3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BC3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AY3', 'Saldo Awal', $styleLightYellow);
+        $sheet->writeTo('AZ3', 'Terima', $styleLightYellow);
+        $sheet->writeTo('BA3', 'Keluar', $styleLightYellow);
+        $sheet->writeTo('BB3', 'Adjustment', $styleLightYellow);
+        $sheet->writeTo('BC3', 'Saldo Akhir', $styleLightYellow);
 
         // QC REJECT (BD:BI = 6 kolom)
-        $sheet->writeTo('BD3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BE3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BF3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BG3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BH3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BI3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-
+        $sheet->writeTo('BD3', 'Saldo Awal', $stylePink);
+        $sheet->writeTo('BE3', 'Terima', $stylePink);
+        $sheet->writeTo('BF3', 'Keluar Sewing', $stylePink);
+        $sheet->writeTo('BG3', 'Keluar Gudang Stok', $stylePink);
+        $sheet->writeTo('BH3', 'Adjustment', $stylePink);
+        $sheet->writeTo('BI3', 'Saldo Akhir', $stylePink);
+        
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
             $sheet->writeAreas();
