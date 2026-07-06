@@ -116,6 +116,10 @@ select a.cost_no,kpno,supplier,mkt_order,styleno,product_item,season_desc,curr,s
         $sheet->mergeCells('M4:AQ4');
         $sheet->mergeCells('AR4:AR5');
 
+        // Autowidth kolom mulai dari sini supaya lebar kolom mengikuti isi header/data,
+        // bukan ikut melebar karena judul laporan & periode di baris 1 & 3 yang cuma ada di kolom A.
+        $sheet->setColWidthAuto('A:AR');
+
         $no = 1;
         foreach ($rows as $r) {
             $ttlMaterial = $r['ttl_material'] ?? 0;
