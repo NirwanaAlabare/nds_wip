@@ -895,10 +895,11 @@
                             Barcode Packing
                         </a>
                     </li>
-                    @if (in_array(auth()->user()->username, ['admin_01', 'reza']))
+                    @if (in_array(auth()->user()->username, ['admin_01', 'reza', 'nirwana_it']))
                         <li class="nav-item">
                             <a href="{{ route('ppic_line_map') }}"
-                                class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}" target="_blank">
+                                class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}"
+                                target="_blank">
                                 Line MAP
                             </a>
                         </li>
