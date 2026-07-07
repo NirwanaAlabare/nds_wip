@@ -282,5 +282,12 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'updateMasterSb' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/updateMasterSb/updateMasterSb.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 ];
