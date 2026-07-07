@@ -121,7 +121,7 @@ class CuttingPieceService
             }
 
             // If no so_det_id provided, zero out pemakaian, fix chained qty, then delete
-            if (empty($request->so_det_id)) {
+            if (empty($request->so_det_id) || ($request->id_roll != $formDetail->id_roll)) {
                 $qtyUsageBefore = $formDetail->qty_pemakaian - 0;
 
                 $formDetail->update([
@@ -135,8 +135,11 @@ class CuttingPieceService
 
                 $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
 
-                $formDetail->delete();
-                return "Form detail pada form {$form->no_form} berhasil dihapus";
+                if (empty($request->so_det_id)) {
+                    $formDetail->delete();
+                    
+                    return "Form detail pada form {$form->no_form} berhasil dihapus";
+                }
             }
 
             // Lock all similar form detail
@@ -148,25 +151,44 @@ class CuttingPieceService
             [$qtyUsage, $updateMessage] = $this->updateDetailSizes($request, $formDetail);
 
             // Update form detail
+            $idRollBefore = $formDetail->id_roll;
             $qtyUsageBefore = $formDetail->qty_pemakaian;
 
             $formDetail->update([
+                "id_roll" => $request->id_roll,
+                "id_item" => $request->id_item,
+                "detail_item" => $request->detail_item,
+                "qty_pengeluaran" => $request->qty_pengeluaran,
+                "qty" => $request->qty,
                 "qty_pemakaian" => $qtyUsage,
-                "qty_sisa" => $formDetail->qty - $qtyUsage,
+                "qty_sisa" => $request->qty - $qtyUsage,
                 "edited_by" => auth()->id(),
                 "edited_by_username" => auth()->user()->username,
                 "edited_at" => now(),
                 "edited_notes" => "Update Qty Usage from $qtyUsageBefore to $qtyUsage"
             ]);
 
-            // Define Diff Qty
-            $diffQty = $qtyUsageBefore - $qtyUsage;
+            // If updating to a different id_roll
+            if ($idRollBefore != $formDetail->id_roll) {
+                $scannedItem = ScannedItem::where("id_roll", $formDetail->id_roll)->first();
 
-            // Check Scanned Item Stock
-            $this->validateStock($formDetail->id_roll, $diffQty);
+                if ($scannedItem) {
+                    $scannedItem->qty = $formDetail->qty_sisa;
+                    $scannedItem->qty_pakai += $qtyUsage;
+                    $scannedItem->save();
+                }
+            } 
+            // If not updating to a different id_rol
+            else {
+                // Define Diff Qty
+                $diffQty = $qtyUsageBefore - $qtyUsage;
 
-            // Update Chained Qty
-            $this->fixChainedQty($formDetail->id, $diffQty);
+                // Check Scanned Item Stock
+                $this->validateStock($formDetail->id_roll, $diffQty);
+
+                // Update Chained Qty
+                $this->fixChainedQty($formDetail->id, $diffQty);
+            }
 
             logHistory(
                 $formDetail->id,

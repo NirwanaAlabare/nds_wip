@@ -323,10 +323,25 @@
                     <div class="card-body">
                         <div class="row row-gap-3">
                             <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
-                            <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly>
+                            {{-- <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly> --}}
                             <div class="col-md-12">
                                 <label class="form-label">Tanggal Terima</label>
                                 <input type="date" class="form-control" id="tanggal_roll" name="tanggal_roll" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? ($currentCuttingPieceDetail->scannedItem->penerimaanCutting && $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first() ? $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first()->tanggal_terima : null) : null) : null }}" readonly>
+                            </div><div class="col-md-12">
+                                <label class="form-label">ID Roll</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}">
+                                    <button class="btn btn-success" id="fetch-button" type="button" onclick="fetchScanItem()"><i class="fa fa-search"></i></button>
+                                    <button class="btn btn-danger" id="reset-button" type="button" onclick="resetScanItem()"><i class="fa fa-undo"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ID Item</label>
+                                <input type="text" class="form-control" id="id_item" name="id_item" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_item : null }}" readonly>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Detail Item</label>
+                                <input type="text" class="form-control" id="detail_item" name="detail_item" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->detail_item : null }}" readonly>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Group</label>
@@ -464,7 +479,7 @@
             <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? ($currentCuttingPiece->waktu_selesai ? $currentCuttingPiece->waktu_selesai : $currentCuttingPiece->updated_at) : "-" }}</span></h5>
             <div class="row justify-content-center mt-3">
                 <div class="col-md-6">
-                    <form action="{{ route('update-waktu-selesai-cutting-piece') }}" method="POST" onsubmit="updateWaktuSelesai(this, event)">
+                    <form action="{{ route('update-waktu-selesai-cutting-piece') }}" method="post" onsubmit="updateWaktuSelesai(this, event)">
                         @method("PUT")
                         <input type="hidden" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : '' }}">
                         <div class="input-group">
@@ -1067,12 +1082,15 @@
                 // ✅ Value map from item
                 const valueMap = {
                     tanggal_roll: item.scanned_item?.penerimaan_cutting[0]?.tanggal_terima,
+                    id_roll: item.id_roll,
+                    id_item: item.id_item,
+                    detail_item: item.detail_item,
                     id_detail: item.id,
                     group_roll: item.group_roll,
                     lot: item.lot,
                     roll: item.roll,
                     roll_buyer: item.roll_buyer,
-                    rule_bom: item.scanned_item?.rule_bom,
+                    rule_bom: item.rule_bom ? item.rule_bom : item.scanned_item?.rule_bom,
                     qty_pengeluaran: item.qty_pengeluaran,
                     qty_pengeluaran_unit: item.qty_unit,
                     qty: item.qty,
@@ -1092,7 +1110,23 @@
 
                     if (valueMap.hasOwnProperty(oldId)) {
                         if ("value" in el) el.value = valueMap[oldId] ?? "";
-                        el.setAttribute("readonly", true);
+
+                        // Create and insert hidden input for original value
+                        const originalInput = document.createElement('input');
+                        originalInput.type = 'hidden';
+                        originalInput.id = `original_${oldId}${suffix}`;
+                        originalInput.name = `original_${oldId}${suffix}`;
+                        originalInput.value = valueMap[oldId] ?? "";
+                        el.parentNode.insertBefore(originalInput, el);
+
+                        if (oldId !== 'id_roll') {
+                            el.setAttribute("readonly", true);
+                        } else {
+                            el.removeAttribute("readonly");
+                        }
+                    } else if (oldId === 'fetch-button' || oldId === 'reset-button') {
+                        el.setAttribute('onclick', `fetchScanItem('${suffix}')`);
+                        el.setAttribute('onclick', oldId === 'fetch-button' ? `fetchScanItem('${suffix}')` : `resetScanItem('${suffix}')`);
                     }
                 });
 
@@ -1781,6 +1815,129 @@
             function summaryReload() {
                 $("#summary-table").DataTable().ajax.reload();
             }
+
+        // Fetch Scanned Item Data
+        function fetchScanItem(suffix = 0) {
+            console.log(document.querySelectorAll("#id_roll"+suffix));
+
+            let originalValue = $("#original_id_roll"+suffix).val();
+            let currentValue = $("#id_roll"+suffix).val();
+            if (originalValue == currentValue) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'ID Roll tidak berubah',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            let kodeBarang = document.getElementById('id_roll'+suffix).value;
+
+            getScannedItem(kodeBarang, suffix);
+        }
+
+        function getScannedItem(id, suffix = 0) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            document.getElementById("tanggal_roll"+suffix).value = "";
+            document.getElementById("id_item"+suffix).value = "";
+            document.getElementById("detail_item"+suffix).value = "";
+            document.getElementById("qty_pengeluaran"+suffix).value = "";
+            document.getElementById("qty_pengeluaran_unit"+suffix).value = "";
+            document.getElementById("qty"+suffix).value = "";
+            document.getElementById("qty_unit"+suffix).value = "";
+            document.getElementById("rule_bom"+suffix).value = "";
+
+            if (isNotNull(id)) {
+                return $.ajax({
+                    url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                    type: 'get',
+                    data: {
+                        unit: "PCS",
+                        act_costing_id: $("#act_costing_id").val(),
+                        act_costing_ws: $("#act_costing_ws").val(),
+                        color: $("#color").val(),
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        console.log("asd", res);
+                        if (res) {
+                            if (res.qty > 0) {
+                                currentScannedItem = res;
+
+                                document.getElementById("tanggal_roll"+suffix).value = res.tanggal;
+                                document.getElementById("id_item"+suffix).value = res.id_item;
+                                document.getElementById("detail_item"+suffix).value = res.detail_item;
+                                document.getElementById("qty_pengeluaran"+suffix).value = res.qty_in ? res.qty_in : res.qty;
+                                document.getElementById("qty_pengeluaran_unit"+suffix).value = res.unit;
+                                document.getElementById("qty"+suffix).value = res.qty;
+                                document.getElementById("qty_unit"+suffix).value = res.unit;
+                                document.getElementById("rule_bom"+suffix).value = res.rule_bom;
+
+                                calculateTotalDetailQty(suffix);
+                                calculateTotalDetailQtyActual(suffix);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Qty sudah habis.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: res ? res : 'Roll tidak tersedia.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
+
+            return Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Item tidak ditemukan',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
+            });
+        }
+
+        function resetScanItem(suffix) {
+            const idRollInput = document.getElementById('id_roll' + suffix);
+            const originalIdRollInput = document.getElementById('original_id_roll' + suffix);
+
+            if (idRollInput && originalIdRollInput) {
+                idRollInput.value = originalIdRollInput.value;
+
+                // Since we are resetting, let's also reset other related fields to their original state
+                ['id_item', 'detail_item', 'qty_pengeluaran', 'qty', 'rule_bom'].forEach(field => {
+                    document.getElementById(field + suffix).value = document.getElementById('original_' + field + suffix).value;
+                });
+            }
+        }
 
         // Update Waktu Selesai
         function updateWaktuSelesai(e, event) {
