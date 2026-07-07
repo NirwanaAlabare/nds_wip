@@ -145,7 +145,7 @@
                             @php
                                 $listTujuan = [
                                     '1' => 'PENYERAHAN BKP', '2' => 'PENYERAHAN JKP', '3' => 'RETUR',
-                                    '4' => 'NON PENYERAHAN', '5' => 'LAINNYA'
+                                    '4' => 'NON PENYERAHAN', '5' => 'LAINNYA', '6' => 'PENYERAHAN BKP DENGAN FP01',
                                 ];
                                 $tujuanTerpilih = $dataDetail['kodeTujuanPengiriman'] ?? '1';
                             @endphp
