@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
+        .select2-container--open {
+            z-index: 99999 !important;
+        }
         #table-material-so thead th {
             position: sticky;
             top: 0;
@@ -46,6 +49,11 @@
         }
     </style>
 @endsection
+
+@php
+    $master_colors = DB::connection('mysql_sb')->table('master_colors_gmt')->orderBy('name')->get();
+    $master_sizes = DB::connection('mysql_sb')->table('master_size_new')->orderBy('urutan')->get();
+@endphp
 
 @section('content')
 <div class="card card-sb">
@@ -98,7 +106,7 @@
     </div>
 </div>
 <div class="modal fade" id="modal-detail" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-sb text-white">
                 <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detail Sales Order</h5>
@@ -132,19 +140,63 @@
                     </div>
                 </div>
 
-                <div class="table-responsive table-scroll-modal">
-                    <table class="table table-bordered table-sm w-100" id="table-detail-so">
-                        <thead class="bg-light text-center">
-                            <tr>
-                                <th>Color</th>
-                                <th width="20%">Size</th>
-                                <th width="20%">Qty</th>
-                                <th width="15%">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dtl_table_body">
-                            </tbody>
-                    </table>
+                <div class="row">
+                    <div class="col-md-7" style="border-right: 1px solid #dee2e6;">
+                        <h6 class="font-weight-bold mb-2"><i class="fas fa-list"></i> List Detail Qty</h6>
+                        <div class="table-responsive table-scroll-modal">
+                            <table class="table table-bordered table-sm w-100" id="table-detail-so">
+                                <thead class="bg-light text-center">
+                                    <tr>
+                                        <th>Color</th>
+                                        <th width="20%">Size</th>
+                                        <th width="20%">Qty</th>
+                                        <th width="15%">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dtl_table_body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <form id="form-add-color-so">
+                            <h6 class="font-weight-bold mb-2"><i class="fas fa-plus"></i> Tambah Warna / Size</h6>
+
+                            <div class="form-group mb-3">
+                                <label>Warna</label>
+                                <select class="form-control select2-modal" id="add_id_color" multiple="multiple" data-placeholder="- Pilih Warna -" style="width: 100%;">
+                                    @foreach($master_colors as $color)
+                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label>Size</label>
+                                <select class="form-control select2-modal" id="add_id_size" multiple="multiple" data-placeholder="- Pilih Size -" style="width: 100%;">
+                                    @foreach($master_sizes as $size)
+                                        <option value="{{ $size->id }}">{{ $size->size }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Qty (Default)</label>
+                                        <input type="number" id="add_qty" class="form-control" value="0" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>&nbsp;</label><br>
+                                        <button type="button" class="btn btn-primary w-100" onclick="addSoDetailRow()"><i class="fas fa-plus"></i> Tambah Data</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -297,6 +349,8 @@
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
 
@@ -340,6 +394,15 @@
                     { data: 'qty', name: 'so.qty', className: 'text-right' },
                     { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
                 ]
+            });
+
+            $('#modal-detail').on('shown.bs.modal', function () {
+                if (typeof $.fn.select2 !== 'undefined') {
+                    $('.select2-modal').select2({
+                        dropdownParent: $('#modal-detail'),
+                        theme: 'bootstrap4'
+                    });
+                }
             });
         });
 
@@ -455,6 +518,50 @@
                             Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
                         }
                     });
+                }
+            });
+        }
+
+        function addSoDetailRow() {
+            let id_color = $('#add_id_color').val();
+            let id_size = $('#add_id_size').val();
+            let qty = $('#add_qty').val();
+
+            if (!id_color || id_color.length === 0 || !id_size || id_size.length === 0 || !qty || qty <= 0) {
+                Swal.fire('Peringatan!', 'Harap pilih minimal 1 Warna, 1 Size, dan isi Qty dengan benar.', 'warning');
+                return;
+            }
+
+            Swal.fire({ title: 'Menambahkan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            $.ajax({
+                url: "{{ route('add-so-detail') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id_so: current_so_id,
+                    id_color: id_color,
+                    id_size: id_size,
+                    qty: qty
+                },
+                success: function(res) {
+                    if (res.status == 200) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
+
+                        $('#add_id_color').val('').trigger('change');
+                        $('#add_id_size').val('').trigger('change');
+                        $('#add_qty').val(0);
+
+                        showDetail(current_so_id);
+
+                        if(table) { table.ajax.reload(null, false); }
+                    } else {
+                        Swal.fire('Gagal!', res.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
                 }
             });
         }

@@ -163,20 +163,10 @@
                         <div class="col-md-3 form-group">
                             <label>Jenis TPB</label>
                             <select name="jenisTPB" class="form-control form-control-sm select2bs4">
-                                <option value="">Pilih Jenis TPB</option>
-                                @php
-                                    $selectedJenisTPB = sv($dataDetail['jenisTpb'] ?? null, '');
-                                @endphp
-                                <option value="1" {{ $selectedJenisTPB == '1' ? 'selected' : '' }}>KAWASAN BERIKAT</option>
-                                <option value="2" {{ $selectedJenisTPB == '2' ? 'selected' : '' }}>GUDANG BERIKAT</option>
-                                <option value="3" {{ $selectedJenisTPB == '3' ? 'selected' : '' }}>TPPB</option>
-                                <option value="4" {{ $selectedJenisTPB == '4' ? 'selected' : '' }}>TBB</option>
-                                <option value="5" {{ $selectedJenisTPB == '5' ? 'selected' : '' }}>TLB</option>
-                                <option value="6" {{ $selectedJenisTPB == '6' ? 'selected' : '' }}>KDUB</option>
-                                <option value="7" {{ $selectedJenisTPB == '7' ? 'selected' : '' }}>LAINNYA</option>
-                                <option value="8" {{ $selectedJenisTPB == '8' ? 'selected' : '' }}>KAWASAN BEBAS</option>
-                                <option value="9" {{ $selectedJenisTPB == '9' ? 'selected' : '' }}>KAWASAN EKONOMI KHUSUS</option>
-                                <option value="10" {{ $selectedJenisTPB == '10' ? 'selected' : '' }}>KAWASAN EKONOMI LAINNYA</option>
+                                <option value="">-- Pilih --</option>
+                                @foreach($listJenisTpb as $k => $v)
+                                    <option value="{{ $k }}" {{ ($dataDetail['jenisTPB'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-3 form-group">
@@ -199,20 +189,10 @@
                             <label>Cara Pembayaran</label>
                             @php $caraBayar = sv($dataDetail['kodeCaraBayar'] ?? null, ''); @endphp
                             <select name="kodeCaraBayar" class="form-control form-control-sm select2bs4">
-                                <option value="">Pilih Cara Pembayaran</option>
-                                <option value="1" {{ $caraBayar == '1' ? 'selected' : '' }}>1 - BIASA/TUNAI</option>
-                                <option value="2" {{ $caraBayar == '2' ? 'selected' : '' }}>2 - BERKALA</option>
-                                <option value="3" {{ $caraBayar == '3' ? 'selected' : '' }}>3 - DENGAN JAMINAN</option>
-                                <option value="4" {{ $caraBayar == '4' ? 'selected' : '' }}>4 - PERHITUNGAN KEMUDIAN</option>
-                                <option value="5" {{ $caraBayar == '5' ? 'selected' : '' }}>5 - KONSINYASI</option>
-                                <option value="6" {{ $caraBayar == '6' ? 'selected' : '' }}>6 - USANCE LC</option>
-                                <option value="7" {{ $caraBayar == '7' ? 'selected' : '' }}>7 - RED CLAUSE LC</option>
-                                <option value="8" {{ $caraBayar == '8' ? 'selected' : '' }}>8 - INTER-COMPANY ACCOUNT</option>
-                                <option value="9" {{ $caraBayar == '9' ? 'selected' : '' }}>9 - GABUNGAN/LAINNYA</option>
-                                <option value="14" {{ $caraBayar == '14' ? 'selected' : '' }}>14 - TANPA PEMBAYARAN</option>
-                                <option value="15" {{ $caraBayar == '15' ? 'selected' : '' }}>15 - ADVANCE PAYMENT</option>
-                                <option value="16" {{ $caraBayar == '16' ? 'selected' : '' }}>16 - SIGHT LC</option>
-                                <option value="17" {{ $caraBayar == '17' ? 'selected' : '' }}>17 - INKASO</option>
+                                <option value="">-- Pilih --</option>
+                                @foreach($listCaraPembayaran as $k => $v)
+                                    <option value="{{ $k }}" {{ ($dataDetail['kodeCaraBayar'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -415,26 +395,20 @@
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Kategori Barang</label>
                                                         <select name="barang[{{ $index }}][kodeKategoriBarang]" class="form-control form-control-sm select2bs4">
-                                                            <option value="">-- Pilih Kategori Barang --</option>
-                                                            <option value="1" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '1' ? 'selected' : '' }}>1 - HASIL PRODUKSI</option>
-                                                            <option value="2" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '2' ? 'selected' : '' }}>2 - BAHAN BAKU</option>
-                                                            <option value="3" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '3' ? 'selected' : '' }}>3 - BARANG MODAL</option>
-                                                            <option value="4" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '4' ? 'selected' : '' }}>4 - PERALATAN KANTOR</option>
-                                                            <option value="5" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '5' ? 'selected' : '' }}>5 - SISA DARI PROSES PRODUKSI/LIMBAH (WASTE/SCRAP) DAN/ATAU SISA ATAU BEKAS PENGEMAS</option>
-                                                            <option value="6" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '6' ? 'selected' : '' }}>6 - BARANG YANG DITIMBUN UNTUK DIJUAL</option>
-                                                            <option value="7" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '7' ? 'selected' : '' }}>7 - BARANG YANG DIPAMERKAN UNTUK DIJUAL</option>
-                                                            <option value="8" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '8' ? 'selected' : '' }}>8 - BARANG LAINNYA</option>
-                                                            <option value="9" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '9' ? 'selected' : '' }}>9 - BARANG UNTUK KEPERLUAN PENANGANAN COVID19</option>
-                                                            <option value="10" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '10' ? 'selected' : '' }}>10 - BARANG CONTOH</option>
-                                                        </select>
+                                                <option value="">-- Kategori --</option>
+                                                @foreach($listKategoriBarang as $k => $v)
+                                                    <option value="{{ $k }}" {{ ($item->kodeKategoriBarang ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                @endforeach
+                                            </select>
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Kondisi Barang</label>
                                                         <select name="barang[{{ $index }}][kodeKondisiBarang]" class="form-control form-control-sm select2bs4">
-                                                            <option value="">-- Pilih Kondisi Barang --</option>
-                                                            <option value="1" {{ ($draftItem['kodeKondisiBarang'] ?? '') == '1' ? 'selected' : '' }}>1 - TIDAK RUSAK</option>
-                                                            <option value="2" {{ ($draftItem['kodeKondisiBarang'] ?? '') == '2' ? 'selected' : '' }}>2 - RUSAK</option>
-                                                        </select>
+                                                <option value="">-- Kondisi --</option>
+                                                @foreach($listKondisiBarang as $k => $v)
+                                                    <option value="{{ $k }}" {{ ($item->kodeKondisiBarang ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                @endforeach
+                                            </select>
                                                     </div>
                                                     <div class="form-group mb-0">
                                                         <label class="small mb-0">Jangka Waktu</label>
@@ -592,9 +566,11 @@
                                                                             </select>
                                                                         </div>
                                                                         <div class="col-4 px-1">
-                                                                            <select name="barang[{{ $index }}][pungutan][bm][kodeJenisTarif]" class="form-control form-control-sm" onchange="toggleBmSpesifik{{ $index }}(this)">
-                                                                                <option value="1" {{ ($draftItem['pungutan']['bm']['kodeJenisTarif'] ?? '1') == '1' ? 'selected' : '' }}>Advalorum</option>
-                                                                                <option value="2" {{ ($draftItem['pungutan']['bm']['kodeJenisTarif'] ?? '') == '2' ? 'selected' : '' }}>Spesifik</option>
+                                                                            <select name="barang[{{ $index }}][pungutan][bm][kodeJenisTarif]" class="form-control form-control-sm select2bs4">
+                                                                                <option value="">-- Jenis Tarif --</option>
+                                                                                @foreach($listJenisTarif as $k => $v)
+                                                                                    <option value="{{ $k }}" {{ ($pungutanBarang['bm']['kodeJenisTarif'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                @endforeach
                                                                             </select>
                                                                         </div>
                                                                         <div class="col-4 pl-1" id="bmTarifAdval{{ $index }}" style="{{ ($draftItem['pungutan']['bm']['kodeJenisTarif'] ?? '1') == '1' ? '' : 'display:none;' }}">
@@ -624,13 +600,11 @@
 
                                                                     <div class="row">
                                                                         <div class="col-8 pr-1">
-                                                                            <select name="barang[{{ $index }}][pungutan][bm][kodeFasilitas]" class="form-control form-control-sm">
+                                                                            <select name="barang[{{ $index }}][pungutan][bm][kodeFasilitas]" class="form-control form-control-sm select2bs4">
                                                                                 <option value="">-- Fasilitas --</option>
-                                                                                <option value="1" {{ ($draftItem['pungutan']['bm']['kodeFasilitas'] ?? '') == '1' ? 'selected' : '' }}>1-BYR - DIBAYAR</option>
-                                                                                <option value="2" {{ ($draftItem['pungutan']['bm']['kodeFasilitas'] ?? '') == '2' ? 'selected' : '' }}>2-DITANGGUNG PEMERINTAH</option>
-                                                                                <option value="5" {{ ($draftItem['pungutan']['bm']['kodeFasilitas'] ?? '') == '5' ? 'selected' : '' }}>5-BBS DI BEBASKAN</option>
-                                                                                <option value="6" {{ ($draftItem['pungutan']['bm']['kodeFasilitas'] ?? '') == '6' ? 'selected' : '' }}>6-TIDAK DIPUNGUT</option>
-                                                                                <option value="7" {{ ($draftItem['pungutan']['bm']['kodeFasilitas'] ?? '') == '7' ? 'selected' : '' }}>7-SUDAH DILUNASI</option>
+                                                                                @foreach($listFasilitasTarif as $k => $v)
+                                                                                    <option value="{{ $k }}" {{ ($pungutanBarang['bm']['kodeFasilitas'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                @endforeach
                                                                             </select>
                                                                         </div>
                                                                         <div class="col-4 pl-1">
@@ -659,9 +633,11 @@
                                                                         <div class="row align-items-center mb-1 border-top pt-1">
                                                                             <div class="col-2 small fw-bold" style="font-size:11px;">{{ $bmtType }}<br><span class="text-muted" style="font-size:10px;">Sementara</span></div>
                                                                             <div class="col-3">
-                                                                                <select name="barang[{{ $index }}][pungutan][bmt][{{ $bmtType }}][kodeJenisTarif]" class="form-control form-control-sm" style="font-size:11px;">
-                                                                                    <option value="1" {{ ($bmtData['kodeJenisTarif'] ?? '1') == '1' ? 'selected' : '' }}>Advalorum (%)</option>
-                                                                                    <option value="2" {{ ($bmtData['kodeJenisTarif'] ?? '') == '2' ? 'selected' : '' }}>Spesifik</option>
+                                                                                <select name="barang[{{ $index }}][pungutan][bmt][{{ $bmtType }}][kodeJenisTarif]" class="form-control form-control-sm select2bs4">
+                                                                                    <option value="">-- Jenis Tarif --</option>
+                                                                                    @foreach($listJenisTarif as $k => $v)
+                                                                                        <option value="{{ $k }}" {{ ($bmtVal['kodeJenisTarif'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                    @endforeach
                                                                                 </select>
                                                                             </div>
                                                                             <div class="col-2">
@@ -671,12 +647,11 @@
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-3">
-                                                                                <select name="barang[{{ $index }}][pungutan][bmt][{{ $bmtType }}][kodeFasilitas]" class="form-control form-control-sm" style="font-size:11px;">
-                                                                                    <option value="1" {{ ($bmtData['kodeFasilitas'] ?? '') == '1' ? 'selected' : '' }}>1-BYR - DIBAYAR</option>
-                                                                                    <option value="2" {{ ($bmtData['kodeFasilitas'] ?? '') == '2' ? 'selected' : '' }}>2-DITANGGUNG PEMERINTAH</option>
-                                                                                    <option value="5" {{ ($bmtData['kodeFasilitas'] ?? '') == '5' ? 'selected' : '' }}>5-BBS DI BEBASKAN</option>
-                                                                                    <option value="6" {{ ($bmtData['kodeFasilitas'] ?? '') == '6' ? 'selected' : '' }}>6-TIDAK DIPUNGUT</option>
-                                                                                    <Option value="7" {{ ($bmtData['kodeFasilitas'] ?? '') == '7' ? 'selected' : '' }}>7-SUDAH DILUNASI</option>
+                                                                                <select name="barang[{{ $index }}][pungutan][bmt][{{ $bmtType }}][kodeFasilitas]" class="form-control form-control-sm select2bs4">
+                                                                                    <option value="">-- Fasilitas --</option>
+                                                                                    @foreach($listFasilitasTarif as $k => $v)
+                                                                                        <option value="{{ $k }}" {{ ($bmtVal['kodeFasilitas'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                    @endforeach
                                                                                 </select>
                                                                             </div>
                                                                             <div class="col-2">
@@ -705,11 +680,11 @@
                                                                                 <div class="form-group mb-2">
                                                                                     <label class="small mb-0" style="font-size:11px;">Komoditi</label>
                                                                                     <div class="input-group input-group-sm">
-                                                                                        <select name="barang[{{ $index }}][pungutan][cukai][kodeKomoditi]" class="form-control form-control-sm" style="font-size:11px;">
-                                                                                            <option value="">--</option>
-                                                                                            <option value="EA" {{ ($cukaiData['kodeKomoditi'] ?? '') == 'EA' ? 'selected' : '' }}>1 - Etil Alkohol</option>
-                                                                                            <option value="MMEA" {{ ($cukaiData['kodeKomoditi'] ?? '') == 'MMEA' ? 'selected' : '' }}>2 - Minuman Mengandung Etil Alkohol</option>
-                                                                                            <option value="CTEM" {{ ($cukaiData['kodeKomoditi'] ?? '') == 'CTEM' ? 'selected' : '' }}>3 - Hasil Tembakau</option>
+                                                                                        <select name="barang[{{ $index }}][pungutan][cukai][kodeKomoditi]" class="form-control form-control-sm select2bs4">
+                                                                                            <option value="">-- Komoditi --</option>
+                                                                                            @foreach($listKomoditiCukai as $k => $v)
+                                                                                                <option value="{{ $k }}" {{ ($pungutanBarang['cukai']['kodeKomoditi'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                            @endforeach
                                                                                         </select>
                                                                                         <select name="barang[{{ $index }}][pungutan][cukai][kodeGolongan]" class="form-control form-control-sm" style="font-size:11px;">
                                                                                             <option value="">Gol</option>
@@ -721,10 +696,11 @@
                                                                                 </div>
                                                                                 <div class="form-group mb-2">
                                                                                     <label class="small mb-0" style="font-size:11px;">Jenis Tarif</label>
-                                                                                    <select name="barang[{{ $index }}][pungutan][cukai][kodeJenisTarif]" class="form-control form-control-sm" style="font-size:11px;">
-                                                                                        <option value="">--</option>
-                                                                                        <option value="1" {{ ($cukaiData['kodeJenisTarif'] ?? '') == '1' ? 'selected' : '' }}>1 - Advalorum (%)</option>
-                                                                                        <option value="2" {{ ($cukaiData['kodeJenisTarif'] ?? '') == '2' ? 'selected' : '' }}>2 - Spesifik</option>
+                                                                                    <select name="barang[{{ $index }}][pungutan][cukai][kodeJenisTarif]" class="form-control form-control-sm select2bs4">
+                                                                                        <option value="">-- Jenis Tarif --</option>
+                                                                                        @foreach($listJenisTarif as $k => $v)
+                                                                                            <option value="{{ $k }}" {{ ($pungutanBarang['cukai']['kodeJenisTarif'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                        @endforeach
                                                                                     </select>
                                                                                 </div>
                                                                                 <div class="form-group mb-2">
@@ -749,15 +725,11 @@
                                                                                 </div>
                                                                                 <div class="form-group mb-0 mt-2">
                                                                                     <label class="small mb-0" style="font-size:11px;">Jenis Tarif (2)</label>
-                                                                                    <select name="barang[{{ $index }}][pungutan][cukai][kodeJenisTarif2]" class="form-control form-control-sm" style="font-size:11px;">
+                                                                                    <select name="barang[{{ $index }}][pungutan][cukai][kodeJenisTarif2]" class="form-control form-control-sm select2bs4">
                                                                                         <option value="">-- Jenis Tarif --</option>
-                                                                                        <option value="1" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '1' ? 'selected' : '' }}>1 - BYR DIBAYAR</option>
-                                                                                        <option value="2" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '2' ? 'selected' : '' }}>2 - DITANGGUNG PEMERINTAH</option>
-                                                                                        <option value="5" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '5' ? 'selected' : '' }}>5 - BBS DI BEBASKAN</option>
-                                                                                        <option value="6" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
-                                                                                        <option value="7" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '7' ? 'selected' : '' }}>7 - SUDAH DILUNASI</option>
-                                                                                        <option value="8" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '8' ? 'selected' : '' }}>8 - JMN - DIJAMINKAN</option>
-                                                                                        <option value="9" {{ ($cukaiData['kodeJenisTarif2'] ?? '') == '9' ? 'selected' : '' }}>9 - DITUNDA</option>
+                                                                                        @foreach($listJenisTarif as $k => $v)
+                                                                                            <option value="{{ $k }}" {{ ($pungutanBarang['cukai']['kodeJenisTarif2'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                        @endforeach
                                                                                     </select>
                                                                                 </div>
                                                                             </div>
@@ -848,12 +820,11 @@
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3 px-1">
-                                                                            <select name="barang[{{ $index }}][pungutan][pph][caraBayar]" class="form-control form-control-sm select2bs4" style="font-size: 10px; padding-left: 2px; padding-right: 2px;">
-                                                                                <option value="1" {{ ($draftItem['pungutan']['pph']['caraBayar'] ?? '1') == '1' ? 'selected' : '' }}>1-BYR-DIBAYAR</option>
-                                                                                <option value="2" {{ ($draftItem['pungutan']['pph']['caraBayar'] ?? '') == '2' ? 'selected' : '' }}>2-DITANGGUNG PEMERINTAH</option>
-                                                                                <option value="5" {{ ($draftItem['pungutan']['pph']['caraBayar'] ?? '') == '5' ? 'selected' : '' }}>5-BBS DI BEBASKAN</option>
-                                                                                <option value="6" {{ ($draftItem['pungutan']['pph']['caraBayar'] ?? '') == '6' ? 'selected' : '' }}>6-TIDAK DIPUNGUT</option>
-                                                                                <option value="7" {{ ($draftItem['pungutan']['pph']['caraBayar'] ?? '') == '7' ? 'selected' : '' }}>7-SUDAH DILUNASI</option>
+                                                                            <select name="barang[{{ $index }}][pungutan][pph][caraBayar]" class="form-control form-control-sm select2bs4">
+                                                                                <option value="">-- Cara Bayar --</option>
+                                                                                @foreach($listCaraPembayaran as $k => $v)
+                                                                                    <option value="{{ $k }}" {{ ($pungutanBarang['pph']['caraBayar'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                                @endforeach
                                                                             </select>
                                                                         </div>
                                                                         <div class="col-3 pl-1">
@@ -911,12 +882,7 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             @php
-                                $referensiDokumen = [
-                                    '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6', '20' => 'BC 2.0', '21' => 'PIBK/IMPOR KHUSUS',
-                                    '23' => 'BC 2.3', '25' => 'BC 2.5', '27' => 'BC 2.7', '28' => 'BC 2.8', '30' => 'BC 3.0',
-                                    '33' => 'BC 3.3', '40' => 'BC 4.0', '41' => 'BC 4.1', '50' => 'KITE', '380' => 'INVOICE', '630' => 'SURAT JALAN',
-                                    '705' => 'B/L', '740' => 'AWB', '999' => 'LAINNYA',
-                                ];
+
 
 
                             @endphp
@@ -975,16 +941,11 @@
                         <div class="col-md-3 form-group">
                             <label>Cara Angkut</label>
                             <select name="pengangkut[0][kodeCaraAngkut]" class="form-control form-control-sm select2bs4">
-                                <option value="1" {{ $caraAngkut == '1' ? 'selected' : '' }}>1 - LAUT</option>
-                                <option value="2" {{ $caraAngkut == '2' ? 'selected' : '' }}>2 - KERETA API</option>
-                                <option value="3" {{ $caraAngkut == '3' ? 'selected' : '' }}>3 - DARAT</option>
-                                <option value="4" {{ $caraAngkut == '4' ? 'selected' : '' }}>4 - UDARA</option>
-                                <option value="5" {{ $caraAngkut == '5' ? 'selected' : '' }}>5 - POS</option>
-                                <option value="6" {{ $caraAngkut == '6' ? 'selected' : '' }}>6 - MULTIMODA</option>
-                                <option value="7" {{ $caraAngkut == '7' ? 'selected' : '' }}>7 - INSTALASI/PIPA</option>
-                                <option value="8" {{ $caraAngkut == '8' ? 'selected' : '' }}>8 - PERAIRAN</option>
-                                <option value="9" {{ $caraAngkut == '9' ? 'selected' : '' }}>9 - LAINNYA</option>
-                            </select>
+                                                <option value="">Pilih Cara Angkut</option>
+                                                @foreach($listCaraAngkut as $k => $v)
+                                                    <option value="{{ $k }}" {{ ($dataDetail['pengangkut'][0]['kodeCaraAngkut'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                @endforeach
+                                            </select>
                         </div>
                         <div class="col-md-5 form-group hidden">
                             <label>Keterangan Sarana Angkut Lainnya (Nama)</label>
@@ -1202,7 +1163,6 @@
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%', tags: true });
 
-        // ── Filter input angka & desimal ──────────────────────────────────
         $(document).on('input', '.input-decimal', function () {
             let val = $(this).val();
             val = val.replace(/[^0-9.]/g, '');
@@ -1220,7 +1180,6 @@
             if (!allowed.test(char)) e.preventDefault();
             if (char === '.' && $(this).val().includes('.')) e.preventDefault();
         });
-        // ─────────────────────────────────────────────────────────────────
 
         $('#ceisaTab a').on('click', function (e) {
             e.preventDefault();
@@ -1248,8 +1207,7 @@
             dokIndex++;
         });
         $(document).on('click', '.btn-hapus-dok', function() {
-            if ($('#tbody-dokumen tr').length > 1) { $(this).closest('tr').remove(); }
-            else { Swal.fire('Info', 'Minimal sisakan 1 baris.', 'info'); }
+            $(this).closest('tr').remove();
         });
 
         const optJenisKemasan = `

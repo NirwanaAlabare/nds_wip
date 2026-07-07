@@ -1255,6 +1255,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/so-store-master-size', 'storeMasterSizeQuick')->name('so-store-master-size');
         Route::post('/update-qty', 'updateQtySO')->name('update-qty-so');
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
+        Route::post('/add-so-detail', 'addSoDetailRow')->name('add-so-detail');
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
         Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');
