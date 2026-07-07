@@ -7,119 +7,109 @@ use Illuminate\Http\Request;
 use DB;
 
 
-class AssetMesinReportController extends Controller
+class PPICLineMapController extends Controller
 {
-    public function asset_mesin_report_stok_jenis_area(Request $request)
+    public function ppic_line_map(Request $request)
     {
+        $line = DB::connection('mysql_sb')->select("
+select * from userpassword where username like '%line%' order by username asc");
 
-        $tot_per_lokasi = DB::select("SELECT
-    lokasi,
-    COUNT(*) AS total
-FROM (
-    SELECT lokasi
-    FROM asset_penerimaan_mesin
-    WHERE status IN ('ACTIVE','IDLE','BREAKDOWN')
+        $lineMap = DB::table('ppic_line_map')
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->orderBy('line')->orderBy('tgl_start')->get();
 
-    UNION ALL
+        $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
-    SELECT lokasi
-    FROM asset_penerimaan_mesin_sewa
-    WHERE status IN ('ACTIVE','IDLE')
-) AS mesin
-GROUP BY lokasi
-ORDER BY lokasi ASC
-        ");
+        $lineMap = $lineMap->map(function ($row) {
+            $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
+            $totalDays = max($totalDays, 1);
+            $row->tot_days_rounded = $totalDays;
+            $row->tgl_end = date('Y-m-d', strtotime($row->tgl_start . ' +' . ($totalDays - 1) . ' days'));
+            $row->output_per_day = $row->output_based_eff !== null ? (int) round($row->output_based_eff) : null;
+            $row->ramp_up_efficiency = $row->ramp_up_efficiency ? json_decode($row->ramp_up_efficiency, true) : [];
 
-        $tot_jenis = DB::select("SELECT
-    nm_jenis,
-    SUM(total) AS total
-FROM (
-    SELECT
-        nm_jenis,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin a
-    INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
-    INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
-    INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
-    WHERE status IN ('ACTIVE','IDLE','BREAKDOWN')
-    GROUP BY nm_jenis
+            $dailyPlan = [];
+            $dailyEfficiency = [];
+            for ($i = 0; $i < $totalDays; $i++) {
+                $dateKey = date('Y-m-d', strtotime($row->tgl_start . ' +' . $i . ' days'));
+                if ($i < count($row->ramp_up_efficiency) && $row->output_day_100 !== null) {
+                    $dailyPlan[$dateKey] = (int) round($row->output_day_100 * $row->ramp_up_efficiency[$i]);
+                    $dailyEfficiency[$dateKey] = round($row->ramp_up_efficiency[$i] * 100, 1);
+                } else {
+                    $dailyPlan[$dateKey] = $row->output_per_day;
+                    $dailyEfficiency[$dateKey] = $row->efficiency !== null ? round($row->efficiency * 100, 1) : null;
+                }
+            }
+            $row->daily_plan = $dailyPlan;
+            $row->daily_efficiency = $dailyEfficiency;
+            $row->ramp_up_dates = array_slice(array_keys($dailyPlan), 0, count($row->ramp_up_efficiency));
+            $row->style_color = $this->styleColorFromName($row->style);
 
-    UNION ALL
+            $row->edit_payload = [
+                'id' => $row->id,
+                'line' => $row->line,
+                'style' => $row->style,
+                'smv' => $row->smv,
+                'efficiency' => $row->efficiency,
+                'qty_order' => $row->qty_order,
+                'buyer' => $row->buyer,
+                'man_power' => $row->man_power,
+                'working_min' => $row->working_min,
+                'tgl_start' => $row->tgl_start,
+                'ramp_up_efficiency' => $row->ramp_up_efficiency,
+            ];
 
-    -- Query sewa tetap apa adanya
-    SELECT
-        nm_jenis,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin_sewa
-    WHERE status IN ('ACTIVE','IDLE')
-    GROUP BY nm_jenis
+            return $row;
+        });
 
-) x
-GROUP BY nm_jenis
-ORDER BY nm_jenis ASC
-        ");
+        $lineMapByLine = $lineMap->groupBy('line');
 
-        $tot_per_status = DB::select("SELECT
-    status,
-    SUM(total) AS total
-FROM (
-    SELECT
-        status,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin a
-    INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
-    INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
-    INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
-    WHERE status IN ('ACTIVE','IDLE','BREAKDOWN')
-    GROUP BY status
+        $filterStart = $request->input('tgl_dari');
+        $filterEnd = $request->input('tgl_sampai');
 
-    UNION ALL
+        $calendarStart = $filterStart ?: date('Y-m-01');
+        $calendarEnd = $filterEnd ?: date('Y-m-t');
 
-    SELECT
-        status,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin_sewa
-    WHERE status IN ('ACTIVE','IDLE')
-    GROUP BY status
-) AS x
-GROUP BY status
-ORDER BY status ASC
-        ");
+        $calendarDates = DB::select("select tanggal, nama_hari from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
 
-        $tot_area_x_jenis_mesin = DB::select("SELECT
-    lokasi,
-    nm_jenis,
-    SUM(total) AS total
-FROM (
-    SELECT
-        lokasi,
-        nm_jenis,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin a
-    INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
-    INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
-    INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
-    WHERE status IN ('ACTIVE','IDLE','BREAKDOWN')
-    GROUP BY lokasi, nm_jenis
+        $actualRows = DB::connection('mysql_sb')->select("
+WITH a as (
+select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
+where created_at >= ? and created_at <= ? and status = 'NORMAL'
+group by so_det_id, created_by, date(updated_at)
+)
 
-    UNION ALL
+SELECT tgl_trans, u.username as line, tot_rfts, supplier as buyer, sd.styleno_prod, ac.styleno, sd.reff_no FROM a
+inner join user_sb_wip u on a.created_by = u.id
+LEFT JOIN so_det sd on a.so_det_id = sd.id
+left join so on sd.id_so = so.id
+left join act_costing	 ac on so.id_cost = ac.id
+left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+        ", [$calendarStart, $calendarEnd]);
 
-    SELECT
-        lokasi,
-        nm_jenis,
-        COUNT(*) AS total
-    FROM asset_penerimaan_mesin_sewa
-    WHERE status IN ('ACTIVE','IDLE')
-    GROUP BY lokasi, nm_jenis
-) AS x
-GROUP BY
-    lokasi,
-    nm_jenis
-ORDER BY
-    lokasi ASC,
-    nm_jenis ASC
-        ");
-
+        $actualByLineDate = collect($actualRows)
+            ->map(function ($row) {
+                $row->style = $row->styleno ?: $row->styleno_prod;
+                return $row;
+            })
+            ->groupBy('line')
+            ->map(function ($lineGroup) {
+                return $lineGroup->groupBy('tgl_trans')->map(function ($dateGroup) {
+                    return $dateGroup
+                        ->groupBy(fn($r) => ($r->buyer ?? '') . '|' . ($r->style ?? ''))
+                        ->map(function ($group) {
+                            $first = $group->first();
+                            return (object) [
+                                'buyer' => $first->buyer,
+                                'style' => $first->style,
+                                'tot_rfts' => $group->sum('tot_rfts'),
+                            ];
+                        })
+                        ->values();
+                });
+            });
 
         // For non-AJAX (initial page load)
         return view('ppic.line_map', [
@@ -127,85 +117,135 @@ ORDER BY
             'subPageGroup' => 'asset-mesin',
             'subPage' => 'ppic_line_map',
             'containerFluid' => true,
-            'tot_jenis' => $tot_jenis,
-            'tot_per_status' => $tot_per_status,
-            'tot_per_lokasi' => $tot_per_lokasi,
-            'tot_area_x_jenis_mesin' => $tot_area_x_jenis_mesin,
+            'line' => $line,
+            'lineMap' => $lineMap,
+            'lineMapByLine' => $lineMapByLine,
+            'lineNameByUsername' => $lineNameByUsername,
+            'calendarDates' => $calendarDates,
+            'actualByLineDate' => $actualByLineDate,
+            'filterStart' => $filterStart ?? $calendarStart,
+            'filterEnd' => $filterEnd ?? $calendarEnd,
         ]);
     }
 
-    public function get_area_jenis_unit(Request $request)
+    public function store_ppic_line_map(Request $request)
     {
-        $request->validate([
-            'lokasi' => 'nullable|string',
-            'nm_jenis' => 'nullable|string',
-            'status' => 'nullable|string|in:ACTIVE,IDLE,BREAKDOWN',
+        $validated = $request->validate([
+            'editid' => 'nullable|integer|exists:ppic_line_map,id',
+            'cboline' => 'required|string',
+            'txtstyle' => 'nullable|string',
+            'txtsmv' => 'nullable|numeric',
+            'txtefficiency' => 'nullable|numeric',
+            'txtorderqty' => 'nullable|numeric',
+            'txtbuyer' => 'nullable|string',
+            'txtmanpower' => 'nullable|numeric',
+            'txtworkingminutes' => 'nullable|numeric',
+            'cbodate' => 'nullable|date',
+            'ramp_efficiency' => 'nullable|array',
+            'ramp_efficiency.*' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        if (!$request->filled('lokasi') && !$request->filled('nm_jenis') && !$request->filled('status')) {
-            abort(422, 'lokasi, nm_jenis, atau status wajib diisi');
+        $efficiency = $validated['txtefficiency'] ?? null;
+        if ($efficiency !== null) {
+            $efficiency = $efficiency / 100;
         }
 
-        $whereMesin = "a.status IN ('ACTIVE','IDLE','BREAKDOWN')";
-        $bindingsMesin = [];
+        $smv = $validated['txtsmv'] ?? null;
+        $manPower = $validated['txtmanpower'] ?? null;
+        $workingMinutes = $validated['txtworkingminutes'] ?? null;
+        $qtyOrder = $validated['txtorderqty'] ?? null;
 
-        if ($request->filled('lokasi')) {
-            if ($request->lokasi === '__NULL__') {
-                $whereMesin .= ' AND a.lokasi IS NULL';
-            } else {
-                $whereMesin .= ' AND a.lokasi = ?';
-                $bindingsMesin[] = $request->lokasi;
+        $rampUpEfficiency = collect($validated['ramp_efficiency'] ?? [])
+            ->filter(fn($val) => $val !== null && $val !== '')
+            ->map(fn($val) => round($val / 100, 4))
+            ->values()
+            ->all();
+
+        $minsAvailable = ($manPower !== null && $workingMinutes !== null) ? $manPower * $workingMinutes : null;
+        $outputPerDay100 = ($minsAvailable !== null && $smv > 0) ? $minsAvailable / $smv : null;
+        $outputPerDayEfficiency = ($outputPerDay100 !== null && $efficiency !== null) ? $outputPerDay100 * $efficiency : null;
+
+        $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiency, $rampUpEfficiency);
+
+        $data = [
+            'line' => $validated['cboline'],
+            'tgl_start' => $validated['cbodate'] ?? null,
+            'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
+            'smv' => $smv,
+            'efficiency' => $efficiency,
+            'qty_order' => $qtyOrder,
+            'buyer' => isset($validated['txtbuyer']) ? strtoupper($validated['txtbuyer']) : null,
+            'man_power' => $manPower,
+            'working_min' => $workingMinutes,
+            'mins_avail' => $minsAvailable,
+            'output_day_100' => $outputPerDay100,
+            'output_based_eff' => $outputPerDayEfficiency,
+            'tot_days' => $totalDays,
+            'ramp_up_days' => count($rampUpEfficiency) ?: null,
+            'ramp_up_efficiency' => count($rampUpEfficiency) ? json_encode($rampUpEfficiency) : null,
+            'updated_at' => now(),
+        ];
+
+        if (!empty($validated['editid'])) {
+            DB::table('ppic_line_map')->where('id', $validated['editid'])->update($data);
+            $message = 'Data Line Map berhasil diupdate';
+        } else {
+            $data['cancel'] = 'N';
+            $data['created_at'] = now();
+            $data['created_by'] = auth()->user()->username ?? null;
+            DB::table('ppic_line_map')->insert($data);
+            $message = 'Data Line Map berhasil disimpan';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
+    public function cancel_ppic_line_map($id)
+    {
+        DB::table('ppic_line_map')->where('id', $id)->update([
+            'cancel' => 'Y',
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Line Map berhasil dihapus',
+        ]);
+    }
+
+    private function styleColorFromName(?string $style): string
+    {
+        $hash = abs(crc32(strtoupper(trim($style ?? ''))));
+        $hue = $hash % 360;
+
+        return "hsl({$hue}, 62%, 42%)";
+    }
+
+    private function simulateTotalDays(?float $outputPerDay100, ?float $qtyOrder, ?float $steadyEfficiency, array $rampUpEfficiency)
+    {
+        if (!$outputPerDay100 || !$qtyOrder || $steadyEfficiency === null) {
+            return null;
+        }
+
+        $produced = 0;
+        $day = 0;
+        $maxDays = 3650;
+
+        while ($produced < $qtyOrder && $day < $maxDays) {
+            $eff = $day < count($rampUpEfficiency) ? $rampUpEfficiency[$day] : $steadyEfficiency;
+            $dailyOutput = $outputPerDay100 * $eff;
+
+            if ($dailyOutput <= 0) {
+                return null;
             }
-        }
-        if ($request->filled('nm_jenis')) {
-            $whereMesin .= ' AND j.nm_jenis = ?';
-            $bindingsMesin[] = $request->nm_jenis;
-        }
-        if ($request->filled('status')) {
-            $whereMesin .= ' AND a.status = ?';
-            $bindingsMesin[] = $request->status;
+
+            $produced += $dailyOutput;
+            $day++;
         }
 
-        // Query sewa tetap apa adanya: nm_merk & tipe sudah kolom langsung, tidak perlu join
-        $whereSewa = "status IN ('ACTIVE','IDLE')";
-        $bindingsSewa = [];
-
-        if ($request->filled('lokasi')) {
-            if ($request->lokasi === '__NULL__') {
-                $whereSewa .= ' AND lokasi IS NULL';
-            } else {
-                $whereSewa .= ' AND lokasi = ?';
-                $bindingsSewa[] = $request->lokasi;
-            }
-        }
-        if ($request->filled('nm_jenis')) {
-            $whereSewa .= ' AND nm_jenis = ?';
-            $bindingsSewa[] = $request->nm_jenis;
-        }
-        if ($request->filled('status')) {
-            $whereSewa .= ' AND status = ?';
-            $bindingsSewa[] = $request->status;
-        }
-
-        $units = DB::select("
-            SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe
-            FROM (
-                SELECT a.id, a.serial_number, a.lokasi, a.status, a.bpbno_int, k.nm_merk, m.tipe
-                FROM asset_penerimaan_mesin a
-                INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
-                INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
-                INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
-                WHERE $whereMesin
-
-                UNION ALL
-
-                SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe
-                FROM asset_penerimaan_mesin_sewa
-                WHERE $whereSewa
-            ) AS units
-            ORDER BY id DESC
-        ", array_merge($bindingsMesin, $bindingsSewa));
-
-        return response()->json($units);
+        return $day;
     }
 }

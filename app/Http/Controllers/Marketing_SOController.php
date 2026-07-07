@@ -1690,7 +1690,7 @@ class Marketing_SOController extends Controller
         $header = $mysql_sb->table('so')
             ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
             ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
-            ->select('so.so_no', 'so.so_no as kpno', 'ms.Supplier as buyer', 'so.style')
+            ->select('so.so_no', 'ac.kpno as kpno', 'ms.Supplier as buyer', 'so.style')
             ->where('so.id', $id)
             ->first();
 
@@ -2069,6 +2069,96 @@ class Marketing_SOController extends Controller
         return response()->json(['status' => 200, 'message' => 'Tidak ada material baru yang ditambahkan (Semua sudah terisi).']);
         }
 
+    public function addSoDetailRow(Request $request)
+    {
+        DB::connection('mysql_sb')->beginTransaction();
+
+        try {
+            $id_so = $request->id_so;
+            $id_colors = $request->id_color;
+            $id_sizes = $request->id_size;
+            $qty = $request->qty;
+
+            if (!$id_so || empty($id_colors) || empty($id_sizes) || !$qty) {
+                return response()->json(['status' => 400, 'message' => 'Data tidak lengkap! Harap pilih minimal 1 Warna dan 1 Size.']);
+            }
+
+
+            if (!is_array($id_colors)) $id_colors = [$id_colors];
+            if (!is_array($id_sizes)) $id_sizes = [$id_sizes];
+
+            $inserted_count = 0;
+            $skipped_count = 0;
+
+
+            $existing_row = DB::connection('mysql_sb')->table('so_det')->where('id_so', $id_so)->first();
+
+            foreach ($id_colors as $id_color) {
+                foreach ($id_sizes as $id_size) {
+
+
+                    $exists = DB::connection('mysql_sb')->table('so_det')
+                        ->where('id_so', $id_so)
+                        ->where('id_color', $id_color)
+                        ->where('id_size', $id_size)
+                        ->where('cancel', 'N')
+                        ->first();
+
+                    if ($exists) {
+                        $skipped_count++;
+                        continue;
+                    }
+
+
+                    $color_name = DB::connection('mysql_sb')->table('master_colors_gmt')->where('id', $id_color)->value('name');
+                    $size_name = DB::connection('mysql_sb')->table('master_size_new')->where('id', $id_size)->value('size');
+
+                    DB::connection('mysql_sb')->table('so_det')->insert([
+                        'id_so'       => $id_so,
+                        'id_color'    => $id_color,
+                        'id_size'     => $id_size,
+                        'color'       => $color_name ?? '-',
+                        'size'        => $size_name ?? '-',
+                        'qty'         => $qty,
+                        'cancel'      => 'N',
+                        'dest'        => $existing_row ? $existing_row->dest : '-',
+                        'product_set' => $existing_row ? $existing_row->product_set : '-',
+                        'barcode'     => $existing_row ? $existing_row->barcode : '-',
+                        'deldate_det' => $existing_row ? $existing_row->deldate_det : null,
+                        'created_by'  => auth()->user() ? auth()->user()->name : 'admin',
+                        'created_date'=> now(),
+                        'updated_by'  => auth()->user() ? auth()->user()->name : 'admin',
+                        'updated_date'=> now()
+                    ]);
+
+                    $inserted_count++;
+                }
+            }
+
+            if ($inserted_count === 0 && $skipped_count > 0) {
+                DB::connection('mysql_sb')->rollBack();
+                return response()->json(['status' => 400, 'message' => 'Semua kombinasi warna dan size tersebut sudah ada di SO ini. Silakan edit Qty-nya saja di tabel atas.']);
+            }
+
+            $totalQty = DB::connection('mysql_sb')->table('so_det')
+                ->where('id_so', $id_so)
+                ->where(function($query) {
+                    $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+                })
+                ->sum('qty');
+
+            DB::connection('mysql_sb')->table('so')
+                ->where('id', $id_so)
+                ->update(['qty' => $totalQty]);
+
+            DB::connection('mysql_sb')->commit();
+            return response()->json(['status' => 200, 'message' => "$inserted_count kombinasi baru berhasil ditambahkan!"]);
+
+        } catch (\Exception $e) {
+            DB::connection('mysql_sb')->rollBack();
+            return response()->json(['status' => 500, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
+    }
     public function updateQtySO(Request $request)
     {
         DB::connection('mysql_sb')->beginTransaction();

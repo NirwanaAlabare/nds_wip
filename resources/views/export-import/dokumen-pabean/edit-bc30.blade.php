@@ -1009,13 +1009,9 @@
                         <div class="card-body p-0">
                             @php
                                 $kontainers = $dataDetail['kontainer'] ?? [];
-                                $listJenisKontainer = ['4' => 'Empty', '7' => 'LCL', '8' => 'FCL'];
-                                $listTipeKontainer = [
-                                    '1' => 'General/Dry Cargo', '2' => 'Tunnel Type', '3' => 'Open Top Steel',
-                                    '4' => 'Flat Rack', '5' => 'Reefer/Refrigerated', '6' => 'Barge Container',
-                                    '7' => 'Bulk Container', '8' => 'Isotank', '99' => 'Lain-lain'
-                                ];
-                                $listUkuranKontainer = ['20' => '20 Feet', '40' => '40 Feet', '45' => '45 Feet', '60' => '60 Feet'];
+                                
+                                
+                                
                             @endphp
                             <table class="table table-sm table-bordered mb-0" id="table-kontainer">
                                 <thead class="bg-light text-center">
@@ -1032,7 +1028,7 @@
                                     <tr>
                                         <td><input type="text" name="kontainer[{{ $kIndex }}][nomorKontainer]" class="form-control form-control-sm text-uppercase" value="{{ $kont['nomorKontainer'] ?? '' }}"></td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeJenisKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeJenisKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih --</option>
                                                 @foreach($listJenisKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeJenisKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1040,7 +1036,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeTipeKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeTipeKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih --</option>
                                                 @foreach($listTipeKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeTipeKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1048,7 +1044,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih --</option>
                                                 @foreach($listUkuranKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeUkuranKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1071,23 +1067,20 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group mb-2"><label>Jenis Valuta</label>
-                                        <select name="kodeValuta" class="form-control form-control-sm select2bs4 ">
+                                        <select name="kodeValuta" class="form-control form-control-sm select2bs4">
                                             <option value="">Pilih Valuta</option>
-                                            <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
-                                            <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
-                                            <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
-                                            <option value="EUR" {{ ($dataDetail['kodeValuta'] ?? '') == 'EUR' ? 'selected' : '' }}>EUR - EURO</option>
-                                            <option value="SGD" {{ ($dataDetail['kodeValuta'] ?? '') == 'SGD' ? 'selected' : '' }}>SGD - SINGAPORE DOLLAR</option>
-                                            <option value="JPY" {{ ($dataDetail['kodeValuta'] ?? '') == 'JPY' ? 'selected' : '' }}>JPY - JAPANESE YEN</option>
+                                            @foreach($listValuta as $k => $v)
+                                                <option value="{{ $k }}" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group mb-2"><label>NDPBM (Kurs Fiskal)</label><input type="number" step="any" name="ndpbm" class="form-control form-control-sm " value="{{ $dataDetail['ndpbm'] ?? '' }}"></div>
                                     <div class="form-group mb-2"><label>Cara Penyerahan (Incoterm)</label>
-                                        <select name="kodeIncoterm" class="form-control form-control-sm select2bs4 ">
+                                        <select name="kodeIncoterm" class="form-control form-control-sm select2bs4">
                                             <option value="">-- Pilih --</option>
-                                            <option value="CFR" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CFR' ? 'selected' : '' }}>CFR - COST AND FREIGHT</option>
-                                            <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
-                                            <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
+                                            @foreach($listIncoterm as $k => $v)
+                                                <option value="{{ $k }}" {{ ($dataDetail['kodeIncoterm'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -1572,17 +1565,17 @@
         $(document).on('click', '.btn-hapus-kemasan', function() { $(this).closest('tr').remove(); });
 
         // ================= KONTAINER HANDLER =================
-        const optJenisKontainer = `<option value="8">8 - FCL</option><option value="7">7 - LCL</option><option value="4">4 - Empty</option>`;
-        const optTipeKontainer = `<option value="1">1 - General/Dry Cargo</option><option value="8">8 - Isotank</option><option value="99">99 - Lain-lain</option>`;
-        const optUkuranKontainer = `<option value="20">20 Feet</option><option value="40">40 Feet</option><option value="45">45 Feet</option><option value="60">60 Feet</option>`;
+        const optJenisKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listJenisKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optTipeKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listTipeKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optUkuranKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listUkuranKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
         let kontainerIndex = {{ count($kontainers ?? []) }};
         $('#btn-add-kontainer').on('click', function() {
             let htmlTr = `
                 <tr>
                     <td><input type="text" name="kontainer[${kontainerIndex}][nomorKontainer]" class="form-control form-control-sm  text-uppercase"></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeJenisKontainer]" class="form-control form-control-sm ">${optJenisKontainer}</select></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeTipeKontainer]" class="form-control form-control-sm ">${optTipeKontainer}</select></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeUkuranKontainer]" class="form-control form-control-sm ">${optUkuranKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeJenisKontainer]" class="form-control form-control-sm select2bs4">${optJenisKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeTipeKontainer]" class="form-control form-control-sm select2bs4">${optTipeKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeUkuranKontainer]" class="form-control form-control-sm select2bs4">${optUkuranKontainer}</select></td>
                     <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-kontainer"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>`;
             $('#tbody-kontainer').append(htmlTr);
@@ -1597,7 +1590,7 @@
                 <td class="text-center align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="${sarkutIndex + 1}" readonly></td>
                 <td><input type="text" name="pengangkut[${sarkutIndex}][namaPengangkut]" class="form-control form-control-sm "></td>
                 <td><input type="text" name="pengangkut[${sarkutIndex}][nomorPengangkut]" class="form-control form-control-sm "></td>
-                <td><select name="pengangkut[${sarkutIndex}][kodeCaraAngkut]" class="form-control form-control-sm "><option value="1">1 - LAUT</option><option value="4">4 - UDARA</option><option value="3">3 - DARAT</option></select></td>
+                <td><select name="pengangkut[${sarkutIndex}][kodeCaraAngkut]" class="form-control form-control-sm select2bs4"><option value="">Pilih Cara Angkut</option>` + `@foreach($listCaraAngkut as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach` + `</select></td>
                 <td><div class="input-group input-group-sm"><input type="text" name="pengangkut[${sarkutIndex}][kodeBendera]" class="form-control form-control-sm  text-uppercase"><div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-sarkut"><i class="fas fa-trash-alt"></i></button></div></div></td>
             </tr>`;
             $('#tbody-sarkut').append(tr);

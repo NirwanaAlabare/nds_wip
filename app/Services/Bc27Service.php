@@ -98,7 +98,19 @@ class Bc27Service
             "dataDetail"     => $dataDetail,
             "items"          => $items,
             "nomorAju"       => $nomorAju,
-            "kantorList"     => $this->getKantorList()
+            "kantorList"     => $this->getKantorList(),
+            "listJenisTpb"       => \App\Services\BcReferenceService::getJenisTpb(),
+            "listTujuanPengiriman"=> \App\Services\BcReferenceService::getTujuanPengiriman('27'),
+            "listKategoriBarang" => \App\Services\BcReferenceService::getKategoriBarang(),
+            "listFasilitasTarif" => \App\Services\BcReferenceService::getFasilitasTarif(),
+            "listJenisTarif"     => \App\Services\BcReferenceService::getJenisTarif(),
+            "listValuta"         => \App\Services\BcReferenceService::getValuta(),
+            "listSatuanBarang"   => \App\Services\BcReferenceService::getSatuanBarang(),
+            "listJenisKemasan"   => \App\Services\BcReferenceService::getJenisKemasan(),
+            "referensiDokumen"   => \App\Services\BcReferenceService::getReferensiDokumen(),
+            "listJenisKontainer" => \App\Services\BcReferenceService::getJenisKontainer(),
+            "listTipeKontainer"  => \App\Services\BcReferenceService::getTipeKontainer(),
+            "listUkuranKontainer"=> \App\Services\BcReferenceService::getUkuranKontainer(),
         ]);
     }
 

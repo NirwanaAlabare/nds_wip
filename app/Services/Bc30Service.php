@@ -84,6 +84,16 @@ class Bc30Service
             'nomorAju'      => $nomorAju,
             'dokumens'      => $dokumens,
             'kantorList'    => $this->getKantorList(),
+            'listIncoterm'       => \App\Services\BcReferenceService::getIncoterm(),
+            'listSatuanBarang'   => \App\Services\BcReferenceService::getSatuanBarang(),
+            'listJenisKemasan'   => \App\Services\BcReferenceService::getJenisKemasan(),
+            'referensiDokumen'   => \App\Services\BcReferenceService::getReferensiDokumen(),
+            'listValuta'         => \App\Services\BcReferenceService::getValuta(),
+            'listKategoriBarang' => \App\Services\BcReferenceService::getKategoriBarang(),
+            'listJenisKontainer' => \App\Services\BcReferenceService::getJenisKontainer(),
+            'listTipeKontainer'  => \App\Services\BcReferenceService::getTipeKontainer(),
+            'listUkuranKontainer'=> \App\Services\BcReferenceService::getUkuranKontainer(),
+            'listCaraAngkut' => \App\Services\BcReferenceService::getCaraAngkut(),
         ]);
     }
 

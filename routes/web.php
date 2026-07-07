@@ -1071,6 +1071,8 @@ Route::middleware('auth')->group(function () {
     // PPIC Line MAP
     Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
+        Route::post('/ppic_line_map/store', 'store_ppic_line_map')->name('store_ppic_line_map');
+        Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
     });
 
     // Tools Adjustment PPIC
@@ -1253,6 +1255,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/so-store-master-size', 'storeMasterSizeQuick')->name('so-store-master-size');
         Route::post('/update-qty', 'updateQtySO')->name('update-qty-so');
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
+        Route::post('/add-so-detail', 'addSoDetailRow')->name('add-so-detail');
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
         Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');

@@ -98,12 +98,10 @@
                                     <div class="form-group mb-2">
                                         <label class="text-sm">Tujuan Pengiriman</label>
                                         <select name="tujuanPengiriman" class="form-control form-control-sm select2bs4">
-                                            <option value="">Pilih Tujuan Pengiriman</option>
-                                            <option value="1" {{ ($dataDetail['tujuanPengiriman'] ?? '') == '1' ? 'selected' : '' }}>1 - DIPERBAIKI</option>
-                                            <option value="2" {{ ($dataDetail['tujuanPengiriman'] ?? '') == '2' ? 'selected' : '' }}>2 - DISUBKONTRAKKAN</option>
-                                            <option value="3" {{ ($dataDetail['tujuanPengiriman'] ?? '') == '3' ? 'selected' : '' }}>3 - DIPINJAMKAN</option>
-                                            <option value="4" {{ ($dataDetail['tujuanPengiriman'] ?? '') == '4' ? 'selected' : '' }}>4 - BARANG RETURN</option>
-                                            <option value="5" {{ ($dataDetail['tujuanPengiriman'] ?? '') == '5' ? 'selected' : '' }}>5 - LAINNYA</option>
+                                            <option value="">-- Tujuan Pengiriman --</option>
+                                            @foreach($listTujuanPengiriman as $k => $v)
+                                                <option value="{{ $k }}" {{ ($dataDetail['tujuanPengiriman'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ strtoupper($v) }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -274,19 +272,10 @@
                                 <input type="hidden" name="pengangkut[0][seriPengangkut]" value="1">
                                 <input type="hidden" name="pengangkut[0][kodeBendera]" value="ID">
                                 <select name="pengangkut[0][kodeCaraAngkut]" class="form-control form-control-sm select2bs4">
-                                    <option value="">-- Pilih Cara Pengangkutan --</option>
-                                    <option value="1" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '1' ? 'selected' : '' }}>1 - LAUT</option>
-                                    <option value="2" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '2' ? 'selected' : '' }}>2 - KERETA API</option>
-                                    <option value="3" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '3' ? 'selected' : '' }}>3 - DARAT</option>
-                                    <option value="4" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '4' ? 'selected' : '' }}>4 - UDARA</option>
-                                    <option value="5" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '5' ? 'selected' : '' }}>5 - POS</option>
-                                    <option value="6" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '6' ? 'selected' : '' }}>6 - MULTIMODA</option>
-                                    <option value="7" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '7' ? 'selected' : '' }}>7 - INSTALASI / PIPA</option>
-                                    <option value="8" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '8' ? 'selected' : '' }}>8 - PERAIRAN</option>
-                                    <option value="9" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '9' ? 'selected' : '' }}>9 - LAINNYA</option>
-                                    <option value="10" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '10' ? 'selected' : '' }}>10 - INSTALASI</option>
-                                    <option value="11" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '11' ? 'selected' : '' }}>11 - PIPA</option>
-                                    <option value="12" {{ ($sarkutFirst['kodeCaraAngkut'] ?? '') == '12' ? 'selected' : '' }}>12 - TRANSMISI</option>
+                                    <option value="">Pilih Cara Angkut</option>
+                                    @foreach($listCaraAngkut as $k => $v)
+                                        <option value="{{ $k }}" {{ ($pengangkuts[0]['kodeCaraAngkut'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ strtoupper($v) }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -894,9 +883,9 @@
         $(document).on('click', '.btn-hapus-kemasan', function() { $(this).closest('tr').remove(); });
 
         // ================= KONTAINER HANDLER =================
-        const optJenisKontainer = `<option value="8">8 - FCL</option><option value="7">7 - LCL</option><option value="4">4 - Empty</option>`;
-        const optTipeKontainer = `<option value="1">1 - General/Dry Cargo</option><option value="8">8 - Isotank</option><option value="99">99 - Lain-lain</option>`;
-        const optUkuranKontainer = `<option value="20">20 Feet</option><option value="40">40 Pick / Feet</option><option value="45">45 Feet</option><option value="60">60 Feet</option>`;
+        const optJenisKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listJenisKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optTipeKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listTipeKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optUkuranKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listUkuranKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
         let kontainerIndex = {{ count($kontainers ?? []) }};
         $('#btn-add-kontainer').on('click', function() {
             let htmlTr = `

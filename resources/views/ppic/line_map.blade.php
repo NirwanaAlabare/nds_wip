@@ -1,597 +1,678 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <style type="text/css">
-        .hbar-list {
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 6px;
-        }
-
-        .hbar-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .hbar-list::-webkit-scrollbar-thumb {
-            background-color: #d7dce3;
-            border-radius: 3px;
-        }
-
-        .hbar-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 4px 6px;
-            margin: 0 -6px;
-            border-radius: 6px;
-            transition: background-color .15s ease-in-out;
-        }
-
-        .hbar-row:hover {
-            background-color: #f7f9fc;
-        }
-
-        .hbar-row+.hbar-row {
-            margin-top: 8px;
-        }
-
-        .hbar-label {
-            flex: 0 0 110px;
-            font-size: 12.5px;
-            color: #495363;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .hbar-track {
-            flex: 1 1 auto;
-            height: 8px;
-            border-radius: 4px;
-            background-color: #eef0f3;
-            overflow: hidden;
-        }
-
-        .hbar-fill {
-            height: 100%;
-            border-radius: 4px;
-        }
-
-        .hbar-value {
-            flex: 0 0 28px;
-            text-align: right;
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #1e2b3c;
-        }
-
-        .status-row {
-            cursor: pointer;
-            padding: 6px;
-            margin: 0 -6px;
-            border-radius: 6px;
-            transition: background-color .15s ease-in-out;
-        }
-
-        .status-row:hover {
-            background-color: #f7f9fc;
-        }
-
-        .status-row+.status-row {
-            margin-top: 12px;
-        }
-
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .status-row-label {
-            font-weight: 700;
-            color: #1e2b3c;
-        }
-
-        .status-row-count {
-            color: #8a94a6;
-        }
-
-        .status-progress-track {
-            margin-top: 8px;
-            height: 6px;
-            border-radius: 3px;
-            background-color: #eef0f3;
-            overflow: hidden;
-        }
-
-        .status-progress-fill {
-            height: 100%;
-            border-radius: 3px;
-        }
-
-        .matrix-search {
-            max-width: 220px;
-        }
-
-        .matrix-wrap {
-            max-height: 420px;
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>
+        .line-map-calendar-wrapper {
             overflow: auto;
+            max-height: 65vh;
+            max-width: 100%;
+            border-top: 1px solid #dee2e6;
+            border-left: 1px solid #dee2e6;
         }
 
-        .matrix-table {
+        .line-map-calendar-inner {
+            display: flex;
+            align-items: flex-start;
+            width: max-content;
+        }
+
+        .line-map-fixed-table,
+        .line-map-dates-table {
             border-collapse: separate;
             border-spacing: 0;
-            width: 100%;
-            font-size: 13px;
+            margin-bottom: 0 !important;
+        }
+
+        .line-map-fixed-table th,
+        .line-map-fixed-table td,
+        .line-map-dates-table th,
+        .line-map-dates-table td {
             white-space: nowrap;
+            vertical-align: middle;
+            height: 68px;
+            border-right: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
         }
 
-        .matrix-table th,
-        .matrix-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #eef0f3;
+        .line-map-fixed-table {
+            width: auto !important;
+            min-width: 160px;
+            flex: 0 0 auto;
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background-color: #fff;
+            box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
         }
 
-        .matrix-table thead th {
+        .line-map-fixed-table thead th,
+        .line-map-dates-table thead th {
             position: sticky;
             top: 0;
             z-index: 2;
             background-color: #fff;
+        }
+
+        .line-map-fixed-table thead th {
+            z-index: 4;
+        }
+
+        .line-map-dates-table th {
+            text-align: center;
+        }
+
+        .line-map-dates-table td {
+            text-align: center;
+            padding: 4px 6px;
+        }
+
+        .badge-plan {
+            display: inline-block;
+            background-color: #6f42c1;
+            color: #fff;
             font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .03em;
-            color: #8a94a6;
-            text-transform: uppercase;
-            text-align: left;
-            cursor: pointer;
-            user-select: none;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
         }
 
-        .matrix-table thead th:hover {
-            color: #1e2b3c;
+        .badge-plan.badge-plan-rampup {
+            background-color: #fd7e14;
         }
 
-        .matrix-table thead th .sort-icon {
-            margin-left: 4px;
-            opacity: .4;
-        }
-
-        .matrix-table thead th.sort-asc .sort-icon::after {
-            content: '\2191';
-            opacity: 1;
-        }
-
-        .matrix-table thead th.sort-desc .sort-icon::after {
-            content: '\2193';
-            opacity: 1;
-        }
-
-        .matrix-table thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after {
-            content: '\2195';
-        }
-
-        .matrix-table thead th.matrix-total,
-        .matrix-table td.matrix-total {
-            text-align: right;
-        }
-
-        .matrix-table tbody th {
-            position: sticky;
-            left: 0;
-            z-index: 1;
-            background-color: #fff;
-            font-weight: 700;
-            color: #1e2b3c;
-            text-align: left;
-        }
-
-        .matrix-table thead th:first-child {
-            position: sticky;
-            left: 0;
-            z-index: 3;
-        }
-
-        .matrix-table td {
-            color: #495363;
-            text-align: left;
-        }
-
-        .matrix-table td.matrix-total,
-        .matrix-table th.matrix-total {
-            font-weight: 700;
-            color: #1e2b3c;
-        }
-
-        .matrix-table td.matrix-cell-clickable {
-            cursor: pointer;
-        }
-
-        .matrix-table td.matrix-cell-clickable:hover {
-            background-color: #eef4fd;
-            text-decoration: underline;
-        }
-
-        .matrix-table td.matrix-total {
-            cursor: pointer;
-        }
-
-        .matrix-table td.matrix-total:hover {
-            background-color: #eef4fd;
-            text-decoration: underline;
-        }
-
-        .matrix-table tbody tr:hover th,
-        .matrix-table tbody tr:hover td {
-            background-color: #f7f9fc;
-        }
-
-        .matrix-table tbody tr.d-none {
-            display: none;
-        }
-
-        .unit-modal-table-wrap {
-            max-height: 55vh;
-            overflow: auto;
-        }
-
-        .unit-modal-table-wrap table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .unit-modal-table-wrap table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background-color: var(--sb-color);
-            color: var(--light-color);
-        }
-
-        #areaJenisUnitTableBody tr.d-none {
-            display: none;
+        .badge-actual {
+            display: inline-block;
+            background-color: #198754;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            margin-top: 3px;
         }
     </style>
 @endsection
 
 @section('content')
-    <div class="row g-3">
-        <div class="col-lg-4">
-            <div class="card card-sb h-100">
-                <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> Qty per Area</h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $maxLokasi = collect($tot_per_lokasi)->max('total') ?: 1;
-                    @endphp
-
-                    <div class="hbar-list">
-                        @forelse ($tot_per_lokasi as $row)
-                            @php
-                                $percent = round(($row->total / $maxLokasi) * 100);
-                                // lokasi NULL di DB (unit belum diisi lokasi) diberi key & label sendiri,
-                                // supaya saat diklik backend bisa filter "lokasi IS NULL", bukan malah tanpa filter
-                                $lokasiKey = $row->lokasi ?? '__NULL__';
-                                $lokasiLabel = $row->lokasi ?? '(Tanpa Lokasi)';
-                            @endphp
-                            <div class="hbar-row" data-lokasi="{{ $lokasiKey }}">
-                                <div class="hbar-label" title="{{ $lokasiLabel }}">{{ $lokasiLabel }}</div>
-                                <div class="hbar-track">
-                                    <div class="hbar-fill" style="width: {{ $percent }}%; background-color: #238380;">
+    <div class="modal fade" id="newLineMapModal" tabindex="-1" role="dialog" aria-labelledby="newLineMapModalLabel"
+        data-bs-backdrop="static" aria-hidden="true">
+        <form action="{{ route('store_ppic_line_map') }}" method="post" onsubmit="submitLineMapForm(this, event)"
+            name="formLineMap" id="formLineMap">
+            @csrf
+            <input type="hidden" id="editid" name="editid" value="">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h3 class="modal-title fs-5" id="lineMapModalTitle">Tambah Line Map</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Line :</label>
+                                    <select class="form-control select2bs4 form-control-sm" id="cboline" name="cboline">
+                                        <option value="">- Pilih Line -</option>
+                                        @foreach ($line as $row)
+                                            <option value="{{ $row->username }}">{{ $row->FullName }}
+                                                ({{ $row->username }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Style :</label>
+                                    <input type="text" class="form-control form-control-sm" id="txtstyle"
+                                        name="txtstyle" placeholder="Cnth: POLO ZIP SIDE SLIT" value=""
+                                        autocomplete="off" style="text-transform: uppercase;"
+                                        oninput="this.value = this.value.toUpperCase();">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">SMV :</label>
+                                    <input type="number" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
+                                        placeholder="Cnth: 12.5" value="" autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Efficiency :</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control form-control-sm" id="txtefficiency"
+                                            name="txtefficiency" placeholder="Cnth: 85" value="" autocomplete="off">
+                                        <span class="input-group-text">%</span>
                                     </div>
                                 </div>
-                                <div class="hbar-value">{{ $row->total }}</div>
-                            </div>
-                        @empty
-                            <p class="text-muted mb-0">Tidak ada data.</p>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card card-sb h-100">
-                <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-layer-group"></i>Qty per Jenis Mesin</h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $maxTotal = collect($tot_jenis)->max('total') ?: 1;
-                    @endphp
-
-                    <div class="hbar-list">
-                        @forelse ($tot_jenis as $row)
-                            @php
-                                $percent = round(($row->total / $maxTotal) * 100);
-                            @endphp
-                            <div class="hbar-row" data-jenis="{{ $row->nm_jenis }}">
-                                <div class="hbar-label" title="{{ $row->nm_jenis }}">{{ $row->nm_jenis }}</div>
-                                <div class="hbar-track">
-                                    <div class="hbar-fill" style="width: {{ $percent }}%; background-color: #3987e5;">
-                                    </div>
+                                <div class="form-group">
+                                    <label class="form-label">Order Qty :</label>
+                                    <input type="text" class="form-control form-control-sm" id="txtorderqty"
+                                        name="txtorderqty" placeholder="Cnth: 1.000" value="" autocomplete="off"
+                                        inputmode="numeric"
+                                        oninput="this.value = this.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');">
                                 </div>
-                                <div class="hbar-value">{{ $row->total }}</div>
                             </div>
-                        @empty
-                            <p class="text-muted mb-0">Tidak ada data.</p>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card card-sb h-100">
-                <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-simple"></i> Status Mesin</h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $statusMeta = [
-                            'ACTIVE' => ['label' => 'Active', 'color' => '#22c55e', 'order' => 1],
-                            'IDLE' => ['label' => 'Idle', 'color' => '#f2b90c', 'order' => 2],
-                            'BREAKDOWN' => ['label' => 'Breakdown', 'color' => '#ea5455', 'order' => 3],
-                        ];
-                        $grandTotal = collect($tot_per_status)->sum('total') ?: 1;
-                        $sortedStatus = collect($tot_per_status)->sortBy(
-                            fn($row) => $statusMeta[$row->status]['order'] ?? 99,
-                        );
-                    @endphp
-
-                    @forelse ($sortedStatus as $row)
-                        @php
-                            $meta = $statusMeta[$row->status] ?? [
-                                'label' => ucfirst(strtolower($row->status)),
-                                'color' => '#8a94a6',
-                            ];
-                            $percent = round(($row->total / $grandTotal) * 100);
-                        @endphp
-                        <div class="status-row" data-status="{{ $row->status }}">
-                            <div>
-                                <span class="status-dot" style="background-color: {{ $meta['color'] }};"></span>
-                                <span class="status-row-label ms-2">{{ $meta['label'] }}</span>
-                                <span class="status-row-count ms-1">{{ $row->total }} mesin
-                                    ({{ $percent }}%)
-                                </span>
-                            </div>
-                            <div class="status-progress-track">
-                                <div class="status-progress-fill"
-                                    style="width: {{ $percent }}%; background-color: {{ $meta['color'] }};"></div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Buyer :</label>
+                                    <input type="text" class="form-control form-control-sm" id="txtbuyer"
+                                        name="txtbuyer" value="" autocomplete="off" style="text-transform: uppercase;"
+                                        oninput="this.value = this.value.toUpperCase();">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Man Power :</label>
+                                    <input type="number" class="form-control form-control-sm" id="txtmanpower"
+                                        name="txtmanpower" placeholder="Cnth: 10" value="" autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Working Minutes :</label>
+                                    <input type="number" class="form-control form-control-sm" id="txtworkingminutes"
+                                        name="txtworkingminutes" placeholder="Cnth: 480" value=""
+                                        autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Start Day Calendar :</label>
+                                    <input type="date" class="form-control form-control-sm" id="cbodate"
+                                        name="cbodate" value="<?= date('Y-m-d') ?>">
+                                </div>
                             </div>
                         </div>
-                    @empty
-                        <p class="text-muted mb-0">Tidak ada data.</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="card card-sb mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-table-cells"></i> Matrix Area x Jenis Mesin</h5>
-            <input type="text" id="matrixSearch" class="form-control form-control-sm matrix-search"
-                placeholder="Cari Area...">
-        </div>
-        <div class="card-body p-0">
-            @php
-                $matrixJenisCols = collect($tot_jenis)->pluck('nm_jenis');
-                $matrixCells = collect($tot_area_x_jenis_mesin)->groupBy('lokasi');
-            @endphp
+                        <hr>
 
-            <div class="matrix-wrap">
-                <table class="matrix-table" id="matrixTable">
-                    <thead>
-                        <tr>
-                            <th data-key="0" data-type="text">Area <span class="sort-icon"></span></th>
-                            @foreach ($matrixJenisCols as $i => $nmJenis)
-                                <th data-key="{{ $i + 1 }}" data-type="number">{{ $nmJenis }} <span
-                                        class="sort-icon"></span></th>
-                            @endforeach
-                            <th class="matrix-total" data-key="{{ $matrixJenisCols->count() + 1 }}" data-type="number">
-                                Total <span class="sort-icon"></span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($tot_per_lokasi as $lokasiRow)
-                            @php
-                                $rowCells = $matrixCells
-                                    ->get($lokasiRow->lokasi, collect())
-                                    ->pluck('total', 'nm_jenis');
-                                $lokasiKey = $lokasiRow->lokasi ?? '__NULL__';
-                                $lokasiLabel = $lokasiRow->lokasi ?? '(Tanpa Lokasi)';
-                            @endphp
-                            <tr data-lokasi="{{ $lokasiKey }}">
-                                <th>{{ $lokasiLabel }}</th>
-                                @foreach ($matrixJenisCols as $nmJenis)
-                                    @php $cellTotal = $rowCells->get($nmJenis, 0); @endphp
-                                    <td
-                                        @if ($cellTotal) class="matrix-cell-clickable" data-lokasi="{{ $lokasiKey }}"
-                                        data-jenis="{{ $nmJenis }}" @endif>
-                                        {{ $cellTotal ?: '-' }}</td>
-                                @endforeach
-                                <td class="matrix-total" data-lokasi="{{ $lokasiKey }}">{{ $lokasiRow->total }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ $matrixJenisCols->count() + 2 }}" class="text-muted">Tidak ada data.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Mins Available :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txtminsavailable" readonly tabindex="-1">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Output / Day 100% :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txtoutputperday100" readonly tabindex="-1">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Output / Day based Eff :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txtoutputperdayefficiency" readonly tabindex="-1">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Total Days :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light" id="txttotaldays"
+                                        readonly tabindex="-1">
+                                </div>
+                            </div>
+                        </div>
 
-    <!-- Modal Detail Unit Area x Jenis Mesin -->
-    <div class="modal fade" id="areaJenisUnitModal" tabindex="-1" aria-labelledby="areaJenisUnitModalLabel"
-        aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-white">
-                    <h5 class="modal-title mb-0" id="areaJenisUnitModalLabel">Detail Unit Mesin</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-2">
-                        <input type="text" id="areaJenisUnitSearch" class="form-control form-control-sm"
-                            placeholder="Cari Serial Number / Merk / Tipe / No BPB / Status...">
+                        <hr>
+
+                        <div class="form-group">
+                            <label class="form-label">Ramp Up Efficiency (opsional) :</label>
+                            <div id="rampUpContainer"></div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-1"
+                                onclick="addRampUpRow()">
+                                <i class="fas fa-plus"></i> Tambah Hari
+                            </button>
+                            <small class="form-text text-muted d-block mt-1">
+                                Efisiensi bertahap untuk hari-hari awal (mis. operator masih adaptasi style
+                                baru). Kosongkan jika tidak perlu, hari setelahnya otomatis pakai Efficiency
+                                normal di atas.
+                            </small>
+                        </div>
                     </div>
-                    <div class="unit-modal-table-wrap">
-                        <table class="table table-bordered table-sm align-middle mb-0">
-                            <thead class="bg-sb">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i
+                                class="fas fa-times-circle"></i> Tutup</button>
+                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i>
+                            Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> PPIC Line Map</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                    data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
+                    <i class="fas fa-plus"></i> New
+                </button>
+
+                <form action="{{ route('ppic_line_map') }}" method="get" class="d-flex align-items-end gap-2">
+                    <div class="form-group mb-0">
+                        <label class="form-label mb-0">Dari Tanggal :</label>
+                        <input type="date" class="form-control form-control-sm" name="tgl_dari"
+                            value="{{ $filterStart }}">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label mb-0">Sampai Tanggal :</label>
+                        <input type="date" class="form-control form-control-sm" name="tgl_sampai"
+                            value="{{ $filterEnd }}">
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ route('ppic_line_map') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-times"></i> Reset
+                    </a>
+                </form>
+            </div>
+
+            <div class="line-map-calendar-wrapper">
+                <div class="line-map-calendar-inner">
+                    <table class="table table-sm line-map-fixed-table">
+                        <thead>
+                            <tr>
+                                <th>Line</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($line as $ln)
                                 <tr>
-                                    <th class="text-center">No</th>
-                                    <th>Serial Number</th>
-                                    <th>Merk</th>
-                                    <th>Tipe</th>
-                                    <th>No BPB</th>
-                                    <th>Status</th>
+                                    <td>
+                                        <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody id="areaJenisUnitTableBody"></tbody>
+                            @empty
+                                <tr>
+                                    <td class="text-muted">Belum ada data</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <table class="table table-sm line-map-dates-table">
+                        <thead>
+                            <tr>
+                                @foreach ($calendarDates as $date)
+                                    <th>{{ date('d M', strtotime($date->tanggal)) }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($line as $ln)
+                                <tr>
+                                    @foreach ($calendarDates as $date)
+                                        @php
+                                            $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
+                                                fn($e) => $date->tanggal >= $e->tgl_start &&
+                                                    $date->tanggal <= $e->tgl_end,
+                                            );
+                                            $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
+                                            $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
+                                            $isRampUp =
+                                                $activeEntry &&
+                                                in_array($date->tanggal, $activeEntry->ramp_up_dates ?? []);
+                                            $actualEntries = $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
+                                        @endphp
+                                        <td>
+                                            @if ($activeEntry && $planQty !== null)
+                                                <div>
+                                                    <span
+                                                        class="badge-plan @if ($isRampUp) badge-plan-rampup @endif"
+                                                        @if (!$isRampUp) style="background-color: {{ $activeEntry->style_color }};" @endif
+                                                        @if ($effPct !== null) title="Efisiensi: {{ rtrim(rtrim(number_format($effPct, 1), '0'), '.') }}%" @endif>
+                                                        @if ($activeEntry->buyer)
+                                                            {{ $activeEntry->buyer }} -
+                                                        @endif{{ $activeEntry->style }} - Plan
+                                                        {{ number_format($planQty, 0, ',', '.') }} pcs
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            @foreach ($actualEntries as $actual)
+                                                <div>
+                                                    <span class="badge-actual">
+                                                        @if ($actual->buyer)
+                                                            {{ $actual->buyer }} -
+                                                        @endif
+                                                        @if ($actual->style)
+                                                            {{ $actual->style }} -
+                                                        @endif
+                                                        Actual {{ number_format($actual->tot_rfts, 0, ',', '.') }} pcs
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </td>
+                                    @endforeach
+                                </tr>
+                                @empty
+                                    <tr>
+                                        @foreach ($calendarDates as $date)
+                                            <td></td>
+                                        @endforeach
+                                    </tr>
+                                @endforelse
+                            </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Daftar Line Map</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Line</th>
+                                <th>Style</th>
+                                <th>Buyer</th>
+                                <th>SMV</th>
+                                <th>Efficiency</th>
+                                <th>Order Qty</th>
+                                <th>Start Date</th>
+                                <th>Total Days</th>
+                                <th>Ramp Up</th>
+                                <th>Created By</th>
+                                <th>Updated At</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($lineMap as $row)
+                                <tr>
+                                    <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
+                                    <td>{{ $row->style }}</td>
+                                    <td>{{ $row->buyer }}</td>
+                                    <td>{{ $row->smv }}</td>
+                                    <td>{{ $row->efficiency !== null ? number_format($row->efficiency * 100, 0) . '%' : '-' }}
+                                    </td>
+                                    <td>{{ $row->qty_order !== null ? number_format($row->qty_order, 0, ',', '.') : '-' }}</td>
+                                    <td>{{ $row->tgl_start }}</td>
+                                    <td>{{ $row->tot_days_rounded }} hari</td>
+                                    <td>
+                                        @if (count($row->ramp_up_efficiency))
+                                            {{ count($row->ramp_up_efficiency) }} hari
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>{{ $row->created_by }}</td>
+                                    <td>{{ $row->updated_at ? date('d-m-Y H:i:s', strtotime($row->updated_at)) : '-' }}</td>
+                                    <td class="text-nowrap">
+                                        <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#newLineMapModal"
+                                            onclick='openEditLineMap(@json($row->edit_payload))'>
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="cancelLineMap({{ $row->id }})">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="12" class="text-center text-muted">Belum ada data</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
-@endsection
+    @endsection
 
-@section('custom-script')
-    <script>
-        function openAreaJenisUnitModal(lokasi, nmJenis, status, titleText) {
-            $('#areaJenisUnitModalLabel').text(titleText);
-            $('#areaJenisUnitSearch').val('');
-            let $body = $('#areaJenisUnitTableBody').empty();
+    @section('custom-script')
+        <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+        <script>
+            $(document).on('select2:open', () => {
+                document.querySelector('.select2-search__field').focus();
+            });
 
-            $.ajax({
-                type: 'GET',
-                url: '{{ route('asset_mesin_report_area_jenis_unit') }}',
-                data: {
-                    lokasi: lokasi,
-                    nm_jenis: nmJenis,
-                    status: status
-                },
-                success: function(units) {
-                    if (!units.length) {
-                        $body.append(
-                            '<tr><td colspan="6" class="text-center text-muted">Tidak ada data.</td></tr>');
-                    } else {
-                        units.forEach(function(unit, i) {
-                            $body.append(`
-                        <tr>
-                            <td class="text-center align-middle">${i + 1}</td>
-                            <td class="align-middle">${unit.serial_number ?? '-'}</td>
-                            <td class="align-middle">${unit.nm_merk ?? '-'}</td>
-                            <td class="align-middle">${unit.tipe ?? '-'}</td>
-                            <td class="align-middle">${unit.bpbno_int ?? '-'}</td>
-                            <td class="align-middle">${unit.status ?? '-'}</td>
-                        </tr>`);
-                        });
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                containerCssClass: 'form-control-sm rounded',
+                dropdownParent: $('#newLineMapModal')
+            });
+
+            function syncLineMapRowHeights() {
+                const fixedRows = document.querySelectorAll('.line-map-fixed-table tbody tr');
+                const dateRows = document.querySelectorAll('.line-map-dates-table tbody tr');
+
+                fixedRows.forEach((row, i) => {
+                    const dateRow = dateRows[i];
+                    if (!dateRow) return;
+                    row.style.height = '';
+                    dateRow.style.height = '';
+                });
+
+                fixedRows.forEach((row, i) => {
+                    const dateRow = dateRows[i];
+                    if (!dateRow) return;
+                    const maxHeight = Math.max(row.offsetHeight, dateRow.offsetHeight);
+                    row.style.height = maxHeight + 'px';
+                    dateRow.style.height = maxHeight + 'px';
+                });
+            }
+
+            $(window).on('load', syncLineMapRowHeights);
+
+            function addRampUpRow() {
+                const dayNumber = $('#rampUpContainer .ramp-up-row').length + 1;
+                const row = $(`
+                <div class="input-group input-group-sm mb-1 ramp-up-row">
+                    <span class="input-group-text ramp-up-day-label">Hari ${dayNumber}</span>
+                    <input type="number" class="form-control" name="ramp_efficiency[]"
+                        placeholder="Cnth: 50" min="0" max="100">
+                    <span class="input-group-text">%</span>
+                    <button type="button" class="btn btn-outline-danger" tabindex="-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `);
+                row.find('button').on('click', function() {
+                    row.remove();
+                    renumberRampUpRows();
+                    calculateLineMap();
+                });
+                row.find('input').on('input', calculateLineMap);
+                $('#rampUpContainer').append(row);
+            }
+
+            function renumberRampUpRows() {
+                $('#rampUpContainer .ramp-up-row').each(function(index) {
+                    $(this).find('.ramp-up-day-label').text('Hari ' + (index + 1));
+                });
+            }
+
+            function getRampUpEfficiencies() {
+                return $('#rampUpContainer input[name="ramp_efficiency[]"]').map(function() {
+                    return parseFloat($(this).val());
+                }).get().filter(val => !isNaN(val));
+            }
+
+            function openNewLineMap() {
+                $('#formLineMap').trigger('reset');
+                $('#editid').val('');
+                $('#lineMapModalTitle').text('Tambah Line Map');
+                $('.select2bs4').val('').trigger('change');
+                $('#rampUpContainer').empty();
+                calculateLineMap();
+            }
+
+            function openEditLineMap(data) {
+                $('#formLineMap').trigger('reset');
+                $('#editid').val(data.id);
+                $('#lineMapModalTitle').text('Edit Line Map');
+
+                $('#cboline').val(data.line).trigger('change');
+                $('#txtstyle').val(data.style);
+                $('#txtsmv').val(data.smv);
+                $('#txtefficiency').val(data.efficiency !== null ? Math.round(data.efficiency * 100) : '');
+                $('#txtorderqty').val(data.qty_order !== null ?
+                    Number(data.qty_order).toLocaleString('id-ID').replace(/,/g, '.') : '');
+                $('#txtbuyer').val(data.buyer);
+                $('#txtmanpower').val(data.man_power);
+                $('#txtworkingminutes').val(data.working_min);
+                $('#cbodate').val(data.tgl_start);
+
+                $('#rampUpContainer').empty();
+                (data.ramp_up_efficiency || []).forEach(function(eff) {
+                    addRampUpRow();
+                    $('#rampUpContainer .ramp-up-row').last().find('input[name="ramp_efficiency[]"]')
+                        .val(Math.round(eff * 100));
+                });
+
+                calculateLineMap();
+            }
+
+            function calculateLineMap() {
+                const manPower = parseFloat($('#txtmanpower').val()) || 0;
+                const workingMinutes = parseFloat($('#txtworkingminutes').val()) || 0;
+                const smv = parseFloat($('#txtsmv').val()) || 0;
+                const efficiency = parseFloat($('#txtefficiency').val()) || 0;
+                const orderQty = parseFloat(($('#txtorderqty').val() || '').replace(/\./g, '')) || 0;
+                const rampUp = getRampUpEfficiencies();
+
+                const minsAvailable = manPower * workingMinutes;
+                const outputPerDay100 = smv > 0 ? minsAvailable / smv : 0;
+                const outputPerDayEfficiency = outputPerDay100 * (efficiency / 100);
+
+                let totalDays = 0;
+                if (outputPerDay100 > 0 && orderQty > 0) {
+                    let produced = 0;
+                    const maxDays = 3650;
+                    while (produced < orderQty && totalDays < maxDays) {
+                        const eff = totalDays < rampUp.length ? (rampUp[totalDays] / 100) : (efficiency / 100);
+                        const dailyOutput = outputPerDay100 * eff;
+                        if (dailyOutput <= 0) break;
+                        produced += dailyOutput;
+                        totalDays++;
                     }
-                    $('#areaJenisUnitModal').modal('show');
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Gagal memuat data unit mesin.',
+                }
+
+                $('#txtminsavailable').val(minsAvailable.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txtoutputperday100').val(outputPerDay100.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txtoutputperdayefficiency').val(outputPerDayEfficiency.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txttotaldays').val(totalDays.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+            }
+
+            $('#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty').on('input', calculateLineMap);
+
+            function cancelLineMap(id) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Hapus Data?',
+                    text: 'Data ini tidak akan tampil lagi di tabel maupun kalender.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    const url = @json(route('cancel_ppic_line_map', ':id')).replace(':id', id);
+
+                    fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: data.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message ?? 'Data gagal dihapus',
+                                    confirmButtonText: 'Tutup'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Hapus Line Map error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan saat menghapus data',
+                                confirmButtonText: 'Tutup'
+                            });
+                        });
+                });
+            }
+
+            function submitLineMapForm(form, event) {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                if (formData.has('txtorderqty')) {
+                    formData.set('txtorderqty', formData.get('txtorderqty').replace(/\./g, ''));
+                }
+
+                fetch(form.getAttribute('action'), {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            $('#newLineMapModal').modal('hide');
+                            form.reset();
+                            $('.select2bs4').val('').trigger('change');
+                            $('#rampUpContainer').empty();
+                            calculateLineMap();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message ?? 'Data gagal disimpan',
+                                confirmButtonText: 'Tutup'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Simpan Line Map error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Terjadi kesalahan saat menyimpan data',
+                            confirmButtonText: 'Tutup'
+                        });
                     });
-                }
-            });
-        }
-
-        // Klik bar di "Report Qty per Area" -> detail semua jenis mesin di area tersebut
-        $('.hbar-row[data-lokasi]').on('click', function() {
-            let lokasi = $(this).data('lokasi');
-            let label = $(this).find('.hbar-label').text();
-            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
-        });
-
-        // Klik bar di "Report per Jenis Mesin" -> detail semua area untuk jenis tersebut
-        $('.hbar-row[data-jenis]').on('click', function() {
-            let nmJenis = $(this).data('jenis');
-            openAreaJenisUnitModal(null, nmJenis, null, `${nmJenis} - Semua Area`);
-        });
-
-        // Klik baris di "Status Mesin" -> detail semua mesin dengan status tersebut
-        $('.status-row[data-status]').on('click', function() {
-            let status = $(this).data('status');
-            let label = $(this).find('.status-row-label').text();
-            openAreaJenisUnitModal(null, null, status, `Status ${label} - Semua Mesin`);
-        });
-
-        // Klik cell matrix (area x jenis) -> detail kombinasi spesifik
-        $('#matrixTable').on('click', 'td.matrix-cell-clickable', function() {
-            let lokasi = $(this).data('lokasi');
-            let nmJenis = $(this).data('jenis');
-            let label = $(this).closest('tr').find('th').first().text();
-            openAreaJenisUnitModal(lokasi, nmJenis, null, `${label} - ${nmJenis}`);
-        });
-
-        // Klik kolom Total per baris -> detail semua jenis mesin di area itu
-        $('#matrixTable').on('click', 'td.matrix-total', function() {
-            let lokasi = $(this).data('lokasi');
-            let label = $(this).closest('tr').find('th').first().text();
-            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
-        });
-
-        // Search di dalam modal detail unit: filter baris yang sudah dimuat
-        $('#areaJenisUnitSearch').on('keyup', function() {
-            let keyword = $(this).val().toLowerCase();
-            $('#areaJenisUnitTableBody tr').each(function() {
-                let text = $(this).text().toLowerCase();
-                $(this).toggleClass('d-none', text.indexOf(keyword) === -1);
-            });
-        });
-
-        // Search: filter baris matrix berdasarkan nama Area
-        $('#matrixSearch').on('keyup', function() {
-            let keyword = $(this).val().toLowerCase();
-            $('#matrixTable tbody tr[data-lokasi]').each(function() {
-                let lokasi = $(this).find('th').first().text().toLowerCase();
-                $(this).toggleClass('d-none', lokasi.indexOf(keyword) === -1);
-            });
-        });
-
-        // Sort: klik header kolom matrix untuk sort baris (toggle asc/desc)
-        $('#matrixTable thead th').on('click', function() {
-            let $th = $(this);
-            let key = $th.data('key');
-            let type = $th.data('type');
-            let asc = !$th.hasClass('sort-asc');
-
-            $('#matrixTable thead th').removeClass('sort-asc sort-desc');
-            $th.addClass(asc ? 'sort-asc' : 'sort-desc');
-
-            let $rows = $('#matrixTable tbody tr[data-lokasi]').get();
-
-            $rows.sort(function(a, b) {
-                let cellA = $(a).find('th, td').eq(key).text().trim();
-                let cellB = $(b).find('th, td').eq(key).text().trim();
-
-                if (type === 'number') {
-                    let valA = cellA === '-' ? 0 : parseFloat(cellA) || 0;
-                    let valB = cellB === '-' ? 0 : parseFloat(cellB) || 0;
-                    return asc ? valA - valB : valB - valA;
-                }
-
-                return asc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
-            });
-
-            $.each($rows, function(i, row) {
-                $('#matrixTable tbody').append(row);
-            });
-        });
-    </script>
-@endsection
+            }
+        </script>
+    @endsection

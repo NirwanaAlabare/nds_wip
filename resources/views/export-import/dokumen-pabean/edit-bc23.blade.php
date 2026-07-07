@@ -153,7 +153,7 @@
                         </div>
                         {{-- <div class="col-md-3 form-group hidden">
                             <label>Pelabuhan Muat</label>
-                            <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
+                            <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                 @if(!empty($dataDetail['kodePelMuat']))
                                     <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
                                 @endif
@@ -161,7 +161,7 @@
                         </div> --}}
                         <div class="col-md-3 form-group">
                             <label>Pelabuhan Bongkar</label>
-                            <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                            <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                 @if(!empty($dataDetail['kodePelBongkar']))
                                     <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
                                 @endif
@@ -461,7 +461,7 @@
                                                             <td><input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarif]" class="form-control form-control-sm input-decimal text-center" value="{{ $tarif['tarif'] }}" style="font-size:11px;"></td>
                                                             <td><input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarifFasilitas]" class="form-control form-control-sm input-decimal text-center" value="{{ $tarif['tarifFasilitas'] }}" style="font-size:11px;"></td>
                                                             <td>
-                                                                <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm" style="font-size:11px;">
+                                                                <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm select2bs4" style="font-size:11px;">
                                                                     <option value="3" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '3' ? 'selected' : '' }}>3 - Ditangguhkan</option>
                                                                     <option value="5" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - Dibebaskan</option>
                                                                     <option value="6" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - Tdk Dipungut</option>
@@ -509,7 +509,7 @@
                                                                 </div>
                                                                 <input type="hidden" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisPungutan]" value="{{ $bmtType }}">
                                                                 <div class="col-md-3">
-                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisTarif]" class="form-control form-control-sm bmt-jenis-tarif" style="font-size: 11px;">
+                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisTarif]" class="form-control form-control-sm bmt-jenis-tarif select2bs4" style="font-size: 11px;">
                                                                         <option value="1" {{ $jenisTarif == '1' ? 'selected' : '' }}>Advalorum (%)</option>
                                                                         <option value="2" {{ $jenisTarif == '2' ? 'selected' : '' }}>Spesifik</option>
                                                                     </select>
@@ -533,7 +533,7 @@
                                                             <div class="row align-items-center">
                                                                 <div class="col-md-5"></div>
                                                                 <div class="col-md-4">
-                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm" style="font-size: 11px;">
+                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm select2bs4" style="font-size: 11px;">
                                                                         <option value="3" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '3' ? 'selected' : '' }}>3 - DTG - DITANGGUHKAN</option>
                                                                         <option value="5" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - BBS - DIBEBASKAN</option>
                                                                         <option value="6" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
@@ -756,7 +756,7 @@
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Kode BC 1.1</label>
                                         <div class="input-group input-group-sm">
-                                            <select name="kodeBc11" class="form-control" style="max-width:40%;">
+                                            <select name="kodeBc11" class="form-control select2bs4" style="max-width:40%;">
                                                 <option value="10" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '') == '10' ? 'selected' : '' }}>BC 1.0</option>
                                                 <option value="11" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '11') == '11' ? 'selected' : '' }}>BC 1.1</option>
                                             </select>
@@ -820,7 +820,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Pelabuhan Muat</label>
-                                        <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
+                                        <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             @if(!empty($dataDetail['kodePelMuat']))
                                                 <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
                                             @endif
@@ -828,7 +828,7 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Pelabuhan Transit</label>
-                                        <select name="kodePelTransit" class="form-control form-control-sm select2-pelabuhan">
+                                        <select name="kodePelTransit" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             @if(!empty($dataDetail['kodePelTransit']))
                                                 <option value="{{ $dataDetail['kodePelTransit'] }}" selected>{{ $dataDetail['kodePelTransit'] }}</option>
                                             @endif
@@ -836,7 +836,7 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Pelabuhan Bongkar</label>
-                                        <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                                        <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             @if(!empty($dataDetail['kodePelBongkar']))
                                                 <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
                                             @endif
@@ -951,7 +951,7 @@
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Harga Barang</label>
                                         <div class="input-group input-group-sm">
-                                            <select name="kodeIncoterm" class="form-control" style="max-width:55%;">
+                                            <select name="kodeIncoterm" class="form-control select2bs4" style="max-width:55%;">
                                                 <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? 'CIF') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
                                                 <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
                                             </select>
@@ -994,7 +994,7 @@
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Asuransi</label>
                                         <div class="input-group input-group-sm">
-                                            <select name="kodeAsuransi" class="form-control" style="max-width:50%;">
+                                            <select name="kodeAsuransi" class="form-control select2bs4" style="max-width:50%;">
                                                 <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'LN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option>
                                                 <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? '') == 'DN' ? 'selected' : '' }}>DALAM NEGERI</option>
                                             </select>
@@ -1025,7 +1025,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Jasa Kena Pajak</label>
-                                        <select name="kodeJasaKenaPajak" class="form-control form-control-sm">
+                                        <select name="kodeJasaKenaPajak" class="form-control form-control-sm select2bs4">
                                             <option value="">Pilih Jasa Kena Pajak</option>
                                             <option value="1" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '') == '1' ? 'selected' : '' }}>1 - PEMBELIAN BKP</option>
                                             <option value="2" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '') == '2' ? 'selected' : '' }}>2 - PENERIMA JASA JKP</option>
