@@ -122,10 +122,10 @@ ORDER BY
 
 
         // For non-AJAX (initial page load)
-        return view('asset_management.asset_mesin_report_stok_jenis_area', [
-            'page' => 'dashboard-asset',
+        return view('ppic.line_map', [
+            'page' => 'dashboard-ppic',
             'subPageGroup' => 'asset-mesin',
-            'subPage' => 'asset_mesin_report',
+            'subPage' => 'ppic_line_map',
             'containerFluid' => true,
             'tot_jenis' => $tot_jenis,
             'tot_per_status' => $tot_per_status,

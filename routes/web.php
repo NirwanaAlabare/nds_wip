@@ -77,6 +77,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
+use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
@@ -1067,6 +1068,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/download-barcode', 'downloadBarcode')->name('download-barcode-packing');
     });
 
+    // PPIC Line MAP
+    Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
+        Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
+    });
+
     // Tools Adjustment PPIC
     Route::controller(PPIC_tools_adjustmentController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_tools_adj_mut_output', 'ppic_tools_adj_mut_output')->name('ppic_tools_adj_mut_output');
@@ -1257,7 +1263,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-barcode', 'saveBarcode')->name('so-save-barcode');
     });
 
-    // Master Asset Management Lokasi
+    // Marketing Report
     Route::controller(MarketingReportController::class)->middleware('marketing')->group(function () {
         Route::get('/marketing_report_cvs_detail', 'marketing_report_cvs_detail')->name('marketing_report_cvs_detail');
         Route::get('/marketing_report_cvs_detail/export_excel', 'export_excel_marketing_cvs_detail')->name('export_excel_marketing_cvs_detail');
