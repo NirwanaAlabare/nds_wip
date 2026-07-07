@@ -32,7 +32,7 @@
         .line-map-dates-table td {
             white-space: nowrap;
             vertical-align: middle;
-            height: 44px;
+            height: 68px;
             border-right: 1px solid #dee2e6;
             border-bottom: 1px solid #dee2e6;
         }
@@ -82,6 +82,18 @@
 
         .badge-plan.badge-plan-rampup {
             background-color: #fd7e14;
+        }
+
+        .badge-actual {
+            display: inline-block;
+            background-color: #198754;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            margin-top: 3px;
         }
     </style>
 @endsection
@@ -294,28 +306,120 @@
                                 <tr>
                                     @foreach ($calendarDates as $date)
                                         @php
-                                            $activeEntry = ($lineMapByLine[$ln->username] ?? collect())
-                                                ->first(fn($e) => $date->tanggal >= $e->tgl_start && $date->tanggal <= $e->tgl_end);
+                                            $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
+                                                fn($e) => $date->tanggal >= $e->tgl_start &&
+                                                    $date->tanggal <= $e->tgl_end,
+                                            );
                                             $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
                                             $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
-                                            $isRampUp = $activeEntry && in_array($date->tanggal, $activeEntry->ramp_up_dates ?? []);
+                                            $isRampUp =
+                                                $activeEntry &&
+                                                in_array($date->tanggal, $activeEntry->ramp_up_dates ?? []);
+                                            $actualEntries = $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
                                         @endphp
                                         <td>
                                             @if ($activeEntry && $planQty !== null)
-                                                <span class="badge-plan @if ($isRampUp) badge-plan-rampup @endif"
-                                                    @if (!$isRampUp) style="background-color: {{ $activeEntry->style_color }};" @endif
-                                                    @if ($effPct !== null) title="Efisiensi: {{ rtrim(rtrim(number_format($effPct, 1), '0'), '.') }}%" @endif>
-                                                    @if ($activeEntry->buyer) {{ $activeEntry->buyer }} - @endif{{ $activeEntry->style }} - Plan {{ number_format($planQty, 0, ',', '.') }} pcs
-                                                </span>
+                                                <div>
+                                                    <span
+                                                        class="badge-plan @if ($isRampUp) badge-plan-rampup @endif"
+                                                        @if (!$isRampUp) style="background-color: {{ $activeEntry->style_color }};" @endif
+                                                        @if ($effPct !== null) title="Efisiensi: {{ rtrim(rtrim(number_format($effPct, 1), '0'), '.') }}%" @endif>
+                                                        @if ($activeEntry->buyer)
+                                                            {{ $activeEntry->buyer }} -
+                                                        @endif{{ $activeEntry->style }} - Plan
+                                                        {{ number_format($planQty, 0, ',', '.') }} pcs
+                                                    </span>
+                                                </div>
                                             @endif
+                                            @foreach ($actualEntries as $actual)
+                                                <div>
+                                                    <span class="badge-actual">
+                                                        @if ($actual->buyer)
+                                                            {{ $actual->buyer }} -
+                                                        @endif
+                                                        @if ($actual->style)
+                                                            {{ $actual->style }} -
+                                                        @endif
+                                                        Actual {{ number_format($actual->tot_rfts, 0, ',', '.') }} pcs
+                                                    </span>
+                                                </div>
+                                            @endforeach
                                         </td>
                                     @endforeach
                                 </tr>
+                                @empty
+                                    <tr>
+                                        @foreach ($calendarDates as $date)
+                                            <td></td>
+                                        @endforeach
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Daftar Line Map</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Line</th>
+                                <th>Style</th>
+                                <th>Buyer</th>
+                                <th>SMV</th>
+                                <th>Efficiency</th>
+                                <th>Order Qty</th>
+                                <th>Start Date</th>
+                                <th>Total Days</th>
+                                <th>Ramp Up</th>
+                                <th>Created By</th>
+                                <th>Updated At</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($lineMap as $row)
+                                <tr>
+                                    <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
+                                    <td>{{ $row->style }}</td>
+                                    <td>{{ $row->buyer }}</td>
+                                    <td>{{ $row->smv }}</td>
+                                    <td>{{ $row->efficiency !== null ? number_format($row->efficiency * 100, 0) . '%' : '-' }}
+                                    </td>
+                                    <td>{{ $row->qty_order !== null ? number_format($row->qty_order, 0, ',', '.') : '-' }}</td>
+                                    <td>{{ $row->tgl_start }}</td>
+                                    <td>{{ $row->tot_days_rounded }} hari</td>
+                                    <td>
+                                        @if (count($row->ramp_up_efficiency))
+                                            {{ count($row->ramp_up_efficiency) }} hari
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>{{ $row->created_by }}</td>
+                                    <td>{{ $row->updated_at ? date('d-m-Y H:i:s', strtotime($row->updated_at)) : '-' }}</td>
+                                    <td class="text-nowrap">
+                                        <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#newLineMapModal"
+                                            onclick='openEditLineMap(@json($row->edit_payload))'>
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="cancelLineMap({{ $row->id }})">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </td>
+                                </tr>
                             @empty
                                 <tr>
-                                    @foreach ($calendarDates as $date)
-                                        <td></td>
-                                    @endforeach
+                                    <td colspan="12" class="text-center text-muted">Belum ada data</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -323,87 +427,46 @@
                 </div>
             </div>
         </div>
-    </div>
+    @endsection
 
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Daftar Line Map</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm align-middle">
-                    <thead>
-                        <tr>
-                            <th>Line</th>
-                            <th>Style</th>
-                            <th>Buyer</th>
-                            <th>SMV</th>
-                            <th>Efficiency</th>
-                            <th>Order Qty</th>
-                            <th>Start Date</th>
-                            <th>Total Days</th>
-                            <th>Ramp Up</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($lineMap as $row)
-                            <tr>
-                                <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
-                                <td>{{ $row->style }}</td>
-                                <td>{{ $row->buyer }}</td>
-                                <td>{{ $row->smv }}</td>
-                                <td>{{ $row->efficiency !== null ? number_format($row->efficiency * 100, 0) . '%' : '-' }}</td>
-                                <td>{{ $row->qty_order !== null ? number_format($row->qty_order, 0, ',', '.') : '-' }}</td>
-                                <td>{{ $row->tgl_start }}</td>
-                                <td>{{ $row->tot_days_rounded }} hari</td>
-                                <td>
-                                    @if (count($row->ramp_up_efficiency))
-                                        {{ count($row->ramp_up_efficiency) }} hari
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="text-nowrap">
-                                    <button type="button" class="btn btn-outline-warning btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#newLineMapModal"
-                                        onclick='openEditLineMap(@json($row->edit_payload))'>
-                                        <i class="fas fa-pen"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="cancelLineMap({{ $row->id }})">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" class="text-center text-muted">Belum ada data</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-@endsection
+    @section('custom-script')
+        <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+        <script>
+            $(document).on('select2:open', () => {
+                document.querySelector('.select2-search__field').focus();
+            });
 
-@section('custom-script')
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script>
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                containerCssClass: 'form-control-sm rounded',
+                dropdownParent: $('#newLineMapModal')
+            });
 
-        $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            containerCssClass: 'form-control-sm rounded',
-            dropdownParent: $('#newLineMapModal')
-        });
+            function syncLineMapRowHeights() {
+                const fixedRows = document.querySelectorAll('.line-map-fixed-table tbody tr');
+                const dateRows = document.querySelectorAll('.line-map-dates-table tbody tr');
 
-        function addRampUpRow() {
-            const dayNumber = $('#rampUpContainer .ramp-up-row').length + 1;
-            const row = $(`
+                fixedRows.forEach((row, i) => {
+                    const dateRow = dateRows[i];
+                    if (!dateRow) return;
+                    row.style.height = '';
+                    dateRow.style.height = '';
+                });
+
+                fixedRows.forEach((row, i) => {
+                    const dateRow = dateRows[i];
+                    if (!dateRow) return;
+                    const maxHeight = Math.max(row.offsetHeight, dateRow.offsetHeight);
+                    row.style.height = maxHeight + 'px';
+                    dateRow.style.height = maxHeight + 'px';
+                });
+            }
+
+            $(window).on('load', syncLineMapRowHeights);
+
+            function addRampUpRow() {
+                const dayNumber = $('#rampUpContainer .ramp-up-row').length + 1;
+                const row = $(`
                 <div class="input-group input-group-sm mb-1 ramp-up-row">
                     <span class="input-group-text ramp-up-day-label">Hari ${dayNumber}</span>
                     <input type="number" class="form-control" name="ramp_efficiency[]"
@@ -414,118 +477,164 @@
                     </button>
                 </div>
             `);
-            row.find('button').on('click', function() {
-                row.remove();
-                renumberRampUpRows();
-                calculateLineMap();
-            });
-            row.find('input').on('input', calculateLineMap);
-            $('#rampUpContainer').append(row);
-        }
-
-        function renumberRampUpRows() {
-            $('#rampUpContainer .ramp-up-row').each(function(index) {
-                $(this).find('.ramp-up-day-label').text('Hari ' + (index + 1));
-            });
-        }
-
-        function getRampUpEfficiencies() {
-            return $('#rampUpContainer input[name="ramp_efficiency[]"]').map(function() {
-                return parseFloat($(this).val());
-            }).get().filter(val => !isNaN(val));
-        }
-
-        function openNewLineMap() {
-            $('#formLineMap').trigger('reset');
-            $('#editid').val('');
-            $('#lineMapModalTitle').text('Tambah Line Map');
-            $('.select2bs4').val('').trigger('change');
-            $('#rampUpContainer').empty();
-            calculateLineMap();
-        }
-
-        function openEditLineMap(data) {
-            $('#formLineMap').trigger('reset');
-            $('#editid').val(data.id);
-            $('#lineMapModalTitle').text('Edit Line Map');
-
-            $('#cboline').val(data.line).trigger('change');
-            $('#txtstyle').val(data.style);
-            $('#txtsmv').val(data.smv);
-            $('#txtefficiency').val(data.efficiency !== null ? Math.round(data.efficiency * 100) : '');
-            $('#txtorderqty').val(data.qty_order !== null ?
-                Number(data.qty_order).toLocaleString('id-ID').replace(/,/g, '.') : '');
-            $('#txtbuyer').val(data.buyer);
-            $('#txtmanpower').val(data.man_power);
-            $('#txtworkingminutes').val(data.working_min);
-            $('#cbodate').val(data.tgl_start);
-
-            $('#rampUpContainer').empty();
-            (data.ramp_up_efficiency || []).forEach(function(eff) {
-                addRampUpRow();
-                $('#rampUpContainer .ramp-up-row').last().find('input[name="ramp_efficiency[]"]')
-                    .val(Math.round(eff * 100));
-            });
-
-            calculateLineMap();
-        }
-
-        function calculateLineMap() {
-            const manPower = parseFloat($('#txtmanpower').val()) || 0;
-            const workingMinutes = parseFloat($('#txtworkingminutes').val()) || 0;
-            const smv = parseFloat($('#txtsmv').val()) || 0;
-            const efficiency = parseFloat($('#txtefficiency').val()) || 0;
-            const orderQty = parseFloat(($('#txtorderqty').val() || '').replace(/\./g, '')) || 0;
-            const rampUp = getRampUpEfficiencies();
-
-            const minsAvailable = manPower * workingMinutes;
-            const outputPerDay100 = smv > 0 ? minsAvailable / smv : 0;
-            const outputPerDayEfficiency = outputPerDay100 * (efficiency / 100);
-
-            let totalDays = 0;
-            if (outputPerDay100 > 0 && orderQty > 0) {
-                let produced = 0;
-                const maxDays = 3650;
-                while (produced < orderQty && totalDays < maxDays) {
-                    const eff = totalDays < rampUp.length ? (rampUp[totalDays] / 100) : (efficiency / 100);
-                    const dailyOutput = outputPerDay100 * eff;
-                    if (dailyOutput <= 0) break;
-                    produced += dailyOutput;
-                    totalDays++;
-                }
+                row.find('button').on('click', function() {
+                    row.remove();
+                    renumberRampUpRows();
+                    calculateLineMap();
+                });
+                row.find('input').on('input', calculateLineMap);
+                $('#rampUpContainer').append(row);
             }
 
-            $('#txtminsavailable').val(minsAvailable.toLocaleString('id-ID', {
-                maximumFractionDigits: 0
-            }));
-            $('#txtoutputperday100').val(outputPerDay100.toLocaleString('id-ID', {
-                maximumFractionDigits: 0
-            }));
-            $('#txtoutputperdayefficiency').val(outputPerDayEfficiency.toLocaleString('id-ID', {
-                maximumFractionDigits: 0
-            }));
-            $('#txttotaldays').val(totalDays.toLocaleString('id-ID', {
-                maximumFractionDigits: 0
-            }));
-        }
+            function renumberRampUpRows() {
+                $('#rampUpContainer .ramp-up-row').each(function(index) {
+                    $(this).find('.ramp-up-day-label').text('Hari ' + (index + 1));
+                });
+            }
 
-        $('#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty').on('input', calculateLineMap);
+            function getRampUpEfficiencies() {
+                return $('#rampUpContainer input[name="ramp_efficiency[]"]').map(function() {
+                    return parseFloat($(this).val());
+                }).get().filter(val => !isNaN(val));
+            }
 
-        function cancelLineMap(id) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Hapus Data?',
-                text: 'Data ini tidak akan tampil lagi di tabel maupun kalender.',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (!result.isConfirmed) return;
+            function openNewLineMap() {
+                $('#formLineMap').trigger('reset');
+                $('#editid').val('');
+                $('#lineMapModalTitle').text('Tambah Line Map');
+                $('.select2bs4').val('').trigger('change');
+                $('#rampUpContainer').empty();
+                calculateLineMap();
+            }
 
-                const url = @json(route('cancel_ppic_line_map', ':id')).replace(':id', id);
+            function openEditLineMap(data) {
+                $('#formLineMap').trigger('reset');
+                $('#editid').val(data.id);
+                $('#lineMapModalTitle').text('Edit Line Map');
 
-                fetch(url, {
+                $('#cboline').val(data.line).trigger('change');
+                $('#txtstyle').val(data.style);
+                $('#txtsmv').val(data.smv);
+                $('#txtefficiency').val(data.efficiency !== null ? Math.round(data.efficiency * 100) : '');
+                $('#txtorderqty').val(data.qty_order !== null ?
+                    Number(data.qty_order).toLocaleString('id-ID').replace(/,/g, '.') : '');
+                $('#txtbuyer').val(data.buyer);
+                $('#txtmanpower').val(data.man_power);
+                $('#txtworkingminutes').val(data.working_min);
+                $('#cbodate').val(data.tgl_start);
+
+                $('#rampUpContainer').empty();
+                (data.ramp_up_efficiency || []).forEach(function(eff) {
+                    addRampUpRow();
+                    $('#rampUpContainer .ramp-up-row').last().find('input[name="ramp_efficiency[]"]')
+                        .val(Math.round(eff * 100));
+                });
+
+                calculateLineMap();
+            }
+
+            function calculateLineMap() {
+                const manPower = parseFloat($('#txtmanpower').val()) || 0;
+                const workingMinutes = parseFloat($('#txtworkingminutes').val()) || 0;
+                const smv = parseFloat($('#txtsmv').val()) || 0;
+                const efficiency = parseFloat($('#txtefficiency').val()) || 0;
+                const orderQty = parseFloat(($('#txtorderqty').val() || '').replace(/\./g, '')) || 0;
+                const rampUp = getRampUpEfficiencies();
+
+                const minsAvailable = manPower * workingMinutes;
+                const outputPerDay100 = smv > 0 ? minsAvailable / smv : 0;
+                const outputPerDayEfficiency = outputPerDay100 * (efficiency / 100);
+
+                let totalDays = 0;
+                if (outputPerDay100 > 0 && orderQty > 0) {
+                    let produced = 0;
+                    const maxDays = 3650;
+                    while (produced < orderQty && totalDays < maxDays) {
+                        const eff = totalDays < rampUp.length ? (rampUp[totalDays] / 100) : (efficiency / 100);
+                        const dailyOutput = outputPerDay100 * eff;
+                        if (dailyOutput <= 0) break;
+                        produced += dailyOutput;
+                        totalDays++;
+                    }
+                }
+
+                $('#txtminsavailable').val(minsAvailable.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txtoutputperday100').val(outputPerDay100.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txtoutputperdayefficiency').val(outputPerDayEfficiency.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+                $('#txttotaldays').val(totalDays.toLocaleString('id-ID', {
+                    maximumFractionDigits: 0
+                }));
+            }
+
+            $('#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty').on('input', calculateLineMap);
+
+            function cancelLineMap(id) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Hapus Data?',
+                    text: 'Data ini tidak akan tampil lagi di tabel maupun kalender.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    const url = @json(route('cancel_ppic_line_map', ':id')).replace(':id', id);
+
+                    fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: data.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message ?? 'Data gagal dihapus',
+                                    confirmButtonText: 'Tutup'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Hapus Line Map error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan saat menghapus data',
+                                confirmButtonText: 'Tutup'
+                            });
+                        });
+                });
+            }
+
+            function submitLineMapForm(form, event) {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                if (formData.has('txtorderqty')) {
+                    formData.set('txtorderqty', formData.get('txtorderqty').replace(/\./g, ''));
+                }
+
+                fetch(form.getAttribute('action'), {
                         method: 'POST',
+                        body: formData,
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                         }
@@ -533,6 +642,12 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            $('#newLineMapModal').modal('hide');
+                            form.reset();
+                            $('.select2bs4').val('').trigger('change');
+                            $('#rampUpContainer').empty();
+                            calculateLineMap();
+
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
@@ -544,72 +659,20 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: data.message ?? 'Data gagal dihapus',
+                                text: data.message ?? 'Data gagal disimpan',
                                 confirmButtonText: 'Tutup'
                             });
                         }
                     })
                     .catch(error => {
-                        console.error('Hapus Line Map error:', error);
+                        console.error('Simpan Line Map error:', error);
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: 'Terjadi kesalahan saat menghapus data',
+                            text: 'Terjadi kesalahan saat menyimpan data',
                             confirmButtonText: 'Tutup'
                         });
                     });
-            });
-        }
-
-        function submitLineMapForm(form, event) {
-            event.preventDefault();
-
-            const formData = new FormData(form);
-            if (formData.has('txtorderqty')) {
-                formData.set('txtorderqty', formData.get('txtorderqty').replace(/\./g, ''));
             }
-
-            fetch(form.getAttribute('action'), {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        $('#newLineMapModal').modal('hide');
-                        form.reset();
-                        $('.select2bs4').val('').trigger('change');
-                        $('#rampUpContainer').empty();
-                        calculateLineMap();
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: data.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => location.reload());
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: data.message ?? 'Data gagal disimpan',
-                            confirmButtonText: 'Tutup'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Simpan Line Map error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Terjadi kesalahan saat menyimpan data',
-                        confirmButtonText: 'Tutup'
-                    });
-                });
-        }
-    </script>
-@endsection
+        </script>
+    @endsection
