@@ -8,7 +8,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Check Orphan Transaction</h5>
+        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Check Incomplete Transaction</h5>
         <a href="{{ route('dc-tools') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Tools</a>
     </div>
 
