@@ -305,7 +305,7 @@
                                                 <span class="badge-plan @if ($isRampUp) badge-plan-rampup @endif"
                                                     @if (!$isRampUp) style="background-color: {{ $activeEntry->style_color }};" @endif
                                                     @if ($effPct !== null) title="Efisiensi: {{ rtrim(rtrim(number_format($effPct, 1), '0'), '.') }}%" @endif>
-                                                    {{ $activeEntry->style }} - Plan {{ number_format($planQty, 0, ',', '.') }} pcs
+                                                    @if ($activeEntry->buyer) {{ $activeEntry->buyer }} - @endif{{ $activeEntry->style }} - Plan {{ number_format($planQty, 0, ',', '.') }} pcs
                                                 </span>
                                             @endif
                                         </td>
@@ -589,9 +589,9 @@
                             icon: 'success',
                             title: 'Berhasil',
                             text: data.message,
-                            timer: 2000,
+                            timer: 1500,
                             showConfirmButton: false
-                        });
+                        }).then(() => location.reload());
                     } else {
                         Swal.fire({
                             icon: 'error',
