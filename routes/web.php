@@ -1071,6 +1071,8 @@ Route::middleware('auth')->group(function () {
     // PPIC Line MAP
     Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
+        Route::post('/ppic_line_map/store', 'store_ppic_line_map')->name('store_ppic_line_map');
+        Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
     });
 
     // Tools Adjustment PPIC
