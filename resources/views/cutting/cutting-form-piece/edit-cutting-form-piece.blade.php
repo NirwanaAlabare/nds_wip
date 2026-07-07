@@ -1940,18 +1940,25 @@
         }
 
         // Update Waktu Selesai
-        function updateWaktuSelesai(form, event) {
+        function updateWaktuSelesai(e, event) {
             showLoading();
 
             event.preventDefault();
 
+            let form = new FormData(e);
+
+            let dataObj = {
+                "id": $("#id").val(),
+            }
+
+            form.forEach((value, key) => dataObj[key] = value);
+
+            console.log(dataObj, form);
+
             $.ajax({
-                url: form.action,
-                type: form.method,
-                data: {
-                    id: $("#id").val(),
-                    waktu_selesai: form.waktu_selesai.value,
-                },
+                url: e.action,
+                type: e.method,
+                data: dataObj,
                 dataType: "json",
                 success: function(res) {
                     hideLoading();

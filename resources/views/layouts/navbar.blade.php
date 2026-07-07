@@ -895,6 +895,14 @@
                             Barcode Packing
                         </a>
                     </li>
+                    @if (in_array(auth()->user()->username, ['admin_01', 'reza']))
+                        <li class="nav-item">
+                            <a href="{{ route('ppic_line_map') }}"
+                                class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}" target="_blank">
+                                Line MAP
+                            </a>
+                        </li>
+                    @endif
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
@@ -1505,6 +1513,12 @@
                                         <a href="{{ route('asset_mesin_sewa_pengeluaran') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa_pengeluaran' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-minus"></i>Pengeluaran Mesin Cutt Off (Sewa)</a>
+
+                                        <div class="mega-dropdown-col-title">Report</div>
+                                        <a href="{{ route('asset_mesin_report_stok_jenis_area') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_pengeluaran' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-warehouse"></i>Stok Mesin Per Area, Jenis dan
+                                            Status</a>
                                     </div>
                                     <div class="mega-dropdown-col">
                                         <div class="mega-dropdown-col-title">Data Aset</div>

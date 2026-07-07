@@ -18,7 +18,7 @@ class AssetMesinTambahController extends Controller
 {
     public function asset_mesin_tambah(Request $request)
     {
-        $tgl_trans = '2024-01-01';
+        $tgl_trans = '2020-01-01';
         $supplierList = DB::connection('mysql_sb')->table('mastersupplier')
             ->select('id_supplier', 'Supplier')
             ->where('tipe_sup', '=', 'S')
@@ -74,9 +74,11 @@ class AssetMesinTambahController extends Controller
             ->select('id_jenis', 'kd_jenis', 'kd_merk', 'tipe', 'id_supplier')
             ->orderBy('kd_jenis', 'ASC')
             ->get();
+        $supplierMapAll = $supplierList->keyBy('id_supplier');
         foreach ($jenisList as $row) {
             $row->jenis = $jenisMap[$row->kd_jenis]->nm_jenis ?? $row->kd_jenis;
             $row->merk = $merkMap[$row->kd_merk]->nm_merk ?? $row->kd_merk;
+            $row->supplier = $supplierMapAll[$row->id_supplier]->Supplier ?? '-';
         }
 
         if ($request->ajax()) {
@@ -471,7 +473,7 @@ group by id_bpb, id_item, a.bpbno_int
     public function store_inject(Request $request)
     {
         $request->validate([
-            'tgl_trans' => 'required|date',
+            'tgl_trans' => 'required|date|after_or_equal:2026-01-01',
             'id_jenis' => 'required|exists:asset_master_jenis_mesin,id_jenis',
             'qty' => 'required|integer|min:1',
         ]);

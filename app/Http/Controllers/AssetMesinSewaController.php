@@ -323,7 +323,7 @@ class AssetMesinSewaController extends Controller
         ]);
 
         $color = ltrim((string) $request->color, '#');
-        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'f8bbd0';
+        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'fff59d';
 
         $codes = collect($request->kode_qr)->map(function ($kodeQr) use ($color) {
             $qr = QrCode::format('svg')->size(80)->backgroundColor(...array_map('hexdec', str_split($color, 2)));
