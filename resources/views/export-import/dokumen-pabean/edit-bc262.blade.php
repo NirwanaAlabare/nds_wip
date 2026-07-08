@@ -479,7 +479,7 @@
                                             <input type="hidden" name="barang[{{ $index }}][seriBarang]" value="{{ $index + 1 }}">
 
                                             <div class="row">
-                                                <!-- KOLOM KIRI: JENIS -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Jenis</div>
@@ -524,7 +524,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- KOLOM TENGAH: JUMLAH & BERAT -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Jumlah & Berat</div>
@@ -569,7 +569,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- KOLOM KANAN: HARGA & DOKUMEN FASILITAS -->
+
                                                 <div class="col-md-4">
                                                     <div class="card shadow-sm mb-3 border">
                                                         <div class="card-header fw-bold bg-light text-dark px-3 py-2" style="font-size:13px;">Harga</div>
@@ -608,7 +608,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- BOTTOM ROW: BAHAN BAKU -->
+
                                             <div class="row mt-3 d-none">
                                                 <div class="col-md-12">
                                                     <div class="card shadow-sm mb-3 border">
@@ -743,7 +743,7 @@
                             </div>
 
                             <div class="row">
-                                <!-- Column 1: BM & BMT -->
+
                                 <div class="col-md-4 mb-3">
                                     <table class="table table-bordered table-sm mb-0">
                                         <thead class="bg-light">
@@ -798,7 +798,7 @@
                                     </table>
                                 </div>
 
-                                <!-- Column 2: CUKAI & TOTAL -->
+
                                 <div class="col-md-4 mb-3">
                                     <table class="table table-bordered table-sm mb-3">
                                         <thead class="bg-light">
@@ -846,7 +846,7 @@
                                     </table>
                                 </div>
 
-                                <!-- Column 3: PDRI -->
+
                                 <div class="col-md-4 mb-3">
                                     <table class="table table-bordered table-sm mb-0">
                                         <thead class="bg-light">
