@@ -18,7 +18,8 @@ select * from userpassword where username like '%line%' order by username asc");
             ->where(function ($q) {
                 $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
             })
-            ->orderBy('line')->orderBy('tgl_start')->get();
+            ->latest('tgl_start')
+            ->get();
 
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
@@ -186,6 +187,14 @@ left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
             'updated_at' => now(),
         ];
 
+        $overlap = $this->findLineMapOverlap($data['line'], $data['tgl_start'], $totalDays, $validated['editid'] ?? null);
+        if ($overlap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line yang sama.',
+            ], 422);
+        }
+
         if (!empty($validated['editid'])) {
             DB::table('ppic_line_map')->where('id', $validated['editid'])->update($data);
             $message = 'Data Line Map berhasil diupdate';
@@ -216,12 +225,103 @@ left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
         ]);
     }
 
+    public function move_ppic_line_map(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:ppic_line_map,id',
+            'target_line' => 'required|string',
+            'target_date' => 'required|date',
+            'source_date' => 'nullable|date',
+        ]);
+
+        $lineMap = DB::table('ppic_line_map')
+            ->where('id', $validated['id'])
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->first();
+
+        if (!$lineMap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Line Map tidak ditemukan',
+            ], 404);
+        }
+
+        $targetStartDate = $validated['target_date'];
+        if (!empty($validated['source_date']) && !empty($lineMap->tgl_start)) {
+            $sourceTime = strtotime($validated['source_date']);
+            $startTime = strtotime($lineMap->tgl_start);
+            $targetTime = strtotime($validated['target_date']);
+
+            if ($sourceTime !== false && $startTime !== false && $targetTime !== false) {
+                $dayOffset = (int) floor(($sourceTime - $startTime) / 86400);
+                $targetStartDate = date('Y-m-d', strtotime($validated['target_date'] . ' -' . $dayOffset . ' days'));
+            }
+        }
+
+        $overlap = $this->findLineMapOverlap($validated['target_line'], $targetStartDate, $lineMap->tot_days, $lineMap->id);
+        if ($overlap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak bisa dipindahkan. Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line tujuan.',
+            ], 422);
+        }
+
+        DB::table('ppic_line_map')
+            ->where('id', $validated['id'])
+            ->update([
+                'line' => $validated['target_line'],
+                'tgl_start' => $targetStartDate,
+                'updated_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal Line Map berhasil dipindahkan',
+        ]);
+    }
+
     private function styleColorFromName(?string $style): string
     {
         $hash = abs(crc32(strtoupper(trim($style ?? ''))));
         $hue = $hash % 360;
 
         return "hsl({$hue}, 62%, 42%)";
+    }
+
+    private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, ?int $ignoreId = null)
+    {
+        if (!$line || !$startDate) {
+            return null;
+        }
+
+        $totalDays = $totalDays !== null ? (int) round($totalDays) : 1;
+        $totalDays = max($totalDays, 1);
+        $endDate = date('Y-m-d', strtotime($startDate . ' +' . ($totalDays - 1) . ' days'));
+
+        $query = DB::table('ppic_line_map')
+            ->where('line', $line)
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            });
+
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->get()->first(function ($row) use ($startDate, $endDate) {
+            if (!$row->tgl_start) {
+                return false;
+            }
+
+            $rowTotalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
+            $rowTotalDays = max($rowTotalDays, 1);
+            $rowStartDate = $row->tgl_start;
+            $rowEndDate = date('Y-m-d', strtotime($rowStartDate . ' +' . ($rowTotalDays - 1) . ' days'));
+
+            return $rowStartDate <= $endDate && $rowEndDate >= $startDate;
+        });
     }
 
     private function simulateTotalDays(?float $outputPerDay100, ?float $qtyOrder, ?float $steadyEfficiency, array $rampUpEfficiency)
