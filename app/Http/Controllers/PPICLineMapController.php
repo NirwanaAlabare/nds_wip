@@ -77,18 +77,20 @@ select * from userpassword where username like '%line%' order by username asc");
 
         $actualRows = DB::connection('mysql_sb')->select("WITH a as (
 select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
-where updated_at >= ? and updated_at <= ?
-group by so_det_id, created_by, date(updated_at)
+left join master_plan mp on output_rfts.master_plan_id = mp.id
+where created_at >= ? and created_at <= ? and mp.cancel = 'N'
+group by so_det_id, created_by, date(created_at)
 )
 
-SELECT tgl_trans, u.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.styleno
+SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.kpno, ac.styleno, sd.reff_no, ac.styleno
 FROM a
-inner join user_sb_wip u on a.created_by = u.id
+left join user_sb_wip u on a.created_by = u.id
+left join userpassword up on up.line_id = u.line_id
 LEFT JOIN so_det sd on a.so_det_id = sd.id
 left join so on sd.id_so = so.id
 left join act_costing	 ac on so.id_cost = ac.id
 left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-group by ac.styleno, u.username, tgl_trans", [$calendarStart, $calendarEnd]);
+group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $actualByLineDate = collect($actualRows)
             ->groupBy('line')
