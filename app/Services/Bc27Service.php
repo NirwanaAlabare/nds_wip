@@ -343,9 +343,9 @@ class Bc27Service
                 if (in_array($kodeStr, ['705', '740', '704', '741', '640'])) $hasTransport = true;
             }
 
-            if (!$hasInvoice || !$hasTransport) {
-                throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L / AWB / Delivery Order (705/740/640). Silakan tambahkan di tab Dokumen Pendukung.");
-            }
+            // if (!$hasInvoice || !$hasTransport) {
+            //     throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L / AWB / Delivery Order (705/740/640). Silakan tambahkan di tab Dokumen Pendukung.");
+            // }
 
             $payloadKontainer = [];
             $seriKont = 1;
