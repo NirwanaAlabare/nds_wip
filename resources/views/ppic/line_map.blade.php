@@ -4,6 +4,8 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <style>
         .line-map-calendar-wrapper {
             overflow: auto;
@@ -511,7 +513,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-sm align-middle">
+                <table id="tblLineMapList" class="table table-bordered table-sm align-middle">
                     <thead>
                         <tr>
                             <th>Line</th>
@@ -575,6 +577,9 @@
 
 @section('custom-script')
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- DataTables -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
@@ -584,6 +589,13 @@
             theme: 'bootstrap4',
             containerCssClass: 'form-control-sm rounded',
             dropdownParent: $('#newLineMapModal')
+        });
+
+        $('#tblLineMapList').DataTable({
+            ordering: false,
+            paging: true,
+            searching: true,
+            responsive: true
         });
 
         function syncLineMapRowHeights() {
