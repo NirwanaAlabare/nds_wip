@@ -70,41 +70,37 @@ select * from userpassword where username like '%line%' order by username asc");
         $filterStart = $request->input('tgl_dari');
         $filterEnd = $request->input('tgl_sampai');
 
-        $calendarStart = $filterStart ?: date('Y-m-01');
-        $calendarEnd = $filterEnd ?: date('Y-m-t');
+        $calendarStart = $filterStart ?: date('Y-m-01 00:00:00');
+        $calendarEnd = $filterEnd ?: date('Y-m-t 23:59:59');
 
         $calendarDates = DB::select("select tanggal, nama_hari from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
 
-        $actualRows = DB::connection('mysql_sb')->select("
-WITH a as (
+        $actualRows = DB::connection('mysql_sb')->select("WITH a as (
 select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
-where created_at >= ? and created_at <= ? and status = 'NORMAL'
+where updated_at >= ? and updated_at <= ?
 group by so_det_id, created_by, date(updated_at)
 )
 
-SELECT tgl_trans, u.username as line, tot_rfts, supplier as buyer, sd.styleno_prod, ac.styleno, sd.reff_no FROM a
+SELECT tgl_trans, u.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.styleno
+FROM a
 inner join user_sb_wip u on a.created_by = u.id
 LEFT JOIN so_det sd on a.so_det_id = sd.id
 left join so on sd.id_so = so.id
 left join act_costing	 ac on so.id_cost = ac.id
 left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        ", [$calendarStart, $calendarEnd]);
+group by ac.styleno, u.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $actualByLineDate = collect($actualRows)
-            ->map(function ($row) {
-                $row->style = $row->styleno ?: $row->styleno_prod;
-                return $row;
-            })
             ->groupBy('line')
             ->map(function ($lineGroup) {
                 return $lineGroup->groupBy('tgl_trans')->map(function ($dateGroup) {
                     return $dateGroup
-                        ->groupBy(fn($r) => ($r->buyer ?? '') . '|' . ($r->style ?? ''))
+                        ->groupBy(fn($r) => ($r->buyer ?? '') . '|' . ($r->styleno ?? ''))
                         ->map(function ($group) {
                             $first = $group->first();
                             return (object) [
                                 'buyer' => $first->buyer,
-                                'style' => $first->style,
+                                'styleno' => $first->styleno,
                                 'tot_rfts' => $group->sum('tot_rfts'),
                             ];
                         })

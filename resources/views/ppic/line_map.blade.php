@@ -481,7 +481,7 @@
                                                             @foreach ($actualEntries as $actual)
                                                                 <div class="line-map-box-row">
                                                                     <span
-                                                                        class="row-label">{{ $actual->style ?: '-' }}</span>
+                                                                        class="row-label">{{ $actual->styleno ?: '-' }}</span>
                                                                     <span
                                                                         class="row-qty">{{ number_format($actual->tot_rfts, 0, ',', '.') }}</span>
                                                                 </div>
