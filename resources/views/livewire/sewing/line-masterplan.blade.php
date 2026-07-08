@@ -96,8 +96,8 @@
         </div>
     </div>
     <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <form method="post" action="{{ route('import-master-plan') }}" enctype="multipart/form-data" onsubmit="submitImport(this, event)">
+        <div class="modal-dialog modal-lg" role="document">
+            <form method="post" action="{{ route('import-master-plan') }}" enctype="multipart/form-data" id="form-import-master-plan" onsubmit="submitImport(this, event)">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
                         <h5 class="modal-title" id="exampleModalLabel">Upload Master Plan</h5>
@@ -108,9 +108,37 @@
                     <div class="modal-body">
                         {{ csrf_field() }}
                         <label class="drop-container" id="dropcontainer">
-                            <input type="file" name="file" required="required">
+                            <input type="file" name="file" required="required" onchange="submitImportPre()">
                         </label>
                         <a href="{{ asset('example/contoh-import-master-plan.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                        <div class="d-flex justify-content-end gap-3 my-2">
+                            <div class="d-flex align-items-center gap-1">
+                                <div style="width: 15px; height: 15px; background-color: #28a745; border-radius: 2px;"></div> <small>Aman (Data Ditemukan)</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <div style="width: 15px; height: 15px; background-color: #dc3545; border-radius: 2px;"></div> <small>Data Tidak Ditemukan</small>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered w-100" id="datatable-pre">
+                                <thead>
+                                    <tr>
+                                        <th>ID Plan</th>
+                                        <th>Sewing Line</th>
+                                        <th>Tanggal Plan</th>
+                                        <th>Tanggal Input</th>
+                                        <th>ID WS</th>
+                                        <th>WS</th>
+                                        <th>Color</th>
+                                        <th>SMV</th>
+                                        <th>Jam Kerja</th>
+                                        <th>Man Power</th>
+                                        <th>Plan Target</th>
+                                        <th>Target Efficiency</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
@@ -157,6 +185,7 @@
                                 <th>Technical</th>
                             </thead>
                             <tbody>
+                                {{-- This body will be filled by datatable --}}
                             </tbody>
                         </table>
                     </div>
@@ -252,14 +281,103 @@
             $('#importExcel').modal('show');
         }
 
+        var datatablePre;
+
+        datatablePre = $('#datatable-pre').DataTable({
+            processing: true,
+            serverSide: false,
+            data: [],
+            columns: [
+                { data: "id_plan" },
+                { data: "sewing_line" },
+                { data: "tgl_plan" },
+                { data: "tgl_input" },
+                { data: "id_ws" },
+                { data: "ws" },
+                { data: "color" },
+                { data: "smv" },
+                { data: "jam_kerja" },
+                { data: "man_power" },
+                { data: "plan_target" },
+                { data: "target_effy" },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return `<span class="`+(row.id_ws ? "text-success" : "text-danger")+`">`+data+`</span>`
+                    }
+                },
+            ]
+        });
+
+        function submitImportPre() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            datatablePre.clear().draw();
+
+            var formImportMasterPlan = document.getElementById("form-import-master-plan");
+
+            $.ajax({
+                url: '{{ route('import-master-plan-preview') }}',
+                type: 'post',
+                data: new FormData(formImportMasterPlan),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Master Plan berhasil diupload',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            res.data.forEach(item => {
+                                datatablePre.row.add({ // Use item.id instead of item.id_plan
+                                    "id_plan" : item.id_plan,
+                                    "sewing_line" : item.sewing_line,
+                                    "tgl_plan" : item.tgl_plan,
+                                    "tgl_input" : item.tgl_input,
+                                    "id_ws" : item.id_ws,
+                                    "ws" : item.ws,
+                                    "color" : item.color,
+                                    "smv" : item.smv,
+                                    "jam_kerja" : item.jam_kerja,
+                                    "man_power" : item.man_power,
+                                    "plan_target" : item.plan_target,
+                                    "target_effy" : item.target_effy,
+                                }).draw(false);
+                            });
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+                }
+            });
+        }
+
         function submitImport(e, evt) {
             document.getElementById("loading").classList.remove("d-none");
 
             evt.preventDefault();
 
             clearModified();
+            e.reset();
+            datatablePre.clear().draw();
 
             $.ajax({
+
                 url: e.getAttribute('action'),
                 type: e.getAttribute('method'),
                 data: new FormData(e),
@@ -271,11 +389,9 @@
                     if (res.status == 200) {
                         console.log(res);
 
-                        e.reset();
-
                         Swal.fire({
                             icon: 'success',
-                            title: 'Data Master Plan berhasil diupload',
+                            title: 'Data Master Plan berhasil disimpan',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -286,6 +402,11 @@
                         });
 
                         $('#importExcel').modal('hide');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Data Master Plan gagal disimpan',
+                        });
                     }
                 },
                 error: function (jqXHR) {

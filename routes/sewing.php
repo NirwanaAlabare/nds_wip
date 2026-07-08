@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::put('update', 'update')->name('update-master-plan');
         Route::post('store', 'store')->name('store-master-plan');
         Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-plan');
+        Route::post('/import-master-plan-preview', 'importMasterPlanPreview')->name('import-master-plan-preview');
         Route::post('/import-master-plan', 'importMasterPlan')->name('import-master-plan');
     });
 

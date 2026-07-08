@@ -98,7 +98,19 @@ class Bc27Service
             "dataDetail"     => $dataDetail,
             "items"          => $items,
             "nomorAju"       => $nomorAju,
-            "kantorList"     => $this->getKantorList()
+            "kantorList"     => $this->getKantorList(),
+            "listJenisTpb"       => \App\Services\BcReferenceService::getJenisTpb(),
+            "listTujuanPengiriman"=> \App\Services\BcReferenceService::getTujuanPengiriman('27'),
+            "listKategoriBarang" => \App\Services\BcReferenceService::getKategoriBarang(),
+            "listFasilitasTarif" => \App\Services\BcReferenceService::getFasilitasTarif(),
+            "listJenisTarif"     => \App\Services\BcReferenceService::getJenisTarif(),
+            "listValuta"         => \App\Services\BcReferenceService::getValuta(),
+            "listSatuanBarang"   => \App\Services\BcReferenceService::getSatuanBarang(),
+            "listJenisKemasan"   => \App\Services\BcReferenceService::getJenisKemasan(),
+            "referensiDokumen"   => \App\Services\BcReferenceService::getReferensiDokumen(),
+            "listJenisKontainer" => \App\Services\BcReferenceService::getJenisKontainer(),
+            "listTipeKontainer"  => \App\Services\BcReferenceService::getTipeKontainer(),
+            "listUkuranKontainer"=> \App\Services\BcReferenceService::getUkuranKontainer(),
         ]);
     }
 
@@ -331,9 +343,9 @@ class Bc27Service
                 if (in_array($kodeStr, ['705', '740', '704', '741', '640'])) $hasTransport = true;
             }
 
-            if (!$hasInvoice || !$hasTransport) {
-                throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L / AWB / Delivery Order (705/740/640). Silakan tambahkan di tab Dokumen Pendukung.");
-            }
+            // if (!$hasInvoice || !$hasTransport) {
+            //     throw new \Exception("Validasi Gagal: Dokumen BC 2.7 wajib melampirkan INVOICE (380) dan B/L / AWB / Delivery Order (705/740/640). Silakan tambahkan di tab Dokumen Pendukung.");
+            // }
 
             $payloadKontainer = [];
             $seriKont = 1;

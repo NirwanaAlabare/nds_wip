@@ -339,7 +339,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="text-sm ">Pelabuhan Muat Asal</label>
-                                        <select name="kodePelMuatAsal" class="form-control form-control-sm select2-pelabuhan ">
+                                        <select name="kodePelMuatAsal" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             <option value="">Pilih Pelabuhan Muat Asal</option>
                                             @if(!empty($dataDetail['kodePelMuatAsal'] ?? $dataDetail['kodePelMuat'] ?? ''))
                                                 <option value="{{ $dataDetail['kodePelMuatAsal'] ?? $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuatAsal'] ?? $dataDetail['kodePelMuat'] }}</option>
@@ -489,7 +489,7 @@
                                         <label class="small mb-0 ">Nomor Identitas</label>
                                         <div class="row">
                                             <div class="col-4 pr-1">
-                                                <select name="entitas[2][kodeJenisIdentitas]" class="form-control form-control-sm ">
+                                                <select name="entitas[2][kodeJenisIdentitas]" class="form-control form-control-sm select2bs4">
                                                     <option value="6" {{ ($dataDetail['entitas'][2]['kodeJenisIdentitas'] ?? '6') == '6' ? 'selected' : '' }}>6 - NPWP 16 DIGIT</option>
                                                     <option value="5" {{ ($dataDetail['entitas'][2]['kodeJenisIdentitas'] ?? '') == '5' ? 'selected' : '' }}>5 - NPWP 15 DIGIT</option>
                                                 </select>
@@ -542,7 +542,7 @@
                                         <label class="small mb-0">Nomor Identitas</label>
                                         <div class="row">
                                             <div class="col-4 pr-1">
-                                                <select name="entitas[3][kodeJenisIdentitas]" class="form-control form-control-sm">
+                                                <select name="entitas[3][kodeJenisIdentitas]" class="form-control form-control-sm select2bs4">
                                                     <option value="6" {{ ($dataDetail['entitas'][3]['kodeJenisIdentitas'] ?? $dataDetail['entitas'][9]['kodeJenisIdentitas'] ?? '6') == '6' ? 'selected' : '' }}>6 - NPWP 16 DIGIT</option>
                                                     <option value="5" {{ ($dataDetail['entitas'][3]['kodeJenisIdentitas'] ?? $dataDetail['entitas'][9]['kodeJenisIdentitas'] ?? '') == '5' ? 'selected' : '' }}>5 - NPWP 15 DIGIT</option>
                                                     <option value="3" {{ ($dataDetail['entitas'][3]['kodeJenisIdentitas'] ?? '') == '3' ? 'selected' : '' }}>3 - KTP</option>
@@ -673,7 +673,7 @@
                                     <tr>
                                         <td class="text-center p-2 align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="{{ $pIndex + 1 }}" readonly></td>
                                         <td class="p-2">
-                                            <select name="entitas[7][{{ $pIndex }}][kodeJenisIdentitas]" class="form-control form-control-sm mb-1 ">
+                                            <select name="entitas[7][{{ $pIndex }}][kodeJenisIdentitas]" class="form-control form-control-sm mb-1 select2bs4">
                                                 <option value="6" {{ ($pem['kodeJenisIdentitas'] ?? $pem['jenisId'] ?? '6') == '6' ? 'selected' : '' }}>NPWP 16 DIGIT</option>
                                                 <option value="5" {{ ($pem['kodeJenisIdentitas'] ?? $pem['jenisId'] ?? '') == '5' ? 'selected' : '' }}>NPWP 15 DIGIT</option>
                                                 <option value="2" {{ ($pem['kodeJenisIdentitas'] ?? $pem['jenisId'] ?? '') == '2' ? 'selected' : '' }}>Paspor</option>
@@ -713,7 +713,7 @@
                                         <label class="small mb-0">NPWP PPJK</label>
                                         <div class="row">
                                             <div class="col-4 pr-1">
-                                                <select name="entitas[4][kodeJenisIdentitas]" class="form-control form-control-sm">
+                                                <select name="entitas[4][kodeJenisIdentitas]" class="form-control form-control-sm select2bs4">
                                                     <option value="6" {{ ($dataDetail['entitas'][4]['kodeJenisIdentitas'] ?? '6') == '6' ? 'selected' : '' }}>6 - NPWP 16</option>
                                                     <option value="5" {{ ($dataDetail['entitas'][4]['kodeJenisIdentitas'] ?? '') == '5' ? 'selected' : '' }}>5 - NPWP 15</option>
                                                 </select>
@@ -881,7 +881,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="text-sm">Tempat Penimbunan</label>
-                                        <select name="kodeTps" class="form-control form-control-sm select2-tps-penimbunan">
+                                        <select name="kodeTps" class="form-control form-control-sm select2-tps-penimbunan select2bs4">
                                             <option value="">Pilih Tempat Penimbunan</option>
                                             @foreach($mapNamaTps as $code => $label)
                                                 <option value="{{ $code }}" {{ $tpsCode == $code ? 'selected' : '' }}>{{ $label }}</option>
@@ -894,7 +894,7 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="text-sm ">Pelabuhan Muat</label>
-                                        <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan ">
+                                        <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             <option value="">-- Pilih Pelabuhan Muat --</option>
                                             @if(!empty($dataDetail['kodePelMuat']))
                                                 <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
@@ -903,7 +903,7 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="text-sm">Pelabuhan Bongkar</label>
-                                        <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                                        <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             <option value="">-- Pilih Pelabuhan Bongkar --</option>
                                             @if(!empty($dataDetail['kodePelBongkar']))
                                                 <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
@@ -912,7 +912,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="text-sm ">Pelabuhan Tujuan</label>
-                                        <select name="kodePelTujuan" class="form-control form-control-sm select2-pelabuhan ">
+                                        <select name="kodePelTujuan" class="form-control form-control-sm select2-pelabuhan select2bs4">
                                             <option value="">-- Pilih Pelabuhan Tujuan --</option>
                                             @if(!empty($dataDetail['kodePelTujuan']))
                                                 <option value="{{ $dataDetail['kodePelTujuan'] }}" selected>{{ $dataDetail['kodePelTujuan'] }}</option>
@@ -1005,7 +1005,7 @@
                                         <input type="hidden" name="kontainer[{{ $kIndex }}][seriKontainer]" value="{{ $kIndex + 1 }}">
                                         <td><input type="text" name="kontainer[{{ $kIndex }}][nomorKontainer]" class="form-control form-control-sm text-uppercase" value="{{ $kont['nomorKontainer'] ?? '' }}"></td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeUkuranKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih Ukuran --</option>
                                                 @foreach($listUkuranKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeUkuranKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1013,7 +1013,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeJenisKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeJenisKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih Jenis --</option>
                                                 @foreach($listJenisKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeJenisKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1021,7 +1021,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="kontainer[{{ $kIndex }}][kodeTipeKontainer]" class="form-control form-control-sm">
+                                            <select name="kontainer[{{ $kIndex }}][kodeTipeKontainer]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih Tipe --</option>
                                                 @foreach($listTipeKontainer as $k => $v)
                                                     <option value="{{ $k }}" {{ ($kont['kodeTipeKontainer'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -1092,12 +1092,31 @@
                                         <label>Jenis Valuta</label>
                                         <select name="kodeValuta" class="form-control form-control-sm select2bs4 ">
                                             <option value="">-- Valuta --</option>
+                                            <option value="">Pilih Valuta</option>
                                             <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
                                             <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
                                             <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
+                                            <option value="BND" {{ ($dataDetail['kodeValuta'] ?? '') == 'BND' ? 'selected' : '' }}>BND - BRUNEI DOLLAR</option>
+                                            <option value="CAD" {{ ($dataDetail['kodeValuta'] ?? '') == 'CAD' ? 'selected' : '' }}>CAD - CANADIAN DOLLAR</option>
+                                            <option value="CHF" {{ ($dataDetail['kodeValuta'] ?? '') == 'CHF' ? 'selected' : '' }}>CHF - SWISS FRANC</option>
+                                            <option value="CNY" {{ ($dataDetail['kodeValuta'] ?? '') == 'CNY' ? 'selected' : '' }}>CNY - YUAN RENMINBI</option>
+                                            <option value="DKK" {{ ($dataDetail['kodeValuta'] ?? '') == 'DKK' ? 'selected' : '' }}>DKK - DANISH KRONE</option>
                                             <option value="EUR" {{ ($dataDetail['kodeValuta'] ?? '') == 'EUR' ? 'selected' : '' }}>EUR - EURO</option>
-                                            <option value="SGD" {{ ($dataDetail['kodeValuta'] ?? '') == 'SGD' ? 'selected' : '' }}>SGD - SINGAPORE DOLLAR</option>
+                                            <option value="GBP" {{ ($dataDetail['kodeValuta'] ?? '') == 'GBP' ? 'selected' : '' }}>GBP - POUND STERLING</option>
+                                            <option value="HKD" {{ ($dataDetail['kodeValuta'] ?? '') == 'HKD' ? 'selected' : '' }}>HKD - HONG KONG DOLLAR</option>
+                                            <option value="INR" {{ ($dataDetail['kodeValuta'] ?? '') == 'INR' ? 'selected' : '' }}>INR - INDIAN RUPEE</option>
                                             <option value="JPY" {{ ($dataDetail['kodeValuta'] ?? '') == 'JPY' ? 'selected' : '' }}>JPY - JAPANESE YEN</option>
+                                            <option value="KRW" {{ ($dataDetail['kodeValuta'] ?? '') == 'KRW' ? 'selected' : '' }}>KRW - SOUTH KOREAN WON</option>
+                                            <option value="KWD" {{ ($dataDetail['kodeValuta'] ?? '') == 'KWD' ? 'selected' : '' }}>KWD - KUWAITI DINAR</option>
+                                            <option value="MYR" {{ ($dataDetail['kodeValuta'] ?? '') == 'MYR' ? 'selected' : '' }}>MYR - MALAYSIAN RINGGIT</option>
+                                            <option value="NZD" {{ ($dataDetail['kodeValuta'] ?? '') == 'NZD' ? 'selected' : '' }}>NZD - NEW ZEALAND DOLLAR</option>
+                                            <option value="PGK" {{ ($dataDetail['kodeValuta'] ?? '') == 'PGK' ? 'selected' : '' }}>PGK - PAPUA NEW GUINEA KINA</option>
+                                            <option value="PHP" {{ ($dataDetail['kodeValuta'] ?? '') == 'PHP' ? 'selected' : '' }}>PHP - PHILIPPINE PESO</option>
+                                            <option value="SAR" {{ ($dataDetail['kodeValuta'] ?? '') == 'SAR' ? 'selected' : '' }}>SAR - SAUDI RIYAL</option>
+                                            <option value="SEK" {{ ($dataDetail['kodeValuta'] ?? '') == 'SEK' ? 'selected' : '' }}>SEK - SWEDISH KRONA</option>
+                                            <option value="SGD" {{ ($dataDetail['kodeValuta'] ?? '') == 'SGD' ? 'selected' : '' }}>SGD - SINGAPORE DOLLAR</option>
+                                            <option value="THB" {{ ($dataDetail['kodeValuta'] ?? '') == 'THB' ? 'selected' : '' }}>THB - THAI BAHT</option>
+                                            <option value="TWD" {{ ($dataDetail['kodeValuta'] ?? '') == 'TWD' ? 'selected' : '' }}>TWD - TAIWAN NEW DOLLAR</option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-2">
@@ -1142,7 +1161,7 @@
                                         <div class="input-group input-group-sm">
                                             <input type="number" step="any" name="asuransi" class="form-control form-control-sm" value="{{ $dataDetail['asuransi'] ?? '0.00' }}">
                                             <div class="input-group-append">
-                                                <select name="kodeAsuransi" class="form-control form-control-sm" style="border-radius:0 4px 4px 0;">
+                                                <select name="kodeAsuransi" class="form-control form-control-sm select2bs4" style="border-radius:0 4px 4px 0;">
                                                     <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? 'DN') == 'DN' ? 'selected' : '' }}>DN</option>
                                                     <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? '') == 'LN' ? 'selected' : '' }}>LN</option>
                                                 </select>
@@ -1590,7 +1609,7 @@
                 <div class="form-group mb-2">
                     <label class="small mb-0">Nomor Identitas:</label>
                     <div class="input-group input-group-sm">
-                        <select id="modal-pemilik-jenis-identitas" class="form-control" style="max-width:160px;">
+                        <select id="modal-pemilik-jenis-identitas" class="form-control select2bs4" style="max-width:160px;">
                             <option value="6">NPWP 16 DIGIT</option>
                             <option value="5">NPWP 15 DIGIT</option>
                             <option value="2">Paspor</option>
@@ -1677,9 +1696,9 @@
                 <tr>
                     <input type="hidden" name="kontainer[${kontainerIndex}][seriKontainer]" value="${kontainerIndex + 1}">
                     <td><input type="text" name="kontainer[${kontainerIndex}][nomorKontainer]" class="form-control form-control-sm  text-uppercase"></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeUkuranKontainer]" class="form-control form-control-sm ">${optUkuranKontainer}</select></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeJenisKontainer]" class="form-control form-control-sm ">${optJenisKontainer}</select></td>
-                    <td><select name="kontainer[${kontainerIndex}][kodeTipeKontainer]" class="form-control form-control-sm ">${optTipeKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeUkuranKontainer]" class="form-control form-control-sm select2bs4">${optUkuranKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeJenisKontainer]" class="form-control form-control-sm select2bs4">${optJenisKontainer}</select></td>
+                    <td><select name="kontainer[${kontainerIndex}][kodeTipeKontainer]" class="form-control form-control-sm select2bs4">${optTipeKontainer}</select></td>
                     <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-kontainer"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>`;
             $('#tbody-kontainer').append(htmlTr);
@@ -1694,7 +1713,7 @@
                 <td class="text-center align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="${sarkutIndex + 1}" readonly></td>
                 <td><input type="text" name="pengangkut[${sarkutIndex}][namaPengangkut]" class="form-control form-control-sm "></td>
                 <td><input type="text" name="pengangkut[${sarkutIndex}][nomorPengangkut]" class="form-control form-control-sm "></td>
-                <td><select name="pengangkut[${sarkutIndex}][kodeCaraAngkut]" class="form-control form-control-sm "><option value="1">1 - LAUT</option><option value="4">4 - UDARA</option><option value="3">3 - DARAT</option></select></td>
+                <td><select name="pengangkut[${sarkutIndex}][kodeCaraAngkut]" class="form-control form-control-sm select2bs4"><option value="1">1 - LAUT</option><option value="4">4 - UDARA</option><option value="3">3 - DARAT</option></select></td>
                 <td><div class="input-group input-group-sm"><input type="text" name="pengangkut[${sarkutIndex}][kodeBendera]" class="form-control form-control-sm  text-uppercase"><div class="input-group-append"><button type="button" class="btn btn-danger btn-hapus-sarkut"><i class="fas fa-trash-alt"></i></button></div></div></td>
             </tr>`;
             $('#tbody-sarkut').append(tr);
@@ -1724,7 +1743,7 @@
             let tr = `<tr>
                 <td class="text-center p-2 align-middle"><input type="text" class="form-control form-control-sm text-center bg-light" value="${pemilikIndex + 1}" readonly></td>
                 <td class="p-2">
-                    <select name="entitas[7][${pemilikIndex}][kodeJenisIdentitas]" class="form-control form-control-sm mb-1 ">
+                    <select name="entitas[7][${pemilikIndex}][kodeJenisIdentitas]" class="form-control form-control-sm mb-1 select2bs4">
                         <option value="6">NPWP 16 DIGIT</option>
                         <option value="5">NPWP 15 DIGIT</option>
                         <option value="2">Paspor</option>

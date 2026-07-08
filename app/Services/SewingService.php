@@ -17,7 +17,7 @@ use DB;
 
 class SewingService
 {
-    public function missMasterPlan($numberingList = null, $updateOrigin = true)
+    public function missMasterPlan($numberingList = null, $updateOrigin = false)
     {
         ini_set("max_execution_time", 3600);
 

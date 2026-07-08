@@ -170,16 +170,11 @@
                                         <label class="col-sm-4 col-form-label text-sm">Jenis TPB Tujuan</label>
                                         <div class="col-sm-8">
                                             <select name="jenisTpbTujuan" class="form-control form-control-sm select2bs4">
-                                                <option value="">Pilih Jenis TPB Tujuan</option>
-                                                @php $selectedJenisTpbTujuan = $dataDetail['jenisTpbTujuan'] ?? '' @endphp
-                                                <option value="1" {{ $selectedJenisTpbTujuan == '1' ? 'selected' : '' }}>KAWASAN BERIKAT</option>
-                                                <option value="2" {{ $selectedJenisTpbTujuan == '2' ? 'selected' : '' }}>GUDANG BERIKAT</option>
-                                                <option value="3" {{ $selectedJenisTpbTujuan == '3' ? 'selected' : '' }}>TPPB</option>
-                                                <option value="4" {{ $selectedJenisTpbTujuan == '4' ? 'selected' : '' }}>TBB</option>
-                                                <option value="5" {{ $selectedJenisTpbTujuan == '5' ? 'selected' : '' }}>TLB</option>
-                                                <option value="6" {{ $selectedJenisTpbTujuan == '6' ? 'selected' : '' }}>KDUB</option>
-                                                <option value="7" {{ $selectedJenisTpbTujuan == '7' ? 'selected' : '' }}>LAINNYA</option>
-                                            </select>
+                                            <option value="">Pilih Jenis TPB Tujuan</option>
+                                            @foreach($listJenisTpb as $k => $v)
+                                                <option value="{{ $k }}" {{ ($dataDetail['jenisTpbTujuan'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                            @endforeach
+                                        </select>
                                         </div>
                                     </div>
                                     <div class="form-group row">
@@ -325,7 +320,7 @@
                                                 <div class="card-body">
                                                     <div class="form-group mb-0">
                                                         <label class="small text-muted mb-0">Kategori Barang</label>
-                                                        <select name="barang[{{ $index }}][kategoriBarang]" class="form-control form-control-sm">
+                                                        <select name="barang[{{ $index }}][kategoriBarang]" class="form-control form-control-sm select2bs4">
                                                             <option value="">-- Pilih --</option>
                                                             <option value="1" {{ ($draftItem['kategoriBarang'] ?? '') == '1' ? 'selected' : '' }}>1 - Hasil Produksi</option>
                                                             <option value="10" {{ ($draftItem['kategoriBarang'] ?? '') == '10' ? 'selected' : '' }}>10 - Barang Contoh</option>
@@ -423,7 +418,7 @@
                                                             <td><input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarif]" class="form-control form-control-sm input-decimal text-center" value="{{ $tarif['tarif'] }}" style="font-size:11px;"></td>
                                                             <td><input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarifFasilitas]" class="form-control form-control-sm input-decimal text-center" value="{{ $tarif['tarifFasilitas'] }}" style="font-size:11px;"></td>
                                                             <td>
-                                                                <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm" style="font-size:11px;">
+                                                                <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm select2bs4" style="font-size:11px;">
                                                                     <option value="3" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '3' ? 'selected' : '' }}>3 - Ditangguhkan</option>
                                                                     <option value="5" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - Dibebaskan</option>
                                                                     <option value="6" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - Tdk Dipungut</option>
@@ -472,7 +467,7 @@
                                                                     </div>
                                                                     <input type="hidden" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisPungutan]" value="{{ $bmtType }}">
                                                                     <div class="col-md-3">
-                                                                        <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisTarif]" class="form-control form-control-sm bmt-jenis-tarif" style="font-size: 11px;">
+                                                                        <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisTarif]" class="form-control form-control-sm bmt-jenis-tarif select2bs4" style="font-size: 11px;">
                                                                             <option value="1" {{ $jenisTarif == '1' ? 'selected' : '' }}>Advalorum (%)</option>
                                                                             <option value="2" {{ $jenisTarif == '2' ? 'selected' : '' }}>Spesifik</option>
                                                                         </select>
@@ -496,7 +491,7 @@
                                                                 <div class="row align-items-center">
                                                                     <div class="col-md-5"></div>
                                                                     <div class="col-md-4">
-                                                                        <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm" style="font-size: 11px;">
+                                                                        <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm select2bs4" style="font-size: 11px;">
                                                                             <option value="3" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '3' ? 'selected' : '' }}>3 - DTG - DITANGGUHKAN</option>
                                                                             <option value="5" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - BBS - DIBEBASKAN</option>
                                                                             <option value="6" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
@@ -861,15 +856,9 @@
                                         <label class="small text-muted mb-0">Jenis Valuta</label>
                                         <select name="kodeValuta" class="form-control form-control-sm select2bs4">
                                             <option value="">Pilih Valuta</option>
-                                            <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
-                                            <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
-                                            <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
-                                            <option value="CNY" {{ ($dataDetail['kodeValuta'] ?? '') == 'CNY' ? 'selected' : '' }}>CNY - YUAN RENMINBI</option>
-                                            <option value="EUR" {{ ($dataDetail['kodeValuta'] ?? '') == 'EUR' ? 'selected' : '' }}>EUR - EURO</option>
-                                            <option value="GBP" {{ ($dataDetail['kodeValuta'] ?? '') == 'GBP' ? 'selected' : '' }}>GBP - POUND STERLING</option>
-                                            <option value="JPY" {{ ($dataDetail['kodeValuta'] ?? '') == 'JPY' ? 'selected' : '' }}>JPY - JAPANESE YEN</option>
-                                            <option value="MYR" {{ ($dataDetail['kodeValuta'] ?? '') == 'MYR' ? 'selected' : '' }}>MYR - MALAYSIAN RINGGIT</option>
-                                            <option value="SGD" {{ ($dataDetail['kodeValuta'] ?? '') == 'SGD' ? 'selected' : '' }}>SGD - SINGAPORE DOLLAR</option>
+                                            @foreach($listValuta as $k => $v)
+                                                <option value="{{ $k }}" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group mb-2">
@@ -1213,9 +1202,9 @@
         });
 
 
-        const optJenisKontainer = `<option value="">-- Pilih --</option><option value="4">4 - Empty</option><option value="7">7 - LCL</option><option value="8">8 - FCL</option>`;
-        const optTipeKontainer = `<option value="">-- Pilih --</option><option value="1">1 - General/Dry Cargo</option><option value="2">2 - Tunnel Type</option><option value="3">3 - Open Top Steel</option><option value="4">4 - Flat Rack</option><option value="5">5 - Reefer/Refrigerated</option><option value="6">6 - Barge Container</option><option value="7">7 - Bulk Container</option><option value="8">8 - Isotank</option><option value="99">99 - Lain-lain</option>`;
-        const optUkuranKontainer = `<option value="">-- Pilih --</option><option value="20">20 Feet</option><option value="40">40 Feet</option><option value="45">45 Feet</option> <option value="60">60 Feet</option>`;
+        const optJenisKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listJenisKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optTipeKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listTipeKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
+        const optUkuranKontainer = `<option value="">-- Pilih --</option>` + `@foreach($listUkuranKontainer as $k => $v)<option value="{{ $k }}">{{ $k }} - {{ $v }}</option>@endforeach`;
 
         let kontainerIndex = {{ count($kontainers) }};
         $('#btn-add-kontainer').on('click', function() {
