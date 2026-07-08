@@ -460,7 +460,10 @@
                                                             data-line="{{ $activeEntry->line }}"
                                                             data-date="{{ $date->tanggal }}"
                                                             data-style="{{ $activeEntry->style }}"
-                                                            title="{{ $planTitle }}">
+                                                            title="{{ $planTitle }}"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#newLineMapModal"
+                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
                                                             <div class="line-map-box-header">
                                                                 <span
                                                                     class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
