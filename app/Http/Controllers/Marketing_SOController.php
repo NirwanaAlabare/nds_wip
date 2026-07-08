@@ -1580,7 +1580,7 @@ class Marketing_SOController extends Controller
                         'size'         => $size->size ?? '-',
                         'qty'          => $d->qty,
                         'styleno_prod' => $d->style,
-                        'reff_no'      => $request->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
+                        'reff_no'      => $d->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
                         'deldate_det'  => date('Y-m-d' , strtotime($d->ex_fty)),
                         'created_by'   => $username,
                         'created_date' => now(),
