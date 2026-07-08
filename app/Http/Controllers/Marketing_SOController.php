@@ -2126,10 +2126,12 @@ class Marketing_SOController extends Controller
                         'product_set' => $existing_row ? $existing_row->product_set : '-',
                         'barcode'     => $existing_row ? $existing_row->barcode : '-',
                         'reff_no'     => $existing_row ? $existing_row->reff_no : null,
+                        'styleno_prod'=> $existing_row ? $existing_row->styleno_prod : null,
+                        'price'       => $existing_row ? $existing_row->price : 0,
                         'deldate_det' => $existing_row ? $existing_row->deldate_det : null,
-                        'created_by'  => auth()->user() ? auth()->user()->name : 'admin',
+                        'created_by'  => auth()->user() ? auth()->user()->name : '',
                         'created_date'=> now(),
-                        'updated_by'  => auth()->user() ? auth()->user()->name : 'admin',
+                        'updated_by'  => auth()->user() ? auth()->user()->name : '',
                         'updated_date'=> now()
                     ]);
 
@@ -3006,6 +3008,7 @@ class Marketing_SOController extends Controller
                                 'qty' => $ref->qty,
                                 'styleno_prod' => $ref->styleno_prod,
                                 'reff_no' => $ref->reff_no,
+                                'price' => $ref->price,
                                 'deldate_det' => $ref->deldate_det,
                                 'created_by' => $username,
                                 'created_date' => now(),
@@ -3034,6 +3037,7 @@ class Marketing_SOController extends Controller
                                 'qty' => $ref->qty,
                                 'styleno_prod' => $ref->styleno_prod,
                                 'reff_no' => $ref->reff_no,
+                                'price' => $ref->price,
                                 'deldate_det' => $ref->deldate_det,
                                 'created_by' => $username,
                                 'created_date' => now(),
