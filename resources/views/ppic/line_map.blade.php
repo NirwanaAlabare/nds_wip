@@ -72,6 +72,22 @@
             width: 1%;
         }
 
+        .line-map-date-day {
+            font-size: .7rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .line-map-date-num {
+            font-size: .8rem;
+        }
+
+        .line-map-dates-table th.is-sunday .line-map-date-day,
+        .line-map-dates-table th.is-sunday .line-map-date-num {
+            color: #dc3545;
+        }
+
         .line-map-dates-table td {
             text-align: center;
             width: 1%;
@@ -405,7 +421,10 @@
                         <thead>
                             <tr>
                                 @foreach ($calendarDates as $date)
-                                    <th>{{ date('d M', strtotime($date->tanggal)) }}</th>
+                                    <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
+                                        <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
+                                        <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
+                                    </th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -423,11 +442,12 @@
                                             $actualEntries =
                                                 $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
                                             $hasPlan = $activeEntry && $planQty !== null;
-                                            $isPlanStart = $hasPlan && $date->tanggal === $activeEntry->tgl_start;
-                                            $isPlanEnd = $hasPlan && $date->tanggal === $activeEntry->tgl_end;
+                                            $isWithinPlanRange = (bool) $activeEntry;
+                                            $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
+                                            $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
                                             $planCellClasses = collect([
                                                 'line-map-drop-target',
-                                                $hasPlan ? 'line-map-plan-cell' : null,
+                                                $isWithinPlanRange ? 'line-map-plan-cell' : null,
                                                 $isPlanStart ? 'line-map-plan-start' : null,
                                                 $isPlanEnd ? 'line-map-plan-end' : null,
                                             ])
@@ -447,14 +467,15 @@
                                         @endphp
                                         <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
                                             data-date="{{ $date->tanggal }}"
-                                            @if ($hasPlan) style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
+                                            @if ($isWithinPlanRange) style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
                                             @if ($hasPlan || $actualEntries->isNotEmpty())
                                                 @php
                                                     $planColor = $activeEntry->style_color ?? '#6f42c1';
                                                 @endphp
                                                 <div class="line-map-cell-stack">
                                                     @if ($hasPlan)
-                                                        <div class="line-map-box line-map-box-plan" draggable="true"
+                                                        <div class="line-map-box line-map-box-plan"
+                                                            draggable="{{ $isPlanStart ? 'true' : 'false' }}"
                                                             style="--dot-color: {{ $planColor }};"
                                                             data-id="{{ $activeEntry->id }}"
                                                             data-line="{{ $activeEntry->line }}"
@@ -694,8 +715,7 @@
                         body: JSON.stringify({
                             id: item.id,
                             target_line: targetLine,
-                            target_date: targetDate,
-                            source_date: item.date
+                            target_date: targetDate
                         })
                     })
                     .then(response => response.json())

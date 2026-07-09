@@ -896,6 +896,7 @@
                     notes: notes
                 },
                 success: function(response) {
+                    console.log(response);
                     document.getElementById("loading").classList.add("d-none");
 
                     if (response.icon == 'salah') {
@@ -908,10 +909,11 @@
                             message: response.msg,
                             position: 'topCenter'
                         });
+
+                        dataTableReload();
+                        dataTableComplementReload();
+                        cleardata();
                     }
-                    dataTableReload();
-                    dataTableComplementReload();
-                    cleardata();
                 },
                 error: function(request, status, error) {
                     document.getElementById("loading").classList.add("d-none");
@@ -1132,6 +1134,7 @@
                 },
                 success: function(response) {
                     document.getElementById("loading").classList.add("d-none");
+
 
                     if (response.icon == 'salah') {
                         iziToast.warning({
