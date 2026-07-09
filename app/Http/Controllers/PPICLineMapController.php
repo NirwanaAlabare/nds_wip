@@ -27,14 +27,16 @@ select * from userpassword where username like '%line%' order by username asc");
             $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
             $totalDays = max($totalDays, 1);
             $row->tot_days_rounded = $totalDays;
-            $row->tgl_end = date('Y-m-d', strtotime($row->tgl_start . ' +' . ($totalDays - 1) . ' days'));
+
+            $workingDates = $this->workingDatesFrom($row->tgl_start, $totalDays);
+            $row->plan_start = $workingDates[0] ?? $row->tgl_start;
+            $row->tgl_end = !empty($workingDates) ? end($workingDates) : $row->tgl_start;
             $row->output_per_day = $row->output_based_eff !== null ? (int) round($row->output_based_eff) : null;
             $row->ramp_up_efficiency = $row->ramp_up_efficiency ? json_decode($row->ramp_up_efficiency, true) : [];
 
             $dailyPlan = [];
             $dailyEfficiency = [];
-            for ($i = 0; $i < $totalDays; $i++) {
-                $dateKey = date('Y-m-d', strtotime($row->tgl_start . ' +' . $i . ' days'));
+            foreach ($workingDates as $i => $dateKey) {
                 if ($i < count($row->ramp_up_efficiency) && $row->output_day_100 !== null) {
                     $dailyPlan[$dateKey] = (int) round($row->output_day_100 * $row->ramp_up_efficiency[$i]);
                     $dailyEfficiency[$dateKey] = round($row->ramp_up_efficiency[$i] * 100, 1);
@@ -73,7 +75,7 @@ select * from userpassword where username like '%line%' order by username asc");
         $calendarStart = $filterStart ?: date('Y-m-01 00:00:00');
         $calendarEnd = $filterEnd ?: date('Y-m-t 23:59:59');
 
-        $calendarDates = DB::select("select tanggal, nama_hari from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
+        $calendarDates = DB::select("select tanggal, nama_hari, status_prod from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
 
         $actualRows = DB::connection('mysql_sb')->select("WITH a as (
 select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
@@ -248,13 +250,18 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $targetStartDate = $validated['target_date'];
         if (!empty($validated['source_date']) && !empty($lineMap->tgl_start)) {
-            $sourceTime = strtotime($validated['source_date']);
-            $startTime = strtotime($lineMap->tgl_start);
-            $targetTime = strtotime($validated['target_date']);
+            $totalDaysForRow = $lineMap->tot_days !== null ? max((int) round($lineMap->tot_days), 1) : 1;
+            $rowWorkingDates = $this->workingDatesFrom($lineMap->tgl_start, $totalDaysForRow);
+            $dayOffset = array_search($validated['source_date'], $rowWorkingDates, true);
 
-            if ($sourceTime !== false && $startTime !== false && $targetTime !== false) {
-                $dayOffset = (int) floor(($sourceTime - $startTime) / 86400);
-                $targetStartDate = date('Y-m-d', strtotime($validated['target_date'] . ' -' . $dayOffset . ' days'));
+            if ($dayOffset !== false) {
+                $lookbackStart = date('Y-m-d', strtotime($validated['target_date'] . ' -' . (($dayOffset + 10) * 2 + 30) . ' days'));
+                $windowDates = $this->workingDatesInRange($lookbackStart, $validated['target_date']);
+                $targetIdx = array_search($validated['target_date'], $windowDates, true);
+
+                if ($targetIdx !== false && ($targetIdx - $dayOffset) >= 0) {
+                    $targetStartDate = $windowDates[$targetIdx - $dayOffset];
+                }
             }
         }
 
@@ -296,7 +303,8 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $totalDays = $totalDays !== null ? (int) round($totalDays) : 1;
         $totalDays = max($totalDays, 1);
-        $endDate = date('Y-m-d', strtotime($startDate . ' +' . ($totalDays - 1) . ' days'));
+        $workingDates = $this->workingDatesFrom($startDate, $totalDays);
+        $endDate = !empty($workingDates) ? end($workingDates) : $startDate;
 
         $query = DB::table('ppic_line_map')
             ->where('line', $line)
@@ -316,10 +324,37 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
             $rowTotalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
             $rowTotalDays = max($rowTotalDays, 1);
             $rowStartDate = $row->tgl_start;
-            $rowEndDate = date('Y-m-d', strtotime($rowStartDate . ' +' . ($rowTotalDays - 1) . ' days'));
+            $rowWorkingDates = $this->workingDatesFrom($rowStartDate, $rowTotalDays);
+            $rowEndDate = !empty($rowWorkingDates) ? end($rowWorkingDates) : $rowStartDate;
 
             return $rowStartDate <= $endDate && $rowEndDate >= $startDate;
         });
+    }
+
+    /**
+     * Working days (status_prod = KERJA) starting at $startDate, skipping holidays,
+     * limited to $count days.
+     */
+    private function workingDatesFrom(string $startDate, int $count): array
+    {
+        if ($count <= 0) {
+            return [];
+        }
+
+        $bufferDays = (int) ceil($count * 0.6) + 30;
+        $rangeEnd = date('Y-m-d', strtotime($startDate . ' +' . ($count + $bufferDays) . ' days'));
+
+        return array_slice($this->workingDatesInRange($startDate, $rangeEnd), 0, $count);
+    }
+
+    private function workingDatesInRange(string $from, string $to): array
+    {
+        $dates = DB::select(
+            "select tanggal from dim_date where tanggal >= ? and tanggal <= ? and status_prod = 'KERJA' order by tanggal asc",
+            [$from, $to]
+        );
+
+        return collect($dates)->map(fn($d) => date('Y-m-d', strtotime($d->tanggal)))->values()->all();
     }
 
     private function simulateTotalDays(?float $outputPerDay100, ?float $qtyOrder, ?float $steadyEfficiency, array $rampUpEfficiency)
