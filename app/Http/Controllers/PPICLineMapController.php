@@ -29,7 +29,6 @@ select * from userpassword where username like '%line%' order by username asc");
             $row->tot_days_rounded = $totalDays;
 
             $workingDates = $this->workingDatesFrom($row->tgl_start, $totalDays);
-            $row->plan_start = $workingDates[0] ?? $row->tgl_start;
             $row->tgl_end = !empty($workingDates) ? end($workingDates) : $row->tgl_start;
             $row->output_per_day = $row->output_based_eff !== null ? (int) round($row->output_based_eff) : null;
             $row->ramp_up_efficiency = $row->ramp_up_efficiency ? json_decode($row->ramp_up_efficiency, true) : [];
@@ -69,11 +68,11 @@ select * from userpassword where username like '%line%' order by username asc");
 
         $lineMapByLine = $lineMap->groupBy('line');
 
-        $filterStart = $request->input('tgl_dari');
-        $filterEnd = $request->input('tgl_sampai');
+        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
+        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
 
-        $calendarStart = $filterStart ?: date('Y-m-01 00:00:00');
-        $calendarEnd = $filterEnd ?: date('Y-m-t 23:59:59');
+        $calendarStart = $filterStart . ' 00:00:00';
+        $calendarEnd = $filterEnd . ' 23:59:59';
 
         $calendarDates = DB::select("select tanggal, nama_hari, status_prod from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
 
@@ -124,8 +123,8 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
             'lineNameByUsername' => $lineNameByUsername,
             'calendarDates' => $calendarDates,
             'actualByLineDate' => $actualByLineDate,
-            'filterStart' => $filterStart ?? $calendarStart,
-            'filterEnd' => $filterEnd ?? $calendarEnd,
+            'filterStart' => $filterStart,
+            'filterEnd' => $filterEnd,
         ]);
     }
 
@@ -231,7 +230,6 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
             'target_date' => 'required|date',
-            'source_date' => 'nullable|date',
         ]);
 
         $lineMap = DB::table('ppic_line_map')
@@ -249,21 +247,6 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
         }
 
         $targetStartDate = $validated['target_date'];
-        if (!empty($validated['source_date']) && !empty($lineMap->tgl_start)) {
-            $totalDaysForRow = $lineMap->tot_days !== null ? max((int) round($lineMap->tot_days), 1) : 1;
-            $rowWorkingDates = $this->workingDatesFrom($lineMap->tgl_start, $totalDaysForRow);
-            $dayOffset = array_search($validated['source_date'], $rowWorkingDates, true);
-
-            if ($dayOffset !== false) {
-                $lookbackStart = date('Y-m-d', strtotime($validated['target_date'] . ' -' . (($dayOffset + 10) * 2 + 30) . ' days'));
-                $windowDates = $this->workingDatesInRange($lookbackStart, $validated['target_date']);
-                $targetIdx = array_search($validated['target_date'], $windowDates, true);
-
-                if ($targetIdx !== false && ($targetIdx - $dayOffset) >= 0) {
-                    $targetStartDate = $windowDates[$targetIdx - $dayOffset];
-                }
-            }
-        }
 
         $overlap = $this->findLineMapOverlap($validated['target_line'], $targetStartDate, $lineMap->tot_days, $lineMap->id);
         if ($overlap) {
@@ -332,8 +315,9 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
     }
 
     /**
-     * Working days (status_prod = KERJA) starting at $startDate, skipping holidays,
-     * limited to $count days.
+     * $startDate is always kept as day 1 even if it lands on a holiday (an
+     * intentional start date, e.g. planned overtime). Every day after that
+     * skips status_prod = LIBUR and continues on the next working day.
      */
     private function workingDatesFrom(string $startDate, int $count): array
     {
@@ -341,10 +325,21 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
             return [];
         }
 
-        $bufferDays = (int) ceil($count * 0.6) + 30;
-        $rangeEnd = date('Y-m-d', strtotime($startDate . ' +' . ($count + $bufferDays) . ' days'));
+        $dates = [$startDate];
+        $remaining = $count - 1;
 
-        return array_slice($this->workingDatesInRange($startDate, $rangeEnd), 0, $count);
+        if ($remaining > 0) {
+            $bufferDays = (int) ceil($remaining * 0.6) + 30;
+            $rangeStart = date('Y-m-d', strtotime($startDate . ' +1 day'));
+            $rangeEnd = date('Y-m-d', strtotime($startDate . ' +' . ($remaining + $bufferDays) . ' days'));
+
+            $dates = array_merge(
+                $dates,
+                array_slice($this->workingDatesInRange($rangeStart, $rangeEnd), 0, $remaining)
+            );
+        }
+
+        return $dates;
     }
 
     private function workingDatesInRange(string $from, string $to): array

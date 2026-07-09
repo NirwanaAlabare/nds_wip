@@ -434,7 +434,7 @@
                                     @foreach ($calendarDates as $date)
                                         @php
                                             $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
-                                                fn($e) => $date->tanggal >= $e->plan_start &&
+                                                fn($e) => $date->tanggal >= $e->tgl_start &&
                                                     $date->tanggal <= $e->tgl_end,
                                             );
                                             $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
@@ -443,7 +443,7 @@
                                                 $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
                                             $hasPlan = $activeEntry && $planQty !== null;
                                             $isWithinPlanRange = (bool) $activeEntry;
-                                            $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->plan_start;
+                                            $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
                                             $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
                                             $planCellClasses = collect([
                                                 'line-map-drop-target',
@@ -455,7 +455,7 @@
                                                 ->implode(' ');
                                             $planTitle = $hasPlan
                                                 ? 'Range: ' .
-                                                    date('d M Y', strtotime($activeEntry->plan_start)) .
+                                                    date('d M Y', strtotime($activeEntry->tgl_start)) .
                                                     ' - ' .
                                                     date('d M Y', strtotime($activeEntry->tgl_end)) .
                                                     ($effPct !== null
@@ -474,7 +474,8 @@
                                                 @endphp
                                                 <div class="line-map-cell-stack">
                                                     @if ($hasPlan)
-                                                        <div class="line-map-box line-map-box-plan" draggable="true"
+                                                        <div class="line-map-box line-map-box-plan"
+                                                            draggable="{{ $isPlanStart ? 'true' : 'false' }}"
                                                             style="--dot-color: {{ $planColor }};"
                                                             data-id="{{ $activeEntry->id }}"
                                                             data-line="{{ $activeEntry->line }}"
@@ -714,8 +715,7 @@
                         body: JSON.stringify({
                             id: item.id,
                             target_line: targetLine,
-                            target_date: targetDate,
-                            source_date: item.date
+                            target_date: targetDate
                         })
                     })
                     .then(response => response.json())
