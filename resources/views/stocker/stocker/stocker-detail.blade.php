@@ -185,6 +185,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -199,9 +200,13 @@
                                                 <label><small>Qty</small></label>
                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                             </div>
+                                            <div class="mb-3">
+                                                <label><small>Catatan</small></label>
+                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                            </div>
                                         </div>
                                         @php
-                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                         @endphp
 
                                         @if ($currentModifySizeQty > 0)
@@ -220,7 +225,9 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
+
 
                                             $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
                                         @endphp
@@ -236,9 +243,13 @@
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                </div>
                                             </div>
                                             @php
-                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -264,9 +275,13 @@
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                </div>
                                             </div>
                                             @php
-                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -284,6 +299,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -298,9 +314,13 @@
                                                 <label><small>Qty</small></label>
                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                             </div>
+                                            <div class="mb-3">
+                                                <label><small>Catatan</small></label>
+                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                            </div>
                                         </div>
                                         @php
-                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                         @endphp
 
                                         @if ($currentModifySizeQty > 0)
@@ -319,6 +339,7 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
 
@@ -333,9 +354,13 @@
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                </div>
                                             </div>
                                             @php
-                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -361,9 +386,13 @@
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                </div>
                                             </div>
                                             @php
-                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -1275,7 +1304,7 @@
                                                         </div>
                                                     </div>
                                                     @php
-                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                     @endphp
 
                                                     @if ($currentModifySizeQty > 0)
@@ -1312,7 +1341,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
                                                         @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -1340,7 +1369,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
                                                         @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -1374,7 +1403,7 @@
                                                         </div>
                                                     </div>
                                                     @php
-                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                     @endphp
 
                                                     @if ($currentModifySizeQty > 0)
@@ -1409,7 +1438,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
                                                         @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -1437,7 +1466,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
                                                         @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
