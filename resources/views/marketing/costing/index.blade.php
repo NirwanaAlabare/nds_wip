@@ -51,6 +51,7 @@
                             <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
+                            <th>Market</th>
                             <th>Qty</th>
                             <th>Confirm Price</th>
                             <th>Action</th>
@@ -91,9 +92,10 @@
                 columns: [
                     { data: 'no_costing', name: 'a.no_costing', className: 'text-center align-middle' },
                     { data: 'tgl_costing', name: 'a.created_at', className: 'text-center align-middle' },
-                    { data: 'nama_buyer', name: 'a.buyer', className: 'align-middle' },
+                    { data: 'nama_buyer', name: 'b.Supplier', className: 'align-middle' },
                     { data: 'brand', name: 'a.brand', className: 'align-middle' },
                     { data: 'style', name: 'a.style', className: 'align-middle' },
+                    { data: 'market', name: 'a.market', className: 'align-middle' },
                     { data: 'qty', name: 'a.qty', className: 'text-center align-middle' },
                     { data: 'confirm_price', name: 'a.confirm_price', className: 'text-center align-middle' },
                     {
