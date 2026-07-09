@@ -153,6 +153,7 @@ use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
+use App\Http\Controllers\Marketing_CatalogController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1271,6 +1272,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(MarketingReportController::class)->middleware('marketing')->group(function () {
         Route::get('/marketing_report_cvs_detail', 'marketing_report_cvs_detail')->name('marketing_report_cvs_detail');
         Route::get('/marketing_report_cvs_detail/export_excel', 'export_excel_marketing_cvs_detail')->name('export_excel_marketing_cvs_detail');
+    });
+
+    // Marketing Catalog
+    Route::controller(Marketing_CatalogController::class)->prefix("master-marketing-catalog")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-marketing-catalog');
+        Route::get('/detail/{id_item}', 'catalogDetail')->name('master-marketing-catalog-detail');
     });
 
     // QC Inspect Kain
