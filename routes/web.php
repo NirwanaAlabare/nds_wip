@@ -153,6 +153,7 @@ use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
+use App\Http\Controllers\Marketing_CatalogController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1273,6 +1274,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/marketing_report_cvs_detail/export_excel', 'export_excel_marketing_cvs_detail')->name('export_excel_marketing_cvs_detail');
     });
 
+    // Marketing Catalog
+    Route::controller(Marketing_CatalogController::class)->prefix("master-marketing-catalog")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-marketing-catalog');
+        Route::get('/detail/{id_item}', 'catalogDetail')->name('master-marketing-catalog-detail');
+    });
+
     // QC Inspect Kain
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
@@ -1549,7 +1556,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
         Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
-        Route::get('/asset_mesin_master/search_serial', 'search_serial_number')->name('asset_mesin_master_search_serial');
+        Route::get('/asset_mesin_master/export_excel', 'export_excel_master_mesin_detail')->name('export_excel_master_mesin_detail');
     });
     // Master Asset Management Tambah Mesin (Sewa Mesin)
     Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
