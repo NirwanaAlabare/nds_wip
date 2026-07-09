@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use QrCode;
 use Illuminate\Support\Facades\Auth;
@@ -34,24 +35,33 @@ class AssetMesinMasterController extends Controller
             ->get();
 
         if ($request->ajax()) {
-            $where = 'WHERE 1=1';
-            $bindings = [];
+            $whereBeli = 'WHERE 1=1';
+            $bindingsBeli = [];
 
             if ($request->kd_jenis) {
-                $where .= ' AND m.kd_jenis = ?';
-                $bindings[] = $request->kd_jenis;
+                $whereBeli .= ' AND m.kd_jenis = ?';
+                $bindingsBeli[] = $request->kd_jenis;
             }
             if ($request->kd_merk) {
-                $where .= ' AND m.kd_merk = ?';
-                $bindings[] = $request->kd_merk;
+                $whereBeli .= ' AND m.kd_merk = ?';
+                $bindingsBeli[] = $request->kd_merk;
             }
             if ($request->id_supplier) {
-                $where .= ' AND bpb.id_supplier = ?';
-                $bindings[] = $request->id_supplier;
+                $whereBeli .= ' AND bpb.id_supplier = ?';
+                $bindingsBeli[] = $request->id_supplier;
             }
             if ($request->lokasi) {
-                $where .= ' AND a.lokasi = ?';
-                $bindings[] = $request->lokasi;
+                $whereBeli .= ' AND a.lokasi = ?';
+                $bindingsBeli[] = $request->lokasi;
+            }
+
+            $whereSewa = 'WHERE 1=1';
+            $bindingsSewa = [];
+
+            $bindings = array_merge($bindingsBeli, $bindingsSewa);
+
+            if ($request->mode === 'detail') {
+                return DataTables::of($this->getDetailUnits($request))->toJson();
             }
 
             $data = DB::select("
@@ -69,7 +79,7 @@ class AssetMesinMasterController extends Controller
                 INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
                 INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
-                $where
+                $whereBeli
                 GROUP BY m.id_jenis
 
                 UNION ALL
@@ -84,6 +94,7 @@ class AssetMesinMasterController extends Controller
                     COUNT(*) AS total_unit,
                     'SEWA' AS sumber
                 FROM asset_penerimaan_mesin_sewa
+                $whereSewa
                 GROUP BY nm_jenis, nm_merk, tipe
 
                 ORDER BY nm_jenis ASC
@@ -166,5 +177,128 @@ class AssetMesinMasterController extends Controller
         }
 
         return response()->json($units);
+    }
+
+    public function export_excel_master_mesin_detail(Request $request)
+    {
+        $rows = array_map(fn($r) => (array) $r, $this->getDetailUnits($request));
+
+        $excel = FastExcel::create('List Detail Mesin');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeRow(['List Detail Mesin'])->applyFontStyleBold()->applyFontSize(16);
+        $sheet->writeRow([]);
+
+        $sheet->writeRow([
+            'No',
+            'Sumber',
+            'Jenis',
+            'Merk',
+            'Tipe',
+            'Serial Number',
+            'Kode QR',
+            'Lokasi',
+            'Supplier',
+            'No BPB',
+            'Status',
+        ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $no = 1;
+        foreach ($rows as $r) {
+            $sheet->writeRow([
+                $no++,
+                $r['sumber'] ?? '',
+                $r['nm_jenis'] ?? '',
+                $r['nm_merk'] ?? '',
+                $r['tipe'] ?? '',
+                $r['serial_number'] ?? '',
+                $r['kode_qr'] ?? '',
+                $r['lokasi'] ?? '',
+                $r['supplier'] ?? '',
+                $r['bpbno_int'] ?? '',
+                $r['status'] ?? '',
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'List Detail Mesin ' . date('Y-m-d_His') . '.xlsx';
+
+        // FastExcel::download() echo file langsung via header()+readfile() tanpa mengembalikan Response,
+        // sehingga Laravel ikut mengirim response kosong di belakangnya & merusak isi file xlsx.
+        // Simpan ke temp file lalu kirim lewat response()->download() bawaan Laravel supaya bersih.
+        $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('xlsx_export_') . '.xlsx';
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+    }
+
+    // Query unit mesin per baris (tanpa grouping), dipakai bareng oleh listing "List Detail" & export Excel-nya
+    // supaya filter (Jenis/Merk/Supplier/Lokasi) & hasil selalu konsisten antara keduanya.
+    private function getDetailUnits(Request $request): array
+    {
+        $whereBeli = 'WHERE 1=1';
+        $bindingsBeli = [];
+
+        if ($request->kd_jenis) {
+            $whereBeli .= ' AND m.kd_jenis = ?';
+            $bindingsBeli[] = $request->kd_jenis;
+        }
+        if ($request->kd_merk) {
+            $whereBeli .= ' AND m.kd_merk = ?';
+            $bindingsBeli[] = $request->kd_merk;
+        }
+        if ($request->id_supplier) {
+            $whereBeli .= ' AND bpb.id_supplier = ?';
+            $bindingsBeli[] = $request->id_supplier;
+        }
+        if ($request->lokasi) {
+            $whereBeli .= ' AND a.lokasi = ?';
+            $bindingsBeli[] = $request->lokasi;
+        }
+
+        $whereSewa = 'WHERE 1=1';
+        $bindingsSewa = [];
+
+        return DB::select("
+            SELECT
+                a.id,
+                'PEMBELIAN' AS sumber,
+                j.nm_jenis,
+                k.nm_merk,
+                m.tipe,
+                a.serial_number,
+                a.kode_qr,
+                a.lokasi,
+                ms.Supplier AS supplier,
+                a.bpbno_int,
+                a.status
+            FROM asset_penerimaan_mesin a
+            INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
+            INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
+            INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
+            LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
+            LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+            $whereBeli
+
+            UNION ALL
+
+            SELECT
+                a.id,
+                'SEWA' AS sumber,
+                a.nm_jenis,
+                a.nm_merk,
+                a.tipe,
+                a.serial_number,
+                a.kode_qr,
+                a.lokasi,
+                ms.supplier AS supplier,
+                a.bpbno_int,
+                a.status
+            FROM asset_penerimaan_mesin_sewa a
+            LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
+            LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+            $whereSewa
+
+            ORDER BY nm_jenis ASC
+        ", array_merge($bindingsBeli, $bindingsSewa));
     }
 }
