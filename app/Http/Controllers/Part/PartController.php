@@ -31,6 +31,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -289,65 +290,71 @@ class PartController extends Controller
         if ($totalPartDetail > 0) {
             DB::beginTransaction();
 
-            $partStore = Part::create([
-                "kode" => $partCode,
-                "act_costing_id" => $validatedRequest['ws_id'],
-                "act_costing_ws" => $validatedRequest['ws'],
-                "color" => $validatedRequest['color'],
-                "panel_id" => $validatedRequest['panel_id'],
-                "panel" => $validatedRequest['panel'],
-                "buyer" => $validatedRequest['buyer'],
-                "style" => $validatedRequest['style'],
-                "panel_status" => $validatedRequest['panel_status'],
-                "created_by" => Auth::user()->id,
-                "created_by_username" => Auth::user()->username,
-            ]);
+            try {
+                $partStore = Part::create([
+                    "kode" => $partCode,
+                    "act_costing_id" => $validatedRequest['ws_id'],
+                    "act_costing_ws" => $validatedRequest['ws'],
+                    "color" => $validatedRequest['color'],
+                    "panel_id" => $validatedRequest['panel_id'],
+                    "panel" => $validatedRequest['panel'],
+                    "buyer" => $validatedRequest['buyer'],
+                    "style" => $validatedRequest['style'],
+                    "panel_status" => $validatedRequest['panel_status'],
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                ]);
 
-            // Main/Regular Part
-            $batch = Str::uuid();
+                // Main/Regular Part
+                $batch = Str::uuid();
 
-            $timestamp = Carbon::now();
-            $partId = $partStore->id;
-            $partDetailSecondaryData = [];
-            for ($i = 0; $i < $totalPartDetail; $i++) {
-                if (isset($request["part_details"][$i]) && isset($request["cons"][$i]) && isset($request["cons_unit"][$i]) && isset($request["tujuan"][$i])) {
-                    // Store to Part Detail
-                    $currentPartDetail = PartDetail::create( [
-                        "part_id" => $partId,
-                        "batch" => $batch,
-                        "master_part_id" => $request["part_details"][$i],
-                        // "master_secondary_id" => $request["proses"][$i],
-                        "tujuan" => $request["tujuan"][$i],
-                        "cons" => $request["cons"][$i],
-                        "from_part_detail" => null,
-                        "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular',
-                        "created_by" => Auth::user()->id,
-                        "created_by_username" => Auth::user()->username,
-                        "unit" => $request["cons_unit"][$i],
-                        "created_at" => $timestamp,
-                        "updated_at" => $timestamp
-                    ]);
+                $timestamp = Carbon::now();
+                $partId = $partStore->id;
+                $partDetailSecondaryData = [];
+                for ($i = 0; $i < $totalPartDetail; $i++) {
+                    $secondaryValue = $request["urutan"][$i] ?? $request["proses"][$i] ?? null;
 
-                    // Part Detail Item
-                    if ($currentPartDetail) {
-                        if (isset($request["item"][$i]) && $request["item"][$i] && count($request["item"][$i]) > 0) {
-                            $partItemData = [];
+                    if ($secondaryValue === null || $secondaryValue === '') {
+                        throw new \Exception("Data proses atau urutan belum lengkap");
+                    }
 
-                            for ($j = 0; $j < count($request["item"][$i]); $j++) {
-                                array_push($partItemData, [
-                                    "part_detail_id" => $currentPartDetail->id,
-                                    "bom_jo_item_id" => $request["item"][$i][$j],
-                                    "created_at" => $timestamp,
-                                    "updated_at" => $timestamp,
-                                ]);
+                    if (isset($request["part_details"][$i]) && isset($request["cons"][$i]) && isset($request["cons_unit"][$i]) && isset($request["tujuan"][$i])) {
+                        // Store to Part Detail
+                        $currentPartDetail = PartDetail::create( [
+                            "part_id" => $partId,
+                            "batch" => $batch,
+                            "master_part_id" => $request["part_details"][$i],
+                            // "master_secondary_id" => $request["proses"][$i],
+                            "tujuan" => $request["tujuan"][$i],
+                            "cons" => $request["cons"][$i],
+                            "from_part_detail" => null,
+                            "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular',
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                            "unit" => $request["cons_unit"][$i],
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp
+                        ]);
+
+                        // Part Detail Item
+                        if ($currentPartDetail) {
+                            if (isset($request["item"][$i]) && $request["item"][$i] && count($request["item"][$i]) > 0) {
+                                $partItemData = [];
+
+                                for ($j = 0; $j < count($request["item"][$i]); $j++) {
+                                    array_push($partItemData, [
+                                        "part_detail_id" => $currentPartDetail->id,
+                                        "bom_jo_item_id" => $request["item"][$i][$j],
+                                        "created_at" => $timestamp,
+                                        "updated_at" => $timestamp,
+                                    ]);
+                                }
+
+                                PartDetailItem::insert($partItemData);
                             }
 
-                            PartDetailItem::insert($partItemData);
-                        }
-
-                        // Store Secondaries
-                        if (isset($request["urutan"][$i])) {
-                            $currentSecondaries = explode(',', $request["urutan"][$i]);
+                            // Store Secondaries
+                            $currentSecondaries = explode(',', $secondaryValue);
                             for ($j = 0; $j < count($currentSecondaries); $j++) {
                                 array_push($partDetailSecondaryData, [
                                     "part_detail_id" => $currentPartDetail->id,
@@ -363,102 +370,110 @@ class PartController extends Controller
                         }
                     }
                 }
-            }
 
-            // Complement Part
-            for ($i = 0; $i < $totalComplementPartDetail; $i++) {
-                if ($request["com_part_details"][$i] && $request["com_from_part_id"][$i]) {
-                    $currentFromPartDetail = PartDetail::where("id", $request["com_from_part_id"][$i])->first();
+                // Complement Part
+                for ($i = 0; $i < $totalComplementPartDetail; $i++) {
+                    if ($request["com_part_details"][$i] && $request["com_from_part_id"][$i]) {
+                        $currentFromPartDetail = PartDetail::where("id", $request["com_from_part_id"][$i])->first();
 
-                    if ($currentFromPartDetail) {
-                        // Store to Part Detail
-                        $currentPartDetail = PartDetail::create([
-                            "part_id" => $partId,
-                            "batch" => $batch,
-                            "master_part_id" => $request["com_part_details"][$i],
-                            // "master_secondary_id" => $request["com_proses"][$i],
-                            "cons" => $currentFromPartDetail->cons,
-                            "unit" => $currentFromPartDetail->unit,
-                            "from_part_detail" => $request["com_from_part_id"][$i],
-                            "tujuan" => $currentFromPartDetail->tujuan,
-                            "part_status" => 'complement',
-                            "created_by" => Auth::user()->id,
-                            "created_by_username" => Auth::user()->username,
-                            "created_at" => $timestamp,
-                            "updated_at" => $timestamp,
-                        ]);
+                        if ($currentFromPartDetail) {
+                            // Store to Part Detail
+                            $currentPartDetail = PartDetail::create([
+                                "part_id" => $partId,
+                                "batch" => $batch,
+                                "master_part_id" => $request["com_part_details"][$i],
+                                // "master_secondary_id" => $request["com_proses"][$i],
+                                "cons" => $currentFromPartDetail->cons,
+                                "unit" => $currentFromPartDetail->unit,
+                                "from_part_detail" => $request["com_from_part_id"][$i],
+                                "tujuan" => $currentFromPartDetail->tujuan,
+                                "part_status" => 'complement',
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
+                                "created_at" => $timestamp,
+                                "updated_at" => $timestamp,
+                            ]);
 
-                        // Store Secondaries
-                        $currentPartDetailSecondaries = $currentFromPartDetail->secondaries;
-                        if ($currentPartDetail && $currentPartDetailSecondaries) {
-                            foreach ($currentPartDetailSecondaries as $secondary) {
-                                array_push($partDetailSecondaryData, [
-                                    "part_detail_id" => $currentPartDetail->id,
-                                    "master_secondary_id" => $secondary->master_secondary_id,
-                                    "urutan" => $secondary->urutan,
-                                    "batch" => $batch,
-                                    "created_by" => Auth::user()->id,
-                                    "created_by_username" => Auth::user()->username,
-                                    "created_at" => $timestamp,
-                                    "updated_at" => $timestamp,
-                                ]);
+                            // Store Secondaries
+                            $currentPartDetailSecondaries = $currentFromPartDetail->secondaries;
+                            if ($currentPartDetail && $currentPartDetailSecondaries) {
+                                foreach ($currentPartDetailSecondaries as $secondary) {
+                                    array_push($partDetailSecondaryData, [
+                                        "part_detail_id" => $currentPartDetail->id,
+                                        "master_secondary_id" => $secondary->master_secondary_id,
+                                        "urutan" => $secondary->urutan,
+                                        "batch" => $batch,
+                                        "created_by" => Auth::user()->id,
+                                        "created_by_username" => Auth::user()->username,
+                                        "created_at" => $timestamp,
+                                        "updated_at" => $timestamp,
+                                    ]);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Store Part Detail Secondary Detail
-            $partDetailSecondaryStore = PartDetailSecondary::insert($partDetailSecondaryData);
+                // Store Part Detail Secondary Detail
+                $partDetailSecondaryStore = PartDetailSecondary::insert($partDetailSecondaryData);
 
-            // Part Form IN
-            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.panel", $partStore->panel)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
-            foreach ($formCutData as $formCut) {
-                $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
+                // Part Form IN
+                $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.panel", $partStore->panel)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
+                foreach ($formCutData as $formCut) {
+                    $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
 
-                if ($isExist < 1) {
-                    $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
-                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
-                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+                    if ($isExist < 1) {
+                        $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                        $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                        $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
-                    $addToPartForm = PartForm::create([
-                        "kode" => $kodePartForm,
-                        "part_id" => $partId,
-                        "form_id" => $formCut->id,
-                        "created_at" => Carbon::now(),
-                        "updated_at" => Carbon::now(),
-                    ]);
+                        $addToPartForm = PartForm::create([
+                            "kode" => $kodePartForm,
+                            "part_id" => $partId,
+                            "form_id" => $formCut->id,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+                    }
                 }
-            }
 
-            // Part Form Piece IN
-            $formPieceData = FormCutPiece::select('form_cut_piece.id')->where("form_cut_piece.act_costing_id", $partStore->act_costing_id)->where("form_cut_piece.act_costing_ws", $partStore->act_costing_ws)->where("form_cut_piece.panel", $partStore->panel)->where("form_cut_piece.buyer", $partStore->buyer)->where("form_cut_piece.style", $partStore->style)->where("form_cut_piece.status", "complete")->orderBy("no_cut", "asc")->get();
-            foreach ($formPieceData as $formPiece) {
-                $isExist = PartForm::where("part_id", $partId)->where("form_pcs_id", $formPiece->id)->count();
+                // Part Form Piece IN
+                $formPieceData = FormCutPiece::select('form_cut_piece.id')->where("form_cut_piece.act_costing_id", $partStore->act_costing_id)->where("form_cut_piece.act_costing_ws", $partStore->act_costing_ws)->where("form_cut_piece.panel", $partStore->panel)->where("form_cut_piece.buyer", $partStore->buyer)->where("form_cut_piece.style", $partStore->style)->where("form_cut_piece.status", "complete")->orderBy("no_cut", "asc")->get();
+                foreach ($formPieceData as $formPiece) {
+                    $isExist = PartForm::where("part_id", $partId)->where("form_pcs_id", $formPiece->id)->count();
 
-                if ($isExist < 1) {
-                    $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
-                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
-                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+                    if ($isExist < 1) {
+                        $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                        $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                        $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
-                    $addToPartForm = PartForm::create([
-                        "kode" => $kodePartForm,
-                        "part_id" => $partId,
-                        "form_pcs_id" => $formPiece->id,
-                        "created_at" => Carbon::now(),
-                        "updated_at" => Carbon::now(),
-                    ]);
+                        $addToPartForm = PartForm::create([
+                            "kode" => $kodePartForm,
+                            "part_id" => $partId,
+                            "form_pcs_id" => $formPiece->id,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+                    }
                 }
+
+                DB::commit();
+
+                return array(
+                    "status" => 200,
+                    "message" => $partCode,
+                    "additional" => [],
+                    "redirect" => route('manage-part-form', ["id" => $partStore->id])
+                );
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                return array(
+                    "status" => 400,
+                    "message" => $e->getMessage(),
+                    "additional" => []
+                );
             }
-
-            DB::commit();
-
-            return array(
-                "status" => 200,
-                "message" => $partCode,
-                "additional" => [],
-                "redirect" => route('manage-part-form', ["id" => $partStore->id])
-            );
         }
 
         return array(
@@ -905,116 +920,159 @@ class PartController extends Controller
         }
 
         // Cek apakah part sudah memiliki stocker (sudah print stocker)
-        $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
-        $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
-        if ($stockerCount > 0) {
-            return array(
-                'icon' => 'salah',
-                'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
-            );
-        }
+        // $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
+        // $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
+        // if ($stockerCount > 0) {
+        //     return array(
+        //         'icon' => 'salah',
+        //         'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+        //     );
+        // }
 
-        // IF COMPLEMENT
-        if ($request->is_complement) {
-            $validatedRequest = $request->validate([
-                // "cbotuj" => "required",
-                // "cboproses" => "required",
-                "txtpart" => "required",
-                "partSource" => "required",
-                // "txtcons" => "required",
-                // "txtconsunit" => "required",
-            ]);
+        DB::beginTransaction();
 
-            // Check Part Detail
-            $checkPartDetail = PartDetail::where("part_id", $request->id)->where('master_part_id', $request->txtpart)->first();
-            if (!$checkPartDetail) {
+        try {
+            // IF COMPLEMENT
+            if ($request->is_complement) {
+                $validator = Validator::make($request->all(), [
+                    "txtpart" => "required",
+                    "partSource" => "required",
+                ], [
+                    "txtpart.required" => "Data part wajib diisi",
+                    "partSource.required" => "Data part sumber wajib diisi",
+                ]);
+
+                if ($validator->fails()) {
+                    DB::rollBack();
+
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => $validator->errors()->first(),
+                    );
+                }
+
+                $validatedRequest = $validator->validated();
+
+                // Check Part Detail
+                $checkPartDetail = PartDetail::where("part_id", $request->id)->where('master_part_id', $request->txtpart)->first();
+                if ($checkPartDetail) {
+                    DB::rollBack();
+
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => 'Data Part "' . $request->txtpart . '" sudah ada.',
+                    );
+                }
 
                 // Part Detail Source
                 $currentFromPartDetail = PartDetail::where("id", $request["partSource"])->first();
-                if ($currentFromPartDetail) {
+                if (!$currentFromPartDetail) {
+                    DB::rollBack();
 
-                    // Create New Part Detail
-                    $createNewPartDetail = PartDetail::create([
-                        'part_id' => $request->id,
-                        'master_part_id' => $validatedRequest['txtpart'],
-                        'part_status' => 'complement',
-                        'from_part_detail' => $currentFromPartDetail->id,
-                        'cons' => $currentFromPartDetail->cons,
-                        'unit' => $currentFromPartDetail->unit,
-                        'tujuan' => $currentFromPartDetail->tujuan,
-                        'notes' => $request->notes,
-                        "created_by" => Auth::user()->id,
-                        "created_by_username" => Auth::user()->username,
-                    ]);
-
-                    // Logging
-                    Log::channel("storePartDetailSecondary")->info([
-                        "Creating Data",
-                        "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                        $createNewPartDetail
-                    ]);
-
-                    if ($createNewPartDetail) {
-                        // Get Current Secondaries
-                        $currentPartDetailSecondaries = $currentFromPartDetail->secondaries;
-                        if ($currentPartDetailSecondaries) {
-                            // Store Secondaries
-                            $batch = Str::uuid();
-                            $timestamp = Carbon::now();
-                            $partDetailSecondaryData = [];
-                            foreach ($currentPartDetailSecondaries as $secondary) {
-                                array_push($partDetailSecondaryData, [
-                                    "part_detail_id" => $createNewPartDetail->id,
-                                    "master_secondary_id" => $secondary->master_secondary_id,
-                                    "urutan" => $secondary->urutan,
-                                    "batch" => $batch,
-                                    "created_by" => Auth::user()->id,
-                                    "created_by_username" => Auth::user()->username,
-                                    "created_at" => $timestamp,
-                                    "updated_at" => $timestamp,
-                                ]);
-                            }
-
-                            PartDetailSecondary::insert($partDetailSecondaryData);
-                        }
-
-                        return array(
-                            'icon' => 'benar',
-                            'msg' => 'Data Part "' . $request->txtpart . '" berhasil diupdate',
-                        );
-                    } else {
-                        return array(
-                            'icon' => 'salah',
-                            'msg' => 'Data Part "' . $request->txtpart . '" gagal disimpan.',
-                        );
-                    }
-                } else {
                     return array(
                         'icon' => 'salah',
                         'msg' => 'Data Part Sumber "' . $request->txtpart . '" sudah tidak ada.',
                     );
                 }
-            } else {
+
+                // Create New Part Detail
+                $createNewPartDetail = PartDetail::create([
+                    'part_id' => $request->id,
+                    'master_part_id' => $validatedRequest['txtpart'],
+                    'part_status' => 'complement',
+                    'from_part_detail' => $currentFromPartDetail->id,
+                    'cons' => $currentFromPartDetail->cons,
+                    'unit' => $currentFromPartDetail->unit,
+                    'tujuan' => $currentFromPartDetail->tujuan,
+                    'notes' => $request->notes,
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                ]);
+
+                // Logging
+                Log::channel("storePartDetailSecondary")->info([
+                    "Creating Data",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $createNewPartDetail
+                ]);
+
+                if (!$createNewPartDetail) {
+                    DB::rollBack();
+
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => 'Data Part "' . $request->txtpart . '" gagal disimpan.',
+                    );
+                }
+
+                // Get Current Secondaries
+                $currentPartDetailSecondaries = $currentFromPartDetail->secondaries;
+                if ($currentPartDetailSecondaries) {
+                    // Store Secondaries
+                    $batch = Str::uuid();
+                    $timestamp = Carbon::now();
+                    $partDetailSecondaryData = [];
+                    foreach ($currentPartDetailSecondaries as $secondary) {
+                        array_push($partDetailSecondaryData, [
+                            "part_detail_id" => $createNewPartDetail->id,
+                            "master_secondary_id" => $secondary->master_secondary_id,
+                            "urutan" => $secondary->urutan,
+                            "batch" => $batch,
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    }
+
+                    PartDetailSecondary::insert($partDetailSecondaryData);
+                }
+
+                DB::commit();
+
                 return array(
-                    'icon' => 'salah',
-                    'msg' => 'Data Part "' . $request->txtpart . '" sudah ada.',
+                    'icon' => 'benar',
+                    'msg' => 'Data Part "' . $request->txtpart . '" berhasil diupdate',
                 );
             }
-        }
-        // IF NOT COMPLEMENT
-        else {
-            $validatedRequest = $request->validate([
-                // "cbotuj" => "required",
-                // "cboproses" => "required",
-                "txtpart" => "required",
-                "txtcons" => "required",
-                "txtconsunit" => "required",
-                "tujuan" => "required",
-            ]);
+            // IF NOT COMPLEMENT
+            else {
+                $validator = Validator::make($request->all(), [
+                    "txtpart" => "required",
+                    "txtcons" => "required",
+                    "txtconsunit" => "required",
+                    "tujuan" => "required",
+                    "urutan" => "required",
+                ], [
+                    "txtpart.required" => "Data part wajib diisi",
+                    "txtcons.required" => "Data cons wajib diisi",
+                    "txtconsunit.required" => "Data satuan cons wajib diisi",
+                    "tujuan.required" => "Data tujuan wajib diisi",
+                    "urutan.required" => "Data urutan belum lengkap",
+                ]);
 
-            // Check Part Detail
-            $checkPartDetail = PartDetail::where("part_id", $request->id)->where('master_part_id', $request->txtpart)->first();
-            if (!$checkPartDetail) {
+                if ($validator->fails()) {
+                    DB::rollBack();
+
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => $validator->errors()->first(),
+                    );
+                }
+
+                $validatedRequest = $validator->validated();
+
+                // Check Part Detail
+                $checkPartDetail = PartDetail::where("part_id", $request->id)->where('master_part_id', $request->txtpart)->first();
+                if ($checkPartDetail) {
+                    $masterPart = MasterPart::where("id", $request->txtpart)->first();
+                    DB::rollBack();
+
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => 'Data Part "' . $masterPart->nama_part . '" sudah ada.',
+                    );
+                }
 
                 // Part Detail
                 $createNewPartDetail = PartDetail::create([
@@ -1035,49 +1093,52 @@ class PartController extends Controller
                     $createNewPartDetail
                 ]);
 
-                if ($createNewPartDetail) {
-                    // Insert Part Detail Secondary Urutan
-                    if ($request["urutan"]) {
-                        $currentSecondaries = explode(',', $request["urutan"]);
-                        if ($currentSecondaries) {
-                            $batch = Str::uuid();
-                            $timestamp = Carbon::now();
-                            $partDetailSecondaryData = [];
-                            for ($j = 0; $j < count($currentSecondaries); $j++) {
-                                array_push($partDetailSecondaryData, [
-                                    "part_detail_id" => $createNewPartDetail->id,
-                                    "master_secondary_id" => $currentSecondaries[$j],
-                                    "urutan" => $j+1,
-                                    "batch" => $batch,
-                                    "created_by" => Auth::user()->id,
-                                    "created_by_username" => Auth::user()->username,
-                                    "created_at" => $timestamp,
-                                    "updated_at" => $timestamp,
-                                ]);
-                            }
-                        }
-
-                        PartDetailSecondary::insert($partDetailSecondaryData);
-                    }
+                if (!$createNewPartDetail) {
+                    DB::rollBack();
 
                     return array(
-                        'icon' => 'benar',
-                        'msg' => 'Data Part "' . $request->txtpart . '" berhasil diupdate',
+                        'icon' => 'salah',
+                        'msg' => 'Data Part "' . $request->txtpart . '" gagal diupdate',
                     );
                 }
-            } else {
-                $masterPart = MasterPart::where("id", $request->txtpart)->first();
+
+                // Insert Part Detail Secondary Urutan
+                $currentSecondaries = explode(',', $request["urutan"]);
+                if ($currentSecondaries) {
+                    $batch = Str::uuid();
+                    $timestamp = Carbon::now();
+                    $partDetailSecondaryData = [];
+                    for ($j = 0; $j < count($currentSecondaries); $j++) {
+                        array_push($partDetailSecondaryData, [
+                            "part_detail_id" => $createNewPartDetail->id,
+                            "master_secondary_id" => $currentSecondaries[$j],
+                            "urutan" => $j+1,
+                            "batch" => $batch,
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    }
+
+                    PartDetailSecondary::insert($partDetailSecondaryData);
+                }
+
+                DB::commit();
+
                 return array(
-                    'icon' => 'salah',
-                    'msg' => 'Data Part "' . $masterPart->nama_part . '" sudah ada.',
+                    'icon' => 'benar',
+                    'msg' => 'Data Part "' . $request->txtpart . '" berhasil diupdate',
                 );
             }
-        }
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-        return array(
-            'icon' => 'salah',
-            'msg' => 'Data Part "' . $request->txtpart . '" gagal diupdate',
-        );
+            return array(
+                'icon' => 'salah',
+                'msg' => $e->getMessage(),
+            );
+        }
     }
 
     public function getEditPartDetailProcess(Request $request) {
