@@ -1111,6 +1111,12 @@ class ReportMutasiOutputController extends Controller
                     styleno,
                     color,
                     size,
+                    0 terima_gudang_before,
+                    0 terima_gudang,
+                    0 qty_in_before,
+                    0 qty_in,
+                    0 qty_out_before,
+                    0 qty_out,
                     SUM(saldo_awal_sewing) as saldo_awal_sewing,
                     SUM(qty_loading) as qty_loading,
                     SUM(input_rework_sewing) as input_rework_sewing,
@@ -1155,7 +1161,9 @@ class ReportMutasiOutputController extends Controller
                     SUM(qty_reject_in) as qty_reject_in,
                     SUM(qty_reworked) as qty_reworked,
                     SUM(qty_rejected) as qty_rejected,
-                    SUM(saldo_akhir_qc_reject) as saldo_akhir_qc_reject
+                    SUM(saldo_akhir_qc_reject) as saldo_akhir_qc_reject,
+                    0 loading_inject_bef,
+                    0 loading_inject
                 FROM (
 
                     select
@@ -1820,7 +1828,7 @@ class ReportMutasiOutputController extends Controller
                             styleno,
                             color,
                             size,
-                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before)) saldo_awal_sewing,
+                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before) + loading_inject_bef) saldo_awal_sewing,
                             SUM( qty_loading) qty_loading,
                             SUM( terima_gudang ) terima_gudang,
                             SUM( qty_in ) qty_in_subcont,
@@ -1927,8 +1935,8 @@ class ReportMutasiOutputController extends Controller
                                     qty_reworked,
                                     qty_rejected,
                                     saldo_akhir_qc_reject,
-                                    0 loading_inject_bef,
-                                    0 loading_inject
+                                    loading_inject_bef,
+                                    loading_inject
                             from
                                     query_fix UNION ALL
                             select
