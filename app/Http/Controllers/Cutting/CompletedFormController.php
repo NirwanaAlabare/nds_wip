@@ -317,6 +317,23 @@ class CompletedFormController extends Controller
                 'additional' => [],
             );
         }
+        DB::beginTransaction();
+
+        try {
+            // Check Stocker
+            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+            Log::channel("completedFormBypassStocker")->info($stockerForm);
+            if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+                DB::rollBack();
+
+                return array(
+                    'status' => 400,
+                    'message' => 'Form sudah memiliki stocker',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
 
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
@@ -506,13 +523,25 @@ class CompletedFormController extends Controller
                 $cuttingService->recalculateForm($validatedRequest['id']);
             }
 
+            DB::commit();
+
             return array(
                 "status" => 200,
                 "message" => "alright",
             );
         }
 
+        DB::commit();
+
         return $detail;
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return array(
+                "status" => 400,
+                "message" => $e->getMessage(),
+            );
+        }
     }
 
     public function updateFinish(Request $request, $id) {
@@ -905,89 +934,124 @@ class CompletedFormController extends Controller
     }
 
     public function destroySpreadingRoll($id, CuttingService $cuttingService) {
-        $formCutDetail = FormCutInputDetail::find($id);
+        DB::beginTransaction();
 
-        if ($formCutDetail) {
+        try {
+            $formCutDetail = FormCutInputDetail::find($id);
 
-            // Check Stocker
-            $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
-            Log::channel("completedFormBypassStocker")->info($stockerForm);
-            if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Form sudah memiliki stocker',
-                    'redirect' => '',
-                    'table' => 'datatable',
-                    'additional' => [],
-                );
-            }
+            if ($formCutDetail) {
 
-            // Update scanned item qty
-            if ($formCutDetail->id_roll) {
-                // No need to update qty if it is redundant
-                $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutDetail->form_cut_id)->where("id_roll", $formCutDetail->id_roll)->where("qty", $formCutDetail->qty)->where("id", "!=", $formCutDetail->id)->first();
-                if (!$checkSimilarTimeRecord) {
+                // Check Stocker
+                $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
+                Log::channel("completedFormBypassStocker")->info($stockerForm);
+                if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+                    DB::rollBack();
 
-                    // Get scanned item roll
-                    $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
-                    if ($formCutDetailRoll) {
+                    return array(
+                        'status' => 400,
+                        'message' => 'Form sudah memiliki stocker',
+                        'redirect' => '',
+                        'table' => 'datatable',
+                        'additional' => [],
+                    );
+                }
 
-                        // Update scanned item qty
-                        $formCutDetailRoll->qty_pakai = ($formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) > 0 ? $formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) : 0);
-                        $formCutDetailRoll->qty += ($formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round(($formCutDetail->qty ?? 0) - ($formCutDetail->sisa_kain ?? 0), 2));
+                // Update scanned item qty
+                if ($formCutDetail->id_roll) {
+                    // No need to update qty if it is redundant
+                    $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutDetail->form_cut_id)->where("id_roll", $formCutDetail->id_roll)->where("qty", $formCutDetail->qty)->where("id", "!=", $formCutDetail->id)->first();
+                    if (!$checkSimilarTimeRecord) {
 
-                        $formCutDetailRoll->save();
+                        // Get scanned item roll
+                        $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
+                        if ($formCutDetailRoll) {
+
+                            // Update scanned item qty
+                            $formCutDetailRoll->qty_pakai = ($formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) > 0 ? $formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) : 0);
+                            $formCutDetailRoll->qty += ($formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round(($formCutDetail->qty ?? 0) - ($formCutDetail->sisa_kain ?? 0), 2));
+
+                            $formCutDetailRoll->save();
+                        }
                     }
+                }
+
+                // Add to Form Cut Detail Deleted Logs
+                DB::table("form_cut_input_detail_delete")->insert([
+                    "form_cut_id" => $formCutDetail['form_cut_id'],
+                    "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
+                    "id_roll" => $formCutDetail['id_roll'],
+                    "id_item" => $formCutDetail['id_item'],
+                    "color_act" => $formCutDetail['color_act'],
+                    "detail_item" => $formCutDetail['detail_item'],
+                    "group_roll" => $formCutDetail['group_roll'],
+                    "lot" => $formCutDetail['lot'],
+                    "roll" => $formCutDetail['roll'],
+                    "qty" => $formCutDetail['qty'],
+                    "unit" => $formCutDetail['unit'],
+                    "sisa_gelaran" => $formCutDetail['sisa_gelaran'],
+                    "sambungan" => $formCutDetail['sambungan'],
+                    "sambungan_roll" => $formCutDetail['sambungan_roll'],
+                    "est_amparan" => $formCutDetail['est_amparan'],
+                    "lembar_gelaran" => $formCutDetail['lembar_gelaran'],
+                    "average_time" => $formCutDetail['average_time'],
+                    "kepala_kain" => $formCutDetail['kepala_kain'],
+                    "sisa_tidak_bisa" => $formCutDetail['sisa_tidak_bisa'],
+                    "reject" => $formCutDetail['reject'],
+                    "sisa_kain" => ($formCutDetail['sisa_kain'] ? $formCutDetail['sisa_kain'] : 0),
+                    "pemakaian_lembar" => $formCutDetail['pemakaian_lembar'],
+                    "total_pemakaian_roll" => $formCutDetail['total_pemakaian_roll'],
+                    "short_roll" => $formCutDetail['short_roll'],
+                    "piping" => $formCutDetail['piping'],
+                    "status" => $formCutDetail['status'],
+                    "metode" => $formCutDetail['metode'],
+                    "group_stocker" => $formCutDetail['group_stocker'],
+                    "created_at" => $formCutDetail['created_at'],
+                    "updated_at" => $formCutDetail['updated_at'],
+                    "deleted_by" => Auth::user()->username,
+                    "deleted_at" => Carbon::now(),
+                ]);
+
+                // Delete Form Cut Detail
+                if ($formCutDetail->delete()) {
+
+                    // Delete sambungan If after Sambungan
+                    $before = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where('created_at', '<', $formCutDetail->created_at)->orderBy("created_at", "desc")->first();
+                    if ($before->id_roll == $formCutDetail->id_roll && $before->status == 'extension complete') {
+                        $this->destroySpreadingRoll($before->id, $cuttingService);
+                    }
+
+                    // Delete Sambungan Reference
+                    if ($formCutDetail->id_sambungan) {
+                        $formCutDetailReference = FormCutInputDetail::where("id", $formCutDetail['id_sambungan'])->first();
+
+                        $this->destroySpreadingRoll($formCutDetailReference->id, $cuttingService);
+                    }
+
+                    // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
+                    $cuttingService->fixRollQty($formCutDetail['id_roll'], null);
+
+                    DB::commit();
+
+                    return array(
+                        "status" => 200,
+                        "message" => "alright"
+                    );
                 }
             }
 
-            // Add to Form Cut Detail Deleted Logs
-            DB::table("form_cut_input_detail_delete")->insert([
-                "form_cut_id" => $formCutDetail['form_cut_id'],
-                "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
-                "id_roll" => $formCutDetail['id_roll'],
-                "id_item" => $formCutDetail['id_item'],
-                "color_act" => $formCutDetail['color_act'],
-                "detail_item" => $formCutDetail['detail_item'],
-                "group_roll" => $formCutDetail['group_roll'],
-                "lot" => $formCutDetail['lot'],
-                "roll" => $formCutDetail['roll'],
-                "qty" => $formCutDetail['qty'],
-                "unit" => $formCutDetail['unit'],
-                "sisa_gelaran" => $formCutDetail['sisa_gelaran'],
-                "sambungan" => $formCutDetail['sambungan'],
-                "sambungan_roll" => $formCutDetail['sambungan_roll'],
-                "est_amparan" => $formCutDetail['est_amparan'],
-                "lembar_gelaran" => $formCutDetail['lembar_gelaran'],
-                "average_time" => $formCutDetail['average_time'],
-                "kepala_kain" => $formCutDetail['kepala_kain'],
-                "sisa_tidak_bisa" => $formCutDetail['sisa_tidak_bisa'],
-                "reject" => $formCutDetail['reject'],
-                "sisa_kain" => ($formCutDetail['sisa_kain'] ? $formCutDetail['sisa_kain'] : 0),
-                "pemakaian_lembar" => $formCutDetail['pemakaian_lembar'],
-                "total_pemakaian_roll" => $formCutDetail['total_pemakaian_roll'],
-                "short_roll" => $formCutDetail['short_roll'],
-                "piping" => $formCutDetail['piping'],
-                "status" => $formCutDetail['status'],
-                "metode" => $formCutDetail['metode'],
-                "group_stocker" => $formCutDetail['group_stocker'],
-                "created_at" => $formCutDetail['created_at'],
-                "updated_at" => $formCutDetail['updated_at'],
-                "deleted_by" => Auth::user()->username,
-                "deleted_at" => Carbon::now(),
-            ]);
+            DB::rollBack();
 
-            // Delete Form Cut Detail
-            if ($formCutDetail->delete()) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak berubah."
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-                // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
-                $cuttingService->fixRollQty($formCutDetail['id_roll'], null);
-
-                return array(
-                    "status" => 200,
-                    "message" => "alright"
-                );
-            }
+            return array(
+                "status" => 400,
+                "message" => $e->getMessage()
+            );
         }
 
         return array(
