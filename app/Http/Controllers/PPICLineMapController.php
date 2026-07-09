@@ -18,7 +18,8 @@ select * from userpassword where username like '%line%' order by username asc");
             ->where(function ($q) {
                 $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
             })
-            ->orderBy('line')->orderBy('tgl_start')->get();
+            ->latest('tgl_start')
+            ->get();
 
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
@@ -26,14 +27,15 @@ select * from userpassword where username like '%line%' order by username asc");
             $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
             $totalDays = max($totalDays, 1);
             $row->tot_days_rounded = $totalDays;
-            $row->tgl_end = date('Y-m-d', strtotime($row->tgl_start . ' +' . ($totalDays - 1) . ' days'));
+
+            $workingDates = $this->workingDatesFrom($row->tgl_start, $totalDays);
+            $row->tgl_end = !empty($workingDates) ? end($workingDates) : $row->tgl_start;
             $row->output_per_day = $row->output_based_eff !== null ? (int) round($row->output_based_eff) : null;
             $row->ramp_up_efficiency = $row->ramp_up_efficiency ? json_decode($row->ramp_up_efficiency, true) : [];
 
             $dailyPlan = [];
             $dailyEfficiency = [];
-            for ($i = 0; $i < $totalDays; $i++) {
-                $dateKey = date('Y-m-d', strtotime($row->tgl_start . ' +' . $i . ' days'));
+            foreach ($workingDates as $i => $dateKey) {
                 if ($i < count($row->ramp_up_efficiency) && $row->output_day_100 !== null) {
                     $dailyPlan[$dateKey] = (int) round($row->output_day_100 * $row->ramp_up_efficiency[$i]);
                     $dailyEfficiency[$dateKey] = round($row->ramp_up_efficiency[$i] * 100, 1);
@@ -66,44 +68,42 @@ select * from userpassword where username like '%line%' order by username asc");
 
         $lineMapByLine = $lineMap->groupBy('line');
 
-        $filterStart = $request->input('tgl_dari');
-        $filterEnd = $request->input('tgl_sampai');
+        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
+        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
 
-        $calendarStart = $filterStart ?: date('Y-m-01');
-        $calendarEnd = $filterEnd ?: date('Y-m-t');
+        $calendarStart = $filterStart . ' 00:00:00';
+        $calendarEnd = $filterEnd . ' 23:59:59';
 
-        $calendarDates = DB::select("select tanggal, nama_hari from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
+        $calendarDates = DB::select("select tanggal, nama_hari, status_prod from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
 
-        $actualRows = DB::connection('mysql_sb')->select("
-WITH a as (
+        $actualRows = DB::connection('mysql_sb')->select("WITH a as (
 select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
-where created_at >= ? and created_at <= ? and status = 'NORMAL'
-group by so_det_id, created_by, date(updated_at)
+left join master_plan mp on output_rfts.master_plan_id = mp.id
+where created_at >= ? and created_at <= ? and mp.cancel = 'N'
+group by so_det_id, created_by, date(created_at)
 )
 
-SELECT tgl_trans, u.username as line, tot_rfts, supplier as buyer, sd.styleno_prod, ac.styleno, sd.reff_no FROM a
-inner join user_sb_wip u on a.created_by = u.id
+SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.kpno, ac.styleno, sd.reff_no, ac.styleno
+FROM a
+left join user_sb_wip u on a.created_by = u.id
+left join userpassword up on up.line_id = u.line_id
 LEFT JOIN so_det sd on a.so_det_id = sd.id
 left join so on sd.id_so = so.id
 left join act_costing	 ac on so.id_cost = ac.id
 left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        ", [$calendarStart, $calendarEnd]);
+group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $actualByLineDate = collect($actualRows)
-            ->map(function ($row) {
-                $row->style = $row->styleno ?: $row->styleno_prod;
-                return $row;
-            })
             ->groupBy('line')
             ->map(function ($lineGroup) {
                 return $lineGroup->groupBy('tgl_trans')->map(function ($dateGroup) {
                     return $dateGroup
-                        ->groupBy(fn($r) => ($r->buyer ?? '') . '|' . ($r->style ?? ''))
+                        ->groupBy(fn($r) => ($r->buyer ?? '') . '|' . ($r->styleno ?? ''))
                         ->map(function ($group) {
                             $first = $group->first();
                             return (object) [
                                 'buyer' => $first->buyer,
-                                'style' => $first->style,
+                                'styleno' => $first->styleno,
                                 'tot_rfts' => $group->sum('tot_rfts'),
                             ];
                         })
@@ -123,8 +123,8 @@ left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
             'lineNameByUsername' => $lineNameByUsername,
             'calendarDates' => $calendarDates,
             'actualByLineDate' => $actualByLineDate,
-            'filterStart' => $filterStart ?? $calendarStart,
-            'filterEnd' => $filterEnd ?? $calendarEnd,
+            'filterStart' => $filterStart,
+            'filterEnd' => $filterEnd,
         ]);
     }
 
@@ -186,6 +186,14 @@ left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
             'updated_at' => now(),
         ];
 
+        $overlap = $this->findLineMapOverlap($data['line'], $data['tgl_start'], $totalDays, $validated['editid'] ?? null);
+        if ($overlap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line yang sama.',
+            ], 422);
+        }
+
         if (!empty($validated['editid'])) {
             DB::table('ppic_line_map')->where('id', $validated['editid'])->update($data);
             $message = 'Data Line Map berhasil diupdate';
@@ -216,12 +224,132 @@ left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
         ]);
     }
 
+    public function move_ppic_line_map(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:ppic_line_map,id',
+            'target_line' => 'required|string',
+            'target_date' => 'required|date',
+        ]);
+
+        $lineMap = DB::table('ppic_line_map')
+            ->where('id', $validated['id'])
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->first();
+
+        if (!$lineMap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Line Map tidak ditemukan',
+            ], 404);
+        }
+
+        $targetStartDate = $validated['target_date'];
+
+        $overlap = $this->findLineMapOverlap($validated['target_line'], $targetStartDate, $lineMap->tot_days, $lineMap->id);
+        if ($overlap) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak bisa dipindahkan. Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line tujuan.',
+            ], 422);
+        }
+
+        DB::table('ppic_line_map')
+            ->where('id', $validated['id'])
+            ->update([
+                'line' => $validated['target_line'],
+                'tgl_start' => $targetStartDate,
+                'updated_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal Line Map berhasil dipindahkan',
+        ]);
+    }
+
     private function styleColorFromName(?string $style): string
     {
         $hash = abs(crc32(strtoupper(trim($style ?? ''))));
         $hue = $hash % 360;
 
         return "hsl({$hue}, 62%, 42%)";
+    }
+
+    private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, ?int $ignoreId = null)
+    {
+        if (!$line || !$startDate) {
+            return null;
+        }
+
+        $totalDays = $totalDays !== null ? (int) round($totalDays) : 1;
+        $totalDays = max($totalDays, 1);
+        $workingDates = $this->workingDatesFrom($startDate, $totalDays);
+        $endDate = !empty($workingDates) ? end($workingDates) : $startDate;
+
+        $query = DB::table('ppic_line_map')
+            ->where('line', $line)
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            });
+
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->get()->first(function ($row) use ($startDate, $endDate) {
+            if (!$row->tgl_start) {
+                return false;
+            }
+
+            $rowTotalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
+            $rowTotalDays = max($rowTotalDays, 1);
+            $rowStartDate = $row->tgl_start;
+            $rowWorkingDates = $this->workingDatesFrom($rowStartDate, $rowTotalDays);
+            $rowEndDate = !empty($rowWorkingDates) ? end($rowWorkingDates) : $rowStartDate;
+
+            return $rowStartDate <= $endDate && $rowEndDate >= $startDate;
+        });
+    }
+
+    /**
+     * $startDate is always kept as day 1 even if it lands on a holiday (an
+     * intentional start date, e.g. planned overtime). Every day after that
+     * skips status_prod = LIBUR and continues on the next working day.
+     */
+    private function workingDatesFrom(string $startDate, int $count): array
+    {
+        if ($count <= 0) {
+            return [];
+        }
+
+        $dates = [$startDate];
+        $remaining = $count - 1;
+
+        if ($remaining > 0) {
+            $bufferDays = (int) ceil($remaining * 0.6) + 30;
+            $rangeStart = date('Y-m-d', strtotime($startDate . ' +1 day'));
+            $rangeEnd = date('Y-m-d', strtotime($startDate . ' +' . ($remaining + $bufferDays) . ' days'));
+
+            $dates = array_merge(
+                $dates,
+                array_slice($this->workingDatesInRange($rangeStart, $rangeEnd), 0, $remaining)
+            );
+        }
+
+        return $dates;
+    }
+
+    private function workingDatesInRange(string $from, string $to): array
+    {
+        $dates = DB::select(
+            "select tanggal from dim_date where tanggal >= ? and tanggal <= ? and status_prod = 'KERJA' order by tanggal asc",
+            [$from, $to]
+        );
+
+        return collect($dates)->map(fn($d) => date('Y-m-d', strtotime($d->tanggal)))->values()->all();
     }
 
     private function simulateTotalDays(?float $outputPerDay100, ?float $qtyOrder, ?float $steadyEfficiency, array $rampUpEfficiency)

@@ -1072,6 +1072,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
         Route::post('/ppic_line_map/store', 'store_ppic_line_map')->name('store_ppic_line_map');
+        Route::post('/ppic_line_map/move', 'move_ppic_line_map')->name('move_ppic_line_map');
         Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
     });
 
@@ -1548,6 +1549,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
         Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
+        Route::get('/asset_mesin_master/search_serial', 'search_serial_number')->name('asset_mesin_master_search_serial');
     });
     // Master Asset Management Tambah Mesin (Sewa Mesin)
     Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
