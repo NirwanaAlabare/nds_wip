@@ -1246,7 +1246,8 @@ class Marketing_BomController extends Controller
                 $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', IFNULL(i.color, ''), ' ', IFNULL(i.size, ''), ' ', IFNULL(i.add_info, '')) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
                 $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfdesc ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents) END) as content_name"),
                 $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfcode ELSE e.id END) as id_content"),
-                'd.qty as cons_qty'
+                'd.qty as cons_qty',
+                'd.notes'
             )
             ->where('d.id_bom_marketing', $id)
             ->where('d.id_item', '!=', null)
@@ -1321,6 +1322,7 @@ class Marketing_BomController extends Controller
                     'unit_name'    => $det->unit_name,
                     'nama_panel'   => $det->nama_panel,
                     'rule_bom'     => $rule,
+                    'notes'        => $det->notes,
                     'colors'       => [],
                     'sizes'        => []
                 ];
