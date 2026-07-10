@@ -327,12 +327,42 @@
                             <div class="col-md-12">
                                 <label class="form-label">Tanggal Terima</label>
                                 <input type="date" class="form-control" id="tanggal_roll" name="tanggal_roll" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? ($currentCuttingPieceDetail->scannedItem->penerimaanCutting && $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first() ? $currentCuttingPieceDetail->scannedItem->penerimaanCutting->first()->tanggal_terima : null) : null) : null }}" readonly>
-                            </div><div class="col-md-12">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="switch-method-detail" checked onchange="switchMethodDetail(this)">
+                                        <label class="form-check-label" id="to-scan">Scan Roll</label>
+                                        <label class="form-check-label d-none" id="to-select">Pilih Barang</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="scan-method-detail">
                                 <label class="form-label">ID Roll</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}">
                                     <button class="btn btn-success" id="fetch-button" type="button" onclick="fetchScanItem()"><i class="fa fa-search"></i></button>
-                                    <button class="btn btn-danger" id="reset-button" type="button" onclick="resetScanItem()"><i class="fa fa-undo"></i></button>
+                                    <button class="btn btn-danger" id="reset-button-scan" type="button" onclick="resetScanItem()"><i class="fa fa-undo"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="select-method-detail">
+                                <label class="form-label">Pilih Barang</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-select" name="barang" id="barang" onchange="clearItem()">
+                                            <option value="">Pilih Barang</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row row-gap-1">
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-sb btn-block" id="select-item" onclick="setSelectedItem()">Get</button>
+                                            </div>
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-danger btn-block" id="reset-button-item" type="button" onclick="resetScanItem()"><i class="fa fa-undo"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -373,7 +403,7 @@
                             <div class="col-md-6">
                                 <label class="form-label">QTY</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="qty" name="qty" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty : null }}" readonly>
+                                    <input type="number" class="form-control" id="qty" name="qty" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty : null }}" onkeyup="calculateTotalDetailQty();" onchange="calculateTotalDetailQty();" readonly>
                                     <input type="text" class="form-control" id="qty_unit" name="qty_unit" value="PCS" readonly>
                                 </div>
                             </div>
@@ -1119,14 +1149,26 @@
                         originalInput.value = valueMap[oldId] ?? "";
                         el.parentNode.insertBefore(originalInput, el);
 
-                        if (oldId !== 'id_roll') {
+                        if (oldId !== 'id_roll' && oldId !== 'barang') {
                             el.setAttribute("readonly", true);
                         } else {
                             el.removeAttribute("readonly");
+                            el.removeAttribute("disabled");
                         }
-                    } else if (oldId === 'fetch-button' || oldId === 'reset-button') {
+
+                        if (oldId == 'qty') {
+                            el.setAttribute('onkeyup', `calculateTotalDetailQty('${suffix}');calculateTotalDetailQtyActual('${suffix}')`);
+                            el.setAttribute('onchange', `calculateTotalDetailQty('${suffix}');calculateTotalDetailQtyActual('${suffix}')`);
+                        }
+                    } else if (oldId === 'fetch-button' || oldId.includes('reset-button') ) {
                         el.setAttribute('onclick', `fetchScanItem('${suffix}')`);
                         el.setAttribute('onclick', oldId === 'fetch-button' ? `fetchScanItem('${suffix}')` : `resetScanItem('${suffix}')`);
+                    } else if (oldId === `switch-method-detail`) {
+                        el.setAttribute('onchange', `switchMethodDetail(this, '${suffix}')`);
+                    } else if (oldId === 'barang') {
+                        el.setAttribute('onchange', `clearItem('${suffix}')`);
+                    } else if (oldId === 'select-item') {
+                        el.setAttribute('onclick', `setSelectedItem('${suffix}')`);
                     }
                 });
 
@@ -1212,6 +1254,22 @@
 
                 // Append Form to Container
                 container.appendChild(form);
+
+                // Roll
+                if (item.id_roll) {
+                    toScanMethodDetail(suffix)
+                    document.getElementById("switch-method-detail"+suffix).checked = true;
+                } else {
+                    toSelectMethodDetail(suffix);
+                    document.getElementById("switch-method-detail"+suffix).checked = false;
+                }
+
+
+                // Select ITEM
+                getItemList(suffix, item.id_item);
+                $('#barang'+suffix).select2({
+                    theme: 'bootstrap4'
+                });
             }
 
             function buildTableRows(details, suffix) {
@@ -1444,6 +1502,60 @@
                 document.getElementById("total-detail-qty").innerHTML = "...";
             }
         // END OF PROCESS THREE
+
+        // Select Item Module :
+            async function getItemList(suffix = '', defaultValue = '') {
+                $("#barang"+suffix).prop("disabled", true);
+
+                await $.ajax({
+                    url: '{{ route('get-item-form-cut-input') }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                        unit: "PCS"
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            res.forEach((item) => {
+                                let option = document.createElement("option");
+                                option.text = item.id_item+" | "+item.itemdesc;
+                                option.value = item.id_item;
+                                option.setAttribute("data-detail", item.itemdesc);
+                                option.setAttribute("data-unit-qty", item.unit);
+                                option.setAttribute("data-sizes", item.sizes);
+
+                                document.getElementById("barang"+suffix).appendChild(option);
+                            });
+                        }
+                    },
+                });
+
+                $("#barang"+suffix).prop("disabled", false);
+            }
+
+            function setSelectedItem(suffix = '') {
+                let element = document.getElementById("barang"+suffix);
+
+                currentScannedItem = null;
+
+                if (element.value && element.value != "") {
+                    document.getElementById("kode_barang").value = "";
+
+                    document.getElementById("id_roll"+suffix).value = "";
+                    document.getElementById("id_item"+suffix).value = element.value;
+                    document.getElementById("detail_item"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-detail");
+                    document.getElementById("qty_pengeluaran"+suffix).removeAttribute("readonly");
+                    document.getElementById("qty_pengeluaran_unit"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-unit-qty");
+                    document.getElementById("qty"+suffix).removeAttribute("readonly");
+                    document.getElementById("qty_unit"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-unit-qty");
+                    document.getElementById("qty_pemakaian_unit"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-unit-qty");
+                    document.getElementById("qty_sisa_unit"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-unit-qty");
+                    document.getElementById("rule_bom"+suffix).value = $("#barang"+suffix+" option:selected").attr("data-sizes");
+
+                    currentScannedItem = {"id_item": element.value, "detail_item": $("#detail_item"+suffix).val(), "qty": $("#qty"+suffix).val(), "unit": $("#qty_unit"+suffix).val(), "sizes": $("#rule_bom"+suffix).val()};
+                }
+            }
 
         // FINISH PROCESS
             function finishProcess() {
@@ -1933,7 +2045,7 @@
                 idRollInput.value = originalIdRollInput.value;
 
                 // Since we are resetting, let's also reset other related fields to their original state
-                ['id_item', 'detail_item', 'qty_pengeluaran', 'qty', 'rule_bom'].forEach(field => {
+                ['id_item', 'detail_item', 'lot', 'roll_buyer', 'qty_pengeluaran','qty_pengeluaran_unit', 'qty', 'qty_unit', 'qty_pemakaian_unit', 'qty_sisa_unit', 'rule_bom'].forEach(field => {
                     document.getElementById(field + suffix).value = document.getElementById('original_' + field + suffix).value;
                 });
             }
@@ -1992,6 +2104,57 @@
                     });
                 }
             });
+        }
+
+        function switchMethodDetail(element, suffix = '', scanner = true) {
+            clearItem(suffix);
+
+            if (element.checked) {
+                toScanMethodDetail(suffix, scanner);
+            } else {
+                toSelectMethodDetail(suffix);
+            }
+        }
+
+        function toScanMethodDetail(suffix = '', scanner = true) {
+            method = "scan";
+
+            document.getElementById("select-method-detail"+suffix).classList.add('d-none');
+
+            document.getElementById("scan-method-detail"+suffix).classList.remove('d-none');
+
+            document.getElementById("lot"+suffix).setAttribute("readonly", true);
+            document.getElementById("roll_buyer"+suffix).setAttribute("readonly", true);
+            document.getElementById("qty_pengeluaran"+suffix).setAttribute("readonly", true);
+            document.getElementById("qty"+suffix).setAttribute("readonly", true);
+        }
+
+        function toSelectMethodDetail(suffix = '') {
+            method = "select";
+
+            document.getElementById("scan-method-detail"+suffix).classList.add('d-none');
+
+            document.getElementById("select-method-detail"+suffix).classList.remove('d-none');
+
+            document.getElementById("lot"+suffix).removeAttribute("readonly");
+            document.getElementById("roll_buyer"+suffix).removeAttribute("readonly");
+            document.getElementById("qty_pengeluaran"+suffix).removeAttribute("readonly");
+            document.getElementById("qty"+suffix).removeAttribute("readonly");
+        }
+
+        function clearItem(suffix = '') {
+            document.getElementById("kode_barang").value = "";
+
+            document.getElementById("id_roll"+suffix).value = "";
+            document.getElementById("id_item"+suffix).value = "";
+            document.getElementById("detail_item"+suffix).value = "";
+            document.getElementById("lot"+suffix).value = "";
+            document.getElementById("roll_buyer"+suffix).value = "";
+            document.getElementById("rule_bom"+suffix).value = "";
+            document.getElementById("qty_pengeluaran"+suffix).value = "";
+            document.getElementById("qty_pengeluaran_unit"+suffix).value = "";
+            document.getElementById("qty"+suffix).value = "";
+            document.getElementById("qty_unit"+suffix).value = "";
         }
     </script>
 @endsection
