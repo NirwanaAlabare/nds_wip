@@ -77,8 +77,8 @@ use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
-use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\PPICDashboardController;
+use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
 use App\Http\Controllers\PurchasingController;
@@ -95,6 +95,7 @@ use App\Http\Controllers\QCInspectShadeBandController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\ReportDocController;
 use App\Http\Controllers\ReportOutputPackingLineController;
+use App\Http\Controllers\ReportPackingLineReturnController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
@@ -2015,6 +2016,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/data', 'getData')->name('report.defect_spotcleaning_out.data');
             Route::get('/export', 'exportExcel')->name('report.defect_spotcleaning_out.export');
         });
+    });
+
+    Route::controller(ReportPackingLineReturnController::class)->prefix("report-packing-line-return")->middleware('role:packing')->group(function () {
+        Route::get('/', 'index')->name('report-packing-line-return');
+        Route::post('/export', 'export')->name('export-report-packing-line-return');
     });
 });
 
