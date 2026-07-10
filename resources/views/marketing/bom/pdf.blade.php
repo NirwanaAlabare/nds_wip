@@ -171,7 +171,7 @@
                             <td colspan="8" class="text-right fw-bold bg-light">TOTAL &nbsp;&nbsp;&nbsp; {{ rtrim(rtrim(number_format($tot_qty_reqd, 10, '.', ''), '0'), '.') }} &nbsp;&nbsp; {{ $det->unit_name ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td colspan="13">Notes :</td>
+                            <td colspan="13">Notes : {{ $det->notes ?? '' }}</td>
                         </tr>
                     @endforeach
                 @endforeach

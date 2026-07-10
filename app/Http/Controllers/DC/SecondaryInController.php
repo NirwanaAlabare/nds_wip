@@ -834,7 +834,6 @@ class SecondaryInController extends Controller
             $partDetail = $stocker->partDetail;
             if ($partDetail) {
 
-
                 // Check Part Detail Secondary
                 $partDetailSecondary = $partDetail->secondaries;
                 if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
@@ -853,6 +852,7 @@ class SecondaryInController extends Controller
                                 dc.lokasi,
                                 COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                 CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                 if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                 s.lokasi lokasi_tujuan,
                                 s.tempat tempat_tujuan,
@@ -973,6 +973,7 @@ class SecondaryInController extends Controller
                                                     ms.proses lokasi,
                                                     COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                     CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
@@ -1032,6 +1033,7 @@ class SecondaryInController extends Controller
                                                 ms.proses lokasi,
                                                 COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                 CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                 ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                 s.lokasi lokasi_tujuan,
                                                 s.tempat tempat_tujuan,
@@ -1126,6 +1128,7 @@ class SecondaryInController extends Controller
                                                         ms.proses lokasi,
                                                         COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                         CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                        COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                         ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
@@ -1182,6 +1185,7 @@ class SecondaryInController extends Controller
                                                         ms.proses lokasi,
                                                         COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                         CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                        COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                         ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
@@ -1249,6 +1253,7 @@ class SecondaryInController extends Controller
                                                     ms.proses lokasi,
                                                     COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                     CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
@@ -1306,6 +1311,7 @@ class SecondaryInController extends Controller
                                             dc.lokasi,
                                             COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                             CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                            COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                             if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                             s.lokasi lokasi_tujuan,
                                             s.tempat tempat_tujuan,
@@ -1398,6 +1404,7 @@ class SecondaryInController extends Controller
                                                     ms.proses lokasi,
                                                     COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                                     CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
@@ -1467,6 +1474,7 @@ class SecondaryInController extends Controller
                                         dc.lokasi,
                                         COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                         CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                        COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                         if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                         s.lokasi lokasi_tujuan,
                                         s.tempat tempat_tujuan,
@@ -1534,6 +1542,7 @@ class SecondaryInController extends Controller
                             dc.lokasi,
                             COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                             CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                            COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                             if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                             s.lokasi lokasi_tujuan,
                             s.tempat tempat_tujuan,
@@ -1592,6 +1601,7 @@ class SecondaryInController extends Controller
                 dc.lokasi,
                 COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                 COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
                 sii.qty_reject,
                 sii.qty_replace,
