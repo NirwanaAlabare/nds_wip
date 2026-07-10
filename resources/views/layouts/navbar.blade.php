@@ -1069,6 +1069,12 @@
                                     Sales Order <i class="fa-solid fa-file-invoice-dollar fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('master-marketing-catalog') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-catalog' ? 'active' : '' }}">
+                                    Katalog Style <i class="fa-solid fa-images fa-sm"></i>
+                                </a>
+                            </li>
                             {{-- <li>
                                 <a href="{{ route('master-bom-additional') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom-additional' ? 'active' : '' }}">
