@@ -977,6 +977,12 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12 d-none">
+                                <div class="mb-3">
+                                    <label class="form-label small label-calc">Last Status</label>
+                                    <input type="text" class="form-control form-control-sm" id="current_latest_status" name="current_latest_status" step=".01" readonly>
+                                </div>
+                            </div>
                             <div class="col-md-12">
                                 {{-- <div class="row justify-content-between">
                                     <div class="col-md-4">
@@ -1553,6 +1559,7 @@
             data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
+            document.getElementById("current_latest_status").value = latestStatus;
             if (!noBerat) {
                 data.berat_amparan ? document.getElementById("current_berat_amparan").value = data.berat_amparan : '';
             }
@@ -1589,7 +1596,7 @@
             checkLockExtension();
 
             // lock qty input
-            checkLockQtyInput();
+            checkLockQtyInput(latestStatus);
         }
 
         // -Clear Spreading Form-
@@ -2425,7 +2432,7 @@
             }
         }
 
-        function checkLockQtyInput() {
+        function checkLockQtyInput(latestStatus = null) {
             let superadmin = '{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}'
 
             let idRollElement = document.getElementById("current_id_roll");
@@ -2452,6 +2459,11 @@
                     qtyRealElement.removeAttribute("readonly");
                 }
             }
+
+            if (latestStatus == 'extension complete') {
+                qtyElement.setAttribute("readonly");
+                qtyRealElement.setAttribute("readonly");
+            }
         }
 
         // -Lock Item input on Spreading Form-
@@ -2471,6 +2483,8 @@
                 document.getElementById("current_id_roll").removeAttribute("readonly");
             } else {
                 document.getElementById("current_id_roll").setAttribute("readonly");
+                document.getElementById("current_qty_real").setAttribute("readonly");
+                document.getElementById("current_qty").setAttribute("readonly");
             }
             document.getElementById("current_id_item").removeAttribute("readonly");
             document.getElementById("current_lot").removeAttribute("readonly");
@@ -2480,6 +2494,28 @@
         }
 
         async function deleteTimeRecord() {
+            let currentLatestStatus = document.getElementById('current_latest_status').value;
+
+            if (currentLatestStatus === 'extension complete') {
+                const result = await Swal.fire({
+                    icon: 'error',
+                    title: 'Hapus roll?',
+                    html: '<span>Data ini terkait dengan roll sambungan, menghapus roll ini sama dengan <b>menghapus roll sambungan beserta dengan roll yang membutuhkan sambungannya</b>.',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#fa4456',
+                });
+
+                if (!result.isConfirmed) {
+                    return Swal.fire({
+                        icon: 'info',
+                        title: 'Dibatalkan'
+                    });
+                }
+            }
+
             let proceed = await checkStockerForm();
 
             if (proceed) {

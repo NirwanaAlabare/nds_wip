@@ -2,18 +2,6 @@
 
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
-use App\Http\Controllers\AssetDashboardController;
-use App\Http\Controllers\AssetMasterJenisMesinController;
-use App\Http\Controllers\AssetMasterLokasiController;
-use App\Http\Controllers\AssetMasterRakSparepartController;
-use App\Http\Controllers\AssetMesinMasterController;
-use App\Http\Controllers\AssetMesinPengeluaranController;
-use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
-use App\Http\Controllers\AssetMesinReportController;
-use App\Http\Controllers\AssetMesinSewaController;
-use App\Http\Controllers\AssetMesinSewaPengeluaranController;
-use App\Http\Controllers\AssetMesinTambahController;
-use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\BarcodePackingController;
 use App\Http\Controllers\CeisaAPIController;
 use App\Http\Controllers\DashboardFabricController;
@@ -52,12 +40,10 @@ use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
-use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\Marketing_BomController;
 use App\Http\Controllers\Marketing_CostingController;
 use App\Http\Controllers\Marketing_SOController;
 use App\Http\Controllers\MarketingDashboardController;
-use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportDailyEarnBuyerController;
@@ -154,6 +140,23 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
+use App\Http\Controllers\AssetDashboardController;
+use App\Http\Controllers\AssetMasterLokasiController;
+use App\Http\Controllers\AssetMasterJenisMesinController;
+use App\Http\Controllers\AssetMasterRakSparepartController;
+use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinPengeluaranController;
+use App\Http\Controllers\AssetMesinSewaController;
+use App\Http\Controllers\AssetMesinSewaPengeluaranController;
+use App\Http\Controllers\AssetMesinMasterController;
+use App\Http\Controllers\AssetMesinTambahSparepartsController;
+use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
+use App\Http\Controllers\AssetMesinReportController;
+use App\Http\Controllers\Marketing_ApprovalCenterController;
+use App\Http\Controllers\MarketingReportController;
+use App\Http\Controllers\Marketing_CatalogController;
+use App\Http\Controllers\TicketingDashboardController;
+use App\Http\Controllers\BAPFormController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1274,6 +1277,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/marketing_report_cvs_detail/export_excel', 'export_excel_marketing_cvs_detail')->name('export_excel_marketing_cvs_detail');
     });
 
+    // Marketing Catalog
+    Route::controller(Marketing_CatalogController::class)->prefix("master-marketing-catalog")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-marketing-catalog');
+        Route::get('/detail/{id_item}', 'catalogDetail')->name('master-marketing-catalog-detail');
+    });
+
     // QC Inspect Kain
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
@@ -1550,7 +1559,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
         Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
-        Route::get('/asset_mesin_master/search_serial', 'search_serial_number')->name('asset_mesin_master_search_serial');
+        Route::get('/asset_mesin_master/export_excel', 'export_excel_master_mesin_detail')->name('export_excel_master_mesin_detail');
     });
     // Master Asset Management Tambah Mesin (Sewa Mesin)
     Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
@@ -1613,6 +1622,21 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinReportController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_report_stok_jenis_area', 'asset_mesin_report_stok_jenis_area')->name('asset_mesin_report_stok_jenis_area');
         Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
+    });
+
+    // Dashboard Ticketing
+    Route::controller(TicketingDashboardController::class)->group(function () {
+        Route::get('/dashboard_ticketing', 'dashboard_ticketing')->name('dashboard-ticketing');
+    });
+
+    // Form BAP
+    Route::controller(BAPFormController::class)->group(function () {
+        Route::get('/dashboard_bap/form', 'form_bap')->name('form-bap');
+        Route::post('/dashboard_bap/form/store', 'store')->name('store-form-bap');
+        Route::post('/dashboard_bap/form/toggle-status', 'toggleStatus')->name('toggle-status-form-bap');
+        Route::get('/dashboard_bap/form/edit', 'edit')->name('edit-form-bap');
+        Route::post('/dashboard_bap/form/update', 'update')->name('update-form-bap');
+        Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
     });
     // Export Import (EXIM)
 

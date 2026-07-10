@@ -114,7 +114,25 @@
         </div>
         <div class="card-body">
             <div class="row mb-3 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label for="cbojenis"><small><b>Jenis :</b></small></label>
+                    <select id="cbojenis" class="form-control form-control-sm">
+                        <option value="">Semua Jenis</option>
+                        @foreach ($jenisList as $row)
+                            <option value="{{ $row->kd_jenis }}">{{ $row->nm_jenis }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="cbomerk"><small><b>Merk :</b></small></label>
+                    <select id="cbomerk" class="form-control form-control-sm">
+                        <option value="">Semua Merk</option>
+                        @foreach ($merkList as $row)
+                            <option value="{{ $row->kd_merk }}">{{ $row->nm_merk }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label for="cbosupplier"><small><b>Supplier :</b></small></label>
                     <select id="cbosupplier" class="form-control form-control-sm">
                         <option value="">Semua Supplier</option>
@@ -123,7 +141,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="cbolokasi"><small><b>Lokasi :</b></small></label>
                     <select id="cbolokasi" class="form-control form-control-sm">
                         <option value="">Semua Lokasi</option>
@@ -132,6 +150,24 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <label class="d-block"><small><b>Tampilan :</b></small></label>
+                    <div class="btn-group btn-group-sm w-100" role="group">
+                        <input type="radio" class="btn-check" name="viewMode" id="viewModeGroup" value="group"
+                            autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="viewModeGroup">Per Jenis</label>
+                        <input type="radio" class="btn-check" name="viewMode" id="viewModeDetail" value="detail"
+                            autocomplete="off">
+                        <label class="btn btn-outline-primary" for="viewModeDetail">List Detail</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" id="btnExportDetail" class="btn btn-success btn-sm d-none"
+                    onclick="exportMasterMesinDetail();">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -150,27 +186,14 @@
                         <tr class="filter-row">
                             <th><input type="text" class="form-control form-control-sm col-filter" data-col="0"
                                     placeholder="Cari..."></th>
-                            <th>
-                                <select class="form-control form-control-sm col-filter-server" id="cbojenis">
-                                    <option value="">Semua</option>
-                                    @foreach ($jenisList as $row)
-                                        <option value="{{ $row->kd_jenis }}">{{ $row->nm_jenis }}</option>
-                                    @endforeach
-                                </select>
-                            </th>
+                            <th></th>
                             <th><input type="text" class="form-control form-control-sm col-filter" data-col="2"
                                     placeholder="Cari..."></th>
-                            <th>
-                                <select class="form-control form-control-sm col-filter-server" id="cbomerk">
-                                    <option value="">Semua</option>
-                                    @foreach ($merkList as $row)
-                                        <option value="{{ $row->kd_merk }}">{{ $row->nm_merk }}</option>
-                                    @endforeach
-                                </select>
-                            </th>
+                            <th></th>
                             <th><input type="text" class="form-control form-control-sm col-filter" data-col="4"
                                     placeholder="Cari..."></th>
-                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm col-filter" data-col="5"
+                                    placeholder="Cari..."></th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -238,65 +261,188 @@
             datatable.ajax.reload();
         }
 
-        let datatable = $("#datatable").DataTable({
-            ordering: true,
-            responsive: false,
-            processing: true,
-            serverSide: false,
-            paging: true,
-            searching: true,
-            scrollY: true,
-            scrollX: true,
-            scrollCollapse: false,
-            orderCellsTop: true,
-            ajax: {
-                url: '{{ route('asset_mesin_master') }}',
-                data: function(d) {
-                    d.kd_jenis = $('#cbojenis').val();
-                    d.kd_merk = $('#cbomerk').val();
-                    d.id_supplier = $('#cbosupplier').val();
-                    d.lokasi = $('#cbolokasi').val();
-                }
-            },
-            columns: [{
-                    data: 'sumber'
-                }, // Sumber
-                {
-                    data: 'kd_jenis'
-                }, // Kode Jenis
-                {
-                    data: 'nm_jenis'
-                }, // Jenis
-                {
-                    data: 'kd_merk'
-                }, // Kode Merk
-                {
-                    data: 'nm_merk'
-                }, // Merk
-                {
-                    data: 'tipe'
-                }, // Tipe
-                {
-                    data: 'total_unit',
-                    className: 'text-center'
-                }, // Total Unit
-                {
-                    data: null,
-                    className: 'text-center',
-                    render: function() {
-                        return `
-                    <button type="button" class="btn btn-sm btn-primary btn-detail-unit">
-                        <i class="fas fa-eye"></i> Detail
-                    </button>`;
-                    },
-                    orderable: false,
-                    searchable: false
-                }, // Act
-            ],
+        // Thead per mode tampilan: "group" = ringkasan per jenis mesin (Total Unit), "detail" = seluruh unit tanpa grouping
+        const theadGroup = `
+            <tr>
+                <th scope="col" class="text-center align-middle">Sumber</th>
+                <th scope="col" class="text-center align-middle">Kode Jenis</th>
+                <th scope="col" class="text-center align-middle">Jenis</th>
+                <th scope="col" class="text-center align-middle">Kode Merk</th>
+                <th scope="col" class="text-center align-middle">Merk</th>
+                <th scope="col" class="text-center align-middle">Tipe</th>
+                <th scope="col" class="text-center align-middle">Total Unit</th>
+                <th scope="col" class="text-center align-middle">Act</th>
+            </tr>
+            <tr class="filter-row">
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="0" placeholder="Cari..."></th>
+                <th></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="2" placeholder="Cari..."></th>
+                <th></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="4" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="5" placeholder="Cari..."></th>
+                <th></th>
+                <th></th>
+            </tr>`;
+
+        const theadDetail = `
+            <tr>
+                <th scope="col" class="text-center align-middle">Sumber</th>
+                <th scope="col" class="text-center align-middle">Jenis</th>
+                <th scope="col" class="text-center align-middle">Merk</th>
+                <th scope="col" class="text-center align-middle">Tipe</th>
+                <th scope="col" class="text-center align-middle">Serial Number</th>
+                <th scope="col" class="text-center align-middle">Kode QR</th>
+                <th scope="col" class="text-center align-middle">Lokasi</th>
+                <th scope="col" class="text-center align-middle">Supplier</th>
+                <th scope="col" class="text-center align-middle">No BPB</th>
+                <th scope="col" class="text-center align-middle">Status</th>
+            </tr>
+            <tr class="filter-row">
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="0" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="1" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="2" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="3" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="4" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="5" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="6" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="7" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="8" placeholder="Cari..."></th>
+                <th><input type="text" class="form-control form-control-sm col-filter" data-col="9" placeholder="Cari..."></th>
+            </tr>`;
+
+        const groupColumns = [
+            { data: 'sumber' }, // Sumber
+            { data: 'kd_jenis' }, // Kode Jenis
+            { data: 'nm_jenis' }, // Jenis
+            { data: 'kd_merk' }, // Kode Merk
+            { data: 'nm_merk' }, // Merk
+            { data: 'tipe' }, // Tipe
+            { data: 'total_unit', className: 'text-center' }, // Total Unit
+            {
+                data: null,
+                className: 'text-center',
+                render: function() {
+                    return `
+                <button type="button" class="btn btn-sm btn-primary btn-detail-unit">
+                    <i class="fas fa-eye"></i> Detail
+                </button>`;
+                },
+                orderable: false,
+                searchable: false
+            }, // Act
+        ];
+
+        const detailColumns = [
+            { data: 'sumber' }, // Sumber
+            { data: 'nm_jenis', defaultContent: '-' }, // Jenis
+            { data: 'nm_merk', defaultContent: '-' }, // Merk
+            { data: 'tipe', defaultContent: '-' }, // Tipe
+            { data: 'serial_number', defaultContent: '-' }, // Serial Number
+            { data: 'kode_qr', defaultContent: '-' }, // Kode QR
+            { data: 'lokasi', defaultContent: '-' }, // Lokasi
+            { data: 'supplier', defaultContent: '-' }, // Supplier
+            { data: 'bpbno_int', defaultContent: '-' }, // No BPB
+            { data: 'status', defaultContent: '-' }, // Status
+        ];
+
+        let datatable;
+
+        function initDataTable(mode) {
+            $('#datatable thead').html(mode === 'detail' ? theadDetail : theadGroup);
+
+            datatable = $('#datatable').DataTable({
+                ordering: true,
+                responsive: false,
+                processing: true,
+                serverSide: false,
+                paging: true,
+                searching: true,
+                scrollY: true,
+                scrollX: true,
+                scrollCollapse: false,
+                orderCellsTop: true,
+                ajax: {
+                    url: '{{ route('asset_mesin_master') }}',
+                    data: function(d) {
+                        d.mode = mode;
+                        d.kd_jenis = $('#cbojenis').val();
+                        d.kd_merk = $('#cbomerk').val();
+                        d.id_supplier = $('#cbosupplier').val();
+                        d.lokasi = $('#cbolokasi').val();
+                    }
+                },
+                columns: mode === 'detail' ? detailColumns : groupColumns,
+            });
+        }
+
+        let currentViewMode = 'group';
+        initDataTable(currentViewMode);
+
+        // Ganti tampilan: destroy datatable lama, ganti thead sesuai mode, lalu init ulang
+        $('input[name="viewMode"]').on('change', function() {
+            currentViewMode = $(this).val();
+            datatable.destroy();
+            $('#datatable tbody').remove();
+            initDataTable(currentViewMode);
+            // Export Excel cuma relevan buat "List Detail" (per unit); mode "Per Jenis" cuma ringkasan/total
+            $('#btnExportDetail').toggleClass('d-none', currentViewMode !== 'detail');
         });
 
-        // Filter teks per kolom (Kode Jenis, Kode Merk, Tipe) langsung di data yang sudah dimuat
-        $('.col-filter').on('keyup', function() {
+        // Export Excel List Detail mengikuti filter (Jenis/Merk/Supplier/Lokasi) yang sedang aktif
+        function exportMasterMesinDetail() {
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: 'get',
+                url: '{{ route('export_excel_master_mesin_detail') }}',
+                data: {
+                    kd_jenis: $('#cbojenis').val(),
+                    kd_merk: $('#cbomerk').val(),
+                    id_supplier: $('#cbosupplier').val(),
+                    lokasi: $('#cbolokasi').val()
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Berhasil Di Export!',
+                        icon: 'success',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+                    let blob = new Blob([response]);
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'List Detail Mesin.xlsx';
+                    link.click();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal export data ke Excel.',
+                    });
+                }
+            });
+        }
+
+        // Filter teks per kolom langsung di data yang sudah dimuat.
+        // Delegated dari document (bukan #datatable) karena scrollX/scrollY meng-clone thead ke
+        // tabel terpisah (.dataTables_scrollHead) di luar #datatable untuk efek header "fixed" saat
+        // body di-scroll - input yang benar-benar terlihat & diketik user ada di klonanya itu, bukan
+        // di #datatable asli, jadi delegate ke #datatable saja tidak akan pernah menangkap event-nya.
+        $(document).on('keyup', '.col-filter', function() {
             datatable.column($(this).data('col')).search(this.value).draw();
         });
 
@@ -305,13 +451,13 @@
             dataTableReload();
         });
 
-        // Cegah klik di filter row memicu sorting/seleksi baris datatable
-        $('.filter-row').on('click', function(e) {
+        // Cegah klik di filter row memicu sorting/seleksi baris datatable (lihat catatan scrollHead di atas)
+        $(document).on('click', '.filter-row', function(e) {
             e.stopPropagation();
         });
 
-        // Klik tombol Detail: buka modal berisi daftar unit (per-unit) untuk jenis mesin tersebut
-        $('#datatable tbody').on('click', '.btn-detail-unit', function() {
+        // Klik tombol Detail (mode "group"): buka modal berisi daftar unit (per-unit) untuk jenis mesin tersebut
+        $('#datatable').on('click', '.btn-detail-unit', function() {
             let row = datatable.row($(this).closest('tr')).data();
             openMesinUnitModal(row);
         });

@@ -79,13 +79,13 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control' id='txtqtyreject' name='txtqtyreject' oninput='sum();' autocomplete='off'>
+                                    <input type='number' class='form-control' id='txtqtyreject' name='txtqtyreject' onkeyup='sum();' oninput='sum();' autocomplete='off'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace' oninput='sum();' autocomplete='off'>
+                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace' onkeyup='sum();' oninput='sum();' autocomplete='off'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
@@ -867,10 +867,22 @@
             let txtqtyply = document.getElementById('txtqty').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
             let txtqtyreplace = document.getElementById('txtqtyreplace').value;
-            let result = parseFloat(txtqty) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
+            let result = parseFloat(txtqtyply) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
-                document.getElementById("txtqtyin").value = result_fix;
+                if (document.getElementById("txtqtyin")) {
+                    document.getElementById("txtqtyin").value = result_fix;
+                }
+            }
+
+            if (result > txtqtyply) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat melebihi qty awal.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('txtqtyreplace').value = txtqtyreject;
             }
         }
 
