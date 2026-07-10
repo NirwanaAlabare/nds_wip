@@ -403,6 +403,12 @@
                         </div>
 
                         <div class="row">
+                            <div class='col-sm-3 d-none'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty Stocker</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtystocker' name='txtqtystocker' value='' readonly>
+                                </div>
+                            </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty Awal</small></label>
@@ -586,6 +592,12 @@
                         </div>
 
                         <div class="row">
+                            <div class='col-sm-3 d-none'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty Stocker</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtystocker' name='edit_qtystocker' value='' readonly>
+                                </div>
+                            </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty Awal</small></label>
@@ -1229,6 +1241,7 @@
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
+                    document.getElementById('txtqtystocker').value =  response.qty_stocker;
                     document.getElementById('txtqtyawal').value =  response.qty_awal;
                     document.getElementById('txturutan').value = response.urutan ? response.urutan : null;
 
@@ -1320,6 +1333,7 @@
                     document.getElementById('edit_part').value = response.nama_part;
                     document.getElementById('edit_tujuan').value = response.tujuan;
                     document.getElementById('edit_alokasi').value = response.lokasi;
+                    document.getElementById('edit_qtystocker').value = response.qty_stocker;
                     document.getElementById('edit_qtyawal').value = response.qty_awal;
 
                     console.log(response);
@@ -1338,6 +1352,7 @@
         };
 
         function sum() {
+            let txtqtystocker = document.getElementById('txtqtystocker').value;
             let txtqty = document.getElementById('txtqtyawal').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
             let txtqtyreplace = document.getElementById('txtqtyreplace').value;
@@ -1347,9 +1362,21 @@
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
             }
+
+            if (result > txtqtystocker) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat melebihi qty awal.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('txtqtyreplace').value = txtqtyreject;
+                document.getElementById('txtqtyin').value = txtqty;
+            }
         }
 
         function editsum() {
+            let txtqtystocker = document.getElementById('edit_qtystocker').value;
             let txtqty = document.getElementById('edit_qtyawal').value;
             let txtqtyreject = document.getElementById('edit_qtyreject').value;
             let txtqtyreplace = document.getElementById('edit_qtyreplace').value;
@@ -1358,6 +1385,17 @@
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
                 document.getElementById("edit_qtyin").value = result_fix;
+            }
+
+            if (result > txtqtystocker) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat melebihi qty awal.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('edit_qtyreplace').value = txtqtyreject;
+                document.getElementById('edit_qtyin').value = txtqty;
             }
         }
 

@@ -702,11 +702,6 @@
                                 $dokumens = [];
                                 if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
                                     $dokumens = $dataDetail['dok'];
-                                } else {
-                                    $dokumens = [
-                                        ['kode' => '380', 'nomor' => '', 'tgl' => ''],
-                                        ['kode' => '705', 'nomor' => '', 'tgl' => '']
-                                    ];
                                 }
                             @endphp
                             <table class="table table-sm table-bordered" id="table-dokumen">
@@ -755,13 +750,19 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Kode BC 1.1</label>
-                                        <div class="input-group input-group-sm">
-                                            <select name="kodeBc11" class="form-control select2bs4" style="max-width:40%;">
-                                                <option value="10" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '') == '10' ? 'selected' : '' }}>BC 1.0</option>
-                                                <option value="11" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '11') == '11' ? 'selected' : '' }}>BC 1.1</option>
-                                            </select>
-                                            <input type="text" name="nomorBc11" class="form-control" value="{{ $dataDetail['nomorBc11'] ?? $dataDetail['bc11Nomor'] ?? '' }}" placeholder="No BC 1.1">
-                                            <input type="date" name="tanggalBc11" class="form-control" value="{{ $dataDetail['tanggalBc11'] ?? $dataDetail['bc11Tanggal'] ?? '' }}">
+                                        <div class="d-flex">
+                                            <div style="flex: 1; padding-right: 2px;">
+                                                <select name="kodeBc11" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                                                    <option value="10" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '') == '10' ? 'selected' : '' }}>BC 1.0</option>
+                                                    <option value="11" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '11') == '11' ? 'selected' : '' }}>BC 1.1</option>
+                                                </select>
+                                            </div>
+                                            <div style="flex: 1; padding-left: 2px; padding-right: 2px;">
+                                                <input type="text" name="nomorBc11" class="form-control form-control-sm" value="{{ $dataDetail['nomorBc11'] ?? $dataDetail['bc11Nomor'] ?? '' }}" placeholder="No BC 1.1">
+                                            </div>
+                                            <div style="flex: 1; padding-left: 2px;">
+                                                <input type="date" name="tanggalBc11" class="form-control form-control-sm" value="{{ $dataDetail['tanggalBc11'] ?? $dataDetail['bc11Tanggal'] ?? '' }}">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group mb-0">
@@ -950,12 +951,16 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Harga Barang</label>
-                                        <div class="input-group input-group-sm">
-                                            <select name="kodeIncoterm" class="form-control select2bs4" style="max-width:55%;">
-                                                <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? 'CIF') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
-                                                <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
-                                            </select>
-                                            <input type="number" step="any" name="nilaiBarang" class="form-control" value="{{ $dataDetail['nilaiBarang'] ?? 0 }}">
+                                        <div class="d-flex">
+                                            <div style="flex: 1; padding-right: 2px;">
+                                                <select name="kodeIncoterm" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                                                    <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? 'CIF') == 'CIF' ? 'selected' : '' }}>CIF - COST, INSURANCE AND FREIGHT</option>
+                                                    <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - FREE ON BOARD</option>
+                                                </select>
+                                            </div>
+                                            <div style="flex: 1; padding-left: 2px;">
+                                                <input type="number" step="any" name="nilaiBarang" class="form-control form-control-sm" value="{{ $dataDetail['nilaiBarang'] ?? 0 }}">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group mb-2">
@@ -993,12 +998,16 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Asuransi</label>
-                                        <div class="input-group input-group-sm">
-                                            <select name="kodeAsuransi" class="form-control select2bs4" style="max-width:50%;">
-                                                <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'LN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option>
-                                                <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? '') == 'DN' ? 'selected' : '' }}>DALAM NEGERI</option>
-                                            </select>
-                                            <input type="number" step="any" name="asuransi" class="form-control" value="{{ $dataDetail['asuransi'] ?? 0 }}">
+                                        <div class="d-flex">
+                                            <div style="flex: 1; padding-right: 2px;">
+                                                <select name="kodeAsuransi" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                                                    <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'LN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option>
+                                                    <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? '') == 'DN' ? 'selected' : '' }}>DALAM NEGERI</option>
+                                                </select>
+                                            </div>
+                                            <div style="flex: 1; padding-left: 2px;">
+                                                <input type="number" step="any" name="asuransi" class="form-control form-control-sm" value="{{ $dataDetail['asuransi'] ?? 0 }}">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

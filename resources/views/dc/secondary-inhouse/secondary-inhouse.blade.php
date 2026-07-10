@@ -141,6 +141,12 @@
                         </div>
 
                         <div class="row">
+                            <div class='col-sm-3 d-none'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty Stocker</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtystocker' name='txtqtystocker' value = '' readonly>
+                                </div>
+                            </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty Awal</small></label>
@@ -1057,6 +1063,7 @@
                     document.getElementById('txtwaktu_in').value = response.waktu_in;
                     document.getElementById('txtauthor_in').value = response.author_in;
                     document.getElementById('txtalokasi').value = response.lokasi;
+                    document.getElementById('txtqtystocker').value = response.qty_stocker;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
                     document.getElementById('txturutan').value = response.urutan;
                     // let txtqtyreject = $("#txtqtyreject").val();
@@ -1126,6 +1133,7 @@
                 document.getElementById('txtqtyreplace').value = 0;
             }
 
+            let txtqtystocker = document.getElementById('txtqtystocker').value;
             let txtqty = document.getElementById('txtqtyawal').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
             let txtqtyreplace = document.getElementById('txtqtyreplace').value;
@@ -1136,6 +1144,17 @@
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
+            }
+
+            if (result > txtqtystocker) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat melebihi qty awal : '+txtqtystocker,
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('txtqtyreplace').value = txtqtyreject;
+                document.getElementById('txtqtyin').value = txtqty;
             }
         }
 
