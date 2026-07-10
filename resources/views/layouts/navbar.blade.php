@@ -1543,6 +1543,23 @@
                     </li>
                 @endif
 
+                {{-- BAP --}}
+                @if ($page == 'dashboard-ticketing')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'bap-form' ? 'active' : '' }}">Form
+                            BAP</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('form-bap') }}"
+                                    class="dropdown-item {{ $subPage == 'form-bap' ? 'active' : '' }}">
+                                    Buat Form BAP <i class="fa-solid fa-file-alt fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
 
                 {{-- DIVIDER EXAMPLE --}}
                 {{-- <li class="dropdown-divider"></li> --}}

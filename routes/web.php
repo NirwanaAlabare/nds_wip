@@ -154,6 +154,8 @@ use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
+use App\Http\Controllers\TicketingDashboardController;
+use App\Http\Controllers\BAPFormController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1619,6 +1621,21 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinReportController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_report_stok_jenis_area', 'asset_mesin_report_stok_jenis_area')->name('asset_mesin_report_stok_jenis_area');
         Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
+    });
+
+    // Dashboard Ticketing
+    Route::controller(TicketingDashboardController::class)->group(function () {
+        Route::get('/dashboard_ticketing', 'dashboard_ticketing')->name('dashboard-ticketing');
+    });
+
+    // Form BAP
+    Route::controller(BAPFormController::class)->group(function () {
+        Route::get('/dashboard_bap/form', 'form_bap')->name('form-bap');
+        Route::post('/dashboard_bap/form/store', 'store')->name('store-form-bap');
+        Route::post('/dashboard_bap/form/toggle-status', 'toggleStatus')->name('toggle-status-form-bap');
+        Route::get('/dashboard_bap/form/edit', 'edit')->name('edit-form-bap');
+        Route::post('/dashboard_bap/form/update', 'update')->name('update-form-bap');
+        Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
     });
     // Export Import (EXIM)
 
