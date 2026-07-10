@@ -2,6 +2,18 @@
 
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
+use App\Http\Controllers\AssetDashboardController;
+use App\Http\Controllers\AssetMasterJenisMesinController;
+use App\Http\Controllers\AssetMasterLokasiController;
+use App\Http\Controllers\AssetMasterRakSparepartController;
+use App\Http\Controllers\AssetMesinMasterController;
+use App\Http\Controllers\AssetMesinPengeluaranController;
+use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
+use App\Http\Controllers\AssetMesinReportController;
+use App\Http\Controllers\AssetMesinSewaController;
+use App\Http\Controllers\AssetMesinSewaPengeluaranController;
+use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\BarcodePackingController;
 use App\Http\Controllers\CeisaAPIController;
 use App\Http\Controllers\DashboardFabricController;
@@ -40,10 +52,12 @@ use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
+use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\Marketing_BomController;
 use App\Http\Controllers\Marketing_CostingController;
 use App\Http\Controllers\Marketing_SOController;
 use App\Http\Controllers\MarketingDashboardController;
+use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportDailyEarnBuyerController;
@@ -77,8 +91,8 @@ use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
-use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\PPICDashboardController;
+use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
 use App\Http\Controllers\PurchasingController;
@@ -95,6 +109,7 @@ use App\Http\Controllers\QCInspectShadeBandController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\ReportDocController;
 use App\Http\Controllers\ReportOutputPackingLineController;
+use App\Http\Controllers\ReportPackingLineReturnController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
@@ -139,20 +154,6 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
-use App\Http\Controllers\AssetDashboardController;
-use App\Http\Controllers\AssetMasterLokasiController;
-use App\Http\Controllers\AssetMasterJenisMesinController;
-use App\Http\Controllers\AssetMasterRakSparepartController;
-use App\Http\Controllers\AssetMesinTambahController;
-use App\Http\Controllers\AssetMesinPengeluaranController;
-use App\Http\Controllers\AssetMesinSewaController;
-use App\Http\Controllers\AssetMesinSewaPengeluaranController;
-use App\Http\Controllers\AssetMesinMasterController;
-use App\Http\Controllers\AssetMesinTambahSparepartsController;
-use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
-use App\Http\Controllers\AssetMesinReportController;
-use App\Http\Controllers\Marketing_ApprovalCenterController;
-use App\Http\Controllers\MarketingReportController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1991,6 +1992,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/data', 'getData')->name('report.defect_spotcleaning_out.data');
             Route::get('/export', 'exportExcel')->name('report.defect_spotcleaning_out.export');
         });
+    });
+
+    Route::controller(ReportPackingLineReturnController::class)->prefix("report-packing-line-return")->middleware('role:packing')->group(function () {
+        Route::get('/', 'index')->name('report-packing-line-return');
+        Route::post('/export', 'export')->name('export-report-packing-line-return');
     });
 });
 

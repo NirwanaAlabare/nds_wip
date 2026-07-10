@@ -627,6 +627,12 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Output Packing Line
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-packing-line-return') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-line-return' ? 'active' : '' }}">
+                                    <i class="fas fa-file-upload fa-sm"></i> Packing Line Return
+                                </a>
+                            </li>
 
                             <!-- packing subcont -->
                             {{-- <li>
