@@ -2046,12 +2046,17 @@ class SecondaryInController extends Controller
                     p.style,
                     COALESCE(p_com.panel, p.panel) panel,
                     COALESCE(p_com.panel_status, p.panel_status) panel_status,
-                    COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
-                    COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
+                    -- COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
+                    COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) tujuan,
+                    -- COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
+                    COALESCE(mms.proses, ms.proses, dc.lokasi) lokasi,
                     COALESCE(s.lokasi, '-') lokasi_rak,
-                    COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
-                    COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
-                    COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                    -- COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                    a.qty_awal,
+                    -- COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                    a.qty_reject,
+                    -- COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                    a.qty_replace,
                     COALESCE(a.qty_in) qty_in,
                     mp.nama_part nama_part,
                     pd.part_status part_status,
@@ -2090,6 +2095,8 @@ class SecondaryInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_secondary ms on ms.id = pd.master_secondary_id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+                left join master_secondary mms on mms.id = pds.master_secondary_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
