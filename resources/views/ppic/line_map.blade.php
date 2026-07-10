@@ -15,59 +15,46 @@
             border-left: 1px solid #dee2e6;
         }
 
-        .line-map-calendar-inner {
-            display: flex;
-            align-items: flex-start;
-            width: max-content;
-        }
-
-        .line-map-fixed-table,
-        .line-map-dates-table {
+        .line-map-table {
             border-collapse: separate;
             border-spacing: 0;
             margin-bottom: 0 !important;
-            width: auto !important;
+            width: max-content !important;
         }
 
-        .line-map-fixed-table th,
-        .line-map-fixed-table td,
-        .line-map-dates-table th,
-        .line-map-dates-table td {
+        .line-map-table th,
+        .line-map-table td {
             white-space: nowrap;
             vertical-align: middle;
-            height: auto;
             border-right: 1px solid #dee2e6;
             border-bottom: 1px solid #dee2e6;
         }
 
-        .line-map-dates-table td {
+        .line-map-table tbody td {
             vertical-align: top;
         }
 
-        .line-map-fixed-table {
-            width: auto !important;
+        .line-map-line-col {
             min-width: 160px;
-            flex: 0 0 auto;
             position: sticky;
             left: 0;
-            z-index: 3;
+            z-index: 2;
             background-color: #fff;
             box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
         }
 
-        .line-map-fixed-table thead th,
-        .line-map-dates-table thead th {
+        .line-map-table thead th {
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 3;
             background-color: #fff;
         }
 
-        .line-map-fixed-table thead th {
+        .line-map-table thead th.line-map-line-col {
             z-index: 4;
         }
 
-        .line-map-dates-table th {
+        .line-map-table thead th:not(.line-map-line-col) {
             text-align: center;
             width: 1%;
         }
@@ -83,12 +70,12 @@
             font-size: .8rem;
         }
 
-        .line-map-dates-table th.is-sunday .line-map-date-day,
-        .line-map-dates-table th.is-sunday .line-map-date-num {
+        .line-map-table th.is-sunday .line-map-date-day,
+        .line-map-table th.is-sunday .line-map-date-num {
             color: #dc3545;
         }
 
-        .line-map-dates-table td {
+        .line-map-table td:not(.line-map-line-col) {
             text-align: center;
             width: 1%;
             padding: 3px 4px;
@@ -259,13 +246,15 @@
                                 <div class="form-group">
                                     <label class="form-label">SMV :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
-                                        placeholder="Cnth: 12.5" value="" autocomplete="off">
+                                        placeholder="Cnth: 12.5" value="" autocomplete="off"
+                                        oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Efficiency :</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" class="form-control form-control-sm" id="txtefficiency"
-                                            name="txtefficiency" placeholder="Cnth: 85" value="" autocomplete="off">
+                                            name="txtefficiency" placeholder="Cnth: 85" value="" autocomplete="off"
+                                            oninput="calculateLineMap();" onchange="calculateLineMap();">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
@@ -274,7 +263,8 @@
                                     <input type="text" class="form-control form-control-sm" id="txtorderqty"
                                         name="txtorderqty" placeholder="Cnth: 1.000" value="" autocomplete="off"
                                         inputmode="numeric"
-                                        oninput="this.value = this.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');">
+                                        oninput="this.value = this.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); calculateLineMap();"
+                                        onchange="calculateLineMap();">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -287,13 +277,14 @@
                                 <div class="form-group">
                                     <label class="form-label">Man Power :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtmanpower"
-                                        name="txtmanpower" placeholder="Cnth: 10" value="" autocomplete="off">
+                                        name="txtmanpower" placeholder="Cnth: 10" value="" autocomplete="off"
+                                        oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Working Minutes :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtworkingminutes"
                                         name="txtworkingminutes" placeholder="Cnth: 480" value=""
-                                        autocomplete="off">
+                                        autocomplete="off" oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Start Day Calendar :</label>
@@ -395,43 +386,25 @@
             </div>
 
             <div class="line-map-calendar-wrapper">
-                <div class="line-map-calendar-inner">
-                    <table class="table table-sm line-map-fixed-table">
-                        <thead>
+                <table class="table table-sm line-map-table">
+                    <thead>
+                        <tr>
+                            <th class="line-map-line-col">Line</th>
+                            @foreach ($calendarDates as $date)
+                                <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
+                                    <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
+                                    <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($line as $ln)
                             <tr>
-                                <th>Line</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($line as $ln)
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td class="text-muted">Belum ada data</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    <table class="table table-sm line-map-dates-table">
-                        <thead>
-                            <tr>
+                                <td class="line-map-line-col">
+                                    <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
+                                </td>
                                 @foreach ($calendarDates as $date)
-                                    <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
-                                        <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
-                                        <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
-                                    </th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($line as $ln)
-                                <tr>
-                                    @foreach ($calendarDates as $date)
                                         @php
                                             $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
                                                 fn($e) => $date->tanggal >= $e->tgl_start &&
@@ -519,6 +492,7 @@
                                 </tr>
                             @empty
                                 <tr>
+                                    <td class="line-map-line-col text-muted">Belum ada data</td>
                                     @foreach ($calendarDates as $date)
                                         <td></td>
                                     @endforeach
@@ -621,28 +595,6 @@
             searching: true,
             responsive: true
         });
-
-        function syncLineMapRowHeights() {
-            const fixedRows = document.querySelectorAll('.line-map-fixed-table tbody tr');
-            const dateRows = document.querySelectorAll('.line-map-dates-table tbody tr');
-
-            fixedRows.forEach((row, i) => {
-                const dateRow = dateRows[i];
-                if (!dateRow) return;
-                row.style.height = '';
-                dateRow.style.height = '';
-            });
-
-            fixedRows.forEach((row, i) => {
-                const dateRow = dateRows[i];
-                if (!dateRow) return;
-                const maxHeight = Math.max(row.offsetHeight, dateRow.offsetHeight);
-                row.style.height = maxHeight + 'px';
-                dateRow.style.height = maxHeight + 'px';
-            });
-        }
-
-        $(window).on('load', syncLineMapRowHeights);
 
         let draggedLineMap = null;
 
@@ -749,7 +701,7 @@
             });
         }
 
-        function addRampUpRow() {
+        function addRampUpRow(initialValue = null) {
             const dayNumber = $('#rampUpContainer .ramp-up-row').length + 1;
             const row = $(`
                 <div class="input-group input-group-sm mb-1 ramp-up-row">
@@ -767,8 +719,14 @@
                 renumberRampUpRows();
                 calculateLineMap();
             });
-            row.find('input').on('input', calculateLineMap);
+            row.find('input').on('input change keyup', calculateLineMap);
             $('#rampUpContainer').append(row);
+
+            if (initialValue !== null) {
+                row.find('input[name="ramp_efficiency[]"]').val(initialValue);
+            }
+
+            calculateLineMap();
         }
 
         function renumberRampUpRows() {
@@ -810,9 +768,7 @@
 
             $('#rampUpContainer').empty();
             (data.ramp_up_efficiency || []).forEach(function(eff) {
-                addRampUpRow();
-                $('#rampUpContainer .ramp-up-row').last().find('input[name="ramp_efficiency[]"]')
-                    .val(Math.round(eff * 100));
+                addRampUpRow(Math.round(eff * 100));
             });
 
             calculateLineMap();
@@ -857,7 +813,13 @@
             }));
         }
 
-        $('#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty').on('input', calculateLineMap);
+        function calculateLineMapFromForm() {
+            calculateLineMap();
+        }
+
+        $('#formLineMap').on('input change keyup',
+            '#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty',
+            calculateLineMapFromForm);
 
         function cancelLineMap(id) {
             Swal.fire({
@@ -909,8 +871,73 @@
             });
         }
 
+        function validateLineMapRequiredFields() {
+            const requiredFields = [{
+                    selector: '#cboline',
+                    label: 'Line'
+                },
+                {
+                    selector: '#txtstyle',
+                    label: 'Style'
+                },
+                {
+                    selector: '#txtbuyer',
+                    label: 'Buyer'
+                },
+                {
+                    selector: '#txtsmv',
+                    label: 'SMV'
+                },
+                {
+                    selector: '#txtefficiency',
+                    label: 'Efficiency'
+                },
+                {
+                    selector: '#txtorderqty',
+                    label: 'Order Qty'
+                },
+                {
+                    selector: '#txtmanpower',
+                    label: 'Man Power'
+                },
+                {
+                    selector: '#txtworkingminutes',
+                    label: 'Working Minutes'
+                },
+                {
+                    selector: '#cbodate',
+                    label: 'Start Day Calendar'
+                }
+            ];
+
+            return requiredFields.filter(function(field) {
+                return String($(field.selector).val() || '').trim() === '';
+            });
+        }
+
         function submitLineMapForm(form, event) {
             event.preventDefault();
+
+            const emptyFields = validateLineMapRequiredFields();
+            if (emptyFields.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: 'Mohon isi kolom berikut terlebih dahulu:<br><strong>' +
+                        emptyFields.map(field => field.label).join(', ') +
+                        '</strong>',
+                    confirmButtonText: 'Tutup'
+                });
+
+                const firstEmptyField = $(emptyFields[0].selector);
+                if (firstEmptyField.hasClass('select2bs4')) {
+                    firstEmptyField.select2('open');
+                } else {
+                    firstEmptyField.trigger('focus');
+                }
+
+                return;
+            }
 
             const formData = new FormData(form);
             if (formData.has('txtorderqty')) {
