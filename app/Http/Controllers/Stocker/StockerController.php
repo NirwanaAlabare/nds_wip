@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Stocker;
 use App\Http\Controllers\Controller;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerDetail;
+use App\Models\Stocker\StockerGroupNotes;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailLap;
@@ -238,6 +239,8 @@ class StockerController extends Controller
             where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
             first();
+
+        $dataGroupNotes = StockerGroupNotes::where("form_cut_id", $formCutId)->get();
 
         $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.waktu_selesai, CONCAT(form_cut_input.no_cut, (CASE WHEN form_split.id IS NOT NULL THEN part_split.suffix ELSE '' END)) no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
@@ -523,7 +526,7 @@ class StockerController extends Controller
             where("part_id", $dataSpreading->part_id)->
             first();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "dataStockerCom" => $dataStockerCom, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "dataStockerCom" => $dataStockerCom, "dataGroupNotes" => $dataGroupNotes, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     public function showPcs($formCutId = 0)
@@ -895,6 +898,17 @@ class StockerController extends Controller
 
         }
 
+        $note = $request['note_'.$request['group_stocker'][$index]] ? $request['note_'.$request['group_stocker'][$index]] : $request['note'];
+        if ($checkStocker && $note && $checkStocker->notes != $note) {
+            $checkStocker->notes = $note;
+            $checkStocker->save();
+
+            StockerGroupNotes::updateOrCreate(
+                ['form_cut_id' => $request['form_cut_id'], 'group_stocker' => $request['group_stocker'][$index]], // Attributes to search for
+                ['notes' => $note] // Values to update or insert
+            );
+        }
+
         // Modify Incomplete Mod Size
         $stockerService->modifyIncompleteModSizeQty($incompleteModSizeQty, $storeItemArr);
 
@@ -1129,10 +1143,17 @@ class StockerController extends Controller
                                     ]);
                                 }
                                 $checkStocker->save();
-                            } else if ($checkStocker && $checkStocker->notes != $request['note']) {
-                                $checkStocker->notes = $request['note'];
-                                $checkStocker->cancel = 'N';
+                            }
+
+                            $note = $request['note_'.$request['group_stocker'][$i]] ? $request['note_'.$request['group_stocker'][$i]] : $request['note'];
+                            if ($checkStocker && $note && $checkStocker->notes != $note) {
+                                $checkStocker->notes = $note;
                                 $checkStocker->save();
+
+                                StockerGroupNotes::updateOrCreate(
+                                    ['form_cut_id' => $request['form_cut_id'], 'group_stocker' => $request['group_stocker'][$i]], // Attributes to search for
+                                    ['notes' => $note] // Values to update or insert
+                                );
                             }
 
                             // Update ratio limit
@@ -1298,6 +1319,17 @@ class StockerController extends Controller
                         $checkStocker->save();
                     }
 
+                    $note = $request['note_'.$request['group_stocker'][$index]] ? $request['note_'.$request['group_stocker'][$index]] : $request['note'];
+                    if ($checkStocker && $note && $checkStocker->notes != $note) {
+                        $checkStocker->notes = $note;
+                        $checkStocker->save();
+
+                        StockerGroupNotes::updateOrCreate(
+                            ['form_cut_id' => $request['form_cut_id'], 'group_stocker' => $request['group_stocker'][$index]], // Attributes to search for
+                            ['notes' => $note] // Values to update or insert
+                        );
+                    }
+
                     // Update ratio limit
                     $lastRatio = $j + 1;
 
@@ -1388,6 +1420,17 @@ class StockerController extends Controller
                             ]);
                         }
                         $checkStocker->save();
+                    }
+
+                    $note = $request['note_'.$request['group_stocker'][$index]] ? $request['note_'.$request['group_stocker'][$index]] : $request['note'];
+                    if ($checkStocker && $note && $checkStocker->notes != $note) {
+                        $checkStocker->notes = $note;
+                        $checkStocker->save();
+
+                        StockerGroupNotes::updateOrCreate(
+                            ['form_cut_id' => $request['form_cut_id'], 'group_stocker' => $request['group_stocker'][$index]], // Attributes to search for
+                            ['notes' => $note] // Values to update or insert
+                        );
                     }
 
                     // Update ratio limit

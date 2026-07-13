@@ -5,6 +5,14 @@ $.ajaxSetup({
     }
 });
 
+function parseData(data) {
+    try {
+        return JSON.parse(data);
+    } catch {
+        return JSON.parse(decodeURIComponent(data));
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     $(document)
     .off('draw.dt.tooltipFix')
@@ -668,7 +676,7 @@ async function editData(e, modal, addons = []) {
 function deleteData(e, type = null) {
     console.log(e, e.getAttribute('data'));
 
-    let data = JSON.parse(e.getAttribute('data'));
+    let data = parseData(e.getAttribute('data'));
 
     if (data.hasOwnProperty('id')) {
         Swal.fire({

@@ -215,6 +215,7 @@
             $currentCuttingPieceDetail = $currentCuttingPiece && $currentCuttingPiece->status == "complete" && $currentCuttingPiece->formCutPieceDetails ? $currentCuttingPiece->formCutPieceDetails->sortByDesc("id")->first() : null;
         @endphp
         <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-two-form" onsubmit="processTwo(this, event)" class="d-none">
+            <input type="hidden" id="method" name="method" value="scan">
             <div class="card card-sb" id="item-card">
                 <div class="card-header">
                     <h3 class="card-title">Scan QR</h3>
@@ -322,6 +323,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row row-gap-3">
+                            <input type="hidden" class="form-control" id="method_detail" name="method" value="{{ $currentCuttingPieceDetail ? ($currentCuttingPieceDetail->method ? $currentCuttingPieceDetail->method : 'scan') : 'scan' }}" readonly>
                             <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
                             {{-- <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly> --}}
                             <div class="col-md-12">
@@ -1037,6 +1039,7 @@
 
                 document.getElementById("tanggal_roll").value = item.scanned_item && item.scanned_item.penerimaan_cutting && item.scanned_item.penerimaan_cutting[0] ? item.scanned_item.penerimaan_cutting[0]['tanggal_terima'] : "";
                 document.getElementById("group_roll").removeAttribute("readonly");
+                document.getElementById("method_detail").value = item.method ? item.method : "scan";
                 document.getElementById("kode_barang").value = item.id_roll ? item.id_roll : "";
                 document.getElementById("id_detail").value = item.id ? item.id : "";
                 document.getElementById("id_roll").value = item.id_roll ? item.id_roll : "";
@@ -1112,6 +1115,7 @@
                 // ✅ Value map from item
                 const valueMap = {
                     tanggal_roll: item.scanned_item?.penerimaan_cutting[0]?.tanggal_terima,
+                    method_detail: item.method ? item.method : "scan",
                     id_roll: item.id_roll,
                     id_item: item.id_item,
                     detail_item: item.detail_item,
@@ -1166,7 +1170,7 @@
                     } else if (oldId === `switch-method-detail`) {
                         el.setAttribute('onchange', `switchMethodDetail(this, '${suffix}')`);
                     } else if (oldId === 'barang') {
-                        el.setAttribute('onchange', `clearItem('${suffix}')`);
+                        el.removeAttribute('onchange');
                     } else if (oldId === 'select-item') {
                         el.setAttribute('onclick', `setSelectedItem('${suffix}')`);
                     }
@@ -2045,9 +2049,17 @@
                 idRollInput.value = originalIdRollInput.value;
 
                 // Since we are resetting, let's also reset other related fields to their original state
-                ['id_item', 'detail_item', 'lot', 'roll_buyer', 'qty_pengeluaran','qty_pengeluaran_unit', 'qty', 'qty_unit', 'qty_pemakaian_unit', 'qty_sisa_unit', 'rule_bom'].forEach(field => {
+                ['method_detail', 'id_item', 'detail_item', 'lot', 'roll_buyer', 'qty_pengeluaran','qty_pengeluaran_unit', 'qty', 'qty_unit', 'qty_pemakaian_unit', 'qty_sisa_unit', 'rule_bom'].forEach(field => {
                     document.getElementById(field + suffix).value = document.getElementById('original_' + field + suffix).value;
                 });
+
+                const originalMethod = document.getElementById('original_method_detail' + suffix).value;
+                const switchMethodDetailInput = document.getElementById('switch-method-detail' + suffix);
+
+                if (switchMethodDetailInput) {
+                    switchMethodDetailInput.checked = originalMethod == 'scan';
+                    switchMethodDetail(switchMethodDetailInput, suffix, false);
+                }
             }
         }
 
@@ -2107,7 +2119,7 @@
         }
 
         function switchMethodDetail(element, suffix = '', scanner = true) {
-            clearItem(suffix);
+            // clearItem(suffix);
 
             if (element.checked) {
                 toScanMethodDetail(suffix, scanner);
@@ -2117,7 +2129,10 @@
         }
 
         function toScanMethodDetail(suffix = '', scanner = true) {
+            // $("#barang"+suffix).val("").trigger("change")
+
             method = "scan";
+            document.getElementById("method_detail"+suffix).value = method;
 
             document.getElementById("select-method-detail"+suffix).classList.add('d-none');
 
@@ -2130,7 +2145,10 @@
         }
 
         function toSelectMethodDetail(suffix = '') {
+            // document.getElementById("id_roll"+suffix).value = "";
+
             method = "select";
+            document.getElementById("method_detail"+suffix).value = method;
 
             document.getElementById("scan-method-detail"+suffix).classList.add('d-none');
 

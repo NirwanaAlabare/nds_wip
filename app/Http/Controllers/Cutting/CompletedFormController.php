@@ -299,6 +299,24 @@ class CompletedFormController extends Controller
             "p_act" => "required"
         ]);
 
+        // Get Current Roll
+        $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
+            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
+            where('id', $validatedRequest['current_id'])->
+            first();
+
+        // Check Stocker
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
+        if (!((Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) || (Auth::user()->id == 233 && ($currentFormCutDetail->lembar_gelaran == $validatedRequest['current_lembar_gelaran']))) && $stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
         DB::beginTransaction();
 
         try {
@@ -319,12 +337,6 @@ class CompletedFormController extends Controller
 
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
-
-        // Get Current Roll
-        $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
-            where('id', $validatedRequest['current_id'])->
-            first();
 
         // Check next roll qty as sisa kain
         $checkNextFormCutDetail = FormCutInputDetail::where("id_roll", $currentFormCutDetail->id_roll)->where("created_at", ">", $currentFormCutDetail->created_at)->
@@ -536,7 +548,7 @@ class CompletedFormController extends Controller
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+        if (!((Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) || (Auth::user()->id == 233)) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',
@@ -928,7 +940,6 @@ class CompletedFormController extends Controller
             $formCutDetail = FormCutInputDetail::find($id);
 
             if ($formCutDetail) {
-
                 // Check Stocker
                 $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
                 Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -965,6 +976,7 @@ class CompletedFormController extends Controller
 
                 // Add to Form Cut Detail Deleted Logs
                 DB::table("form_cut_input_detail_delete")->insert([
+                    "old_id" => $formCutDetail['id'],
                     "form_cut_id" => $formCutDetail['form_cut_id'],
                     "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
                     "id_roll" => $formCutDetail['id_roll'],
@@ -999,12 +1011,19 @@ class CompletedFormController extends Controller
                     "deleted_at" => Carbon::now(),
                 ]);
 
+                // Check if first usage
+                $firstId = null;
+                $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where("created_at", "<", $formCutDetail->created_at)->first();
+                if (!$similarFormCutDetailBef) {
+                    $firstId = $formCutDetail->id;
+                }
+
                 // Delete Form Cut Detail
                 if ($formCutDetail->delete()) {
 
                     // Delete sambungan If after Sambungan
                     $before = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where('created_at', '<', $formCutDetail->created_at)->orderBy("created_at", "desc")->first();
-                    if ($before->id_roll == $formCutDetail->id_roll && $before->status == 'extension complete') {
+                    if ($before && $before->id_roll == $formCutDetail->id_roll && $before->status == 'extension complete') {
                         $this->destroySpreadingRoll($before->id, $cuttingService);
                     }
 
@@ -1016,7 +1035,21 @@ class CompletedFormController extends Controller
                     }
 
                     // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
-                    $cuttingService->fixRollQty($formCutDetail['id_roll'], null);
+                    $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
+
+                    $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
+
+                    if (!$hasFormCutDetail) {
+                        DB::rollBack();
+
+                        return array(
+                            'status' => 400,
+                            'message' => 'Tidak bisa hapus roll terakhir pada form ini',
+                            'redirect' => '',
+                            'table' => 'datatable',
+                            'additional' => [],
+                        );
+                    }
 
                     DB::commit();
 
