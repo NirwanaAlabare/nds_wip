@@ -202,6 +202,14 @@
             transition: background-color .15s ease, box-shadow .15s ease;
         }
 
+        .line-map-box-actual-detail {
+            cursor: pointer;
+        }
+
+        .line-map-box-actual-detail:hover {
+            text-decoration: underline;
+        }
+
         .line-map-drop-target.drag-over {
             background-color: rgba(13, 110, 253, .08);
             box-shadow: inset 0 0 0 2px rgba(13, 110, 253, .35);
@@ -476,7 +484,9 @@
                                                                 <span>Aktual</span>
                                                             </div>
                                                             @foreach ($actualEntries as $actual)
-                                                                <div class="line-map-box-row">
+                                                                <div class="line-map-box-row line-map-box-actual-detail"
+                                                                    role="button"
+                                                                    onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
                                                                     <span
                                                                         class="row-label">{{ $actual->styleno ?: '-' }}</span>
                                                                     <span
@@ -645,6 +655,40 @@
                 moveLineMap(draggedLineMap, targetLine, targetDate);
             });
         });
+
+        function showWsBreakdown(styleno, wsBreakdown) {
+            const rows = (wsBreakdown || []).map(row => `
+                <tr>
+                    <td class="text-left">${row.ws || '-'}</td>
+                    <td class="text-right">${Number(row.tot_rfts || 0).toLocaleString('id-ID')}</td>
+                </tr>
+            `).join('');
+
+            const total = (wsBreakdown || []).reduce((sum, row) => sum + Number(row.tot_rfts || 0), 0);
+
+            Swal.fire({
+                icon: 'info',
+                title: styleno || '-',
+                html: `
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-left">WS</th>
+                                <th class="text-right">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="2" class="text-center text-muted">Tidak ada data</td></tr>'}</tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-left">Total</th>
+                                <th class="text-right">${total.toLocaleString('id-ID')}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `,
+                confirmButtonText: 'Tutup'
+            });
+        }
 
         function moveLineMap(item, targetLine, targetDate) {
             Swal.fire({
