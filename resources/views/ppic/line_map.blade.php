@@ -39,7 +39,7 @@
             position: sticky;
             left: 0;
             z-index: 2;
-            background-color: #fff;
+            background-color: #fff !important;
             box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
         }
 
@@ -47,7 +47,7 @@
             position: sticky;
             top: 0;
             z-index: 3;
-            background-color: #fff;
+            background-color: #fff !important;
         }
 
         .line-map-table thead th.line-map-line-col {
@@ -73,6 +73,15 @@
         .line-map-table th.is-sunday .line-map-date-day,
         .line-map-table th.is-sunday .line-map-date-num {
             color: #dc3545;
+        }
+
+        .line-map-table th.is-today,
+        .line-map-table td.is-today {
+            background-color: #eaf2ff !important;
+        }
+
+        .line-map-table th.is-today {
+            box-shadow: inset 0 -2px 0 0 #0d6efd;
         }
 
         .line-map-table td:not(.line-map-line-col) {
@@ -399,7 +408,10 @@
                         <tr>
                             <th class="line-map-line-col">Line</th>
                             @foreach ($calendarDates as $date)
-                                <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
+                                <th @class([
+                                    'is-sunday' => strtoupper($date->status_prod) === 'LIBUR',
+                                    'is-today' => $date->tanggal === date('Y-m-d'),
+                                ])>
                                     <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
                                     <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
                                 </th>
@@ -431,6 +443,7 @@
                                                 $isWithinPlanRange ? 'line-map-plan-cell' : null,
                                                 $isPlanStart ? 'line-map-plan-start' : null,
                                                 $isPlanEnd ? 'line-map-plan-end' : null,
+                                                $date->tanggal === date('Y-m-d') ? 'is-today' : null,
                                             ])
                                                 ->filter()
                                                 ->implode(' ');
