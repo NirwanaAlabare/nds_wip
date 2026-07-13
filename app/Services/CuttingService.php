@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\Piping;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailDelete;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
 use Illuminate\Http\Request;
@@ -193,6 +194,8 @@ class CuttingService
                     // Save Form Cut
                     $formCut->save();
                 }
+
+                return $formCut;
             }
         }
     }
@@ -824,5 +827,129 @@ class CuttingService
             "success" => $rollSuccessArr,
             "failed" => $rollFailedArr
         );
+    }
+
+    public function fixChainedQty($idRoll, $firstId) {
+        DB::enableQueryLog();
+
+        $formCutDetail = FormCutInputDetail::where("id_roll", $idRoll)->orderBy("created_at", "asc")->get();
+
+        if ($formCutDetail && $formCutDetail->count() > 0) {
+
+            // Check first Qty
+            if ($firstId) {
+                $firstFormCutDetail = FormCutInputDetail::where("id", $firstId)->first();
+
+                if (!$firstFormCutDetail) {
+                    $firstFormCutDetail = DB::table("form_cut_input_detail_delete")->where("old_id", $firstId)->first();
+                }
+            } else {
+                $firstFormCutDetail = $formCutDetail->first();
+            }
+
+            $currentQty = $firstFormCutDetail->qty;
+            foreach ($formCutDetail as $index => $detail) {
+                $formCut = $detail->formCutInput;
+
+                $detail->qty = $currentQty;
+
+                // Recalculate :
+                    // Sambungan Roll
+                    // $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                    $sambunganRoll = $detail->sambungan_roll;
+
+                    // Check Qty
+                    $qty = $detail->qty;
+
+                    // Panjang Act
+                    $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+
+                    if ($detail->berat_amparan > 0) {
+                        $pAct = $detail->berat_amparan;
+                    }
+
+                    // Normal
+                    if ($detail->sambungan == 0) {
+                        // Sambungan
+                        $sambungan = 0;
+
+                        // Est. Ampar
+                        $estAmpar = $qty / $pAct;
+
+                        // Pemakaian Lembar
+                        $pemakaianLembar = ($pAct * $detail->lembar_gelaran) + $sambunganRoll + $detail->sisa_gelaran;
+
+                        // Total Pemakaian
+                        $totalPemakaian = (($pAct * $detail->lembar_gelaran) + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $sambunganRoll);
+
+                        // Short Roll
+                        $shortRoll = (($pAct * $detail->lembar_gelaran) + $detail->sambungan + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $detail->sisa_kain + $sambunganRoll) - $qty;
+
+                        // Sisa Kain
+                        $sisaKain = $detail->sisa_kain;
+
+                        // Reset Qty
+                        $currentQty = $sisaKain;
+                        $currentIdRoll = $detail->id_roll;
+                    // Sambungan
+                    } else {
+                        // Est. Ampar
+                        $estAmpar = $qty / $pAct;
+
+                        // Pemakaian Lembar
+                        $pemakaianLembar = ($sambungan * $detail->lembar_gelaran) + $sambunganRoll + $detail->sisa_gelaran;
+
+                        // Total Pemakaian
+                        $totalPemakaian = (($sambungan * $detail->lembar_gelaran) + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $sambunganRoll);
+
+                        // Short Roll
+                        $shortRoll = 0;
+
+                        // Sisa Kain
+                        $sisaKain = 0;
+
+                        $currentStatus = 'extension complete';
+
+                        // Reset Qty
+                        $currentQty = $qty - (($sambungan * $detail->lembar_gelaran) + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping);
+                        $currentIdRoll = $detail->id_roll;
+                    }
+
+                    // Save Detail
+                    $detail->est_amparan = $estAmpar;
+                    $detail->pemakaian_lembar = $pemakaianLembar;
+                    $detail->total_pemakaian_roll = $totalPemakaian;
+                    $detail->sambungan = $sambungan;
+                    $detail->sisa_kain = $sisaKain;
+                    $detail->short_roll = $shortRoll;
+                    \Log::info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
+                    $detail->save();
+                // End of Recalculate
+
+                // Set Current Qty
+                $currentQty = $detail->sisa_kain;
+            }
+
+            // Fix Scanned Item
+            $this->fixRollQty($idRoll);
+        }
+    }
+
+    public function generateFormCutInputDetailOutput($formCutId) {
+        $formCut = FormCutInput::where("form_cut_id", $formCutId)->first();
+
+        if ($formCut) {
+            // Clear form cut input detail output when exist
+            $formCutDetailOutput = FormCutInputDetailOutput::where("form_cut_id", $formCutId)->delete();
+
+            $formCutDetail = $formCut->formCutInputDetails()->get();
+
+            if ($formCutDetail) {
+                $formCutDetailGroups = $formCutDetail->groupBy("group_roll");
+                foreach ($formCutDetail as $detail) {
+
+                }
+            }
+        }
     }
 }
