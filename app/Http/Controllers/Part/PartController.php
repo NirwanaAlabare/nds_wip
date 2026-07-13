@@ -908,6 +908,7 @@ class PartController extends Controller
             //     cons = '$request->txtcons',
             //     unit = 'METER'
             //     where id = '$request->txtpart'");
+        // End Deprecated
 
         // Cek apakah part sudah memiliki part_form (sudah digunakan di form cut)
         if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
@@ -920,14 +921,14 @@ class PartController extends Controller
         }
 
         // Cek apakah part sudah memiliki stocker (sudah print stocker)
-        // $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
-        // $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
-        // if ($stockerCount > 0) {
-        //     return array(
-        //         'icon' => 'salah',
-        //         'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
-        //     );
-        // }
+        $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
+        $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
+        if ($stockerCount > 0) {
+            return array(
+                'icon' => 'salah',
+                'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+            );
+        }
 
         DB::beginTransaction();
 

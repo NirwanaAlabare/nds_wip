@@ -299,6 +299,24 @@ class CompletedFormController extends Controller
             "p_act" => "required"
         ]);
 
+        // Get Current Roll
+        $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
+            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
+            where('id', $validatedRequest['current_id'])->
+            first();
+
+        // Check Stocker
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
+        if (!((Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) || (Auth::user()->id == 233 && ($currentFormCutDetail->lembar_gelaran == $validatedRequest['current_lembar_gelaran']))) && $stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
         DB::beginTransaction();
 
         try {
@@ -319,12 +337,6 @@ class CompletedFormController extends Controller
 
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
-
-        // Get Current Roll
-        $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
-            where('id', $validatedRequest['current_id'])->
-            first();
 
         // Check next roll qty as sisa kain
         $checkNextFormCutDetail = FormCutInputDetail::where("id_roll", $currentFormCutDetail->id_roll)->where("created_at", ">", $currentFormCutDetail->created_at)->
@@ -536,7 +548,7 @@ class CompletedFormController extends Controller
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+        if (!((Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) || (Auth::user()->id == 233)) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',

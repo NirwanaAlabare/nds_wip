@@ -5614,6 +5614,8 @@ class SewingToolsController extends Controller
     }
 
     public function getPo(Request $request) {
+        ini_set('max_execution_time', 36000);
+
         if ($request->kode_numbering) {
             $kodeNumbering = addQuotesAround($request->kode_numbering);
         } else {
