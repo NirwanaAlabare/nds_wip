@@ -263,7 +263,7 @@
                                 <div class="form-group">
                                     <label class="form-label">SMV :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
-                                        placeholder="Cnth: 12.5" value="" autocomplete="off"
+                                        placeholder="Cnth: 12.5" value="" autocomplete="off" step="any"
                                         oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
