@@ -290,7 +290,10 @@
                             <option value="stocker_input">Stocker</option>
                             <option value="dc_in_input">DC In Input</option>
                             <option value="secondary_in_input">Secondary In Input</option>
+                            <option value="secondary_inhouse_in_input">Secondary Inhouse In Input</option>
                             <option value="secondary_inhouse_input">Secondary Inhouse Input</option>
+                            <option value="trolley_stocker">Stock Trolley</option>
+                            <option value="loading_line">Loading Line</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -864,6 +867,7 @@
                 type: "post",
                 url: "{{ route('restore-stocker-log') }}",
                 data: {
+                    table: $('#table').val(),
                     stocker_log: $('#stocker_log').val(),
                 },
                 dataType: "json",
