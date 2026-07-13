@@ -623,7 +623,7 @@ class Marketing_SOController extends Controller
     //     return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses ke Temp.']);
     // }
 
-   public function uploadExcelSO(Request $request)
+    public function uploadExcelSO(Request $request)
     {
         $request->validate([
             'file_so' => 'required|mimes:xls,xlsx',
@@ -814,7 +814,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_size_new as s', 't.size', '=', 's.id')
             ->where('t.user_id', $user_id)
             ->select(
-                't.style', 't.desc', 't.po', 't.market', 't.ex_fty', 't.product_set', // <-- Tambah product_set
+                't.style', 't.desc', 't.po', 't.market', 't.ex_fty', 't.product_set',
                 't.id_color', 'c.name as color_name',
                 't.size as id_size', 's.size as size_name', 's.urutan as size_urutan',
                 't.qty'
@@ -865,7 +865,7 @@ class Marketing_SOController extends Controller
                     'po'          => $row->po,
                     'market'      => $row->market,
                     'ex_fty'      => $row->ex_fty,
-                    'product_set' => $is_multiple ? $prod_set_clean : '-', // <-- Kirim ke JS
+                    'product_set' => $is_multiple ? $prod_set_clean : '-',
                     'id_color'    => $row->id_color,
                     'color'       => $row->color_name,
                     'errors'      => [],
@@ -1597,6 +1597,9 @@ class Marketing_SOController extends Controller
 
                 $mysql_sb->table('so_det')->insert($details_insert);
 
+                $this->logSo($id_so);
+                $this->logAllSoDet($id_so);
+
                 $bom_items = $mysql_sb->select("
                     SELECT DISTINCT id_item
                     FROM bom_marketing_detail
@@ -1725,7 +1728,7 @@ class Marketing_SOController extends Controller
             ->select(
                 'sd.id_color',
                 'sd.id_size',
-                'sd.product_set', // <-- Tarik Product Set
+                'sd.product_set',
                 'c.name as color_name',
                 's.size as size_name',
                 $mysql_sb->raw('SUM(sd.qty) as qty')
@@ -1742,7 +1745,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('mastersubgroup as s_grp', 'd2.id_sub_group', '=', 's_grp.id')
             ->leftJoin('mastergroup as a', 's_grp.id_group', '=', 'a.id')
             ->leftJoin('masterpilihan as u', 'd.unit', '=', 'u.id')
-            ->leftJoin('master_set as mset', 'd.id_set', '=', 'mset.id') // <-- Join Master Set
+            ->leftJoin('master_set as mset', 'd.id_set', '=', 'mset.id')
             ->where('d.id_bom_marketing', $so->id_bom)
             ->select(
                 'd.id as detail_id',
@@ -1750,8 +1753,8 @@ class Marketing_SOController extends Controller
                 'd.id_contents',
                 'd.id_color as bom_id_color',
                 'd.id_size as bom_id_size',
-                'd.id_set', // <-- Tarik ID Set
-                'mset.nama as bom_product_set', // <-- Tarik Nama Set dari BOM
+                'd.id_set',
+                'mset.nama as bom_product_set',
                 'd.rule_bom',
                 $mysql_sb->raw("CONCAT(COALESCE(a.nama_group,''), ' ', COALESCE(s_grp.nama_sub_group,''), ' ', COALESCE(d2.nama_type,''), ' ', COALESCE(e.nama_contents,'')) as panel"),
                 'h.market as dest',
@@ -1803,7 +1806,7 @@ class Marketing_SOController extends Controller
                         'id_contents' => $bom->id_contents,
                         'panel'       => $bom->panel,
                         'dest'        => $bom->dest,
-                        'product_set' => strtoupper($sdet->product_set ?: '-'), // <-- Masukkan data Product Set
+                        'product_set' => strtoupper($sdet->product_set ?: '-'),
                         'color_gmt'   => $sdet->color_name ?? '-',
                         'size_gmt'    => $sdet->size_name ?? '-',
                         'item_desc'   => $bom->item_desc,
@@ -2114,7 +2117,7 @@ class Marketing_SOController extends Controller
                     $color_name = DB::connection('mysql_sb')->table('master_colors_gmt')->where('id', $id_color)->value('name');
                     $size_name = DB::connection('mysql_sb')->table('master_size_new')->where('id', $id_size)->value('size');
 
-                    DB::connection('mysql_sb')->table('so_det')->insert([
+                    $id_inserted = DB::connection('mysql_sb')->table('so_det')->insertGetId([
                         'id_so'       => $id_so,
                         'id_color'    => $id_color,
                         'id_size'     => $id_size,
@@ -2135,6 +2138,8 @@ class Marketing_SOController extends Controller
                         'updated_date'=> now()
                     ]);
 
+                    $this->logSoDet($id_inserted);
+
                     $inserted_count++;
                 }
             }
@@ -2154,6 +2159,8 @@ class Marketing_SOController extends Controller
             DB::connection('mysql_sb')->table('so')
                 ->where('id', $id_so)
                 ->update(['qty' => $totalQty]);
+
+            $this->logSo($id_so);
 
             DB::connection('mysql_sb')->commit();
             return response()->json(['status' => 200, 'message' => "$inserted_count kombinasi baru berhasil ditambahkan!"]);
@@ -2182,6 +2189,8 @@ class Marketing_SOController extends Controller
                 DB::connection('mysql_sb')->table('so_det')
                     ->where('id', $item['id'])
                     ->update(['qty' => $item['qty']]);
+
+                $this->logSoDet($item['id']);
             }
 
             $totalQty = DB::connection('mysql_sb')->table('so_det')
@@ -2194,6 +2203,8 @@ class Marketing_SOController extends Controller
             DB::connection('mysql_sb')->table('so')
                 ->where('id', $so_id)
                 ->update(['qty' => $totalQty]);
+
+            $this->logSo($so_id);
 
             DB::connection('mysql_sb')->commit();
             return response()->json(['status' => 200, 'message' => 'Semua Qty berhasil di Update']);
@@ -2220,6 +2231,8 @@ class Marketing_SOController extends Controller
                     'cancel' => $cancel_value
                 ]);
 
+            $this->logSoDet($detail_id);
+
             $detailData = DB::connection('mysql_sb')->table('so_det')->where('id', $detail_id)->first();
             $so_id = $detailData->id_so;
 
@@ -2235,6 +2248,8 @@ class Marketing_SOController extends Controller
                 ->update([
                     'qty' => $totalQty
                 ]);
+
+            $this->logSo($so_id);
 
             DB::connection('mysql_sb')->commit();
 
@@ -3676,5 +3691,52 @@ class Marketing_SOController extends Controller
             'total'  => $details->count(),
             'filled' => $details->filter(fn($d) => !empty($d->barcode))->count(),
         ]);
+    }
+
+    private function logSo($id_so) {
+        $so = DB::connection('mysql_sb')->table('so')->where('id', $id_so)->first();
+        if ($so) {
+            $log_data = (array) $so;
+            unset($log_data['id']);
+            DB::connection('mysql_sb')->table('so_log')->insert($log_data);
+        }
+    }
+
+    private function logSoDet($id_so_det) {
+        if (is_array($id_so_det)) {
+            $details = DB::connection('mysql_sb')->table('so_det')->whereIn('id', $id_so_det)->get();
+            if ($details->isNotEmpty()) {
+                $log_data = [];
+                foreach ($details as $det) {
+                    $arr = (array) $det;
+                    unset($arr['id']);
+                    unset($arr['product_set']);
+                    $log_data[] = $arr;
+                }
+                DB::connection('mysql_sb')->table('so_det_log')->insert($log_data);
+            }
+        } else {
+            $det = DB::connection('mysql_sb')->table('so_det')->where('id', $id_so_det)->first();
+            if ($det) {
+                $arr = (array) $det;
+                unset($arr['id']);
+                unset($arr['product_set']);
+                DB::connection('mysql_sb')->table('so_det_log')->insert($arr);
+            }
+        }
+    }
+
+    private function logAllSoDet($id_so) {
+        $details = DB::connection('mysql_sb')->table('so_det')->where('id_so', $id_so)->get();
+        if ($details->isNotEmpty()) {
+            $log_data = [];
+            foreach ($details as $det) {
+                $arr = (array) $det;
+                unset($arr['id']);
+                unset($arr['product_set']);
+                $log_data[] = $arr;
+            }
+            DB::connection('mysql_sb')->table('so_det_log')->insert($log_data);
+        }
     }
 }
