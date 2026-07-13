@@ -204,6 +204,7 @@ Route::middleware('auth')->group(function () {
 
         // Modify Packing PO
         Route::get('/get-po', 'getPo')->name('get-po-qr');
+        Route::post('/get-po-post', 'getPo')->name('get-po-qr-post');
         Route::post('/get-packing-po', 'getPackingPo')->name('get-packing-po');
         Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
         Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');

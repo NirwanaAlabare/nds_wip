@@ -162,14 +162,18 @@
         }
 
         function updatePo() {
+            showLoading();
+
             return $.ajax({
-                type: "get",
-                url: "{{ route('get-po-qr') }}",
+                type: "post",
+                url: "{{ route('get-po-qr-post') }}",
                 data: {
                     kode_numbering: $("#kode_numbering").val()
                 },
                 dataType: "json",
                 success: function (response) {
+                    hideLoading();
+
                     $("#edit_packing_po").empty();
                     $("#edit_packing_po").append('<option value="" selected disabled>-- Pilih PO --</option>');
                     response.forEach(po => {
@@ -177,6 +181,8 @@
                     });
                 },
                 error: function (jqXHR) {
+                    hideLoading();
+
                     console.error(jqXHR);
                 }
             });
