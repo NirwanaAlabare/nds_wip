@@ -83,7 +83,7 @@ where created_at >= ? and created_at <= ? and mp.cancel = 'N'
 group by so_det_id, created_by, date(created_at)
 )
 
-SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.kpno, ac.styleno, sd.reff_no, ac.styleno
+SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.styleno, ac.kpno as ws
 FROM a
 left join user_sb_wip u on a.created_by = u.id
 left join userpassword up on up.line_id = u.line_id
@@ -91,7 +91,7 @@ LEFT JOIN so_det sd on a.so_det_id = sd.id
 left join so on sd.id_so = so.id
 left join act_costing	 ac on so.id_cost = ac.id
 left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
+group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $actualByLineDate = collect($actualRows)
             ->groupBy('line')
@@ -105,6 +105,13 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
                                 'buyer' => $first->buyer,
                                 'styleno' => $first->styleno,
                                 'tot_rfts' => $group->sum('tot_rfts'),
+                                'ws_breakdown' => $group
+                                    ->groupBy(fn($r) => $r->ws ?? '-')
+                                    ->map(fn($wsGroup) => (object) [
+                                        'ws' => $wsGroup->first()->ws,
+                                        'tot_rfts' => $wsGroup->sum('tot_rfts'),
+                                    ])
+                                    ->values(),
                             ];
                         })
                         ->values();

@@ -39,7 +39,7 @@
             position: sticky;
             left: 0;
             z-index: 2;
-            background-color: #fff;
+            background-color: #fff !important;
             box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
         }
 
@@ -47,7 +47,7 @@
             position: sticky;
             top: 0;
             z-index: 3;
-            background-color: #fff;
+            background-color: #fff !important;
         }
 
         .line-map-table thead th.line-map-line-col {
@@ -73,6 +73,15 @@
         .line-map-table th.is-sunday .line-map-date-day,
         .line-map-table th.is-sunday .line-map-date-num {
             color: #dc3545;
+        }
+
+        .line-map-table th.is-today,
+        .line-map-table td.is-today {
+            background-color: #eaf2ff !important;
+        }
+
+        .line-map-table th.is-today {
+            box-shadow: inset 0 -2px 0 0 #0d6efd;
         }
 
         .line-map-table td:not(.line-map-line-col) {
@@ -202,6 +211,14 @@
             transition: background-color .15s ease, box-shadow .15s ease;
         }
 
+        .line-map-box-actual-detail {
+            cursor: pointer;
+        }
+
+        .line-map-box-actual-detail:hover {
+            text-decoration: underline;
+        }
+
         .line-map-drop-target.drag-over {
             background-color: rgba(13, 110, 253, .08);
             box-shadow: inset 0 0 0 2px rgba(13, 110, 253, .35);
@@ -246,7 +263,7 @@
                                 <div class="form-group">
                                     <label class="form-label">SMV :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
-                                        placeholder="Cnth: 12.5" value="" autocomplete="off"
+                                        placeholder="Cnth: 12.5" value="" autocomplete="off" step="any"
                                         oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
@@ -391,7 +408,10 @@
                         <tr>
                             <th class="line-map-line-col">Line</th>
                             @foreach ($calendarDates as $date)
-                                <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
+                                <th @class([
+                                    'is-sunday' => strtoupper($date->status_prod) === 'LIBUR',
+                                    'is-today' => $date->tanggal === date('Y-m-d'),
+                                ])>
                                     <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
                                     <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
                                 </th>
@@ -423,6 +443,7 @@
                                                 $isWithinPlanRange ? 'line-map-plan-cell' : null,
                                                 $isPlanStart ? 'line-map-plan-start' : null,
                                                 $isPlanEnd ? 'line-map-plan-end' : null,
+                                                $date->tanggal === date('Y-m-d') ? 'is-today' : null,
                                             ])
                                                 ->filter()
                                                 ->implode(' ');
@@ -476,7 +497,9 @@
                                                                 <span>Aktual</span>
                                                             </div>
                                                             @foreach ($actualEntries as $actual)
-                                                                <div class="line-map-box-row">
+                                                                <div class="line-map-box-row line-map-box-actual-detail"
+                                                                    role="button"
+                                                                    onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
                                                                     <span
                                                                         class="row-label">{{ $actual->styleno ?: '-' }}</span>
                                                                     <span
@@ -645,6 +668,40 @@
                 moveLineMap(draggedLineMap, targetLine, targetDate);
             });
         });
+
+        function showWsBreakdown(styleno, wsBreakdown) {
+            const rows = (wsBreakdown || []).map(row => `
+                <tr>
+                    <td class="text-left">${row.ws || '-'}</td>
+                    <td class="text-right">${Number(row.tot_rfts || 0).toLocaleString('id-ID')}</td>
+                </tr>
+            `).join('');
+
+            const total = (wsBreakdown || []).reduce((sum, row) => sum + Number(row.tot_rfts || 0), 0);
+
+            Swal.fire({
+                icon: 'info',
+                title: styleno || '-',
+                html: `
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-left">WS</th>
+                                <th class="text-right">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="2" class="text-center text-muted">Tidak ada data</td></tr>'}</tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-left">Total</th>
+                                <th class="text-right">${total.toLocaleString('id-ID')}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `,
+                confirmButtonText: 'Tutup'
+            });
+        }
 
         function moveLineMap(item, targetLine, targetDate) {
             Swal.fire({
