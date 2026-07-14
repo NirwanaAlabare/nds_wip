@@ -3268,7 +3268,7 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "DC Process " + $("#year").val() + " - " + $("#month").val() + ".xlsx";
+                        link.download = "DC Process " + $("#dc-year-filter").val() + " - " + $("#dc-month-filter").val() + ".xlsx";
                         link.click();
                     },
                     error: function(jqXHR) {
