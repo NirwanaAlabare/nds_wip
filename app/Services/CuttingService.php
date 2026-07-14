@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Cutting\FormCutInput;
-use App\Models\Cutting\Piping;
-use App\Models\Cutting\FormCutInputDetail;
-use App\Models\Cutting\FormCutInputDetailDelete;
+use App\Models\Part\PartForm;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\Piping;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
+use App\Models\Cutting\FormCutInputDetailDelete;
 use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
 use Illuminate\Http\Request;
 use Illuminate\HttpRequest;
@@ -936,20 +938,235 @@ class CuttingService
     }
 
     public function generateFormCutInputDetailOutput($formCutId) {
-        $formCut = FormCutInput::where("form_cut_id", $formCutId)->first();
+        $formCut = FormCutInput::where("id", $formCutId)->first();
 
         if ($formCut) {
             // Clear form cut input detail output when exist
-            $formCutDetailOutput = FormCutInputDetailOutput::where("form_cut_id", $formCutId)->delete();
+            $formCutDetailOutput = FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->delete();
 
             $formCutDetail = $formCut->formCutInputDetails()->get();
 
             if ($formCutDetail) {
-                $formCutDetailGroups = $formCutDetail->groupBy("group_roll");
-                foreach ($formCutDetail as $detail) {
 
+                if ($formCut && $formCut->marker && $formCut->marker->markerDetails) {
+
+                    // Marker Detail
+                    $markerDetails = $formCut->marker->markerDetails;
+
+                    // Form Cut Detail Group
+                    $formCutDetailGroups = $formCutDetail->groupBy("group_roll");
+
+                    // Form Cut Detail Output
+                    $formCutDetailOutput = [];
+                    foreach ($formCutDetailGroups as $detailGroup) {
+                        $currentGroup = $detailGroup->first()->group_roll;
+                        $currentGroupQty = $detailGroup->sum("lembar_gelaran");
+
+                        foreach ($markerDetails as $markerDetail) {
+                            array_push($formCutDetailOutput, [
+                                "form_cut_input_id" => $formCut->id,
+                                "group_roll" => $currentGroup,
+                                "marker_input_detail_id" => $markerDetail->id,
+                                "size_asal" => $markerDetail->size,
+                                "ratio" => $markerDetail->ratio,
+                                "total_lembar_gelaran" => $currentGroupQty,
+                                "qty_output_original" => $markerDetail->ratio * $currentGroupQty,
+                                "qty_output_aktual" => $markerDetail->ratio * $currentGroupQty,
+                                "is_active" => 1,
+                                "created_by" => Auth::user()->id,
+                                "created_at" => Carbon::now(),
+                                "updated_at" => Carbon::now()
+                            ]);
+                        }
+                    }
+
+                    // Insert Form Cut Detail Output
+                    FormCutInputDetailOutput::upsert($formCutDetailOutput, ['form_cut_input_id', 'group_roll', 'marker_input_detail_id'], ['size_asal', 'ratio', 'total_lembar_gelaran', 'qty_output_original', 'qty_output_aktual', 'is_active', 'created_by', 'created_at', 'updated_at']);
                 }
             }
         }
+    }
+
+    public function finishProcess($id = null, $data = []) {
+        if ($id && count($data) > 0) {
+            $finishTime = $data['finishTime'];
+            $consAct = $data['consAct'];
+            $unitConsAct = $data['unitConsAct'];
+            $consActNoSr = $data['consActNoSr'];
+            $unitConsActNoSr = $data['unitConsActNoSr'];
+            $totalLembar = $data['totalLembar'];
+            $consWsUprate = $data['consWsUprate'];
+            $consMarkerUprate = $data['consMarkerUprate'];
+            $consWsUprateNoSr = $data['consWsUprateNoSr'];
+            $consMarkerUprateNoSr = $data['consMarkerUprateNoSr'];
+            $operator = $data['operator'];
+            $formNotes = $data['formNotes'];
+
+            DB::beginTransaction();
+            try {
+                $formCutInputData = FormCutInput::where("id", $id)->first();
+
+                // Last Detail
+                $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->orderBy("created_at", "desc")->first();
+
+                if ($lastDetail) {
+
+                    // When extension on last
+                    if ($lastDetail->status == "extension") {
+
+                        // Get the roll in need for extension
+                        $needExtensionDetail = DB::table("form_cut_input_detail")->where("id", $lastDetail->id_sambungan)->first();
+                        if ($needExtensionDetail) {
+                            return array(
+                                "status" => 400,
+                                "message" => "Sambungan untuk Roll berikut belum ada <br><b>".($needExtensionDetail->id_roll ? " ROLL ".$needExtensionDetail->id_roll : "  ITEM ".$needExtensionDetail->id_item)."</b><br> (Sisa Gelaran : ".($needExtensionDetail->sisa_gelaran).")" ,
+                            );
+                        }
+                    }
+                    // the needing roll for extension
+                    else if ($lastDetail->status == "need extension") {
+                        $currentIdRoll = $lastDetail->id_roll;
+
+                        // Delete the roll in need for extension (fail to create extension so user must input it again)
+                        $lastDetail->delete();
+
+                        // Update scanned item (roll detail & qty)
+                        $this->fixRollQty($currentIdRoll);
+
+                        return array(
+                            "status" => 400,
+                            "message" => "Roll ".$currentIdRoll." gagal disimpan" ,
+                        );
+                    }
+                }
+
+                // Get latest no. cut
+                $formCutInputSimilarLatestData = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
+                    where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+                    where("marker_input.color", $formCutInputData->marker->color)->
+                    where("marker_input.panel", $formCutInputData->marker->panel)->
+                    where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                    where("form_cut_input.id", "!=", $formCutInputData->id)->
+                    orderBy("form_cut_input.waktu_selesai", "desc")->
+                    first();
+
+                $formCutInputSimilarLatest = $formCutInputSimilarLatestData ? $formCutInputSimilarLatestData->no_cut : 0;
+
+                // Update the Form to be Finished
+                $finishTime = $finishTime;
+                $waktuSelesai = (empty($finishTime) || !strtotime($finishTime)) ? Carbon::now() : Carbon::parse($finishTime);
+
+                $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                    "status" => "SELESAI PENGERJAAN",
+                    "waktu_selesai" => $waktuSelesai,
+                    "cons_act" => $consAct,
+                    "unit_cons_act" => $unitConsAct,
+                    "cons_act_nosr" => $consActNoSr,
+                    "unit_cons_act_nosr" => $unitConsActNoSr,
+                    "total_lembar" => $totalLembar,
+                    "no_cut" => $formCutInputSimilarLatest + 1,
+                    "cons_ws_uprate" => $consWsUprate,
+                    "cons_marker_uprate" => $consMarkerUprate,
+                    "cons_ws_uprate_nosr" => $consWsUprateNoSr,
+                    "cons_marker_uprate_nosr" => $consMarkerUprateNoSr,
+                    "operator" => $operator,
+                    "notes" => $formNotes,
+                ]);
+
+                // Backup the incomplete Form Cut Detail (Roll Spreading)
+                $notCompletedDetails = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->get();
+                if ($notCompletedDetails->count() > 0) {
+                    foreach ($notCompletedDetails as $notCompletedDetail) {
+                        DB::table("form_cut_input_detail_delete")->insert([
+                            "form_cut_id" => $notCompletedDetail->form_cut_id,
+                            "no_form_cut_input" => $notCompletedDetail->no_form_cut_input,
+                            "id_roll" => $notCompletedDetail->id_roll,
+                            "id_item" => $notCompletedDetail->id_item,
+                            "color_act" => $notCompletedDetail->color_act,
+                            "detail_item" => $notCompletedDetail->detail_item,
+                            "group_roll" => $notCompletedDetail->group_roll,
+                            "lot" => $notCompletedDetail->lot,
+                            "roll" => $notCompletedDetail->roll,
+                            "roll_buyer" => $notCompletedDetail->roll_buyer,
+                            "qty" => $notCompletedDetail->qty,
+                            "unit" => $notCompletedDetail->unit,
+                            "sisa_gelaran" => $notCompletedDetail->sisa_gelaran,
+                            "sambungan_roll" => $notCompletedDetail->sambungan_roll,
+                            "sambungan" => $notCompletedDetail->sambungan,
+                            "est_amparan" => $notCompletedDetail->est_amparan,
+                            "lembar_gelaran" => $notCompletedDetail->lembar_gelaran,
+                            "average_time" => $notCompletedDetail->average_time,
+                            "kepala_kain" => $notCompletedDetail->kepala_kain,
+                            "sisa_tidak_bisa" => $notCompletedDetail->sisa_tidak_bisa,
+                            "reject" => $notCompletedDetail->reject,
+                            "sisa_kain" => ($notCompletedDetail->sisa_kain ? $notCompletedDetail->sisa_kain : 0),
+                            "pemakaian_lembar" => $notCompletedDetail->pemakaian_lembar,
+                            "short_roll" => $notCompletedDetail->short_roll,
+                            "piping" => $notCompletedDetail->piping,
+                            "total_pemakaian_roll" => $notCompletedDetail->total_pemakaian_roll,
+                            "status" => $notCompletedDetail->status,
+                            "metode" => $notCompletedDetail->metode,
+                            "group_stocker" => $notCompletedDetail->group_stocker,
+                            "created_at" => $notCompletedDetail->created_at,
+                            "updated_at" => $notCompletedDetail->updated_at,
+                            "deleted_by" => Auth::user()->username,
+                            "deleted_at" => Carbon::now(),
+                        ]);
+
+                        // delete incomplete lap
+                        FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompletedDetail->id)->delete();
+                    }
+                }
+
+                // delete incomplete detail
+                FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
+
+                // store to part form
+                $partData = DB::table("part")->select('part.id')->
+                    where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+                    where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+                    where("panel", $formCutInputData->marker->panel)->
+                    first();
+
+                if ($partData) {
+                    $lastPartForm = DB::table("part_form")->select("kode")->orderBy("kode", "desc")->first();
+                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+                    $addToPartForm = PartForm::create([
+                        "kode" => $kodePartForm,
+                        "part_id" => $partData->id,
+                        "form_id" => $formCutInputData->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+                }
+
+                // check part split
+                $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
+                if ($partSplit) {
+
+                    // reset no. cut
+                    $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                        'no_cut' => 1
+                    ]);
+                }
+
+                $this->generateFormCutInputDetailOutput($id);
+
+                app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+                app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
+
+                DB::commit();
+
+                return $updateFormCutInput;
+            } catch (\Throwable $th) {
+                DB::rollBack();
+
+                return ['status' => 400, 'message' => $th->getMessage()];
+            }
+        }
+
+        return ['status' => 400, 'message' => "Data tidak ditemukan"];
     }
 }
