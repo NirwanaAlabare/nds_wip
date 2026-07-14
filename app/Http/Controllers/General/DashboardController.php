@@ -16,6 +16,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Events\CuttingChartUpdated;
 use App\Events\CuttingChartUpdatedAll;
 use App\Exports\ExportTrackStocker;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use Excel;
 
@@ -1766,6 +1767,77 @@ class DashboardController extends Controller
     // End of Stocker
 
     // DC
+        public function dcData ($data = []) {
+            ini_set("max_execution_time", 0);
+            ini_set("memory_limit", '2048M');
+
+            $month = date("m");
+            $year = date("Y");
+
+            if ($data['month']) {
+                $month = $data['month'];
+            }
+            if ($data['year']) {
+                $year = $data['year'];
+            }
+
+            $dc = Stocker::selectRaw("
+                    stocker_input.id stocker_id,
+                    stocker_input.id_qr_stocker,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                    stocker_input.act_costing_ws,
+                    stocker_input.color,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    stocker_input.so_det_id,
+                    stocker_input.shade,
+                    stocker_input.ratio,
+                    master_part.nama_part,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+                    stocker_input.status,
+                    dc_in_input.id dc_in_id,
+                    dc_in_input.tujuan,
+                    dc_in_input.tempat,
+                    dc_in_input.lokasi,
+                    (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
+                    COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
+                    COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
+                    COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
+                    (CASE WHEN stocker_input.form_piece_id THEN CONCAT(form_cut_piece.no_form, ' / ', form_cut_piece.no_cut) ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) END) no_cut,
+                    COALESCE(UPPER(loading_line.nama_line), '-') line,
+                    loading_line.tanggal_loading,
+                    stocker_input.updated_at latest_update
+                ")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
+                leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+                leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+                leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+                whereRaw("(form_cut_input.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
+                OR form_cut_reject.updated_at BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
+                OR form_cut_piece.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59'))")->
+                whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_piece.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
+                orderBy("stocker_input.act_costing_ws", "asc")->
+                orderBy("stocker_input.color", "asc")->
+                orderBy("form_cut_input.no_cut", "asc")->
+                orderBy("form_cut_piece.no_cut", "asc")->
+                orderBy("master_part.nama_part", "asc")->
+                orderBy("stocker_input.so_det_id", "asc")->
+                orderBy("stocker_input.shade", "desc")->
+                orderBy("stocker_input.id_qr_stocker", "asc")->
+                groupBy("stocker_input.id")->
+                get();
+
+            return $dc;
+        }
+
         public function dc(Request $request) {
             ini_set("max_execution_time", 0);
             ini_set("memory_limit", '2048M');
@@ -1774,69 +1846,12 @@ class DashboardController extends Controller
             $years = array_reverse(range(1999, date('Y')));
 
             if ($request->ajax()) {
-                $month = date("m");
-                $year = date("Y");
+                $data = [
+                    "month" => $request->month,
+                    "year" => $request->year,
+                ];
 
-                if ($request->month) {
-                    $month = $request->month;
-                }
-                if ($request->year) {
-                    $year = $request->year;
-                }
-
-                $dc = Stocker::selectRaw("
-                        stocker_input.id stocker_id,
-                        stocker_input.id_qr_stocker,
-                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
-                        stocker_input.so_det_id,
-                        stocker_input.shade,
-                        stocker_input.ratio,
-                        master_part.nama_part,
-                        CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
-                        stocker_input.status,
-                        dc_in_input.id dc_in_id,
-                        dc_in_input.tujuan,
-                        dc_in_input.tempat,
-                        dc_in_input.lokasi,
-                        (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
-                        COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
-                        COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-                        COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
-                        (CASE WHEN stocker_input.form_piece_id THEN CONCAT(form_cut_piece.no_form, ' / ', form_cut_piece.no_cut) ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) END) no_cut,
-                        COALESCE(UPPER(loading_line.nama_line), '-') line,
-                        loading_line.tanggal_loading,
-                        stocker_input.updated_at latest_update
-                    ")->
-                    leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-                    leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-                    leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
-                    leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
-                    leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                    leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                    leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                    leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                    leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
-                    leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
-                    leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-                    leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                    whereRaw("(form_cut_input.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
-                    OR form_cut_reject.updated_at BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
-                    OR form_cut_piece.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59'))")->
-                    whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_piece.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
-                    orderBy("stocker_input.act_costing_ws", "asc")->
-                    orderBy("stocker_input.color", "asc")->
-                    orderBy("form_cut_input.no_cut", "asc")->
-                    orderBy("form_cut_piece.no_cut", "asc")->
-                    orderBy("master_part.nama_part", "asc")->
-                    orderBy("stocker_input.so_det_id", "asc")->
-                    orderBy("stocker_input.shade", "desc")->
-                    orderBy("stocker_input.id_qr_stocker", "asc")->
-                    groupBy("stocker_input.id")->
-                    get();
+                $dc = $this->dcData($data);
 
                 return DataTables::of($dc)->toJson();
             }
@@ -1921,6 +1936,107 @@ class DashboardController extends Controller
             ");
 
             return $dataQty;
+        }
+
+        public function exportDc(Request $request) {
+            ini_set("max_execution_time", 0);
+            ini_set("memory_limit", '2048M');
+
+            $month = $request->month ? $request->month : date('m');
+            $year = $request->year ? $request->year : date('Y');
+
+            $data = [
+                "month" => $month,
+                "year" => $year,
+            ];
+
+            $dc = $this->dcData($data);
+
+            // Calculate total qty
+            $totalQty = 0;
+            foreach ($dc as $d) {
+                $totalQty += $d->dc_in_qty;
+            }
+
+            // Create Excel file using FastExcel
+            $excel = FastExcel::create('data');
+            $sheet = $excel->getSheet();
+
+            // Date Range row
+            $sheet->writeTo('A1', 'Laporan DC');
+            $sheet->mergeCells('A1:Q1');
+            $sheet->writeTo('A2', 'Bulan/Tahun : ' . $month . ' / ' . $year);
+            $sheet->mergeCells('A2:Q2');
+            $sheet->writeRow([]);
+
+            // Header row
+            $headers = [
+                'Tipe',
+                'No. WS',
+                'Color',
+                'Size',
+                'Part',
+                'No. Cut',
+                'No. Form',
+                'Range',
+                'Qty',
+                'Tujuan',
+                'Tempat',
+                'Lokasi',
+                'Secondary',
+                'Rak',
+                'Troli',
+                'Line',
+                'Tgl. Loading',
+                'Latest Update'
+            ];
+            foreach ($headers as $index => $header) {
+                $col = chr(65 + $index); // A=65, B=66, etc.
+                $sheet->writeTo($col . '4', $header)
+                    ->applyFontStyleBold()
+                    ->applyBgColor('#505154')
+                    ->applyTextColor('#FBFBFB')
+                    ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+
+            // Data rows
+            $rowNum = 5;
+            collect($dc)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNum) {
+                foreach ($rows as $row) {
+                    $rowArr = [
+                        $row->tipe ?? "-",
+                        $row->act_costing_ws ?? "-",
+                        $row->color ?? "-",
+                        $row->size ?? "-",
+                        $row->nama_part ?? "-",
+                        $row->no_cut ?? "-",
+                        $row->no_form ?? "-",
+                        $row->stocker_range ?? "-",
+                        $row->dc_in_qty ?? 0,
+                        $row->tujuan ?? "-",
+                        $row->tempat ?? "-",
+                        $row->lokasi ?? "-",
+                        $row->secondary ?? "-",
+                        $row->rak ?? "-",
+                        $row->troli ?? "-",
+                        $row->line ?? "-",
+                        $row->tanggal_loading ?? "-",
+                        $row->latest_update ?? "-",
+                    ];
+
+                    $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    $rowNum++;
+                }
+            });
+
+            // Total row
+            $sheet->writeTo('A' . $rowNum, 'TOTAL', ['text-align' => 'right', 'font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $sheet->mergeCells('A' . $rowNum . ':H' . $rowNum);
+            $sheet->writeTo('I' . $rowNum, $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+            $filename = 'Laporan DC '.$month.'-'.$year.'.xlsx';
+
+            return $excel->download($filename);
         }
     // End of DC
 
