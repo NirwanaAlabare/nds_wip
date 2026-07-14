@@ -250,6 +250,29 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
         ]);
     }
 
+    public function preview_move_ppic_line_map(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:ppic_line_map,id',
+            'target_line' => 'required|string',
+            'target_date' => 'required|date',
+        ]);
+
+        $moves = $this->computeCascade($validated['target_line'], $validated['id'], $validated['target_date']);
+
+        if ($moves === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Line Map tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'moves' => $moves,
+        ]);
+    }
+
     public function move_ppic_line_map(Request $request)
     {
         $validated = $request->validate([
@@ -258,50 +281,135 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'target_date' => 'required|date',
         ]);
 
-        $lineMap = DB::table('ppic_line_map')
-            ->where('id', $validated['id'])
-            ->where(function ($q) {
-                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
-            })
-            ->first();
+        $moves = $this->computeCascade($validated['target_line'], $validated['id'], $validated['target_date']);
 
-        if (!$lineMap) {
+        if ($moves === null) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data Line Map tidak ditemukan',
             ], 404);
         }
 
-        $targetStartDate = $validated['target_date'];
+        DB::transaction(function () use ($moves, $validated) {
+            foreach ($moves as $move) {
+                $update = [
+                    'tgl_start' => $move['new_start'],
+                    'updated_at' => now(),
+                ];
 
-        $overlap = $this->findLineMapOverlap($validated['target_line'], $targetStartDate, $lineMap->tot_days, $lineMap->id);
-        if ($overlap) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak bisa dipindahkan. Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line tujuan.',
-            ], 422);
-        }
+                if ($move['is_dragged']) {
+                    $update['line'] = $validated['target_line'];
+                }
 
-        DB::table('ppic_line_map')
-            ->where('id', $validated['id'])
-            ->update([
-                'line' => $validated['target_line'],
-                'tgl_start' => $targetStartDate,
-                'updated_at' => now(),
-            ]);
+                DB::table('ppic_line_map')->where('id', $move['id'])->update($update);
+            }
+        });
+
+        $shiftedCount = collect($moves)->filter(fn($m) => !$m['is_dragged'] && $m['shifted'])->count();
 
         return response()->json([
             'success' => true,
-            'message' => 'Jadwal Line Map berhasil dipindahkan',
+            'message' => $shiftedCount > 0
+                ? "Jadwal berhasil dipindahkan, {$shiftedCount} jadwal lain ikut digeser mundur"
+                : 'Jadwal Line Map berhasil dipindahkan',
         ]);
     }
 
+    /**
+     * Places the dragged entry at $draggedNewStart on $targetLine, then walks the
+     * target line's timeline chronologically, pushing every entry whose start
+     * would now overlap the previous one forward to the next free working day
+     * (duration/tot_days untouched). Returns null if the dragged entry no longer exists.
+     */
+    private function computeCascade(string $targetLine, $draggedId, string $draggedNewStart): ?array
+    {
+        $draggedRow = DB::table('ppic_line_map')->where('id', $draggedId)->first();
+        if (!$draggedRow) {
+            return null;
+        }
+
+        $others = DB::table('ppic_line_map')
+            ->where('line', $targetLine)
+            ->where('id', '!=', $draggedId)
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->orderBy('tgl_start')
+            ->get();
+
+        $items = collect([
+            (object) [
+                'id' => $draggedRow->id,
+                'style' => $draggedRow->style,
+                'buyer' => $draggedRow->buyer,
+                'product_group' => $draggedRow->product_group,
+                'tot_days' => max((int) round($draggedRow->tot_days ?? 1), 1),
+                'start' => $draggedNewStart,
+                'is_dragged' => true,
+            ],
+        ])->concat($others->map(fn($e) => (object) [
+            'id' => $e->id,
+            'style' => $e->style,
+            'buyer' => $e->buyer,
+            'product_group' => $e->product_group,
+            'tot_days' => max((int) round($e->tot_days ?? 1), 1),
+            'start' => $e->tgl_start,
+            'is_dragged' => false,
+        ]))->sortBy('start')->values();
+
+        $moves = [];
+        $cursor = null;
+
+        foreach ($items as $item) {
+            $newStart = $item->start;
+            if ($cursor !== null && $newStart < $cursor) {
+                $newStart = $cursor;
+            }
+
+            $workingDates = $this->workingDatesFrom($newStart, $item->tot_days);
+            $newEnd = !empty($workingDates) ? end($workingDates) : $newStart;
+            $cursor = $this->nextWorkingDay($newEnd);
+
+            $moves[] = [
+                'id' => $item->id,
+                'style' => $item->style,
+                'buyer' => $item->buyer,
+                'product_group' => $item->product_group,
+                'is_dragged' => $item->is_dragged,
+                'new_start' => $newStart,
+                'new_end' => $newEnd,
+                'shifted' => $newStart !== $item->start,
+                'dates' => $workingDates,
+            ];
+        }
+
+        return $moves;
+    }
+
+    private function nextWorkingDay(string $date): string
+    {
+        $next = DB::selectOne(
+            "select min(tanggal) tanggal from dim_date where tanggal > ? and status_prod = 'KERJA'",
+            [$date]
+        );
+
+        return $next->tanggal ? date('Y-m-d', strtotime($next->tanggal)) : date('Y-m-d', strtotime($date . ' +1 day'));
+    }
+
+    /**
+     * Deterministic per-style color, independent of row order/date so a style's
+     * color never changes just because its schedule position changed (e.g. when
+     * dragged to a different date, which reorders the list sorted by tgl_start).
+     * md5 gives a much better hue spread than crc32 for short strings, which
+     * previously produced frequent near-hue collisions (looked "all greenish").
+     */
     private function styleColorFromName(?string $style): string
     {
-        $hash = abs(crc32(strtoupper(trim($style ?? ''))));
+        $key = strtoupper(trim($style ?? ''));
+        $hash = hexdec(substr(md5($key), 0, 8));
         $hue = $hash % 360;
 
-        return "hsl({$hue}, 62%, 42%)";
+        return "hsl({$hue}, 68%, 45%)";
     }
 
     private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, ?int $ignoreId = null)
