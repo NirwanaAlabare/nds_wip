@@ -305,7 +305,11 @@ class FGStokMutasiController extends Controller
                         no_carton, '_',
                         grade
                     ) AS kode,
-                    s.source_table
+                    CASE
+                        WHEN SUM(CASE WHEN s.source_table = 'BPB_SCAN' THEN 1 ELSE 0 END) > 0
+                            THEN 'BPB_SCAN'
+                        ELSE 'BPB'
+                    END AS source_table
                 FROM
                 (
                     SELECT
@@ -358,7 +362,7 @@ class FGStokMutasiController extends Controller
                     GROUP BY no_carton, a.id_so_det, a.grade
                 ) s
                 INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
-                GROUP BY no_carton, s.id_so_det, s.grade, s.source_table
+                GROUP BY no_carton, s.id_so_det, s.grade
                 HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
             ");
 
