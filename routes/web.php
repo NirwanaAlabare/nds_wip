@@ -1281,7 +1281,7 @@ Route::middleware('auth')->group(function () {
     // Marketing Catalog
     Route::controller(Marketing_CatalogController::class)->prefix("master-marketing-catalog")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-marketing-catalog');
-        Route::get('/detail/{id_item}', 'catalogDetail')->name('master-marketing-catalog-detail');
+        Route::get('/detail/{styleno}', 'catalogDetail')->name('master-marketing-catalog-detail');
     });
 
     // QC Inspect Kain
@@ -1664,6 +1664,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
         Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
         Route::post('/sync-bcno/{noAju}', 'syncBcNo')->name('dokumen-pabean-sync-bcno')->where('noAju', '.*');
+        Route::post('/send-batch-ceisa', 'sendBatchCeisa')->name('dokumen-pabean-send-batch-ceisa');
 
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
