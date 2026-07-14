@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Auth\User;
 use App\Models\Marker\Marker;
 use App\Models\Part\PartForm;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Scopes\ThisYearScope;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -56,6 +57,11 @@ class FormCutInput extends Model
     public function formCutInputDetails()
     {
         return $this->hasMany(FormCutInputDetail::class, 'form_cut_id', 'id');
+    }
+
+    public function formCutInputDetailOutputs()
+    {
+        return $this->hasMany(FormCutInputDetailOutput::class, 'form_cut_input_id', 'id');
     }
 
     public function partForm()

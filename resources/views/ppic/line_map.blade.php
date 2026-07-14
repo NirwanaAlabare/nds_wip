@@ -41,6 +41,14 @@
             z-index: 2;
             background-color: #fff !important;
             box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
+            white-space: normal !important;
+            vertical-align: top !important;
+        }
+
+        .line-map-history-product-group {
+            font-size: .7rem;
+            color: #6c757d;
+            white-space: normal;
         }
 
         .line-map-table thead th {
@@ -223,6 +231,40 @@
             background-color: rgba(13, 110, 253, .08);
             box-shadow: inset 0 0 0 2px rgba(13, 110, 253, .35);
         }
+
+        .line-map-ghost-target {
+            position: relative;
+        }
+
+        .line-map-ghost-box {
+            position: absolute;
+            inset: 2px;
+            border-radius: 6px;
+            border: 2px dashed;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.1;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .line-map-ghost-box-drag {
+            border-color: #0d6efd;
+            color: #0450c7;
+            background-color: rgba(13, 110, 253, .15);
+        }
+
+        .line-map-ghost-box-push {
+            border-color: #fd7e14;
+            color: #b85c00;
+            background-color: rgba(253, 126, 20, .15);
+        }
     </style>
 @endsection
 
@@ -248,10 +290,14 @@
                                         <option value="">- Pilih Line -</option>
                                         @foreach ($line as $row)
                                             <option value="{{ $row->username }}">{{ $row->FullName }}
-                                                ({{ $row->username }})
                                             </option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Product Group (Histori Line) :</label>
+                                    <div id="txtproductgroup" class="form-control form-control-sm bg-light h-auto"
+                                        style="min-height: calc(1.5em + .5rem + 2px);"></div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Style :</label>
@@ -290,6 +336,16 @@
                                     <input type="text" class="form-control form-control-sm" id="txtbuyer"
                                         name="txtbuyer" value="" autocomplete="off" style="text-transform: uppercase;"
                                         oninput="this.value = this.value.toUpperCase();">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Product Group :</label>
+                                    <select class="form-control select2bs4 form-control-sm" id="cboproductgroup"
+                                        name="cboproductgroup" disabled>
+                                        <option value="">- Pilih Line Terlebih Dahulu -</option>
+                                        @foreach ($productGroupList as $pg)
+                                            <option value="{{ $pg }}">{{ $pg }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Man Power :</label>
@@ -423,109 +479,118 @@
                             <tr>
                                 <td class="line-map-line-col">
                                     <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
+                                    @foreach (($productGroupByLine[$ln->username] ?? collect()) as $pg)
+                                        <div class="line-map-history-product-group">{{ $pg->product_group }}
+                                            <span class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
+                                        </div>
+                                    @endforeach
                                 </td>
                                 @foreach ($calendarDates as $date)
-                                        @php
-                                            $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
-                                                fn($e) => $date->tanggal >= $e->tgl_start &&
-                                                    $date->tanggal <= $e->tgl_end,
-                                            );
-                                            $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
-                                            $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
-                                            $actualEntries =
-                                                $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
-                                            $hasPlan = $activeEntry && $planQty !== null;
-                                            $isWithinPlanRange = (bool) $activeEntry;
-                                            $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
-                                            $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
-                                            $planCellClasses = collect([
-                                                'line-map-drop-target',
-                                                $isWithinPlanRange ? 'line-map-plan-cell' : null,
-                                                $isPlanStart ? 'line-map-plan-start' : null,
-                                                $isPlanEnd ? 'line-map-plan-end' : null,
-                                                $date->tanggal === date('Y-m-d') ? 'is-today' : null,
-                                            ])
-                                                ->filter()
-                                                ->implode(' ');
-                                            $planTitle = $hasPlan
-                                                ? 'Range: ' .
-                                                    date('d M Y', strtotime($activeEntry->tgl_start)) .
-                                                    ' - ' .
-                                                    date('d M Y', strtotime($activeEntry->tgl_end)) .
-                                                    ($effPct !== null
-                                                        ? ' | Efisiensi: ' .
-                                                            rtrim(rtrim(number_format($effPct, 1), '0'), '.') .
-                                                            '%'
-                                                        : '')
-                                                : null;
-                                        @endphp
-                                        <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
-                                            data-date="{{ $date->tanggal }}"
-                                            @if ($isWithinPlanRange) style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
-                                            @if ($hasPlan || $actualEntries->isNotEmpty())
-                                                @php
-                                                    $planColor = $activeEntry->style_color ?? '#6f42c1';
-                                                @endphp
-                                                <div class="line-map-cell-stack">
-                                                    @if ($hasPlan)
-                                                        <div class="line-map-box line-map-box-plan"
-                                                            draggable="{{ $isPlanStart ? 'true' : 'false' }}"
-                                                            style="--dot-color: {{ $planColor }};"
-                                                            data-id="{{ $activeEntry->id }}"
-                                                            data-line="{{ $activeEntry->line }}"
-                                                            data-date="{{ $date->tanggal }}"
-                                                            data-style="{{ $activeEntry->style }}"
-                                                            title="{{ $planTitle }}"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#newLineMapModal"
-                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
-                                                            <div class="line-map-box-header">
-                                                                <span
-                                                                    class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
-                                                                <span>Plan</span>
-                                                            </div>
+                                    @php
+                                        $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
+                                            fn($e) => $date->tanggal >= $e->tgl_start && $date->tanggal <= $e->tgl_end,
+                                        );
+                                        $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
+                                        $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
+                                        $actualEntries = $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
+                                        $hasPlan = $activeEntry && $planQty !== null;
+                                        $isWithinPlanRange = (bool) $activeEntry;
+                                        $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
+                                        $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
+                                        $planCellClasses = collect([
+                                            'line-map-drop-target',
+                                            $isWithinPlanRange ? 'line-map-plan-cell' : null,
+                                            $isPlanStart ? 'line-map-plan-start' : null,
+                                            $isPlanEnd ? 'line-map-plan-end' : null,
+                                            $date->tanggal === date('Y-m-d') ? 'is-today' : null,
+                                        ])
+                                            ->filter()
+                                            ->implode(' ');
+                                        $planTitle = $hasPlan
+                                            ? 'Range: ' .
+                                                date('d M Y', strtotime($activeEntry->tgl_start)) .
+                                                ' - ' .
+                                                date('d M Y', strtotime($activeEntry->tgl_end)) .
+                                                ($effPct !== null
+                                                    ? ' | Efisiensi: ' .
+                                                        rtrim(rtrim(number_format($effPct, 1), '0'), '.') .
+                                                        '%'
+                                                    : '')
+                                            : null;
+                                    @endphp
+                                    <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
+                                        data-date="{{ $date->tanggal }}"
+                                        @if ($isWithinPlanRange) data-plan-id="{{ $activeEntry->id }}" style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
+                                        @if ($hasPlan || $actualEntries->isNotEmpty())
+                                            @php
+                                                $planColor = $activeEntry->style_color ?? '#6f42c1';
+                                            @endphp
+                                            <div class="line-map-cell-stack">
+                                                @if ($hasPlan)
+                                                    <div class="line-map-box line-map-box-plan"
+                                                        draggable="{{ $isPlanStart ? 'true' : 'false' }}"
+                                                        style="--dot-color: {{ $planColor }};"
+                                                        data-id="{{ $activeEntry->id }}"
+                                                        data-line="{{ $activeEntry->line }}"
+                                                        data-date="{{ $date->tanggal }}"
+                                                        data-style="{{ $activeEntry->style }}"
+                                                        data-product-group="{{ $activeEntry->product_group }}"
+                                                        title="{{ $planTitle }}" data-bs-toggle="modal"
+                                                        data-bs-target="#newLineMapModal"
+                                                        onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
+                                                        <div class="line-map-box-header">
+                                                            <span
+                                                                class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
+                                                            <span>Plan</span>
+                                                        </div>
+                                                        <div class="line-map-box-row">
+                                                            <span class="row-label">{{ $activeEntry->style }}</span>
+                                                            <span
+                                                                class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
+                                                        </div>
+                                                        @if ($activeEntry->product_group)
                                                             <div class="line-map-box-row">
-                                                                <span class="row-label">{{ $activeEntry->style }}</span>
                                                                 <span
-                                                                    class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
+                                                                    class="row-label fst-italic">{{ $activeEntry->product_group }}</span>
                                                             </div>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                                @if ($actualEntries->isNotEmpty())
+                                                    <div class="line-map-box line-map-box-actual">
+                                                        <div class="line-map-box-header">
+                                                            <span>Aktual</span>
                                                         </div>
-                                                    @endif
-                                                    @if ($actualEntries->isNotEmpty())
-                                                        <div class="line-map-box line-map-box-actual">
-                                                            <div class="line-map-box-header">
-                                                                <span>Aktual</span>
+                                                        @foreach ($actualEntries as $actual)
+                                                            <div class="line-map-box-row line-map-box-actual-detail"
+                                                                role="button"
+                                                                onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
+                                                                <span
+                                                                    class="row-label">{{ $actual->styleno ?: '-' }}</span>
+                                                                <span
+                                                                    class="row-qty">{{ number_format($actual->tot_rfts, 0, ',', '.') }}</span>
                                                             </div>
-                                                            @foreach ($actualEntries as $actual)
-                                                                <div class="line-map-box-row line-map-box-actual-detail"
-                                                                    role="button"
-                                                                    onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
-                                                                    <span
-                                                                        class="row-label">{{ $actual->styleno ?: '-' }}</span>
-                                                                    <span
-                                                                        class="row-qty">{{ number_format($actual->tot_rfts, 0, ',', '.') }}</span>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td class="line-map-line-col text-muted">Belum ada data</td>
-                                    @foreach ($calendarDates as $date)
-                                        <td></td>
-                                    @endforeach
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="line-map-line-col text-muted">Belum ada data</td>
+                                @foreach ($calendarDates as $date)
+                                    <td></td>
+                                @endforeach
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
     </div>
 
     <div class="card card-sb">
@@ -540,6 +605,7 @@
                             <th>Line</th>
                             <th>Tgl Plan</th>
                             <th>Style</th>
+                            <th>Product Group</th>
                             <th>Buyer</th>
                             <th>SMV</th>
                             <th>Efficiency</th>
@@ -557,6 +623,7 @@
                                 <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
                                 <td>{{ $row->tgl_start ? date('d-m-Y', strtotime($row->tgl_start)) : '-' }}</td>
                                 <td>{{ $row->style }}</td>
+                                <td>{{ $row->product_group }}</td>
                                 <td>{{ $row->buyer }}</td>
                                 <td>{{ $row->smv }}</td>
                                 <td>{{ $row->efficiency !== null ? number_format($row->efficiency * 100, 0) . '%' : '-' }}
@@ -586,7 +653,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" class="text-center text-muted">Belum ada data</td>
+                                <td colspan="13" class="text-center text-muted">Belum ada data</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -612,6 +679,81 @@
             dropdownParent: $('#newLineMapModal')
         });
 
+        const productGroupByLine = @json($productGroupByLine);
+
+        let previousProductGroup = '';
+        let suppressProductGroupWarning = false;
+
+        function updateProductGroupInfo() {
+            const groups = productGroupByLine[$('#cboline').val()] || [];
+            const html = groups.length ?
+                groups.map(g => `<div>${$('<div>').text(g.product_group).html()} <span class="text-muted">(${
+                    Number(g.tot_qty || 0).toLocaleString('id-ID')})</span></div>`).join('') :
+                '<div class="text-muted">-</div>';
+            $('#txtproductgroup').html(html);
+        }
+
+        function refreshProductGroupOptions() {
+            const line = $('#cboline').val();
+            const $pg = $('#cboproductgroup');
+
+            if (line) {
+                $pg.prop('disabled', false);
+                $pg.find('option[value=""]').text('- Pilih Product Group -');
+            } else {
+                suppressProductGroupWarning = true;
+                $pg.val('').trigger('change');
+                suppressProductGroupWarning = false;
+                previousProductGroup = '';
+                $pg.prop('disabled', true);
+                $pg.find('option[value=""]').text('- Pilih Line Terlebih Dahulu -');
+            }
+        }
+
+        $('#cboline').on('change', function() {
+            updateProductGroupInfo();
+            refreshProductGroupOptions();
+        });
+
+        $('#cboproductgroup').on('change', function() {
+            const selected = $(this).val();
+
+            if (suppressProductGroupWarning) {
+                previousProductGroup = selected;
+                return;
+            }
+
+            if (!selected) {
+                previousProductGroup = '';
+                return;
+            }
+
+            const line = $('#cboline').val();
+            const groups = productGroupByLine[line] || [];
+
+            if (!groups.some(g => g.product_group === selected)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Product Group Belum Pernah Dikerjakan',
+                    text: `Line ini belum pernah mengerjakan product group : ${selected}. Apakah anda yakin akan melanjutkan?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        previousProductGroup = selected;
+                    } else {
+                        suppressProductGroupWarning = true;
+                        $('#cboproductgroup').val(previousProductGroup).trigger('change');
+                        suppressProductGroupWarning = false;
+                    }
+                });
+                return;
+            }
+
+            previousProductGroup = selected;
+        });
+
         $('#tblLineMapList').DataTable({
             ordering: false,
             paging: true,
@@ -627,7 +769,8 @@
                     id: badge.dataset.id,
                     line: badge.dataset.line,
                     date: badge.dataset.date,
-                    style: badge.dataset.style
+                    style: badge.dataset.style,
+                    productGroup: badge.dataset.productGroup
                 };
 
                 event.dataTransfer.effectAllowed = 'move';
@@ -636,18 +779,146 @@
 
             badge.addEventListener('dragend', () => {
                 draggedLineMap = null;
+                dragPointer = null;
+                lastPreviewKey = null;
+                lastPreviewMoves = null;
+                clearCascadeGhosts();
                 document.querySelectorAll('.line-map-drop-target.drag-over').forEach((cell) => {
                     cell.classList.remove('drag-over');
                 });
             });
         });
 
+        const calendarWrapper = document.querySelector('.line-map-calendar-wrapper');
+        let dragPointer = null;
+        let autoScrollFrame = null;
+
+        function stepAutoScroll() {
+            if (!draggedLineMap || !dragPointer) {
+                autoScrollFrame = null;
+                return;
+            }
+
+            const edge = 60;
+            const maxSpeed = 22;
+            const rect = calendarWrapper.getBoundingClientRect();
+
+            const topGap = dragPointer.y - rect.top;
+            const bottomGap = rect.bottom - dragPointer.y;
+            const leftGap = dragPointer.x - rect.left;
+            const rightGap = rect.right - dragPointer.x;
+
+            if (topGap < edge) {
+                calendarWrapper.scrollTop -= maxSpeed * ((edge - topGap) / edge);
+            } else if (bottomGap < edge) {
+                calendarWrapper.scrollTop += maxSpeed * ((edge - bottomGap) / edge);
+            }
+
+            if (leftGap < edge) {
+                calendarWrapper.scrollLeft -= maxSpeed * ((edge - leftGap) / edge);
+            } else if (rightGap < edge) {
+                calendarWrapper.scrollLeft += maxSpeed * ((edge - rightGap) / edge);
+            }
+
+            autoScrollFrame = requestAnimationFrame(stepAutoScroll);
+        }
+
+        calendarWrapper.addEventListener('dragover', (event) => {
+            if (!draggedLineMap) return;
+            dragPointer = {
+                x: event.clientX,
+                y: event.clientY
+            };
+            if (!autoScrollFrame) {
+                autoScrollFrame = requestAnimationFrame(stepAutoScroll);
+            }
+        });
+
+        let lastPreviewKey = null;
+        let lastPreviewMoves = null;
+        let previewRequestToken = 0;
+
+        function clearCascadeGhosts() {
+            document.querySelectorAll('.line-map-ghost-box').forEach((el) => el.remove());
+            document.querySelectorAll('.line-map-ghost-target').forEach((el) => {
+                el.classList.remove('line-map-ghost-target');
+            });
+        }
+
+        function renderCascadeGhosts(targetLine, moves) {
+            clearCascadeGhosts();
+
+            (moves || []).forEach((move) => {
+                if (!move.is_dragged && !move.shifted) return;
+
+                (move.dates || []).forEach((date) => {
+                    const cell = document.querySelector(
+                        `.line-map-drop-target[data-line="${CSS.escape(targetLine)}"][data-date="${CSS.escape(date)}"]`
+                    );
+                    if (!cell) return;
+
+                    cell.classList.add('line-map-ghost-target');
+
+                    const box = document.createElement('div');
+                    box.className = 'line-map-ghost-box ' +
+                        (move.is_dragged ? 'line-map-ghost-box-drag' : 'line-map-ghost-box-push');
+                    box.textContent = move.style || '-';
+                    cell.appendChild(box);
+                });
+            });
+        }
+
+        function requestCascadePreview(targetLine, targetDate) {
+            const key = targetLine + '|' + targetDate;
+            if (key === lastPreviewKey || !draggedLineMap) return;
+            lastPreviewKey = key;
+
+            const token = ++previewRequestToken;
+
+            fetch(@json(route('preview_move_ppic_line_map')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({
+                        id: draggedLineMap.id,
+                        target_line: targetLine,
+                        target_date: targetDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (token !== previewRequestToken || !draggedLineMap || !data.success) return;
+                    lastPreviewMoves = data.moves;
+                    renderCascadeGhosts(targetLine, data.moves);
+                })
+                .catch(() => {});
+        }
+
+        function isMiddleOfPlan(cell) {
+            if (!cell.classList.contains('line-map-plan-cell')) return false;
+            if (cell.classList.contains('line-map-plan-start')) return false;
+            if (draggedLineMap && cell.dataset.planId === String(draggedLineMap.id)) return false;
+            return true;
+        }
+
         document.querySelectorAll('.line-map-drop-target').forEach((cell) => {
             cell.addEventListener('dragover', (event) => {
                 if (!draggedLineMap) return;
+
+                if (isMiddleOfPlan(cell)) {
+                    event.dataTransfer.dropEffect = 'none';
+                    cell.classList.remove('drag-over');
+                    return;
+                }
+
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 cell.classList.add('drag-over');
+
+                requestCascadePreview(cell.dataset.line, cell.dataset.date);
             });
 
             cell.addEventListener('dragleave', () => {
@@ -657,17 +928,67 @@
             cell.addEventListener('drop', (event) => {
                 event.preventDefault();
                 cell.classList.remove('drag-over');
+                clearCascadeGhosts();
 
                 if (!draggedLineMap) return;
+                if (isMiddleOfPlan(cell)) return;
 
                 const targetLine = cell.dataset.line;
                 const targetDate = cell.dataset.date;
 
                 if (draggedLineMap.line === targetLine && draggedLineMap.date === targetDate) return;
 
-                moveLineMap(draggedLineMap, targetLine, targetDate);
+                const key = targetLine + '|' + targetDate;
+                const moves = key === lastPreviewKey ? lastPreviewMoves : null;
+
+                confirmMoveLineMap(draggedLineMap, targetLine, targetDate, moves);
             });
         });
+
+        function formatDateID(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function buildCascadeSummaryHtml(moves) {
+            const shiftedOthers = (moves || []).filter(m => !m.is_dragged && m.shifted);
+            if (!shiftedOthers.length) return '';
+
+            const rows = shiftedOthers.map(m =>
+                `<div>&bull; ${$('<div>').text(m.style || '-').html()} akan digeser ke ${formatDateID(m.new_start)}</div>`
+            ).join('');
+
+            return `<div class="text-start mt-2"><strong>${shiftedOthers.length} jadwal lain ikut digeser:</strong>${rows}</div>`;
+        }
+
+        function confirmMoveLineMap(item, targetLine, targetDate, moves) {
+            const productGroup = item.productGroup;
+            const groups = productGroupByLine[targetLine] || [];
+            const hasHistory = !productGroup || groups.some(g => g.product_group === productGroup);
+
+            if (!hasHistory) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Product Group Belum Pernah Dikerjakan',
+                    text: `Line tujuan belum pernah mengerjakan product group : ${productGroup}. Apakah anda yakin akan melanjutkan?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        moveLineMap(item, targetLine, targetDate, moves);
+                    }
+                });
+                return;
+            }
+
+            moveLineMap(item, targetLine, targetDate, moves);
+        }
 
         function showWsBreakdown(styleno, wsBreakdown) {
             const rows = (wsBreakdown || []).map(row => `
@@ -703,11 +1024,12 @@
             });
         }
 
-        function moveLineMap(item, targetLine, targetDate) {
+        function moveLineMap(item, targetLine, targetDate, moves) {
             Swal.fire({
                 icon: 'question',
                 title: 'Pindahkan Jadwal?',
-                text: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.`,
+                html: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.` +
+                    buildCascadeSummaryHtml(moves),
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Pindahkan',
                 cancelButtonText: 'Batal'
@@ -804,6 +1126,7 @@
             $('#lineMapModalTitle').text('Tambah Line Map');
             $('.select2bs4').val('').trigger('change');
             $('#rampUpContainer').empty();
+            updateProductGroupInfo();
             calculateLineMap();
         }
 
@@ -813,6 +1136,12 @@
             $('#lineMapModalTitle').text('Edit Line Map');
 
             $('#cboline').val(data.line).trigger('change');
+
+            suppressProductGroupWarning = true;
+            $('#cboproductgroup').val(data.product_group || '').trigger('change');
+            suppressProductGroupWarning = false;
+            previousProductGroup = data.product_group || '';
+
             $('#txtstyle').val(data.style);
             $('#txtsmv').val(data.smv);
             $('#txtefficiency').val(data.efficiency !== null ? Math.round(data.efficiency * 100) : '');
