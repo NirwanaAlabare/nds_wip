@@ -330,6 +330,7 @@
                         if(res.status === 200) {
                             Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
                             console.log("Response CEISA:", res.ceisa_response);
+
                             refreshTable();
                         } else {
                             showErrorSwal(res);
@@ -449,12 +450,53 @@
                     let data = res.ceisa_response;
                     let htmlContent = '';
 
-                    if (data && data.dataStatus && data.dataStatus.length > 0) {
-                        // Urutkan berdasarkan waktuStatus descending (terbaru di atas)
-                        let statuses = data.dataStatus.sort((a, b) => new Date(b.waktuStatus) - new Date(a.waktuStatus));
-                        let latest = statuses[0];
+                    if (data && ((data.dataStatus && data.dataStatus.length > 0) || (data.dataRespon && data.dataRespon.length > 0))) {
+                        let allStatuses = [];
 
-                        let noDaftarStr = (latest.nomorDaftar) ? `<b>${latest.nomorDaftar}</b> tanggal <b>${latest.tanggalDaftar}</b>` : '<span class="badge badge-warning">Belum Terdaftar</span>';
+                        if (data.dataStatus) {
+                            data.dataStatus.forEach(s => allStatuses.push({
+                                waktu: s.waktuStatus,
+                                keterangan: s.keterangan,
+                                kodeProses: s.kodeProses,
+                                nomorDaftar: s.nomorDaftar,
+                                tanggalDaftar: s.tanggalDaftar,
+                                nomorAju: s.nomorAju,
+                                isRespon: false
+                            }));
+                        }
+
+                        if (data.dataRespon) {
+                            data.dataRespon.forEach(r => allStatuses.push({
+                                waktu: r.waktuRespon,
+                                keterangan: r.keterangan,
+                                kodeProses: r.kodeRespon,
+                                nomorDaftar: r.nomorDaftar,
+                                tanggalDaftar: r.tanggalDaftar,
+                                nomorAju: r.nomorAju,
+                                isRespon: true,
+                                pesan: r.pesan
+                            }));
+                        }
+
+                        allStatuses.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+                        let latest = allStatuses[0];
+
+                        let validDaftar = allStatuses.find(s => s.nomorDaftar != null);
+                        let textDaftar = validDaftar ? `<b>${validDaftar.nomorDaftar}</b> tanggal <b>${validDaftar.tanggalDaftar}</b>` : '<span class="badge badge-warning">Belum Terdaftar</span>';
+                        let noDaftarStr = `${textDaftar}
+                            <button type="button" class="btn btn-xs btn-primary ml-2 btn-sync-bcno"
+                                data-noaju="${validDaftar ? validDaftar.nomorAju : noAju}"
+                                data-nodaftar="${validDaftar ? validDaftar.nomorDaftar : ''}"
+                                data-tgldaftar="${validDaftar ? validDaftar.tanggalDaftar : ''}">
+                                <i class="fas fa-save"></i> Simpan ke No Daftar
+                            </button>`;
+
+                        let badgeColor = (latest.keterangan && latest.keterangan.toUpperCase().includes('REJECT')) ? 'badge-danger' : 'badge-success';
+
+                        let reasonHtml = '';
+                        if (latest.pesan && Array.isArray(latest.pesan) && latest.pesan.length > 0) {
+                            reasonHtml = `<div class="alert alert-danger p-2 mt-2 mb-0" style="font-size:12px;"><b>Catatan/Alasan:</b><br><ul class="mb-0 pl-3">` + latest.pesan.map(p => `<li>${p}</li>`).join('') + `</ul></div>`;
+                        }
 
                         htmlContent = `
                             <div style="text-align: left; font-size: 14px; margin-top: 10px;">
@@ -464,38 +506,39 @@
                                         <td>${latest.nomorAju || noAju}</td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-light">No. Pendaftaran</th>
+                                        <th class="bg-light">No. Pabean</th>
                                         <td>${noDaftarStr}</td>
                                     </tr>
                                     <tr>
                                         <th class="bg-light">Status Terakhir</th>
-                                        <td><span class="badge badge-success" style="font-size: 13px;">${latest.keterangan || '-'}</span></td>
+                                        <td><span class="badge ${badgeColor}" style="font-size: 13px;">${latest.keterangan || '-'}</span>${reasonHtml}</td>
                                     </tr>
                                     <tr>
                                         <th class="bg-light">Waktu Update</th>
-                                        <td>${latest.waktuStatus || '-'}</td>
+                                        <td>${latest.waktu || '-'}</td>
                                     </tr>
                                 </table>
 
                                 <h5 class="mt-4 mb-2" style="font-size: 16px; font-weight: bold;"><i class="fas fa-history text-primary"></i> Riwayat Status</h5>
-                                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
+                                <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
                                     <table class="table table-sm table-striped mb-0" style="font-size: 12px;">
                                         <thead>
                                             <tr class="bg-light">
                                                 <th>Waktu</th>
                                                 <th>Status/Keterangan</th>
-                                                <th>Proses</th>
+                                                <th>Proses / Respon</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                         `;
 
-                        statuses.forEach(st => {
+                        allStatuses.forEach(st => {
+                            let textClass = (st.keterangan && st.keterangan.toUpperCase().includes('REJECT')) ? 'text-danger' : '';
                             htmlContent += `
                                             <tr>
-                                                <td nowrap>${st.waktuStatus || '-'}</td>
-                                                <td><b>${st.keterangan || '-'}</b></td>
-                                                <td><span class="badge badge-secondary">${st.kodeProses || '-'}</span></td>
+                                                <td nowrap>${st.waktu || '-'}</td>
+                                                <td class="${textClass}"><b>${st.keterangan || '-'}</b></td>
+                                                <td><span class="badge ${st.isRespon ? 'badge-primary' : 'badge-secondary'}">${st.kodeProses || '-'}</span></td>
                                             </tr>
                             `;
                         });
@@ -770,5 +813,68 @@
         let url  = URL.createObjectURL(blob);
         window.open(url, '_blank');
     }
+
+    $(document).on('click', '.btn-sync-bcno', function() {
+        let btn = $(this);
+        let noAju = btn.data('noaju');
+        let noDaftar = btn.data('nodaftar');
+        let tglDaftar = btn.data('tgldaftar');
+        let actionUrl = '{{ route("dokumen-pabean-sync-bcno", ":noAju") }}'.replace(':noAju', noAju);
+
+        let infoHtml = !noDaftar ? '<div class="alert alert-warning p-2" style="font-size:13px;"><i class="fas fa-exclamation-triangle"></i> Nomor pabean tidak ditemukan di CEISA. Silakan isi secara manual.</div>' : '';
+
+        Swal.fire({
+            title: 'Input Nomor Pabean',
+            html: infoHtml + `
+                <div class="form-group text-left mb-0">
+                    <label>Nomor Pabean</label>
+                    <input type="text" id="swal-no-daftar" class="form-control" value="${noDaftar}">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                let inputNoDaftar = document.getElementById('swal-no-daftar').value;
+                if (!inputNoDaftar) {
+                    Swal.showValidationMessage('Nomor Pabean harus diisi');
+                }
+                return { noDaftar: inputNoDaftar };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        nomor_daftar: result.value.noDaftar
+                    },
+                    success: function(res) {
+                        if (res.status === 200) {
+                            Swal.fire('Berhasil!', res.message, 'success');
+                            btn.data('nodaftar', result.value.noDaftar);
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi Kesalahan Sistem';
+                        Swal.fire('Gagal', errMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
 </script>
 @endsection
