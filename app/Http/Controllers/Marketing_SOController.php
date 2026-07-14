@@ -3377,7 +3377,7 @@ class Marketing_SOController extends Controller
                 LEFT JOIN act_costing_detail_new acd
                     ON bmd.id_costing_detail = acd.id
                 WHERE sd.id_so = ?
-                AND mi.id_gen IS NOT NULL
+                AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
             ", [$id_jo, $id_bom, $id]);
 
             $existing_items = $mysql_sb->table('bom_jo_item')
