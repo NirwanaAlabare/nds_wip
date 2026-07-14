@@ -982,40 +982,40 @@ class DokumenPabeanController extends Controller
 
             if ($responseCeisa['successful'] && isset($responseCeisa['body']['status']) && in_array(strtolower($responseCeisa['body']['status']), ['ok', 'success'])) {
 
-                $body = $responseCeisa['body'];
-                $nomorDaftar = null;
-                $tanggalDaftar = null;
+                // $body = $responseCeisa['body'];
+                // $nomorDaftar = null;
+                // $tanggalDaftar = null;
 
-                if (isset($body['dataRespon']) && is_array($body['dataRespon']) && count($body['dataRespon']) > 0) {
-                    $responses = $body['dataRespon'];
+                // if (isset($body['dataRespon']) && is_array($body['dataRespon']) && count($body['dataRespon']) > 0) {
+                //     $responses = $body['dataRespon'];
 
-                    usort($responses, function($a, $b) {
-                        $timeA = strtotime($a['waktuRespon'] ?? '1970-01-01');
-                        $timeB = strtotime($b['waktuRespon'] ?? '1970-01-01');
-                        return $timeB - $timeA;
-                    });
+                //     usort($responses, function($a, $b) {
+                //         $timeA = strtotime($a['waktuRespon'] ?? '1970-01-01');
+                //         $timeB = strtotime($b['waktuRespon'] ?? '1970-01-01');
+                //         return $timeB - $timeA;
+                //     });
 
-                    $latestRespon = $responses[0];
-                    if (!empty($latestRespon['nomorDaftar'])) {
-                        $nomorDaftar = $latestRespon['nomorDaftar'];
-                        $tanggalDaftar = $latestRespon['tanggalDaftar'];
-                    }
-                }
+                //     $latestRespon = $responses[0];
+                //     if (!empty($latestRespon['nomorDaftar'])) {
+                //         $nomorDaftar = $latestRespon['nomorDaftar'];
+                //         $tanggalDaftar = $latestRespon['tanggalDaftar'];
+                //     }
+                // }
 
-                if (empty($nomorDaftar) && isset($body['dataStatus']) && is_array($body['dataStatus']) && count($body['dataStatus']) > 0) {
-                    $statuses = $body['dataStatus'];
-                    usort($statuses, function($a, $b) {
-                        $timeA = strtotime($a['waktuStatus'] ?? '1970-01-01');
-                        $timeB = strtotime($b['waktuStatus'] ?? '1970-01-01');
-                        return $timeB - $timeA;
-                    });
+                // if (empty($nomorDaftar) && isset($body['dataStatus']) && is_array($body['dataStatus']) && count($body['dataStatus']) > 0) {
+                //     $statuses = $body['dataStatus'];
+                //     usort($statuses, function($a, $b) {
+                //         $timeA = strtotime($a['waktuStatus'] ?? '1970-01-01');
+                //         $timeB = strtotime($b['waktuStatus'] ?? '1970-01-01');
+                //         return $timeB - $timeA;
+                //     });
 
-                    $latest = $statuses[0];
-                    if (!empty($latest['nomorDaftar'])) {
-                        $nomorDaftar = $latest['nomorDaftar'];
-                        $tanggalDaftar = $latest['tanggalDaftar'];
-                    }
-                }
+                //     $latest = $statuses[0];
+                //     if (!empty($latest['nomorDaftar'])) {
+                //         $nomorDaftar = $latest['nomorDaftar'];
+                //         $tanggalDaftar = $latest['tanggalDaftar'];
+                //     }
+                // }
 
                 return response()->json([
                     'status'         => 200,
