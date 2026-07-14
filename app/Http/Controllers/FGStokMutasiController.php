@@ -363,6 +363,7 @@ class FGStokMutasiController extends Controller
                 ) s
                 INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
                 GROUP BY no_carton, s.id_so_det, s.grade
+                HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
             ");
 
             return DataTables::of($data_det)->toJson();
