@@ -1785,6 +1785,7 @@ class DashboardController extends Controller
                     stocker_input.id stocker_id,
                     stocker_input.id_qr_stocker,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                    part.panel,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
@@ -1795,6 +1796,7 @@ class DashboardController extends Controller
                     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
                     stocker_input.status,
                     dc_in_input.id dc_in_id,
+                    dc_in_input.tgl_trans tanggal_dc,
                     dc_in_input.tujuan,
                     dc_in_input.tempat,
                     dc_in_input.lokasi,
@@ -1803,6 +1805,8 @@ class DashboardController extends Controller
                     COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
                     COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                     (CASE WHEN stocker_input.form_piece_id THEN CONCAT(form_cut_piece.no_form, ' / ', form_cut_piece.no_cut) ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) END) no_cut,
+                    form_cut_input.no_form,
+                    form_cut_input.no_cut no_cut_only,
                     COALESCE(UPPER(loading_line.nama_line), '-') line,
                     loading_line.tanggal_loading,
                     stocker_input.updated_at latest_update
@@ -1811,6 +1815,7 @@ class DashboardController extends Controller
                 leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
                 leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -1971,15 +1976,18 @@ class DashboardController extends Controller
 
             // Header row
             $headers = [
+                'Stocker',
                 'Tipe',
                 'No. WS',
                 'Color',
                 'Size',
+                'Panel',
                 'Part',
                 'No. Cut',
                 'No. Form',
                 'Range',
                 'Qty',
+                'Tanggal DC',
                 'Tujuan',
                 'Tempat',
                 'Lokasi',
@@ -2004,15 +2012,18 @@ class DashboardController extends Controller
             collect($dc)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNum) {
                 foreach ($rows as $row) {
                     $rowArr = [
+                        $row->id_qr_stocker ?? "-",
                         $row->tipe ?? "-",
                         $row->act_costing_ws ?? "-",
                         $row->color ?? "-",
                         $row->size ?? "-",
+                        $row->panel ?? "-",
                         $row->nama_part ?? "-",
-                        $row->no_cut ?? "-",
+                        $row->no_cut_only ?? "-",
                         $row->no_form ?? "-",
                         $row->stocker_range ?? "-",
                         $row->dc_in_qty ?? 0,
+                        $row->tanggal_dc ?? "-",
                         $row->tujuan ?? "-",
                         $row->tempat ?? "-",
                         $row->lokasi ?? "-",

@@ -23,6 +23,20 @@ select * from userpassword where username like '%line%' order by username asc");
 
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
+        $productGroupRows = DB::connection('mysql_sb')->select("
+select line, product_group, sum(tot_qty) tot_qty from hist_product_per_line
+where line is not null and product_group is not null
+group by line, product_group order by line, sum(tot_qty) desc");
+
+        $productGroupByLine = collect($productGroupRows)
+            ->groupBy('line')
+            ->map(fn($rows) => $rows->values());
+
+        $productGroupList = collect(DB::connection('mysql_sb')->select("
+select product_group from masterproduct
+where product_group is not null and product_group <> ''
+group by product_group order by product_group"))->pluck('product_group');
+
         $lineMap = $lineMap->map(function ($row) {
             $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
             $totalDays = max($totalDays, 1);
@@ -53,6 +67,7 @@ select * from userpassword where username like '%line%' order by username asc");
                 'id' => $row->id,
                 'line' => $row->line,
                 'style' => $row->style,
+                'product_group' => $row->product_group,
                 'smv' => $row->smv,
                 'efficiency' => $row->efficiency,
                 'qty_order' => $row->qty_order,
@@ -128,6 +143,8 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'lineMap' => $lineMap,
             'lineMapByLine' => $lineMapByLine,
             'lineNameByUsername' => $lineNameByUsername,
+            'productGroupByLine' => $productGroupByLine,
+            'productGroupList' => $productGroupList,
             'calendarDates' => $calendarDates,
             'actualByLineDate' => $actualByLineDate,
             'filterStart' => $filterStart,
@@ -140,6 +157,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
         $validated = $request->validate([
             'editid' => 'nullable|integer|exists:ppic_line_map,id',
             'cboline' => 'required|string',
+            'cboproductgroup' => 'nullable|string',
             'txtstyle' => 'nullable|string',
             'txtsmv' => 'nullable|numeric',
             'txtefficiency' => 'nullable|numeric',
@@ -178,6 +196,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'line' => $validated['cboline'],
             'tgl_start' => $validated['cbodate'] ?? null,
             'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
+            'product_group' => $validated['cboproductgroup'] ?? null,
             'smv' => $smv,
             'efficiency' => $efficiency,
             'qty_order' => $qtyOrder,
