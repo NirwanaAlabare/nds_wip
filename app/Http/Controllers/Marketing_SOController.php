@@ -3698,6 +3698,10 @@ class Marketing_SOController extends Controller
         if ($so) {
             $log_data = (array) $so;
             unset($log_data['id']);
+            unset($log_data['update_by']);
+            unset($log_data['updated_by']);
+            unset($log_data['updated_at']);
+            unset($log_data['updated_date']);
             DB::connection('mysql_sb')->table('so_log')->insert($log_data);
         }
     }

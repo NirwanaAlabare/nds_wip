@@ -1662,6 +1662,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
         Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
+        Route::post('/sync-bcno/{noAju}', 'syncBcNo')->name('dokumen-pabean-sync-bcno')->where('noAju', '.*');
 
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');

@@ -146,7 +146,7 @@ class CeisaService
      */
     public function cekStatus()
     {
-        $this->useUserCredential();
+        // $this->useUserCredential();
         $this->setEnv('live');
         $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/status", [
             'idPerusahaan' => $this->idPerusahaan
@@ -374,10 +374,11 @@ class CeisaService
      */
     public function deleteDraft($nomorAju)
     {
+        $this->setEnv('dev');
         $this->useUserCredential();
         $response = $this->requestWithRetry(
             'DELETE',
-            "{$this->baseUrl}/openapi/status/{$nomorAju}"
+            "{$this->baseUrl}/openapi/document/{$nomorAju}"
         );
 
         return [

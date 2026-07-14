@@ -14,7 +14,7 @@
       --font-stack: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* Container Utama */
+
     .catalog-container {
       font-family: var(--font-stack);
       max-width: 1400px;
@@ -24,7 +24,7 @@
       background-color: var(--bg-main);
     }
 
-    /* Header Judul Halaman */
+
     .page-header {
       font-size: 0.8rem;
       font-weight: 700;
@@ -35,22 +35,22 @@
       padding-bottom: 12px;
     }
 
-    /* Minimalist Search Bar (Tanpa Tombol Cari Tebal) */
+
     .search-wrapper {
       position: relative;
       margin-bottom: 48px;
-      max-width: 400px;
+      max-width: 350px;
     }
 
     .search-input {
       width: 100%;
-      padding: 12px 12px 12px 36px;
+      padding: 12px 64px 12px 0;
       font-family: var(--font-stack);
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       color: var(--text-dark);
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
       outline: none;
       transition: border-color 0.3s ease;
     }
@@ -59,25 +59,65 @@
       border-color: var(--text-dark);
     }
 
-    .search-icon {
+    .search-icon-btn {
       position: absolute;
-      left: 8px;
+      right: 0;
+      left: auto;
       top: 50%;
       transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      color: var(--text-light);
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      transition: color 0.3s ease;
+    }
+
+    .search-icon-btn:hover {
+      color: var(--text-dark);
+    }
+
+    .search-icon {
+      width: 20px;
+      height: 20px;
       pointer-events: none;
     }
 
-    /* Grid Tanpa Card (Borderless Grid) */
+    .search-reset {
+      position: absolute;
+      right: 36px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-reset:hover {
+      color: var(--text-dark);
+    }
+
+    .search-reset:hover {
+      color: var(--text-dark);
+    }
+
+
     .catalog-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       gap: 40px 24px;
     }
 
-    /* Item Produk Individu */
+
     .product-item {
       display: flex;
       flex-direction: column;
@@ -85,7 +125,7 @@
       color: inherit;
       cursor: pointer;
       padding: 12px;
-      margin: -12px; /* Offset padding agar grid tetap sejajar */
+      margin: -12px;
       border: 1px solid transparent;
       transition: all 0.3s ease;
       border-radius: 6px;
@@ -96,7 +136,7 @@
       border-color: var(--text-dark);
     }
 
-    /* Wadah Gambar / Placeholder */
+
     .image-frame {
       position: relative;
       width: 100%;
@@ -123,12 +163,12 @@
       color: #a855f7;
       opacity: 0.7;
     }
-    
+
     .icon-svg {
       width: 44px;
       height: 44px;
     }
-    
+
     .placeholder-text {
       font-size: 11px;
       font-weight: 600;
@@ -136,12 +176,12 @@
       letter-spacing: 0.1em;
     }
 
-    /* Informasi Produk di Bawah Gambar */
+
     .product-info {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      min-width: 0; /* Mencegah flex/grid blowout */
+      min-width: 0;
     }
 
     .product-title {
@@ -165,7 +205,7 @@
       min-width: 0;
     }
 
-    /* Spesifikasi Kecil (Color & Size) */
+
     .product-spec {
       margin-top: 4px;
       display: flex;
@@ -191,7 +231,7 @@
       margin-right: 4px;
     }
 
-    /* Responsif untuk Layar yang Lebih Kecil */
+
     @media (max-width: 1200px) {
       .catalog-grid { grid-template-columns: repeat(4, 1fr); }
     }
@@ -209,10 +249,19 @@
 
             <!-- PENCARIAN MINIMALIS -->
             <form action="{{ route('master-marketing-catalog') }}" method="GET" class="search-wrapper">
-              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <button type="submit" class="search-icon-btn" title="Cari">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
               <input type="text" name="search" class="search-input" placeholder="Cari nama style..." value="{{ request('search') }}">
+              @if(request('search'))
+                  <a href="{{ route('master-marketing-catalog') }}" class="search-reset" title="Reset Pencarian">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                  </a>
+              @endif
             </form>
 
             <!-- GRID KATALOG BERGAYA EDITORIAL -->
