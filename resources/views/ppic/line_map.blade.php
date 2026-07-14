@@ -231,6 +231,40 @@
             background-color: rgba(13, 110, 253, .08);
             box-shadow: inset 0 0 0 2px rgba(13, 110, 253, .35);
         }
+
+        .line-map-ghost-target {
+            position: relative;
+        }
+
+        .line-map-ghost-box {
+            position: absolute;
+            inset: 2px;
+            border-radius: 6px;
+            border: 2px dashed;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.1;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .line-map-ghost-box-drag {
+            border-color: #0d6efd;
+            color: #0450c7;
+            background-color: rgba(13, 110, 253, .15);
+        }
+
+        .line-map-ghost-box-push {
+            border-color: #fd7e14;
+            color: #b85c00;
+            background-color: rgba(253, 126, 20, .15);
+        }
     </style>
 @endsection
 
@@ -486,7 +520,7 @@
                                     @endphp
                                     <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
                                         data-date="{{ $date->tanggal }}"
-                                        @if ($isWithinPlanRange) style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
+                                        @if ($isWithinPlanRange) data-plan-id="{{ $activeEntry->id }}" style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
                                         @if ($hasPlan || $actualEntries->isNotEmpty())
                                             @php
                                                 $planColor = $activeEntry->style_color ?? '#6f42c1';
@@ -746,6 +780,9 @@
             badge.addEventListener('dragend', () => {
                 draggedLineMap = null;
                 dragPointer = null;
+                lastPreviewKey = null;
+                lastPreviewMoves = null;
+                clearCascadeGhosts();
                 document.querySelectorAll('.line-map-drop-target.drag-over').forEach((cell) => {
                     cell.classList.remove('drag-over');
                 });
@@ -797,12 +834,91 @@
             }
         });
 
+        let lastPreviewKey = null;
+        let lastPreviewMoves = null;
+        let previewRequestToken = 0;
+
+        function clearCascadeGhosts() {
+            document.querySelectorAll('.line-map-ghost-box').forEach((el) => el.remove());
+            document.querySelectorAll('.line-map-ghost-target').forEach((el) => {
+                el.classList.remove('line-map-ghost-target');
+            });
+        }
+
+        function renderCascadeGhosts(targetLine, moves) {
+            clearCascadeGhosts();
+
+            (moves || []).forEach((move) => {
+                if (!move.is_dragged && !move.shifted) return;
+
+                (move.dates || []).forEach((date) => {
+                    const cell = document.querySelector(
+                        `.line-map-drop-target[data-line="${CSS.escape(targetLine)}"][data-date="${CSS.escape(date)}"]`
+                    );
+                    if (!cell) return;
+
+                    cell.classList.add('line-map-ghost-target');
+
+                    const box = document.createElement('div');
+                    box.className = 'line-map-ghost-box ' +
+                        (move.is_dragged ? 'line-map-ghost-box-drag' : 'line-map-ghost-box-push');
+                    box.textContent = move.style || '-';
+                    cell.appendChild(box);
+                });
+            });
+        }
+
+        function requestCascadePreview(targetLine, targetDate) {
+            const key = targetLine + '|' + targetDate;
+            if (key === lastPreviewKey || !draggedLineMap) return;
+            lastPreviewKey = key;
+
+            const token = ++previewRequestToken;
+
+            fetch(@json(route('preview_move_ppic_line_map')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({
+                        id: draggedLineMap.id,
+                        target_line: targetLine,
+                        target_date: targetDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (token !== previewRequestToken || !draggedLineMap || !data.success) return;
+                    lastPreviewMoves = data.moves;
+                    renderCascadeGhosts(targetLine, data.moves);
+                })
+                .catch(() => {});
+        }
+
+        function isMiddleOfPlan(cell) {
+            if (!cell.classList.contains('line-map-plan-cell')) return false;
+            if (cell.classList.contains('line-map-plan-start')) return false;
+            if (draggedLineMap && cell.dataset.planId === String(draggedLineMap.id)) return false;
+            return true;
+        }
+
         document.querySelectorAll('.line-map-drop-target').forEach((cell) => {
             cell.addEventListener('dragover', (event) => {
                 if (!draggedLineMap) return;
+
+                if (isMiddleOfPlan(cell)) {
+                    event.dataTransfer.dropEffect = 'none';
+                    cell.classList.remove('drag-over');
+                    return;
+                }
+
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 cell.classList.add('drag-over');
+
+                requestCascadePreview(cell.dataset.line, cell.dataset.date);
             });
 
             cell.addEventListener('dragleave', () => {
@@ -812,19 +928,45 @@
             cell.addEventListener('drop', (event) => {
                 event.preventDefault();
                 cell.classList.remove('drag-over');
+                clearCascadeGhosts();
 
                 if (!draggedLineMap) return;
+                if (isMiddleOfPlan(cell)) return;
 
                 const targetLine = cell.dataset.line;
                 const targetDate = cell.dataset.date;
 
                 if (draggedLineMap.line === targetLine && draggedLineMap.date === targetDate) return;
 
-                confirmMoveLineMap(draggedLineMap, targetLine, targetDate);
+                const key = targetLine + '|' + targetDate;
+                const moves = key === lastPreviewKey ? lastPreviewMoves : null;
+
+                confirmMoveLineMap(draggedLineMap, targetLine, targetDate, moves);
             });
         });
 
-        function confirmMoveLineMap(item, targetLine, targetDate) {
+        function formatDateID(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function buildCascadeSummaryHtml(moves) {
+            const shiftedOthers = (moves || []).filter(m => !m.is_dragged && m.shifted);
+            if (!shiftedOthers.length) return '';
+
+            const rows = shiftedOthers.map(m =>
+                `<div>&bull; ${$('<div>').text(m.style || '-').html()} akan digeser ke ${formatDateID(m.new_start)}</div>`
+            ).join('');
+
+            return `<div class="text-start mt-2"><strong>${shiftedOthers.length} jadwal lain ikut digeser:</strong>${rows}</div>`;
+        }
+
+        function confirmMoveLineMap(item, targetLine, targetDate, moves) {
             const productGroup = item.productGroup;
             const groups = productGroupByLine[targetLine] || [];
             const hasHistory = !productGroup || groups.some(g => g.product_group === productGroup);
@@ -839,13 +981,13 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        moveLineMap(item, targetLine, targetDate);
+                        moveLineMap(item, targetLine, targetDate, moves);
                     }
                 });
                 return;
             }
 
-            moveLineMap(item, targetLine, targetDate);
+            moveLineMap(item, targetLine, targetDate, moves);
         }
 
         function showWsBreakdown(styleno, wsBreakdown) {
@@ -882,11 +1024,12 @@
             });
         }
 
-        function moveLineMap(item, targetLine, targetDate) {
+        function moveLineMap(item, targetLine, targetDate, moves) {
             Swal.fire({
                 icon: 'question',
                 title: 'Pindahkan Jadwal?',
-                text: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.`,
+                html: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.` +
+                    buildCascadeSummaryHtml(moves),
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Pindahkan',
                 cancelButtonText: 'Batal'
