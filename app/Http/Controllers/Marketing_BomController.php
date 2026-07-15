@@ -25,9 +25,12 @@ class Marketing_BomController extends Controller
             $data = $mysql_sb->table('bom_marketing as h')
                 ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
                 ->leftJoin('act_costing_new as c', 'h.id_costing', '=', 'c.id')
-                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons'))
+                ->leftJoin('so', 'h.id', '=', 'so.id_bom')
+                ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
+                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons') , 'act.kpno')
                 ->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
                 ->where('h.created_at', '<=', $dateTo . ' 23:59:59')
+                ->groupBy('h.no_katalog_bom')
                 ->orderBy('h.created_at', 'desc')
                 ->get();
 
