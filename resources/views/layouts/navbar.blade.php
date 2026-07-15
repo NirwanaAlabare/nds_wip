@@ -1556,7 +1556,7 @@
                 @endif
 
                 {{-- BAP --}}
-                @if ($page == 'dashboard-ticketing')
+                @if ($page == 'dashboard-helpdesk')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'bap-form' ? 'active' : '' }}">Form

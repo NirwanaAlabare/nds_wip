@@ -8,12 +8,13 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 
-class TicketingDashboardController extends Controller
+class HelpdeskDashboardController extends Controller
 {
-    public function dashboard_ticketing(Request $request)
+    public function dashboard_helpdesk(Request $request)
     {
-        return view('ticketing.dashboard_ticketing', [
-            'page' => 'dashboard-ticketing'
+        return view('helpdesk.dashboard_helpdesk', [
+            'page' => 'dashboard-helpdesk',
+            'containerFluid' => true,
         ]);
     }
 
@@ -90,8 +91,18 @@ class TicketingDashboardController extends Controller
             ->keyBy('bulan');
 
         $namaBulan = [
-            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
-            7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+            1 => 'Jan',
+            2 => 'Feb',
+            3 => 'Mar',
+            4 => 'Apr',
+            5 => 'Mei',
+            6 => 'Jun',
+            7 => 'Jul',
+            8 => 'Agu',
+            9 => 'Sep',
+            10 => 'Okt',
+            11 => 'Nov',
+            12 => 'Des',
         ];
 
         $result = [];

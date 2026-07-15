@@ -37,7 +37,7 @@
             overflow: hidden;
         }
 
-        .bap-stat-bar > div {
+        .bap-stat-bar>div {
             height: 100%;
             border-radius: 2px;
             transition: width .4s ease;
@@ -86,7 +86,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar"></i> Dashboard BAP Ticketing</h5>
+        <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar"></i> Dashboard BAP</h5>
         <select class="form-control form-control-sm select2bs4" id="filter-tahun" style="width: 120px;">
             @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                 <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
@@ -102,17 +102,22 @@
                     <div class="bap-stat-icon" style="background:#f1f2f4; color:#555;"><i class="fas fa-file-alt"></i></div>
                 </div>
                 <div class="bap-stat-value" id="stat-total">0</div>
-                <div class="bap-stat-bar"><div id="bar-total" style="width:100%; background:#14b8a6;"></div></div>
+                <div class="bap-stat-bar">
+                    <div id="bar-total" style="width:100%; background:#14b8a6;"></div>
+                </div>
             </div>
         </div>
         <div class="col-md-3 col-6 mb-3">
             <div class="bap-stat-card">
                 <div class="d-flex justify-content-between align-items-start">
                     <span class="text-muted" style="font-size: 13px;">Dalam Proses</span>
-                    <div class="bap-stat-icon" style="background:#f1f2f4; color:#666;"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="bap-stat-icon" style="background:#f1f2f4; color:#666;"><i class="fas fa-hourglass-half"></i>
+                    </div>
                 </div>
                 <div class="bap-stat-value" id="stat-proses">0</div>
-                <div class="bap-stat-bar"><div id="bar-proses" style="width:0%; background:#94a3b8;"></div></div>
+                <div class="bap-stat-bar">
+                    <div id="bar-proses" style="width:0%; background:#94a3b8;"></div>
+                </div>
             </div>
         </div>
         <div class="col-md-3 col-6 mb-3">
@@ -122,7 +127,9 @@
                     <div class="bap-stat-icon" style="background:#e5f7f1; color:#0f9d68;"><i class="fas fa-check"></i></div>
                 </div>
                 <div class="bap-stat-value text-success" id="stat-selesai">0</div>
-                <div class="bap-stat-bar"><div id="bar-selesai" style="width:0%; background:#22c55e;"></div></div>
+                <div class="bap-stat-bar">
+                    <div id="bar-selesai" style="width:0%; background:#22c55e;"></div>
+                </div>
             </div>
         </div>
         <div class="col-md-3 col-6 mb-3">
@@ -132,7 +139,9 @@
                     <div class="bap-stat-icon" style="background:#fdecec; color:#e0362f;"><i class="fas fa-times"></i></div>
                 </div>
                 <div class="bap-stat-value text-danger" id="stat-cancel">0</div>
-                <div class="bap-stat-bar"><div id="bar-cancel" style="width:0%; background:#ef4444;"></div></div>
+                <div class="bap-stat-bar">
+                    <div id="bar-cancel" style="width:0%; background:#ef4444;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -140,7 +149,7 @@
     <div class="row mb-3">
         <div class="col-md-6 mb-3">
             <div class="bap-panel">
-                <h6 class="fw-bold mb-3">BAP per Departemen</h6>
+                <h6 class="fw-bold mb-3">BAP per Departement</h6>
                 <div id="chart-bap-department"></div>
             </div>
         </div>
@@ -204,13 +213,31 @@
                 },
                 dataLabels: {
                     enabled: true,
+                    formatter: function(val) {
+                        return Math.round(val);
+                    },
                     style: {
                         colors: ['#333']
                     },
                     offsetX: 16
                 },
                 xaxis: {
-                    categories: []
+                    categories: [],
+                    forceNiceScale: false,
+                    tickAmount: 1,
+                    min: 0,
+                    labels: {
+                        formatter: function(val) {
+                            return Math.round(val);
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(val) {
+                            return Math.round(val);
+                        }
+                    }
                 }
             };
 
@@ -280,10 +307,12 @@
                 success: function(response) {
                     const categories = response.map(item => item.department || '-');
                     const data = response.map(item => item.total);
+                    const maxValue = Math.max(1, ...data);
 
                     chartDepartment.updateOptions({
                         xaxis: {
-                            categories: categories
+                            categories: categories,
+                            tickAmount: Math.min(maxValue, 5)
                         }
                     }, false, true);
                     chartDepartment.updateSeries([{
@@ -327,7 +356,7 @@
         function loadSummary() {
             $.ajax({
                 type: "GET",
-                url: '{{ route('summary-bap-ticketing') }}',
+                url: '{{ route('summary-bap-helpdesk') }}',
                 data: {
                     tahun: $('#filter-tahun').val()
                 },

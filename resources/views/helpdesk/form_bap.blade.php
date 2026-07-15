@@ -49,7 +49,8 @@
                     </div>
                     <div class="mr-3">
                         <label class="form-label mb-1"><small><b>Status</b></small></label>
-                        <select class="form-control form-control-sm select2bs4" id="filter-status" name="status" style="width: 160px;">
+                        <select class="form-control form-control-sm select2bs4" id="filter-status" name="status"
+                            style="width: 160px;">
                             <option value="">Semua</option>
                             <option value="proses">Proses</option>
                             <option value="selesai">Selesai</option>
@@ -124,7 +125,8 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="txtdepartment" class="form-label"><small><b>Department</b></small></label>
-                            <select id="txtdepartment" name="department" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                            <select id="txtdepartment" name="department" class="form-control form-control-sm select2bs4"
+                                style="width: 100%;">
                                 <option value="">Pilih Department</option>
                             </select>
                         </div>
@@ -217,7 +219,7 @@
                     let $select = $('#txtdepartment');
                     response.forEach(function(item) {
                         $select.append(
-                            $('<option>').val(item.DEPARTEMEN).text(item.DEPARTEMEN)
+                            $('<option>').val(item.sub_dept_name).text(item.sub_dept_name)
                         );
                     });
                 },
@@ -443,7 +445,7 @@
             ordering: false,
             responsive: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             paging: true,
             searching: true,
             scrollX: false,
