@@ -10,9 +10,16 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
         #datatable td.text-wrap {
+            max-width: 180px;
+        }
+
+        #datatable td.text-wrap span {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             white-space: normal;
             word-break: break-word;
-            max-width: 180px;
         }
     </style>
 @endsection
@@ -469,19 +476,47 @@
                 },
                 {
                     data: 'masalah',
-                    className: 'text-wrap'
+                    className: 'text-wrap',
+                    render: function(data, type, row) {
+                        if (type !== 'display' || !data) {
+                            return data;
+                        }
+                        let escaped = $('<div>').text(data).html();
+                        return `<span title="${escaped}">${escaped}</span>`;
+                    }
                 },
                 {
                     data: 'penyebab',
-                    className: 'text-wrap'
+                    className: 'text-wrap',
+                    render: function(data, type, row) {
+                        if (type !== 'display' || !data) {
+                            return data;
+                        }
+                        let escaped = $('<div>').text(data).html();
+                        return `<span title="${escaped}">${escaped}</span>`;
+                    }
                 },
                 {
                     data: 'usulan',
-                    className: 'text-wrap'
+                    className: 'text-wrap',
+                    render: function(data, type, row) {
+                        if (type !== 'display' || !data) {
+                            return data;
+                        }
+                        let escaped = $('<div>').text(data).html();
+                        return `<span title="${escaped}">${escaped}</span>`;
+                    }
                 },
                 {
                     data: 'keterangan',
-                    className: 'text-wrap'
+                    className: 'text-wrap',
+                    render: function(data, type, row) {
+                        if (type !== 'display' || !data) {
+                            return data;
+                        }
+                        let escaped = $('<div>').text(data).html();
+                        return `<span title="${escaped}">${escaped}</span>`;
+                    }
                 },
                 {
                     data: 'status',
