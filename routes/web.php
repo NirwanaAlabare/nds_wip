@@ -1638,6 +1638,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_bap/form/edit', 'edit')->name('edit-form-bap');
         Route::post('/dashboard_bap/form/update', 'update')->name('update-form-bap');
         Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
+        Route::get('/dashboard_bap/form/print/{id}', 'printPdf')->name('print-form-bap');
+        Route::get('/dashboard_bap/form/departments', 'getDepartments')->name('departments-form-bap');
+        Route::get('/dashboard_bap/form/summary', 'summary')->name('summary-form-bap');
     });
     // Export Import (EXIM)
 

@@ -7,14 +7,48 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BAPFormController extends Controller
 {
+    public function getDepartments()
+    {
+        $departments = DB::connection('mysql_hris')->select('SELECT DEPARTEMEN FROM department GROUP BY DEPARTEMEN');
+
+        return response()->json($departments);
+    }
+
+    public function summary(Request $request)
+    {
+        $tgl_awal = $request->tgl_awal;
+        $tgl_akhir = $request->tgl_akhir;
+
+        $query = DB::table('bap_form');
+
+        if (!empty($tgl_awal) && !empty($tgl_akhir)) {
+            $query->whereDate('tgl_form', '>=', $tgl_awal)
+                  ->whereDate('tgl_form', '<=', $tgl_akhir);
+        }
+
+        $total = (clone $query)->count();
+        $selesai = (clone $query)->where('is_cancel', false)->where('is_selesai', true)->count();
+        $cancel = (clone $query)->where('is_cancel', true)->count();
+        $proses = (clone $query)->where('is_cancel', false)->where('is_selesai', false)->count();
+
+        return response()->json([
+            'total' => $total,
+            'proses' => $proses,
+            'selesai' => $selesai,
+            'cancel' => $cancel,
+        ]);
+    }
+
     public function form_bap(Request $request)
     {
         if ($request->ajax()) {
             $tgl_awal = $request->tgl_awal;
             $tgl_akhir = $request->tgl_akhir;
+            $status = $request->status;
 
             $data = DB::table('bap_form')
                 ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel')
@@ -23,6 +57,14 @@ class BAPFormController extends Controller
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
                 $data->whereDate('tgl_form', '>=', $tgl_awal)
                      ->whereDate('tgl_form', '<=', $tgl_akhir);
+            }
+
+            if ($status === 'proses') {
+                $data->where('is_cancel', false)->where('is_selesai', false);
+            } elseif ($status === 'selesai') {
+                $data->where('is_cancel', false)->where('is_selesai', true);
+            } elseif ($status === 'cancel') {
+                $data->where('is_cancel', true);
             }
 
             return DataTables::of($data)
@@ -67,7 +109,18 @@ class BAPFormController extends Controller
         ]);
 
         $tglForm = Carbon::now();
-        $noForm = 'BAP-' . $tglForm->format('dmy');
+        $prefix = 'BAP-' . $tglForm->format('dmy') . '-';
+
+        $noForm = DB::transaction(function () use ($prefix) {
+            $lastNoForm = DB::table('bap_form')
+                ->where('no_form', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->max('no_form');
+
+            $lastSequence = $lastNoForm ? (int) substr($lastNoForm, strlen($prefix)) : 0;
+
+            return $prefix . str_pad($lastSequence + 1, 2, '0', STR_PAD_LEFT);
+        });
 
         DB::table('bap_form')->insert([
             'no_form' => $noForm,
@@ -157,6 +210,21 @@ class BAPFormController extends Controller
         return response()->json([
             'message' => 'Form BAP berhasil diupdate',
         ]);
+    }
+
+    public function printPdf($id)
+    {
+        $row = DB::table('bap_form')->where('id', $id)->first();
+
+        if (!$row) {
+            abort(404, 'Data tidak ditemukan');
+        }
+
+        $pdf = Pdf::loadView('ticketing.form_bap_pdf', [
+            'bap' => $row,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream($row->no_form . '.pdf');
     }
 
     public function cancel(Request $request)

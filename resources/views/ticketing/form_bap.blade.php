@@ -5,6 +5,16 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>
+        #datatable td.text-wrap {
+            white-space: normal;
+            word-break: break-word;
+            max-width: 180px;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -18,23 +28,54 @@
                     <i class="fas fa-plus"></i> New
                 </button>
             </div>
-            <div class="d-flex align-items-end gap-3 mb-4">
-                <div class="mr-3">
-                    <label class="form-label mb-1"><small><b>Tgl Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-01') }}">
+            <div class="d-flex align-items-end justify-content-between flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-end gap-3">
+                    <div class="mr-3">
+                        <label class="form-label mb-1"><small><b>Tgl Awal</b></small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ date('Y-m-01') }}">
+                    </div>
+                    <div class="mr-3">
+                        <label class="form-label mb-1"><small><b>Tgl Akhir</b></small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                            value="{{ date('Y-m-t') }}">
+                    </div>
+                    <div class="mr-3">
+                        <label class="form-label mb-1"><small><b>Status</b></small></label>
+                        <select class="form-control form-control-sm select2bs4" id="filter-status" name="status" style="width: 160px;">
+                            <option value="">Semua</option>
+                            <option value="proses">Proses</option>
+                            <option value="selesai">Selesai</option>
+                            <option value="cancel">Cancel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="dataTableReload()">
+                            <i class="fas fa-search"></i> Cari
+                        </button>
+                    </div>
                 </div>
-                <div class="mr-3">
-                    <label class="form-label mb-1"><small><b>Tgl Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-t') }}">
-                </div>
-                <div>
-                    <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="dataTableReload()">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
+                <div class="d-flex gap-4" id="bap-summary">
+                    <div class="text-center">
+                        <div class="fw-bold" style="font-size: 22px;" id="summary-total">0</div>
+                        <small class="text-muted">Total Form</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold text-secondary" style="font-size: 22px;" id="summary-proses">0</div>
+                        <small class="text-muted">Proses</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold text-success" style="font-size: 22px;" id="summary-selesai">0</div>
+                        <small class="text-muted">Selesai</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold text-danger" style="font-size: 22px;" id="summary-cancel">0</div>
+                        <small class="text-muted">Cancel</small>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                <table id="datatable" class="table table-bordered table-hover align-middle w-100">
                     <thead class="bg-sb">
                         <tr>
                             <th scope="col" class="text-center align-middle">No. Form</th>
@@ -60,7 +101,7 @@
     <!-- Modal New Form BAP -->
     <div class="modal fade" id="ModalFormBap" tabindex="-1" aria-labelledby="ModalFormBapLabel" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
                     <h5 class="modal-title" id="ModalFormBapLabel">Form BAP Baru</h5>
@@ -76,7 +117,9 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="txtdepartment" class="form-label"><small><b>Department</b></small></label>
-                            <input type="text" id="txtdepartment" name="department" class="form-control form-control-sm">
+                            <select id="txtdepartment" name="department" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                                <option value="">Pilih Department</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row">
@@ -86,7 +129,8 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="txtno_dokumen" class="form-label"><small><b>No. Dokumen</b></small></label>
-                            <input type="text" id="txtno_dokumen" name="no_dokumen" class="form-control form-control-sm">
+                            <input type="text" id="txtno_dokumen" name="no_dokumen"
+                                class="form-control form-control-sm">
                         </div>
                     </div>
                     <div class="row">
@@ -132,15 +176,54 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
 
+        $(function() {
+            loadSummary();
+
+            $('#filter-status').select2({
+                theme: 'bootstrap4',
+                width: 'resolve'
+            });
+
+            $('#txtdepartment').select2({
+                theme: 'bootstrap4',
+                width: 'resolve',
+                dropdownParent: $('#ModalFormBap')
+            });
+
+            $('.select2-container--bootstrap4 .select2-selection--single').css({
+                'height': '31px',
+                'font-size': '12px',
+                'line-height': '30px'
+            });
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('departments-form-bap') }}',
+                success: function(response) {
+                    let $select = $('#txtdepartment');
+                    response.forEach(function(item) {
+                        $select.append(
+                            $('<option>').val(item.DEPARTEMEN).text(item.DEPARTEMEN)
+                        );
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
         $('#ModalFormBap').on('hidden.bs.modal', function() {
             $('#txtedit_id').val('');
             $('#txtno_form').val('');
-            $('#txtdepartment').val('');
+            $('#txtdepartment').val('').trigger('change');
             $('#txtmodul').val('');
             $('#txtno_dokumen').val('');
             $('#txtmasalah').val('');
@@ -217,7 +300,7 @@
                 success: function(response) {
                     $('#txtedit_id').val(response.id);
                     $('#txtno_form').val(response.no_form);
-                    $('#txtdepartment').val(response.department);
+                    $('#txtdepartment').val(response.department).trigger('change');
                     $('#txtmodul').val(response.modul);
                     $('#txtno_dokumen').val(response.no_dokumen);
                     $('#txttgl_masalah').val(response.tgl_masalah);
@@ -237,6 +320,10 @@
                     });
                 }
             });
+        }
+
+        function printFormBap(id) {
+            window.open('{{ url('/dashboard_bap/form/print') }}/' + id, '_blank');
         }
 
         function cancelFormBap(id) {
@@ -325,21 +412,41 @@
 
         function dataTableReload() {
             datatable.ajax.reload();
+            loadSummary();
+        }
+
+        function loadSummary() {
+            $.ajax({
+                type: "GET",
+                url: '{{ route('summary-form-bap') }}',
+                data: {
+                    tgl_awal: $('#tgl-awal').val(),
+                    tgl_akhir: $('#tgl-akhir').val()
+                },
+                success: function(response) {
+                    $('#summary-total').text(response.total);
+                    $('#summary-proses').text(response.proses);
+                    $('#summary-selesai').text(response.selesai);
+                    $('#summary-cancel').text(response.cancel);
+                }
+            });
         }
 
         let datatable = $("#datatable").DataTable({
             ordering: false,
-            responsive: true,
+            responsive: false,
             processing: true,
             serverSide: true,
             paging: true,
             searching: true,
-            scrollX: true,
+            scrollX: false,
+            autoWidth: false,
             ajax: {
                 url: '{{ route('form-bap') }}',
                 data: function(d) {
                     d.tgl_awal = $('#tgl-awal').val();
                     d.tgl_akhir = $('#tgl-akhir').val();
+                    d.status = $('#filter-status').val();
                 }
             },
             columns: [{
@@ -361,16 +468,20 @@
                     data: 'tgl_masalah'
                 },
                 {
-                    data: 'masalah'
+                    data: 'masalah',
+                    className: 'text-wrap'
                 },
                 {
-                    data: 'penyebab'
+                    data: 'penyebab',
+                    className: 'text-wrap'
                 },
                 {
-                    data: 'usulan'
+                    data: 'usulan',
+                    className: 'text-wrap'
                 },
                 {
-                    data: 'keterangan'
+                    data: 'keterangan',
+                    className: 'text-wrap'
                 },
                 {
                     data: 'status',
@@ -385,18 +496,29 @@
                     render: function(data, type, row) {
                         let btnEdit =
                             `<button type="button" class="btn btn-sm btn-info mr-1" title="Edit" onclick="editFormBap(${row.id})"><i class="fas fa-edit"></i></button>`;
+                        let btnPrint =
+                            `<button type="button" class="btn btn-sm btn-secondary mr-1" title="Print PDF" onclick="printFormBap(${row.id})"><i class="fas fa-print"></i></button>`;
 
                         if (row.is_cancel) {
-                            return `<div class="d-flex justify-content-center">${btnEdit}</div>`;
+                            return `<div class="d-flex justify-content-center">${btnEdit}${btnPrint}</div>`;
                         }
 
-                        let btnToggle = row.is_selesai ?
-                            `<button type="button" class="btn btn-sm btn-success mr-1" title="Tandai Belum Selesai" onclick="toggleStatusFormBap(${row.id}, 1)"><i class="fas fa-check"></i></button>` :
-                            `<button type="button" class="btn btn-sm btn-primary mr-1" title="Tandai Selesai" onclick="toggleStatusFormBap(${row.id}, 0)"><i class="fas fa-check"></i></button>`;
+                        let canMarkSelesai = @json(in_array(auth()->user()->username, ['admin_01', 'nirwana_it']));
+                        let btnToggle = '';
+                        if (canMarkSelesai) {
+                            btnToggle = row.is_selesai ?
+                                `<button type="button" class="btn btn-sm btn-success mr-1" title="Tandai Belum Selesai" onclick="toggleStatusFormBap(${row.id}, 1)"><i class="fas fa-check"></i></button>` :
+                                `<button type="button" class="btn btn-sm btn-primary mr-1" title="Tandai Selesai" onclick="toggleStatusFormBap(${row.id}, 0)"><i class="fas fa-check"></i></button>`;
+                        }
+
+                        if (row.is_selesai) {
+                            return `<div class="d-flex justify-content-center">${btnToggle}${btnPrint}</div>`;
+                        }
+
                         let btnCancel =
                             `<button type="button" class="btn btn-sm btn-danger" title="Cancel" onclick="cancelFormBap(${row.id})"><i class="fas fa-ban"></i></button>`;
 
-                        return `<div class="d-flex justify-content-center">${btnToggle}${btnEdit}${btnCancel}</div>`;
+                        return `<div class="d-flex justify-content-center">${btnToggle}${btnEdit}${btnPrint}${btnCancel}</div>`;
                     }
                 },
             ],
