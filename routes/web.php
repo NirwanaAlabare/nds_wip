@@ -1628,6 +1628,10 @@ Route::middleware('auth')->group(function () {
     // Dashboard Ticketing
     Route::controller(TicketingDashboardController::class)->group(function () {
         Route::get('/dashboard_ticketing', 'dashboard_ticketing')->name('dashboard-ticketing');
+        Route::get('/dashboard_ticketing/chart-bap-department', 'chartBapDepartment')->name('chart-bap-department');
+        Route::get('/dashboard_ticketing/chart-bap-monthly', 'chartBapMonthly')->name('chart-bap-monthly');
+        Route::get('/dashboard_ticketing/summary-bap', 'summaryBap')->name('summary-bap-ticketing');
+        Route::get('/dashboard_ticketing/recent-activity-bap', 'recentActivityBap')->name('recent-activity-bap');
     });
 
     // Form BAP
@@ -1638,6 +1642,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_bap/form/edit', 'edit')->name('edit-form-bap');
         Route::post('/dashboard_bap/form/update', 'update')->name('update-form-bap');
         Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
+        Route::get('/dashboard_bap/form/print/{id}', 'printPdf')->name('print-form-bap');
+        Route::get('/dashboard_bap/form/departments', 'getDepartments')->name('departments-form-bap');
+        Route::get('/dashboard_bap/form/summary', 'summary')->name('summary-form-bap');
     });
     // Export Import (EXIM)
 

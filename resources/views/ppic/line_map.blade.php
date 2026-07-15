@@ -398,6 +398,13 @@
                                         readonly tabindex="-1">
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Tgl Finish :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txttglfinish" readonly tabindex="-1">
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
@@ -604,6 +611,7 @@
                         <tr>
                             <th>Line</th>
                             <th>Tgl Plan</th>
+                            <th>Tgl Finish</th>
                             <th>Style</th>
                             <th>Product Group</th>
                             <th>Buyer</th>
@@ -622,6 +630,7 @@
                             <tr>
                                 <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
                                 <td>{{ $row->tgl_start ? date('d-m-Y', strtotime($row->tgl_start)) : '-' }}</td>
+                                <td>{{ $row->tgl_end ? date('d-m-Y', strtotime($row->tgl_end)) : '-' }}</td>
                                 <td>{{ $row->style }}</td>
                                 <td>{{ $row->product_group }}</td>
                                 <td>{{ $row->buyer }}</td>
@@ -653,7 +662,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="13" class="text-center text-muted">Belum ada data</td>
+                                <td colspan="14" class="text-center text-muted">Belum ada data</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -763,6 +772,24 @@
 
         let draggedLineMap = null;
 
+        // Safety net: while one of our plan boxes is being dragged, swallow
+        // dragover/drop on anything that ISN'T one of our own calendar cells, so a
+        // stray drop (e.g. on the "Dari Tanggal" filter input) never lets the
+        // browser handle it natively (Chrome auto-fills date inputs from dropped
+        // text). Scoped to outside-cell targets only, so it never overrides the
+        // per-cell "can't drop in the middle of a plan" logic below.
+        document.addEventListener('dragover', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'none';
+            }
+        });
+        document.addEventListener('drop', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+            }
+        });
+
         document.querySelectorAll('.line-map-box-plan[draggable="true"]').forEach((badge) => {
             badge.addEventListener('dragstart', (event) => {
                 draggedLineMap = {
@@ -774,7 +801,11 @@
                 };
 
                 event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', badge.dataset.id);
+                // Custom MIME type on purpose: 'text/plain' gets auto-consumed by
+                // native inputs (e.g. Chrome fills a stray <input type="date"> with
+                // the dragged id if the drop lands outside the calendar), causing
+                // the date filter above the table to jump to an unrelated date.
+                event.dataTransfer.setData('application/x-ppic-linemap-id', badge.dataset.id);
             });
 
             badge.addEventListener('dragend', () => {
@@ -1127,6 +1158,7 @@
             $('.select2bs4').val('').trigger('change');
             $('#rampUpContainer').empty();
             updateProductGroupInfo();
+            $('#txttglfinish').val('');
             calculateLineMap();
         }
 
@@ -1157,6 +1189,7 @@
                 addRampUpRow(Math.round(eff * 100));
             });
 
+            $('#txttglfinish').val(data.tgl_finish ? formatDateID(data.tgl_finish) : '');
             calculateLineMap();
         }
 
