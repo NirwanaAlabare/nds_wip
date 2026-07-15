@@ -4,7 +4,6 @@ namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
 use App\Models\Auth\User;
 use App\Models\Marker\Marker;
 use App\Models\Part\Part;
@@ -16,6 +15,7 @@ use App\Exports\ExportTrackStocker;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 class TrackController extends Controller
 {
@@ -914,17 +914,8 @@ class TrackController extends Controller
         );
     }
 
-    public function wsStocker(Request $request) {
-        if ($request->ajax()) {
-            $actCostingId = $request->actCostingId;
-            $color = $request->color;
-            $panel = $request->panel;
-            $size = $request->size;
-            $dateFrom = $request->dateFrom;
-            $dateTo = $request->dateTo;
-
-            $stockerSql = Stocker::selectRaw("
-                form_cut_input.id as form_cut_id,
+    public function wsStockerQuery() {
+        $stockerSql = Stocker::selectRaw("
                 COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) color,
                 COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) panel,
                 COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -938,6 +929,8 @@ class TrackController extends Controller
                 stocker_input.ratio,
                 COALESCE(master_part.nama_part, ' - ') nama_part,
                 CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
                 (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) difference_qty,
                 stocker_input.status,
                 dc_in_input.id dc_in_id,
@@ -948,7 +941,8 @@ class TrackController extends Controller
                 COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                 COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
                 COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) qty_ply,
-                COALESCE(UPPER(loading_line.nama_line), '-') line,
+                MIN(COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply)) stocker_qty_ply,
+                CONCAT(COALESCE(UPPER(loading_line.nama_line), '-'), ' (', COALESCE(loading_line.tanggal_loading, '-'), ')') line,
                 stocker_input.updated_at latest_update
             ")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -965,6 +959,20 @@ class TrackController extends Controller
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id");
+
+        return $stockerSql;
+    }
+
+    public function wsStocker(Request $request) {
+        if ($request->ajax()) {
+            $actCostingId = $request->actCostingId;
+            $color = $request->color;
+            $panel = $request->panel;
+            $size = $request->size;
+            $dateFrom = $request->dateFrom;
+            $dateTo = $request->dateTo;
+
+            $stockerSql = $this->wsStockerQuery();
 
             if ($actCostingId) {
                 $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
@@ -1104,49 +1112,7 @@ class TrackController extends Controller
         $stkLine = $request->stkLine;
         $stkDifference = $request->stkDifference;
 
-        $stockerSql = Stocker::selectRaw("
-            COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) color,
-            COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) panel,
-            COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
-            COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
-            stocker_input.id stocker_id,
-            stocker_input.id_qr_stocker,
-            stocker_input.act_costing_ws,
-            stocker_input.so_det_id,
-            COALESCE(master_sb_ws.size, stocker_input.size) size,
-            stocker_input.shade,
-            stocker_input.ratio,
-            COALESCE(master_part.nama_part, ' - ') nama_part,
-            CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
-            stocker_input.range_awal,
-            stocker_input.range_akhir,
-            (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) difference_qty,
-            stocker_input.status,
-            dc_in_input.id dc_in_id,
-            dc_in_input.tujuan,
-            dc_in_input.tempat,
-            dc_in_input.lokasi,
-            (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
-            COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
-            COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-            MIN(COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply)) stocker_qty_ply,
-            COALESCE(UPPER(loading_line.nama_line), '-') line,
-            stocker_input.updated_at latest_update
-        ")->
-        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-        leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-        leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
-        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-        leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
-        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-        leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-        leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-        leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-        leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
-        leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
-        leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id");
+        $stockerSql = $this->wsStockerQuery();
 
         if ($actCostingId) {
             $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
@@ -1241,6 +1207,107 @@ class TrackController extends Controller
             "totalDifference" => $stocker ? num($stocker->sum("difference_qty")) : 0,
             "totalRange" => $stocker ? num($stocker->min("range_awal")).' - '.num($stocker->max("range_akhir")) : '-',
         );
+    }
+
+    public function exportWsStocker(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $actCostingId = $request->act_costing_id;
+        $color = $request->color;
+        $panel = $request->panel;
+        $size = $request->size;
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+
+        $stockerSql = $this->wsStockerQuery();
+
+        if ($actCostingId) {
+            $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
+        }
+        if ($color) {
+            $stockerSql->whereRaw("COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) = '" . $color . "'");
+        }
+        if ($panel) {
+            $stockerSql->whereRaw("COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) = '" . $panel . "'");
+        }
+        if ($size) {
+            $stockerSql->whereRaw("stocker_input.size = '" . $size . "'");
+        }
+        if ($dateFrom) {
+            $stockerSql->whereRaw("stocker_input.updated_at >= '" . $dateFrom . " 00:00:00'");
+        }
+        if ($dateTo) {
+            $stockerSql->whereRaw("stocker_input.updated_at <= '" . $dateTo . " 23:59:59'");
+        }
+
+        $stockerData = $stockerSql->
+            groupBy("stocker_input.id_qr_stocker")->
+            orderBy("stocker_input.act_costing_ws", "asc")->
+            orderBy("stocker_input.color", "asc")->
+            orderByRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') asc")->
+            orderBy("master_part.nama_part", "asc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.group_stocker", "desc")->
+            orderBy("stocker_input.shade", "desc")->
+            orderBy("stocker_input.id_qr_stocker", "asc")->
+            get();
+
+        $wsData = DB::table("master_sb_ws")->where("id_act_cost", $actCostingId)->first();
+        $fileName = $wsData ? "Laporan_Stocker_".$wsData->ws."_".$wsData->color."_".$wsData->styleno."_".date('d-m-Y').".xlsx" : "Laporan_Stocker_".date('d-m-Y').".xlsx";
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeTo('A1', 'Laporan Stocker');
+        $sheet->mergeCells('A1:Q1');
+        $sheet->writeRow([]);
+
+        $headers = [
+            'Color', 'Panel', 'Part', 'No. Form', 'No. Cut', 'Size', 'Group', 'No. Stocker', 'Qty', 'Range', 'Qty Adj', 'Tujuan', 'Secondary', 'Rak', 'Troli', 'Line', 'Latest Update'
+        ];
+
+        foreach ($headers as $index => $header) {
+            $col = chr(65 + $index);
+            $sheet->writeTo($col . '3', $header)
+                ->applyFontStyleBold()
+                ->applyBgColor('#505154')
+                ->applyTextColor('#FBFBFB')
+                ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $totalQty = 0;
+        $totalAdj = 0;
+
+        collect($stockerData)->chunk(1000)->each(function ($rows) use ($sheet, &$totalQty, &$totalAdj) {
+            foreach ($rows as $row) {
+                $totalQty += $row->qty_ply;
+                $totalAdj += $row->difference_qty;
+
+                $rowArr = [
+                    $row->color,
+                    $row->panel,
+                    $row->nama_part,
+                    $row->no_form,
+                    $row->no_cut,
+                    $row->size,
+                    $row->shade,
+                    $row->id_qr_stocker,
+                    $row->qty_ply,
+                    $row->stocker_range,
+                    $row->difference_qty,
+                    $row->tujuan,
+                    $row->secondary,
+                    $row->rak,
+                    $row->troli,
+                    $row->line,
+                    $row->latest_update,
+                ];
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        return $excel->download($fileName);
     }
 
     public function wsSewingOutput(Request $request) {
