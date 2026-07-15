@@ -75,6 +75,7 @@ group by product_group order by product_group"))->pluck('product_group');
                 'man_power' => $row->man_power,
                 'working_min' => $row->working_min,
                 'tgl_start' => $row->tgl_start,
+                'tgl_finish' => $row->tgl_end,
                 'ramp_up_efficiency' => $row->ramp_up_efficiency,
             ];
 
@@ -192,9 +193,18 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
         $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiency, $rampUpEfficiency);
 
+        $tglStart = $validated['cbodate'] ?? null;
+        $tglFinish = null;
+        if ($tglStart) {
+            $daysForFinish = $totalDays !== null ? max((int) round($totalDays), 1) : 1;
+            $workingDates = $this->workingDatesFrom($tglStart, $daysForFinish);
+            $tglFinish = !empty($workingDates) ? end($workingDates) : $tglStart;
+        }
+
         $data = [
             'line' => $validated['cboline'],
-            'tgl_start' => $validated['cbodate'] ?? null,
+            'tgl_start' => $tglStart,
+            'tgl_finish' => $tglFinish,
             'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
             'product_group' => $validated['cboproductgroup'] ?? null,
             'smv' => $smv,
@@ -294,6 +304,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             foreach ($moves as $move) {
                 $update = [
                     'tgl_start' => $move['new_start'],
+                    'tgl_finish' => $move['new_end'],
                     'updated_at' => now(),
                 ];
 
