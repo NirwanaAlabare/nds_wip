@@ -86,7 +86,7 @@
                     </select>
                 </div>
                 <div class="mb-1">
-                    <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i>Export</button>
+                    <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
         </div>
