@@ -198,6 +198,10 @@
             cursor: grabbing;
         }
 
+        .line-map-box-plan-readonly {
+            cursor: default;
+        }
+
         .line-map-box-plan .row-qty {
             color: #fff;
         }
@@ -435,15 +439,23 @@
     </div>
 
     <div class="card card-sb">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> PPIC Line Map</h5>
+            <a href="{{ route('ppic_line_map_live', ['tgl_dari' => $filterStart, 'tgl_sampai' => $filterEnd]) }}"
+                target="_blank" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-tv"></i> Live View
+            </a>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                    data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
-                    <i class="fas fa-plus"></i> New
-                </button>
+                @if ($canEditLineMap)
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                @else
+                    <div></div>
+                @endif
 
                 <form action="{{ route('ppic_line_map') }}" method="get" class="d-flex align-items-end gap-2">
                     <div class="form-group mb-0">
@@ -539,17 +551,19 @@
                                             @endphp
                                             <div class="line-map-cell-stack">
                                                 @if ($hasPlan)
-                                                    <div class="line-map-box line-map-box-plan"
-                                                        draggable="{{ $isPlanStart ? 'true' : 'false' }}"
+                                                    <div class="line-map-box line-map-box-plan @if (!$canEditLineMap) line-map-box-plan-readonly @endif"
+                                                        draggable="{{ $canEditLineMap && $isPlanStart ? 'true' : 'false' }}"
                                                         style="--dot-color: {{ $planColor }};"
                                                         data-id="{{ $activeEntry->id }}"
                                                         data-line="{{ $activeEntry->line }}"
                                                         data-date="{{ $date->tanggal }}"
                                                         data-style="{{ $activeEntry->style }}"
                                                         data-product-group="{{ $activeEntry->product_group }}"
-                                                        title="{{ $planTitle }}" data-bs-toggle="modal"
-                                                        data-bs-target="#newLineMapModal"
-                                                        onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
+                                                        title="{{ $planTitle }}"
+                                                        @if ($canEditLineMap)
+                                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'
+                                                        @endif>
                                                         <div class="line-map-box-header">
                                                             <span
                                                                 class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
@@ -654,15 +668,19 @@
                                 <td>{{ $row->created_by }}</td>
                                 <td>{{ $row->updated_at ? date('d-m-Y H:i:s', strtotime($row->updated_at)) : '-' }}</td>
                                 <td class="text-nowrap">
-                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#newLineMapModal"
-                                        onclick='openEditLineMap(@json($row->edit_payload))'>
-                                        <i class="fas fa-pen"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="cancelLineMap({{ $row->id }})">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
+                                    @if ($canEditLineMap)
+                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                            onclick='openEditLineMap(@json($row->edit_payload))'>
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="cancelLineMap({{ $row->id }})">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

@@ -9,7 +9,39 @@ use DB;
 
 class PPICLineMapController extends Controller
 {
+    private const EDIT_ALLOWED_USERNAMES = ['eka', 'admin_01', 'nirwana_it', 'reza'];
+
+    private function canEditLineMap(): bool
+    {
+        return in_array(auth()->user()->username ?? null, self::EDIT_ALLOWED_USERNAMES);
+    }
+
     public function ppic_line_map(Request $request)
+    {
+        return view('ppic.line_map', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'page' => 'dashboard-ppic',
+                'subPageGroup' => 'asset-mesin',
+                'subPage' => 'ppic_line_map',
+                'containerFluid' => true,
+            ]
+        ));
+    }
+
+    public function ppic_line_map_live(Request $request)
+    {
+        return view('ppic.line_map_live', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'containerFluid' => true,
+                'navbar' => false,
+                'footer' => false,
+            ]
+        ));
+    }
+
+    private function buildLineMapData(Request $request): array
     {
         $line = DB::connection('mysql_sb')->select("
 select * from userpassword where username like '%line%' order by username asc");
@@ -136,12 +168,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
                 });
             });
 
-        // For non-AJAX (initial page load)
-        return view('ppic.line_map', [
-            'page' => 'dashboard-ppic',
-            'subPageGroup' => 'asset-mesin',
-            'subPage' => 'ppic_line_map',
-            'containerFluid' => true,
+        return [
             'line' => $line,
             'lineMap' => $lineMap,
             'lineMapByLine' => $lineMapByLine,
@@ -153,11 +180,16 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'filterStart' => $filterStart,
             'filterEnd' => $filterEnd,
             'lastUpdated' => $lastUpdated,
-        ]);
+            'canEditLineMap' => $this->canEditLineMap(),
+        ];
     }
 
     public function store_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'editid' => 'nullable|integer|exists:ppic_line_map,id',
             'cboline' => 'required|string',
@@ -252,6 +284,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function cancel_ppic_line_map($id)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         DB::table('ppic_line_map')->where('id', $id)->update([
             'cancel' => 'Y',
             'updated_at' => now(),
@@ -265,6 +301,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function preview_move_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
@@ -288,6 +328,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function move_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
