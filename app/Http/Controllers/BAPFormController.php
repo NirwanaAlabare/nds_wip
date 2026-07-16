@@ -224,7 +224,7 @@ class BAPFormController extends Controller
             abort(404, 'Data tidak ditemukan');
         }
 
-        $pdf = Pdf::loadView('ticketing.form_bap_pdf', [
+        $pdf = Pdf::loadView('helpdesk.form_bap_pdf', [
             'bap' => $row,
         ])->setPaper('a4', 'portrait');
 
