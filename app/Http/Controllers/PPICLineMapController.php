@@ -21,6 +21,8 @@ select * from userpassword where username like '%line%' order by username asc");
             ->latest('tgl_start')
             ->get();
 
+        $lastUpdated = DB::table('ppic_line_map')->max('updated_at');
+
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
         $productGroupRows = DB::connection('mysql_sb')->select("
@@ -150,6 +152,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'actualByLineDate' => $actualByLineDate,
             'filterStart' => $filterStart,
             'filterEnd' => $filterEnd,
+            'lastUpdated' => $lastUpdated,
         ]);
     }
 
