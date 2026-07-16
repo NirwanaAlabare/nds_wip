@@ -901,15 +901,12 @@
                             Barcode Packing
                         </a>
                     </li>
-                    @if (in_array(auth()->user()->username, ['admin_01', 'reza', 'nirwana_it']))
-                        <li class="nav-item">
-                            <a href="{{ route('ppic_line_map') }}"
-                                class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}"
-                                target="_blank">
-                                Line MAP
-                            </a>
-                        </li>
-                    @endif
+                    <li class="nav-item">
+                        <a href="{{ route('ppic_line_map') }}"
+                            class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}" target="_blank">
+                            Line MAP
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
@@ -1556,7 +1553,7 @@
                 @endif
 
                 {{-- BAP --}}
-                @if ($page == 'dashboard-ticketing')
+                @if ($page == 'dashboard-helpdesk')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'bap-form' ? 'active' : '' }}">Form

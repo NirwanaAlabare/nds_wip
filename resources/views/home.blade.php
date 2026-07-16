@@ -525,9 +525,9 @@
         @endrole
 
 
-        <a href="{{ route('dashboard-ticketing') }}" class="menu-card">
+        <a href="{{ route('dashboard-helpdesk') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/ticketing.png') }}" alt="asset"></div>
-            <span class="menu-label">Ticketing</span>
+            <span class="menu-label">Helpdesk</span>
         </a>
 
 

@@ -447,6 +447,11 @@
 
                 <form action="{{ route('ppic_line_map') }}" method="get" class="d-flex align-items-end gap-2">
                     <div class="form-group mb-0">
+                        <label class="form-label mb-0 d-block">&nbsp;</label>
+                        <small class="text-muted">Last Update:
+                            {{ $lastUpdated ? date('d-m-Y H:i:s', strtotime($lastUpdated)) : '-' }}</small>
+                    </div>
+                    <div class="form-group mb-0">
                         <label class="form-label mb-0">Dari Tanggal :</label>
                         <input type="date" class="form-control form-control-sm" name="tgl_dari"
                             value="{{ $filterStart }}">

@@ -155,7 +155,7 @@ use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
-use App\Http\Controllers\TicketingDashboardController;
+use App\Http\Controllers\HelpdeskDashboardController;
 use App\Http\Controllers\BAPFormController;
 use Illuminate\Support\Facades\Route;
 
@@ -1625,13 +1625,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
     });
 
-    // Dashboard Ticketing
-    Route::controller(TicketingDashboardController::class)->group(function () {
-        Route::get('/dashboard_ticketing', 'dashboard_ticketing')->name('dashboard-ticketing');
-        Route::get('/dashboard_ticketing/chart-bap-department', 'chartBapDepartment')->name('chart-bap-department');
-        Route::get('/dashboard_ticketing/chart-bap-monthly', 'chartBapMonthly')->name('chart-bap-monthly');
-        Route::get('/dashboard_ticketing/summary-bap', 'summaryBap')->name('summary-bap-ticketing');
-        Route::get('/dashboard_ticketing/recent-activity-bap', 'recentActivityBap')->name('recent-activity-bap');
+    // Dashboard Helpdesk
+    Route::controller(HelpdeskDashboardController::class)->group(function () {
+        Route::get('/dashboard_helpdesk', 'dashboard_helpdesk')->name('dashboard-helpdesk');
+        Route::get('/dashboard_helpdesk/chart-bap-department', 'chartBapDepartment')->name('chart-bap-department');
+        Route::get('/dashboard_helpdesk/chart-bap-monthly', 'chartBapMonthly')->name('chart-bap-monthly');
+        Route::get('/dashboard_helpdesk/summary-bap', 'summaryBap')->name('summary-bap-helpdesk');
+        Route::get('/dashboard_helpdesk/recent-activity-bap', 'recentActivityBap')->name('recent-activity-bap');
     });
 
     // Form BAP

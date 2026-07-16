@@ -13,7 +13,11 @@ class BAPFormController extends Controller
 {
     public function getDepartments()
     {
-        $departments = DB::connection('mysql_hris')->select('SELECT DEPARTEMEN FROM department GROUP BY DEPARTEMEN');
+        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
+        WHERE site_nirwana_id = 'NAG'
+        AND status = 'AKTIF'
+        GROUP BY sub_dept_name
+        ORDER BY sub_dept_name ASC");
 
         return response()->json($departments);
     }
@@ -27,7 +31,7 @@ class BAPFormController extends Controller
 
         if (!empty($tgl_awal) && !empty($tgl_akhir)) {
             $query->whereDate('tgl_form', '>=', $tgl_awal)
-                  ->whereDate('tgl_form', '<=', $tgl_akhir);
+                ->whereDate('tgl_form', '<=', $tgl_akhir);
         }
 
         $total = (clone $query)->count();
@@ -56,7 +60,7 @@ class BAPFormController extends Controller
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
                 $data->whereDate('tgl_form', '>=', $tgl_awal)
-                     ->whereDate('tgl_form', '<=', $tgl_akhir);
+                    ->whereDate('tgl_form', '<=', $tgl_akhir);
             }
 
             if ($status === 'proses') {
@@ -87,8 +91,8 @@ class BAPFormController extends Controller
                 ->make(true);
         }
 
-        return view('ticketing.form_bap', [
-            'page' => 'dashboard-ticketing',
+        return view('helpdesk.form_bap', [
+            'page' => 'dashboard-helpdesk',
             'subPage' => 'form-bap',
             'subPageGroup' => 'bap-form',
             'containerFluid' => true,
@@ -220,7 +224,7 @@ class BAPFormController extends Controller
             abort(404, 'Data tidak ditemukan');
         }
 
-        $pdf = Pdf::loadView('ticketing.form_bap_pdf', [
+        $pdf = Pdf::loadView('helpdesk.form_bap_pdf', [
             'bap' => $row,
         ])->setPaper('a4', 'portrait');
 
