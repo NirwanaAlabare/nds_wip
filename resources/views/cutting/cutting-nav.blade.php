@@ -101,6 +101,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('output-cutting-vs-management-roll') }}"
+                        class="dropdown-item {{ $subPage == 'output-cutting-vs-management-roll' ? 'active' : '' }}">
+                        Output Cutting vs Management Roll <i class="fa fa-file"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('report-cutting-daily') }}"
                         class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
                         Output Cutting Daily <i class="fa fa-file"></i>
