@@ -406,7 +406,7 @@
                           @if(!empty($s->image))
                               <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
                                    alt="{{ $s->styleno }}"
-                                   style="width:100%;height:100%;object-fit:cover;"
+                                   style="width:100%;height:100%;object-fit:content;"
                                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                               <div class="no-image-placeholder" style="display:none;">
                           @else
