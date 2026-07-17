@@ -228,7 +228,7 @@ class CuttingFormRejectController extends Controller
     public function update(Request $request, FormCutReject $formCutReject)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutReject::where("id", $request->id)->first();
+        $dataCheckClosing = DB::table("form_cut_reject")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal)) {
             return array(
                 "status" => 400,
@@ -433,7 +433,7 @@ class CuttingFormRejectController extends Controller
     public function destroy(FormCutReject $formCutReject, $id)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutReject::where("id", $id)->first();
+        $dataCheckClosing = DB::table("form_cut_reject")->where("id", $id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal)) {
             return array(
                 "status" => 400,

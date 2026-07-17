@@ -526,7 +526,7 @@ class PartController extends Controller
         try {
 
             // Check Closing 
-            $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->where("part_form.part_id", $id)
                 ->groupBy("form_cut_input.id")
@@ -622,7 +622,7 @@ class PartController extends Controller
         $countPartForm = PartForm::where("part_id", $id)->count();
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $id)
             ->groupBy("form_cut_input.id")
@@ -946,7 +946,7 @@ class PartController extends Controller
         // End Deprecated
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $request->id)
             ->groupBy("form_cut_input.id")
@@ -1221,7 +1221,7 @@ class PartController extends Controller
     public function updatePartSecondary(Request $request, PartService $partService)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->leftJoin("part", "part.id", "=", "part_form.part_id")
             ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
@@ -1413,7 +1413,7 @@ class PartController extends Controller
     public function updatePartSecondaryComplement(Request $request) {
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->leftJoin("part", "part.id", "=", "part_form.part_id")
             ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
@@ -1630,7 +1630,7 @@ class PartController extends Controller
         $exist = [];
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $request->part_id)
             ->groupBy("form_cut_input.id")
@@ -1714,7 +1714,7 @@ class PartController extends Controller
         $exist = [];
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $request->part_id)
             ->groupBy("form_cut_input.id")
@@ -2005,7 +2005,7 @@ class PartController extends Controller
         if ($partDetail) {
 
             // Check Closing 
-            $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
                 ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
@@ -2067,7 +2067,7 @@ class PartController extends Controller
         if ($partDetail) {
 
             // Check Closing 
-            $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
                 ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
@@ -2131,7 +2131,7 @@ class PartController extends Controller
         if ($partDetail) {
 
             // Check Closing 
-            $dataCheckClosing = FormCutInput::selectRaw("form_cut_input.*")
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
                 ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")

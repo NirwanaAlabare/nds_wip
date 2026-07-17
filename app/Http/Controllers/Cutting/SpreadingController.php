@@ -415,7 +415,7 @@ class SpreadingController extends Controller
     public function updateStatus(Request $request, StockerService $stockerService) {
         
         // Check Closing 
-        $dataCheckClosing = FormCutInput::where("id", $request->edit_id_status)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,
