@@ -1750,6 +1750,7 @@
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Kode Barang</label>
                                                         <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->id_item ?? '' }}">
+                                                        <input type="text" name="barang[{{ $index }}][idItem]" class="form-control form-control-sm hidden" value="{{ $item->id_item ?? '' }}">
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small mb-0">Uraian Jenis Barang</label>
@@ -2393,7 +2394,7 @@
 
 @section('custom-script')
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 <script>
     $(document).ready(function() {
 
