@@ -243,6 +243,17 @@ class CompletedFormController extends Controller
 
     public function checkStockerForm(Request $request) {
         if ($request->id) {
+
+            // Check Closing 
+            $dataCheckClosing = FormCutInput::where("id", $request->id)->first();
+            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+
             // Check Stocker
             $stockerForm = Stocker::where('form_cut_id', $request->id)->first();
 
@@ -793,6 +804,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateDetail(Request $request, CuttingService $cuttingService) {
+
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "no_form_cut_input" => "required",
@@ -849,6 +871,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateHeader(Request $request) {
+
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "no_form_cut_input" => "required",
