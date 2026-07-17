@@ -143,7 +143,7 @@
         @if ($footer)
             <footer class="main-footer">
                 <span class="float-right text-muted">
-                    Periode Closing : {{ closingDate() ? \Carbon\Carbon::parse(closingDate())->translatedFormat('d F Y') : '-' }}
+                    Periode Closing : {{ periodeClosing() }}
                 </span>
 
                 <strong>
