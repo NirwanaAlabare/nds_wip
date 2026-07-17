@@ -48,6 +48,7 @@
                         style="width:100%">
                         <thead>
                             <tr>
+                                <th>Tanggal</th>
                                 <th>No Form</th>
                                 <th>Worksheet</th>
                                 <th>Style</th>
@@ -84,6 +85,7 @@
                 }
             },
             columns: [
+                { data: 'tanggal', name: 'tanggal' },
                 { data: 'no_form', name: 'no_form' },
                 { data: 'worksheet', name: 'worksheet' },
                 { data: 'style', name: 'style' },
