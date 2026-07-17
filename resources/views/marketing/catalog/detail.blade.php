@@ -13,16 +13,17 @@
       display: flex;
       flex-direction: column;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      border-radius: 6px;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.05);
     }
 
     /* SECTION 1: DETAIL PRODUK UTAMA (T-SHIRT) */
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 2.5fr;
-      gap: 48px;
-      padding: 40px;
+      gap: 56px;
+      padding: 48px;
       border-bottom: 1px solid #e8e8e8;
     }
 
@@ -37,6 +38,16 @@
       overflow: hidden;
       max-width: 500px;
       margin: 0 auto;
+      border-radius: 14px;
+      box-shadow: 0 10px 34px rgba(0,0,0,.10);
+    }
+
+    .image-wrapper img {
+      transition: transform .45s ease;
+    }
+
+    .image-wrapper:hover img {
+      transform: scale(1.05);
     }
 
     .no-image-placeholder {
@@ -76,15 +87,36 @@
     }
 
     .product-title {
-      font-size: 1.8rem;
+      font-size: 1.9rem;
       font-weight: 400;
       color: #111111;
       letter-spacing: -0.02em;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
+      position: relative;
+      padding-bottom: 18px;
+    }
+
+    .product-title::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 48px;
+      height: 3px;
+      background: #111111;
+      border-radius: 2px;
     }
 
     .variant-group {
-      margin-bottom: 24px;
+      padding-bottom: 22px;
+      margin-bottom: 22px;
+      border-bottom: 1px dashed #ececec;
+    }
+
+    .variant-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
     }
 
     .variant-label {
@@ -93,7 +125,7 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #666666;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .color-pill-container {
@@ -112,14 +144,22 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border-radius: 4px;
+      border-radius: 999px;
+      transition: all .18s ease;
+    }
+
+    .color-pill:hover {
+      border-color: #111111;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0,0,0,.07);
     }
 
     .color-indicator {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.12);
+      flex-shrink: 0;
     }
 
     .size-box-container {
@@ -139,13 +179,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
+      border-radius: 6px;
+      transition: all .18s ease;
+    }
+
+    .size-box:hover {
+      background: #333333;
+      transform: translateY(-1px);
     }
 
     /* SECTION 2: SISTEM TAB DATA (BOM & PO) */
     .tab-section {
-      padding: 40px;
-      background-color: #fcfcfc;
+      margin: 28px;
+      padding: 32px;
+      background-color: #ffffff;
+      border: 1px solid #ececec;
+      border-radius: 12px;
     }
 
     /* Header Navigasi Tab */
@@ -197,12 +246,33 @@
       background-color: #111111;
     }
 
+    .tab-count {
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: #e8e8e8;
+      color: #666666;
+      border-radius: 999px;
+      padding: 1px 8px;
+      transition: all .2s ease;
+    }
+
+    .tab-button.active .tab-count {
+      background: #111111;
+      color: #ffffff;
+    }
+
     .tab-content {
       display: none;
     }
 
     .tab-content.active {
       display: block;
+    }
+
+    .table-responsive {
+      border: 1px solid #ececec;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     .aesthetic-table {
@@ -218,16 +288,32 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #999999;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid #111111;
-      background-color: transparent;
+      background-color: #fafafa;
     }
 
     .aesthetic-table td {
       padding: 16px;
       color: #111111;
-      border-bottom: 1px solid #e8e8e8;
+      border-bottom: 1px solid #f0f0f0;
       vertical-align: middle;
+    }
+
+    .aesthetic-table tbody tr {
+      transition: background .15s ease;
+    }
+
+    .aesthetic-table tbody tr:nth-child(even) {
+      background: #fbfbfb;
+    }
+
+    .aesthetic-table tbody tr:hover {
+      background: #f4f4f5;
+    }
+
+    .aesthetic-table tbody tr:last-child td {
+      border-bottom: none;
     }
 
     .category-badge {
@@ -255,6 +341,13 @@
         border-color: #e2e8f0;
     }
 
+    .empty-state {
+      text-align: center;
+      color: #999999;
+      padding: 40px 20px;
+      font-size: 0.85rem;
+    }
+
     /* Responsif Layout */
     @media (max-width: 768px) {
       .detail-grid {
@@ -263,7 +356,8 @@
         padding: 24px;
       }
       .tab-section {
-        padding: 24px;
+        margin: 16px;
+        padding: 20px;
       }
       .tab-navigation {
         gap: 16px;
@@ -283,6 +377,27 @@
                 <i class="fas fa-arrow-left"></i> Kembali ke Katalog
             </a>
         </div>
+
+        @php
+            // Warna → hex, biar titik indikator akurat. Nama tak dikenal jatuh ke abu netral.
+            $colorMap = [
+                'black' => '#111111', 'white' => '#ffffff', 'navy' => '#1e293b',
+                'grey' => '#9ca3af', 'gray' => '#9ca3af', 'silver' => '#cbd5e1',
+                'red' => '#dc2626', 'maroon' => '#7f1d1d', 'blue' => '#2563eb',
+                'skyblue' => '#38bdf8', 'green' => '#16a34a', 'olive' => '#3f6212',
+                'yellow' => '#eab308', 'gold' => '#d4af37', 'orange' => '#f97316',
+                'brown' => '#78350f', 'khaki' => '#c3b091', 'cream' => '#f5f0e1',
+                'beige' => '#e8dcc4', 'pink' => '#ec4899', 'purple' => '#7c3aed',
+            ];
+            $colorHex = function ($name) use ($colorMap) {
+                $key = strtolower(preg_replace('/[^a-zA-Z]/', '', $name));
+                return $colorMap[$key] ?? '#d4d4d8';
+            };
+
+            $colors       = array_filter(array_map('trim', explode(',', $styleData->colors ?? '')));
+            $sizes        = array_filter(array_map('trim', explode(',', $styleData->sizes ?? '')));
+            $destinations = array_filter(array_map('trim', explode(',', $styleData->destinations ?? '')));
+        @endphp
 
         <div class="catalog-wrapper">
             <div class="detail-grid">
@@ -304,28 +419,27 @@
               </section>
 
               <section class="info-wrapper">
+                <div class="style-code">Style Number</div>
                 <h1 class="product-title">{{ $styleData->styleno ?: '-' }}</h1>
 
                 <div class="variant-group">
-                  <div class="variant-label">Master Colors</div>
-                  <div class="color-pill-container" style="font-size: 0.85rem; color: #111;">
-                    @php
-                        $colors = array_filter(array_map('trim', explode(',', $styleData->colors ?? '')));
-                    @endphp
-                    @if(count($colors) > 0)
-                        {{ implode(', ', $colors) }}
-                    @else
-                        <em class="text-muted" style="font-size: 0.8rem;">Belum ada warna yang didaftarkan</em>
-                    @endif
-                  </div>
+                  <div class="variant-label">Color</div>
+                  @if(count($colors) > 0)
+                      <div class="color-pill-container">
+                          @foreach($colors as $color)
+                              <span class="color-pill">
+                                  {{ $color }}
+                              </span>
+                          @endforeach
+                      </div>
+                  @else
+                      <em class="text-muted" style="font-size: 0.8rem;">Belum ada warna yang didaftarkan</em>
+                  @endif
                 </div>
 
                 <div class="variant-group">
-                  <div class="variant-label">Master Sizes</div>
+                  <div class="variant-label">Size</div>
                   <div class="size-box-container">
-                    @php
-                        $sizes = array_filter(array_map('trim', explode(',', $styleData->sizes ?? '')));
-                    @endphp
                     @forelse($sizes as $s)
                     <div class="size-box" title="{{ $s }}">{{ $s }}</div>
                     @empty
@@ -336,16 +450,15 @@
 
                 <div class="variant-group">
                   <div class="variant-label">Destinations</div>
-                  <div style="font-size: 0.85rem; color: #111;">
-                    @php
-                        $destinations = array_filter(array_map('trim', explode(',', $styleData->destinations ?? '')));
-                    @endphp
-                    @if(count($destinations) > 0)
-                        {{ implode(', ', $destinations) }}
-                    @else
-                        <em class="text-muted" style="font-size: 0.8rem;">Belum ada destinasi yang didaftarkan</em>
-                    @endif
-                  </div>
+                  @if(count($destinations) > 0)
+                      <div class="color-pill-container">
+                          @foreach($destinations as $dest)
+                              <span class="color-pill">{{ $dest }}</span>
+                          @endforeach
+                      </div>
+                  @else
+                      <em class="text-muted" style="font-size: 0.8rem;">Belum ada destinasi yang didaftarkan</em>
+                  @endif
                 </div>
 
                 <div class="variant-group">
@@ -362,10 +475,12 @@
                 <button class="tab-button active" onclick="switchTab(event, 'bom-tab')">
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                   Rincian Material (BOM)
+                  <span class="tab-count">{{ count($bomData) }}</span>
                 </button>
                 <button class="tab-button" onclick="switchTab(event, 'so-tab')">
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   Histori Sales Order
+                  <span class="tab-count">{{ count($soHistory) }}</span>
                 </button>
               </nav>
 
@@ -398,7 +513,7 @@
                         </tr>
                         @empty
                         <tr>
-                          <td colspan="4" class="text-center" style="color: #999; padding: 30px;">Belum ada rincian material (BOM) untuk Style ini.</td>
+                          <td colspan="4" class="empty-state">Belum ada rincian material (BOM) untuk Style ini.</td>
                         </tr>
                         @endforelse
                       </tbody>
@@ -437,7 +552,7 @@
                         </tr>
                         @empty
                         <tr>
-                          <td colspan="6" class="text-center" style="color: #999; padding: 30px;">Belum ada Sales Order yang terdaftar menggunakan Style ini.</td>
+                          <td colspan="6" class="empty-state">Belum ada Sales Order yang terdaftar menggunakan Style ini.</td>
                         </tr>
                         @endforelse
                       </tbody>

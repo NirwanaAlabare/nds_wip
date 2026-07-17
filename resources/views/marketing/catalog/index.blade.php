@@ -4,6 +4,11 @@
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
+    /* Transisi fade antar halaman — jalan di SEMUA browser (murni CSS/JS) */
+    body { animation: page-enter .3s ease; }               /* fade-in saat halaman dibuka */
+    body.page-leaving { opacity: 0; transition: opacity .28s ease; } /* fade-out saat klik item */
+    @keyframes page-enter { from { opacity: 0; } to { opacity: 1; } }
+
     :root {
       --bg-main: #ffffff;
       --bg-surface: #f8f8f8;
@@ -100,10 +105,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .search-reset:hover {
-      color: var(--text-dark);
     }
 
     .search-reset:hover {
@@ -232,6 +233,121 @@
     }
 
 
+    /* ===== SKELETON LOADING ===== */
+    @keyframes skeleton-shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+
+    .skeleton {
+      background-color: #eeeeee;
+      background-image: linear-gradient(90deg, #eeeeee 0px, #f5f5f5 40px, #eeeeee 80px);
+      background-size: 600px 100%;
+      background-repeat: no-repeat;
+      animation: skeleton-shimmer 1.3s infinite linear;
+      border-radius: 4px;
+    }
+
+    .skeleton-item {
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      margin: -12px;
+    }
+
+    .skel-img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      margin-bottom: 16px;
+    }
+
+    .skel-line {
+      height: 10px;
+      margin-bottom: 8px;
+    }
+
+    .skel-title { width: 70%; height: 12px; }
+    .skel-sub   { width: 45%; }
+    .skel-spec  { width: 90%; }
+    .skel-spec.short { width: 60%; }
+
+    /* Kontrol tampil/sembunyi skeleton vs konten asli */
+    #catalog-real { display: none; }
+    .content-loaded #catalog-skeleton { display: none; }
+    .content-loaded #catalog-real {
+      display: block;
+      animation: fade-in .4s ease;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+
+    /* ===== HOVER PREVIEW (modal besar di tengah, muncul saat hover lama, tanpa klik) ===== */
+    .hover-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1070;
+      background: rgba(0,0,0,.45);
+      opacity: 0;
+      pointer-events: none;           /* biar hover ke item tetap kebaca */
+      transition: opacity .2s ease;
+    }
+    .hover-backdrop.show { opacity: 1; }
+
+    .hover-preview {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(.96);
+      z-index: 1080;
+      width: min(760px, 92vw);
+      display: flex;
+      gap: 28px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.35);
+      padding: 28px;
+      opacity: 0;
+      pointer-events: none;           /* biar nggak ganggu hover/klik item */
+      transition: opacity .2s ease, transform .2s ease;
+      font-family: var(--font-stack);
+    }
+    .hover-preview.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    .hp-img {
+      position: relative;
+      width: 280px;
+      flex-shrink: 0;
+      aspect-ratio: 3 / 4;
+      border-radius: 10px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #fce7f3 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hp-img img { width: 100%; height: 100%; object-fit: cover; }
+    .hp-noimg { font-size: .8rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #a855f7; opacity: .7; }
+
+    .hp-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hp-title { font-size: 1.5rem; font-weight: 600; color: var(--text-dark); margin-bottom: 20px; letter-spacing: -0.01em; }
+    .hp-row { font-size: .85rem; color: var(--text-dark); margin-bottom: 14px; line-height: 1.45; }
+    .hp-row:last-child { margin-bottom: 0; }
+    .hp-row b { display: block; color: var(--text-light); text-transform: uppercase; font-size: .65rem; font-weight: 700; letter-spacing: .06em; margin-bottom: 3px; }
+
+    @media (max-width: 768px) {
+      .hover-backdrop, .hover-preview { display: none; }  /* di layar kecil pakai tap ke detail aja */
+    }
+
     @media (max-width: 1200px) {
       .catalog-grid { grid-template-columns: repeat(4, 1fr); }
     }
@@ -262,94 +378,214 @@
               @endif
             </form>
 
-            <main class="catalog-grid">
-              @forelse($styles as $s)
-                  <a href="{{ route('master-marketing-catalog-detail', ['styleno' => urlencode($s->styleno)]) }}" class="product-item">
-                    <div class="image-frame">
-                        @if(!empty($s->image))
-                            <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
-                                 alt="{{ $s->styleno }}"
-                                 style="width:100%;height:100%;object-fit:cover;"
-                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                            <div class="no-image-placeholder" style="display:none;">
-                        @else
-                            <div class="no-image-placeholder">
-                        @endif
-                                <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
-                                </svg>
-                                <span class="placeholder-text">No Image</span>
-                            </div>
-                    </div>
+            {{-- SKELETON: tampil dulu sampai semua gambar/konten selesai load --}}
+            <div id="catalog-skeleton" class="catalog-grid" aria-hidden="true">
+              @for($i = 0; $i < ($styles->count() ?: 12); $i++)
+                  <div class="skeleton-item">
+                    <div class="skeleton skel-img"></div>
+                    <div class="skeleton skel-line skel-title"></div>
+                    <div class="skeleton skel-line skel-sub"></div>
+                    <div class="skeleton skel-line skel-spec"></div>
+                    <div class="skeleton skel-line skel-spec short"></div>
+                  </div>
+              @endfor
+            </div>
 
-                    <div class="product-info">
-                      <h2 class="product-title" title="{{ $s->styleno }}">{{ $s->styleno ?: 'Unknown Style' }}</h2>
-                      <div class="product-spec">
-                        <div class="spec-line" title="{{ $s->colors }}">
-                            <span>CLR:</span>
-                            @if($s->colors)
-                                @php
-                                    $colorsArr = array_filter(array_map('trim', explode(',', $s->colors)));
-                                    $topColors = array_slice($colorsArr, 0, 2);
-                                    $colorText = implode(', ', $topColors);
-                                    if(count($colorsArr) > 2) $colorText .= ' +'.(count($colorsArr)-2);
-                                @endphp
-                                {{ $colorText }}
-                            @else
-                                -
-                            @endif
-                        </div>
-                        <div class="spec-line" title="{{ $s->sizes }}">
-                            <span>SIZE:</span>
-                            @if($s->sizes)
-                                @php
-                                    $sizesArr = array_filter(array_map('trim', explode(',', $s->sizes)));
-                                    $topSizes = array_slice($sizesArr, 0, 4);
-                                    $sizeText = implode(', ', $topSizes);
-                                    if(count($sizesArr) > 4) $sizeText .= ' ...';
-                                @endphp
-                                {{ $sizeText }}
-                            @else
-                                -
-                            @endif
-                        </div>
-                        <div class="spec-line" title="{{ $s->destinations }}">
-                            <span>DEST:</span>
-                            @if($s->destinations)
-                                @php
-                                    $destArr = array_filter(array_map('trim', explode(',', $s->destinations)));
-                                    $topDest = array_slice($destArr, 0, 2);
-                                    $destText = implode(', ', $topDest);
-                                    if(count($destArr) > 2) $destText .= ' +'.(count($destArr)-2);
-                                @endphp
-                                {{ $destText }}
-                            @else
-                                -
-                            @endif
-                        </div>
-                        <div class="spec-line" title="{{ $s->buyer_name }}">
-                            <span>BUYER:</span>
-                            {{ $s->buyer_name ?: '-' }}
+            {{-- KONTEN ASLI: disembunyikan dulu, ditampilkan setelah load --}}
+            <div id="catalog-real">
+              <main class="catalog-grid">
+                @forelse($styles as $s)
+                    <a href="{{ route('master-marketing-catalog-detail', ['styleno' => urlencode($s->styleno)]) }}" class="product-item"
+                   data-styleno="{{ $s->styleno }}"
+                   data-image="{{ $s->image }}"
+                   data-colors="{{ $s->colors }}"
+                   data-sizes="{{ $s->sizes }}"
+                   data-dest="{{ $s->destinations }}"
+                   data-buyer="{{ $s->buyer_name }}">
+                      <div class="image-frame">
+                          @if(!empty($s->image))
+                              <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
+                                   alt="{{ $s->styleno }}"
+                                   style="width:100%;height:100%;object-fit:cover;"
+                                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                              <div class="no-image-placeholder" style="display:none;">
+                          @else
+                              <div class="no-image-placeholder">
+                          @endif
+                                  <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
+                                  </svg>
+                                  <span class="placeholder-text">No Image</span>
+                              </div>
+                      </div>
+
+                      <div class="product-info">
+                        <h2 class="product-title" title="{{ $s->styleno }}">{{ $s->styleno ?: 'Unknown Style' }}</h2>
+                        <div class="product-spec">
+                          <div class="spec-line" title="{{ $s->colors }}">
+                              <span>CLR:</span>
+                              @if($s->colors)
+                                  @php
+                                      $colorsArr = array_filter(array_map('trim', explode(',', $s->colors)));
+                                      $topColors = array_slice($colorsArr, 0, 2);
+                                      $colorText = implode(', ', $topColors);
+                                      if(count($colorsArr) > 2) $colorText .= ' +'.(count($colorsArr)-2);
+                                  @endphp
+                                  {{ $colorText }}
+                              @else
+                                  -
+                              @endif
+                          </div>
+                          <div class="spec-line" title="{{ $s->sizes }}">
+                              <span>SIZE:</span>
+                              @if($s->sizes)
+                                  @php
+                                      $sizesArr = array_filter(array_map('trim', explode(',', $s->sizes)));
+                                      $topSizes = array_slice($sizesArr, 0, 4);
+                                      $sizeText = implode(', ', $topSizes);
+                                      if(count($sizesArr) > 4) $sizeText .= ' ...';
+                                  @endphp
+                                  {{ $sizeText }}
+                              @else
+                                  -
+                              @endif
+                          </div>
+                          <div class="spec-line" title="{{ $s->destinations }}">
+                              <span>DEST:</span>
+                              @if($s->destinations)
+                                  @php
+                                      $destArr = array_filter(array_map('trim', explode(',', $s->destinations)));
+                                      $topDest = array_slice($destArr, 0, 2);
+                                      $destText = implode(', ', $topDest);
+                                      if(count($destArr) > 2) $destText .= ' +'.(count($destArr)-2);
+                                  @endphp
+                                  {{ strtoupper($destText) }}
+                              @else
+                                  -
+                              @endif
+                          </div>
+                          <div class="spec-line" title="{{ $s->buyer_name }}">
+                              <span>BUYER:</span>
+                              {{ strtoupper($s->buyer_name) ?: '-' }}
+                          </div>
                         </div>
                       </div>
+                    </a>
+                @empty
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 50px 0; color: #999;">
+                        <i class="fas fa-box-open fa-3x mb-3"></i>
+                        <h5>Belum Ada Data Master Style</h5>
                     </div>
-                  </a>
-              @empty
-                  <div style="grid-column: 1 / -1; text-align: center; padding: 50px 0; color: #999;">
-                      <i class="fas fa-box-open fa-3x mb-3"></i>
-                      <h5>Belum Ada Data Master Style</h5>
-                  </div>
-              @endforelse
-            </main>
+                @endforelse
+              </main>
 
-            <div class="d-flex justify-content-center mt-5">
-                {{ $styles->appends(request()->query())->links('pagination::bootstrap-4') }}
+              <div class="d-flex justify-content-center mt-5">
+                  {{ $styles->appends(request()->query())->links('pagination::bootstrap-4') }}
+              </div>
             </div>
         </div>
     </div>
+
+    {{-- Modal hover preview (dipakai ulang untuk semua item) --}}
+    <div id="hover-backdrop" class="hover-backdrop"></div>
+    <div id="hover-preview" class="hover-preview" aria-hidden="true"></div>
+
+    {{-- Fallback tanpa JS: kalau JS mati, langsung tampilkan konten asli & sembunyikan skeleton --}}
+    <noscript>
+      <style>
+        #catalog-skeleton { display: none !important; }
+        #catalog-real { display: block !important; }
+      </style>
+    </noscript>
 @endsection
 
 @section('custom-script')
     <script>
+        (function () {
+            function revealContent() {
+                document.body.classList.add('content-loaded');
+                hidePreview();
+            }
+
+            function hidePreview() {
+                document.getElementById('hover-preview').classList.remove('show');
+                document.getElementById('hover-backdrop').classList.remove('show');
+            }
+
+            window.addEventListener('load', revealContent);
+
+            setTimeout(revealContent, 4000);
+
+            window.addEventListener('pageshow', function () {
+                document.body.classList.remove('page-leaving');
+                document.body.classList.add('content-loaded');
+            });
+
+            document.querySelectorAll('.product-item').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+                    e.preventDefault(); // Prevent default navigation
+                    var href = this.href;
+                    hidePreview();
+                    document.body.classList.add('page-leaving');
+                    setTimeout(function () { window.location = href; }, 280);
+                });
+            });
+
+            var HOVER_DELAY = 1700; 
+            var IMG_BASE = '/nds_wip/public/uploads/costing/';
+            var preview = document.getElementById('hover-preview');
+            var backdrop = document.getElementById('hover-backdrop');
+            var hoverTimer = null;
+
+            function esc(v) {
+                return (v == null ? '' : String(v))
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function specRow(label, val) {
+                var text = (val && val.trim()) ? esc(val) : '-';
+                return '<div class="hp-row"><b>' + label + '</b>' + text + '</div>';
+            }
+
+            function buildImg(image, styleno) {
+                if (image && image.trim()) {
+                    return '<div class="hp-img"><img src="' + IMG_BASE + encodeURI(image) + '" alt="' + esc(styleno) + '"'
+                        + ' onerror="this.parentNode.innerHTML=&quot;<span class=\'hp-noimg\'>No Image</span>&quot;"></div>';
+                }
+                return '<div class="hp-img"><span class="hp-noimg">No Image</span></div>';
+            }
+
+            function showPreview(item) {
+                var d = item.dataset;
+                preview.innerHTML =
+                    buildImg(d.image, d.styleno) +
+                    '<div class="hp-body">' +
+                        '<div class="hp-title">' + (d.styleno ? esc(d.styleno) : 'Unknown Style') + '</div>' +
+                        specRow('Colors', d.colors) +
+                        specRow('Sizes', d.sizes) +
+                        specRow('Destinations', d.dest) +
+                        specRow('Buyer', d.buyer) +
+                    '</div>';
+                backdrop.classList.add('show');
+                preview.classList.add('show');
+            }
+
+            function hidePreview() {
+                clearTimeout(hoverTimer);
+                preview.classList.remove('show');
+                backdrop.classList.remove('show');
+            }
+
+            document.querySelectorAll('.product-item').forEach(function (item) {
+                item.addEventListener('mouseenter', function () {
+                    clearTimeout(hoverTimer);
+                    hoverTimer = setTimeout(function () { showPreview(item); }, HOVER_DELAY);
+                });
+                item.addEventListener('mouseleave', hidePreview);
+            });
+            window.addEventListener('scroll', hidePreview, { passive: true });
+        })();
     </script>
 @endsection
