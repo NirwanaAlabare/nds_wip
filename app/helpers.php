@@ -195,3 +195,13 @@ function checkClosingDate($date)
 
     return false;
 }
+
+function closingDate()
+{
+    $lastClosing = DB::table('data_locks')
+        ->where('is_locked', true)
+        ->orderBy('end_date', 'desc')
+        ->value('end_date');
+
+    return $lastClosing;
+}
