@@ -296,7 +296,7 @@ class StockerController extends Controller
             groupBy("marker_input_detail.id")->
             get();
 
-        $dataStocker = MarkerDetail::selectRaw("
+        $dataStockerProcess = MarkerDetail::selectRaw("
                 form_cut_input.waktu_selesai,
                 MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 UPPER(TRIM(marker_input.color)) color,
@@ -336,8 +336,39 @@ class StockerController extends Controller
             groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.waktu_selesai", "desc")->
             orderBy("form_cut_input.no_cut", "desc")->
-            orderBy("form_cut_input.no_form", "desc")->
-            get();
+            orderBy("form_cut_input.no_form", "desc");
+
+        $dataStockerInject = DB::table("inject_stocker_range")->selectRaw("
+                waktu_selesai,
+                '' as id_qr_stocker,
+                UPPER(TRIM(color)) color,
+                so_det_id,
+                size,
+                ratio,
+                '' no_form,
+                '' no_cut,
+                '' stocker_id,
+                MAX(shade) shade,
+                MAX(group_stocker) group_stocker,
+                MAX(qty_ply) qty_ply,
+                MIN(CAST(range_awal as UNSIGNED)) range_awal,
+                MAX(CAST(range_akhir as UNSIGNED)) range_akhir,
+                null modified_qty,
+                null difference_qty
+            ")->
+            where("act_costing_ws", $dataSpreading->ws)->
+            whereRaw("UPPER(TRIM(color)) = '".strtoupper($dataSpreading->color)."'")->
+            where("panel", $dataSpreading->panel)->
+            where("no_cut", "<=", $dataSpreading->no_cut)->
+            where("waktu_selesai", "<=", $dataSpreading->waktu_selesai)->
+            where("part_id", $dataSpreading->part_id)->
+            groupBy("no_form", "no_cut", "so_det_id");
+
+        $dataStocker = $dataStockerProcess
+            ->unionAll($dataStockerInject)   // atau ->union()
+            ->orderBy('waktu_selesai', 'desc')
+            ->orderBy('no_cut', 'desc')
+            ->get();
 
         $dataNumbering = MarkerDetail::selectRaw("
                 UPPER(TRIM(marker_input.color)) color,

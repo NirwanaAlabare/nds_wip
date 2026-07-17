@@ -1037,19 +1037,19 @@ class CompletedFormController extends Controller
                     // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
                     $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
 
-                    $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
+                    // $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
 
-                    if (!$hasFormCutDetail) {
-                        DB::rollBack();
+                    // if (!$hasFormCutDetail) {
+                    //     DB::rollBack();
 
-                        return array(
-                            'status' => 400,
-                            'message' => 'Tidak bisa hapus roll terakhir pada form ini',
-                            'redirect' => '',
-                            'table' => 'datatable',
-                            'additional' => [],
-                        );
-                    }
+                    //     return array(
+                    //         'status' => 400,
+                    //         'message' => 'Tidak bisa hapus roll terakhir pada form ini',
+                    //         'redirect' => '',
+                    //         'table' => 'datatable',
+                    //         'additional' => [],
+                    //     );
+                    // }
 
                     DB::commit();
 
