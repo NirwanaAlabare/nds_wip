@@ -157,12 +157,123 @@
     }
 
     .no-image-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: #a855f7;
-      opacity: 0.7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        background:
+            repeating-linear-gradient(
+                45deg,
+                rgba(9, 37, 82, 0.06) 0px,
+                rgba(9, 37, 82, 0.06) 1px,
+                transparent 1px,
+                transparent 12px
+            ),
+            linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    }
+
+    /* Wrapper untuk animasi saat hover */
+    .doodle-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        opacity: 0.6;
+        transition: all 0.35s ease;
+    }
+
+    .image-wrapper:hover .doodle-wrapper {
+        opacity: 1;
+        transform: scale(1.08) rotate(-2deg); /* Sedikit miring saat di-hover biar tambah kesan doodle */
+    }
+
+    /* Frame luar bergaya coretan tangan */
+    .doodle-frame {
+        position: relative;
+        width: 80px;
+        height: 60px;
+        border: 2.5px solid #092552;
+        /* Trik border-radius asimetris untuk efek digambar tangan */
+        border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        background: rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+        box-shadow: 4px 4px 0px rgba(9, 37, 82, 0.1);
+    }
+
+    /* Matahari doodle */
+    .doodle-sun {
+        position: absolute;
+        top: 8px;
+        right: 14px;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #092552;
+        /* Lingkaran yang tidak sempurna */
+        border-radius: 45% 55% 45% 50%;
+    }
+
+    /* Gunung (dibuat dari kotak yang diputar 45 derajat) */
+    .doodle-mountain {
+        position: absolute;
+        border: 2.5px solid #092552;
+        background: transparent;
+        transform: rotate(45deg);
+        border-radius: 4px; /* Ujung gunung sedikit tumpul */
+    }
+
+    .doodle-mountain.left {
+        bottom: -22px;
+        left: -8px;
+        width: 35px;
+        height: 35px;
+    }
+
+    .doodle-mountain.right {
+        bottom: -32px;
+        right: -5px;
+        width: 50px;
+        height: 50px;
+        /* Garis ini menimpa gunung sebelah kiri agar terlihat 3D bertumpuk */
+        background: #f0f4f8;
+    }
+
+    /* lingkaran soft di belakang icon biar ga plain */
+    .no-image-placeholder::before {
+        content: "";
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(100,116,139,0.10) 0%, rgba(100,116,139,0) 70%);
+        z-index: 0;
+    }
+
+    .no-image-placeholder .icon-svg {
+        width: 32px;
+        height: 32px;
+        position: relative;
+        z-index: 1;
+        color: #94a3b8; /* slate-400 */
+        transition: transform 0.25s ease, color 0.25s ease;
+    }
+
+    .image-wrapper:hover .no-image-placeholder .icon-svg {
+        transform: scale(1.08);
+        color: #64748b;
+    }
+
+    .no-image-placeholder .placeholder-text {
+        position: relative;
+        z-index: 1;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #94a3b8;
     }
 
     .icon-svg {
@@ -318,19 +429,42 @@
     .hover-preview.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
     .hp-img {
-      position: relative;
-      width: 280px;
-      flex-shrink: 0;
-      aspect-ratio: 3 / 4;
-      border-radius: 10px;
-      overflow: hidden;
-      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #fce7f3 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .hp-img img { width: 100%; height: 100%; object-fit: cover; }
-    .hp-noimg { font-size: .8rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #a855f7; opacity: .7; }
+        position: relative;
+        width: 280px;
+        flex-shrink: 0;
+        aspect-ratio: 3 / 4;
+        border-radius: 10px;
+        overflow: hidden;
+        /* Background baru dengan pola garis navy dan gradasi senada */
+        background:
+            repeating-linear-gradient(
+            45deg,
+            rgba(9, 37, 82, 0.1) 0px,
+            rgba(9, 37, 82, 0.1) 1px,
+            transparent 1px,
+            transparent 12px
+            ),
+            linear-gradient(135deg, #eef2f8 0%, #dce4f0 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        }
+
+        .hp-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        }
+
+        .hp-noimg {
+        font-size: .8rem;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        /* Warna teks disesuaikan agar serasi dengan navy */
+        color: #092552;
+        opacity: .7;
+        }
 
     .hp-body {
       flex: 1;
@@ -403,21 +537,24 @@
                    data-dest="{{ $s->destinations }}"
                    data-buyer="{{ $s->buyer_name }}">
                       <div class="image-frame">
-                          @if(!empty($s->image))
-                              <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
-                                   alt="{{ $s->styleno }}"
-                                   style="width:100%;height:100%;object-fit:cover;"
-                                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                              <div class="no-image-placeholder" style="display:none;">
-                          @else
-                              <div class="no-image-placeholder">
-                          @endif
-                                  <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
-                                  </svg>
-                                  <span class="placeholder-text">No Image</span>
-                              </div>
-                      </div>
+    @if(!empty($s->image))
+        <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
+             alt="{{ $s->styleno }}"
+             style="width:100%;height:100%;object-fit:cover;"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="no-image-placeholder" style="display:none;">
+    @else
+        <div class="no-image-placeholder">
+    @endif
+            <!-- Doodle Content -->
+            <div class="doodle-frame">
+                <div class="doodle-sun"></div>
+                <div class="doodle-mountain left"></div>
+                <div class="doodle-mountain right"></div>
+            </div>
+            <span class="placeholder-text">NO IMAGE</span>
+        </div>
+</div>
 
                       <div class="product-info">
                         <h2 class="product-title" title="{{ $s->styleno }}">{{ $s->styleno ?: 'Unknown Style' }}</h2>
@@ -532,7 +669,7 @@
                 });
             });
 
-            var HOVER_DELAY = 1700; 
+            var HOVER_DELAY = 1700;
             var IMG_BASE = '/nds_wip/public/uploads/costing/';
             var preview = document.getElementById('hover-preview');
             var backdrop = document.getElementById('hover-backdrop');

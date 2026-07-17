@@ -7,48 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class Marketing_CatalogController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $page = 'dashboard-marketing';
-    //     $subPageGroup = 'marketing-master';
-    //     $subPage = 'marketing-master-catalog';
-
-    //     $search = $request->input('search');
-
-    //     $query = DB::connection('mysql_sb')
-    //         ->table('so_det')
-    //         ->select(
-    //             'act_costing.styleno',
-    //             'masteritem.itemdesc as itemname',
-    //             'so_det.color as colors',
-    //             DB::raw('GROUP_CONCAT(DISTINCT so_det.size SEPARATOR ", ") as sizes'),
-    //             DB::raw('MIN(bom_jo_item.id_item) as id_item')
-    //         )
-    //         ->leftJoin('so', 'so_det.id_so', '=', 'so.id')
-    //         ->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')
-    //         ->leftJoin('bom_jo_item', 'so_det.id', '=', 'bom_jo_item.id_so_det')
-    //         ->leftJoin('masteritem', 'bom_jo_item.id_item', '=', 'masteritem.id_item')
-    //         ->groupBy('act_costing.styleno', 'itemname', 'so_det.color')
-    //         ->first();
-
-    //     if ($search) {
-    //         $query->where(function($q) use ($search) {
-    //             $q->where('itemname', 'like', "%{$search}%")
-    //               ->orWhere('act_costing.styleno', 'like', "%{$search}%")
-    //               ->orWhere('so_det.color', 'like', "%{$search}%");
-    //         });
-    //     }
-
-    //     $styles = $query->groupBy('act_costing.styleno', 'itemname', 'so_det.color')->paginate(24);
-
-    //     return view('marketing.catalog.index', [
-    //         'page' => $page,
-    //         'subPageGroup' => $subPageGroup,
-    //         'subPage' => $subPage,
-    //         'styles' => $styles,
-    //         'containerFluid' => true,
-    //     ]);
-    // }
+    private const MASTERSIZE_NAME  = 'size';
+    private const MASTERSIZE_ORDER = 'urut';
 
     public function index(Request $request)
     {
@@ -68,11 +28,16 @@ class Marketing_CatalogController extends Controller
             $searchBindings = ["%{$search}%"];
         }
 
+        $nameCol  = self::MASTERSIZE_NAME;
+        $orderCol = self::MASTERSIZE_ORDER;
+
+        $sizeOrder = "msz.{$orderCol} IS NULL, msz.{$orderCol}, CAST(so_det.size AS UNSIGNED), so_det.size";
+
         $sql = "
             SELECT
                 act_costing.styleno,
                 GROUP_CONCAT(DISTINCT so_det.color ORDER BY so_det.color SEPARATOR ', ') AS colors,
-                GROUP_CONCAT(DISTINCT so_det.size  ORDER BY so_det.size  SEPARATOR ', ') AS sizes,
+                GROUP_CONCAT(DISTINCT so_det.size  ORDER BY {$sizeOrder} SEPARATOR ', ') AS sizes,
                 acn.foto AS image,
                 so_det.dest AS destinations,
                 ms.Supplier AS buyer_name
@@ -82,6 +47,7 @@ class Marketing_CatalogController extends Controller
             INNER JOIN mastersupplier ms ON act_costing.id_buyer = ms.Id_Supplier
             LEFT JOIN bom_marketing ON so.id_bom = bom_marketing.id
             LEFT JOIN act_costing_new acn ON bom_marketing.id_costing = acn.id
+            LEFT JOIN mastersize msz ON msz.{$nameCol} = so_det.size
             WHERE act_costing.styleno IS NOT NULL
               AND act_costing.styleno > ''
               AND act_costing.styleno != '-'
@@ -90,8 +56,6 @@ class Marketing_CatalogController extends Controller
             ORDER BY act_costing.styleno ASC
             LIMIT {$perPage} OFFSET {$offset}
         ";
-
-
 
         $countSql = "
             SELECT COUNT(*) as total FROM (
@@ -111,8 +75,6 @@ class Marketing_CatalogController extends Controller
         ";
 
         $rows  = DB::connection('mysql_sb')->select($sql, $searchBindings);
-        // dd($rows);
-
         $total = DB::connection('mysql_sb')->select($countSql, $searchBindings)[0]->total ?? 0;
 
         $styles = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -140,11 +102,15 @@ class Marketing_CatalogController extends Controller
 
         $styleno = urldecode($styleno);
 
+        $nameCol  = self::MASTERSIZE_NAME;
+        $orderCol = self::MASTERSIZE_ORDER;
+        $sizeOrder = "msz.{$orderCol} IS NULL, msz.{$orderCol}, CAST(so_det.size AS UNSIGNED), so_det.size";
+
         $styleData = DB::connection('mysql_sb')->selectOne("
             SELECT
                 act_costing.styleno,
                 GROUP_CONCAT(DISTINCT so_det.color ORDER BY so_det.color SEPARATOR ', ') AS colors,
-                GROUP_CONCAT(DISTINCT so_det.size  ORDER BY so_det.size  SEPARATOR ', ') AS sizes,
+                GROUP_CONCAT(DISTINCT so_det.size  ORDER BY {$sizeOrder} SEPARATOR ', ') AS sizes,
                 acn.foto AS image,
                 so_det.dest AS destinations,
                 ms.Supplier AS buyer_name
@@ -154,6 +120,7 @@ class Marketing_CatalogController extends Controller
             INNER JOIN mastersupplier ms ON act_costing.id_buyer = ms.Id_Supplier
             LEFT JOIN bom_marketing ON so.id_bom = bom_marketing.id
             LEFT JOIN act_costing_new acn ON bom_marketing.id_costing = acn.id
+            LEFT JOIN mastersize msz ON msz.{$nameCol} = so_det.size
             WHERE act_costing.styleno = ?
             GROUP BY act_costing.styleno, acn.foto, ms.Supplier
             LIMIT 1
