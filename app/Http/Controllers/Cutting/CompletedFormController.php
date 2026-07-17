@@ -245,7 +245,7 @@ class CompletedFormController extends Controller
         if ($request->id) {
 
             // Check Closing 
-            $dataCheckClosing = FormCutInput::where("id", $request->id)->first();
+            $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
             if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
                 return array(
                     "status" => 400,
@@ -806,7 +806,7 @@ class CompletedFormController extends Controller
     public function updateDetail(Request $request, CuttingService $cuttingService) {
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,
@@ -873,7 +873,7 @@ class CompletedFormController extends Controller
     public function updateHeader(Request $request) {
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,

@@ -4296,9 +4296,9 @@ class StockerController extends Controller
         ini_set('max_execution_time', 360000);
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
         if (!$dataCheckClosing) {
-            $dataCheckClosing = FormCutPiece::where("id", $request->form_cut_id)
+            $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->form_cut_id)
                 ->where("no_form", $request->no_form)
                 ->first();
         }
@@ -4626,9 +4626,9 @@ class StockerController extends Controller
     public function separateStocker(Request $request) {
 
         // Check Closing 
-        $dataCheckClosing = FormCutInput::where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
         if (!$dataCheckClosing) {
-            $dataCheckClosing = FormCutPiece::where("id", $request->form_cut_id)
+            $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->form_cut_id)
                 ->where("no_form", $request->no_form)
                 ->first();
         }

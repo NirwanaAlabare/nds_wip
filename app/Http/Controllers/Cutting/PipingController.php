@@ -164,7 +164,7 @@ class PipingController extends Controller
     public function update(Request $request) {
 
         // Check Closing 
-        $dataCheckClosing = Piping::where("id", $request->edit_id)->first();
+        $dataCheckClosing = DB::table("form_cut_piping")->where("id", $request->edit_id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
             return array(
                 "status" => 400,
@@ -304,7 +304,7 @@ class PipingController extends Controller
         if ($id) {
 
             // Check Closing 
-            $dataCheckClosing = Piping::where("id", $id)->first();
+            $dataCheckClosing = DB::table("form_cut_piping")->where("id", $id)->first();
             if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
                 return array(
                     "status" => 400,

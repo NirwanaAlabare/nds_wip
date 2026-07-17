@@ -561,7 +561,7 @@ class CuttingFormPieceController extends Controller
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,
@@ -887,7 +887,7 @@ class CuttingFormPieceController extends Controller
     {
         try {
             // Check Closing 
-            $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+            $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
             if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
                 return array(
                     "status" => 400,
@@ -984,7 +984,7 @@ class CuttingFormPieceController extends Controller
     public function updateWaktuSelesai(Request $request)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,
@@ -1029,7 +1029,7 @@ class CuttingFormPieceController extends Controller
     public function destroy(FormCutPiece $formCutPiece, $id)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutPiece::where("id", $id)->first();
+        $dataCheckClosing = DB::table("form_cut_piece")->where("id", $id)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,
@@ -1139,7 +1139,7 @@ class CuttingFormPieceController extends Controller
         try {
 
             // Check Closing 
-            $dataCheckClosing = FormCutPieceDetail::select('form_cut_piece.waktu_selesai')
+            $dataCheckClosing = DB::table("form_cut_piece_detail")->select('form_cut_piece.waktu_selesai')
                 ->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')
                 ->where("form_cut_piece_detail.id", $request->id)
                 ->first();
@@ -1282,7 +1282,7 @@ class CuttingFormPieceController extends Controller
     public function updateProcessStatus(Request $request)
     {
         // Check Closing 
-        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
                 "status" => 400,

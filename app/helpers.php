@@ -180,6 +180,10 @@ function logHistory($subjectId = null, array $properties = [])
 
 function checkClosingDate($date)
 {
+    if (empty($date)) {
+        return false;
+    }
+
     $lastClosing = DB::table('data_locks')
         ->where('is_locked', true)
         ->orderBy('end_date', 'desc')
