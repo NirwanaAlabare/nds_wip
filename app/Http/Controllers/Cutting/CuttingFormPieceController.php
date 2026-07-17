@@ -560,6 +560,16 @@ class CuttingFormPieceController extends Controller
      */
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
+        // Check Closing 
+        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         // Check Stocker
         $checkStocker = Stocker::where("form_piece_id", $request["id"])->first();
         if ($checkStocker) {
@@ -876,6 +886,16 @@ class CuttingFormPieceController extends Controller
     public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     {
         try {
+            // Check Closing 
+            $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+
             $result = $cuttingPieceService->updateFormCutPiece($request);
 
             return [
@@ -963,6 +983,16 @@ class CuttingFormPieceController extends Controller
 
     public function updateWaktuSelesai(Request $request)
     {
+        // Check Closing 
+        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $formCutPiece = FormCutPiece::where("id", $request->id)->first();
 
         if ($formCutPiece) {
@@ -998,6 +1028,16 @@ class CuttingFormPieceController extends Controller
      */
     public function destroy(FormCutPiece $formCutPiece, $id)
     {
+        // Check Closing 
+        $dataCheckClosing = FormCutPiece::where("id", $id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+        
         $stocker = Stocker::selectRaw("
                 stocker_input.id,
                 stocker_input.form_piece_id,
@@ -1097,6 +1137,20 @@ class CuttingFormPieceController extends Controller
     public function deleteDetail(Request $request, CuttingPieceService $cuttingPieceService)
     {
         try {
+
+            // Check Closing 
+            $dataCheckClosing = FormCutPieceDetail::select('form_cut_piece.waktu_selesai')
+                ->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')
+                ->where("form_cut_piece_detail.id", $request->id)
+                ->first();
+            
+            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
 
             $result = $cuttingPieceService->deleteFormCutPieceDetail($request);
 
@@ -1227,6 +1281,16 @@ class CuttingFormPieceController extends Controller
 
     public function updateProcessStatus(Request $request)
     {
+        // Check Closing 
+        $dataCheckClosing = FormCutPiece::where("id", $request->id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         DB::table('form_cut_piece')
             ->where('id', $request->id)
             ->update([

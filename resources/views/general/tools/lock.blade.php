@@ -207,6 +207,11 @@
                                 </button>
                             `;
 
+                        let deleteDisabled = row.is_locked == 1 ? "disabled" : "";
+                        let deleteTitle = row.is_locked == 1
+                            ? "Data sudah di-lock"
+                            : "Delete";
+
                         return `
                             <div class="d-flex justify-content-center gap-1">
                                 ${lockButton}
@@ -215,7 +220,8 @@
                                     class="btn btn-danger btn-sm btn-delete"
                                     data-id="${row.id}"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Delete">
+                                    data-bs-title="${deleteTitle}"
+                                    ${deleteDisabled}>
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </div>

@@ -4295,6 +4295,22 @@ class StockerController extends Controller
     public function modifySizeQty(Request $request, StockerService $stockerService) {
         ini_set('max_execution_time', 360000);
 
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
+        if (!$dataCheckClosing) {
+            $dataCheckClosing = FormCutPiece::where("id", $request->form_cut_id)
+                ->where("no_form", $request->no_form)
+                ->first();
+        }
+        
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $formCutId = $request->form_cut_id;
         $noForm = $request->no_form;
 
@@ -4608,91 +4624,108 @@ class StockerController extends Controller
     }
 
     public function separateStocker(Request $request) {
-        $validatedRequest = $request->validate([
-            "form_cut_id" => "required",
-            "no_form" => "required",
-        ]);
 
-        if ($validatedRequest) {
-
-            // DC IN check
-            $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                where("stocker_input.form_cut_id", $validatedRequest['form_cut_id'])->
-                count();
-
-            if ($dcInCount > 1) {
-                return array(
-                    "status" => 400,
-                    "message" => "Stocker Form ini sudah di scan di DC"
-                );
-            }
-
-            $result = [];
-            for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-                if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
-                    if ($request["type"] && $request["type"] == "piece") {
-                        $storeSeparateStocker = StockerSeparate::create([
-                            "form_piece_id" => $validatedRequest["form_cut_id"],
-                            "no_form" => $validatedRequest["no_form"],
-                            "so_det_id" => $request["so_det_id"][$i],
-                            "group_roll" => $request["group"][$i],
-                            "group_stocker" => $request["group_stocker"][$i],
-                            "created_by" => Auth::user()->id,
-                            "created_by_username" => Auth::user()->username,
-                        ]);
-                    } else {
-                        $storeSeparateStocker = StockerSeparate::create([
-                            "form_cut_id" => $validatedRequest["form_cut_id"],
-                            "no_form" => $validatedRequest["no_form"],
-                            "so_det_id" => $request["so_det_id"][$i],
-                            "group_roll" => $request["group"][$i],
-                            "group_stocker" => $request["group_stocker"][$i],
-                            "created_by" => Auth::user()->id,
-                            "created_by_username" => Auth::user()->username,
-                        ]);
-                    }
-
-                    $rangeAwal = $request["range_awal"][$i];
-                    if ($storeSeparateStocker) {
-                        for ($j = 0; $j < count($request["separate_qty"][$i]); $j++) {
-                            if ($storeSeparateStocker->id) {
-                                $storeSeparateStockerDetail = StockerSeparateDetail::create([
-                                    "separate_id" => $storeSeparateStocker->id,
-                                    "urutan" => $j+1,
-                                    "qty" => $request["separate_qty"][$i][$j],
-                                    "range_awal" => $rangeAwal,
-                                    "range_akhir" => $rangeAwal + ($request["separate_qty"][$i][$j] - 1),
-                                ]);
-
-                                if ($storeSeparateStockerDetail) {
-                                    $rangeAwal = $rangeAwal + ($request["separate_qty"][$i][$j] - 1) + 1;
-                                }
-
-                                array_push($result, $request["so_det_id"][$i]);
-                            }
-                        }
-                    }
-                } else {
-                    StockerSeparate::where("form_cut_id", $validatedRequest["form_cut_id"])->
-                        where("no_form", $validatedRequest["no_form"])->
-                        where("so_det_id", $request["so_det_id"][$i])->
-                        where("group_roll", $request["group"][$i])->
-                        where("group_stocker", $request["group_stocker"][$i])->
-                        delete();
-                }
-            }
-
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
+        if (!$dataCheckClosing) {
+            $dataCheckClosing = FormCutPiece::where("id", $request->form_cut_id)
+                ->where("no_form", $request->no_form)
+                ->first();
+        }
+        
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
             return array(
-                "status" => 200,
-                "message" => "Proses Selesai",
-                "data" => $result
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
             );
         }
 
-        return array(
-            "status" => 400,
-            "message" => "Proses Gagal"
-        );
+        // $validatedRequest = $request->validate([
+        //     "form_cut_id" => "required",
+        //     "no_form" => "required",
+        // ]);
+
+        // if ($validatedRequest) {
+
+        //     // DC IN check
+        //     $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+        //         where("stocker_input.form_cut_id", $validatedRequest['form_cut_id'])->
+        //         count();
+
+        //     if ($dcInCount > 1) {
+        //         return array(
+        //             "status" => 400,
+        //             "message" => "Stocker Form ini sudah di scan di DC"
+        //         );
+        //     }
+
+        //     $result = [];
+        //     for ($i = 0; $i < count($request["so_det_id"]); $i++) {
+        //         if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
+        //             if ($request["type"] && $request["type"] == "piece") {
+        //                 $storeSeparateStocker = StockerSeparate::create([
+        //                     "form_piece_id" => $validatedRequest["form_cut_id"],
+        //                     "no_form" => $validatedRequest["no_form"],
+        //                     "so_det_id" => $request["so_det_id"][$i],
+        //                     "group_roll" => $request["group"][$i],
+        //                     "group_stocker" => $request["group_stocker"][$i],
+        //                     "created_by" => Auth::user()->id,
+        //                     "created_by_username" => Auth::user()->username,
+        //                 ]);
+        //             } else {
+        //                 $storeSeparateStocker = StockerSeparate::create([
+        //                     "form_cut_id" => $validatedRequest["form_cut_id"],
+        //                     "no_form" => $validatedRequest["no_form"],
+        //                     "so_det_id" => $request["so_det_id"][$i],
+        //                     "group_roll" => $request["group"][$i],
+        //                     "group_stocker" => $request["group_stocker"][$i],
+        //                     "created_by" => Auth::user()->id,
+        //                     "created_by_username" => Auth::user()->username,
+        //                 ]);
+        //             }
+
+        //             $rangeAwal = $request["range_awal"][$i];
+        //             if ($storeSeparateStocker) {
+        //                 for ($j = 0; $j < count($request["separate_qty"][$i]); $j++) {
+        //                     if ($storeSeparateStocker->id) {
+        //                         $storeSeparateStockerDetail = StockerSeparateDetail::create([
+        //                             "separate_id" => $storeSeparateStocker->id,
+        //                             "urutan" => $j+1,
+        //                             "qty" => $request["separate_qty"][$i][$j],
+        //                             "range_awal" => $rangeAwal,
+        //                             "range_akhir" => $rangeAwal + ($request["separate_qty"][$i][$j] - 1),
+        //                         ]);
+
+        //                         if ($storeSeparateStockerDetail) {
+        //                             $rangeAwal = $rangeAwal + ($request["separate_qty"][$i][$j] - 1) + 1;
+        //                         }
+
+        //                         array_push($result, $request["so_det_id"][$i]);
+        //                     }
+        //                 }
+        //             }
+        //         } else {
+        //             StockerSeparate::where("form_cut_id", $validatedRequest["form_cut_id"])->
+        //                 where("no_form", $validatedRequest["no_form"])->
+        //                 where("so_det_id", $request["so_det_id"][$i])->
+        //                 where("group_roll", $request["group"][$i])->
+        //                 where("group_stocker", $request["group_stocker"][$i])->
+        //                 delete();
+        //         }
+        //     }
+
+        //     return array(
+        //         "status" => 200,
+        //         "message" => "Proses Selesai",
+        //         "data" => $result
+        //     );
+        // }
+
+        // return array(
+        //     "status" => 400,
+        //     "message" => "Proses Gagal"
+        // );
     }
 
     // public function printMonthCountChecked(Request $request) {
