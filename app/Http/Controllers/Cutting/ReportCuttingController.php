@@ -676,7 +676,9 @@ class ReportCuttingController extends Controller
                     style,
                     color,
                     panel,
-                    SUM(qty) qty_output,
+                    SUM(qty_awal) qty_output,
+                    SUM(qty_additional) qty_output_additional,
+                    SUM(qty_modify_size) qty_output_modify_size,
                     0 qty_manajemen
                 FROM (
                     SELECT
@@ -959,6 +961,8 @@ class ReportCuttingController extends Controller
                     color,
                     panel,
                     0 qty_output,
+                    0 qty_output_additional,
+                    0 qty_output_modify_size,
                     SUM(qty_cut) qty_manajemen
                 FROM (
                     select * from (
