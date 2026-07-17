@@ -413,6 +413,17 @@ class SpreadingController extends Controller
     }
 
     public function updateStatus(Request $request, StockerService $stockerService) {
+        
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->edit_id_status)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "edit_id_status" => "required",
             "edit_status" => "required",

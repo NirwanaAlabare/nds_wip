@@ -269,13 +269,21 @@
                 success: function(res) {
                     $('#modalEditProcessStatus').modal('hide');
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Process & Status berhasil diupdate',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                    if(res.status == 200){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Process & Status berhasil diupdate',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }else{
+                         Swal.fire({
+                            icon: 'warning',
+                            title: 'Warning',
+                            text: res.message
+                        });
+                    }
 
                     $('#cutting-piece-table').DataTable().ajax.reload(null, false);
                 },

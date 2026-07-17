@@ -243,6 +243,17 @@ class CompletedFormController extends Controller
 
     public function checkStockerForm(Request $request) {
         if ($request->id) {
+
+            // Check Closing 
+            $dataCheckClosing = FormCutInput::where("id", $request->id)->first();
+            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+
             // Check Stocker
             $stockerForm = Stocker::where('form_cut_id', $request->id)->first();
 
@@ -793,6 +804,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateDetail(Request $request, CuttingService $cuttingService) {
+
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "no_form_cut_input" => "required",
@@ -849,6 +871,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateHeader(Request $request) {
+
+        // Check Closing 
+        $dataCheckClosing = FormCutInput::where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "no_form_cut_input" => "required",
@@ -1037,19 +1070,19 @@ class CompletedFormController extends Controller
                     // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
                     $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
 
-                    $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
+                    // $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
 
-                    if (!$hasFormCutDetail) {
-                        DB::rollBack();
+                    // if (!$hasFormCutDetail) {
+                    //     DB::rollBack();
 
-                        return array(
-                            'status' => 400,
-                            'message' => 'Tidak bisa hapus roll terakhir pada form ini',
-                            'redirect' => '',
-                            'table' => 'datatable',
-                            'additional' => [],
-                        );
-                    }
+                    //     return array(
+                    //         'status' => 400,
+                    //         'message' => 'Tidak bisa hapus roll terakhir pada form ini',
+                    //         'redirect' => '',
+                    //         'table' => 'datatable',
+                    //         'additional' => [],
+                    //     );
+                    // }
 
                     DB::commit();
 

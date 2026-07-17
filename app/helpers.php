@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ActivityLogHistory;
+use Illuminate\Support\Facades\DB;
 
 function is_decimal($val)
 {
@@ -175,4 +176,18 @@ function logHistory($subjectId = null, array $properties = [])
         'properties'   => $properties,
         'user_id'      => auth()->id(),
     ]);
+}
+
+function checkClosingDate($date)
+{
+    $lastClosing = DB::table('data_locks')
+        ->where('is_locked', true)
+        ->orderBy('end_date', 'desc')
+        ->value('end_date');
+
+    if ($lastClosing && $lastClosing >= $date) {
+        return true;
+    }
+
+    return false;
 }

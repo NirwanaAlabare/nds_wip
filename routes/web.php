@@ -24,6 +24,7 @@ use App\Http\Controllers\FinishGoodReturController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\IE_Laporan_Controller;
+use App\Http\Controllers\IE_Output_Perfomance_Controller;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 use App\Http\Controllers\IEDashboardController;
 use App\Http\Controllers\IEMasterPartProcessController;
@@ -1487,6 +1488,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(IE_Laporan_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
+    });
+
+    // Industrial Engineering Output Perfomance Analyzer
+    Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+        Route::get('/IE_output_performance', 'IE_output_performance')->name('IE_output_performance');
     });
 
     // Asset Management
