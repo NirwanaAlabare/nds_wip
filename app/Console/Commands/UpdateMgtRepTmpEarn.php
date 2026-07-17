@@ -6,24 +6,24 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MasterSbWs;
-use App\Services\GeneralService;
+use App\Services\SewingService;
 use DB;
 
-class UpdateMasterSB extends Command
+class UpdateMgtRepTmpEarn extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'general:updatemastersb';
+    protected $signature = 'general:updatemgtreptmpearn';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Update Master SB WS ';
+    protected $description = 'Update Mgr Rep Tmp Earn ';
 
     /**
      * Create a new command instance.
@@ -40,16 +40,15 @@ class UpdateMasterSB extends Command
      *
      * @return int
      */
-    public function handle(GeneralService $generalService)
+    public function handle(SewingService $sewingService)
     {
-        // Update Master SB
-        $updateMasterSbWs = $generalService->updateMasterSbWs();
+        // Update Mgt Rep Tmp Earn
+        $sewingService->updateMgtRepTmpEarn();
 
         // Logging
-        Log::channel('updateMasterSb')->info([
-            "Replace New Master SB WS",
-            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-            $updateMasterSbWs
+        Log::channel('updateMgtRepTmpEarn')->info([
+            "Update MgtRepTmpEarn",
+            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System")
         ]);
     }
 }

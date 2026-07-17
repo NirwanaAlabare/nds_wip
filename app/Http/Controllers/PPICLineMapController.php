@@ -9,7 +9,39 @@ use DB;
 
 class PPICLineMapController extends Controller
 {
+    private const EDIT_ALLOWED_USERNAMES = ['eka', 'admin_01', 'nirwana_it', 'reza'];
+
+    private function canEditLineMap(): bool
+    {
+        return in_array(auth()->user()->username ?? null, self::EDIT_ALLOWED_USERNAMES);
+    }
+
     public function ppic_line_map(Request $request)
+    {
+        return view('ppic.line_map', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'page' => 'dashboard-ppic',
+                'subPageGroup' => 'asset-mesin',
+                'subPage' => 'ppic_line_map',
+                'containerFluid' => true,
+            ]
+        ));
+    }
+
+    public function ppic_line_map_live(Request $request)
+    {
+        return view('ppic.line_map_live', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'containerFluid' => true,
+                'navbar' => false,
+                'footer' => false,
+            ]
+        ));
+    }
+
+    private function buildLineMapData(Request $request): array
     {
         $line = DB::connection('mysql_sb')->select("
 select * from userpassword where username like '%line%' order by username asc");
@@ -20,6 +52,8 @@ select * from userpassword where username like '%line%' order by username asc");
             })
             ->latest('tgl_start')
             ->get();
+
+        $lastUpdated = DB::table('ppic_line_map')->max('updated_at');
 
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
 
@@ -75,6 +109,7 @@ group by product_group order by product_group"))->pluck('product_group');
                 'man_power' => $row->man_power,
                 'working_min' => $row->working_min,
                 'tgl_start' => $row->tgl_start,
+                'tgl_finish' => $row->tgl_end,
                 'ramp_up_efficiency' => $row->ramp_up_efficiency,
             ];
 
@@ -133,12 +168,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
                 });
             });
 
-        // For non-AJAX (initial page load)
-        return view('ppic.line_map', [
-            'page' => 'dashboard-ppic',
-            'subPageGroup' => 'asset-mesin',
-            'subPage' => 'ppic_line_map',
-            'containerFluid' => true,
+        return [
             'line' => $line,
             'lineMap' => $lineMap,
             'lineMapByLine' => $lineMapByLine,
@@ -149,11 +179,17 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'actualByLineDate' => $actualByLineDate,
             'filterStart' => $filterStart,
             'filterEnd' => $filterEnd,
-        ]);
+            'lastUpdated' => $lastUpdated,
+            'canEditLineMap' => $this->canEditLineMap(),
+        ];
     }
 
     public function store_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'editid' => 'nullable|integer|exists:ppic_line_map,id',
             'cboline' => 'required|string',
@@ -192,9 +228,18 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
         $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiency, $rampUpEfficiency);
 
+        $tglStart = $validated['cbodate'] ?? null;
+        $tglFinish = null;
+        if ($tglStart) {
+            $daysForFinish = $totalDays !== null ? max((int) round($totalDays), 1) : 1;
+            $workingDates = $this->workingDatesFrom($tglStart, $daysForFinish);
+            $tglFinish = !empty($workingDates) ? end($workingDates) : $tglStart;
+        }
+
         $data = [
             'line' => $validated['cboline'],
-            'tgl_start' => $validated['cbodate'] ?? null,
+            'tgl_start' => $tglStart,
+            'tgl_finish' => $tglFinish,
             'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
             'product_group' => $validated['cboproductgroup'] ?? null,
             'smv' => $smv,
@@ -239,6 +284,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function cancel_ppic_line_map($id)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         DB::table('ppic_line_map')->where('id', $id)->update([
             'cancel' => 'Y',
             'updated_at' => now(),
@@ -252,6 +301,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function preview_move_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
@@ -275,6 +328,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
     public function move_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
@@ -294,6 +351,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             foreach ($moves as $move) {
                 $update = [
                     'tgl_start' => $move['new_start'],
+                    'tgl_finish' => $move['new_end'],
                     'updated_at' => now(),
                 ];
 

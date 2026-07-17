@@ -198,6 +198,10 @@
             cursor: grabbing;
         }
 
+        .line-map-box-plan-readonly {
+            cursor: default;
+        }
+
         .line-map-box-plan .row-qty {
             color: #fff;
         }
@@ -398,6 +402,13 @@
                                         readonly tabindex="-1">
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Tgl Finish :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txttglfinish" readonly tabindex="-1">
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
@@ -428,17 +439,30 @@
     </div>
 
     <div class="card card-sb">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> PPIC Line Map</h5>
+            <a href="{{ route('ppic_line_map_live', ['tgl_dari' => $filterStart, 'tgl_sampai' => $filterEnd]) }}"
+                target="_blank" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-tv"></i> Live View
+            </a>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                    data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
-                    <i class="fas fa-plus"></i> New
-                </button>
+                @if ($canEditLineMap)
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                @else
+                    <div></div>
+                @endif
 
                 <form action="{{ route('ppic_line_map') }}" method="get" class="d-flex align-items-end gap-2">
+                    <div class="form-group mb-0">
+                        <label class="form-label mb-0 d-block">&nbsp;</label>
+                        <small class="text-muted">Last Update:
+                            {{ $lastUpdated ? date('d-m-Y H:i:s', strtotime($lastUpdated)) : '-' }}</small>
+                    </div>
                     <div class="form-group mb-0">
                         <label class="form-label mb-0">Dari Tanggal :</label>
                         <input type="date" class="form-control form-control-sm" name="tgl_dari"
@@ -527,17 +551,19 @@
                                             @endphp
                                             <div class="line-map-cell-stack">
                                                 @if ($hasPlan)
-                                                    <div class="line-map-box line-map-box-plan"
-                                                        draggable="{{ $isPlanStart ? 'true' : 'false' }}"
+                                                    <div class="line-map-box line-map-box-plan @if (!$canEditLineMap) line-map-box-plan-readonly @endif"
+                                                        draggable="{{ $canEditLineMap && $isPlanStart ? 'true' : 'false' }}"
                                                         style="--dot-color: {{ $planColor }};"
                                                         data-id="{{ $activeEntry->id }}"
                                                         data-line="{{ $activeEntry->line }}"
                                                         data-date="{{ $date->tanggal }}"
                                                         data-style="{{ $activeEntry->style }}"
                                                         data-product-group="{{ $activeEntry->product_group }}"
-                                                        title="{{ $planTitle }}" data-bs-toggle="modal"
-                                                        data-bs-target="#newLineMapModal"
-                                                        onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
+                                                        title="{{ $planTitle }}"
+                                                        @if ($canEditLineMap)
+                                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'
+                                                        @endif>
                                                         <div class="line-map-box-header">
                                                             <span
                                                                 class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
@@ -604,6 +630,7 @@
                         <tr>
                             <th>Line</th>
                             <th>Tgl Plan</th>
+                            <th>Tgl Finish</th>
                             <th>Style</th>
                             <th>Product Group</th>
                             <th>Buyer</th>
@@ -622,6 +649,7 @@
                             <tr>
                                 <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
                                 <td>{{ $row->tgl_start ? date('d-m-Y', strtotime($row->tgl_start)) : '-' }}</td>
+                                <td>{{ $row->tgl_end ? date('d-m-Y', strtotime($row->tgl_end)) : '-' }}</td>
                                 <td>{{ $row->style }}</td>
                                 <td>{{ $row->product_group }}</td>
                                 <td>{{ $row->buyer }}</td>
@@ -640,20 +668,24 @@
                                 <td>{{ $row->created_by }}</td>
                                 <td>{{ $row->updated_at ? date('d-m-Y H:i:s', strtotime($row->updated_at)) : '-' }}</td>
                                 <td class="text-nowrap">
-                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#newLineMapModal"
-                                        onclick='openEditLineMap(@json($row->edit_payload))'>
-                                        <i class="fas fa-pen"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="cancelLineMap({{ $row->id }})">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
+                                    @if ($canEditLineMap)
+                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                            onclick='openEditLineMap(@json($row->edit_payload))'>
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="cancelLineMap({{ $row->id }})">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="13" class="text-center text-muted">Belum ada data</td>
+                                <td colspan="14" class="text-center text-muted">Belum ada data</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -763,6 +795,24 @@
 
         let draggedLineMap = null;
 
+        // Safety net: while one of our plan boxes is being dragged, swallow
+        // dragover/drop on anything that ISN'T one of our own calendar cells, so a
+        // stray drop (e.g. on the "Dari Tanggal" filter input) never lets the
+        // browser handle it natively (Chrome auto-fills date inputs from dropped
+        // text). Scoped to outside-cell targets only, so it never overrides the
+        // per-cell "can't drop in the middle of a plan" logic below.
+        document.addEventListener('dragover', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'none';
+            }
+        });
+        document.addEventListener('drop', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+            }
+        });
+
         document.querySelectorAll('.line-map-box-plan[draggable="true"]').forEach((badge) => {
             badge.addEventListener('dragstart', (event) => {
                 draggedLineMap = {
@@ -774,7 +824,11 @@
                 };
 
                 event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', badge.dataset.id);
+                // Custom MIME type on purpose: 'text/plain' gets auto-consumed by
+                // native inputs (e.g. Chrome fills a stray <input type="date"> with
+                // the dragged id if the drop lands outside the calendar), causing
+                // the date filter above the table to jump to an unrelated date.
+                event.dataTransfer.setData('application/x-ppic-linemap-id', badge.dataset.id);
             });
 
             badge.addEventListener('dragend', () => {
@@ -1127,6 +1181,7 @@
             $('.select2bs4').val('').trigger('change');
             $('#rampUpContainer').empty();
             updateProductGroupInfo();
+            $('#txttglfinish').val('');
             calculateLineMap();
         }
 
@@ -1157,6 +1212,7 @@
                 addRampUpRow(Math.round(eff * 100));
             });
 
+            $('#txttglfinish').val(data.tgl_finish ? formatDateID(data.tgl_finish) : '');
             calculateLineMap();
         }
 

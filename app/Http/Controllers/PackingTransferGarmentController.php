@@ -176,6 +176,7 @@ order by isi asc");
     {
         $po = $request->cbo_po;
         $line = $request->cbo_line;
+        $user = Auth::user()->name;
 
         $data_garment = DB::select("WITH m as (
 SELECT a.po_id, a.created_by_line AS line, COUNT(*) AS qty_packing_line
@@ -191,10 +192,18 @@ g AS (
 		WHERE a.po = '$po' and line = '$line'
     GROUP BY id_ppic_master_so, line
 ),
+t AS (
+    SELECT id_ppic_master_so, line, SUM(qty_tmp_trf_garment) AS qty_trf_gmt
+    FROM packing_trf_garment_tmp
+    WHERE created_by = '$user' and line = '$line'
+    GROUP BY id_ppic_master_so, line
+),
 c AS (
     SELECT po_id as id_ppic_master_so, line, qty_packing_line AS qty_packing, 0 AS qty_trf_gmt FROM m
     UNION ALL
     SELECT id_ppic_master_so, line, 0, qty_trf_gmt FROM g
+    UNION ALL
+    SELECT id_ppic_master_so, line, 0, qty_trf_gmt FROM t
 )
 
 SELECT

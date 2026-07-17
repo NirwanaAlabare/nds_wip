@@ -244,10 +244,8 @@
 @section('content')
     <div class="container-fluid" style="background: #fff; min-height: calc(100vh - 60px);">
         <div class="catalog-container">
-            <!-- HEADER -->
             <header class="page-header">Katalog Style</header>
 
-            <!-- PENCARIAN MINIMALIS -->
             <form action="{{ route('master-marketing-catalog') }}" method="GET" class="search-wrapper">
               <button type="submit" class="search-icon-btn" title="Cari">
                 <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,23 +262,28 @@
               @endif
             </form>
 
-            <!-- GRID KATALOG BERGAYA EDITORIAL -->
             <main class="catalog-grid">
               @forelse($styles as $s)
-                  <a href="{{ route('master-marketing-catalog-detail', ['id_item' => $s->id_item]) }}" class="product-item">
+                  <a href="{{ route('master-marketing-catalog-detail', ['styleno' => urlencode($s->styleno)]) }}" class="product-item">
                     <div class="image-frame">
-                        <div class="no-image-placeholder">
-                            <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
-                            </svg>
-                            <span class="placeholder-text">No Image</span>
-                        </div>
+                        @if(!empty($s->image))
+                            <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"
+                                 alt="{{ $s->styleno }}"
+                                 style="width:100%;height:100%;object-fit:cover;"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                            <div class="no-image-placeholder" style="display:none;">
+                        @else
+                            <div class="no-image-placeholder">
+                        @endif
+                                <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
+                                </svg>
+                                <span class="placeholder-text">No Image</span>
+                            </div>
                     </div>
 
-
                     <div class="product-info">
-                      <h2 class="product-title" title="{{ $s->Styleno }}">{{ $s->Styleno ?: 'Unknown Style' }}</h2>
-                      <span class="product-id" title="{{ $s->itemname }}">{{ $s->itemname ?: '-' }}</span>
+                      <h2 class="product-title" title="{{ $s->styleno }}">{{ $s->styleno ?: 'Unknown Style' }}</h2>
                       <div class="product-spec">
                         <div class="spec-line" title="{{ $s->colors }}">
                             <span>CLR:</span>
@@ -310,6 +313,24 @@
                                 -
                             @endif
                         </div>
+                        <div class="spec-line" title="{{ $s->destinations }}">
+                            <span>DEST:</span>
+                            @if($s->destinations)
+                                @php
+                                    $destArr = array_filter(array_map('trim', explode(',', $s->destinations)));
+                                    $topDest = array_slice($destArr, 0, 2);
+                                    $destText = implode(', ', $topDest);
+                                    if(count($destArr) > 2) $destText .= ' +'.(count($destArr)-2);
+                                @endphp
+                                {{ $destText }}
+                            @else
+                                -
+                            @endif
+                        </div>
+                        <div class="spec-line" title="{{ $s->buyer_name }}">
+                            <span>BUYER:</span>
+                            {{ $s->buyer_name ?: '-' }}
+                        </div>
                       </div>
                     </div>
                   </a>
@@ -317,7 +338,6 @@
                   <div style="grid-column: 1 / -1; text-align: center; padding: 50px 0; color: #999;">
                       <i class="fas fa-box-open fa-3x mb-3"></i>
                       <h5>Belum Ada Data Master Style</h5>
-                      <p>Silakan buat Sales Order atau daftar Master Style untuk memunculkan Katalog.</p>
                   </div>
               @endforelse
             </main>

@@ -94,6 +94,7 @@
                         <th>WS</th>
                         <th>Style</th>
                         <th>Buyer</th>
+                        <th>Market</th>
                         <th>Product</th>
                         <th>Item Name</th>
                         <th>Qty</th>
@@ -389,6 +390,7 @@
                     { data: 'kpno', name: 'act.kpno' },
                     { data: 'style', name: 'so.style' },
                     { data: 'buyer', name: 'ms.Supplier' },
+                    { data: 'market', name: 'so.market' },
                     { data: 'product_group', name: 'mp.product_group' },
                     { data: 'product_item', name: 'mp.product_item' },
                     { data: 'qty', name: 'so.qty', className: 'text-right' },

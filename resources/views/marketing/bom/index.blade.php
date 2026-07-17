@@ -63,6 +63,7 @@
                         <th>Buyer</th>
                         <th>Style</th>
                         <th>Market</th>
+                        <th>WS</th>
                         <th>Total Cons</th>
                         <th>Action</th>
                     </tr>
@@ -160,6 +161,7 @@
                     { data: 'nama_buyer', className: "align-middle" },
                     { data: 'style', className: "align-middle" },
                     { data: 'market', className: "align-middle" },
+                    { data: 'kpno', className: "align-middle" },
                     {
                         data: 'total_cons',
                         className: "align-middle text-right",

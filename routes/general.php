@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker', 'stocker')->name('track-stocker');
         Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
+        Route::post('/stocker/detail/export', 'exportWsStocker')->name('track-stocker-detail-export');
     });
 
     // Worksheet
