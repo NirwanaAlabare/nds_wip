@@ -256,7 +256,7 @@ class CeisaService
     public function kirimDokumenBc27($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('dev');
+        $this->setEnv('live');
 
         $response = $this->requestWithRetry(
             'POST',
@@ -499,4 +499,97 @@ class CeisaService
             return 0;
         }
     }
+
+    public function kirimDokumenBatch40($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+        // dd($payload);
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // fungsi kirim dokumen batch BC 2.3 ke CEISA
+    public function kirimDokumenBatch23($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // fungsi kirim dokumen batch BC 2.3 ke CEISA
+    public function kirimDokumenBatch27($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    public function kirimDokumenBatch41($payload, $isFinal = 'false')
+    {
+        $this->useUserCredential();
+        $this->setEnv('dev');
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
 }

@@ -1083,7 +1083,9 @@ class SpreadingController extends Controller
                 cutting.no_form,
                 cutting.no_marker,
                 cutting.panel,
+                part.panel_status,
                 master_part.nama_part,
+                part_detail.part_status,
                 cutting.max_group,
                 cutting.group_stocker,
                 SUM(cutting.qty_awal) qty_awal,
@@ -1375,7 +1377,7 @@ class SpreadingController extends Controller
             'font-weight' => 'bold',
         ];
 
-        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'NAMA PART', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
+        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'PANEL STATUS', 'NAMA PART', 'PART STATUS', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index); // A=65, B=66, etc.
             $sheet->writeTo($col . '4', $header)
@@ -1404,7 +1406,9 @@ class SpreadingController extends Controller
                     $row->no_form ?? "-",
                     $row->no_marker ?? "-",
                     $row->panel ?? "-",
+                    $row->panel_status ?? "-",
                     $row->nama_part ?? "-",
+                    $row->part_status ?? "-",
                     $row->qty_awal ?? 0,
                     $row->qty_additional ?? 0,
                     intval($row->qty_modify_size ?? 0),
@@ -1418,11 +1422,11 @@ class SpreadingController extends Controller
 
         // Total row
         $sheet->writeTo('A' . ($rowNum), 'TOTAL', ['text-align' => 'right', 'font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->mergeCells('A' . ($rowNum) . ':N' . ($rowNum));
-        $sheet->writeTo('P' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->mergeCells('A' . ($rowNum) . ':Q' . ($rowNum));
+        $sheet->writeTo('R' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $filename = 'Laporan_pemakaian_cutting_' . $dateFrom . '_to_' . $dateTo . '.xlsx';
 

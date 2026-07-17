@@ -264,7 +264,7 @@
 
             <main class="catalog-grid">
               @forelse($styles as $s)
-                  <a href="{{ route('master-marketing-catalog-detail', ['id_item' => urlencode($s->styleno)]) }}" class="product-item">
+                  <a href="{{ route('master-marketing-catalog-detail', ['styleno' => urlencode($s->styleno)]) }}" class="product-item">
                     <div class="image-frame">
                         @if(!empty($s->image))
                             <img src="/nds_wip/public/uploads/costing/{{ $s->image }}"

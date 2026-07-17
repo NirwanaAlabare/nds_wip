@@ -133,6 +133,7 @@
                 <button class="btn btn-sm btn-outline-info" id="btn-status-periode">
                     Cek Status CEISA Periode Ini
                 </button>
+                <button id="btn-send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Batch</button>
             </div>
         </div>
 
@@ -142,6 +143,8 @@
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
                 <thead>
                     <tr>
+                        {{-- untuk checklist --}}
+                        <th></th>
                         <th>Nomor Trans</th>
                         <th>PO #</th>
                         <th>Tanggal Trans</th>
@@ -194,7 +197,7 @@
 <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 
 <script>
     let tableDokumen;
@@ -216,6 +219,27 @@
                 }
             },
             columns: [
+                {
+                    data: null,
+                    name: 'checkbox',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        let jenisBc = $('#jenis_bc').val();
+                        let jenis = $('#jenis').val();
+
+                        if(jenisBc == "BC 4.0" || jenisBc == "BC 4.1"){
+                            if(jenis == 'Pemasukan'){
+                                return '<input type="checkbox" class="select-checkbox" value="' + row.bpbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                            }else{
+                                return '<input type="checkbox" class="select-checkbox" value="' + row.bppbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                            }
+                        }else{
+                            return '';
+                        }
+                    }
+                },
                 { data: 'trx_no',      name: 'trx_no',        searchable: true },
                 { data: 'pono',        name: 'pono',          searchable: true},
                 { data: 'tanggal',     name: 'tanggal',       searchable: false },
@@ -796,7 +820,6 @@
     }
 
     function openPdfBase64(btnEl) {
-        // btnEl bisa berupa element atau string ID
         let pdfBase64 = typeof btnEl === 'string'
             ? document.querySelector(`[data-pdf][onclick*="${btnEl}"]`)?.getAttribute('data-pdf')
             : btnEl.getAttribute('data-pdf');
@@ -805,7 +828,6 @@
             Swal.fire('Error', 'Data PDF tidak tersedia.', 'error');
             return;
         }
-        // Buka di tab baru sebagai object URL
         let byteChars = atob(pdfBase64);
         let byteArr   = new Uint8Array(byteChars.length);
         for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
@@ -876,5 +898,104 @@
             }
         });
     });
+
+    $('#table-dokumen').on('change', '.select-checkbox', function() {
+        let selectedSuppliers = [];
+
+        $('.select-checkbox:checked').each(function() {
+            selectedSuppliers.push($(this).data('supplier'));
+        });
+
+        let uniqueSuppliers = [...new Set(selectedSuppliers)];
+
+        let data_aju = $(this).data('no-aju');
+        if (data_aju == '' || data_aju == null) {
+            Swal.fire('Gagal', 'Dokumen ini belum di Isi.', 'error');
+            $(this).prop('checked', false);
+            return;
+        }
+
+        if (uniqueSuppliers.length > 1) {
+            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa memilih satu pemasok yang sama.', 'error');
+            $(this).prop('checked', false);
+        }
+    });
+
+    $('#btn-send').on('click', function() {
+        let checkedBoxes = $('.select-checkbox:checked');
+
+        let selectedBpb = checkedBoxes.map(function() {
+            return $(this).val();
+        }).get();
+        if (selectedBpb.length === 0) {
+            Swal.fire('Perhatian', 'Silakan pilih satu data terlebih dahulu!', 'warning');
+            return;
+        }
+
+        console.log('ID:', selectedBpb);
+
+        sendBatch(selectedBpb);
+    });
+
+    function sendBatch(bpbs) {
+
+        let bpbListHtml = bpbs.map(bpb => `<li>${bpb}</li>`).join('');
+
+        bpbListHtml = bpbListHtml.replace(/<li>/g, '').replace(/<\/li>/g, '\n');
+
+        let jenisBc = $('#jenis_bc').val();
+
+        if(jenisBc === 'BC 4.0'){
+            Swal.fire({ title: 'Peringatan!', text: 'Kirim Batch 4.0 belum dapat di kirim', icon: 'warning' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Kirim ke CEISA?',
+            text: "Dokumen " + bpbListHtml + " akan diproses dan dikirim ke server Bea Cukai.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                Swal.fire({
+                    title: 'Memproses ke CEISA...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+
+                let actionUrl = '{{ route("dokumen-pabean-send-batch-ceisa") }}';
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        bpbs: bpbs,
+                        jenis_bc: jenisBc
+                    },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                            console.log("Response CEISA:", res.ceisa_response);
+
+                            refreshTable();
+                        } else {
+                            showErrorSwal(res);
+                        }
+                    },
+                    error: function(xhr) {
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
+                    }
+                });
+            }
+        });
+    }
 </script>
 @endsection
