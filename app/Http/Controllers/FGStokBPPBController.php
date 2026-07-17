@@ -309,6 +309,11 @@ class FGStokBPPBController extends Controller
             where lokasi = '" . $request->cbolok . "'
             group by no_carton, a.id_so_det, a.grade
             union
+            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb_scan a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->cbolok . "'
+            group by no_carton, a.id_so_det, a.grade
+            union
             select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             where lokasi = '" . $request->cbolok . "'
