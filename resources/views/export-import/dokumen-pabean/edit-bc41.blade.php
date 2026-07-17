@@ -141,11 +141,11 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">Nomor Ijin TPB</label>
-                                        <input type="text" name="entitas[tpb][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $entTpb['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}" placeholder="Nomor Ijin">
+                                        <input type="text" name="entitas[tpb][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $entTpb['nomorIjinEntitas'] ?? '' }}" placeholder="Nomor Ijin">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">Tanggal Ijin TPB</label>
-                                        <input type="date" name="entitas[tpb][tanggalIjinEntitas]" class="form-control form-control-sm" value="{{ $entTpb['tanggalIjinEntitas'] ?? '2026-01-20' }}">
+                                        <input type="date" name="entitas[tpb][tanggalIjinEntitas]" class="form-control form-control-sm" value="{{ $entTpb['tanggalIjinEntitas'] ?? '' }}">
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small mb-0">NIB</label>
@@ -548,6 +548,7 @@
                                                             <div class="form-group mb-2">
                                                                 <label>Kode Barang</label>
                                                                 <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->goods_code ?? $item->id_item ?? '-' }}">
+                                                                <input type="text" name="barang[{{ $index }}][idItem]" class="form-control form-control-sm hidden" value="{{ $item->id_item ?? '' }}">
                                                             </div>
                                                             <div class="form-group mb-2">
                                                                 <label>Uraian Barang</label>
@@ -779,7 +780,7 @@
 
 @section('custom-script')
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 <script>
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
