@@ -1981,6 +1981,17 @@ class SecondaryInController extends Controller
         $tgltrans = date('Y-m-d');
         $timestamp = Carbon::now();
 
+        // Check Closing
+        $dataCheckClosing = DB::table("secondary_in_input")->where("id_qr_stocker", $request['edit_no_stocker'])->first();
+        if (checkClosingDate($dataCheckClosing->tgl_trans)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+                "table" => "datatable-input",
+            );
+        }
+
         $validatedRequest = $request->validate([
             "edit_qtyreject" => "required"
         ]);
