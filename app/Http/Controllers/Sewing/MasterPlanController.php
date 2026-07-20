@@ -206,6 +206,16 @@ class MasterPlanController extends Controller
      */
     public function update(Request $request)
     {
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table('master_plan')->where('id', $request->edit_id)->first();
+        if (checkClosingDate($dataCheckClosing->tgl_plan)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+            );
+        }
+
         $validatedRequest = $request->validate([
             "edit_tgl_plan" => "required",
             "edit_id" => "required",
@@ -285,6 +295,16 @@ class MasterPlanController extends Controller
      */
     public function destroy($id)
     {
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table('master_plan')->where('id', $id)->first();
+        if (checkClosingDate($dataCheckClosing->tgl_plan)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+            );
+        }
+
         $dataOutput = collect(
             DB::connection("mysql_sb")->select("
                 SELECT output.* FROM (
