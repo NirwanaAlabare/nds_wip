@@ -283,7 +283,7 @@
                     <tr>
                         <td class="line-map-line-col">
                             <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
-                            @foreach (($productGroupByLine[$ln->username] ?? collect()) as $pg)
+                            @foreach ($productGroupByLine[$ln->username] ?? collect() as $pg)
                                 <div class="line-map-history-product-group">{{ $pg->product_group }}
                                     <span class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
                                 </div>
@@ -315,9 +315,7 @@
                                         ' - ' .
                                         date('d M Y', strtotime($activeEntry->tgl_end)) .
                                         ($effPct !== null
-                                            ? ' | Efisiensi: ' .
-                                                rtrim(rtrim(number_format($effPct, 1), '0'), '.') .
-                                                '%'
+                                            ? ' | Efisiensi: ' . rtrim(rtrim(number_format($effPct, 1), '0'), '.') . '%'
                                             : '')
                                     : null;
                             @endphp
@@ -337,8 +335,7 @@
                                                 </div>
                                                 <div class="line-map-box-row">
                                                     <span class="row-label">{{ $activeEntry->style }}</span>
-                                                    <span
-                                                        class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
+                                                    <span class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
                                                 </div>
                                                 @if ($activeEntry->product_group)
                                                     <div class="line-map-box-row">
@@ -354,8 +351,7 @@
                                                     <span>Aktual</span>
                                                 </div>
                                                 @foreach ($actualEntries as $actual)
-                                                    <div class="line-map-box-row line-map-box-actual-detail"
-                                                        role="button"
+                                                    <div class="line-map-box-row line-map-box-actual-detail" role="button"
                                                         onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
                                                         <span class="row-label">{{ $actual->styleno ?: '-' }}</span>
                                                         <span
@@ -428,23 +424,36 @@
         setInterval(tickLiveClock, 1000);
 
         // Auto-refresh data every 5 minutes so the live view stays up to date.
+        // Based on an absolute deadline (not a per-tick counter) because
+        // browsers throttle setInterval on hidden/background tabs, which let
+        // a tick-based countdown drift and delay the reload indefinitely.
         const REFRESH_SECONDS = 5 * 60;
-        let refreshRemaining = REFRESH_SECONDS;
+        const refreshDeadline = Date.now() + REFRESH_SECONDS * 1000;
+        let refreshTriggered = false;
 
         function tickRefreshCountdown() {
-            const el = document.getElementById('refreshCountdown');
-            if (!el) return;
-            const minutes = String(Math.floor(refreshRemaining / 60)).padStart(2, '0');
-            const seconds = String(refreshRemaining % 60).padStart(2, '0');
-            el.textContent = `${minutes}:${seconds}`;
+            if (refreshTriggered) return;
 
-            if (refreshRemaining <= 0) {
+            const el = document.getElementById('refreshCountdown');
+            const remaining = Math.round((refreshDeadline - Date.now()) / 1000);
+
+            if (remaining <= 0) {
+                refreshTriggered = true;
+                clearInterval(refreshIntervalId);
                 window.location.reload();
                 return;
             }
-            refreshRemaining--;
+
+            if (el) {
+                const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
+                const seconds = String(remaining % 60).padStart(2, '0');
+                el.textContent = `${minutes}:${seconds}`;
+            }
         }
         tickRefreshCountdown();
-        setInterval(tickRefreshCountdown, 1000);
+        const refreshIntervalId = setInterval(tickRefreshCountdown, 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) tickRefreshCountdown();
+        });
     </script>
 @endsection
