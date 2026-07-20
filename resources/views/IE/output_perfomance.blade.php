@@ -77,24 +77,56 @@
 
 @section('content')
     @php
-        $first = $data[0] ?? null;
-        $bestLine = $first->username ?? '-';
-        $bestOutput = $first->tot_rfts ?? 0;
-        $manPower = $first->man_power ?? 0;
-        $smv = $first->smv ?? 0;
-        // Estimasi efficiency berdasarkan SMV, asumsi 480 menit kerja/hari
-        $bestEfficiency = $manPower > 0 ? round((($bestOutput * $smv) / ($manPower * 480)) * 100, 1) : 0;
-        $outputPerPerson = $manPower > 0 ? round($bestOutput / $manPower, 1) : 0;
+        // Cari baris top_rfts & top_eff dari $data
+        $topRftRow = null;
+        $topEffRow = null;
+        foreach ($data as $row) {
+            if ($row->top_rfts === 'Y') {
+                $topRftRow = $row;
+            }
+            if ($row->top_eff === 'Y') {
+                $topEffRow = $row;
+            }
+        }
+        $sameLine = $topRftRow && $topEffRow && $topRftRow->sewing_line === $topEffRow->sewing_line;
 
-        // Susun data chart per line dari $chartData (semua line untuk style ini)
+        $first = $topRftRow ?? ($data[0] ?? null);
+        $bestLine = $first->sewing_line ?? '-';
+        $bestOutput = $first->tot_rfts ?? 0;
+        $smv = $first->smv ?? 0;
+
+        $effRow = $topEffRow ?? $first;
+        $bestEfficiency = $effRow->eff ?? 0;
+        $manPower = $effRow->man_power ?? 0;
+
+        $firstManPower = $first->man_power ?? 0;
+        $outputPerPerson = $firstManPower > 0 ? round($bestOutput / $firstManPower, 1) : 0;
+
+        $fmtLineDate = function ($row) {
+            if (!$row) {
+                return ['line' => '-', 'date' => '-'];
+            }
+            $tgl = isset($row->tgl_trans)
+                ? \Carbon\Carbon::parse($row->tgl_trans)->locale('id')->isoFormat('dddd, DD-MM-YYYY')
+                : '-';
+            return ['line' => $row->sewing_line ?? '-', 'date' => $tgl];
+        };
+
+        // Susun data chart Top RFT (kiri) vs Top Efficiency (kanan) dari $data
+
         $chartLines = [];
-        foreach ($chartData as $row) {
-            $lineLabel = $row->username ?: ('Line ' . $row->master_plan_id);
-            $eff = $row->man_power > 0 ? round((($row->tot_rfts * $row->smv) / ($row->man_power * 480)) * 100, 1) : 0;
+        if ($topRftRow) {
             $chartLines[] = [
-                'label' => $lineLabel,
-                'output' => (int) $row->tot_rfts,
-                'efficiency' => $eff,
+                'label' => $topRftRow->sewing_line,
+                'output' => (int) $topRftRow->tot_rfts,
+                'efficiency' => (float) $topRftRow->eff,
+            ];
+        }
+        if ($topEffRow && !$sameLine) {
+            $chartLines[] = [
+                'label' => $topEffRow->sewing_line,
+                'output' => (int) $topEffRow->tot_rfts,
+                'efficiency' => (float) $topEffRow->eff,
             ];
         }
     @endphp
@@ -110,16 +142,10 @@
                 <div class="row align-items-end mb-4">
                     <div class="col-12 col-md-5">
                         <label class="fw-bold mb-1" style="font-size:.8rem;">Cari Style</label>
-                        <input type="text" name="styleno" id="styleno" class="form-control"
-                            placeholder="Ketik style, contoh: GP016433" value="{{ $styleno }}">
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <label class="fw-bold mb-1" style="font-size:.8rem;">Urutkan Berdasarkan</label>
-                        <select name="sort_by" id="sort_by" class="form-control select2bs4 w-100" style="width: 100%;">
-                            <option value="overall_score" selected>Overall Score</option>
-                            <option value="output">Output</option>
-                            <option value="efficiency">Efficiency</option>
-                            <option value="output_per_person">Output / Person</option>
+                        <select name="styleno" id="styleno" class="select2bs4" style="width:100%">
+                            @if ($styleno)
+                                <option value="{{ $styleno }}" selected>{{ $styleno }}</option>
+                            @endif
                         </select>
                     </div>
                     <div class="col-12 col-md-3 mt-3 mt-md-0">
@@ -135,48 +161,71 @@
                     <div class="oppa-stat-card">
                         <div class="oppa-stat-label">Best Line</div>
                         <div class="oppa-stat-value text-success">{{ $bestLine }}</div>
-                        <div class="oppa-stat-sub">{{ $first->tgl_trans ?? '-' }}</div>
+                        @php($d = $fmtLineDate($first))
+                        <div class="oppa-stat-sub">
+                            {{ $d['line'] }}<br>{{ $d['date'] }}
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg mb-3">
                     <div class="oppa-stat-card">
                         <div class="oppa-stat-label">Best Output</div>
                         <div class="oppa-stat-value">{{ number_format($bestOutput) }}</div>
-                        <div class="oppa-stat-sub">pcs / day</div>
+                        @php($d = $fmtLineDate($first))
+                        <div class="oppa-stat-sub">
+                            pcs / day<br>{{ $d['line'] }}<br>{{ $d['date'] }}
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg mb-3">
                     <div class="oppa-stat-card">
                         <div class="oppa-stat-label">Best Efficiency</div>
                         <div class="oppa-stat-value">{{ $bestEfficiency }}%</div>
-                        <div class="oppa-stat-sub">berdasarkan SMV &amp; manpower</div>
+                        @php($d = $fmtLineDate($effRow))
+                        <div class="oppa-stat-sub">
+                            {{ $d['line'] }}<br>{{ $d['date'] }}
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg mb-3">
                     <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Manpower Best Line</div>
+                        <div class="oppa-stat-label">Manpower Best Efficiency</div>
                         <div class="oppa-stat-value">{{ $manPower }}</div>
-                        <div class="oppa-stat-sub">operator</div>
+                        @php($d = $fmtLineDate($effRow))
+                        <div class="oppa-stat-sub">
+                            operator<br>{{ $d['line'] }}<br>{{ $d['date'] }}
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg mb-3">
                     <div class="oppa-stat-card">
                         <div class="oppa-stat-label">Output / Person</div>
                         <div class="oppa-stat-value">{{ $outputPerPerson }}</div>
-                        <div class="oppa-stat-sub">pcs / person / day</div>
+                        @php($d = $fmtLineDate($first))
+                        <div class="oppa-stat-sub">
+                            pcs / person / day<br>{{ $d['line'] }}<br>{{ $d['date'] }}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- <div class="card">
+            <div class="card">
                 <div class="card-header">
-                    <h6 class="fw-bold mb-0">Perbandingan Output dan Efficiency per Line</h6>
+                    <h6 class="fw-bold mb-0">Top RFT vs Top Efficiency Line</h6>
                 </div>
                 <div class="card-body">
-                    <div id="oppaChart"></div>
-                    <small class="text-muted">Overall score menggabungkan output, efficiency, dan output/person.</small>
+                    @if (count($chartLines) > 0)
+                        <div id="oppaChart"></div>
+                        <small class="text-muted">Kiri: total RFT (tot rft) | Kanan: efficiency (%). Jika line dengan tot
+                            rft tertinggi sama dengan line efficiency tertinggi, hanya tampil 1 bar.</small>
+                    @else
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <div>Belum ada data. Silakan cari style terlebih dahulu.</div>
+                        </div>
+                    @endif
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
 @endsection
@@ -204,10 +253,34 @@
         $('.select2').select2();
 
         // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
+        $('.select2bs4').not('#styleno').select2({
             theme: 'bootstrap4',
             width: 'resolve' // Ensures it respects the 100% width from inline style or Bootstrap
         });
+
+        // Select2BS4 dengan AJAX suggest untuk Cari Style
+        $('#styleno').select2({
+            theme: 'bootstrap4',
+            width: 'resolve',
+            placeholder: 'Ketik style, contoh: GP016433',
+            minimumInputLength: 2,
+            allowClear: true,
+            ajax: {
+                url: '{{ route('IE_output_performance_styleno_suggest') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function(data) {
+                    return data;
+                },
+                cache: true
+            }
+        });
+
         // Now set height and font-size on the Select2 container after init
         $('.select2-container--bootstrap4 .select2-selection--single').css({
             'height': '30px', // your desired height
@@ -219,7 +292,14 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        /* Chart: Output (bar) vs Efficiency (line) per line
+        // Bersihkan query string (?styleno=...) dari address bar setelah hasil tampil,
+        // supaya kalau halaman di-refresh (F5), dashboard & card kembali kosong.
+        if (window.location.search) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Chart: Tot RFT (bar, kiri) vs Efficiency (line, kanan) - top_rft & top_eff line
+        if (document.querySelector('#oppaChart')) {
         var oppaCategories = @json(array_column($chartLines, 'label'));
         var oppaOutput = @json(array_column($chartLines, 'output'));
         var oppaEfficiency = @json(array_column($chartLines, 'efficiency'));
@@ -233,12 +313,12 @@
                 }
             },
             series: [{
-                    name: 'Output (pcs)',
+                    name: 'tot rft',
                     type: 'column',
                     data: oppaOutput
                 },
                 {
-                    name: 'Efficiency (%)',
+                    name: 'eff (%)',
                     type: 'line',
                     data: oppaEfficiency
                 }
@@ -246,7 +326,7 @@
             stroke: {
                 width: [0, 3]
             },
-            colors: ['#90caf9', '#e83e8c'],
+            colors: ['#0d6efd', '#0b1f4d'],
             plotOptions: {
                 bar: {
                     columnWidth: '45%'
@@ -257,13 +337,13 @@
             },
             yaxis: [{
                     title: {
-                        text: 'Output'
+                        text: 'tot rft'
                     }
                 },
                 {
                     opposite: true,
                     title: {
-                        text: 'Efficiency %'
+                        text: 'eff (%)'
                     }
                 }
             ],
@@ -274,6 +354,6 @@
 
         var oppaChart = new ApexCharts(document.querySelector('#oppaChart'), oppaChartOptions);
         oppaChart.render();
-        */
+        }
     </script>
 @endsection
