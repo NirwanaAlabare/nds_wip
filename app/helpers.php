@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\ActivityLogHistory;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 function is_decimal($val)
 {
@@ -175,4 +177,34 @@ function logHistory($subjectId = null, array $properties = [])
         'properties'   => $properties,
         'user_id'      => auth()->id(),
     ]);
+}
+
+function checkClosingDate($date)
+{
+    if (empty($date)) {
+        return false;
+    }
+
+    $lastClosing = DB::table('data_locks')
+        ->where('is_locked', true)
+        ->orderBy('end_date', 'desc')
+        ->value('end_date');
+
+    if ($lastClosing && $lastClosing >= $date) {
+        return true;
+    }
+
+    return false;
+}
+
+function periodeClosing()
+{
+    $lastClosing = DB::table('data_locks')
+        ->where('is_locked', true)
+        ->orderBy('end_date', 'desc')
+        ->value('end_date');
+
+    return $lastClosing
+        ? Carbon::parse($lastClosing)->translatedFormat('d F Y')
+        : '-';
 }

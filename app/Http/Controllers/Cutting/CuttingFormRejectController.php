@@ -227,6 +227,16 @@ class CuttingFormRejectController extends Controller
      */
     public function update(Request $request, FormCutReject $formCutReject)
     {
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_reject")->where("id", $request->id)->first();
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "no_form" => "required",
@@ -422,6 +432,16 @@ class CuttingFormRejectController extends Controller
      */
     public function destroy(FormCutReject $formCutReject, $id)
     {
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_reject")->where("id", $id)->first();
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $stocker = Stocker::selectRaw("
                 stocker_input.id,
                 stocker_input.form_reject_id,

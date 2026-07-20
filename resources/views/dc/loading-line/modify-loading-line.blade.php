@@ -249,7 +249,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            html: 'Terjadi Kesalahan',
+                            html: response.message || 'Terjadi Kesalahan',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -297,7 +297,7 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    html: 'Terjadi Kesalahan',
+                                    html: response.message || 'Terjadi Kesalahan',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
