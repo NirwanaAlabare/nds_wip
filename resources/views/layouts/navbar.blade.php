@@ -1467,6 +1467,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Recap CM Price
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('IE_output_performance') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-laporan-output-performance' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Output Perfomance Analyze
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

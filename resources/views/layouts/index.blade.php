@@ -142,10 +142,15 @@
         <!-- Footer -->
         @if ($footer)
             <footer class="main-footer">
+                <span class="float-right text-muted">
+                    Periode Closing : {{ periodeClosing() }}
+                </span>
+
                 <strong>
                     <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
                         Nirwana Digital Solution
-                    </a> &copy; {{ date('Y') }}
+                    </a>
+                    &copy; {{ date('Y') }}
                 </strong>
             </footer>
         @endif

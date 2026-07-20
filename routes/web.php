@@ -24,6 +24,7 @@ use App\Http\Controllers\FinishGoodReturController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\IE_Laporan_Controller;
+use App\Http\Controllers\IE_Output_Perfomance_Controller;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 use App\Http\Controllers\IEDashboardController;
 use App\Http\Controllers\IEMasterPartProcessController;
@@ -1489,6 +1490,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
 
+    // Industrial Engineering Output Perfomance Analyzer
+    Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+        Route::get('/IE_output_performance', 'IE_output_performance')->name('IE_output_performance');
+        Route::get('/IE_output_performance_styleno_suggest', 'styleno_suggest')->name('IE_output_performance_styleno_suggest');
+    });
+
     // Asset Management
     // Dashboard
     Route::controller(AssetDashboardController::class)->middleware('role:asset')->group(function () {
@@ -1674,6 +1681,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/sync-bcno/{noAju}', 'syncBcNo')->name('dokumen-pabean-sync-bcno')->where('noAju', '.*');
         Route::post('/send-batch-ceisa', 'sendBatchCeisa')->name('dokumen-pabean-send-batch-ceisa');
 
+        // BC 4.0 routes
+
+        Route::get('/dokumen-pabean/edit-batch-bc40/{ids}','editBatchBc40')->name('dokumen-pabean-edit-batch-bc40');
+        Route::put('/dokumen-pabean/update-draft-batch-bc40/{ids}','updateDraftBatchBc40')->name('dokumen-pabean-update_draft_batch_bc40');
+
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
         Route::put('/update-draft-bc23/{id}', 'updateDraftBc23')->name('dokumen-pabean-update_draft_bc23')->where('id', '.*');
@@ -1698,6 +1710,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
         Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc41/{ids}','editBatchBc41')->name('dokumen-pabean-edit-batch-bc41');
+        Route::put('/dokumen-pabean/update-draft-batch-bc41/{ids}','updateDraftBatchBc41')->name('dokumen-pabean-update_draft_batch_bc41');
 
 
         // BC 2.5 routes

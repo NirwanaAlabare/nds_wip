@@ -1443,6 +1443,8 @@ class DokumenPabeanController extends Controller
                 $pungutan['nilai'] = (float) $pungutan['nilai'];
             }
 
+            // dd($request->input('entitas', []));
+
             $payloadJson = [
                 'kodeKantor'         => $request->input('kodeKantor', '050500'),
                 'jenisTpb'          => $request->input('jenisTPB', '1'),
@@ -2053,6 +2055,45 @@ class DokumenPabeanController extends Controller
     public function sendCeisaBc25($id, Request $request)
     {
         return app(\App\Services\Bc25Service::class)->sendCeisa($id, $request);
+    }
+
+    public function sendBatchCeisa(Request $request)
+    {
+        $db = DB::connection('mysql_sb');
+        $bpbs = $request->input('bpbs');
+        $jenisBc = $request->input('jenis_bc', 'BC 4.0');
+
+        if($jenisBc == 'BC 4.0') {
+            return app(\App\Services\Bc40Service::class)->sendCeisaBatch40($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.3') {
+            return app(\App\Services\Bc23Service::class)->sendCeisaBatch23($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.7'){
+             return app(\App\Services\Bc27Service::class)->sendCeisaBatch27($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 3.0'){
+            return app(\App\Services\Bc30Service::class)->sendCeisaBatch30($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 4.1'){
+            return app(\App\Services\Bc41Service::class)->sendCeisaBatch41($bpbs, $request);
+        }
+    }
+
+    private function updateHeaderPungutan(&$headerPungutan, $jenis, $fasilitas, $nilai) {
+        $key = $jenis . '_' . $fasilitas;
+        if (!isset($headerPungutan[$key])) {
+            $headerPungutan[$key] = [
+                "kodeFasilitasTarif" => $fasilitas,
+                "kodeJenisPungutan"  => $jenis,
+                "nilaiPungutan"      => 0
+            ];
+        }
+        $headerPungutan[$key]["nilaiPungutan"] += $nilai;
     }
 }
 

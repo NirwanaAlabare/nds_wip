@@ -1699,6 +1699,23 @@ class LoadingLineController extends Controller
     public function modifyLoadingLineUpdate(Request $request) {
         $stockerIds = addQuotesAround($request->stockerIds);
 
+        // Check Closing
+        $dataCheckClosing = DB::table("loading_line")
+            ->selectRaw("loading_line.*")
+            ->leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")
+            ->whereRaw("stocker_input.id_qr_stocker in (" . $stockerIds . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal_loading)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+
         $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
 
         $allLoadingLineIds = [];
@@ -1794,6 +1811,23 @@ class LoadingLineController extends Controller
 
     public function modifyLoadingLineDelete(Request $request) {
         $stockerIds = addQuotesAround($request->stockerIds);
+
+        // Check Closing
+        $dataCheckClosing = DB::table("loading_line")
+            ->selectRaw("loading_line.*")
+            ->leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")
+            ->whereRaw("stocker_input.id_qr_stocker in (" . $stockerIds . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal_loading)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
 
         $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
 
