@@ -46,6 +46,9 @@ class PPICLineMapController extends Controller
         $line = DB::connection('mysql_sb')->select("
 select * from userpassword where username like '%line%' order by username asc");
 
+        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
+        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
+
         $lineMap = DB::table('ppic_line_map')
             ->where(function ($q) {
                 $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
@@ -118,8 +121,9 @@ group by product_group order by product_group"))->pluck('product_group');
 
         $lineMapByLine = $lineMap->groupBy('line');
 
-        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
-        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
+        $lineMapList = $lineMap
+            ->filter(fn($row) => $row->tgl_start <= $filterEnd && $row->tgl_end >= $filterStart)
+            ->values();
 
         $calendarStart = $filterStart . ' 00:00:00';
         $calendarEnd = $filterEnd . ' 23:59:59';
@@ -170,7 +174,7 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
         return [
             'line' => $line,
-            'lineMap' => $lineMap,
+            'lineMap' => $lineMapList,
             'lineMapByLine' => $lineMapByLine,
             'lineNameByUsername' => $lineNameByUsername,
             'productGroupByLine' => $productGroupByLine,
