@@ -20,6 +20,17 @@
         <div class="card-body">
             <form action="{{ route('store-rack') }}" method="post" onsubmit="submitRackForm(this, event)">
                 <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex">
+                            <div class="mb-3">
+                                <label class="form-label">Rack</label>
+                                <select class="form-select" id="type" name="type" onchange="buildRackTable()">
+                                    <option value="single">Single</option>
+                                    <option value="multi">Multi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-6">
                         <div class="mb-3">
                             <label>Nama Rak</label>
@@ -39,12 +50,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="rack-table">
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
+                <table class="table table-bordered" id="rack-table">
+                    <tbody>
+                    </tbody>
+                </table>
                 <button type="submit" class="btn btn-sb btn-block">Simpan</button>
             </form>
         </div>
@@ -61,7 +70,7 @@
     <script>
         $(document).ready(() => {
             document.getElementById('nama_rak').value = "";
-            document.getElementById('jumlah_baris').value = 1;
+            document.getElementById('jumlah_baris').value = 0;
             document.getElementById('jumlah_ruang').value = 0;
         });
 
@@ -73,6 +82,18 @@
         }
 
         function buildRackTable() {
+            clearRackTable();
+
+            let type = document.getElementById('type').value;
+
+            if (type == "single") {
+                buildRackTableSingle();
+            } else if (type == "multi") {
+                buildRackTableMulti();
+            }
+        }
+
+        function buildRackTableSingle() {
             let rackName = document.getElementById('nama_rak').value;
             let rackRow = document.getElementById('jumlah_baris').value;
             let rackNumber = document.getElementById('jumlah_ruang').value;
@@ -103,6 +124,37 @@
                     }
 
                     currentNumber += Number(rackNumber);
+                }
+            }
+        }
+
+        function buildRackTableMulti() {
+            let rackName = document.getElementById('nama_rak').value;
+            let rackRow = document.getElementById('jumlah_baris').value;
+            let rackNumber = document.getElementById('jumlah_ruang').value;
+            let rackTable = document.getElementById('rack-table');
+            let rackTableTbody = rackTable.getElementsByTagName("tbody")[0];
+
+            rackTableTbody.innerHTML = "";
+
+            if (rackRow > 0 && rackNumber > 0) {
+                for (let n = 0; n < rackRow; n++) {
+                    let tr1 = document.createElement('tr');
+                    let tr2 = document.createElement('tr');
+
+                    for (let i = 0; i < rackNumber; i++) {
+                        let th1 = document.createElement('th');
+                        let th2 = document.createElement('th');
+
+                        th1.innerHTML = rackName+'.'+(n+1)+'.'+(i+1);
+                        th2.innerHTML = "&nbsp;";
+
+                        tr1.appendChild(th1);
+                        tr2.appendChild(th2);
+
+                        rackTableTbody.appendChild(tr1);
+                        rackTableTbody.appendChild(tr2);
+                    }
                 }
             }
         }
