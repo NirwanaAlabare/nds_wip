@@ -349,6 +349,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/approve-material', 'approvematerial')->name('approve-material');
         Route::post('/print-barcode-inmaterial/{id?}', 'barcodeinmaterial')->name('print-barcode-inmaterial');
         Route::post('/print-pdf-inmaterial/{id?}', 'pdfinmaterial')->name('print-pdf-inmaterial');
+        Route::get('/pdfbpb/{id?}', 'pdfinmaterial')->name('pdfbpb-inmaterial');
         Route::get('/upload-lokasi/{id?}', 'UploadLokasi')->name('upload-lokasi');
         Route::get('/data-upload-lokasi', 'DataUploadLokasi')->name('data-upload-lokasi');
         Route::get('/delete-upload', 'DeleteDataUpload')->name('delete-upload');
@@ -371,7 +372,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/sum-detail', 'sumdetail')->name('get-sum-req');
         Route::get('/get-style-actual', 'getStyleAct')->name('get-style-actual');
         Route::post('/store', 'store')->name('store-reqmaterial-fabric');
-        Route::post('/print-pdf-reqmaterial/{bppbno?}', 'pdfreqmaterial')->name('print-pdf-reqmaterial');
+        Route::get('/print-pdf-reqmaterial/{bppbno?}', 'pdfreqmaterial')->name('print-pdf-reqmaterial');
         Route::get('/edit-request/{id?}', 'editrequest')->name('edit-reqmaterial');
         Route::get('/update-req-fabric', 'updateReq')->name('update-reqmaterial-fabric');
         Route::get('/cancel-request', 'CancelRequest')->name('cancel-request');
@@ -390,7 +391,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-scan', 'saveoutscan')->name('save-out-scan');
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
         Route::post('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
-        Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
+        Route::get('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
         Route::get('/edit-out-material/{id?}', 'editoutmaterial')->name('edit-out-material');
@@ -419,6 +420,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/delete-mut-temp', 'deletemuttemp')->name('delete-mut-temp');
         Route::get('/delete-mut-temp-all', 'deletemuttempall')->name('delete-mut-temp-all');
         Route::get('/update_lokasi-mut-temp', 'updatelokasimuttemp')->name('update_lokasi-mut-temp');
+        Route::get('/update-row-lokasi-mut-temp', 'updateRowLokasiMutTemp')->name('update-row-lokasi-mut-temp');
         Route::post('/store_new', 'store_new')->name('save-mutasi-rak-fabric');
     });
 
@@ -465,11 +467,14 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReturInMaterialController::class)->prefix("retur-inmaterial")->middleware('retur-inmaterial')->group(function () {
         Route::get('/', 'index')->name('retur-inmaterial');
         Route::get('/create', 'create')->name('create-retur-inmaterial');
+        Route::get('/edit/{id?}', 'editRetur')->name('edit-retur-inmaterial');
         Route::get('/get-no-bppb', 'getNobppb')->name('get-no-bppb');
         Route::get('/get-tujuan-pemasukan', 'getTujuan')->name('get-tujuan-pemasukan');
         Route::get('/get-supplier-ri', 'getSuppri')->name('get-supplier-ri');
         Route::get('/get-list-bppb', 'getListBppb')->name('get-list-bppb');
+        Route::get('/get-list-bppb-edit', 'getListBppbEdit')->name('get-list-bppb-edit');
         Route::post('/store', 'store')->name('store-retur-inmaterial-fabric');
+        Route::post('/update', 'updateRetur')->name('update-retur-inmaterial-fabric');
         Route::post('/store-new', 'storeNew')->name('store-retur-inmaterial-fabric-new');
         Route::get('/lokasi-retur-material/{id?}', 'lokreturmaterial')->name('lokasi-retur-inmaterial');
         Route::post('/save-lokasi-retur', 'savelokasiretur')->name('save-lokasi-retur');
@@ -494,6 +499,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete-barcode-ri-temp-row', 'deleteBarcodeRiTempRow')->name('delete-barcode-ri-temp-row');
         Route::post('/delete-barcode-ri-temp-group', 'deleteBarcodeRiTempGroup')->name('delete-barcode-ri-temp-group');
         Route::post('/clear-barcode-ri-temp', 'clearBarcodeRiTemp')->name('clear-barcode-ri-temp');
+        Route::get('/edit-ri-barcode/{id?}', 'editRiBarcode')->name('edit-retur-inmaterial-barcode');
+        Route::post('/update-ri-barcode', 'updateRiBarcode')->name('update-retur-inmaterial-barcode');
     });
 
     //qc pass
