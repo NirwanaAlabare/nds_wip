@@ -133,7 +133,10 @@
                 <button class="btn btn-sm btn-outline-info" id="btn-status-periode">
                     Cek Status CEISA Periode Ini
                 </button>
-                <button id="btn-send" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Batch</button>
+                {{-- <button id="btn-send" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Send Batch</button> --}}
+                <button id="btn-buat-batch" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-buat-batch">
+                    <i class="fas fa-layer-group"></i> Buat Batch Dokumen Pabean
+                </button>
             </div>
         </div>
 
@@ -191,6 +194,91 @@
     </div>
 </div>
 
+{{-- Modal Buat Batch --}}
+<div class="modal fade" id="modal-buat-batch" tabindex="-1" role="dialog" aria-labelledby="modalBuatBatchLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white" style="border-radius: 8px 8px 0 0;">
+                <h5 class="modal-title font-weight-bold" id="modalBuatBatchLabel">
+                    <i class="fas fa-layer-group mr-2"></i> Buat Batch Dokumen Pabean
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Jenis Transaksi</label>
+                        <select id="jenis_modal" class="form-control form-control-sm select2bs4">
+                            <option value="Pemasukan" {{ $jenis == 'Pemasukan' ? 'selected' : '' }}>Pemasukan</option>
+                            <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Tipe BC</label>
+                        <select id="jenis_bc_modal" class="form-control form-control-sm select2bs4">
+                            <option value="" {{ $jenis_bc == '' ? 'selected' : '' }}>Semua Tipe</option>
+                            <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
+                            <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
+                            <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
+                            <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
+                            <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
+                            <option value="BC 2.6.1" {{ $jenis_bc == 'BC 2.6.1' ? 'selected' : '' }}>BC 2.6.1</option>
+                            <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
+                            <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
+                            <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
+                            <option value="INHOUSE" {{ $jenis_bc == 'INHOUSE' ? 'selected' : '' }}>INHOUSE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Dari Tanggal</label>
+                        <!-- Menggunakan ID baru khusus modal -->
+                        <input type="date" id="modal_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Sampai Tanggal</label>
+                        <input type="date" id="modal_tanggal_akhir" class="form-control form-control-sm" value="{{ $tgl_akhir }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small fw-bold">Supplier</label>
+                        <select id="filter_supplier_batch" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                            <option value="">-- Semua Supplier --</option>
+                            @foreach($suppliers as $sup)
+                                <option value="{{ $sup->Id_Supplier }}">{{ $sup->Supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-modal-batch">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="check-all-batch"></th>
+                                <th>Nomor Trans</th>
+                                <th>PO #</th>
+                                <th>Tanggal Trans</th>
+                                <th>Pemasok</th>
+                                <th>No. Invoice</th>
+                                <th>Jenis BC</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success btn-sm" id="btn-proses-buat-batch">
+                    <i class="fas fa-save"></i> Proses Batch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('custom-script')
@@ -207,7 +295,7 @@
 
         tableDokumen = $('#table-dokumen').DataTable({
             processing: true,
-            serverSide: true,
+            serverSide: false,
             ajax: {
                 url: '{{ route("dokumen-pabean-index") }}',
                 data: function (d) {
@@ -226,21 +314,31 @@
                     searchable: false,
                     className: 'text-center',
                     render: function (data, type, row, meta) {
-                        let jenisBc = $('#jenis_bc').val();
-                        let jenis = $('#jenis').val();
+                        // let jenisBc = $('#jenis_bc').val();
+                        // let jenis = $('#jenis').val();
 
-                        if(jenisBc == "BC 4.0" || jenisBc == "BC 4.1"){
-                            if(jenis == 'Pemasukan'){
-                                return '<input type="checkbox" class="select-checkbox" value="' + row.bpbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
-                            }else{
-                                return '<input type="checkbox" class="select-checkbox" value="' + row.bppbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
-                            }
-                        }else{
-                            return '';
-                        }
+                        // if(jenisBc == "BC 4.0" || jenisBc == "BC 4.1"){
+                        //     if(jenis == 'Pemasukan'){
+                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bpbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                        //     }else{
+                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bppbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                        //     }
+                        // }else{
+                        //     return '';
+                        // }
+                        return '';
                     }
                 },
-                { data: 'trx_no',      name: 'trx_no',        searchable: true },
+                {
+                    data: null,
+                    name: 'trx_no',
+                    searchable: true,
+                    render: function (data, type, row) {
+                        let jenis = $('#jenis').val();
+                        let nomor = (jenis === 'Pemasukan') ? (row.bpbno ?? '-') : (row.bppbno ?? '-');
+                        return nomor;
+                    }
+                },
                 { data: 'pono',        name: 'pono',          searchable: true},
                 { data: 'tanggal',     name: 'tanggal',       searchable: false },
                 { data: 'supplier',    name: 'ms.supplier',   searchable: true },
@@ -997,5 +1095,210 @@
             }
         });
     }
+
+    // modal batch
+    // ============================================================
+    // FITUR MODAL BUAT BATCH DOKUMEN
+    // ============================================================
+    let tableModalBatch;
+
+    $('#modal-buat-batch').on('shown.bs.modal', function () {
+        $('#check-all-batch').prop('checked', false);
+
+        $('#filter_supplier_batch').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modal-buat-batch')
+        });
+
+        if (!tableModalBatch) {
+            tableModalBatch = $('#table-modal-batch').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: '{{ route("dokumen-pabean-index") }}',
+                    data: function (d) {
+                        d.jenis         = $('#jenis_modal').val();
+                        d.jenis_bc      = $('#jenis_bc_modal').val();
+                        d.tanggal_awal   = $('#modal_tanggal_awal').val();
+                        d.tanggal_akhir  = $('#modal_tanggal_akhir').val();
+                        d.status_ceisa  = 'unsent';
+                        d.supplier_batch = $('#filter_supplier_batch').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            let jenis = $('#jenis_modal').val();
+                            let valId = (jenis == 'Pemasukan') ? row.bpbno : row.bppbno;
+                            let jenisBc = $('#jenis_bc_modal').val();
+
+                            if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1'){
+                                return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
+                            }else{
+                                return '';
+                            }
+                        }
+                    },
+                    { data: 'trx_no',    name: 'trx_no' },
+                    { data: 'pono',      name: 'pono', defaultContent: '-' },
+                    { data: 'tanggal',   name: 'tanggal' },
+                    { data: 'supplier',  name: 'ms.supplier' },
+                    { data: 'invno',     name: 'invno', defaultContent: '-' },
+                    { data: 'jenis_dok', name: 'jenis_dok', defaultContent: '-' }
+                ]
+            });
+        } else {
+            tableModalBatch.ajax.reload(null, false);
+        }
+    });
+
+    $('#check-all-batch').on('change', function() {
+        let isChecked = $(this).is(':checked');
+        $('.check-batch-item').prop('checked', isChecked);
+
+        // Lempar parameter 'true' untuk menandakan ini dari Check All
+        validasiPemasokBatch(this, true);
+    });
+
+
+    $(document).on('change', '.check-batch-item', function() {
+
+        validasiPemasokBatch(this, false);
+
+
+        let totalCheckboxes = $('.check-batch-item').length;
+        let totalChecked = $('.check-batch-item:checked').length;
+        $('#check-all-batch').prop('checked', totalCheckboxes === totalChecked && totalCheckboxes > 0);
+    });
+
+
+    function validasiPemasokBatch(element, isCheckAll = false) {
+        let selectedSuppliers = [];
+        $('.check-batch-item:checked').each(function() {
+            selectedSuppliers.push($(this).data('supplier'));
+        });
+
+        let uniqueSuppliers = [...new Set(selectedSuppliers)];
+
+
+        if (uniqueSuppliers.length > 1) {
+            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa menggabungkan dokumen dengan Pemasok yang sama untuk 1 Batch.', 'error');
+
+            if (isCheckAll) {
+
+                $('.check-batch-item').prop('checked', false);
+                $(element).prop('checked', false);
+            } else {
+
+                $(element).prop('checked', false);
+            }
+        }
+    }
+
+    $('#btn-proses-buat-batch').on('click', function() {
+        let selectedBpb = [];
+        $('.check-batch-item:checked').each(function() {
+            selectedBpb.push($(this).val());
+        });
+
+        if (selectedBpb.length === 0) {
+            Swal.fire('Perhatian', 'Silakan pilih minimal satu dokumen untuk dibuatkan Batch!', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Proses Batch?',
+            text: `Anda memilih ${selectedBpb.length} dokumen untuk dijadikan 1 Batch.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Buat Batch!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang Memproses...',
+                    text: 'Mohon tunggu, sistem sedang menggabungkan dokumen...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                let ids = selectedBpb.join(',');
+                let jenisBc = $('#jenis_bc_modal').val();
+                if(jenisBc === 'BC 4.0'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc40", "") }}/' + ids;
+                }
+
+                if(jenisBc === 'BC 4.1'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc41", "") }}/' + ids;
+                }
+            }
+        });
+    });
+
+    $('#filter_supplier_batch, #modal_tanggal_awal, #modal_tanggal_akhir, #jenis_bc_modal, #jenis_modal').on('change', function() {
+        if (tableModalBatch) {
+            $('#check-all-batch').prop('checked', false);
+            $('.check-batch-item').prop('checked', false);
+
+            tableModalBatch.ajax.reload(null, false);
+        }
+    });
+
+    $(document).on('click', '.btn-kirim-batch', function() {
+        let ids = $(this).data('ids');
+        let jenisBc = $(this).data('jenis_bc');
+
+        let actionUrl = '{{ route("dokumen-pabean-send-batch-ceisa") }}';
+
+        Swal.fire({
+            title: 'Kirim Batch ke CEISA?',
+            text: "Dokumen-dokumen batch dengan ID: " + ids + " akan diproses dan dikirim ke server Bea Cukai.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim Batch!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Batch ke CEISA...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        bpbs: ids,
+                        jenis_bc: jenisBc
+                    },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                            console.log("Response CEISA:", res.ceisa_response);
+                            refreshTable();
+                        } else {
+                            showErrorSwal(res);
+                        }
+                    },
+                    error: function(xhr) {
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
+                    }
+                });
+            }
+        });
+    });
 </script>
 @endsection
