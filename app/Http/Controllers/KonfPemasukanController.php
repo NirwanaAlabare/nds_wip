@@ -17,6 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportLokasiMaterial;
 use App\Models\Journal;
 use App\Models\BpbSB;
+use App\Http\Controllers\Traits\LogsActivity;
 use DB;
 use QrCode;
 use DNS1D;
@@ -24,6 +25,8 @@ use PDF;
 
 class KonfPemasukanController extends Controller
 {
+    use LogsActivity;
+
     /**
      * Display a listing of the resource.
      *
@@ -35,8 +38,8 @@ class KonfPemasukanController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY b.id) a left JOIN
-                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where a.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and status = 'Pending' order by no_dok asc");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' GROUP BY b.id) a left JOIN
+                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where status = 'Pending' order by no_dok asc");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -106,207 +109,189 @@ class KonfPemasukanController extends Controller
     public function approvematerialall(Request $request)
     {
         $timestamp = Carbon::now();
+        $approved = [];
+        $failed = [];
 
         foreach ($request->id_bpb as $i => $id_bpb) {
 
             $check = $request->chek_id[$i] ?? 0;
             if ($check <= 0) continue;
 
-        // Update status di InMaterialFabric
-            InMaterialFabric::where('no_dok', $id_bpb)->update([
-                'status' => 'Approved',
-                'approved_by' => Auth::user()->name,
-                'approved_date' => $timestamp,
-            ]);
+            try {
+                DB::connection('mysql_sb')->beginTransaction();
+                DB::connection('mysql_sb')->enableQueryLog();
 
-        // Update status di BpbSB
-            BpbSB::where('bpbno_int', $id_bpb)->update([
-                'confirm' => 'Y',
-                'confirm_by' => Auth::user()->name,
-                'confirm_date' => $timestamp,
-            ]);
+            // Update status di InMaterialFabric
+                InMaterialFabric::where('no_dok', $id_bpb)->update([
+                    'status' => 'Approved',
+                    'approved_by' => Auth::user()->name,
+                    'approved_date' => $timestamp,
+                ]);
 
-        // Update qty di DB mysql_sb jika bpbno_int ada
-            $sqlbpb = DB::connection('mysql_sb')->select(
-                "select bpbno_int from bpb where bpbno_int = ? and bpbno_int like '%RI%' limit 1",
-                [$id_bpb]
-            );
+            // Update status di BpbSB
+                BpbSB::where('bpbno_int', $id_bpb)->update([
+                    'confirm' => 'Y',
+                    'confirm_by' => Auth::user()->name,
+                    'confirm_date' => $timestamp,
+                ]);
 
-            $bpbnya = $sqlbpb ? $sqlbpb[0]->bpbno_int : '-';
-            if ($bpbnya != '-') {
-                DB::connection('mysql_sb')->update(
-                    "update bpb set qty = qty_temp where bpbno_int = ?",
+            // Update qty di DB mysql_sb jika bpbno_int ada
+                $sqlbpb = DB::connection('mysql_sb')->select(
+                    "select bpbno_int from bpb where bpbno_int = ? and bpbno_int like '%RI%' limit 1",
                     [$id_bpb]
                 );
-            }
 
-        // Ambil data BPB
-            $cekdata = DB::connection('mysql_sb')->select("
-                select 
-                SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc, bpb.confirm, bpbno, bpbno_int, bpb.bpbdate, 
-                bpb.id_supplier, supplier, mattype, n_code_category,
-                if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass,
-                bpb.curr, COALESCE(ph.tax,0) tax, bpb.username, bpb.dateinput,
-                round(SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as total,
-                round(SUM(((qty - COALESCE(qty_reject,0)) * price)),2) as dpp,
-                round(SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as ppn
-                from bpb
-                inner join masteritem mi on bpb.id_item = mi.id_item
-                inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
-                left join po_header ph on bpb.pono = ph.pono
-                left join po_header_draft phd on phd.id = ph.id_draft
-                where bpbno_int = ?
-                group by bpbno, mattype, n_code_category
-                order by supplier
-                ", [$id_bpb]);
+                $bpbnya = $sqlbpb ? $sqlbpb[0]->bpbno_int : '-';
+                if ($bpbnya != '-') {
+                    DB::connection('mysql_sb')->update(
+                        "update bpb set qty = qty_temp where bpbno_int = ?",
+                        [$id_bpb]
+                    );
+                }
 
-            if (!$cekdata) continue;
+            // Ambil data BPB
+                $cekdata = DB::connection('mysql_sb')->select("
+                    select
+                    SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc, bpb.confirm, bpbno, bpbno_int, bpb.bpbdate,
+                    bpb.id_supplier, supplier, mattype, n_code_category,
+                    if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass,
+                    bpb.curr, COALESCE(ph.tax,0) tax, bpb.username, bpb.dateinput,
+                    round(SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as total,
+                    round(SUM(((qty - COALESCE(qty_reject,0)) * price)),2) as dpp,
+                    round(SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as ppn
+                    from bpb
+                    inner join masteritem mi on bpb.id_item = mi.id_item
+                    inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
+                    left join po_header ph on bpb.pono = ph.pono
+                    left join po_header_draft phd on phd.id = ph.id_draft
+                    where bpbno_int = ?
+                    group by bpbno, mattype, n_code_category
+                    order by supplier
+                    ", [$id_bpb]);
 
-            $data = $cekdata[0];
+                if (!$cekdata) {
+                    throw new \Exception('Data jurnal tidak ditemukan untuk ' . $id_bpb);
+                }
 
-        // Variabel
-            $no_bpb = $data->bpbno_int;
-            $supp = $data->supplier;
-            $id_supplier = $data->id_supplier;
-            $mattype = $data->mattype;
-            $matclass1 = $data->matclass;
-            $n_code_category = $data->n_code_category;
-            $tax = $data->tax;
-            $curr = $data->curr;
-            $username = $data->username;
-            $total = $data->total;
-            $dpp = $data->dpp;
-            $ppn = $data->ppn;
-            $tgl_bpb = $data->bpbdate;
-            $dateinput_ = $data->dateinput;
-            $tipe_com = $data->tipe_com;
+                $data = $cekdata[0];
 
-        // Tentukan matclass
-            if ($mattype == 'C') {
-                if (in_array($matclass1, ['CMT','PRINTING','EMBRODEIRY','WASHING','PAINTING','HEATSEAL'])) {
-                    $matclass = $matclass1;
+            // Variabel
+                $no_bpb = $data->bpbno_int;
+                $supp = $data->supplier;
+                $id_supplier = $data->id_supplier;
+                $mattype = $data->mattype;
+                $matclass1 = $data->matclass;
+                $n_code_category = $data->n_code_category;
+                $tax = $data->tax;
+                $curr = $data->curr;
+                $username = $data->username;
+                $total = $data->total;
+                $dpp = $data->dpp;
+                $ppn = $data->ppn;
+                $tgl_bpb = $data->bpbdate;
+                $dateinput_ = $data->dateinput;
+                $tipe_com = $data->tipe_com;
+
+            // Tentukan matclass
+                if ($mattype == 'C') {
+                    if (in_array($matclass1, ['CMT','PRINTING','EMBRODEIRY','WASHING','PAINTING','HEATSEAL'])) {
+                        $matclass = $matclass1;
+                    } else {
+                        $matclass = 'OTHER';
+                    }
                 } else {
-                    $matclass = 'OTHER';
+                    $matclass = $matclass1;
                 }
-            } else {
-                $matclass = $matclass1;
-            }
 
-        // Rate
-            $rate = 1;
-            if ($curr != 'IDR') {
-                $sqlrate = DB::connection('mysql_sb')->select(
-                    "select ROUND(rate,2) as rate from masterrate where tanggal = ? and v_codecurr = 'PAJAK'", [$tgl_bpb]
-                );
-                $rate = $sqlrate ? $sqlrate[0]->rate : 1;
-            }
-
-            $idr_dpp = $dpp * $rate;
-            $idr_ppn = $ppn * $rate;
-            $idr_total = $total * $rate;
-
-        // Category
-            $cust_ctg = in_array($id_supplier, ['342','20','19','692','17','18']) ? 'Related' : 'Third';
-
-        // Keterangan
-            $kata1 = '';
-            if ($mattype != 'N') {
-                switch ($matclass) {
-                    case 'FABRIC': $kata1 = "PEMBELIAN KAIN"; break;
-                    case 'ACCESORIES': $kata1 = "PEMBELIAN AKSESORIS"; break;
-                    case 'CMT': $kata1 = "BIAYA MAKLOON PAKAIAN JADI"; break;
-                    case 'PRINTING': $kata1 = "BIAYA MAKLOON PRINTING"; break;
-                    case 'EMBRODEIRY': $kata1 = "BIAYA MAKLOON EMBRODEIRY"; break;
-                    case 'WASHING': $kata1 = "BIAYA MAKLOON WASHING"; break;
-                    case 'PAINTING': $kata1 = "BIAYA MAKLOON PAINTING"; break;
-                    case 'HEATSEAL': $kata1 = "BIAYA MAKLOON HEATSEAL"; break;
-                    default: $kata1 = "BIAYA MAKLOON LAINNYA";
+            // Rate
+                $rate = 1;
+                if ($curr != 'IDR') {
+                    $sqlrate = DB::connection('mysql_sb')->select(
+                        "select ROUND(rate,2) as rate from masterrate where tanggal = ? and v_codecurr = 'PAJAK'", [$tgl_bpb]
+                    );
+                    $rate = $sqlrate ? $sqlrate[0]->rate : 1;
                 }
-            } else {
-                switch ($n_code_category) {
-                    case '1': $kata1 = "PEMBELIAN PERSEDIAAN ATK"; break;
-                    case '2': $kata1 = "PEMBELIAN PERSEDIAAN UMUM"; break;
-                    case '3': $kata1 = "BIAYA PERSEDIAAN SPAREPARTS"; break;
-                    case '4': $kata1 = "BIAYA MESIN"; break;
-                    default: $kata1 = "";
+
+                $idr_dpp = $dpp * $rate;
+                $idr_ppn = $ppn * $rate;
+                $idr_total = $total * $rate;
+
+            // Category
+                $cust_ctg = in_array($id_supplier, ['342','20','19','692','17','18']) ? 'Related' : 'Third';
+
+            // Keterangan
+                $kata1 = '';
+                if ($mattype != 'N') {
+                    switch ($matclass) {
+                        case 'FABRIC': $kata1 = "PEMBELIAN KAIN"; break;
+                        case 'ACCESORIES': $kata1 = "PEMBELIAN AKSESORIS"; break;
+                        case 'CMT': $kata1 = "BIAYA MAKLOON PAKAIAN JADI"; break;
+                        case 'PRINTING': $kata1 = "BIAYA MAKLOON PRINTING"; break;
+                        case 'EMBRODEIRY': $kata1 = "BIAYA MAKLOON EMBRODEIRY"; break;
+                        case 'WASHING': $kata1 = "BIAYA MAKLOON WASHING"; break;
+                        case 'PAINTING': $kata1 = "BIAYA MAKLOON PAINTING"; break;
+                        case 'HEATSEAL': $kata1 = "BIAYA MAKLOON HEATSEAL"; break;
+                        default: $kata1 = "BIAYA MAKLOON LAINNYA";
+                    }
+                } else {
+                    switch ($n_code_category) {
+                        case '1': $kata1 = "PEMBELIAN PERSEDIAAN ATK"; break;
+                        case '2': $kata1 = "PEMBELIAN PERSEDIAAN UMUM"; break;
+                        case '3': $kata1 = "BIAYA PERSEDIAAN SPAREPARTS"; break;
+                        case '4': $kata1 = "BIAYA MESIN"; break;
+                        default: $kata1 = "";
+                    }
                 }
-            }
-            $description = $kata1 . " " . $no_bpb . " DARI " . $supp;
+                $description = $kata1 . " " . $no_bpb . " DARI " . $supp;
 
-        // Ambil COA dan buat jurnal
-            $sqlcoa_cre = DB::connection('mysql_sb')->select("
-                select no_coa, nama_coa from mastercoa_v2
-                where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_credit%' limit 1
-                ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
-            $no_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->no_coa : '-';
-            $nama_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->nama_coa : '-';
+            // Ambil COA dan buat jurnal
+                $sqlcoa_cre = DB::connection('mysql_sb')->select("
+                    select no_coa, nama_coa from mastercoa_v2
+                    where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_credit%' limit 1
+                    ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
+                $no_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->no_coa : '-';
+                $nama_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->nama_coa : '-';
 
-            $sqlcoa_deb = DB::connection('mysql_sb')->select("
-                select no_coa, nama_coa from mastercoa_v2
-                where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_debit%' limit 1
-                ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
-            $no_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->no_coa : '-';
-            $nama_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->nama_coa : '-';
+                $sqlcoa_deb = DB::connection('mysql_sb')->select("
+                    select no_coa, nama_coa from mastercoa_v2
+                    where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_debit%' limit 1
+                    ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
+                $no_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->no_coa : '-';
+                $nama_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->nama_coa : '-';
 
-
-            Journal::create([
-                'no_journal' => $no_bpb,
-                'tgl_journal' => $tgl_bpb,
-                'type_journal' => 'AP - BPB',
-                'no_coa' => $no_coa_cre,
-                'nama_coa' => $nama_coa_cre,
-                'curr' => $curr,
-                'rate' => $rate,
-                'debit' => 0,
-                'credit' => $total,
-                'debit_idr' => 0,
-                'credit_idr' => $idr_total,
-                'status' => 'Approved',
-                'keterangan' => $description,
-                'create_by' => $username,
-                'create_date' => $dateinput_,
-                'approve_by' => Auth::user()->name,
-                'approve_date' => $timestamp,
-                'profit_center' => 'NAG',
-            ]);
-
-            Journal::create([
-                'no_journal' => $no_bpb,
-                'tgl_journal' => $tgl_bpb,
-                'type_journal' => 'AP - BPB',
-                'no_coa' => $no_coa_deb,
-                'nama_coa' => $nama_coa_deb,
-                'curr' => $curr,
-                'rate' => $rate,
-                'debit' => $dpp,
-                'credit' => 0,
-                'debit_idr' => $idr_dpp,
-                'credit_idr' => 0,
-                'status' => 'Approved',
-                'keterangan' => $description,
-                'create_by' => $username,
-                'create_date' => $dateinput_,
-                'approve_by' => Auth::user()->name,
-                'approve_date' => $timestamp,
-                'profit_center' => 'NAG',
-            ]);
-
-            if ($tax >= 1) {
-                $sqlcoa_ppn = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' limit 1");
-                $no_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->no_coa : '-';
-                $nama_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->nama_coa : '-';
 
                 Journal::create([
                     'no_journal' => $no_bpb,
                     'tgl_journal' => $tgl_bpb,
                     'type_journal' => 'AP - BPB',
-                    'no_coa' => $no_coa_ppn,
-                    'nama_coa' => $nama_coa_ppn,
+                    'no_coa' => $no_coa_cre,
+                    'nama_coa' => $nama_coa_cre,
                     'curr' => $curr,
                     'rate' => $rate,
-                    'debit' => $ppn,
+                    'debit' => 0,
+                    'credit' => $total,
+                    'debit_idr' => 0,
+                    'credit_idr' => $idr_total,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput_,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'profit_center' => 'NAG',
+                ]);
+
+                Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB',
+                    'no_coa' => $no_coa_deb,
+                    'nama_coa' => $nama_coa_deb,
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => $dpp,
                     'credit' => 0,
-                    'debit_idr' => $idr_ppn,
+                    'debit_idr' => $idr_dpp,
                     'credit_idr' => 0,
                     'status' => 'Approved',
                     'keterangan' => $description,
@@ -316,13 +301,122 @@ class KonfPemasukanController extends Controller
                     'approve_date' => $timestamp,
                     'profit_center' => 'NAG',
                 ]);
+
+                if ($tax >= 1) {
+                    $sqlcoa_ppn = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' limit 1");
+                    $no_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->no_coa : '-';
+                    $nama_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->nama_coa : '-';
+
+                    Journal::create([
+                        'no_journal' => $no_bpb,
+                        'tgl_journal' => $tgl_bpb,
+                        'type_journal' => 'AP - BPB',
+                        'no_coa' => $no_coa_ppn,
+                        'nama_coa' => $nama_coa_ppn,
+                        'curr' => $curr,
+                        'rate' => $rate,
+                        'debit' => $ppn,
+                        'credit' => 0,
+                        'debit_idr' => $idr_ppn,
+                        'credit_idr' => 0,
+                        'status' => 'Approved',
+                        'keterangan' => $description,
+                        'create_by' => $username,
+                        'create_date' => $dateinput_,
+                        'approve_by' => Auth::user()->name,
+                        'approve_date' => $timestamp,
+                        'profit_center' => 'NAG',
+                    ]);
+                }
+
+            // Jurnal pasangan khusus untuk tipe_com BUYER
+                if ($tipe_com == 'BUYER') {
+                    Journal::create([
+                        'no_journal' => $no_bpb,
+                        'tgl_journal' => $tgl_bpb,
+                        'type_journal' => 'AP - BPB',
+                        'no_coa' => $no_coa_deb,
+                        'nama_coa' => $nama_coa_deb,
+                        'curr' => $curr,
+                        'rate' => $rate,
+                        'debit' => 0,
+                        'credit' => $dpp,
+                        'debit_idr' => 0,
+                        'credit_idr' => $idr_dpp,
+                        'status' => 'Approved',
+                        'keterangan' => $description,
+                        'create_by' => $username,
+                        'create_date' => $dateinput_,
+                        'approve_by' => Auth::user()->name,
+                        'approve_date' => $timestamp,
+                        'profit_center' => 'NAG',
+                    ]);
+
+                    Journal::create([
+                        'no_journal' => $no_bpb,
+                        'tgl_journal' => $tgl_bpb,
+                        'type_journal' => 'AP - BPB',
+                        'no_coa' => '1.34.05',
+                        'nama_coa' => 'PIUTANG LAIN-LAIN PIHAK KETIGA - BAHAN BAKU / BAHAN PEMBANTU',
+                        'curr' => $curr,
+                        'rate' => $rate,
+                        'debit' => $total,
+                        'credit' => 0,
+                        'debit_idr' => $idr_total,
+                        'credit_idr' => 0,
+                        'status' => 'Approved',
+                        'keterangan' => $description,
+                        'create_by' => $username,
+                        'create_date' => $dateinput_,
+                        'approve_by' => Auth::user()->name,
+                        'approve_date' => $timestamp,
+                        'profit_center' => 'NAG',
+                    ]);
+
+                    if ($tax >= 1) {
+                        Journal::create([
+                            'no_journal' => $no_bpb,
+                            'tgl_journal' => $tgl_bpb,
+                            'type_journal' => 'AP - BPB',
+                            'no_coa' => '8.07.01',
+                            'nama_coa' => 'PENDAPATAN LAIN-LAIN',
+                            'curr' => $curr,
+                            'rate' => $rate,
+                            'debit' => 0,
+                            'credit' => $ppn,
+                            'debit_idr' => 0,
+                            'credit_idr' => $idr_ppn,
+                            'status' => 'Approved',
+                            'keterangan' => $description,
+                            'create_by' => $username,
+                            'create_date' => $dateinput_,
+                            'approve_by' => Auth::user()->name,
+                            'approve_date' => $timestamp,
+                            'profit_center' => 'NAG',
+                        ]);
+                    }
+                }
+
+                $this->logRawQueryActivity('Approve BPB', $id_bpb, DB::connection('mysql_sb')->getQueryLog());
+                DB::connection('mysql_sb')->flushQueryLog();
+
+                DB::connection('mysql_sb')->commit();
+                $approved[] = $id_bpb;
+
+            } catch (\Throwable $e) {
+                DB::connection('mysql_sb')->rollBack();
+                DB::connection('mysql_sb')->flushQueryLog();
+                $failed[] = ['id_bpb' => $id_bpb, 'message' => $e->getMessage()];
             }
         }
 
         return response()->json([
             "status" => 200,
-            "message" => "Approved Data Successfully",
-            "additional" => [],
+            "message" => count($failed) > 0 ? "Sebagian data gagal diapprove" : "Approved Data Successfully",
+            "total" => count($approved) + count($failed),
+            "approved_count" => count($approved),
+            "approved" => $approved,
+            "failed" => $failed,
         ]);
     }
 

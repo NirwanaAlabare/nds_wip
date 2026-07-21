@@ -14,6 +14,7 @@
 @include('retur_inmaterial._tab-create-ri')
 <form action="{{ route('store-retur-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
+    <input type="hidden" name="txt_source_form" value="Cutting">
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">

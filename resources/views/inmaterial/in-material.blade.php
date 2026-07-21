@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,23 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+    #datatable tr.row-status-approved > td {
+        background-color: #d9f2e6 !important;
+    }
+    #datatable tr.row-status-cancel > td {
+        background-color: #fbdede !important;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">Data Penerimaan Bahan Baku</h5>
@@ -132,8 +146,8 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
         </div> -->
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+        <div>
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                 <thead>
                     <tr>
                         <th class="text-center">No BPB</th>
@@ -159,40 +173,6 @@
             </table>
         </div>
     </div>
-</div>
-
-<div class="modal fade" id="modal-appv-material">
-    <form action="{{ route('approve-material') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('GET')
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Confirm Dialog</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!--  -->
-                    <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel BPB Number :</label>
-                        <br>
-                        <div class="col-sm-3">
-                        </div>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control" id="txt_nodok" name="txt_nodok" style="border:none;text-align: center;" readonly>
-                        </div>
-                    </div>
-                    <!-- Hidden Text -->
-                    <!--  -->
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-sb" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-trash" aria-hidden="true"></i> Cancel</button>
-                </div>
-            </div>
-        </div>
-    </form>
 </div>
 
 
@@ -402,6 +382,7 @@
         </div>
     </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -446,11 +427,17 @@ $('.select2type').select2({
         ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
+            createdRow: function(row, data, dataIndex) {
+                if (data.status == 'Approved') {
+                    $(row).addClass('row-status-approved');
+                } else if (data.status == 'Cancel') {
+                    $(row).addClass('row-status-cancel');
+                }
+            },
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -518,15 +505,42 @@ $('.select2type').select2({
 
         ],
         columnDefs: [{
+                targets: [2, 3, 8, 9, 14],
+                visible: false
+            },
+            {
+                targets: [0],
+                width: '11%'
+            },
+            {
+                targets: [1],
+                width: '7%'
+            },
+            {
+                targets: [5],
+                width: '13%'
+            },
+            {
+                targets: [12],
+                width: '10%'
+            },
+            {
+                targets: [13],
+                width: '6%'
+            },
+            {
                 targets: [4],
+                width: '12%',
                 render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
             },
             {
                 targets: [6],
+                width: '7%',
                 render: (data, type, row, meta) => data ? data : "-"
             },
             {
                 targets: [7],
+                width: '6%',
                 render: (data, type, row, meta) => data ? data : "-"
             },
             {
@@ -535,6 +549,7 @@ $('.select2type').select2({
             },
             {
                 targets: [10],
+                width: '9%',
                 render: (data, type, row, meta) => data ? data : "-"
             },
             {
@@ -543,17 +558,18 @@ $('.select2type').select2({
             },
             {
                 targets: [11],
+                width: '4%',
                 render: (data, type, row, meta) => {
                  if (row.qty_balance == 0) {
-                    return `<div class='d-flex gap-1 justify-content-center'>
+                    return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" style='color:green;'></i></a>
                     </div>`;
                 }else if(row.qty_balance == row.qty){
-                   return `<div class='d-flex gap-1 justify-content-center'>
+                   return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:red;'></i></a>
                     </div>`;
                 }else{
-                    return `<div class='d-flex gap-1 justify-content-center'>
+                    return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:#FFD700;'></i></a>
                     </div>`;
                 }
@@ -562,68 +578,69 @@ $('.select2type').select2({
             //<button type='button' class='btn btn-sm btn-success' onclick='printbarcode("` + row.id + `")'><i class="fa-solid fa-barcode"></i></button>
             {
                 targets: [15],
+                width: '15%',
                 render: (data, type, row, meta) => {
                     console.log(row);
                 if (row.type_pch == 'Saldo Awal') {
                     if (row.status == 'Pending' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     </div>`;
                     }
                 }else{
                     if (row.status == 'Pending' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                     </div>`;
                     }
                 }
-                   //  return `<div class='d-flex gap-1 justify-content-center'>
+                   //  return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
                    // <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                    //  <button type='button' class='btn btn-sm btn-warning' onclick='printlokasi("` + data + `")'><i class="fa-solid fa-print "></i></button>
                    //  <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("")'><i class="fa-solid fa-barcode"></i></button>
@@ -637,13 +654,13 @@ $('.select2type').select2({
             //     render: (data, type, row, meta) => {
             //         console.log(row);
             //         if (row.status == 'Active') {
-            //         return `<div class='d-flex gap-1 justify-content-center'>
+            //         return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
             //        <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `")'><i class='fa fa-wrench'></i></button>
             //         <button type='button' class='btn btn-sm btn-info' onclick='printlokasi("` + row.id + `")'><i class='fa fa-file-pdf'></i></button>
             //         <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button>
             //         </div>`;
             //         }else{
-            //             return `<div class='d-flex gap-1 justify-content-center'>
+            //             return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>
             //         <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button>
             //         </div>`;
             //         }
@@ -657,12 +674,52 @@ $('.select2type').select2({
     }
 </script>
 <script type="text/javascript">
-    function approve_inmaterial($nodok){
-        // alert($id);
-        let nodok  = $nodok;
-
-    $('#txt_nodok').val(nodok);
-    $('#modal-appv-material').modal('show');
+    function approve_inmaterial(nodok){
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirm Dialog',
+            html: 'Sure Cancel BPB Number : <b>' + nodok + '</b>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa fa-trash"></i> Cancel',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route('approve-material') }}',
+                    type: 'get',
+                    data: { txt_nodok: nodok },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: res.message,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                datatable.ajax.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: 'Terjadi kesalahan saat menghubungi server.'
+                        });
+                    }
+                });
+            }
+        });
     }
 
 
@@ -786,28 +843,7 @@ $('.select2type').select2({
         }
 
     function printpdf(id) {
-
-            $.ajax({
-                url: '{{ route('print-pdf-inmaterial') }}/'+id,
-                type: 'post',
-                processData: false,
-                contentType: false,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = id+".pdf";
-                        link.click();
-                    }
-                }
-            });
+            window.open('{{ route('pdfbpb-inmaterial') }}/'+id, '_blank');
         }
 </script>
 @endsection

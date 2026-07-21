@@ -18,12 +18,10 @@
 @endsection
 
 @section('content')
-<div class="marginnya">
-@include('retur_inmaterial._tab-create-ri')
-</div>
-<form action="{{ route('store-retur-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
+<form action="{{ route('update-retur-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
-    <input type="hidden" name="txt_source_form" value="Supplier">
+    <input type="hidden" name="txt_id" id="txt_id" value="{{ $kode_gr->id }}">
+    <input type="hidden" name="txt_source_form" value="{{ $kode_gr->source_form ?? 'Supplier' }}">
     <div class="card card-sb card-outline marginnya">
         <div class="card-header">
             <h5 class="card-title fw-bold">
@@ -40,9 +38,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No RI</small></label>
-                @foreach ($kode_gr as $kodegr)
-                <input type="text" class="form-control " id="txt_no_ri" name="txt_no_ri" value="{{ $kodegr->kode }}" readonly>
-                @endforeach
+                <input type="text" class="form-control " id="txt_no_ri" name="txt_no_ri" value="{{ $kode_gr->no_dok }}" readonly>
                 </div>
             </div>
             </div>
@@ -53,7 +49,7 @@
                 <label><small>Tgl RI</small></label>
                 <div class="input-group">
                     <input type="text" class="form-control" id="txt_tgl_ri" name="txt_tgl_ri" autocomplete="off" readonly
-                            value="{{ date('Y-m-d') }}">
+                            value="{{ $kode_gr->tgl_dok }}">
                     <span class="input-group-text" id="txt_tgl_ri_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
                 </div>
                 </div>
@@ -65,6 +61,9 @@
                 <div class="form-group">
                 <label><small>Tujuan Pemasukan</small></label>
                 <select class="form-control select2bs4" id="txt_tujuan" name="txt_tujuan" style="width: 100%;">
+                    @if ($tujuan_existing)
+                    <option selected="selected" value="{{ $tujuan_existing }}">{{ $tujuan_existing }}</option>
+                    @endif
                 </select>
                 </div>
             </div>
@@ -74,19 +73,17 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Supplier</small></label>
-                <input type="text" class="form-control " id="txt_supp" name="txt_supp" value="" readonly>
-                <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="" readonly>
+                <input type="text" class="form-control " id="txt_supp" name="txt_supp" value="{{ $kode_gr->supplier }}" readonly>
+                <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="{{ $id_supplier_existing }}" readonly>
                 </div>
             </div>
             </div>
-
-            
 
             <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Tgl SJ</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_sj" name="txt_tgl_sj"
+                <input type="date" class="form-control form-control" id="txt_tgl_sj" name="txt_tgl_sj" value="{{ $kode_gr->tgl_shipp }}"
                          onchange="get_nobppb(this.value)">
                 </div>
             </div>
@@ -97,6 +94,7 @@
                 <div class="form-group">
                 <label><small>Surat jalan Asal</small></label>
                 <select class="form-control select2bs4" id="txt_sj_asal" name="txt_sj_asal" style="width: 100%;" onchange="get_supplier();getlistdata();">
+                    <option selected="selected" value="{{ $kode_gr->ori_dok }}">{{ $kode_gr->ori_dok }}</option>
                 </select>
                 </div>
             </div>
@@ -107,6 +105,9 @@
                 <div class="form-group">
                 <label><small>Jenis Retur</small></label>
                 <select class="form-control select2bs4" id="txt_jns_rtr" name="txt_jns_rtr" style="width: 100%;" >
+                    @if ($kode_gr->jns_retur)
+                    <option selected="selected" value="{{ $kode_gr->jns_retur }}">{{ $kode_gr->jns_retur }}</option>
+                    @endif
                 </select>
                 </div>
             </div>
@@ -116,21 +117,19 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No PO</small></label>
-                <input type="text" class="form-control " id="txt_no_po" name="txt_no_po" value="" readonly>
+                <input type="text" class="form-control " id="txt_no_po" name="txt_no_po" value="{{ $kode_gr->no_po }}" readonly>
                 </div>
             </div>
             </div>
-
-            
 
             <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Tipe BC <span class="text-danger">*</span></small></label>
                 <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc" style="width: 100%;" onchange="get_tujuan(this.value)">
-                    <option selected="selected" value="">Pilih Tipe</option>
+                    <option value="" {{ !$kode_gr->type_bc ? 'selected' : '' }}>Pilih Tipe</option>
                         @foreach ($mtypebc as $bc)
-                    <option value="{{ $bc->nama_pilihan }}">
+                    <option value="{{ $bc->nama_pilihan }}" {{ $kode_gr->type_bc == $bc->nama_pilihan ? 'selected' : '' }}>
                                 {{ $bc->nama_pilihan }}
                     </option>
                         @endforeach
@@ -145,9 +144,9 @@
                 <label><small>Tipe Pembelian <span class="text-danger">*</span></small></label>
                 <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch"
                 style="width: 100%;">
-                <option selected="selected" value="">Pilih Tipe</option>
+                <option value="" {{ !$kode_gr->type_pch ? 'selected' : '' }}>Pilih Tipe</option>
                 @foreach ($pch_type as $pch)
-                <option value="{{ $pch->nama_pilihan }}">
+                <option value="{{ $pch->nama_pilihan }}" {{ $kode_gr->type_pch == $pch->nama_pilihan ? 'selected' : '' }}>
                     {{ $pch->nama_pilihan }}
                 </option>
                 @endforeach
@@ -156,13 +155,11 @@
             </div>
             </div>
 
-            
-
             <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Invoice/ No SJ <span class="text-danger">*</span></small></label>
-                <input type="text" class="form-control " id="txt_noinvoice" name="txt_noinvoice" value="" required>
+                <input type="text" class="form-control " id="txt_noinvoice" name="txt_noinvoice" value="{{ $kode_gr->no_invoice }}" required>
                 </div>
             </div>
             </div>
@@ -182,22 +179,22 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Keterangan</small></label>
-                <input type="text" class="form-control " id="txt_keterangan" name="txt_keterangan" value="" >
+                <input type="text" class="form-control " id="txt_keterangan" name="txt_keterangan" value="{{ $kode_gr->deskripsi }}" >
                 </div>
             </div>
             </div>
 
     <div style="display: none;">
-            <input type="text" class="form-control " id="txt_no_kk" name="txt_no_kk" value="" >
-            <input type="text" class="form-control " id="txt_aju_num" name="txt_aju_num" value="" >
+            <input type="text" class="form-control " id="txt_no_kk" name="txt_no_kk" value="{{ $kode_gr->no_kontrak }}" >
+            <input type="text" class="form-control " id="txt_aju_num" name="txt_aju_num" value="{{ $kode_gr->no_aju }}" >
             <input type="date" class="form-control form-control" id="txt_tgl_aju" name="txt_tgl_aju"
-                    value="{{ date('Y-m-d') }}">
-            <input type="text" class="form-control " id="txt_faktur" name="txt_faktur" value="" >
+                    value="{{ $kode_gr->tgl_aju }}">
+            <input type="text" class="form-control " id="txt_faktur" name="txt_faktur" value="{{ $kode_gr->no_faktur }}" >
             <input type="date" class="form-control form-control" id="txt_tgl_faktur" name="txt_tgl_faktur"
-                    value="{{ date('Y-m-d') }}">
-            <input type="text" class="form-control " id="txt_reg" name="txt_reg" value="" >
+                    value="{{ $kode_gr->tgl_faktur }}">
+            <input type="text" class="form-control " id="txt_reg" name="txt_reg" value="{{ $kode_gr->no_daftar }}" >
             <input type="date" class="form-control form-control" id="txt_tgl_reg" name="txt_tgl_reg"
-                    value="{{ date('Y-m-d') }}">
+                    value="{{ $kode_gr->tgl_daftar }}">
 
         </div>
     </div>
@@ -212,12 +209,6 @@
         </div>
     <div class="card-body">
     <div class="form-group row">
-        <!-- <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-            </div>
-                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
-        </div> -->
     <div>
             <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                 <thead>
@@ -245,7 +236,7 @@
     </div>
             <div class="mb-1">
                 <div class="form-group">
-                    <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                    <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Update</button>
                     <a href="{{ route('retur-inmaterial') }}" class="btn btn-danger float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
@@ -291,6 +282,8 @@
 
         let minTglRo = @json($min_tgl_ro ?? '');
         let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+        let existingOriDok = @json($kode_gr->ori_dok);
+        let existingTujuan = @json($tujuan_existing);
 
         function formatDateYmd(date) {
             let m = date.getMonth() + 1;
@@ -355,32 +348,7 @@
             submitForm(e, evt);
         }
 
-        $("#color").prop("disabled", true);
-        $("#panel").prop("disabled", true);
-        $('#p_unit').val("yard").trigger('change');
-
-        //Reset Form
-        if (document.getElementById('store-inmaterial')) {
-            document.getElementById('store-inmaterial').reset();
-        }
-
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-
+        //Reset saat pertama load tidak diperlukan di halaman edit (form sudah terisi data lama)
 
         function get_nobppb(val) {
            return $.ajax({
@@ -391,10 +359,12 @@
                 type: 'get',
                 data: {
                     tgl_ri: $('#txt_tgl_sj').val(),
+                    no_dok: $('#txt_no_ri').val(),
                 },
                 success: function (res) {
                     if (res) {
                         document.getElementById('txt_sj_asal').innerHTML = res;
+                        $('#txt_sj_asal').val(existingOriDok).trigger('change');
                     }
                 },
             });
@@ -414,6 +384,10 @@
                 success: function (res) {
                     if (res) {
                         document.getElementById('txt_tujuan').innerHTML = res;
+                        if (existingTujuan) {
+                            $('#txt_tujuan').val(existingTujuan).trigger('change');
+                            existingTujuan = null;
+                        }
                     }
                 },
             });
@@ -441,10 +415,6 @@
         }
 
 
-        // function getlistdata(val){
-        //     datatable.ajax.reload();
-        // }
-
         async function getlistdata() {
             return datatable.ajax.reload(() => {
                 document.getElementById('jumlah_data').value = datatable.data().count();
@@ -459,10 +429,10 @@
             searching: true,
             autoWidth: false,
             ajax: {
-                url: '{{ route("get-list-bppb") }}',
+                url: '{{ route("get-list-bppb-edit") }}',
                 data: function (d) {
                     d.sj_asal = $('#txt_sj_asal').val();
-                    // alert(d.name_fill);
+                    d.no_dok = $('#txt_no_ri').val();
                 },
             },
             columns: [
@@ -538,22 +508,22 @@
                 {
                     targets: [6],
                     width: '10%',
-                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" min="0" max="' + data + '" id="qty_retur' + meta.row + '" name="qty_retur['+meta.row+']" onkeyup="tambahqty(this.value)" />'
+                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" min="0" max="' + data + '" id="qty_retur' + meta.row + '" name="qty_retur['+meta.row+']" value="' + (row.qty_retur_saved || '') + '" onkeyup="tambahqty(this.value)" />'
                 },
                 {
                     targets: [7],
                     width: '10%',
-                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" min="0" max="' + data + '" id="qty_reject' + meta.row + '" name="qty_reject['+meta.row+']" />'
+                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" min="0" max="' + data + '" id="qty_reject' + meta.row + '" name="qty_reject['+meta.row+']" value="' + (row.qty_reject_saved || '') + '" />'
                 },
                 {
                     targets: [8],
                     className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="bruto' + meta.row + '" name="bruto['+meta.row+']" />'
+                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="bruto' + meta.row + '" name="bruto['+meta.row+']" value="' + (row.bruto_saved || '') + '" />'
                 },
                 {
                     targets: [9],
                     className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="neto' + meta.row + '" name="neto['+meta.row+']" />'
+                    render: (data, type, row, meta) => '<input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="neto' + meta.row + '" name="neto['+meta.row+']" value="' + (row.neto_saved || '') + '" />'
                 },
                 {
                     targets: [10],
@@ -593,66 +563,12 @@
 
         }
 
-
-
-        function submitLokasiForm(e, evt) {
-            evt.preventDefault();
-
-            clearModified();
-
-            $.ajax({
-                url: e.getAttribute('action'),
-                type: e.getAttribute('method'),
-                data: new FormData(e),
-                processData: false,
-                contentType: false,
-                success: async function(res) {
-                    if (res.status == 200) {
-                        console.log(res);
-
-                        e.reset();
-
-                        // $('#cbows').val("").trigger("change");
-                        // $("#cbomarker").prop("disabled", true);
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Data Spreading berhasil disimpan',
-                            html: "No. Form Cut : <br>" + res.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            timer: 5000,
-                            timerProgressBar: true
-                        })
-
-                        datatable.ajax.reload();
-                    }
-                },
-
-            });
-        }
-
-        function cariitem() {
-        // Declare variables
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("cari_item");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("datatable");
-        tr = table.getElementsByTagName("tr");
-
-        // Loop through all table rows, and hide those who don't match the search query
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[5]; //kolom ke berapa
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
+        // Load ulang daftar Surat Jalan Asal & Tujuan Pemasukan berdasarkan data tersimpan
+        $(document).ready(function () {
+            get_nobppb();
+            if ($('#txt_type_bc').val()) {
+                get_tujuan();
             }
-        }
-    }
+        });
     </script>
 @endsection

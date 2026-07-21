@@ -1,181 +1,778 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
-    <!-- Select2 -->
-    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<!-- DataTables -->
+<link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+<!-- Select2 -->
+<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+    #datatable tr.row-locked > td {
+        background-color: #fff3cd !important;
+    }
+</style>
 @endsection
 
 @section('content')
-<form action="{{ route('update-mutlokasi') }}" method="post" id="store-mutlokasi" onsubmit="submitForm(this, event)">
-   @method('GET')
-    <div class="card card-sb">
+<form method="post" id="store-opname" onsubmit="submitForm(this, event)" >
+    @method('GET')
+    @csrf
+    <div class="card card-sb marginnya">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                Data Header
+               <i class="fas fa-dolly"></i> Edit Mutasi Lokasi
             </h5>
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+      </div>
+
+      <div class="card-body">
+        <div class="form-group row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>No Mutasi</small></label>
+                                <input type="text" class="form-control" id="txt_no_mut" name="txt_no_mut" value="{{ $d_header->kode }}" readonly>
+                                <input type="hidden" id="txt_edit_no_mut" name="txt_edit_no_mut" value="{{ $no_mut }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Tgl Mutasi</small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="txt_tgl_mut" name="txt_tgl_mut" autocomplete="off" readonly
+                                            value="{{ $d_header->tgl_mut }}">
+                                    <span class="input-group-text" id="txt_tgl_mut_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Lokasi Tujuan</small></label>
+                                <input list="list_lokasi" id="txt_lokasi_tujuan" name="txt_lokasi_tujuan" class="form-control" placeholder="Pilih Lokasi Tujuan" value="{{ $d_header->rak_tujuan }}" onchange="GantilokasiTujuan();">
+                                    <datalist id="list_lokasi">
+                                        @foreach ($lokasi as $lok)
+                                        <option value="{{ $lok->kode_lok }}"></option>
+                                        @endforeach
+                                    </datalist>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-7">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Keterangan</small></label>
+                                <div class="d-flex align-items-start">
+                                    <textarea id="txt_keterangan" class="form-control me-2" rows="1"
+                                    placeholder="Keterangan...">{{ $d_header->deskripsi }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5"></div>
+
+                    <div class="col-6 col-md-2">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Total Roll</small></label>
+                <input type="text" class="form-control text-right" id="txt_total_roll" name="txt_total_roll"
+                        value="" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Total Qty</small></label>
+                <input type="text" class="form-control text-right" id="txt_total_qty" name="txt_total_qty"
+                        value="" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Scan</small></label>
+                                <input type="text" class="form-control" id="txt_barcode" name="txt_barcode"
+                                value="" autofocus onchange="getdatabarcode()">
+                                <input type="hidden" id="txt_qty_barcode" name="txt_qty_barcode">
+                                <input type="hidden" id="txt_item_barcode" name="txt_item_barcode" readonly>
+                                <input type="hidden" id="txt_iditem_barcode" name="txt_iditem_barcode" readonly>
+                                <input type="hidden" id="txt_jo_barcode" name="txt_jo_barcode" readonly>
+                                <input type="hidden" id="txt_lok_barcode" name="txt_lok_barcode" readonly>
+                                <input type="hidden" id="txt_lot_barcode" name="txt_lot_barcode" readonly>
+                                <input type="hidden" id="txt_roll_barcode" name="txt_roll_barcode" readonly>
+                                <input type="hidden" id="txt_unit_barcode" name="txt_unit_barcode" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                    </div>
+
+                    <div class="col-12 col-md-5">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Multi Barcode</small></label>
+                                <div class="d-flex align-items-start">
+                                    <textarea id="txt_barcodes" class="form-control me-2" rows="5"
+                                    placeholder="Scan/masukkan banyak barcode (1 baris 1 barcode)"></textarea>
+                                    <button type="button" id="btnSendBarcode" class="btn btn-primary d-flex align-items-center">
+                                        <i class="fas fa-paper-plane me-1"></i> Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-        </div>
+    </div>
+</div>
+</div>
+
+
+<div class="card card-sb marginnya">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Detail Roll
+        </h5>
+        <small class="text-muted"><i class="fas fa-circle" style="color:#fff3cd;"></i> baris berwarna kuning = barcode sudah dimutasi lagi, tidak bisa dihapus/diubah.</small>
+    </div>
     <div class="card-body">
-    <div class="form-group row">
-        <div class="row">
-            <div class="col-4 col-md-4">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Mutasi</small></label>
-                @foreach ($d_header as $dh)
-                <input type="text" class="form-control " id="txt_no_mut" name="txt_no_mut" value="{{ $dh->kode }}" readonly>
-                @endforeach
-                </div>
-            </div>
-            </div>
+        <div class="form-group row">
 
-            <div class="col-4 col-md-4">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Mutasi</small></label>
-                @foreach ($d_header as $dh)
-                <input type="text date" class="form-control form-control" id="txt_tgl_mut" name="txt_tgl_mut" value="{{ $dh->tgl_mut }}" readonly>
-                @endforeach
-                </div>
-            </div>
-            </div>
+            <div>
+                <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.75rem;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.75rem;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.75rem;">No WS</th>
+                            <th class="text-center" style="font-size: 0.75rem;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Qty</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Unit</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Lokasi Barcode</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Lokasi Tujuan</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-
-            <div class="col-4 col-md-4">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Worksheet</small></label>
-                @foreach ($d_header as $dh)
-                <input type="text" class="form-control " id="txt_nows" name="txt_nows" value="{{ $dh->no_ws }}" readonly>
-                @endforeach
-                </div>
+                    </tbody>
+                </table>
             </div>
-            </div>
-
-            <div class="col-4 col-md-4">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Rak Penyimpanan</small></label>
-                 @foreach ($d_header as $dh)
-                <input type="text" class="form-control " id="txt_rak" name="txt_rak" value="{{ $dh->rak_asal }}" readonly>
-                @endforeach
-                </div>
-            </div>
-            </div>
-
-            <div class="col-8 col-md-8">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Note</small></label>
-                 @foreach ($d_header as $dh)
-                <input type="text" class="form-control " id="txt_note" name="txt_note" value="{{ $dh->deskripsi }}" readonly>
-                @endforeach
-                <input type="hidden" id="txt_jml_qty" name="txt_jml_qty" value="">
-                @foreach ($sum_data as $sd)
-                <input type="hidden" class="form-control " id="txt_sum_roll" name="txt_sum_roll" value="{{ $sd->jml }}" readonly>
-                @endforeach
-                </div>
-            </div>
-            </div>
-
-            <div class="col-12 col-md-12">
-            <div class="form-group row">
-        <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-            </div>
-                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
-    <div class="table-responsive"style="max-height: 300px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100 text-nowrap" width="100%">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No BPB</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lot</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Roll</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Mutasi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Rak</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Rak Tujuan</th>
-                        <th class="text-center" style="display: none;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $i=1; ?>
-                    @foreach ($det_data as $detdata)
-                    <tr>
-                        <td>{{$detdata->id_item}} <input type="hidden" id="id_item<?= $i; ?>" name="id_item[<?= $i; ?>]" value="{{$detdata->qty_mutasi}}" /></td>
-                        <td>{{$detdata->kode_item}} <input type="hidden" id="kode_item<?= $i; ?>" name="kode_item[<?= $i; ?>]" value="{{$detdata->kode_item}}" /></td>
-                        <td>{{$detdata->item_desc}} <input type="hidden" id="desk_item<?= $i; ?>" name="desk_item[<?= $i; ?>]" value="{{$detdata->item_desc}}" /></td>
-                        <td>{{$detdata->no_ws}} <input type="hidden" id="nows<?= $i; ?>" name="nows[<?= $i; ?>]" value="{{$detdata->no_ws}}" /></td>
-                        <td>{{$detdata->no_bpb}} <input type="hidden" id="no_bpb<?= $i; ?>" name="no_bpb[<?= $i; ?>]" value="{{$detdata->no_bpb}}" /></td>
-                        <td>{{$detdata->no_lot}} <input type="hidden" id="lot_no<?= $i; ?>" name="lot_no[<?= $i; ?>]" value="{{$detdata->no_lot}}" /></td>
-                        <td>{{$detdata->no_roll}} <input type="hidden" id="roll_no<?= $i; ?>" name="roll_no[<?= $i; ?>]" value="{{$detdata->no_roll}}" /></td>
-                        <td>{{$detdata->qty_roll}} <input type="hidden" id="qty_roll<?= $i; ?>" name="qty_roll[<?= $i; ?>]" value="{{$detdata->qty_roll}}" /></td>
-                        <td><input style="width:100px;" class="form-control-sm" type="text" min="0" max="{{$detdata->qty_roll}}" id="qty_mut<?= $i; ?>" name="qty_mut[<?= $i; ?>]" value="{{$detdata->qty_mutasi}}" onkeyup="sum_qty_mut(this.value)" /></td>
-                        <td>{{$detdata->unit}} <input type="hidden" id="unit<?= $i; ?>" name="unit[<?= $i; ?>]" value="{{$detdata->unit}}" /></td>
-                        <td>{{$detdata->rak_asal}} <input type="hidden" id="kode_rak<?= $i; ?>" name="kode_rak[<?= $i; ?>]" value="{{$detdata->rak_asal}}" /></td>
-                        <td>
-                            <select class="form-control select2rak" id="selectlok<?= $i; ?>" name="selectlok[<?= $i; ?>]" style="width: 150px;">
-                            @foreach ($lokasi as $lok)
-                            <?php $isSelected = '';
-                                if($lok->kode_lok == $detdata->rak_tujuan ) {
-                                $isSelected  = ' selected="selected"';
-                                }else{
-                                $isSelected = '';
-                                }
-                            ?>
-                              <option value='{{$lok->kode_lok}}' <?= $isSelected; ?>>{{$lok->kode_lok}}</option>
-                              @endforeach
-                            </select>
-                        </td>
-                        <td hidden><input style="width:100px;" class="form-control-sm" type="text" id="id_det<?= $i; ?>" name="id_det[<?= $i; ?>]" value="{{$detdata->id}}" /></td>
-                    </tr>
-                    <?php $i++; ?>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-            <div class="mb-1">
-                <div class="form-group">
-                    <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                    <a href="{{ route('mutasi-lokasi') }}" class="btn btn-danger float-end mt-2">
-                    <i class="fas fa-arrow-circle-left"></i> Kembali</a>
+        <div class="mb-1">
+            <div class="form-group">
+                <input type="button"   class="btn btn-sb float-end mt-2 ml-2" value="Save" onclick="savedataopname()" />
+                <input type="button"   class="btn btn-danger float-end mt-2 ml-2" value="Delete All" onclick="delete_scan_all()" />
+                <a href="{{ route('mutasi-lokasi') }}" class="btn btn-warning float-end mt-2">
+                    <i class="fas fa-arrow-circle-left"></i> Back</a>
                 </div>
             </div>
         </div>
-
-
-
     </div>
 </div>
-</div>
 
+</div>
 </form>
+
 @endsection
 
+
 @section('custom-script')
-    <!-- DataTables  & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-    <!-- Select2 -->
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <!-- Page specific script -->
+<!-- DataTables  & Plugins -->
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+<!-- Select2 -->
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<!-- Page specific script -->
+
+<script>
+const inputLokasi = document.getElementById('txt_lokasi_tujuan');
+const listLokasi = document.getElementById('list_lokasi');
+const lokasiOptions = Array.from(listLokasi.options).map(opt => opt.value);
+
+// Cek juga saat blur (keluar dari input)
+inputLokasi.addEventListener('blur', function() {
+    const val = this.value.trim();
+    if (val !== '' && !lokasiOptions.includes(val)) {
+        this.value = ''; // kosongkan jika tidak cocok
+    }
+});
+
+// ─── Tgl Mutasi datepicker (batasi periode closed) ─────────────────────────
+
+let minTglRo = @json($min_tgl_ro ?? '');
+let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+function formatDateYmd(date) {
+    let m = date.getMonth() + 1;
+    let d = date.getDate();
+    return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+
+$('#txt_tgl_mut').datepicker({
+    dateFormat: 'yy-mm-dd',
+    minDate: minTglRo ? minTglRo : null,
+    beforeShowDay: function (date) {
+        let ymd = formatDateYmd(date);
+        for (let p of closedPeriods) {
+            if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                return [false, '', 'Periode sudah closed'];
+            }
+        }
+        return [true, ''];
+    }
+});
+
+$('#txt_tgl_mut_icon').on('click', function () {
+    $('#txt_tgl_mut').datepicker('show');
+});
+</script>
+
+<script type="text/javascript">
+
+
+// === ambil data barcode
+function getdatabarcode(no_barcode = null) {
+    let barcode = no_barcode ?? $('#txt_barcode').val();
+
+    if (!barcode) return Promise.resolve({ status: 'skip' });
+
+    return $.ajax({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        url: '{{ route("get-data-barcodemutasi") }}',
+        type: 'get',
+        data: { no_barcode: barcode },
+        dataType: 'json'
+    }).then(function (res) {
+        if (!res || res.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Data Barcode ' + barcode + ' tidak ditemukan!'
+            });
+            resetBarcodeInputs();
+            return { status: 'notfound', barcode };
+        }
+
+        res = res[0];
+        return { status: 'ok', barcode, rawData: res };
+    }).catch(function (xhr, status, error) {
+        console.error("AJAX Error:", status, error);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal koneksi ke server!' });
+        resetBarcodeInputs();
+        return { status: 'error', barcode, msg: error };
+    });
+}
+
+
+// === simpan data barcode
+function savedatabarcode(data) {
+    return $.ajax({
+        url: '{{ route("simpan-scan-barcode-mutasi") }}',
+        type: 'GET',
+        dataType: 'json',
+        data: data,
+        success: function(res) {
+            if (res?.status == 200) {
+                dataTableReload();
+                resetBarcodeInputs();
+            }
+        }
+    });
+}
+
+
+// === reset input
+function resetBarcodeInputs() {
+    $('#txt_qty_barcode, #txt_item_barcode, #txt_iditem_barcode, #txt_jo_barcode, #txt_lok_barcode, #txt_lot_barcode, #txt_roll_barcode, #txt_unit_barcode').val('');
+    $('#txt_barcode').val('').focus();
+}
+
+// === scan satu-satu
+$('#txt_barcode').on('keydown', function(e) {
+    if (["Tab", "Enter"].includes(e.key) || [9, 13].includes(e.keyCode)) {
+        e.preventDefault();
+        let code = $(this).val().trim();
+        let lokasi_tujuan = $('#txt_lokasi_tujuan').val().trim();
+
+        // ✅ Cek apakah lokasi tujuan kosong
+        if (!lokasi_tujuan) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lokasi Tujuan Kosong!',
+                text: 'Silakan pilih lokasi tujuan terlebih dahulu sebelum scan barcode.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                $('#txt_barcode').val('');
+                $(document.activeElement).blur();
+                setTimeout(() => {
+                    $('#txt_lokasi_tujuan').focus();
+                }, 200);
+            });
+            return; // hentikan proses
+        }
+
+        if (!code) return; // tidak ada barcode, abaikan
+
+        // ✅ lanjut proses barcode
+        getdatabarcode(code).then(res => {
+            if (res.status === 'ok' && res.rawData) {
+                let d = res.rawData;
+                savedatabarcode({
+                    lokasi_tujuan: lokasi_tujuan,
+                    no_barcode: d.no_barcode,
+                    qty: d.qty,
+                    id_item: d.id_item,
+                    id_jo: d.id_jo,
+                    lokasi_barcode: d.kode_lok,
+                    no_lot: d.no_lot,
+                    no_roll: d.no_roll,
+                    unit: d.satuan,
+                    supplier: d.supplier,
+                    buyer: d.buyer,
+                    itemdesc: d.itemdesc,
+                    no_ws: d.no_ws,
+                    no_dok: d.no_dok
+                });
+            }
+        });
+    }
+});
+
+
+
+// === batch via textarea
+$('#btnSendBarcode').on('click', function () {
+    let lokasi_tujuan = $('#txt_lokasi_tujuan').val().trim();
+    let barcodes = $('#txt_barcodes').val().trim().split("\n").map(b => b.trim()).filter(b => b.length > 0);
+
+    // ✅ Cek lokasi tujuan
+    if (!lokasi_tujuan) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Lokasi Tujuan Kosong!',
+            text: 'Silakan pilih lokasi tujuan terlebih dahulu sebelum mengirim barcode.',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            $(document.activeElement).blur();
+            setTimeout(() => {
+                $('#txt_lokasi_tujuan').focus();
+            }, 300);
+        });
+        return; // hentikan proses
+    }
+
+    if (!barcodes.length) {
+        Swal.fire({ icon: 'warning', title: 'Kosong', text: 'Tidak ada barcode untuk diproses!' });
+        return;
+    }
+
+    (async () => {
+        Swal.fire({
+            title: 'Sedang memproses...',
+            html: 'Tunggu sebentar, jangan tutup halaman.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        let results = [];
+
+        for (let bc of barcodes) {
+            let res = await getdatabarcode(bc);
+            if (res.status === 'ok' && res.rawData) {
+                let d = res.rawData;
+                await savedatabarcode({
+                    lokasi_tujuan: lokasi_tujuan,
+                    no_barcode: d.no_barcode,
+                    qty: d.qty,
+                    id_item: d.id_item,
+                    id_jo: d.id_jo,
+                    lokasi_barcode: d.kode_lok,
+                    no_lot: d.no_lot,
+                    no_roll: d.no_roll,
+                    unit: d.satuan,
+                    supplier: d.supplier,
+                    buyer: d.buyer,
+                    itemdesc: d.itemdesc,
+                    no_ws: d.no_ws,
+                    no_dok: d.no_dok
+                });
+                results.push({ status: 'success', barcode: bc });
+            } else {
+                results.push(res);
+            }
+        }
+
+        Swal.close();
+
+        let success = results.filter(r => r.status === 'success').map(r => r.barcode);
+        let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
+
+        let msg = "";
+        if (success.length) msg += "✅ Berhasil: " + success.join(", ") + "<br>";
+        if (notfound.length) msg += "❌ Tidak ditemukan: " + notfound.join(", ") + "<br>";
+
+        Swal.fire({ icon: 'info', title: 'Hasil Proses', html: msg });
+        $('#txt_barcodes').val('');
+    })();
+});
+
+function GantilokasiTujuan(){
+    let lokasi_tujuan = $('#txt_lokasi_tujuan').val().trim();
+    return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("update_lokasi-mut-temp") }}',
+                    type: 'get',
+                    data: {
+                        lokasi_tujuan: lokasi_tujuan,
+                    },
+                    success: function (res) {
+                        dataTableReload();
+                    }
+                });
+}
+
+
+</script>
+<script type="text/javascript">
+    function savedataopname() {
+        var txt_no_mut = document.getElementById('txt_no_mut').value;
+        var txt_tgl_mut = document.getElementById('txt_tgl_mut').value;
+        var txt_lokasi_tujuan = document.getElementById('txt_lokasi_tujuan').value;
+        var txt_keterangan = document.getElementById('txt_keterangan').value;
+        var txt_total_roll = document.getElementById('txt_total_roll').value;
+
+        if (minTglRo && txt_tgl_mut < minTglRo) {
+            Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl Mutasi tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+            return;
+        }
+
+        for (let p of closedPeriods) {
+            if (txt_tgl_mut >= p.tgl_awal && txt_tgl_mut <= p.tgl_akhir) {
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl Mutasi tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+                return;
+            }
+        }
+
+        if (!txt_lokasi_tujuan) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lokasi Tujuan Kosong!',
+                text: 'Silakan pilih lokasi tujuan',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                $('#txt_lokasi_tujuan').focus();
+            });
+            return;
+        }
+
+        if (txt_total_roll <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Belum ada data yang dipilih!',
+                text: 'Silakan isi data terlebih dahulu',
+                confirmButtonText: 'OK'
+            }).then(() => {
+            });
+            return;
+        }
+
+
+                return $.ajax({
+                    url: '{{ route('save-mutasi-rak-fabric') }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        txt_no_mut: txt_no_mut,
+                        txt_tgl_mut: txt_tgl_mut,
+                        txt_lokasi_tujuan: txt_lokasi_tujuan,
+                        txt_keterangan: txt_keterangan,
+                        txt_total_roll: txt_total_roll,
+                    },
+                    success: function(res) {
+                        if (res) {
+                            if (res.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Data Berhasil Disimpan ' + res.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    timer: 1500,
+                                    timerProgressBar: true
+                                }).then(async (result) => {
+                                    dataTableReload();
+                                    window.location.href = res.redirect;
+
+                                });
+
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: res.message
+                                });
+                            }
+                        }
+                    }, error: function(jqXHR){
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Gagal!',
+                            text: 'Silahkan Coba Lagi',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke'
+                        });
+                    }
+                });
+            }
+        </script>
+        <script>
+            let datatable = $("#datatable").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                autoWidth: false,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-mutasi') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+
+                    },
+                },
+
+                createdRow: function(row, data, dataIndex) {
+                    if (data.locked) {
+                        $(row).addClass('row-locked');
+                    }
+                },
+
+                columns: [{
+                    data: 'idbpb_det'
+                },
+                {
+                    data: 'id_jo'
+                },
+                {
+                    data: 'no_ws'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'item_desc'
+                },
+                {
+                    data: 'qty'
+                },
+
+                {
+                    data: 'unit'
+                },
+                {
+                    data: 'rak_asal'
+                },
+                {
+                    data: 'rak_tujuan'
+                },
+
+                {
+                    data: 'idbpb_det'
+                }
+
+                ],
+                columnDefs: [{
+                    targets: [4],
+                    width: '33%',
+                    className: 'text-wrap'
+                },
+                {
+                    targets: [0, 1, 3, 9],
+                    width: '7%'
+                },
+                {
+                    targets: [2],
+                    width: '9%'
+                },
+                {
+                    targets: [5],
+                    width: '6%'
+                },
+                {
+                    targets: [6],
+                    width: '5%'
+                },
+                {
+                    targets: [7],
+                    width: '10%'
+                },
+                {
+                    targets: [8],
+                    width: '12%',
+                    render: (data, type, row, meta) => {
+                        if (row.locked) {
+                            return data || '';
+                        }
+                        let options = '<option value="">Pilih Lokasi</option>' + lokasiOptions.map(opt => '<option value="' + opt + '"' + (opt === data ? ' selected' : '') + '>' + opt + '</option>').join('');
+                        return '<select class="form-control form-control-sm select2lok-row" style="width:100%;" onchange="updateRowLokasi(\'' + row.idbpb_det + '\', this.value)">' + options + '</select>';
+                    }
+                },
+                {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                    if (row.locked) {
+                        return `<div class='d-flex gap-1 justify-content-center'>
+                    <i class="fa-solid fa-lock" title="Sudah dimutasi lagi, tidak bisa diubah"></i>
+                    </div>`;
+                    }
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.idbpb_det + `")'><i class="fa-solid fa-trash"></i></i></button>
+                    </div>`;
+            }
+        }
+
+        ]
+    });
+
+    datatable.on('draw.dt', function() {
+        $('.select2lok-row').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+    });
+
+    function updateRowLokasi(no_barcode, lokasi_tujuan) {
+        if (!lokasi_tujuan) return;
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("update-row-lokasi-mut-temp") }}',
+            type: 'get',
+            data: {
+                no_barcode: no_barcode,
+                lokasi_tujuan: lokasi_tujuan,
+            },
+            success: function (res) {
+                if (res && res.status == 400) {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+                }
+                dataTableReload();
+            }
+        });
+    }
+
+            function dataTableReload() {
+                datatable.ajax.reload();
+            }
+
+function formatNumber(num, decimals = 0) {
+    if (isNaN(num) || num === null) return '0';
+    const options = {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    };
+    return Number(num).toLocaleString('en-US', options);
+}
+
+datatable.on('xhr.dt', function(e, settings, json, xhr) {
+    if (json && json.data) {
+        let totalRoll = json.data.length;
+
+        let totalQty = json.data.reduce((sum, row) => {
+            let val = parseFloat(row.qty);
+            if (isNaN(val)) val = 0;
+            return sum + val;
+        }, 0);
+
+        const totalRollRounded = Math.round(totalRoll);         // 0 decimal
+        const totalQtyRounded = Math.round((totalQty + Number.EPSILON) * 100) / 100; // 2 decimal
+
+        $('#txt_total_roll').val(formatNumber(totalRollRounded, 0));
+        $('#txt_total_qty').val(formatNumber(totalQtyRounded, 2));
+    }
+});
+
+
+            function delete_scan($no_barcode){
+                let no_barcode = $no_barcode;
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("delete-mut-temp") }}',
+                    type: 'get',
+                    data: {
+                        no_barcode: no_barcode,
+                    },
+                    success: function (res) {
+                        if (res && res.status == 400) {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+                            return;
+                        }
+                        dataTableReload();
+                    }
+                });
+
+            }
+
+            function delete_scan_all(){
+                let lokasi_h = '';
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("delete-mut-temp-all") }}',
+                    type: 'get',
+                    data: {
+                        lokasi_h: lokasi_h,
+                    },
+                    success: function (res) {
+                        dataTableReload();
+                    }
+                });
+
+            }
+
+
+        $( document ).ready(function() {
+            dataTableReload();
+        });
+    </script>
     <script>
 
         $(document).on('select2:open', () => {
@@ -188,318 +785,19 @@
         //Initialize Select2 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4'
-        })
+        });
 
         $('.select2roll').select2({
             theme: 'bootstrap4'
-        })
-
-         $('.select2rak').select2({
-            theme: 'bootstrap4'
-        })
+        });
 
         $('.select2supp').select2({
             theme: 'bootstrap4'
-        })
-
-        $("#color").prop("disabled", true);
-        $("#panel").prop("disabled", true);
-        $('#p_unit').val("yard").trigger('change');
+        });
 
         //Reset Form
         if (document.getElementById('store-inmaterial')) {
             document.getElementById('store-inmaterial').reset();
-        }
-
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-        $('#p_unit').on('change', async function(e) {
-            let unit = $('#p_unit').val();
-            if (unit == 'yard') {
-                $('#comma_unit').val('INCH');
-                $('#l_unit').val('inch').trigger("change");
-            } else if (unit == 'meter') {
-                $('#comma_unit').val('CM');
-                $('#l_unit').val('cm').trigger("change");
-            }
-        });
-
-        function updateOrderInfo() {
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-order") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                dataType: 'json',
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('ws').value = res.kpno;
-                        document.getElementById('buyer').value = res.buyer;
-                        document.getElementById('style').value = res.styleno;
-                    }
-                },
-            });
-        }
-
-        function updateColorList() {
-            document.getElementById('color').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-colors") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('color').innerHTML = res;
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
-
-                        $("#color").prop("disabled", false);
-                        $("#panel").prop("disabled", true);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
-
-        function updatePanelList() {
-            document.getElementById('panel').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-general-panels") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('panel').innerHTML = res;
-                        $("#panel").prop("disabled", false);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
-
-
-
-
-        function getrak() {
-            document.getElementById('txt_rak').innerHTML = '';
-            document.getElementById('dataroll').innerHTML = '';
-            document.getElementById('txt_sum_roll').value = 0;
-           return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-rak-list") }}',
-                type: 'get',
-                data: {
-                    no_ws: $('#txt_nows').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('txt_rak').innerHTML = res;
-                    }
-                },
-            });
-        }
-
-
-        function getdataroll(val) {
-            document.getElementById('dataroll').innerHTML = '';
-            document.getElementById('txt_sum_roll').value =0;
-            getsumdata(val);
-           return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-list-roll") }}',
-                type: 'get',
-                data: {
-                    rak: val,
-                    no_ws: $('#txt_nows').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('dataroll').innerHTML = res;
-                        $('.select2lok').select2({
-                            theme: 'bootstrap4'
-                        });
-                    }
-                },
-            });
-        }
-
-        function getsumdata(val) {
-           return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-sum-roll") }}',
-                type: 'get',
-                data: {
-                    rak: val,
-                    no_ws: $('#txt_nows').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        // console.log(res[0].jml)
-                        $('#txt_sum_roll').val(res[0].jml);
-                    }
-                },
-            });
-        }
-
-        function sum_qty_mut(val){
-            var table = document.getElementById("datatable");
-            var qty_roll = 0;
-            var qty_mut = 0;
-            var jum_qty = 0;
-            var roll_num = '';
-
-            for (let i = 1; i < (table.rows.length); i++) {
-                qty_roll =  document.getElementById("qty_roll"+i).value || 0;
-                qty_mut =  document.getElementById("qty_mut"+i).value || 0;
-                jum_qty += parseFloat(qty_mut);
-
-
-                if (qty_mut > 0) {
-                    if (parseFloat(qty_mut) > parseFloat(qty_roll)) {
-                        $('#qty_mut'+i).val(qty_roll);
-                    }else{
-                        $('#qty_mut'+i).val(qty_mut);
-                    }
-                }
-            }
-            $('#txt_jml_qty').val(jum_qty);
-
-        }
-
-
-
-        // function getlistdata(val){
-        //     datatable.ajax.reload();
-        // }
-
-        async function getlistdata() {
-            return datatable.ajax.reload(() => {
-                document.getElementById('jumlah_data').value = datatable.data().count();
-            });
-        }
-
-        $(document).ready(function() {
-        $('#datatable').DataTable({ searching: false, paging: false, info: false, ordering: false});
-
-        } );
-
-
-        function tambahqty($val){
-            var table = document.getElementById("datatable");
-            var qty = 0;
-            var jml_qty = 0;
-
-            for (var i = 1; i < (table.rows.length); i++) {
-                qty = document.getElementById("datatable").rows[i].cells[9].children[0].value || 0;
-                jml_qty += parseFloat(qty) ;
-            }
-
-            $('#jumlah_qty').val(jml_qty);
-
-        }
-
-        // function calculateRatio(id) {
-        //     let ratio = document.getElementById('ratio-'+id).value;
-        //     let gelarQty = document.getElementById('gelar_marker_qty').value;
-        //     document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
-        // }
-
-        // function calculateAllRatio(element) {
-        //     let gelarQty = element.value;
-
-        //     for (let i = 0; i < datatable.data().count(); i++) {
-        //         let ratio = document.getElementById('ratio-'+i).value;
-        //         document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
-        //     }
-        // }
-
-        // document.getElementById("store-marker").onkeypress = function(e) {
-        //     var key = e.charCode || e.keyCode || 0;
-        //     if (key == 13) {
-        //         e.preventDefault();
-        //     }
-        // }
-
-        function submitLokasiForm(e, evt) {
-            evt.preventDefault();
-
-            clearModified();
-
-            $.ajax({
-                url: e.getAttribute('action'),
-                type: e.getAttribute('method'),
-                data: new FormData(e),
-                processData: false,
-                contentType: false,
-                success: async function(res) {
-                    if (res.status == 200) {
-                        console.log(res);
-
-                        e.reset();
-
-                        // $('#cbows').val("").trigger("change");
-                        // $("#cbomarker").prop("disabled", true);
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Data Spreading berhasil disimpan',
-                            html: "No. Form Cut : <br>" + res.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            timer: 5000,
-                            timerProgressBar: true
-                        })
-
-                        datatable.ajax.reload();
-                    }
-                },
-
-            });
         }
 
         function cariitem() {
@@ -512,7 +810,7 @@
 
         // Loop through all table rows, and hide those who don't match the search query
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[12]; //kolom ke berapa
+            td = tr[i].getElementsByTagName("td")[5]; //kolom ke berapa
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -523,5 +821,5 @@
             }
         }
     }
-    </script>
+</script>
 @endsection

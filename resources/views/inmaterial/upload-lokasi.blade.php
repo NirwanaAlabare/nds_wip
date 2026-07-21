@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -57,14 +57,61 @@ input[type=file]::file-selector-button:hover {
   transition: color .2s ease-in-out;
 }
 
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+        #datatable tr.lokasi-invalid > td {
+            background-color: #fbdede !important;
+        }
+
+        .qty-summary {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .qty-tile {
+            flex: 1 1 0;
+            min-width: 0;
+            background: #f8f9fb;
+            border: 1px solid #e5e8ec;
+            border-left: 3px solid #0d6efd;
+            border-radius: 6px;
+            padding: 4px 10px;
+        }
+        .qty-tile.qty-balance { border-left-color: #6c757d; }
+        .qty-tile.qty-upload { border-left-color: #198754; }
+        .qty-tile .qty-label {
+            display: block;
+            font-size: .65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #6c757d;
+        }
+        .qty-tile .qty-value-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: .9rem;
+            font-weight: 600;
+            color: #1e2a38;
+        }
+        .qty-tile .qty-value-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
     </style>
 @endsection
 
 @section('content')
-<form action="{{ route('save-upload-lokasi') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
+<div class="marginnya">
+<form action="{{ route('save-upload-lokasi') }}" method="post" id="store-inmaterial" onsubmit="return validateUploadLokasiSubmit(this, event)">
     @method('POST')
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb card-outline mb-3">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -76,129 +123,96 @@ input[type=file]::file-selector-button:hover {
 @foreach ($data_head as $dhead)
     <div class="card-body">
     <div class="form-group row">
-    <div class="col-md-4">
-        <div class="row">
-            <div class="col-md-12">
+
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No BPB</small></label>
-                <input type="text" class="form-control " id="txt_gr_dok" name="txt_gr_dok" value="{{ $dhead->no_dok }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idgr" name="txt_idgr" value="{{ $dhead->id_dok }}" readonly>
-                <input type="hidden" class="form-control " id="txt_iddet" name="txt_iddet" value="{{ $dhead->id }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idjo" name="txt_idjo" value="{{ $dhead->id_jo }}" readonly>
-                <input type="hidden" class="form-control " id="txt_iditem" name="txt_iditem" value="{{ $dhead->id_item }}" readonly>
+                    <label><small>No BPB</small></label>
+                    <input type="text" class="form-control" id="txt_gr_dok" name="txt_gr_dok" value="{{ $dhead->no_dok }}" readonly>
+                    <input type="hidden" id="txt_idgr" name="txt_idgr" value="{{ $dhead->id_dok }}">
+                    <input type="hidden" id="txt_iddet" name="txt_iddet" value="{{ $dhead->id }}">
+                    <input type="hidden" id="txt_idjo" name="txt_idjo" value="{{ $dhead->id_jo }}">
+                    <input type="hidden" id="txt_iditem" name="txt_iditem" value="{{ $dhead->id_item }}">
                 </div>
             </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Kode barang</small></label>
-                <input type="text" class="form-control " id="m_kode_item" name="m_kode_item" value="{{ $dhead->kode_item }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-    <div class="mb-1">
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
-                <i class="fa-solid fa-file-arrow-up"></i> IMPORT EXCEL
-            </button>
-            <a onclick="export_excel()" class="btn btn-success">
-                <i class="fas fa-file-excel"></i> Template Upload
-            </a>
         </div>
-    </div>
-</div>
 
-
+        <div class="col-md-3">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>No WS</small></label>
+                    <input type="text" class="form-control" id="m_no_ws" name="m_no_ws" value="{{ $dhead->no_ws }}" readonly>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="row">
-
-            <div class="col-md-12">
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No WS</small></label>
-                <input type="text" class="form-control " id="m_no_ws" name="m_no_ws" value="{{ $dhead->no_ws }}" readonly>
+                    <label><small>ID Item</small></label>
+                    <input type="text" class="form-control" id="m_iditem_display" value="{{ $dhead->id_item }}" readonly>
+                    <input type="hidden" id="m_kode_item" name="m_kode_item" value="{{ $dhead->kode_item }}">
                 </div>
             </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Qty Balance</small></label>
-                    <input type="text" class="form-control" id="qty_bal" name="qty_bal" value="{{ $dhead->qty_sisa }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Qty Upload</small></label>
-                @foreach ($sum_data as $sdata)
-                    @if ($sdata->qty == "")
-                    <input style="background-color: white;" type="text" class="form-control" id="qty_upload" name="qty_upload" value="" readonly>
-                    @endif
-                    @if ($sdata->qty != "")
-                    <input style="background-color: white;" type="text" class="form-control" id="qty_upload" name="qty_upload" value="{{ $sdata->qty }}" readonly>
-                    @endif
-                @endforeach
-                </div>
-            </div>
-            </div>
-
         </div>
-    </div>
 
-    <div class="col-md-5">
-        <div class="row">
-
-            <div class="col-md-6">
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Qty BPB</small></label>
-                <input type="text" class="form-control" id="qty_bpb" name="qty_bpb" value="{{ $dhead->qty }}" readonly>
+                    <label><small>Unit Detail</small></label>
+                    <input type="text" class="form-control" id="txt_unit" name="txt_unit" value="{{ $dhead->unit }}" readonly>
                 </div>
             </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Unit Detail</small></label>
-                <input type="text" class="form-control " id="txt_unit" name="txt_unit" value="{{ $dhead->unit }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Deskripsi</small></label>
-                <input type="text" class="form-control " id="txt_desc" name="txt_desc" value="{{ $dhead->desc_item }}" readonly>
-                @foreach ($count_data as $cdata)
-                    @if ($cdata->qty == "")
-                   <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
-                    @endif
-                    @if ($cdata->qty != "")
-                    <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" value="{{ $cdata->qty }}" readonly>
-                    @endif
-                @endforeach
-                </div>
-            </div>
-            </div>
-
         </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="mb-2 w-100 d-flex flex-column">
+                <label class="text-muted mb-1"><small>Ringkasan Quantity</small></label>
+                <div class="qty-summary flex-grow-1">
+                    <div class="qty-tile qty-bpb">
+                        <span class="qty-label">Qty BPB</span>
+                        <input type="text" class="qty-value-input" id="qty_bpb" name="qty_bpb" value="{{ $dhead->qty }}" readonly>
+                        <input type="hidden" id="orig_qty_bpb" name="orig_qty_bpb" value="{{ $dhead->qty }}">
+                        <input type="hidden" id="update_item_qty_upload" name="update_item_qty" value="0">
+                    </div>
+                    <div class="qty-tile qty-balance">
+                        <span class="qty-label">Qty Balance</span>
+                        <input type="text" class="qty-value-input" id="qty_bal" name="qty_bal" value="{{ $dhead->qty_sisa }}" readonly>
+                    </div>
+                    <div class="qty-tile qty-upload">
+                        <span class="qty-label">Qty Upload</span>
+                        @foreach ($sum_data as $sdata)
+                        <input type="text" class="qty-value-input" id="qty_upload" name="qty_upload" value="{{ $sdata->qty }}" readonly>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="mb-1 w-100 d-flex flex-column">
+                <div class="form-group h-100 d-flex flex-column mb-0">
+                    <label><small>Deskripsi</small></label>
+                    <textarea class="form-control flex-grow-1" id="txt_desc" name="txt_desc" readonly>{{ $dhead->desc_item }}</textarea>
+                    @foreach ($count_data as $cdata)
+                    <input type="hidden" id="jumlah_data" name="jumlah_data" value="{{ $cdata->qty }}">
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
+                    <i class="fa-solid fa-file-arrow-up"></i> Import Excel
+                </button>
+                <a onclick="export_excel()" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Template
+                </a>
+            </div>
+        </div>
+
     </div>
-    </div>
-</div>
 </div>
 @endforeach
 
@@ -284,6 +298,7 @@ input[type=file]::file-selector-button:hover {
                 </form>
             </div>
         </div>
+</div>
 
 @endsection
 
@@ -513,6 +528,76 @@ input[type=file]::file-selector-button:hover {
             window.location = '/nds_wip/public/index.php/in-material/lokasi-material/'+iddok;
         }
 
+        function validateUploadLokasiSubmit(form, evt) {
+            evt.preventDefault();
+
+            if ($('#datatable tr.lokasi-invalid').length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lokasi Tidak Valid',
+                    html: 'Ada kode lokasi (kolom Lokasi berwarna merah) yang tidak sesuai dengan master lokasi. Perbaiki data lokasi tersebut sebelum menyimpan.',
+                });
+                return false;
+            }
+
+            const qtyUpload = parseFloat($('#qty_upload').val()) || 0;
+            const qtyBal = parseFloat($('#qty_bal').val()) || 0;
+            const diff = qtyUpload - qtyBal;
+
+            function proceed(updateItemQty) {
+                $('#update_item_qty_upload').val(updateItemQty ? '1' : '0');
+                submitForm(form, evt);
+            }
+
+            if (diff !== 0) {
+                const tandaSelisih = diff > 0 ? '+' + diff.toFixed(2) : diff.toFixed(2);
+
+                Swal.fire({
+                    title: 'Qty Upload Tidak Sama dengan Balance',
+                    html: `
+                        <div style="text-align:left;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td>Balance Item</td>
+                                    <td style="text-align:right;"><b>${qtyBal}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Qty Upload</td>
+                                    <td style="text-align:right;"><b>${qtyUpload}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Selisih</td>
+                                    <td style="text-align:right;"><b>${tandaSelisih}</b></td>
+                                </tr>
+                            </table>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    reverseButtons: true,
+                    confirmButtonText: 'Ubah Qty per Item Juga',
+                    denyButtonText: 'Ubah Barcode Saja',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745',
+                    denyButtonColor: '#ffc107',
+                    cancelButtonColor: '#6c757d',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        proceed(true);
+                    } else if (result.isDenied) {
+                        proceed(false);
+                    }
+                });
+            } else {
+                proceed(false);
+            }
+
+            return false;
+        }
+
+
+        let masterLokasiList = @json($lokasi->pluck('kode_lok'));
 
         let datatable = $("#datatable").DataTable({
         ordering: false,
@@ -569,6 +654,14 @@ input[type=file]::file-selector-button:hover {
 
         ],
         columnDefs: [
+                {
+                    targets: [5],
+                    createdCell: function(td, cellData) {
+                        if (!masterLokasiList.includes(cellData)) {
+                            $(td).closest('tr').addClass('lokasi-invalid');
+                        }
+                    }
+                },
                 {
                     targets: [6],
                     className: "d-none",

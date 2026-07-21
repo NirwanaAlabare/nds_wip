@@ -8,16 +8,16 @@
             <i class="fa-solid fa-file-lines me-1"></i> Retur from Supplier
         </a>
     </li>
-    <li class="nav-item" role="presentation">
+    {{-- <li class="nav-item" role="presentation">
         <a class="nav-link {{ $currentRoute === 'create-retur-inmaterial-cutting' ? 'active' : '' }}"
            href="{{ route('create-retur-inmaterial-cutting') }}">
             <i class="fa-solid fa-scissors me-1"></i> Retur from Cutting
         </a>
-    </li>
+    </li> --}}
     <li class="nav-item" role="presentation">
         <a class="nav-link {{ $currentRoute === 'create-retur-inmaterial-barcode' ? 'active' : '' }}"
            href="{{ route('create-retur-inmaterial-barcode') }}">
-            <i class="fa-solid fa-barcode me-1"></i> Retur New
+            <i class="fa-solid fa-scissors me-1"></i> Retur from Cutting
         </a>
     </li>
 </ul>
