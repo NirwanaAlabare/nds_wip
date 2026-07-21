@@ -1827,7 +1827,7 @@
                         <span class="dropdown-header" id="headerNotifLogActivity">Log Activity</span>
                         <div class="px-3 py-1" onclick="event.stopPropagation()">
                             <input type="text" class="form-control form-control-sm" id="searchNotifLogActivity"
-                                placeholder="Cari No Dokumen..." autocomplete="off"
+                                placeholder="Search Document No, Activity, or User..." autocomplete="off"
                                 onclick="event.stopPropagation()">
                         </div>
                         <div class="dropdown-divider"></div>
@@ -1967,6 +1967,8 @@
             }
 
             let notifLogSearchTimer = null;
+            let notifCurrentCount = 0;
+            let notifLastSeenCount = parseInt(localStorage.getItem('notifLastSeenCount') || '0');
 
             function loadNotifLogActivity() {
                 let search = $('#searchNotifLogActivity').val() || '';
@@ -1982,31 +1984,36 @@
                         let $badge = $('#badgeNotifLogActivity');
                         let $list = $('#listNotifLogActivity');
 
-                        if (res.count > 0) {
-                            $badge.text(res.count).removeClass('d-none');
+                        notifCurrentCount = res.count;
+                        let unseen = Math.max(0, res.count - notifLastSeenCount);
+                        if (unseen > 0) {
+                            $badge.text(unseen).removeClass('d-none');
                         } else {
                             $badge.addClass('d-none');
                         }
 
                         $('#headerNotifLogActivity').text(
-                            search ? ('Hasil Pencarian "' + search + '" (' + res.items.length + ')') :
+                            search ?
+                            ('Search Result "' + search + '" (' + res.items.length + ')') :
                             ('Log Activity Hari Ini (' + res.count + ')')
                         );
 
                         $list.empty();
                         if (!res.items || res.items.length === 0) {
                             $list.append(
-                                '<span class="dropdown-item text-muted">' + (search ? 'Tidak ditemukan' : 'Belum ada aktivitas') + '</span>'
+                                '<span class="dropdown-item text-muted">' +
+                                (search ? 'Tidak ditemukan' : 'Belum ada aktivitas') +
+                                '</span>'
                             );
-        } else {
+                        } else {
                             res.items.forEach(function(item) {
                                 $list.append(
                                     '<div class="dropdown-item-text px-3 py-2" style="white-space: normal; user-select: text; cursor: default;" onclick="event.stopPropagation()">' +
-                                    '<div class="d-flex justify-content-between">' +
-                                    '<span><i class="fas fa-file-alt text-info mr-2"></i>' + item.activity + '</span>' +
-                                    '</div>' +
-                                    '<div class="text-muted text-sm">' + (item.no_dok || '-') + ' &middot; ' + (item.user || '-') + '</div>' +
-                                    '<div class="text-muted text-sm">' + formatDateTimeNotifLog(item.created_at) + '</div>' +
+                                        '<div class="d-flex justify-content-between">' +
+                                            '<span><i class="fas fa-file-alt text-info mr-2"></i>' + item.activity + '</span>' +
+                                        '</div>' +
+                                        '<div class="text-muted text-sm">' + (item.no_dok || '-') + ' &middot; ' + (item.user || '-') + '</div>' +
+                                        '<div class="text-muted text-sm">' + formatDateTimeNotifLog(item.created_at) + '</div>' +
                                     '</div><div class="dropdown-divider"></div>'
                                 );
                             });
@@ -2027,6 +2034,12 @@
                     notifLogSearchTimer = setTimeout(function() {
                         loadNotifLogActivity();
                     }, 350);
+                });
+
+                $('#bellNotifLogActivity').closest('.nav-link').on('click', function() {
+                    notifLastSeenCount = notifCurrentCount;
+                    localStorage.setItem('notifLastSeenCount', notifLastSeenCount);
+                    $('#badgeNotifLogActivity').addClass('d-none');
                 });
             });
         </script>
