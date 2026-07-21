@@ -528,7 +528,7 @@ FROM
         AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
     GROUP BY b.nomor_aju
 
-) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
+) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
                 UNION
                 select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, supplier, '-' kode_barang, nama_item, qty, satuan, a.curr, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$request->dateFrom."' and tanggal_daftar <= '".$request->dateTo."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
 
