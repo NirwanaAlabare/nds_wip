@@ -51,10 +51,10 @@ class InMaterialController extends Controller
             $items = DB::connection('mysql_sb')->select("
                 SELECT id, activity, no_dok, user, created_at
                 FROM whs_log_activity
-                WHERE no_dok LIKE ?
+                WHERE no_dok LIKE ? OR activity LIKE ? OR user LIKE ?
                 ORDER BY created_at DESC
                 LIMIT 50
-            ", ['%' . $search . '%']);
+            ", ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%']);
         } else {
             $items = DB::connection('mysql_sb')->select("
                 SELECT id, activity, no_dok, user, created_at
