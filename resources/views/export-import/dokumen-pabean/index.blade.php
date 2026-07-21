@@ -133,6 +133,10 @@
                 <button class="btn btn-sm btn-outline-info" id="btn-status-periode">
                     Cek Status CEISA Periode Ini
                 </button>
+                {{-- <button id="btn-send" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Send Batch</button> --}}
+                <button id="btn-buat-batch" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-buat-batch">
+                    <i class="fas fa-layer-group"></i> Buat Batch Dokumen Pabean
+                </button>
             </div>
         </div>
 
@@ -142,6 +146,8 @@
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
                 <thead>
                     <tr>
+                        {{-- untuk checklist --}}
+                        <th></th>
                         <th>Nomor Trans</th>
                         <th>PO #</th>
                         <th>Tanggal Trans</th>
@@ -188,13 +194,98 @@
     </div>
 </div>
 
+{{-- Modal Buat Batch --}}
+<div class="modal fade" id="modal-buat-batch" tabindex="-1" role="dialog" aria-labelledby="modalBuatBatchLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white" style="border-radius: 8px 8px 0 0;">
+                <h5 class="modal-title font-weight-bold" id="modalBuatBatchLabel">
+                    <i class="fas fa-layer-group mr-2"></i> Buat Batch Dokumen Pabean
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Jenis Transaksi</label>
+                        <select id="jenis_modal" class="form-control form-control-sm select2bs4">
+                            <option value="Pemasukan" {{ $jenis == 'Pemasukan' ? 'selected' : '' }}>Pemasukan</option>
+                            <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Tipe BC</label>
+                        <select id="jenis_bc_modal" class="form-control form-control-sm select2bs4">
+                            <option value="" {{ $jenis_bc == '' ? 'selected' : '' }}>Semua Tipe</option>
+                            <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
+                            <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
+                            <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
+                            <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
+                            <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
+                            <option value="BC 2.6.1" {{ $jenis_bc == 'BC 2.6.1' ? 'selected' : '' }}>BC 2.6.1</option>
+                            <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
+                            <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
+                            <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
+                            <option value="INHOUSE" {{ $jenis_bc == 'INHOUSE' ? 'selected' : '' }}>INHOUSE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Dari Tanggal</label>
+                        <!-- Menggunakan ID baru khusus modal -->
+                        <input type="date" id="modal_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold">Sampai Tanggal</label>
+                        <input type="date" id="modal_tanggal_akhir" class="form-control form-control-sm" value="{{ $tgl_akhir }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small fw-bold">Supplier</label>
+                        <select id="filter_supplier_batch" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                            <option value="">-- Semua Supplier --</option>
+                            @foreach($suppliers as $sup)
+                                <option value="{{ $sup->Id_Supplier }}">{{ $sup->Supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-modal-batch">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="check-all-batch"></th>
+                                <th>Nomor Trans</th>
+                                <th>PO #</th>
+                                <th>Tanggal Trans</th>
+                                <th>Pemasok</th>
+                                <th>No. Invoice</th>
+                                <th>Jenis BC</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success btn-sm" id="btn-proses-buat-batch">
+                    <i class="fas fa-save"></i> Proses Batch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('custom-script')
 <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 
 <script>
     let tableDokumen;
@@ -204,7 +295,7 @@
 
         tableDokumen = $('#table-dokumen').DataTable({
             processing: true,
-            serverSide: true,
+            serverSide: false,
             ajax: {
                 url: '{{ route("dokumen-pabean-index") }}',
                 data: function (d) {
@@ -216,7 +307,38 @@
                 }
             },
             columns: [
-                { data: 'trx_no',      name: 'trx_no',        searchable: true },
+                {
+                    data: null,
+                    name: 'checkbox',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        // let jenisBc = $('#jenis_bc').val();
+                        // let jenis = $('#jenis').val();
+
+                        // if(jenisBc == "BC 4.0" || jenisBc == "BC 4.1"){
+                        //     if(jenis == 'Pemasukan'){
+                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bpbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                        //     }else{
+                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bppbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
+                        //     }
+                        // }else{
+                        //     return '';
+                        // }
+                        return '';
+                    }
+                },
+                {
+                    data: null,
+                    name: 'trx_no',
+                    searchable: true,
+                    render: function (data, type, row) {
+                        let jenis = $('#jenis').val();
+                        let nomor = (jenis === 'Pemasukan') ? (row.bpbno ?? '-') : (row.bppbno ?? '-');
+                        return nomor;
+                    }
+                },
                 { data: 'pono',        name: 'pono',          searchable: true},
                 { data: 'tanggal',     name: 'tanggal',       searchable: false },
                 { data: 'supplier',    name: 'ms.supplier',   searchable: true },
@@ -330,6 +452,7 @@
                         if(res.status === 200) {
                             Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
                             console.log("Response CEISA:", res.ceisa_response);
+
                             refreshTable();
                         } else {
                             showErrorSwal(res);
@@ -449,12 +572,53 @@
                     let data = res.ceisa_response;
                     let htmlContent = '';
 
-                    if (data && data.dataStatus && data.dataStatus.length > 0) {
-                        // Urutkan berdasarkan waktuStatus descending (terbaru di atas)
-                        let statuses = data.dataStatus.sort((a, b) => new Date(b.waktuStatus) - new Date(a.waktuStatus));
-                        let latest = statuses[0];
+                    if (data && ((data.dataStatus && data.dataStatus.length > 0) || (data.dataRespon && data.dataRespon.length > 0))) {
+                        let allStatuses = [];
 
-                        let noDaftarStr = (latest.nomorDaftar) ? `<b>${latest.nomorDaftar}</b> tanggal <b>${latest.tanggalDaftar}</b>` : '<span class="badge badge-warning">Belum Terdaftar</span>';
+                        if (data.dataStatus) {
+                            data.dataStatus.forEach(s => allStatuses.push({
+                                waktu: s.waktuStatus,
+                                keterangan: s.keterangan,
+                                kodeProses: s.kodeProses,
+                                nomorDaftar: s.nomorDaftar,
+                                tanggalDaftar: s.tanggalDaftar,
+                                nomorAju: s.nomorAju,
+                                isRespon: false
+                            }));
+                        }
+
+                        if (data.dataRespon) {
+                            data.dataRespon.forEach(r => allStatuses.push({
+                                waktu: r.waktuRespon,
+                                keterangan: r.keterangan,
+                                kodeProses: r.kodeRespon,
+                                nomorDaftar: r.nomorDaftar,
+                                tanggalDaftar: r.tanggalDaftar,
+                                nomorAju: r.nomorAju,
+                                isRespon: true,
+                                pesan: r.pesan
+                            }));
+                        }
+
+                        allStatuses.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+                        let latest = allStatuses[0];
+
+                        let validDaftar = allStatuses.find(s => s.nomorDaftar != null);
+                        let textDaftar = validDaftar ? `<b>${validDaftar.nomorDaftar}</b> tanggal <b>${validDaftar.tanggalDaftar}</b>` : '<span class="badge badge-warning">Belum Terdaftar</span>';
+                        let noDaftarStr = `${textDaftar}
+                            <button type="button" class="btn btn-xs btn-primary ml-2 btn-sync-bcno"
+                                data-noaju="${validDaftar ? validDaftar.nomorAju : noAju}"
+                                data-nodaftar="${validDaftar ? validDaftar.nomorDaftar : ''}"
+                                data-tgldaftar="${validDaftar ? validDaftar.tanggalDaftar : ''}">
+                                <i class="fas fa-save"></i> Simpan ke No Daftar
+                            </button>`;
+
+                        let badgeColor = (latest.keterangan && latest.keterangan.toUpperCase().includes('REJECT')) ? 'badge-danger' : 'badge-success';
+
+                        let reasonHtml = '';
+                        if (latest.pesan && Array.isArray(latest.pesan) && latest.pesan.length > 0) {
+                            reasonHtml = `<div class="alert alert-danger p-2 mt-2 mb-0" style="font-size:12px;"><b>Catatan/Alasan:</b><br><ul class="mb-0 pl-3">` + latest.pesan.map(p => `<li>${p}</li>`).join('') + `</ul></div>`;
+                        }
 
                         htmlContent = `
                             <div style="text-align: left; font-size: 14px; margin-top: 10px;">
@@ -464,38 +628,39 @@
                                         <td>${latest.nomorAju || noAju}</td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-light">No. Pendaftaran</th>
+                                        <th class="bg-light">No. Pabean</th>
                                         <td>${noDaftarStr}</td>
                                     </tr>
                                     <tr>
                                         <th class="bg-light">Status Terakhir</th>
-                                        <td><span class="badge badge-success" style="font-size: 13px;">${latest.keterangan || '-'}</span></td>
+                                        <td><span class="badge ${badgeColor}" style="font-size: 13px;">${latest.keterangan || '-'}</span>${reasonHtml}</td>
                                     </tr>
                                     <tr>
                                         <th class="bg-light">Waktu Update</th>
-                                        <td>${latest.waktuStatus || '-'}</td>
+                                        <td>${latest.waktu || '-'}</td>
                                     </tr>
                                 </table>
 
                                 <h5 class="mt-4 mb-2" style="font-size: 16px; font-weight: bold;"><i class="fas fa-history text-primary"></i> Riwayat Status</h5>
-                                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
+                                <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
                                     <table class="table table-sm table-striped mb-0" style="font-size: 12px;">
                                         <thead>
                                             <tr class="bg-light">
                                                 <th>Waktu</th>
                                                 <th>Status/Keterangan</th>
-                                                <th>Proses</th>
+                                                <th>Proses / Respon</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                         `;
 
-                        statuses.forEach(st => {
+                        allStatuses.forEach(st => {
+                            let textClass = (st.keterangan && st.keterangan.toUpperCase().includes('REJECT')) ? 'text-danger' : '';
                             htmlContent += `
                                             <tr>
-                                                <td nowrap>${st.waktuStatus || '-'}</td>
-                                                <td><b>${st.keterangan || '-'}</b></td>
-                                                <td><span class="badge badge-secondary">${st.kodeProses || '-'}</span></td>
+                                                <td nowrap>${st.waktu || '-'}</td>
+                                                <td class="${textClass}"><b>${st.keterangan || '-'}</b></td>
+                                                <td><span class="badge ${st.isRespon ? 'badge-primary' : 'badge-secondary'}">${st.kodeProses || '-'}</span></td>
                                             </tr>
                             `;
                         });
@@ -753,7 +918,6 @@
     }
 
     function openPdfBase64(btnEl) {
-        // btnEl bisa berupa element atau string ID
         let pdfBase64 = typeof btnEl === 'string'
             ? document.querySelector(`[data-pdf][onclick*="${btnEl}"]`)?.getAttribute('data-pdf')
             : btnEl.getAttribute('data-pdf');
@@ -762,7 +926,6 @@
             Swal.fire('Error', 'Data PDF tidak tersedia.', 'error');
             return;
         }
-        // Buka di tab baru sebagai object URL
         let byteChars = atob(pdfBase64);
         let byteArr   = new Uint8Array(byteChars.length);
         for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
@@ -770,5 +933,372 @@
         let url  = URL.createObjectURL(blob);
         window.open(url, '_blank');
     }
+
+    $(document).on('click', '.btn-sync-bcno', function() {
+        let btn = $(this);
+        let noAju = btn.data('noaju');
+        let noDaftar = btn.data('nodaftar');
+        let tglDaftar = btn.data('tgldaftar');
+        let actionUrl = '{{ route("dokumen-pabean-sync-bcno", ":noAju") }}'.replace(':noAju', noAju);
+
+        let infoHtml = !noDaftar ? '<div class="alert alert-warning p-2" style="font-size:13px;"><i class="fas fa-exclamation-triangle"></i> Nomor pabean tidak ditemukan di CEISA. Silakan isi secara manual.</div>' : '';
+
+        Swal.fire({
+            title: 'Input Nomor Pabean',
+            html: infoHtml + `
+                <div class="form-group text-left mb-0">
+                    <label>Nomor Pabean</label>
+                    <input type="text" id="swal-no-daftar" class="form-control" value="${noDaftar}">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                let inputNoDaftar = document.getElementById('swal-no-daftar').value;
+                if (!inputNoDaftar) {
+                    Swal.showValidationMessage('Nomor Pabean harus diisi');
+                }
+                return { noDaftar: inputNoDaftar };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        nomor_daftar: result.value.noDaftar
+                    },
+                    success: function(res) {
+                        if (res.status === 200) {
+                            Swal.fire('Berhasil!', res.message, 'success');
+                            btn.data('nodaftar', result.value.noDaftar);
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi Kesalahan Sistem';
+                        Swal.fire('Gagal', errMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    $('#table-dokumen').on('change', '.select-checkbox', function() {
+        let selectedSuppliers = [];
+
+        $('.select-checkbox:checked').each(function() {
+            selectedSuppliers.push($(this).data('supplier'));
+        });
+
+        let uniqueSuppliers = [...new Set(selectedSuppliers)];
+
+        let data_aju = $(this).data('no-aju');
+        if (data_aju == '' || data_aju == null) {
+            Swal.fire('Gagal', 'Dokumen ini belum di Isi.', 'error');
+            $(this).prop('checked', false);
+            return;
+        }
+
+        if (uniqueSuppliers.length > 1) {
+            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa memilih satu pemasok yang sama.', 'error');
+            $(this).prop('checked', false);
+        }
+    });
+
+    $('#btn-send').on('click', function() {
+        let checkedBoxes = $('.select-checkbox:checked');
+
+        let selectedBpb = checkedBoxes.map(function() {
+            return $(this).val();
+        }).get();
+        if (selectedBpb.length === 0) {
+            Swal.fire('Perhatian', 'Silakan pilih satu data terlebih dahulu!', 'warning');
+            return;
+        }
+
+        console.log('ID:', selectedBpb);
+
+        sendBatch(selectedBpb);
+    });
+
+    function sendBatch(bpbs) {
+
+        let bpbListHtml = bpbs.map(bpb => `<li>${bpb}</li>`).join('');
+
+        bpbListHtml = bpbListHtml.replace(/<li>/g, '').replace(/<\/li>/g, '\n');
+
+        let jenisBc = $('#jenis_bc').val();
+
+        if(jenisBc === 'BC 4.0'){
+            Swal.fire({ title: 'Peringatan!', text: 'Kirim Batch 4.0 belum dapat di kirim', icon: 'warning' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Kirim ke CEISA?',
+            text: "Dokumen " + bpbListHtml + " akan diproses dan dikirim ke server Bea Cukai.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                Swal.fire({
+                    title: 'Memproses ke CEISA...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+
+                let actionUrl = '{{ route("dokumen-pabean-send-batch-ceisa") }}';
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        bpbs: bpbs,
+                        jenis_bc: jenisBc
+                    },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                            console.log("Response CEISA:", res.ceisa_response);
+
+                            refreshTable();
+                        } else {
+                            showErrorSwal(res);
+                        }
+                    },
+                    error: function(xhr) {
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
+                    }
+                });
+            }
+        });
+    }
+
+    // modal batch
+    // ============================================================
+    // FITUR MODAL BUAT BATCH DOKUMEN
+    // ============================================================
+    let tableModalBatch;
+
+    $('#modal-buat-batch').on('shown.bs.modal', function () {
+        $('#check-all-batch').prop('checked', false);
+
+        $('#filter_supplier_batch').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modal-buat-batch')
+        });
+
+        if (!tableModalBatch) {
+            tableModalBatch = $('#table-modal-batch').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: '{{ route("dokumen-pabean-index") }}',
+                    data: function (d) {
+                        d.jenis         = $('#jenis_modal').val();
+                        d.jenis_bc      = $('#jenis_bc_modal').val();
+                        d.tanggal_awal   = $('#modal_tanggal_awal').val();
+                        d.tanggal_akhir  = $('#modal_tanggal_akhir').val();
+                        d.status_ceisa  = 'unsent';
+                        d.supplier_batch = $('#filter_supplier_batch').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            let jenis = $('#jenis_modal').val();
+                            let valId = (jenis == 'Pemasukan') ? row.bpbno : row.bppbno;
+                            let jenisBc = $('#jenis_bc_modal').val();
+
+                            if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1'){
+                                return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
+                            }else{
+                                return '';
+                            }
+                        }
+                    },
+                    { data: 'trx_no',    name: 'trx_no' },
+                    { data: 'pono',      name: 'pono', defaultContent: '-' },
+                    { data: 'tanggal',   name: 'tanggal' },
+                    { data: 'supplier',  name: 'ms.supplier' },
+                    { data: 'invno',     name: 'invno', defaultContent: '-' },
+                    { data: 'jenis_dok', name: 'jenis_dok', defaultContent: '-' }
+                ]
+            });
+        } else {
+            tableModalBatch.ajax.reload(null, false);
+        }
+    });
+
+    $('#check-all-batch').on('change', function() {
+        let isChecked = $(this).is(':checked');
+        $('.check-batch-item').prop('checked', isChecked);
+
+        // Lempar parameter 'true' untuk menandakan ini dari Check All
+        validasiPemasokBatch(this, true);
+    });
+
+
+    $(document).on('change', '.check-batch-item', function() {
+
+        validasiPemasokBatch(this, false);
+
+
+        let totalCheckboxes = $('.check-batch-item').length;
+        let totalChecked = $('.check-batch-item:checked').length;
+        $('#check-all-batch').prop('checked', totalCheckboxes === totalChecked && totalCheckboxes > 0);
+    });
+
+
+    function validasiPemasokBatch(element, isCheckAll = false) {
+        let selectedSuppliers = [];
+        $('.check-batch-item:checked').each(function() {
+            selectedSuppliers.push($(this).data('supplier'));
+        });
+
+        let uniqueSuppliers = [...new Set(selectedSuppliers)];
+
+
+        if (uniqueSuppliers.length > 1) {
+            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa menggabungkan dokumen dengan Pemasok yang sama untuk 1 Batch.', 'error');
+
+            if (isCheckAll) {
+
+                $('.check-batch-item').prop('checked', false);
+                $(element).prop('checked', false);
+            } else {
+
+                $(element).prop('checked', false);
+            }
+        }
+    }
+
+    $('#btn-proses-buat-batch').on('click', function() {
+        let selectedBpb = [];
+        $('.check-batch-item:checked').each(function() {
+            selectedBpb.push($(this).val());
+        });
+
+        if (selectedBpb.length === 0) {
+            Swal.fire('Perhatian', 'Silakan pilih minimal satu dokumen untuk dibuatkan Batch!', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Proses Batch?',
+            text: `Anda memilih ${selectedBpb.length} dokumen untuk dijadikan 1 Batch.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Buat Batch!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang Memproses...',
+                    text: 'Mohon tunggu, sistem sedang menggabungkan dokumen...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                let ids = selectedBpb.join(',');
+                let jenisBc = $('#jenis_bc_modal').val();
+                if(jenisBc === 'BC 4.0'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc40", "") }}/' + ids;
+                }
+
+                if(jenisBc === 'BC 4.1'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc41", "") }}/' + ids;
+                }
+            }
+        });
+    });
+
+    $('#filter_supplier_batch, #modal_tanggal_awal, #modal_tanggal_akhir, #jenis_bc_modal, #jenis_modal').on('change', function() {
+        if (tableModalBatch) {
+            $('#check-all-batch').prop('checked', false);
+            $('.check-batch-item').prop('checked', false);
+
+            tableModalBatch.ajax.reload(null, false);
+        }
+    });
+
+    $(document).on('click', '.btn-kirim-batch', function() {
+        let ids = $(this).data('ids');
+        let jenisBc = $(this).data('jenis_bc');
+
+        let actionUrl = '{{ route("dokumen-pabean-send-batch-ceisa") }}';
+
+        Swal.fire({
+            title: 'Kirim Batch ke CEISA?',
+            text: "Dokumen-dokumen batch dengan ID: " + ids + " akan diproses dan dikirim ke server Bea Cukai.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim Batch!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Batch ke CEISA...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        bpbs: ids,
+                        jenis_bc: jenisBc
+                    },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                            console.log("Response CEISA:", res.ceisa_response);
+                            refreshTable();
+                        } else {
+                            showErrorSwal(res);
+                        }
+                    },
+                    error: function(xhr) {
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
+                    }
+                });
+            }
+        });
+    });
 </script>
 @endsection

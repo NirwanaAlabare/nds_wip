@@ -524,6 +524,14 @@
         </a>
         @endrole
 
+
+        <a href="{{ route('dashboard-helpdesk') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/ticketing.png') }}" alt="asset"></div>
+            <span class="menu-label">Helpdesk</span>
+        </a>
+
+
+
         @role('superadmin')
         <a href="{{ route('manage-user') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/manage-users.png') }}" alt="manage users"></div>

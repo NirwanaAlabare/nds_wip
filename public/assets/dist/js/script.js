@@ -5,6 +5,14 @@ $.ajaxSetup({
     }
 });
 
+function parseData(data) {
+    try {
+        return JSON.parse(data);
+    } catch {
+        return JSON.parse(decodeURIComponent(data));
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     $(document)
     .off('draw.dt.tooltipFix')
@@ -668,7 +676,7 @@ async function editData(e, modal, addons = []) {
 function deleteData(e, type = null) {
     console.log(e, e.getAttribute('data'));
 
-    let data = JSON.parse(e.getAttribute('data'));
+    let data = parseData(e.getAttribute('data'));
 
     if (data.hasOwnProperty('id')) {
         Swal.fire({
@@ -966,3 +974,82 @@ window.formatTimer = function(elapsedMs) {
 
     return formattedTime.trim();
 };
+
+function exportExcelGlobal(elm, data) {
+    let title = elm.getAttribute('data-title');
+    let textBefore = elm.innerText;
+
+    elm.setAttribute('disabled', 'true');
+    elm.innerText = "";
+    let loading = document.createElement('div');
+    loading.classList.add('loading-small');
+    elm.appendChild(loading);
+
+    iziToast.info({
+        title: 'Exporting...',
+        message: 'Data sedang di export. Mohon tunggu...',
+        position: 'topCenter'
+    });
+
+    let date = new Date();
+
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    // This arrangement can be altered based on how we want the date's format to appear.
+    let currentDate = `${day}-${month}-${year}`;
+
+    let currentRoute = elm.getAttribute('data-url');
+
+    $.ajax({
+        url: currentRoute,
+        type: 'post',
+        data: data,
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(res) {
+            elm.removeChild(loading);
+            elm.removeAttribute('disabled');
+            let icon = document.createElement('i');
+            icon.classList.add('fa-solid');
+            icon.classList.add('fa', 'fa-file-excel');
+            elm.appendChild(icon);
+            elm.innerHTML += textBefore;
+
+            iziToast.success({
+                title: 'Success',
+                message: 'Success',
+                position: 'topCenter'
+            });
+
+            var blob = new Blob([res]);
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+        link.download = (title ? title : textBefore)+".xlsx";
+            link.click();
+        },
+        error: function(jqXHR) {
+            elm.removeChild(loading);
+            elm.removeAttribute('disabled');
+            let icon = document.createElement('i');
+            icon.classList.add('fa', 'fa-file-excel');
+            elm.appendChild(icon);
+            elm.innerHTML += textBefore;
+
+            let res = jqXHR.responseJSON;
+            let message = '';
+            console.log(res.message);
+            for (let key in res.errors) {
+                message += res.errors[key] + ' ';
+                document.getElementById(key).classList.add('is-invalid');
+            };
+            iziToast.error({
+                title: 'Error',
+                message: message,
+                position: 'topCenter'
+            });
+        }
+    });
+}

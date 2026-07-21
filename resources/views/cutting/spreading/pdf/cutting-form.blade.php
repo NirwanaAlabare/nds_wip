@@ -284,7 +284,7 @@
                         <td colspan="2" class="borderless"></td>
                     @endif
                     <th colspan="2" class="header-bg header-2">SIZE</td>
-                    @for ($i = 0; $i < 10; $i++)
+                    @for ($i = ($index * 10); $i < (($index+1) * 10); $i++)
                         <th class="header-bg header-2">{{ (isset($markerDetail[$i]) && $markerDetail[$i] ? explode("-", $markerDetail[$i ]->size)[0] : '') }}</td>
                     @endfor
                     <th class="header-bg header-2">TOTAL</td>
@@ -300,7 +300,7 @@
                         <td colspan="2" class="borderless"></td>
                     @endif
                     <th colspan="2" class="header-bg header-2">RATIO</th>
-                    @for ($i = 0; $i < 10; $i++)
+                    @for ($i = ($index * 10); $i < (($index+1) * 10); $i++)
                         <th class="header-2 text-right">{{ (isset($markerDetail[$i]) && $markerDetail[$i] ? $markerDetail[$i]->ratio : '') }}</th>
                     @endfor
                     <th class="header-2 text-right">{{ $markerDetail->sum("ratio") }}</th>
@@ -316,7 +316,7 @@
                         <td colspan="2" class="borderless"></td>
                     @endif
                     <th colspan="2" class="header-bg header-2">QTY FORM</th>
-                    @for ($i = 0; $i < 10; $i++)
+                    @for ($i = ($index * 10); $i < (($index+1) * 10); $i++)
                         <td class="header-2 text-right">{{ (isset($markerDetail[$i]) && $markerDetail[$i] ? ($markerDetail[$i]->ratio * $form->qty_ply) : '') }}</td>
                     @endfor
                     <td class="header-2 text-right">{{ $markerDetail->sum("ratio") * $form->qty_ply }}</td>
@@ -328,12 +328,15 @@
                     <td colspan="2" class="borderless"></td>
                     <td class="borderless"></td>
                     <th colspan="2" class="header-bg header-2">QTY AKTUAL</th>
-                    @for ($i = 0; $i < 10; $i++)
+                    @for ($i = ($index * 10); $i < (($index+1) * 10); $i++)
                     <td class="secondary-bg"></td>
                     @endfor
                     <td class="secondary-bg"></td>
                     <td class="borderless"></td>
                 </tr>
+                @php
+                    $index++;
+                @endphp
             @endforeach
             <tr>
                 <td colspan="20" class="borderless"></td>
@@ -440,7 +443,7 @@
                 <td class="header-bg header-sm">PERCENT SHORT ROLL (%)</td>
                 <td class="borderless"></td>
             </tr>
-            @for ($i = 0; $i < 24; $i++)
+            @for ($i = 0; $i < 24 - ($index); $i++)
                 <tr>
                     <td class="borderless"></td>
                     @for ($j = 0; $j < 18; $j++)

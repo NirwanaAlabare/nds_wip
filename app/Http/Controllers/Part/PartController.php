@@ -524,6 +524,24 @@ class PartController extends Controller
 
         // Transaction
         try {
+
+            // Check Closing 
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+                ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+                ->where("part_form.part_id", $id)
+                ->groupBy("form_cut_input.id")
+                ->get();
+            
+            foreach($dataCheckClosing as $data){
+                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    );
+                }
+            }
+
             $part = Part::find($id);
 
             if (!$part) {
@@ -602,6 +620,23 @@ class PartController extends Controller
     {
         // Check Part Form
         $countPartForm = PartForm::where("part_id", $id)->count();
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->where("part_form.part_id", $id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
 
         if ($countPartForm < 1) {
 
@@ -908,6 +943,24 @@ class PartController extends Controller
             //     cons = '$request->txtcons',
             //     unit = 'METER'
             //     where id = '$request->txtpart'");
+        // End Deprecated
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->where("part_form.part_id", $request->id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
 
         // Cek apakah part sudah memiliki part_form (sudah digunakan di form cut)
         if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
@@ -920,14 +973,14 @@ class PartController extends Controller
         }
 
         // Cek apakah part sudah memiliki stocker (sudah print stocker)
-        // $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
-        // $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
-        // if ($stockerCount > 0) {
-        //     return array(
-        //         'icon' => 'salah',
-        //         'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
-        //     );
-        // }
+        $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
+        $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
+        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1 && $stockerCount > 0) {
+            return array(
+                'icon' => 'salah',
+                'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+            );
+        }
 
         DB::beginTransaction();
 
@@ -1167,6 +1220,25 @@ class PartController extends Controller
 
     public function updatePartSecondary(Request $request, PartService $partService)
     {
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->leftJoin("part", "part.id", "=", "part_form.part_id")
+            ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+            ->where("part_detail.id", $request->edit_id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
+
         $validatedRequest = $request->validate([
             "edit_id" => "required",
             "edit_tujuan" => "required",
@@ -1339,6 +1411,26 @@ class PartController extends Controller
     }
 
     public function updatePartSecondaryComplement(Request $request) {
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->leftJoin("part", "part.id", "=", "part_form.part_id")
+            ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+            ->where("part_detail.id", $request->edit_com_id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
+
         $validatedRequest = $request->validate([
             "edit_com_id" => "required",
             "edit_com_master_part_id" => "required",
@@ -1537,6 +1629,23 @@ class PartController extends Controller
         $fail = [];
         $exist = [];
 
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->where("part_form.part_id", $request->part_id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
+
         foreach ($request->partForms as $partForm) {
             $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['no_form'])->count();
 
@@ -1603,6 +1712,23 @@ class PartController extends Controller
         $success = [];
         $fail = [];
         $exist = [];
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->where("part_form.part_id", $request->part_id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
 
         foreach ($request->partForms as $partForm) {
 
@@ -1877,6 +2003,26 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+
+            // Check Closing 
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+                ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+                ->leftJoin("part", "part.id", "=", "part_form.part_id")
+                ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+                ->where("part_detail.id", $partDetail->id)
+                ->groupBy("form_cut_input.id")
+                ->get();
+
+            foreach($dataCheckClosing as $data){
+                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    );
+                }
+            }
+
             // Check Part Form
             if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
                 return array(
@@ -1919,6 +2065,26 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+
+            // Check Closing 
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+                ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+                ->leftJoin("part", "part.id", "=", "part_form.part_id")
+                ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+                ->where("part_detail.id", $partDetail->id)
+                ->groupBy("form_cut_input.id")
+                ->get();
+
+            foreach($dataCheckClosing as $data){
+                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    );
+                }
+            }
+
             // Check Part Form
             if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
                 return array(
@@ -1963,6 +2129,25 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+
+            // Check Closing 
+            $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+                ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+                ->leftJoin("part", "part.id", "=", "part_form.part_id")
+                ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+                ->where("part_detail.id", $partDetail->id)
+                ->groupBy("form_cut_input.id")
+                ->get();
+
+            foreach($dataCheckClosing as $data){
+                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    );
+                }
+            }
 
             // Check Part Form
             if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {

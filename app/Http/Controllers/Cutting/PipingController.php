@@ -162,6 +162,17 @@ class PipingController extends Controller
     }
 
     public function update(Request $request) {
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_piping")->where("id", $request->edit_id)->first();
+        if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "edit_id" => "required",
             "edit_tanggal" => "required",
@@ -291,6 +302,17 @@ class PipingController extends Controller
 
     public function destroy($id = 0) {
         if ($id) {
+
+            // Check Closing 
+            $dataCheckClosing = DB::table("form_cut_piping")->where("id", $id)->first();
+            if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+
             $piping = Piping::where("id", $id)->first();
 
             if ($piping) {

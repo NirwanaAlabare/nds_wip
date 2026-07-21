@@ -94,6 +94,7 @@
                         <input type="date" class="form-control form-control-sm" id="stocker-from">
                         <span>-</span>
                         <input type="date" class="form-control form-control-sm" id="stocker-to">
+                        <button class="btn btn-success btn-sm text-nowrap" data-url="{{ route('track-stocker-detail-export') }}" data-title="Track Stocker" id="export-track-stocker"><i class="fa fa-file-excel"></i> Export</button>
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                         </div>
@@ -162,6 +163,19 @@
 
     <script>
         document.getElementById("loading").classList.remove("d-none");
+
+        document.getElementById("export-track-stocker").addEventListener("click", function() {
+            let data = {
+                "dateFrom" : $('#stocker-from').val(),
+                "dateTo" : $('#stocker-to').val(),
+                "actCostingId" : $('#id').val(),
+                "color" : $('#ws-color-filter').val(),
+                "panel" : $('#ws-panel-filter').val(),
+                "size" : $('#ws-size-filter').val(),
+            }
+
+            exportExcelGlobal(this, data);
+        });
 
         $(document).ready(async function() {
 

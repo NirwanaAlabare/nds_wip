@@ -413,6 +413,17 @@ class SpreadingController extends Controller
     }
 
     public function updateStatus(Request $request, StockerService $stockerService) {
+        
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "edit_id_status" => "required",
             "edit_status" => "required",
@@ -720,6 +731,9 @@ class SpreadingController extends Controller
                 cutting.panel,
                 cutting.max_group,
                 cutting.group_stocker,
+                SUM(cutting.qty_awal) qty_awal,
+                SUM(cutting.qty_additional) qty_additional,
+                SUM(cutting.qty_modify_size) qty_modify_size,
                 SUM(cutting.qty) qty
             FROM
             (
@@ -744,6 +758,9 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
+                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_awal,
+                    0 as qty_additional,
+                    (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                 FROM
                     form_cut_input
@@ -809,6 +826,9 @@ class SpreadingController extends Controller
                     form_cut_piece_detail.group_stocker,
                     null,
                     null,
+                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty_awal,
+                    0 qty_additional,
+                    0 qty_modify_size,
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                 FROM
                     form_cut_piece
@@ -846,6 +866,9 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
+                    0 qty_awal,
+                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_additional,
+                    (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
@@ -912,6 +935,9 @@ class SpreadingController extends Controller
                     null group_stocker,
                     null,
                     null,
+                    SUM(form_cut_reject_detail.qty) as qty_awal,
+                    0 qty_additional,
+                    0 qty_modify_size,
                     SUM(form_cut_reject_detail.qty) as qty
                 FROM
                     form_cut_reject
@@ -956,8 +982,14 @@ class SpreadingController extends Controller
         ");
 
         // Calculate total qty
+        $totalQtyAwal = 0;
+        $totalQtyAdditional = 0;
+        $totalQtyModifySize = 0;
         $totalQty = 0;
         foreach ($data as $d) {
+            $totalQtyAwal += $d->qty_awal;
+            $totalQtyAdditional += $d->qty_additional;
+            $totalQtyModifySize += $d->qty_modify_size;
             $totalQty += $d->qty;
         }
 
@@ -983,7 +1015,7 @@ class SpreadingController extends Controller
             'font-weight' => 'bold',
         ];
 
-        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'QTY'];
+        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index); // A=65, B=66, etc.
             $sheet->writeTo($col . '4', $header)
@@ -1012,6 +1044,9 @@ class SpreadingController extends Controller
                     $row->no_form ?? "-",
                     $row->no_marker ?? "-",
                     $row->panel ?? "-",
+                    $row->qty_awal ?? 0,
+                    $row->qty_additional ?? 0,
+                    intval($row->qty_modify_size ?? 0),
                     $row->qty ?? 0,
                 ];
 
@@ -1023,7 +1058,10 @@ class SpreadingController extends Controller
         // Total row
         $sheet->writeTo('A' . ($rowNum), 'TOTAL', ['text-align' => 'right', 'font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->mergeCells('A' . ($rowNum) . ':N' . ($rowNum));
-        $sheet->writeTo('O' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $filename = 'Laporan_pemakaian_cutting_' . $dateFrom . '_to_' . $dateTo . '.xlsx';
 
@@ -1056,13 +1094,18 @@ class SpreadingController extends Controller
                 cutting.no_form,
                 cutting.no_marker,
                 cutting.panel,
+                part.panel_status,
                 master_part.nama_part,
+                part_detail.part_status,
                 cutting.max_group,
                 cutting.group_stocker,
+                SUM(cutting.qty_awal) qty_awal,
+                SUM(cutting.qty_additional) qty_additional,
+                SUM(cutting.qty_modify_size) qty_modify_size,
                 SUM(cutting.qty) qty
             FROM
             (
-            SELECT
+                    SELECT
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
                     UPPER(meja.name) meja,
                     marker_input.act_costing_ws worksheet,
@@ -1083,51 +1126,54 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
+                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_awal,
+                    0 as qty_additional,
+                    (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
-            FROM
+                FROM
                     form_cut_input
                     LEFT JOIN (
-                            SELECT
-                                    form_cut_id,
-                                    no_form_cut_input,
-                                    group_roll,
-                                    group_stocker,
-                                    lot,
-                                    SUM( lembar_gelaran ) total_lembar
-                            FROM
-                                    form_cut_input_detail
-                            WHERE
-                                    (status != 'not complete' and status != 'extension')
-                            GROUP BY
-                                    form_cut_id,
-                                    group_stocker
+                        SELECT
+                            form_cut_id,
+                            no_form_cut_input,
+                            group_roll,
+                            group_stocker,
+                            lot,
+                            SUM( lembar_gelaran ) total_lembar
+                        FROM
+                            form_cut_input_detail
+                        WHERE
+                            (status != 'not complete' and status != 'extension')
+                        GROUP BY
+                            form_cut_id,
+                            group_stocker
                     ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     LEFT JOIN (
-                            SELECT
-                                    form_cut_id,
-                                    MAX(group_stocker) max_group
-                            FROM
-                                    form_cut_input_detail
-                            WHERE
-                                    (status != 'not complete' and status != 'extension')
-                            GROUP BY
-                                    form_cut_id
+                        SELECT
+                            form_cut_id,
+                            MAX(group_stocker) max_group
+                        FROM
+                            form_cut_input_detail
+                        WHERE
+                            (status != 'not complete' and status != 'extension')
+                        GROUP BY
+                            form_cut_id
                     ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
                     LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                     LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
                     LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-            WHERE
+                WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN' and
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
                     (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
-            GROUP BY
+                GROUP BY
                     form_cut_input.id,
                     form_cut_input_detail.group_stocker,
                     marker_input_detail.id
-            UNION ALL
-            SELECT
+                UNION ALL
+                SELECT
                     DATE(form_cut_piece.waktu_selesai) tanggal,
                     '-' meja,
                     form_cut_piece.act_costing_ws worksheet,
@@ -1148,24 +1194,26 @@ class SpreadingController extends Controller
                     form_cut_piece_detail.group_stocker,
                     null,
                     null,
+                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty_awal,
+                    0 qty_additional,
+                    0 qty_modify_size,
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
-            FROM
+                FROM
                     form_cut_piece
                     LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
                     LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-            WHERE
-                    form_cut_piece_detail_size.qty > 0 and
+                WHERE
                     DATE(form_cut_piece.waktu_selesai) between '".$dateFrom."' and '".$dateTo."' and
                     form_cut_piece_detail.status = 'complete' and form_cut_piece_detail.id not in (
-                            7207
+                        7207
                     )
-            GROUP BY
+                GROUP BY
                     form_cut_piece.id,
                     form_cut_piece_detail.group_stocker,
                     form_cut_piece_detail_size.id
-            UNION ALL
-            SELECT
+                UNION ALL
+                SELECT
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
                     UPPER(meja.name) meja,
                     stocker_ws_additional.act_costing_ws AS worksheet,
@@ -1186,52 +1234,55 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
+                    0 qty_awal,
+                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_additional,
+                    (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
-            FROM laravel_nds.form_cut_input
-            LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-            LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-            LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
-            LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-            LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
-            LEFT JOIN (
-                    SELECT
-                                    form_cut_id,
-                                    no_form_cut_input,
-                                    group_roll,
-                                    group_stocker,
-                                    lot,
-                                    SUM( lembar_gelaran ) total_lembar
-                    FROM
-                                    laravel_nds.form_cut_input_detail
-                    WHERE
-                                    (status != 'not complete' and status != 'extension')
-                    GROUP BY
-                                    form_cut_id,
-                                    group_stocker
-            ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-            LEFT JOIN (
+                FROM laravel_nds.form_cut_input
+                LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+                LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
+                LEFT JOIN (
                     SELECT
                             form_cut_id,
-                            MAX(group_stocker) AS max_group
+                            no_form_cut_input,
+                            group_roll,
+                            group_stocker,
+                            lot,
+                            SUM( lembar_gelaran ) total_lembar
+                    FROM
+                            laravel_nds.form_cut_input_detail
+                    WHERE
+                            (status != 'not complete' and status != 'extension')
+                    GROUP BY
+                            form_cut_id,
+                            group_stocker
+                ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                LEFT JOIN (
+                    SELECT
+                        form_cut_id,
+                        MAX(group_stocker) AS max_group
                     FROM laravel_nds.form_cut_input_detail
                     WHERE status NOT IN ('not complete', 'extension')
                     GROUP BY form_cut_id
-            ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-            WHERE
+                ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                WHERE
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."'
                     AND form_cut_input.status = 'SELESAI PENGERJAAN'
                     AND (
-                            stocker_ws_additional_detail.ratio > 0
-                            OR modify_size_qty.difference_qty != 0
+                        stocker_ws_additional_detail.ratio > 0
+                        OR modify_size_qty.difference_qty != 0
                     )
-            GROUP BY
+                GROUP BY
                     form_cut_input.id,
                     form_cut_input_detail.group_stocker,
                     marker_input_detail.id
-            UNION ALL
-            SELECT
+                UNION ALL
+                SELECT
                     form_cut_reject.tanggal,
                     '-' meja,
                     form_cut_reject.act_costing_ws worksheet,
@@ -1252,16 +1303,19 @@ class SpreadingController extends Controller
                     null group_stocker,
                     null,
                     null,
+                    SUM(form_cut_reject_detail.qty) as qty_awal,
+                    0 qty_additional,
+                    0 qty_modify_size,
                     SUM(form_cut_reject_detail.qty) as qty
-            FROM
+                FROM
                     form_cut_reject
                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-            WHERE
+                WHERE
                     form_cut_reject.tanggal between '".$dateFrom."' and '".$dateTo."' and
                     form_cut_reject.tanggal > '2026-04-30' and
                     form_cut_reject_detail.qty > 0
-            GROUP BY
+                GROUP BY
                     form_cut_reject.id,
                     form_cut_reject_detail.so_det_id
             ) cutting
@@ -1301,8 +1355,14 @@ class SpreadingController extends Controller
         ");
 
         // Calculate total qty
+        $totalQtyAwal = 0;
+        $totalQtyAdditional = 0;
+        $totalQtyModifySize = 0;
         $totalQty = 0;
         foreach ($data as $d) {
+            $totalQtyAwal += $d->qty_awal;
+            $totalQtyAdditional += $d->qty_additional;
+            $totalQtyModifySize += $d->qty_modify_size;
             $totalQty += $d->qty;
         }
 
@@ -1328,7 +1388,7 @@ class SpreadingController extends Controller
             'font-weight' => 'bold',
         ];
 
-        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'NAMA PART', 'QTY'];
+        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'PANEL STATUS', 'NAMA PART', 'PART STATUS', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index); // A=65, B=66, etc.
             $sheet->writeTo($col . '4', $header)
@@ -1357,7 +1417,12 @@ class SpreadingController extends Controller
                     $row->no_form ?? "-",
                     $row->no_marker ?? "-",
                     $row->panel ?? "-",
+                    $row->panel_status ?? "-",
                     $row->nama_part ?? "-",
+                    $row->part_status ?? "-",
+                    $row->qty_awal ?? 0,
+                    $row->qty_additional ?? 0,
+                    intval($row->qty_modify_size ?? 0),
                     $row->qty ?? 0,
                 ];
 
@@ -1368,8 +1433,11 @@ class SpreadingController extends Controller
 
         // Total row
         $sheet->writeTo('A' . ($rowNum), 'TOTAL', ['text-align' => 'right', 'font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->mergeCells('A' . ($rowNum) . ':N' . ($rowNum));
-        $sheet->writeTo('O' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->mergeCells('A' . ($rowNum) . ':Q' . ($rowNum));
+        $sheet->writeTo('R' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $filename = 'Laporan_pemakaian_cutting_' . $dateFrom . '_to_' . $dateTo . '.xlsx';
 

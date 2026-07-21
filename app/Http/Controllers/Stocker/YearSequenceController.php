@@ -2288,6 +2288,44 @@ class YearSequenceController extends Controller
         ini_set("max_execution_time", 360000);
         ini_set("memory_limit", '2048M');
 
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")
+            ->selectRaw("
+                form_cut_input.*,
+                DATE(form_cut_input.waktu_selesai) as tanggal
+            ")
+            ->leftJoin("stocker_input", "stocker_input.form_cut_id", "=", "form_cut_input.id")
+            ->where("stocker_input.id_qr_stocker", $request->stocker)
+            ->first();
+
+        if (!$dataCheckClosing) {
+            $dataCheckClosing = DB::table("form_cut_piece")
+                ->selectRaw("
+                    form_cut_piece.*,
+                    DATE(form_cut_piece.waktu_selesai) as tanggal
+                ")
+                ->leftJoin("stocker_input", "stocker_input.form_piece_id", "=", "form_cut_piece.id")
+                ->where("stocker_input.id_qr_stocker", $request->stocker)
+                ->first();
+        }
+
+        if(!$dataCheckClosing){
+            $dataCheckClosing = DB::table("form_cut_reject")
+                ->selectRaw("form_cut_reject.*")
+                ->leftJoin("stocker_input", "stocker_input.form_reject_id", "=", "form_cut_reject.id")
+                ->where("stocker_input.id_qr_stocker", $request->stocker)
+                ->first();
+        }
+
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+                "table" => "datatable-input",
+            );
+        }
+
         $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, COALESCE(master_sb_ws.size, stocker_input.size) size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
         if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
@@ -2771,6 +2809,46 @@ class YearSequenceController extends Controller
                     select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
                 ")
             );
+        }
+
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")
+            ->selectRaw("
+                form_cut_input.*,
+                DATE(form_cut_input.waktu_selesai) as tanggal
+            ")
+            ->leftJoin("year_sequence", "year_sequence.form_cut_id", "=", "form_cut_input.id")
+            ->whereIn("year_sequence.id", $yearSequences->pluck('id'))
+            ->get();
+
+        if ($dataCheckClosing->isEmpty()) {
+            $dataCheckClosing = DB::table("form_cut_piece")
+                ->selectRaw("
+                    form_cut_piece.*,
+                    DATE(form_cut_piece.waktu_selesai) as tanggal
+                ")
+                ->leftJoin("year_sequence", "year_sequence.form_piece_id", "=", "form_cut_piece.id")
+                ->whereIn("year_sequence.id", $yearSequences->pluck('id'))
+                ->get();
+        }
+
+        if($dataCheckClosing->isEmpty()){
+            $dataCheckClosing = DB::table("form_cut_reject")
+                ->selectRaw("form_cut_reject.*")
+                ->leftJoin("year_sequence", "year_sequence.form_reject_id", "=", "form_cut_reject.id")
+                ->whereIn("year_sequence.id", $yearSequences->pluck('id'))
+                ->get();
+        }
+
+        foreach ($dataCheckClosing as $item) {
+            if (checkClosingDate($item->tanggal)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing",
+                    "table" => "datatable-input",
+                );
+            }
         }
 
         // If Output count < 1, then safe to delete (update to null)

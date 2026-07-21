@@ -15,59 +15,54 @@
             border-left: 1px solid #dee2e6;
         }
 
-        .line-map-calendar-inner {
-            display: flex;
-            align-items: flex-start;
-            width: max-content;
-        }
-
-        .line-map-fixed-table,
-        .line-map-dates-table {
+        .line-map-table {
             border-collapse: separate;
             border-spacing: 0;
             margin-bottom: 0 !important;
-            width: auto !important;
+            width: max-content !important;
         }
 
-        .line-map-fixed-table th,
-        .line-map-fixed-table td,
-        .line-map-dates-table th,
-        .line-map-dates-table td {
+        .line-map-table th,
+        .line-map-table td {
             white-space: nowrap;
             vertical-align: middle;
-            height: auto;
             border-right: 1px solid #dee2e6;
             border-bottom: 1px solid #dee2e6;
         }
 
-        .line-map-dates-table td {
+        .line-map-table tbody td {
             vertical-align: top;
         }
 
-        .line-map-fixed-table {
-            width: auto !important;
+        .line-map-line-col {
             min-width: 160px;
-            flex: 0 0 auto;
             position: sticky;
             left: 0;
-            z-index: 3;
-            background-color: #fff;
+            z-index: 2;
+            background-color: #fff !important;
             box-shadow: 2px 0 4px -2px rgba(0, 0, 0, .15);
+            white-space: normal !important;
+            vertical-align: top !important;
         }
 
-        .line-map-fixed-table thead th,
-        .line-map-dates-table thead th {
+        .line-map-history-product-group {
+            font-size: .7rem;
+            color: #6c757d;
+            white-space: normal;
+        }
+
+        .line-map-table thead th {
             position: sticky;
             top: 0;
-            z-index: 2;
-            background-color: #fff;
+            z-index: 3;
+            background-color: #fff !important;
         }
 
-        .line-map-fixed-table thead th {
+        .line-map-table thead th.line-map-line-col {
             z-index: 4;
         }
 
-        .line-map-dates-table th {
+        .line-map-table thead th:not(.line-map-line-col) {
             text-align: center;
             width: 1%;
         }
@@ -83,12 +78,21 @@
             font-size: .8rem;
         }
 
-        .line-map-dates-table th.is-sunday .line-map-date-day,
-        .line-map-dates-table th.is-sunday .line-map-date-num {
+        .line-map-table th.is-sunday .line-map-date-day,
+        .line-map-table th.is-sunday .line-map-date-num {
             color: #dc3545;
         }
 
-        .line-map-dates-table td {
+        .line-map-table th.is-today,
+        .line-map-table td.is-today {
+            background-color: #eaf2ff !important;
+        }
+
+        .line-map-table th.is-today {
+            box-shadow: inset 0 -2px 0 0 #0d6efd;
+        }
+
+        .line-map-table td:not(.line-map-line-col) {
             text-align: center;
             width: 1%;
             padding: 3px 4px;
@@ -194,6 +198,10 @@
             cursor: grabbing;
         }
 
+        .line-map-box-plan-readonly {
+            cursor: default;
+        }
+
         .line-map-box-plan .row-qty {
             color: #fff;
         }
@@ -215,9 +223,51 @@
             transition: background-color .15s ease, box-shadow .15s ease;
         }
 
+        .line-map-box-actual-detail {
+            cursor: pointer;
+        }
+
+        .line-map-box-actual-detail:hover {
+            text-decoration: underline;
+        }
+
         .line-map-drop-target.drag-over {
             background-color: rgba(13, 110, 253, .08);
             box-shadow: inset 0 0 0 2px rgba(13, 110, 253, .35);
+        }
+
+        .line-map-ghost-target {
+            position: relative;
+        }
+
+        .line-map-ghost-box {
+            position: absolute;
+            inset: 2px;
+            border-radius: 6px;
+            border: 2px dashed;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.1;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .line-map-ghost-box-drag {
+            border-color: #0d6efd;
+            color: #0450c7;
+            background-color: rgba(13, 110, 253, .15);
+        }
+
+        .line-map-ghost-box-push {
+            border-color: #fd7e14;
+            color: #b85c00;
+            background-color: rgba(253, 126, 20, .15);
         }
     </style>
 @endsection
@@ -244,10 +294,14 @@
                                         <option value="">- Pilih Line -</option>
                                         @foreach ($line as $row)
                                             <option value="{{ $row->username }}">{{ $row->FullName }}
-                                                ({{ $row->username }})
                                             </option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Product Group (Histori Line) :</label>
+                                    <div id="txtproductgroup" class="form-control form-control-sm bg-light h-auto"
+                                        style="min-height: calc(1.5em + .5rem + 2px);"></div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Style :</label>
@@ -259,13 +313,15 @@
                                 <div class="form-group">
                                     <label class="form-label">SMV :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
-                                        placeholder="Cnth: 12.5" value="" autocomplete="off">
+                                        placeholder="Cnth: 12.5" value="" autocomplete="off" step="any"
+                                        oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Efficiency :</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" class="form-control form-control-sm" id="txtefficiency"
-                                            name="txtefficiency" placeholder="Cnth: 85" value="" autocomplete="off">
+                                            name="txtefficiency" placeholder="Cnth: 85" value="" autocomplete="off"
+                                            oninput="calculateLineMap();" onchange="calculateLineMap();">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
@@ -274,7 +330,8 @@
                                     <input type="text" class="form-control form-control-sm" id="txtorderqty"
                                         name="txtorderqty" placeholder="Cnth: 1.000" value="" autocomplete="off"
                                         inputmode="numeric"
-                                        oninput="this.value = this.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');">
+                                        oninput="this.value = this.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); calculateLineMap();"
+                                        onchange="calculateLineMap();">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -285,15 +342,26 @@
                                         oninput="this.value = this.value.toUpperCase();">
                                 </div>
                                 <div class="form-group">
+                                    <label class="form-label">Product Group :</label>
+                                    <select class="form-control select2bs4 form-control-sm" id="cboproductgroup"
+                                        name="cboproductgroup" disabled>
+                                        <option value="">- Pilih Line Terlebih Dahulu -</option>
+                                        @foreach ($productGroupList as $pg)
+                                            <option value="{{ $pg }}">{{ $pg }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
                                     <label class="form-label">Man Power :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtmanpower"
-                                        name="txtmanpower" placeholder="Cnth: 10" value="" autocomplete="off">
+                                        name="txtmanpower" placeholder="Cnth: 10" value="" autocomplete="off"
+                                        oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Working Minutes :</label>
                                     <input type="number" class="form-control form-control-sm" id="txtworkingminutes"
                                         name="txtworkingminutes" placeholder="Cnth: 480" value=""
-                                        autocomplete="off">
+                                        autocomplete="off" oninput="calculateLineMap();" onchange="calculateLineMap();">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Start Day Calendar :</label>
@@ -334,6 +402,13 @@
                                         readonly tabindex="-1">
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Tgl Finish :</label>
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        id="txttglfinish" readonly tabindex="-1">
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
@@ -364,17 +439,30 @@
     </div>
 
     <div class="card card-sb">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> PPIC Line Map</h5>
+            <a href="{{ route('ppic_line_map_live', ['tgl_dari' => $filterStart, 'tgl_sampai' => $filterEnd]) }}"
+                target="_blank" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-tv"></i> Live View
+            </a>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                    data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
-                    <i class="fas fa-plus"></i> New
-                </button>
+                @if ($canEditLineMap)
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                @else
+                    <div></div>
+                @endif
 
                 <form action="{{ route('ppic_line_map') }}" method="get" class="d-flex align-items-end gap-2">
+                    <div class="form-group mb-0">
+                        <label class="form-label mb-0 d-block">&nbsp;</label>
+                        <small class="text-muted">Last Update:
+                            {{ $lastUpdated ? date('d-m-Y H:i:s', strtotime($lastUpdated)) : '-' }}</small>
+                    </div>
                     <div class="form-group mb-0">
                         <label class="form-label mb-0">Dari Tanggal :</label>
                         <input type="date" class="form-control form-control-sm" name="tgl_dari"
@@ -395,140 +483,140 @@
             </div>
 
             <div class="line-map-calendar-wrapper">
-                <div class="line-map-calendar-inner">
-                    <table class="table table-sm line-map-fixed-table">
-                        <thead>
+                <table class="table table-sm line-map-table">
+                    <thead>
+                        <tr>
+                            <th class="line-map-line-col">Line</th>
+                            @foreach ($calendarDates as $date)
+                                <th @class([
+                                    'is-sunday' => strtoupper($date->status_prod) === 'LIBUR',
+                                    'is-today' => $date->tanggal === date('Y-m-d'),
+                                ])>
+                                    <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
+                                    <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($line as $ln)
                             <tr>
-                                <th>Line</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($line as $ln)
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td class="text-muted">Belum ada data</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    <table class="table table-sm line-map-dates-table">
-                        <thead>
-                            <tr>
+                                <td class="line-map-line-col">
+                                    <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
+                                    @foreach (($productGroupByLine[$ln->username] ?? collect()) as $pg)
+                                        <div class="line-map-history-product-group">{{ $pg->product_group }}
+                                            <span class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
+                                        </div>
+                                    @endforeach
+                                </td>
                                 @foreach ($calendarDates as $date)
-                                    <th @class(['is-sunday' => strtoupper($date->status_prod) === 'LIBUR'])>
-                                        <div class="line-map-date-day">{{ ucfirst(strtolower($date->nama_hari)) }}</div>
-                                        <div class="line-map-date-num">{{ date('d M', strtotime($date->tanggal)) }}</div>
-                                    </th>
+                                    @php
+                                        $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
+                                            fn($e) => $date->tanggal >= $e->tgl_start && $date->tanggal <= $e->tgl_end,
+                                        );
+                                        $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
+                                        $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
+                                        $actualEntries = $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
+                                        $hasPlan = $activeEntry && $planQty !== null;
+                                        $isWithinPlanRange = (bool) $activeEntry;
+                                        $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
+                                        $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
+                                        $planCellClasses = collect([
+                                            'line-map-drop-target',
+                                            $isWithinPlanRange ? 'line-map-plan-cell' : null,
+                                            $isPlanStart ? 'line-map-plan-start' : null,
+                                            $isPlanEnd ? 'line-map-plan-end' : null,
+                                            $date->tanggal === date('Y-m-d') ? 'is-today' : null,
+                                        ])
+                                            ->filter()
+                                            ->implode(' ');
+                                        $planTitle = $hasPlan
+                                            ? 'Range: ' .
+                                                date('d M Y', strtotime($activeEntry->tgl_start)) .
+                                                ' - ' .
+                                                date('d M Y', strtotime($activeEntry->tgl_end)) .
+                                                ($effPct !== null
+                                                    ? ' | Efisiensi: ' .
+                                                        rtrim(rtrim(number_format($effPct, 1), '0'), '.') .
+                                                        '%'
+                                                    : '')
+                                            : null;
+                                    @endphp
+                                    <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
+                                        data-date="{{ $date->tanggal }}"
+                                        @if ($isWithinPlanRange) data-plan-id="{{ $activeEntry->id }}" style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
+                                        @if ($hasPlan || $actualEntries->isNotEmpty())
+                                            @php
+                                                $planColor = $activeEntry->style_color ?? '#6f42c1';
+                                            @endphp
+                                            <div class="line-map-cell-stack">
+                                                @if ($hasPlan)
+                                                    <div class="line-map-box line-map-box-plan @if (!$canEditLineMap) line-map-box-plan-readonly @endif"
+                                                        draggable="{{ $canEditLineMap && $isPlanStart ? 'true' : 'false' }}"
+                                                        style="--dot-color: {{ $planColor }};"
+                                                        data-id="{{ $activeEntry->id }}"
+                                                        data-line="{{ $activeEntry->line }}"
+                                                        data-date="{{ $date->tanggal }}"
+                                                        data-style="{{ $activeEntry->style }}"
+                                                        data-product-group="{{ $activeEntry->product_group }}"
+                                                        title="{{ $planTitle }}"
+                                                        @if ($canEditLineMap)
+                                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'
+                                                        @endif>
+                                                        <div class="line-map-box-header">
+                                                            <span
+                                                                class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
+                                                            <span>Plan</span>
+                                                        </div>
+                                                        <div class="line-map-box-row">
+                                                            <span class="row-label">{{ $activeEntry->style }}</span>
+                                                            <span
+                                                                class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
+                                                        </div>
+                                                        @if ($activeEntry->product_group)
+                                                            <div class="line-map-box-row">
+                                                                <span
+                                                                    class="row-label fst-italic">{{ $activeEntry->product_group }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                                @if ($actualEntries->isNotEmpty())
+                                                    <div class="line-map-box line-map-box-actual">
+                                                        <div class="line-map-box-header">
+                                                            <span>Aktual</span>
+                                                        </div>
+                                                        @foreach ($actualEntries as $actual)
+                                                            <div class="line-map-box-row line-map-box-actual-detail"
+                                                                role="button"
+                                                                onclick='showWsBreakdown(@json($actual->styleno), @json($actual->ws_breakdown))'>
+                                                                <span
+                                                                    class="row-label">{{ $actual->styleno ?: '-' }}</span>
+                                                                <span
+                                                                    class="row-qty">{{ number_format($actual->tot_rfts, 0, ',', '.') }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
                                 @endforeach
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($line as $ln)
-                                <tr>
-                                    @foreach ($calendarDates as $date)
-                                        @php
-                                            $activeEntry = ($lineMapByLine[$ln->username] ?? collect())->first(
-                                                fn($e) => $date->tanggal >= $e->tgl_start &&
-                                                    $date->tanggal <= $e->tgl_end,
-                                            );
-                                            $planQty = $activeEntry->daily_plan[$date->tanggal] ?? null;
-                                            $effPct = $activeEntry->daily_efficiency[$date->tanggal] ?? null;
-                                            $actualEntries =
-                                                $actualByLineDate[$ln->username][$date->tanggal] ?? collect();
-                                            $hasPlan = $activeEntry && $planQty !== null;
-                                            $isWithinPlanRange = (bool) $activeEntry;
-                                            $isPlanStart = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_start;
-                                            $isPlanEnd = $isWithinPlanRange && $date->tanggal === $activeEntry->tgl_end;
-                                            $planCellClasses = collect([
-                                                'line-map-drop-target',
-                                                $isWithinPlanRange ? 'line-map-plan-cell' : null,
-                                                $isPlanStart ? 'line-map-plan-start' : null,
-                                                $isPlanEnd ? 'line-map-plan-end' : null,
-                                            ])
-                                                ->filter()
-                                                ->implode(' ');
-                                            $planTitle = $hasPlan
-                                                ? 'Range: ' .
-                                                    date('d M Y', strtotime($activeEntry->tgl_start)) .
-                                                    ' - ' .
-                                                    date('d M Y', strtotime($activeEntry->tgl_end)) .
-                                                    ($effPct !== null
-                                                        ? ' | Efisiensi: ' .
-                                                            rtrim(rtrim(number_format($effPct, 1), '0'), '.') .
-                                                            '%'
-                                                        : '')
-                                                : null;
-                                        @endphp
-                                        <td class="{{ $planCellClasses }}" data-line="{{ $ln->username }}"
-                                            data-date="{{ $date->tanggal }}"
-                                            @if ($isWithinPlanRange) style="--plan-line-color: {{ $activeEntry->style_color }};" @endif>
-                                            @if ($hasPlan || $actualEntries->isNotEmpty())
-                                                @php
-                                                    $planColor = $activeEntry->style_color ?? '#6f42c1';
-                                                @endphp
-                                                <div class="line-map-cell-stack">
-                                                    @if ($hasPlan)
-                                                        <div class="line-map-box line-map-box-plan"
-                                                            draggable="{{ $isPlanStart ? 'true' : 'false' }}"
-                                                            style="--dot-color: {{ $planColor }};"
-                                                            data-id="{{ $activeEntry->id }}"
-                                                            data-line="{{ $activeEntry->line }}"
-                                                            data-date="{{ $date->tanggal }}"
-                                                            data-style="{{ $activeEntry->style }}"
-                                                            title="{{ $planTitle }}"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#newLineMapModal"
-                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'>
-                                                            <div class="line-map-box-header">
-                                                                <span
-                                                                    class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
-                                                                <span>Plan</span>
-                                                            </div>
-                                                            <div class="line-map-box-row">
-                                                                <span class="row-label">{{ $activeEntry->style }}</span>
-                                                                <span
-                                                                    class="row-qty">{{ number_format($planQty, 0, ',', '.') }}</span>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                    @if ($actualEntries->isNotEmpty())
-                                                        <div class="line-map-box line-map-box-actual">
-                                                            <div class="line-map-box-header">
-                                                                <span>Aktual</span>
-                                                            </div>
-                                                            @foreach ($actualEntries as $actual)
-                                                                <div class="line-map-box-row">
-                                                                    <span
-                                                                        class="row-label">{{ $actual->styleno ?: '-' }}</span>
-                                                                    <span
-                                                                        class="row-qty">{{ number_format($actual->tot_rfts, 0, ',', '.') }}</span>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @empty
-                                <tr>
-                                    @foreach ($calendarDates as $date)
-                                        <td></td>
-                                    @endforeach
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td class="line-map-line-col text-muted">Belum ada data</td>
+                                @foreach ($calendarDates as $date)
+                                    <td></td>
+                                @endforeach
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
     </div>
 
     <div class="card card-sb">
@@ -542,7 +630,9 @@
                         <tr>
                             <th>Line</th>
                             <th>Tgl Plan</th>
+                            <th>Tgl Finish</th>
                             <th>Style</th>
+                            <th>Product Group</th>
                             <th>Buyer</th>
                             <th>SMV</th>
                             <th>Efficiency</th>
@@ -559,7 +649,9 @@
                             <tr>
                                 <td>{{ $lineNameByUsername[$row->line] ?? $row->line }}</td>
                                 <td>{{ $row->tgl_start ? date('d-m-Y', strtotime($row->tgl_start)) : '-' }}</td>
+                                <td>{{ $row->tgl_end ? date('d-m-Y', strtotime($row->tgl_end)) : '-' }}</td>
                                 <td>{{ $row->style }}</td>
+                                <td>{{ $row->product_group }}</td>
                                 <td>{{ $row->buyer }}</td>
                                 <td>{{ $row->smv }}</td>
                                 <td>{{ $row->efficiency !== null ? number_format($row->efficiency * 100, 0) . '%' : '-' }}
@@ -576,20 +668,24 @@
                                 <td>{{ $row->created_by }}</td>
                                 <td>{{ $row->updated_at ? date('d-m-Y H:i:s', strtotime($row->updated_at)) : '-' }}</td>
                                 <td class="text-nowrap">
-                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#newLineMapModal"
-                                        onclick='openEditLineMap(@json($row->edit_payload))'>
-                                        <i class="fas fa-pen"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="cancelLineMap({{ $row->id }})">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
+                                    @if ($canEditLineMap)
+                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                            onclick='openEditLineMap(@json($row->edit_payload))'>
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="cancelLineMap({{ $row->id }})">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" class="text-center text-muted">Belum ada data</td>
+                                <td colspan="14" class="text-center text-muted">Belum ada data</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -615,6 +711,81 @@
             dropdownParent: $('#newLineMapModal')
         });
 
+        const productGroupByLine = @json($productGroupByLine);
+
+        let previousProductGroup = '';
+        let suppressProductGroupWarning = false;
+
+        function updateProductGroupInfo() {
+            const groups = productGroupByLine[$('#cboline').val()] || [];
+            const html = groups.length ?
+                groups.map(g => `<div>${$('<div>').text(g.product_group).html()} <span class="text-muted">(${
+                    Number(g.tot_qty || 0).toLocaleString('id-ID')})</span></div>`).join('') :
+                '<div class="text-muted">-</div>';
+            $('#txtproductgroup').html(html);
+        }
+
+        function refreshProductGroupOptions() {
+            const line = $('#cboline').val();
+            const $pg = $('#cboproductgroup');
+
+            if (line) {
+                $pg.prop('disabled', false);
+                $pg.find('option[value=""]').text('- Pilih Product Group -');
+            } else {
+                suppressProductGroupWarning = true;
+                $pg.val('').trigger('change');
+                suppressProductGroupWarning = false;
+                previousProductGroup = '';
+                $pg.prop('disabled', true);
+                $pg.find('option[value=""]').text('- Pilih Line Terlebih Dahulu -');
+            }
+        }
+
+        $('#cboline').on('change', function() {
+            updateProductGroupInfo();
+            refreshProductGroupOptions();
+        });
+
+        $('#cboproductgroup').on('change', function() {
+            const selected = $(this).val();
+
+            if (suppressProductGroupWarning) {
+                previousProductGroup = selected;
+                return;
+            }
+
+            if (!selected) {
+                previousProductGroup = '';
+                return;
+            }
+
+            const line = $('#cboline').val();
+            const groups = productGroupByLine[line] || [];
+
+            if (!groups.some(g => g.product_group === selected)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Product Group Belum Pernah Dikerjakan',
+                    text: `Line ini belum pernah mengerjakan product group : ${selected}. Apakah anda yakin akan melanjutkan?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        previousProductGroup = selected;
+                    } else {
+                        suppressProductGroupWarning = true;
+                        $('#cboproductgroup').val(previousProductGroup).trigger('change');
+                        suppressProductGroupWarning = false;
+                    }
+                });
+                return;
+            }
+
+            previousProductGroup = selected;
+        });
+
         $('#tblLineMapList').DataTable({
             ordering: false,
             paging: true,
@@ -622,29 +793,25 @@
             responsive: true
         });
 
-        function syncLineMapRowHeights() {
-            const fixedRows = document.querySelectorAll('.line-map-fixed-table tbody tr');
-            const dateRows = document.querySelectorAll('.line-map-dates-table tbody tr');
-
-            fixedRows.forEach((row, i) => {
-                const dateRow = dateRows[i];
-                if (!dateRow) return;
-                row.style.height = '';
-                dateRow.style.height = '';
-            });
-
-            fixedRows.forEach((row, i) => {
-                const dateRow = dateRows[i];
-                if (!dateRow) return;
-                const maxHeight = Math.max(row.offsetHeight, dateRow.offsetHeight);
-                row.style.height = maxHeight + 'px';
-                dateRow.style.height = maxHeight + 'px';
-            });
-        }
-
-        $(window).on('load', syncLineMapRowHeights);
-
         let draggedLineMap = null;
+
+        // Safety net: while one of our plan boxes is being dragged, swallow
+        // dragover/drop on anything that ISN'T one of our own calendar cells, so a
+        // stray drop (e.g. on the "Dari Tanggal" filter input) never lets the
+        // browser handle it natively (Chrome auto-fills date inputs from dropped
+        // text). Scoped to outside-cell targets only, so it never overrides the
+        // per-cell "can't drop in the middle of a plan" logic below.
+        document.addEventListener('dragover', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'none';
+            }
+        });
+        document.addEventListener('drop', (event) => {
+            if (draggedLineMap && !event.target.closest('.line-map-drop-target')) {
+                event.preventDefault();
+            }
+        });
 
         document.querySelectorAll('.line-map-box-plan[draggable="true"]').forEach((badge) => {
             badge.addEventListener('dragstart', (event) => {
@@ -652,27 +819,160 @@
                     id: badge.dataset.id,
                     line: badge.dataset.line,
                     date: badge.dataset.date,
-                    style: badge.dataset.style
+                    style: badge.dataset.style,
+                    productGroup: badge.dataset.productGroup
                 };
 
                 event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', badge.dataset.id);
+                // Custom MIME type on purpose: 'text/plain' gets auto-consumed by
+                // native inputs (e.g. Chrome fills a stray <input type="date"> with
+                // the dragged id if the drop lands outside the calendar), causing
+                // the date filter above the table to jump to an unrelated date.
+                event.dataTransfer.setData('application/x-ppic-linemap-id', badge.dataset.id);
             });
 
             badge.addEventListener('dragend', () => {
                 draggedLineMap = null;
+                dragPointer = null;
+                lastPreviewKey = null;
+                lastPreviewMoves = null;
+                clearCascadeGhosts();
                 document.querySelectorAll('.line-map-drop-target.drag-over').forEach((cell) => {
                     cell.classList.remove('drag-over');
                 });
             });
         });
 
+        const calendarWrapper = document.querySelector('.line-map-calendar-wrapper');
+        let dragPointer = null;
+        let autoScrollFrame = null;
+
+        function stepAutoScroll() {
+            if (!draggedLineMap || !dragPointer) {
+                autoScrollFrame = null;
+                return;
+            }
+
+            const edge = 60;
+            const maxSpeed = 22;
+            const rect = calendarWrapper.getBoundingClientRect();
+
+            const topGap = dragPointer.y - rect.top;
+            const bottomGap = rect.bottom - dragPointer.y;
+            const leftGap = dragPointer.x - rect.left;
+            const rightGap = rect.right - dragPointer.x;
+
+            if (topGap < edge) {
+                calendarWrapper.scrollTop -= maxSpeed * ((edge - topGap) / edge);
+            } else if (bottomGap < edge) {
+                calendarWrapper.scrollTop += maxSpeed * ((edge - bottomGap) / edge);
+            }
+
+            if (leftGap < edge) {
+                calendarWrapper.scrollLeft -= maxSpeed * ((edge - leftGap) / edge);
+            } else if (rightGap < edge) {
+                calendarWrapper.scrollLeft += maxSpeed * ((edge - rightGap) / edge);
+            }
+
+            autoScrollFrame = requestAnimationFrame(stepAutoScroll);
+        }
+
+        calendarWrapper.addEventListener('dragover', (event) => {
+            if (!draggedLineMap) return;
+            dragPointer = {
+                x: event.clientX,
+                y: event.clientY
+            };
+            if (!autoScrollFrame) {
+                autoScrollFrame = requestAnimationFrame(stepAutoScroll);
+            }
+        });
+
+        let lastPreviewKey = null;
+        let lastPreviewMoves = null;
+        let previewRequestToken = 0;
+
+        function clearCascadeGhosts() {
+            document.querySelectorAll('.line-map-ghost-box').forEach((el) => el.remove());
+            document.querySelectorAll('.line-map-ghost-target').forEach((el) => {
+                el.classList.remove('line-map-ghost-target');
+            });
+        }
+
+        function renderCascadeGhosts(targetLine, moves) {
+            clearCascadeGhosts();
+
+            (moves || []).forEach((move) => {
+                if (!move.is_dragged && !move.shifted) return;
+
+                (move.dates || []).forEach((date) => {
+                    const cell = document.querySelector(
+                        `.line-map-drop-target[data-line="${CSS.escape(targetLine)}"][data-date="${CSS.escape(date)}"]`
+                    );
+                    if (!cell) return;
+
+                    cell.classList.add('line-map-ghost-target');
+
+                    const box = document.createElement('div');
+                    box.className = 'line-map-ghost-box ' +
+                        (move.is_dragged ? 'line-map-ghost-box-drag' : 'line-map-ghost-box-push');
+                    box.textContent = move.style || '-';
+                    cell.appendChild(box);
+                });
+            });
+        }
+
+        function requestCascadePreview(targetLine, targetDate) {
+            const key = targetLine + '|' + targetDate;
+            if (key === lastPreviewKey || !draggedLineMap) return;
+            lastPreviewKey = key;
+
+            const token = ++previewRequestToken;
+
+            fetch(@json(route('preview_move_ppic_line_map')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({
+                        id: draggedLineMap.id,
+                        target_line: targetLine,
+                        target_date: targetDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (token !== previewRequestToken || !draggedLineMap || !data.success) return;
+                    lastPreviewMoves = data.moves;
+                    renderCascadeGhosts(targetLine, data.moves);
+                })
+                .catch(() => {});
+        }
+
+        function isMiddleOfPlan(cell) {
+            if (!cell.classList.contains('line-map-plan-cell')) return false;
+            if (cell.classList.contains('line-map-plan-start')) return false;
+            if (draggedLineMap && cell.dataset.planId === String(draggedLineMap.id)) return false;
+            return true;
+        }
+
         document.querySelectorAll('.line-map-drop-target').forEach((cell) => {
             cell.addEventListener('dragover', (event) => {
                 if (!draggedLineMap) return;
+
+                if (isMiddleOfPlan(cell)) {
+                    event.dataTransfer.dropEffect = 'none';
+                    cell.classList.remove('drag-over');
+                    return;
+                }
+
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 cell.classList.add('drag-over');
+
+                requestCascadePreview(cell.dataset.line, cell.dataset.date);
             });
 
             cell.addEventListener('dragleave', () => {
@@ -682,23 +982,108 @@
             cell.addEventListener('drop', (event) => {
                 event.preventDefault();
                 cell.classList.remove('drag-over');
+                clearCascadeGhosts();
 
                 if (!draggedLineMap) return;
+                if (isMiddleOfPlan(cell)) return;
 
                 const targetLine = cell.dataset.line;
                 const targetDate = cell.dataset.date;
 
                 if (draggedLineMap.line === targetLine && draggedLineMap.date === targetDate) return;
 
-                moveLineMap(draggedLineMap, targetLine, targetDate);
+                const key = targetLine + '|' + targetDate;
+                const moves = key === lastPreviewKey ? lastPreviewMoves : null;
+
+                confirmMoveLineMap(draggedLineMap, targetLine, targetDate, moves);
             });
         });
 
-        function moveLineMap(item, targetLine, targetDate) {
+        function formatDateID(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function buildCascadeSummaryHtml(moves) {
+            const shiftedOthers = (moves || []).filter(m => !m.is_dragged && m.shifted);
+            if (!shiftedOthers.length) return '';
+
+            const rows = shiftedOthers.map(m =>
+                `<div>&bull; ${$('<div>').text(m.style || '-').html()} akan digeser ke ${formatDateID(m.new_start)}</div>`
+            ).join('');
+
+            return `<div class="text-start mt-2"><strong>${shiftedOthers.length} jadwal lain ikut digeser:</strong>${rows}</div>`;
+        }
+
+        function confirmMoveLineMap(item, targetLine, targetDate, moves) {
+            const productGroup = item.productGroup;
+            const groups = productGroupByLine[targetLine] || [];
+            const hasHistory = !productGroup || groups.some(g => g.product_group === productGroup);
+
+            if (!hasHistory) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Product Group Belum Pernah Dikerjakan',
+                    text: `Line tujuan belum pernah mengerjakan product group : ${productGroup}. Apakah anda yakin akan melanjutkan?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        moveLineMap(item, targetLine, targetDate, moves);
+                    }
+                });
+                return;
+            }
+
+            moveLineMap(item, targetLine, targetDate, moves);
+        }
+
+        function showWsBreakdown(styleno, wsBreakdown) {
+            const rows = (wsBreakdown || []).map(row => `
+                <tr>
+                    <td class="text-left">${row.ws || '-'}</td>
+                    <td class="text-right">${Number(row.tot_rfts || 0).toLocaleString('id-ID')}</td>
+                </tr>
+            `).join('');
+
+            const total = (wsBreakdown || []).reduce((sum, row) => sum + Number(row.tot_rfts || 0), 0);
+
+            Swal.fire({
+                icon: 'info',
+                title: styleno || '-',
+                html: `
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-left">WS</th>
+                                <th class="text-right">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="2" class="text-center text-muted">Tidak ada data</td></tr>'}</tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-left">Total</th>
+                                <th class="text-right">${total.toLocaleString('id-ID')}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `,
+                confirmButtonText: 'Tutup'
+            });
+        }
+
+        function moveLineMap(item, targetLine, targetDate, moves) {
             Swal.fire({
                 icon: 'question',
                 title: 'Pindahkan Jadwal?',
-                text: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.`,
+                html: `${item.style || 'Style ini'} akan dipindahkan ke line dan tanggal yang dipilih.` +
+                    buildCascadeSummaryHtml(moves),
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Pindahkan',
                 cancelButtonText: 'Batal'
@@ -749,7 +1134,7 @@
             });
         }
 
-        function addRampUpRow() {
+        function addRampUpRow(initialValue = null) {
             const dayNumber = $('#rampUpContainer .ramp-up-row').length + 1;
             const row = $(`
                 <div class="input-group input-group-sm mb-1 ramp-up-row">
@@ -767,8 +1152,14 @@
                 renumberRampUpRows();
                 calculateLineMap();
             });
-            row.find('input').on('input', calculateLineMap);
+            row.find('input').on('input change keyup', calculateLineMap);
             $('#rampUpContainer').append(row);
+
+            if (initialValue !== null) {
+                row.find('input[name="ramp_efficiency[]"]').val(initialValue);
+            }
+
+            calculateLineMap();
         }
 
         function renumberRampUpRows() {
@@ -789,6 +1180,8 @@
             $('#lineMapModalTitle').text('Tambah Line Map');
             $('.select2bs4').val('').trigger('change');
             $('#rampUpContainer').empty();
+            updateProductGroupInfo();
+            $('#txttglfinish').val('');
             calculateLineMap();
         }
 
@@ -798,6 +1191,12 @@
             $('#lineMapModalTitle').text('Edit Line Map');
 
             $('#cboline').val(data.line).trigger('change');
+
+            suppressProductGroupWarning = true;
+            $('#cboproductgroup').val(data.product_group || '').trigger('change');
+            suppressProductGroupWarning = false;
+            previousProductGroup = data.product_group || '';
+
             $('#txtstyle').val(data.style);
             $('#txtsmv').val(data.smv);
             $('#txtefficiency').val(data.efficiency !== null ? Math.round(data.efficiency * 100) : '');
@@ -810,11 +1209,10 @@
 
             $('#rampUpContainer').empty();
             (data.ramp_up_efficiency || []).forEach(function(eff) {
-                addRampUpRow();
-                $('#rampUpContainer .ramp-up-row').last().find('input[name="ramp_efficiency[]"]')
-                    .val(Math.round(eff * 100));
+                addRampUpRow(Math.round(eff * 100));
             });
 
+            $('#txttglfinish').val(data.tgl_finish ? formatDateID(data.tgl_finish) : '');
             calculateLineMap();
         }
 
@@ -857,7 +1255,13 @@
             }));
         }
 
-        $('#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty').on('input', calculateLineMap);
+        function calculateLineMapFromForm() {
+            calculateLineMap();
+        }
+
+        $('#formLineMap').on('input change keyup',
+            '#txtmanpower, #txtworkingminutes, #txtsmv, #txtefficiency, #txtorderqty',
+            calculateLineMapFromForm);
 
         function cancelLineMap(id) {
             Swal.fire({
@@ -909,8 +1313,73 @@
             });
         }
 
+        function validateLineMapRequiredFields() {
+            const requiredFields = [{
+                    selector: '#cboline',
+                    label: 'Line'
+                },
+                {
+                    selector: '#txtstyle',
+                    label: 'Style'
+                },
+                {
+                    selector: '#txtbuyer',
+                    label: 'Buyer'
+                },
+                {
+                    selector: '#txtsmv',
+                    label: 'SMV'
+                },
+                {
+                    selector: '#txtefficiency',
+                    label: 'Efficiency'
+                },
+                {
+                    selector: '#txtorderqty',
+                    label: 'Order Qty'
+                },
+                {
+                    selector: '#txtmanpower',
+                    label: 'Man Power'
+                },
+                {
+                    selector: '#txtworkingminutes',
+                    label: 'Working Minutes'
+                },
+                {
+                    selector: '#cbodate',
+                    label: 'Start Day Calendar'
+                }
+            ];
+
+            return requiredFields.filter(function(field) {
+                return String($(field.selector).val() || '').trim() === '';
+            });
+        }
+
         function submitLineMapForm(form, event) {
             event.preventDefault();
+
+            const emptyFields = validateLineMapRequiredFields();
+            if (emptyFields.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: 'Mohon isi kolom berikut terlebih dahulu:<br><strong>' +
+                        emptyFields.map(field => field.label).join(', ') +
+                        '</strong>',
+                    confirmButtonText: 'Tutup'
+                });
+
+                const firstEmptyField = $(emptyFields[0].selector);
+                if (firstEmptyField.hasClass('select2bs4')) {
+                    firstEmptyField.select2('open');
+                } else {
+                    firstEmptyField.trigger('focus');
+                }
+
+                return;
+            }
 
             const formData = new FormData(form);
             if (formData.has('txtorderqty')) {

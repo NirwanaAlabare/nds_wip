@@ -627,6 +627,12 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Output Packing Line
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-packing-line-return') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-line-return' ? 'active' : '' }}">
+                                    <i class="fas fa-file-upload fa-sm"></i> Packing Line Return
+                                </a>
+                            </li>
 
                             <!-- packing subcont -->
                             {{-- <li>
@@ -895,15 +901,12 @@
                             Barcode Packing
                         </a>
                     </li>
-                    @if (in_array(auth()->user()->username, ['admin_01', 'reza', 'nirwana_it']))
-                        <li class="nav-item">
-                            <a href="{{ route('ppic_line_map') }}"
-                                class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}"
-                                target="_blank">
-                                Line MAP
-                            </a>
-                        </li>
-                    @endif
+                    <li class="nav-item">
+                        <a href="{{ route('ppic_line_map') }}"
+                            class="nav-link {{ $routeName == 'ppic_line_map' ? 'active' : '' }}" target="_blank">
+                            Line MAP
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
@@ -1063,6 +1066,12 @@
                                     Sales Order <i class="fa-solid fa-file-invoice-dollar fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('master-marketing-catalog') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-catalog' ? 'active' : '' }}">
+                                    Katalog Style <i class="fa-solid fa-images fa-sm"></i>
+                                </a>
+                            </li>
                             {{-- <li>
                                 <a href="{{ route('master-bom-additional') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom-additional' ? 'active' : '' }}">
@@ -1125,6 +1134,11 @@
                             <li>
                                 <a href="{{ route('update-data-ceisa') }}" class="dropdown-item">
                                     Update Data Ceisa
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('lock') }}" target="_blank" class="dropdown-item">
+                                    Master Data Closing
                                 </a>
                             </li>
                         </ul>
@@ -1458,6 +1472,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Recap CM Price
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('IE_output_performance') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-laporan-output-performance' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Output Perfomance Analyze
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
@@ -1538,6 +1558,23 @@
                                                 class="fa-solid fa-minus"></i>Pengeluaran Spareparts (Pembelian)</a>
                                     </div>
                                 </div>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                {{-- BAP --}}
+                @if ($page == 'dashboard-helpdesk')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'bap-form' ? 'active' : '' }}">Form
+                            BAP</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('form-bap') }}"
+                                    class="dropdown-item {{ $subPage == 'form-bap' ? 'active' : '' }}">
+                                    Buat Form BAP <i class="fa-solid fa-file-alt fa-sm"></i>
+                                </a>
                             </li>
                         </ul>
                     </li>

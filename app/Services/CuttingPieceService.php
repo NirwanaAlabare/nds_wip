@@ -137,7 +137,7 @@ class CuttingPieceService
 
                 if (empty($request->so_det_id)) {
                     $formDetail->delete();
-                    
+
                     return "Form detail pada form {$form->no_form} berhasil dihapus";
                 }
             }
@@ -155,9 +155,13 @@ class CuttingPieceService
             $qtyUsageBefore = $formDetail->qty_pemakaian;
 
             $formDetail->update([
+                "method" => $request->id_roll ? 'scan' : 'select',
                 "id_roll" => $request->id_roll,
                 "id_item" => $request->id_item,
                 "detail_item" => $request->detail_item,
+                "lot" => $request->lot,
+                "roll_buyer" => $request->roll_buyer,
+                "rule_bom" => $request->rule_bom,
                 "qty_pengeluaran" => $request->qty_pengeluaran,
                 "qty" => $request->qty,
                 "qty_pemakaian" => $qtyUsage,
@@ -177,7 +181,7 @@ class CuttingPieceService
                     $scannedItem->qty_pakai += $qtyUsage;
                     $scannedItem->save();
                 }
-            } 
+            }
             // If not updating to a different id_rol
             else {
                 // Define Diff Qty

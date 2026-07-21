@@ -9,10 +9,45 @@ use DB;
 
 class PPICLineMapController extends Controller
 {
+    private const EDIT_ALLOWED_USERNAMES = ['eka', 'admin_01', 'nirwana_it', 'reza'];
+
+    private function canEditLineMap(): bool
+    {
+        return in_array(auth()->user()->username ?? null, self::EDIT_ALLOWED_USERNAMES);
+    }
+
     public function ppic_line_map(Request $request)
+    {
+        return view('ppic.line_map', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'page' => 'dashboard-ppic',
+                'subPageGroup' => 'asset-mesin',
+                'subPage' => 'ppic_line_map',
+                'containerFluid' => true,
+            ]
+        ));
+    }
+
+    public function ppic_line_map_live(Request $request)
+    {
+        return view('ppic.line_map_live', array_merge(
+            $this->buildLineMapData($request),
+            [
+                'containerFluid' => true,
+                'navbar' => false,
+                'footer' => false,
+            ]
+        ));
+    }
+
+    private function buildLineMapData(Request $request): array
     {
         $line = DB::connection('mysql_sb')->select("
 select * from userpassword where username like '%line%' order by username asc");
+
+        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
+        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
 
         $lineMap = DB::table('ppic_line_map')
             ->where(function ($q) {
@@ -21,7 +56,23 @@ select * from userpassword where username like '%line%' order by username asc");
             ->latest('tgl_start')
             ->get();
 
+        $lastUpdated = DB::table('ppic_line_map')->max('updated_at');
+
         $lineNameByUsername = collect($line)->pluck('FullName', 'username');
+
+        $productGroupRows = DB::connection('mysql_sb')->select("
+select line, product_group, sum(tot_qty) tot_qty from hist_product_per_line
+where line is not null and product_group is not null
+group by line, product_group order by line, sum(tot_qty) desc");
+
+        $productGroupByLine = collect($productGroupRows)
+            ->groupBy('line')
+            ->map(fn($rows) => $rows->values());
+
+        $productGroupList = collect(DB::connection('mysql_sb')->select("
+select product_group from masterproduct
+where product_group is not null and product_group <> ''
+group by product_group order by product_group"))->pluck('product_group');
 
         $lineMap = $lineMap->map(function ($row) {
             $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
@@ -53,6 +104,7 @@ select * from userpassword where username like '%line%' order by username asc");
                 'id' => $row->id,
                 'line' => $row->line,
                 'style' => $row->style,
+                'product_group' => $row->product_group,
                 'smv' => $row->smv,
                 'efficiency' => $row->efficiency,
                 'qty_order' => $row->qty_order,
@@ -60,6 +112,7 @@ select * from userpassword where username like '%line%' order by username asc");
                 'man_power' => $row->man_power,
                 'working_min' => $row->working_min,
                 'tgl_start' => $row->tgl_start,
+                'tgl_finish' => $row->tgl_end,
                 'ramp_up_efficiency' => $row->ramp_up_efficiency,
             ];
 
@@ -68,8 +121,9 @@ select * from userpassword where username like '%line%' order by username asc");
 
         $lineMapByLine = $lineMap->groupBy('line');
 
-        $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
-        $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
+        $lineMapList = $lineMap
+            ->filter(fn($row) => $row->tgl_start <= $filterEnd && $row->tgl_end >= $filterStart)
+            ->values();
 
         $calendarStart = $filterStart . ' 00:00:00';
         $calendarEnd = $filterEnd . ' 23:59:59';
@@ -83,7 +137,7 @@ where created_at >= ? and created_at <= ? and mp.cancel = 'N'
 group by so_det_id, created_by, date(created_at)
 )
 
-SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.kpno, ac.styleno, sd.reff_no, ac.styleno
+SELECT tgl_trans, up.username as line, sum(tot_rfts) tot_rfts, supplier as buyer, ac.styleno, ac.kpno as ws
 FROM a
 left join user_sb_wip u on a.created_by = u.id
 left join userpassword up on up.line_id = u.line_id
@@ -91,7 +145,7 @@ LEFT JOIN so_det sd on a.so_det_id = sd.id
 left join so on sd.id_so = so.id
 left join act_costing	 ac on so.id_cost = ac.id
 left join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
+group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $actualByLineDate = collect($actualRows)
             ->groupBy('line')
@@ -105,34 +159,45 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
                                 'buyer' => $first->buyer,
                                 'styleno' => $first->styleno,
                                 'tot_rfts' => $group->sum('tot_rfts'),
+                                'ws_breakdown' => $group
+                                    ->groupBy(fn($r) => $r->ws ?? '-')
+                                    ->map(fn($wsGroup) => (object) [
+                                        'ws' => $wsGroup->first()->ws,
+                                        'tot_rfts' => $wsGroup->sum('tot_rfts'),
+                                    ])
+                                    ->values(),
                             ];
                         })
                         ->values();
                 });
             });
 
-        // For non-AJAX (initial page load)
-        return view('ppic.line_map', [
-            'page' => 'dashboard-ppic',
-            'subPageGroup' => 'asset-mesin',
-            'subPage' => 'ppic_line_map',
-            'containerFluid' => true,
+        return [
             'line' => $line,
-            'lineMap' => $lineMap,
+            'lineMap' => $lineMapList,
             'lineMapByLine' => $lineMapByLine,
             'lineNameByUsername' => $lineNameByUsername,
+            'productGroupByLine' => $productGroupByLine,
+            'productGroupList' => $productGroupList,
             'calendarDates' => $calendarDates,
             'actualByLineDate' => $actualByLineDate,
             'filterStart' => $filterStart,
             'filterEnd' => $filterEnd,
-        ]);
+            'lastUpdated' => $lastUpdated,
+            'canEditLineMap' => $this->canEditLineMap(),
+        ];
     }
 
     public function store_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'editid' => 'nullable|integer|exists:ppic_line_map,id',
             'cboline' => 'required|string',
+            'cboproductgroup' => 'nullable|string',
             'txtstyle' => 'nullable|string',
             'txtsmv' => 'nullable|numeric',
             'txtefficiency' => 'nullable|numeric',
@@ -167,10 +232,20 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
         $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiency, $rampUpEfficiency);
 
+        $tglStart = $validated['cbodate'] ?? null;
+        $tglFinish = null;
+        if ($tglStart) {
+            $daysForFinish = $totalDays !== null ? max((int) round($totalDays), 1) : 1;
+            $workingDates = $this->workingDatesFrom($tglStart, $daysForFinish);
+            $tglFinish = !empty($workingDates) ? end($workingDates) : $tglStart;
+        }
+
         $data = [
             'line' => $validated['cboline'],
-            'tgl_start' => $validated['cbodate'] ?? null,
+            'tgl_start' => $tglStart,
+            'tgl_finish' => $tglFinish,
             'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
+            'product_group' => $validated['cboproductgroup'] ?? null,
             'smv' => $smv,
             'efficiency' => $efficiency,
             'qty_order' => $qtyOrder,
@@ -213,6 +288,10 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
 
     public function cancel_ppic_line_map($id)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         DB::table('ppic_line_map')->where('id', $id)->update([
             'cancel' => 'Y',
             'updated_at' => now(),
@@ -224,58 +303,175 @@ group by styleno, up.username, tgl_trans", [$calendarStart, $calendarEnd]);
         ]);
     }
 
-    public function move_ppic_line_map(Request $request)
+    public function preview_move_ppic_line_map(Request $request)
     {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $validated = $request->validate([
             'id' => 'required|integer|exists:ppic_line_map,id',
             'target_line' => 'required|string',
             'target_date' => 'required|date',
         ]);
 
-        $lineMap = DB::table('ppic_line_map')
-            ->where('id', $validated['id'])
-            ->where(function ($q) {
-                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
-            })
-            ->first();
+        $moves = $this->computeCascade($validated['target_line'], $validated['id'], $validated['target_date']);
 
-        if (!$lineMap) {
+        if ($moves === null) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data Line Map tidak ditemukan',
             ], 404);
         }
 
-        $targetStartDate = $validated['target_date'];
-
-        $overlap = $this->findLineMapOverlap($validated['target_line'], $targetStartDate, $lineMap->tot_days, $lineMap->id);
-        if ($overlap) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak bisa dipindahkan. Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line tujuan.',
-            ], 422);
-        }
-
-        DB::table('ppic_line_map')
-            ->where('id', $validated['id'])
-            ->update([
-                'line' => $validated['target_line'],
-                'tgl_start' => $targetStartDate,
-                'updated_at' => now(),
-            ]);
-
         return response()->json([
             'success' => true,
-            'message' => 'Jadwal Line Map berhasil dipindahkan',
+            'moves' => $moves,
         ]);
     }
 
+    public function move_ppic_line_map(Request $request)
+    {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:ppic_line_map,id',
+            'target_line' => 'required|string',
+            'target_date' => 'required|date',
+        ]);
+
+        $moves = $this->computeCascade($validated['target_line'], $validated['id'], $validated['target_date']);
+
+        if ($moves === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Line Map tidak ditemukan',
+            ], 404);
+        }
+
+        DB::transaction(function () use ($moves, $validated) {
+            foreach ($moves as $move) {
+                $update = [
+                    'tgl_start' => $move['new_start'],
+                    'tgl_finish' => $move['new_end'],
+                    'updated_at' => now(),
+                ];
+
+                if ($move['is_dragged']) {
+                    $update['line'] = $validated['target_line'];
+                }
+
+                DB::table('ppic_line_map')->where('id', $move['id'])->update($update);
+            }
+        });
+
+        $shiftedCount = collect($moves)->filter(fn($m) => !$m['is_dragged'] && $m['shifted'])->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => $shiftedCount > 0
+                ? "Jadwal berhasil dipindahkan, {$shiftedCount} jadwal lain ikut digeser mundur"
+                : 'Jadwal Line Map berhasil dipindahkan',
+        ]);
+    }
+
+    /**
+     * Places the dragged entry at $draggedNewStart on $targetLine, then walks the
+     * target line's timeline chronologically, pushing every entry whose start
+     * would now overlap the previous one forward to the next free working day
+     * (duration/tot_days untouched). Returns null if the dragged entry no longer exists.
+     */
+    private function computeCascade(string $targetLine, $draggedId, string $draggedNewStart): ?array
+    {
+        $draggedRow = DB::table('ppic_line_map')->where('id', $draggedId)->first();
+        if (!$draggedRow) {
+            return null;
+        }
+
+        $others = DB::table('ppic_line_map')
+            ->where('line', $targetLine)
+            ->where('id', '!=', $draggedId)
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->orderBy('tgl_start')
+            ->get();
+
+        $items = collect([
+            (object) [
+                'id' => $draggedRow->id,
+                'style' => $draggedRow->style,
+                'buyer' => $draggedRow->buyer,
+                'product_group' => $draggedRow->product_group,
+                'tot_days' => max((int) round($draggedRow->tot_days ?? 1), 1),
+                'start' => $draggedNewStart,
+                'is_dragged' => true,
+            ],
+        ])->concat($others->map(fn($e) => (object) [
+            'id' => $e->id,
+            'style' => $e->style,
+            'buyer' => $e->buyer,
+            'product_group' => $e->product_group,
+            'tot_days' => max((int) round($e->tot_days ?? 1), 1),
+            'start' => $e->tgl_start,
+            'is_dragged' => false,
+        ]))->sortBy('start')->values();
+
+        $moves = [];
+        $cursor = null;
+
+        foreach ($items as $item) {
+            $newStart = $item->start;
+            if ($cursor !== null && $newStart < $cursor) {
+                $newStart = $cursor;
+            }
+
+            $workingDates = $this->workingDatesFrom($newStart, $item->tot_days);
+            $newEnd = !empty($workingDates) ? end($workingDates) : $newStart;
+            $cursor = $this->nextWorkingDay($newEnd);
+
+            $moves[] = [
+                'id' => $item->id,
+                'style' => $item->style,
+                'buyer' => $item->buyer,
+                'product_group' => $item->product_group,
+                'is_dragged' => $item->is_dragged,
+                'new_start' => $newStart,
+                'new_end' => $newEnd,
+                'shifted' => $newStart !== $item->start,
+                'dates' => $workingDates,
+            ];
+        }
+
+        return $moves;
+    }
+
+    private function nextWorkingDay(string $date): string
+    {
+        $next = DB::selectOne(
+            "select min(tanggal) tanggal from dim_date where tanggal > ? and status_prod = 'KERJA'",
+            [$date]
+        );
+
+        return $next->tanggal ? date('Y-m-d', strtotime($next->tanggal)) : date('Y-m-d', strtotime($date . ' +1 day'));
+    }
+
+    /**
+     * Deterministic per-style color, independent of row order/date so a style's
+     * color never changes just because its schedule position changed (e.g. when
+     * dragged to a different date, which reorders the list sorted by tgl_start).
+     * md5 gives a much better hue spread than crc32 for short strings, which
+     * previously produced frequent near-hue collisions (looked "all greenish").
+     */
     private function styleColorFromName(?string $style): string
     {
-        $hash = abs(crc32(strtoupper(trim($style ?? ''))));
+        $key = strtoupper(trim($style ?? ''));
+        $hash = hexdec(substr(md5($key), 0, 8));
         $hue = $hash % 360;
 
-        return "hsl({$hue}, 62%, 42%)";
+        return "hsl({$hue}, 68%, 45%)";
     }
 
     private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, ?int $ignoreId = null)

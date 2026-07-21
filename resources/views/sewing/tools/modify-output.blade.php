@@ -1044,7 +1044,7 @@
             let line = document.getElementById("line").value;
             let masterPlanId = document.getElementById("master_plan").value;
             let soDetId = document.getElementById(prefix+"size").value;
-            let poId = document.getElementById(prefix+"po").value;
+            let poId = document.getElementById(prefix+"po") ? document.getElementById(prefix+"po").value : null;
             let qty = document.getElementById(prefix+"qty").value;
             let modSoDetId = document.getElementById(prefix+"mod_size").value;
             let modPoId = document.getElementById(prefix+"mod_po").value;
@@ -1105,7 +1105,7 @@
             let line = document.getElementById("line").value;
             let masterPlanId = document.getElementById("master_plan").value;
             let soDetId = document.getElementById(prefix+"size").value;
-            let poId = document.getElementById(prefix+"po").value;
+            let poId = document.getElementById(prefix+"po") ? document.getElementById(prefix+"po").value : null;
             let qty = document.getElementById(prefix+"qty").value;
 
             if (tanggal && line && masterPlanId && soDetId && (qty > 0)) {

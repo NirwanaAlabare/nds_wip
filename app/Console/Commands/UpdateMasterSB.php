@@ -42,13 +42,6 @@ class UpdateMasterSB extends Command
      */
     public function handle(GeneralService $generalService)
     {
-        $idRoll = null;
-        $qty = null;
-
-        $rollId = $idRoll;
-        $rollQty = $qty;
-        $rollUse = null;
-
         // Update Master SB
         $updateMasterSbWs = $generalService->updateMasterSbWs();
 

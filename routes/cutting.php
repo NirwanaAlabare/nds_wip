@@ -354,6 +354,8 @@ Route::middleware('auth')->group(function () {
         // ReportCutting
         Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('role:cutting')->group(function () {
             Route::get('/cutting', 'cutting')->name('report-cutting');
+            Route::get('/output-cutting-vs-management-roll', 'outputCuttingVsManagementRoll')->name('output-cutting-vs-management-roll');
+            Route::get('/export-output-cutting-vs-management-roll', 'exportOutputCuttingVsManagementRoll')->name('export-output-cutting-vs-management-roll');
             Route::get('/total-cutting', 'totalCutting')->name('total-cutting');
             Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
             Route::get('/total-cutting-daily', 'totalCuttingDaily')->name('total-cutting-daily');

@@ -127,7 +127,7 @@
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label small label-fetch">Kode Marker</label>
+                                <label class="form-label small label-fetch">Urutan Marker</label>
                                 <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->urutan_marker." / ".$formCutInputData->nomor }}" readonly>
                             </div>
                         </div>
@@ -2281,22 +2281,30 @@
                             if (response.status == 200) {
                                 resolve(true);
                             } else {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'WARNING',
-                                    html: response.message,
-                                    showCancelButton: true,
-                                    showConfirmButton: true,
-                                    cancelButtonText: 'Batalkan',
-                                    confirmButtonText: 'Lanjutkan',
-                                    confirmButtonColor: '#fa4456',
-                                }).then(result => {
-                                    if (result.isConfirmed) {
-                                        resolve(true);
-                                    } else {
-                                        resolve(false);
-                                    }
-                                });
+                                if(response.additional == 'Closing'){
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Info',
+                                        text: response.message
+                                    });
+                                }else{
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'WARNING',
+                                        html: response.message,
+                                        showCancelButton: true,
+                                        showConfirmButton: true,
+                                        cancelButtonText: 'Batalkan',
+                                        confirmButtonText: 'Lanjutkan',
+                                        confirmButtonColor: '#fa4456',
+                                    }).then(result => {
+                                        if (result.isConfirmed) {
+                                            resolve(true);
+                                        } else {
+                                            resolve(false);
+                                        }
+                                    });
+                                }
                             }
                         },
                         error: function (jqXHR) {

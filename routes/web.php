@@ -24,6 +24,7 @@ use App\Http\Controllers\FinishGoodReturController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\IE_Laporan_Controller;
+use App\Http\Controllers\IE_Output_Perfomance_Controller;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 use App\Http\Controllers\IEDashboardController;
 use App\Http\Controllers\IEMasterPartProcessController;
@@ -77,8 +78,8 @@ use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
-use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\PPICDashboardController;
+use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
 use App\Http\Controllers\PurchasingController;
@@ -95,6 +96,7 @@ use App\Http\Controllers\QCInspectShadeBandController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\ReportDocController;
 use App\Http\Controllers\ReportOutputPackingLineController;
+use App\Http\Controllers\ReportPackingLineReturnController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
@@ -154,6 +156,8 @@ use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
+use App\Http\Controllers\HelpdeskDashboardController;
+use App\Http\Controllers\BAPFormController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1079,8 +1083,10 @@ Route::middleware('auth')->group(function () {
     // PPIC Line MAP
     Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
+        Route::get('/ppic_line_map/live', 'ppic_line_map_live')->name('ppic_line_map_live');
         Route::post('/ppic_line_map/store', 'store_ppic_line_map')->name('store_ppic_line_map');
         Route::post('/ppic_line_map/move', 'move_ppic_line_map')->name('move_ppic_line_map');
+        Route::post('/ppic_line_map/preview-move', 'preview_move_ppic_line_map')->name('preview_move_ppic_line_map');
         Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
     });
 
@@ -1284,7 +1290,7 @@ Route::middleware('auth')->group(function () {
     // Marketing Catalog
     Route::controller(Marketing_CatalogController::class)->prefix("master-marketing-catalog")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-marketing-catalog');
-        Route::get('/detail/{id_item}', 'catalogDetail')->name('master-marketing-catalog-detail');
+        Route::get('/detail/{styleno}', 'catalogDetail')->name('master-marketing-catalog-detail');
     });
 
     // QC Inspect Kain
@@ -1491,6 +1497,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
 
+    // Industrial Engineering Output Perfomance Analyzer
+    Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+        Route::get('/IE_output_performance', 'IE_output_performance')->name('IE_output_performance');
+        Route::get('/IE_output_performance_styleno_suggest', 'styleno_suggest')->name('IE_output_performance_styleno_suggest');
+    });
+
     // Asset Management
     // Dashboard
     Route::controller(AssetDashboardController::class)->middleware('role:asset')->group(function () {
@@ -1627,6 +1639,28 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_report_stok_jenis_area', 'asset_mesin_report_stok_jenis_area')->name('asset_mesin_report_stok_jenis_area');
         Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
     });
+
+    // Dashboard Helpdesk
+    Route::controller(HelpdeskDashboardController::class)->group(function () {
+        Route::get('/dashboard_helpdesk', 'dashboard_helpdesk')->name('dashboard-helpdesk');
+        Route::get('/dashboard_helpdesk/chart-bap-department', 'chartBapDepartment')->name('chart-bap-department');
+        Route::get('/dashboard_helpdesk/chart-bap-monthly', 'chartBapMonthly')->name('chart-bap-monthly');
+        Route::get('/dashboard_helpdesk/summary-bap', 'summaryBap')->name('summary-bap-helpdesk');
+        Route::get('/dashboard_helpdesk/recent-activity-bap', 'recentActivityBap')->name('recent-activity-bap');
+    });
+
+    // Form BAP
+    Route::controller(BAPFormController::class)->group(function () {
+        Route::get('/dashboard_bap/form', 'form_bap')->name('form-bap');
+        Route::post('/dashboard_bap/form/store', 'store')->name('store-form-bap');
+        Route::post('/dashboard_bap/form/toggle-status', 'toggleStatus')->name('toggle-status-form-bap');
+        Route::get('/dashboard_bap/form/edit', 'edit')->name('edit-form-bap');
+        Route::post('/dashboard_bap/form/update', 'update')->name('update-form-bap');
+        Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
+        Route::get('/dashboard_bap/form/print/{id}', 'printPdf')->name('print-form-bap');
+        Route::get('/dashboard_bap/form/departments', 'getDepartments')->name('departments-form-bap');
+        Route::get('/dashboard_bap/form/summary', 'summary')->name('summary-form-bap');
+    });
     // Export Import (EXIM)
 
     Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');
@@ -1651,6 +1685,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
         Route::get('/get-respon-status/{noAju}', 'getResponData')->name('dokumen-pabean-respon')->where('noAju', '.*');
         Route::post('/rollback-status/{id}', 'rollbackStatus')->name('dokumen-pabean-rollback')->where('id', '.*');
+        Route::post('/sync-bcno/{noAju}', 'syncBcNo')->name('dokumen-pabean-sync-bcno')->where('noAju', '.*');
+        Route::post('/send-batch-ceisa', 'sendBatchCeisa')->name('dokumen-pabean-send-batch-ceisa');
+
+        // BC 4.0 routes
+
+        Route::get('/dokumen-pabean/edit-batch-bc40/{ids}','editBatchBc40')->name('dokumen-pabean-edit-batch-bc40');
+        Route::put('/dokumen-pabean/update-draft-batch-bc40/{ids}','updateDraftBatchBc40')->name('dokumen-pabean-update_draft_batch_bc40');
 
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
@@ -1676,6 +1717,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
         Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc41/{ids}','editBatchBc41')->name('dokumen-pabean-edit-batch-bc41');
+        Route::put('/dokumen-pabean/update-draft-batch-bc41/{ids}','updateDraftBatchBc41')->name('dokumen-pabean-update_draft_batch_bc41');
 
 
         // BC 2.5 routes
@@ -2005,6 +2048,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/data', 'getData')->name('report.defect_spotcleaning_out.data');
             Route::get('/export', 'exportExcel')->name('report.defect_spotcleaning_out.export');
         });
+    });
+
+    Route::controller(ReportPackingLineReturnController::class)->prefix("report-packing-line-return")->middleware('role:packing')->group(function () {
+        Route::get('/', 'index')->name('report-packing-line-return');
+        Route::post('/export', 'export')->name('export-report-packing-line-return');
     });
 });
 

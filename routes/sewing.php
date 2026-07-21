@@ -19,6 +19,7 @@ use App\Http\Controllers\Sewing\ReportHourlyController;
 use App\Http\Controllers\Sewing\ReportMutasiOutputController;
 use App\Http\Controllers\Sewing\ReportOutputController;
 use App\Http\Controllers\Sewing\ReportProductionController;
+use App\Http\Controllers\Sewing\ReportQcFinishingCekReturnPackingController;
 use App\Http\Controllers\Sewing\ReportQcRejectController;
 use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
@@ -203,6 +204,7 @@ Route::middleware('auth')->group(function () {
 
         // Modify Packing PO
         Route::get('/get-po', 'getPo')->name('get-po-qr');
+        Route::post('/get-po-post', 'getPo')->name('get-po-qr-post');
         Route::post('/get-packing-po', 'getPackingPo')->name('get-packing-po');
         Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
         Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');
@@ -319,5 +321,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportQcRejectController::class)->prefix("report-qc-reject")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('report-qc-reject');
         Route::post('/export', 'export')->name('export-report-qc-reject');
+    });
+
+    Route::controller(ReportQcFinishingCekReturnPackingController::class)->prefix("report-qc-finishing-cek-return-packing")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report-qc-finishing-cek-return-packing');
+        Route::post('/export', 'export')->name('export-report-qc-finishing-cek-return-packing');
     });
 });

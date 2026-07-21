@@ -249,7 +249,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            html: 'Terjadi Kesalahan',
+                            html: response.message || 'Terjadi Kesalahan',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -274,41 +274,43 @@
                 confirmButtonText: "Lanjut",
                 denyButtonText: "Batal"
             }).then((result) => {
-                $.ajax({
-                    type: "delete",
-                    url: "{{ route('modify-loading-line-delete') }}",
-                    data: {
-                        stockerIds: $("#stocker_ids").val()
-                    },
-                    dataType: "json",
-                    success: function (response) {
-                        console.log(response);
-                        if (response.status == 200) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                html: response.message,
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                html: 'Terjadi Kesalahan',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
-                        }
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "delete",
+                        url: "{{ route('modify-loading-line-delete') }}",
+                        data: {
+                            stockerIds: $("#stocker_ids").val()
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            console.log(response);
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response.message || 'Terjadi Kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
 
-                        currentStockerTableReload();
-                    },
-                    error: function(jqXHR) {
-                        console.error(jqXHR);
-                    }
-                });
+                            currentStockerTableReload();
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR);
+                        }
+                    });
+                }
             });
         }
     </script>
