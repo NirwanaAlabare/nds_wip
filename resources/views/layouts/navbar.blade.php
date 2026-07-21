@@ -1967,6 +1967,8 @@
             }
 
             let notifLogSearchTimer = null;
+            let notifCurrentCount = 0;
+            let notifLastSeenCount = parseInt(localStorage.getItem('notifLastSeenCount') || '0');
 
             function loadNotifLogActivity() {
                 let search = $('#searchNotifLogActivity').val() || '';
@@ -1982,8 +1984,10 @@
                         let $badge = $('#badgeNotifLogActivity');
                         let $list = $('#listNotifLogActivity');
 
-                        if (res.count > 0) {
-                            $badge.text(res.count).removeClass('d-none');
+                        notifCurrentCount = res.count;
+                        let unseen = Math.max(0, res.count - notifLastSeenCount);
+                        if (unseen > 0) {
+                            $badge.text(unseen).removeClass('d-none');
                         } else {
                             $badge.addClass('d-none');
                         }
@@ -2027,6 +2031,12 @@
                     notifLogSearchTimer = setTimeout(function() {
                         loadNotifLogActivity();
                     }, 350);
+                });
+
+                $('#bellNotifLogActivity').closest('.nav-link').on('click', function() {
+                    notifLastSeenCount = notifCurrentCount;
+                    localStorage.setItem('notifLastSeenCount', notifLastSeenCount);
+                    $('#badgeNotifLogActivity').addClass('d-none');
                 });
             });
         </script>
