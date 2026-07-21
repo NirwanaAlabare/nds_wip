@@ -1236,6 +1236,7 @@ class StockerController extends Controller
     public function printStockerChecked(Request $request, StockerService $stockerService)
     {
         ini_set('max_execution_time', 36000);
+        ini_set('memory_limit', '2048M');
 
         // Form
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
