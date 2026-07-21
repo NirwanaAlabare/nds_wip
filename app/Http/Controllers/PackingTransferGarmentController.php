@@ -251,6 +251,22 @@ order by ws asc, color asc, urutan asc
 
     public function store_tmp_trf_garment(Request $request)
     {
+        
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table('output_rfts_packing_po')
+            ->where('po_id', $request->cbogarment)
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->updated_at)))) {
+            return array(
+                "status" => 400,
+                "icon" => "salah",
+                "msg" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+            );
+        }
+
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
         $validatedRequest = $request->validate([
