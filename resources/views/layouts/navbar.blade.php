@@ -1815,6 +1815,29 @@
                 </div>
             @endif
 
+            <!-- NOTIFICATION: Log Activity - khusus modul Warehouse/Fabric -->
+            @if ($page == 'dashboard-warehouse')
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="far fa-bell" id="bellNotifLogActivity"></i>
+                        <span class="badge badge-warning navbar-badge d-none" id="badgeNotifLogActivity">0</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end"
+                        style="width: 380px; max-width: 90vw; white-space: normal;">
+                        <span class="dropdown-header" id="headerNotifLogActivity">Log Activity</span>
+                        <div class="px-3 py-1" onclick="event.stopPropagation()">
+                            <input type="text" class="form-control form-control-sm" id="searchNotifLogActivity"
+                                placeholder="Cari No Dokumen..." autocomplete="off"
+                                onclick="event.stopPropagation()">
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div id="listNotifLogActivity" style="max-height: 320px; overflow-y: auto;">
+                            <span class="dropdown-item text-muted">Memuat...</span>
+                        </div>
+                    </div>
+                </li>
+            @endif
+
             <!-- USER OFFCANVAS -->
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
@@ -1924,6 +1947,87 @@
             $(document).ready(function() {
                 loadNotifMesinSewa();
                 setInterval(loadNotifMesinSewa, 5 * 60 * 1000);
+            });
+        </script>
+    @endpush
+@endif
+
+@if ($page == 'dashboard-warehouse')
+    @push('scripts')
+        <script>
+            function formatDateTimeNotifLog(dateStr) {
+                if (!dateStr) return '-';
+                let d = new Date(dateStr.replace(' ', 'T'));
+                if (isNaN(d.getTime())) return dateStr;
+                let hariList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                let bulanList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                let pad = (n) => n.toString().padStart(2, '0');
+                return hariList[d.getDay()] + ', ' + d.getDate() + ' ' + bulanList[d.getMonth()] + ' ' +
+                    d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+            }
+
+            let notifLogSearchTimer = null;
+
+            function loadNotifLogActivity() {
+                let search = $('#searchNotifLogActivity').val() || '';
+
+                $.ajax({
+                    url: '{{ route('warehouse_log_notifikasi') }}',
+                    method: 'GET',
+                    dataType: 'json',
+                    data: {
+                        search: search
+                    },
+                    success: function(res) {
+                        let $badge = $('#badgeNotifLogActivity');
+                        let $list = $('#listNotifLogActivity');
+
+                        if (res.count > 0) {
+                            $badge.text(res.count).removeClass('d-none');
+                        } else {
+                            $badge.addClass('d-none');
+                        }
+
+                        $('#headerNotifLogActivity').text(
+                            search ? ('Hasil Pencarian "' + search + '" (' + res.items.length + ')') :
+                            ('Log Activity Hari Ini (' + res.count + ')')
+                        );
+
+                        $list.empty();
+                        if (!res.items || res.items.length === 0) {
+                            $list.append(
+                                '<span class="dropdown-item text-muted">' + (search ? 'Tidak ditemukan' : 'Belum ada aktivitas') + '</span>'
+                            );
+        } else {
+                            res.items.forEach(function(item) {
+                                $list.append(
+                                    '<div class="dropdown-item-text px-3 py-2" style="white-space: normal; user-select: text; cursor: default;" onclick="event.stopPropagation()">' +
+                                    '<div class="d-flex justify-content-between">' +
+                                    '<span><i class="fas fa-file-alt text-info mr-2"></i>' + item.activity + '</span>' +
+                                    '</div>' +
+                                    '<div class="text-muted text-sm">' + (item.no_dok || '-') + ' &middot; ' + (item.user || '-') + '</div>' +
+                                    '<div class="text-muted text-sm">' + formatDateTimeNotifLog(item.created_at) + '</div>' +
+                                    '</div><div class="dropdown-divider"></div>'
+                                );
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                loadNotifLogActivity();
+                setInterval(loadNotifLogActivity, 2 * 60 * 1000);
+
+                $(document).on('keyup', '#searchNotifLogActivity', function() {
+                    clearTimeout(notifLogSearchTimer);
+                    notifLogSearchTimer = setTimeout(function() {
+                        loadNotifLogActivity();
+                    }, 350);
+                });
             });
         </script>
     @endpush

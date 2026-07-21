@@ -336,6 +336,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/simpanedit-returnsb', 'simpaneditreturnsb')->name('simpan-edit-returnsb');
     });
 
+    //Notifikasi log activity (khusus modul fabric/warehouse)
+    Route::get('/warehouse-log-notifikasi', [InMaterialController::class, 'get_notif_log_activity'])->middleware('warehouse')->name('warehouse_log_notifikasi');
+
     //Penerimaan
     Route::controller(InMaterialController::class)->prefix("in-material")->middleware('in-material')->group(function () {
         Route::get('/', 'index')->name('in-material');

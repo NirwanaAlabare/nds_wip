@@ -40,6 +40,41 @@ class InMaterialController extends Controller
     use LogsActivity;
 
     /**
+     * Notifikasi log activity untuk menu-menu fabric/warehouse (whs_log_activity),
+     * ditampilkan sebagai bell notification di navbar khusus halaman dashboard-warehouse.
+     */
+    public function get_notif_log_activity(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        if ($search !== '') {
+            $items = DB::connection('mysql_sb')->select("
+                SELECT id, activity, no_dok, user, created_at
+                FROM whs_log_activity
+                WHERE no_dok LIKE ?
+                ORDER BY created_at DESC
+                LIMIT 50
+            ", ['%' . $search . '%']);
+        } else {
+            $items = DB::connection('mysql_sb')->select("
+                SELECT id, activity, no_dok, user, created_at
+                FROM whs_log_activity
+                ORDER BY created_at DESC
+                LIMIT 20
+            ");
+        }
+
+        $countToday = DB::connection('mysql_sb')->select("
+            SELECT COUNT(*) as jml FROM whs_log_activity WHERE DATE(created_at) = CURDATE()
+        ");
+
+        return response()->json([
+            'count' => $countToday ? intval($countToday[0]->jml) : 0,
+            'items' => $items,
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
