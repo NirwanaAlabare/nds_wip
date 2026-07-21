@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,17 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
     @endsection
 
     @section('content')
+    <div class="marginnya">
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Pengeluaran Bahan Baku</h5>
@@ -125,24 +133,24 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center">No BPPB</th>
-                            <th class="text-center">Tgl BPPB</th>
-                            <th class="text-center">No Request</th>
-                            <th class="text-center">No JO</th>
-                            <th class="text-center">Buyer</th>
-                            <th class="text-center">Penerima</th>
-                            <th class="text-center">Jenis BC</th>
-                            <th class="text-center">Jenis Trans</th>
-                            <th class="text-center">No Invoice</th>
-                            <th class="text-center">Tanggal Daftar</th>
-                            <th class="text-center">No Daftar</th>
-                            <th class="text-center">User</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-center" style="width: 10%;">No BPPB</th>
+                            <th class="text-center" style="width: 8%;">Tgl BPPB</th>
+                            <th class="text-center" style="width: 10%;">No Request</th>
+                            <th class="text-center d-none">No JO</th>
+                            <th class="text-center" style="width: 12%;">Buyer</th>
+                            <th class="text-center" style="width: 10%;">Penerima</th>
+                            <th class="text-center" style="width: 8%;">Jenis BC</th>
+                            <th class="text-center" style="width: 9%;">Jenis Trans</th>
+                            <th class="text-center" style="width: 9%;">No Invoice</th>
+                            <th class="text-center d-none">Tanggal Daftar</th>
+                            <th class="text-center d-none">No Daftar</th>
+                            <th class="text-center" style="width: 9%;">User</th>
+                            <th class="text-center" style="width: 7%;">Status</th>
+                            <th class="text-center" style="width: 8%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -399,6 +407,7 @@
     </div>
 </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -445,11 +454,10 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -511,6 +519,10 @@
 
             ],
             columnDefs: [{
+                targets: [3, 9, 10],
+                visible: false
+            },
+            {
                 targets: [13],
                 render: (data, type, row, meta) => {
                     console.log(row);
@@ -718,28 +730,7 @@ function tambahdata(){
     }
 
     function printpdf(id) {
-
-        $.ajax({
-            url: '{{ route('print-pdf-outmaterial') }}/'+id,
-            type: 'post',
-            processData: false,
-            contentType: false,
-            xhrFields:
-            {
-                responseType: 'blob'
-            },
-            success: function(res) {
-                if (res) {
-                    console.log(res);
-
-                    var blob = new Blob([res], {type: 'application/pdf'});
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = id+".pdf";
-                    link.click();
-                }
-            }
-        });
+        window.open('{{ route('print-pdf-outmaterial') }}/'+id, '_blank');
     }
 </script>
 @endsection

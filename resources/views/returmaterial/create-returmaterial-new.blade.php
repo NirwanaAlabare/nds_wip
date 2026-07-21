@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -6,9 +6,17 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <form action="{{ isset($edit_data) ? route('update-ro-barcode') : route('store-ro-barcode') }}" method="post" id="store-outmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
     @if(isset($edit_data))
@@ -398,6 +406,7 @@
         </div>
     </div>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -600,7 +609,7 @@
                     $('#bulk_barcode_input').val('');
                     datatable.ajax.reload();
 
-                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0) ? 'warning' : 'success';
+                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0 || res.po_mismatch.length > 0) ? 'warning' : 'success';
                     iziToast[icon === 'success' ? 'success' : 'warning']({
                         title: icon === 'success' ? 'Berhasil' : 'Peringatan',
                         message: res.message,
@@ -643,7 +652,7 @@
                     $('#excel_barcode_file').val('');
                     datatable.ajax.reload();
 
-                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0) ? 'warning' : 'success';
+                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0 || res.po_mismatch.length > 0) ? 'warning' : 'success';
                     iziToast[icon === 'success' ? 'success' : 'warning']({
                         title: icon === 'success' ? 'Berhasil' : 'Peringatan',
                         message: res.message,
@@ -824,6 +833,9 @@
         function validateAndSubmitRoForm(e, evt) {
             evt.preventDefault();
 
+            let $submitBtn = $(e).find('button.btn-sb');
+            if ($submitBtn.prop('disabled')) return;
+
             let tglRo = $('#txt_tgl_ro').val();
 
             if (minTglRo && tglRo < minTglRo) {
@@ -860,7 +872,11 @@
                 $el.next('.select2-container').find('.select2-selection').removeClass('border border-danger');
             }
 
+            $submitBtn.prop('disabled', true);
             submitForm(e, evt);
+            // Safety net: submitForm() (shared script.js) hanya re-enable <input type=submit>,
+            // bukan <button> ini, jadi kalau gagal validasi di server tombol tidak nyangkut disabled selamanya.
+            setTimeout(() => $submitBtn.prop('disabled', false), 3000);
         }
     </script>
 @endsection

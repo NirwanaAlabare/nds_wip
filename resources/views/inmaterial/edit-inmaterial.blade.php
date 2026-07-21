@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,10 +8,18 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
-<form action="{{ route('update-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
+<div class="marginnya">
+<form action="{{ route('update-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitEditForm(this, event)">
     @method('GET')
     @csrf
     <div class="card card-sb">
@@ -42,8 +50,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl BPB</small></label>
-                                <input type="date" class="form-control form-control" id="txt_tgl_gr" name="txt_tgl_gr"
-                                value="{{ $kodegr->tgl_dok }}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="txt_tgl_gr" name="txt_tgl_gr" autocomplete="off" readonly
+                                            value="{{ $kodegr->tgl_dok }}">
+                                    <span class="input-group-text" id="txt_tgl_gr_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -170,7 +181,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="col-md-12 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Dokumen Asli</small></label>
@@ -194,7 +205,7 @@
             <div class="col-md-5">
                 <div class="row">
 
-                    <div class="col-md-7">
+                    <div class="col-md-7 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Aju</small></label>
@@ -203,7 +214,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-5 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl Aju</small></label>
@@ -213,7 +224,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-7">
+                    <div class="col-md-7 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Daftar</small></label>
@@ -222,7 +233,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-5 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl Daftar</small></label>
@@ -236,7 +247,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Kontrak</small></label>
-                                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="{{$kodegr->no_kontrak}}" disabled >
+                                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="{{$kodegr->no_kontrak}}" >
                             </div>
                         </div>
                     </div>
@@ -285,29 +296,27 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">NO WS</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
-                            <th class="text-center" style="display: none;">Reject Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 12%;">No WS</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">ID Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 16%;">Kode Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Produk</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 24%;">Deskripsi</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 5%;">Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">Qty PO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">Balance</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty GR</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Reject</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $i=1; ?>
                         @foreach ($det_data as $detdata)
+                        @php $qtyLokDet = $detdata->qty_lok ?? 0; @endphp
                         <tr>
                             <td value="{{$detdata->no_ws}}">{{$detdata->no_ws}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->id_jo}}</td>
@@ -315,14 +324,22 @@
                             <td value="{{$detdata->no_ws}}">{{$detdata->kode_item}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->produk_item}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->desc_item}}</td>
-                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_po}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->qty_po}}</td>
-                            <td value="{{$detdata->no_ws}}"><input style="width:100px;" class="form-control-sm" type="text" min="0" max="{{$detdata->qty_po}}" id="qty_good<?= $i; ?>" name="qty_good[<?= $i; ?>]" value="{{$detdata->qty_good}}" /></td>
-                            <td value="{{$detdata->no_ws}}" onkeyup="tambahqty(this.value)">{{$detdata->unit}}</td>
-                            <td value="{{$detdata->no_ws}}"><input style="width:100px;" class="form-control-sm" type="text" min="0" max="{{$detdata->qty_po}}" id="qty_reject<?= $i; ?>" name="qty_reject[<?= $i; ?>]" value="{{$detdata->qty_reject}}" /></td>
-                            <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
-                            <td hidden><input style="width:100px;" class="form-control-sm" type="text" id="id_det<?= $i; ?>" name="id_det[<?= $i; ?>]" value="{{$detdata->id}}" /></td>
+                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_sisa}}</td>
+                            <td value="{{$detdata->no_ws}}">
+                                <input style="width:100%;" class="form-control-sm" type="text" min="0" max="{{$detdata->qty_po}}" id="qty_good<?= $i; ?>" name="qty_good[<?= $i; ?>]" value="{{$detdata->qty_good}}" onkeyup="tambahqty(this.value)" @if($qtyLokDet > 0) readonly @endif />
+                                @if($qtyLokDet > 0)
+                                <small class="text-danger d-block" title="Sudah ada barcode/lokasi untuk item ini">Edit di Barcode</small>
+                                @endif
+                            </td>
+                            <td value="{{$detdata->no_ws}}">
+                                <input style="width:100%;" class="form-control-sm" type="text" min="0" max="{{$detdata->qty_po}}" id="qty_reject<?= $i; ?>" name="qty_reject[<?= $i; ?>]" value="{{$detdata->qty_reject}}" @if($qtyLokDet > 0) readonly @endif />
+                                <input type="hidden" id="id_det<?= $i; ?>" name="id_det[<?= $i; ?>]" value="{{$detdata->id}}" />
+                                @if($qtyLokDet > 0)
+                                <small class="text-danger d-block" title="Sudah ada barcode/lokasi untuk item ini">Edit di Barcode</small>
+                                @endif
+                            </td>
                         </tr>
                         <?php $i++; ?>
                         @endforeach
@@ -566,6 +583,7 @@
     </div>
 </form>
 </div>
+</div>
 @endsection
 
 
@@ -587,10 +605,12 @@
             serverSide: false,
             paging: false,
             searching: true,
-            scrollY: '300px',
-            scrollX: true,        
-            scrollCollapse: true,
-            dom: "lfrtip"     
+            autoWidth: false,
+            dom: "lfrtip",
+            columnDefs: [{
+                targets: [4],
+                visible: false
+            }]
         });
     });
 
@@ -650,6 +670,79 @@
                 $('#l_unit').val('cm').trigger("change");
             }
         });
+
+        let minTglRo = @json($min_tgl_ro ?? '');
+        let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+        function formatDateYmd(date) {
+            let m = date.getMonth() + 1;
+            let d = date.getDate();
+            return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        }
+
+        $('#txt_tgl_gr').datepicker({
+            dateFormat: 'yy-mm-dd',
+            minDate: minTglRo ? minTglRo : null,
+            beforeShowDay: function (date) {
+                let ymd = formatDateYmd(date);
+                for (let p of closedPeriods) {
+                    if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                        return [false, '', 'Periode sudah closed'];
+                    }
+                }
+                return [true, ''];
+            }
+        });
+
+        $('#txt_tgl_gr_icon').on('click', function () {
+            $('#txt_tgl_gr').datepicker('show');
+        });
+
+        function validateAndSubmitEditForm(e, evt) {
+            let missing = [];
+
+            let tglRo = $('#txt_tgl_gr').val();
+            if (minTglRo && tglRo < minTglRo) {
+                evt.preventDefault();
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPB tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+                return;
+            }
+            for (let p of closedPeriods) {
+                if (tglRo >= p.tgl_awal && tglRo <= p.tgl_akhir) {
+                    evt.preventDefault();
+                    Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPB tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+                    return;
+                }
+            }
+
+            if (!$('#txt_type_bc').val()) missing.push('Tipe BC');
+            if (!$('#txt_type_pch').val()) missing.push('Tipe Pembelian');
+            if (!$('#txt_invdok').val()) missing.push('No Invoice');
+
+            let anyQtyFilled = false;
+            $('input[name^="qty_good"]').each(function() {
+                let v = parseFloat($(this).val());
+                if (!isNaN(v) && v > 0) {
+                    anyQtyFilled = true;
+                }
+            });
+            if (!anyQtyFilled) missing.push('Qty GR (minimal 1 baris data detail)');
+
+            if (missing.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                        '<ul style="margin-top:10px;">' +
+                        missing.map(m => '<li>' + m + '</li>').join('') +
+                        '</ul></div>'
+                });
+                return;
+            }
+
+            submitForm(e, evt);
+        }
 
         function tambahqty($val){
             var table = document.getElementById("datatable");

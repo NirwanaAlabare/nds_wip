@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,87 +11,55 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
     @endsection
 
     @section('content')
+    <div class="marginnya">
     <form action="{{ route('approve-material-all') }}" method="post" onsubmit="submitappForm(this, event)">
         @method('GET')
         <div class="card card-sb">
-            <div class="card-header">
+            <div class="card-header d-flex align-items-center gap-2">
                 <h5 class="card-title fw-bold mb-0">Konfirmasi Penerimaan Bahan Baku</h5>
+                <span class="badge badge-danger d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; padding: 0.35em 0.55em; border-radius: 999px;" title="Dokumen belum di-approve">
+                    <i class="fas fa-bell"></i> <span id="jml_pending">0</span>
+                </span>
             </div>
             <div class="card-body">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div class="col-md-12">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label class="form-label">From</label>
-                                        <input type="date" class="form-control form-control-sm" id="tgl_awal" name="tgl_awal"
-                                        value="{{ date('Y-m-d') }}">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-2">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label class="form-label">To</label>
-                                        <input type="date" class="form-control form-control-sm" id="tgl_akhir" name="tgl_akhir"
-                                        value="{{ date('Y-m-d') }}">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5" style="padding-top: 0.5rem;">
-                                <div class="mt-4 ">
-                                    <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
-                                    <button type="submit" class="btn btn-success btn-sm toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
-                                    <!-- <button class="btn btn-success" onclick="printbarcode('SA')"> <i class="fa-solid fa-barcode"></i> Saldo Awal</button> -->
-            <!-- <a href="http://10.10.5.49:8082/erp/pages/forms/pdfBarcode_whsSA.php?id='SA'&mode='barcode'" class="btn btn-success">
-                <i class="fa-solid fa-barcode"></i>
-                Saldo Awal
-            </a> -->
-        </div>
-
-    </div>
-</div>
-</div>
-</div>
-        <!-- <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-success btn-sm toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
+                </div>
+                <div>
+                    <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 12%;">No BPB</th>
+                                <th class="text-center" style="width: 7%;">Tgl BPB</th>
+                                <th class="text-center" style="width: 6%;">Tipe BPB</th>
+                                <th class="text-center" style="width: 17%;">No PO</th>
+                                <th class="text-center" style="width: 21%;">Supplier</th>
+                                <th class="text-center" style="width: 10%;">No Invoice</th>
+                                <th class="text-center" style="width: 6%;">Qty</th>
+                                <th class="text-center" style="width: 5%;">Satuan</th>
+                                <th class="text-center" style="width: 5%;">Lokasi</th>
+                                <th class="text-center" style="width: 5%;"><input type="checkbox" id="check_all" title="Check semua data yang lokasinya sudah lengkap (hijau)"></th>
+                                <th style="display:none;">Check</th>
+                                <th class="text-center" style="width: 6%;">Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-                <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
-                <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data"
-                                            readonly>
-                                        </div> -->
-                                        <div class="table-responsive">
-                                            <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="text-center">No BPB</th>
-                                                        <th class="text-center">Tgl BPB</th>
-                                                        <th class="text-center">Tipe BPB</th>
-                                                        <th class="text-center">No PO</th>
-                                                        <th class="text-center">Supplier</th>
-                                                        <th class="text-center">No Invoice</th>
-                                                        <th class="text-center">Qty</th>
-                                                        <th class="text-center">Satuan</th>
-                                                        <th class="text-center">Lokasi</th>
-                                                        <th class="text-center">Check</th>
-                                                        <th style="display:none;">Check</th>
-                                                        <th class="text-center">Detail</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+        </div>
+    </form>
 
                             <div class="modal fade " id="modal_det" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
                               <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -114,6 +82,7 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         </div>
 
                         @endsection
@@ -155,41 +124,141 @@
         })
     </script>
     <script type="text/javascript">
+        // checkedApprove menyimpan status checklist per No BPB, independen dari
+        // halaman/paging atau filter DataTables yang sedang aktif saat ini.
+        $(document).on('change', 'input[type="checkbox"][name^="chek_id"]', function() {
+            let idBpb = $(this).data('idbpb');
+            if (!idBpb) return;
+            if (this.checked) {
+                checkedApprove[idBpb] = true;
+            } else {
+                delete checkedApprove[idBpb];
+            }
+        });
+
+        // Check all hanya menandai baris yang lokasinya sudah lengkap (qty_balance == 0 / ikon hijau).
+        // Dengan deferRender:false (default), DataTables sudah membangun node DOM semua baris
+        // sejak awal (bukan cuma halaman yang sedang tampil), jadi pindah halaman saja tidak akan
+        // memicu render ulang. invalidate() memaksa semua baris (semua halaman) dirender ulang
+        // supaya checkbox-nya ikut ter-update, bukan cuma yang sedang tampil.
+        $(document).on('change', '#check_all', function() {
+            let checked = this.checked;
+
+            datatable.rows().every(function() {
+                let row = this.data();
+                if (row.qty_balance == 0) {
+                    if (checked) {
+                        checkedApprove[row.no_dok] = true;
+                    } else {
+                        delete checkedApprove[row.no_dok];
+                    }
+                }
+            });
+
+            datatable.rows().invalidate().draw(false);
+        });
+
+        function collectCheckedIds() {
+            return Object.keys(checkedApprove);
+        }
+
+        function doApprove(idBpbList) {
+            if (!idBpbList.length) return;
+
+            let payload = {};
+            idBpbList.forEach((id, idx) => {
+                payload['id_bpb[' + idx + ']'] = id;
+                payload['chek_id[' + idx + ']'] = '1';
+            });
+
+            Swal.fire({
+                title: 'Memproses...',
+                html: 'Meng-approve ' + idBpbList.length + ' data, mohon tunggu.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("approve-material-all") }}',
+                type: 'get',
+                data: payload,
+                success: function(res) {
+                    showApproveSummary(res, idBpbList.length);
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat menghubungi server.'
+                    });
+                }
+            });
+        }
+
+        function showApproveSummary(res, totalChecked) {
+            let approvedCount = res.approved_count ?? (res.approved ? res.approved.length : 0);
+            let failed = res.failed || [];
+
+            (res.approved || []).forEach(id => delete checkedApprove[id]);
+
+            if (failed.length === 0) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Semua Berhasil Diapprove',
+                    text: approvedCount + ' dari ' + totalChecked + ' data berhasil diapprove.',
+                    confirmButtonText: 'Oke',
+                }).then(() => {
+                    dataTableReload();
+                });
+            } else {
+                let listHtml = failed.map(f => '<li>' + f.id_bpb + '</li>').join('');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sebagian Data Gagal Diapprove',
+                    html: 'Berhasil: <b>' + approvedCount + '</b> dari <b>' + totalChecked + '</b> data.<br>' +
+                        'Gagal: <b>' + failed.length + '</b><ul style="text-align:left;">' + listHtml + '</ul>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Coba Lagi',
+                    cancelButtonText: 'Tutup',
+                }).then((result) => {
+                    dataTableReload();
+                    if (result.isConfirmed) {
+                        let retryIds = failed.map(f => f.id_bpb);
+                        doApprove(retryIds);
+                    }
+                });
+            }
+        }
+
         function submitappForm(e, evt) {
             evt.preventDefault();
 
             clearModified();
 
-            $.ajax({
-                url: e.getAttribute('action'),
-                type: e.getAttribute('method'),
-                data: new FormData(e),
-                processData: false,
-                contentType: false,
-                success: async function(res) {
-                    if (res.status == 200) {
-                        console.log(res);
+            let ids = collectCheckedIds();
+            if (ids.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: 'Pilih minimal 1 data untuk di-approve.'
+                });
+                return;
+            }
 
-                        // e.reset();
-
-                        // $('#cbows').val("").trigger("change");
-                        // $("#cbomarker").prop("disabled", true);
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Data Berhasil Dikonfirmasi',
-                            // html: "No. Form Cut : <br>" + res.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            timer: 2000,
-                            timerProgressBar: true
-                        })
-
-                        dataTableReload();
-                    }
-                },
-
+            Swal.fire({
+                icon: 'question',
+                title: 'Konfirmasi Approve',
+                text: 'Approve ' + ids.length + ' dokumen?',
+                showCancelButton: true,
+                confirmButtonText: 'Oke',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doApprove(ids);
+                }
             });
         }
     </script>
@@ -221,15 +290,16 @@
     </script>
 
     <script>
+        let checkedApprove = {};
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: false,
             serverSide: false,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -237,10 +307,9 @@
                 url: '{{ route('konfirmasi-pemasukan') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function(d) {
-                    d.tgl_awal = $('#tgl_awal').val();
-                    d.tgl_akhir = $('#tgl_akhir').val();
-                },
+            },
+            drawCallback: function() {
+                $('#jml_pending').text(this.api().rows().count());
             },
             columns: [{
                 data: 'no_dok'
@@ -317,11 +386,11 @@
         {
             targets: [9],
             render: (data, type, row, meta) => {
-                console.log(row);
                 // if (row.no_po != '') {
                     if (row.qty_balance == 0) {
+                        let isChecked = checkedApprove[row.no_dok] ? 'checked' : '';
                         return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
-                        '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
+                        '" name="chek_id[' + meta.row + ']" class="flat" data-idbpb="' + row.no_dok + '" value="1" ' + isChecked + '></div>';
                     }else{
                         return '';
                     }
@@ -349,9 +418,7 @@
     });
 
 async function dataTableReload() {
-    return datatable.ajax.reload(() => {
-        document.getElementById('jumlah_data').value = datatable.data().count();
-    });
+    return datatable.ajax.reload();
 }
 </script>
 <script type="text/javascript">

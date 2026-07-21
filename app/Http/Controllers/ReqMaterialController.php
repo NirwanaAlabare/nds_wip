@@ -26,10 +26,12 @@ use QrCode;
 use DNS1D;
 use PDF;
 use App\Http\Controllers\Traits\ChecksClosingPeriode;
+use App\Http\Controllers\Traits\LogsActivity;
 
 class ReqMaterialController extends Controller
 {
     use ChecksClosingPeriode;
+    use LogsActivity;
     /**
      * Display a listing of the resource.
      *
@@ -45,11 +47,9 @@ class ReqMaterialController extends Controller
                 $data_request = DB::connection('mysql_sb')->select("select cancel, username,bppbno,bppbdate,supplier,kpno,styleno,buyer, idws_act ,mattype, format(sum(qty_req),2) qty_req, format(sum(qty_out),2) qty_out,  group_concat(distinct(bppbno_int)) bppbno_int, unit from (select a.cancel, a.username,a.bppbno,a.id_item, a.id_jo,a.bppbdate,s.supplier,ac.kpno,ac.styleno,ms.supplier buyer, a.idws_act, round(coalesce(sum(a.qty),0),2) qty_req, round(coalesce(sum(bppb.qty),0),2) qty_out, group_concat(distinct(bppb.bppbno_int)) bppbno_int, IF(bppb.unit is null,a.unit,bppb.unit) unit ,itm.mattype
                     from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                     INNER JOIN (select id_item, mattype,matclass from masteritem GROUP BY id_item) itm on itm.id_item                                = a.id_item
-                    inner join jo_det jod on a.id_jo=jod.id_jo
-                    inner join so on jod.id_so=so.id
-                    inner join act_costing ac on so.id_cost=ac.id
+                    inner join (select id_jo,id_buyer,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) ac on ac.id_jo=a.id_jo
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
-                    left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
+                    left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb where cancel is null or cancel != 'Y' group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
                     where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."' and a.bppbno like '%F%'
                     group by a.bppbno, a.id_item, a.id_jo
                     order by a.bppbdate desc) a GROUP BY bppbno");
@@ -57,11 +57,9 @@ class ReqMaterialController extends Controller
                 $data_request = DB::connection('mysql_sb')->select("select a.cancel, a.username,a.bppbno,a.id_item, a.id_jo,a.bppbdate,s.supplier,ac.kpno,ac.styleno,ms.supplier buyer, a.idws_act, format(round(coalesce(sum(a.qty),0),2),2) qty_req, format(round(coalesce(sum(bppb.qty),0),2),2) qty_out, group_concat(distinct(bppb.bppbno_int)) bppbno_int, IF(bppb.unit is null,a.unit,bppb.unit) unit ,itm.mattype
                     from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                     INNER JOIN (select id_item, mattype,matclass from masteritem GROUP BY id_item) itm on itm.id_item                                = a.id_item
-                    inner join jo_det jod on a.id_jo=jod.id_jo
-                    inner join so on jod.id_so=so.id
-                    inner join act_costing ac on so.id_cost=ac.id
+                    inner join (select id_jo,id_buyer,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) ac on ac.id_jo=a.id_jo
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
-                    left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
+                    left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb where cancel is null or cancel != 'Y' group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
                     where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."' and a.bppbno like '%F%'
                     group by a.bppbno, a.id_item, a.id_jo
                     order by a.bppbdate desc");
@@ -149,7 +147,7 @@ class ReqMaterialController extends Controller
             where a.bppbno = '$bppbno'
             group by a.bppbno, a.id_item) a");
 
-        return view('reqmaterial.edit-reqmaterial', ['tipe_ws' => $tipe_ws,'data_head' => $data_head,'det_data' => $det_data,'msupplier' => $msupplier,'jml_det' => $jml_det,'no_ws_act' => $no_ws_act, 'page' => 'dashboard-warehouse']);
+        return view('reqmaterial.edit-reqmaterial', ['tipe_ws' => $tipe_ws,'data_head' => $data_head,'det_data' => $det_data,'msupplier' => $msupplier,'jml_det' => $jml_det,'no_ws_act' => $no_ws_act, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
 
@@ -339,8 +337,8 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.
                 <td >'.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
                 <td >'.$detitem->goods_code.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="goods_code'.$x.'" name="goods_code['.$x.']" value="'.$detitem->goods_code.'" / readonly></td>
                 <td >'.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
-                <td class="text-right hidden">'.$detitem->qty_bpb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bpb'.$x.'" name="qty_bpb['.$x.']" value="'.$detitem->qty_bpb.'" / readonly></td>
-                <td class="text-right hidden">'.$detitem->qty_bppb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bppb'.$x.'" name="qty_bppb['.$x.']" value="'.$detitem->qty_bppb.'" / readonly></td>
+                <td class="text-right d-none">'.$detitem->qty_bpb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bpb'.$x.'" name="qty_bpb['.$x.']" value="'.$detitem->qty_bpb.'" / readonly></td>
+                <td class="text-right d-none">'.$detitem->qty_bppb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bppb'.$x.'" name="qty_bppb['.$x.']" value="'.$detitem->qty_bppb.'" / readonly></td>
                 <td class="text-right">'.$detitem->sisa_stok.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="sisa_stok'.$x.'" name="sisa_stok['.$x.']" value="'.$detitem->sisa_stok.'" / readonly></td>
                 <td class="text-right">'.$sisareq.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="sisa_req'.$x.'" name="sisa_req['.$x.']" value="'.$sisareq.'" / readonly></td>
                 <td class="text-right">'.$qty_sekarang.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_sekarang'.$x.'" name="qty_sekarang['.$x.']" value="'.$qty_sekarang.'" / readonly></td>
@@ -411,8 +409,14 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
     $validatedRequest = $request->validate([
             "dikirim_ke" => "required",
             "job_order" => "required",
-            "ws_act" => "required",
         ]);
+
+        // WS Actual # wajib diisi hanya kalau Dikirim Ke = Production Cutting
+        $supplier = DB::connection('mysql_sb')->table('mastersupplier')->where('id_supplier', $validatedRequest['dikirim_ke'])->first();
+        $supplierName = $supplier ? strtoupper(preg_replace('/\s*-\s*/', ' ', trim($supplier->Supplier))) : '';
+        if (str_contains($supplierName, 'PRODUCTION CUTTING') && empty($request['ws_act'])) {
+            return ['status' => 400, 'message' => 'WS Actual # wajib diisi untuk Dikirim Ke Production Cutting.', 'additional' => [], 'redirect' => ''];
+        }
 
         $tglbpb = $request['txt_tgl_gr'];
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('RQ-F', IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0))) no_dok, IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)) nomor FROM bppb_req WHERE LEFT(bppbno,4) = 'RQ-F'");
@@ -448,6 +452,8 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
         if ($this->isTglRoClosed($tgldok)) {
             return ['status' => 400, 'message' => "Request date $tgldok berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
         }
+
+        DB::connection('mysql_sb')->enableQueryLog();
 
         $id_supplier = $validatedRequest['dikirim_ke'];
         $tipe_mat = $request['tipe_mat'];
@@ -489,6 +495,9 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
 
         $StorebppbReq = BppbReq::insert($DatabppbReq);
 
+        $this->logRawQueryActivity('Request Material', $no_dok, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
+
         $massage = $no_dok . ' Saved Succesfully';
         $stat = 200;
     // }else{
@@ -522,7 +531,7 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
 
         $fileName = 'pdf-material.pdf';
 
-        return $pdf->download(str_replace("/", "_", $fileName));
+        return $pdf->stream(str_replace("/", "_", $fileName));
 
     }
 
@@ -533,6 +542,24 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
             "dikirim_ke" => "required",
             "job_order" => "required",
         ]);
+
+        $tgldok = $request['req_date'];
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tgldok < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Request date tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tgldok)) {
+            return ['status' => 400, 'message' => "Request date $tgldok berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
+        // WS Actual # wajib diisi hanya kalau Dikirim Ke = Production Cutting
+        $supplier = DB::connection('mysql_sb')->table('mastersupplier')->where('id_supplier', $validatedRequest['dikirim_ke'])->first();
+        $supplierName = $supplier ? strtoupper(preg_replace('/\s*-\s*/', ' ', trim($supplier->Supplier))) : '';
+        if (str_contains($supplierName, 'PRODUCTION CUTTING') && empty($request['ws_act'])) {
+            return ['status' => 400, 'message' => 'WS Actual # wajib diisi untuk Dikirim Ke Production Cutting.', 'additional' => [], 'redirect' => ''];
+        }
+
+        DB::connection('mysql_sb')->enableQueryLog();
 
         $updateInMaterial = BppbReq::where('bppbno', $request['no_req'])->update([
             'bppbdate' => $request['req_date'],
@@ -548,6 +575,9 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
             ]);
         }
 
+        $this->logRawQueryActivity('Edit Request Material', $request['no_req'], DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
+
         $massage = 'Edit Data Successfully';
 
         return array(
@@ -562,6 +592,8 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
     public function CancelRequest(Request $request)
     {
         $timestamp = Carbon::now();
+        DB::connection('mysql_sb')->enableQueryLog();
+
         $updaterequest = BppbReq::where('bppbno', $request['bppbno'])->update([
             'cancel' => 'Y',
             'qty_old'  => DB::raw('qty'),
@@ -570,6 +602,9 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
             'cancel_by' => Auth::user()->name,
             'cancel_date' => $timestamp,
         ]);
+
+        $this->logRawQueryActivity('Cancel Request', $request['bppbno'], DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
 
         $massage = 'Cancel Data Successfully';
 

@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,10 +8,18 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
-<form action="{{ route('update-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
+<div class="marginnya">
+<form action="{{ route('update-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="validateAndSubmitEditOutForm(this, event)">
     @method('GET')
     @csrf
     <div class="card card-sb">
@@ -41,8 +49,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl BPPB</small></label>
-                                <input type="date" class="form-control form-control" id="txt_tgl_bppb" name="txt_tgl_bppb"
-                                value="{{ $data_out->tgl_bppb }}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="txt_tgl_bppb" name="txt_tgl_bppb" autocomplete="off" readonly
+                                            value="{{ $data_out->tgl_bppb }}">
+                                    <span class="input-group-text" id="txt_tgl_bppb_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -274,19 +285,19 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Style</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Stok</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Request</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Sisa Qty Request</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Action</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 9%;">Style</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 27%;">Deskripsi</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Stok</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 9%;">Qty Request</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Out</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 9%;">Sisa Qty Request</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">Satuan</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 16%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -549,6 +560,7 @@
                                     <label><small>Quantity</small></label>
                                     <input type="text" class="form-control" id="mdl_qty_out" name="mdl_qty_out" value="" readonly>
                                     <input type="hidden" class="form-control" id="mdl_qty_out_h" name="mdl_qty_out_h" value="" readonly>
+                                    <input type="hidden" id="mdl_qty_out_orig" value="">
                                 </div>
                             </div>
                         </div>
@@ -562,6 +574,9 @@
                         </div>
 
                         <div class="col-md-12">
+                            <div id="loading_detail_lok" class="text-center text-muted mb-2" style="display:none;">
+                                <i class="fa fa-spinner fa-spin"></i> Memuat data...
+                            </div>
                             <div class="row">
                                 <div class="col-md-12" id="detail_showlok">
                                 </div>
@@ -581,6 +596,7 @@
         </div>
     </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -593,6 +609,54 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <!-- Page specific script -->
 <script>
+
+// ─── Tgl BPPB datepicker (batasi periode closed) ─────────────────────────
+let minTglRo = @json($min_tgl_ro ?? '');
+let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+function formatDateYmd(date) {
+    let m = date.getMonth() + 1;
+    let d = date.getDate();
+    return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+
+function validateAndSubmitEditOutForm(e, evt) {
+    let tglBppb = $('#txt_tgl_bppb').val();
+
+    if (minTglRo && tglBppb < minTglRo) {
+        evt.preventDefault();
+        Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPPB tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+        return;
+    }
+
+    for (let p of closedPeriods) {
+        if (tglBppb >= p.tgl_awal && tglBppb <= p.tgl_akhir) {
+            evt.preventDefault();
+            Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPPB tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+            return;
+        }
+    }
+
+    let missing = [];
+    if (!$('#txt_jns_klr').val()) missing.push('Jenis Pengeluaran');
+    if (!$('#txt_dok_bc').val()) missing.push('Dokumen BC');
+
+    if (missing.length > 0) {
+        evt.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Data Belum Lengkap',
+            html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                '<ul style="margin-top:10px;">' +
+                missing.map(m => '<li>' + m + '</li>').join('') +
+                '</ul></div>'
+        });
+        return;
+    }
+
+    submitForm(e, evt);
+}
+
  $(document).ready(function() {
 
     // Fokus otomatis ke kolom search saat Select2 dibuka
@@ -613,6 +677,24 @@
     });
     $('.select2req').select2({
         theme: 'bootstrap4'
+    });
+
+    $('#txt_tgl_bppb').datepicker({
+        dateFormat: 'yy-mm-dd',
+        minDate: minTglRo ? minTglRo : null,
+        beforeShowDay: function (date) {
+            let ymd = formatDateYmd(date);
+            for (let p of closedPeriods) {
+                if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                    return [false, '', 'Periode sudah closed'];
+                }
+            }
+            return [true, ''];
+        }
+    });
+
+    $('#txt_tgl_bppb_icon').on('click', function () {
+        $('#txt_tgl_bppb').datepicker('show');
     });
 
 });
@@ -668,6 +750,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: res.message,
+                            html: res.qty_req_changed ? '<small class="text-danger">Qty Request ikut terupdate.</small>' : undefined,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -977,12 +1060,11 @@ function sum_qty_barcode(val){
                 ordering: false,
                 processing: true,
                 serverSide: false,
-                paging: false,
+                paging: true,
+                pageLength: 10,
                 searching: true,
-                scrollY: '300px',
-                scrollX: true,        
-                scrollCollapse: true,
-                dom: "lfrtip"     
+                autoWidth: false,
+                dom: "lfrtip"
             });
         });
 
@@ -1256,6 +1338,7 @@ function sum_qty_barcode(val){
         $('#mdl_id_jo').val(id_jo);
         $('#mdl_qty_out').val(Number(qty_out).toLocaleString('en-US'));
         $('#mdl_qty_out_h').val(qty_out);
+        $('#mdl_qty_out_orig').val(qty_out);
         $('#mdl_catatan').val(item_desc);
         $('#modal-det-bppb').modal('show');
     }
@@ -1264,6 +1347,10 @@ function sum_qty_barcode(val){
         let no_bppb = $no_bppb;
         let id_jo = $id_jo;
         let id_item = $id_item;
+
+        $('#detail_showlok').empty();
+        $('#loading_detail_lok').show();
+
         return $.ajax({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1285,6 +1372,9 @@ function sum_qty_barcode(val){
                         "ordering": false
                     });
                 }
+            },
+            complete: function () {
+                $('#loading_detail_lok').hide();
             }
         });
     }
@@ -1459,9 +1549,13 @@ function saveEditedBppbDet() {
         });
     });
 
+    let qtyOrig = parseFloat($('#mdl_qty_out_orig').val()) || 0;
+    let qtyNew = parseFloat($('#mdl_qty_out_h').val()) || 0;
+    let qtyBerubah = Math.abs(qtyNew - qtyOrig) > 0.001;
+
     Swal.fire({
         title: 'Konfirmasi',
-        text: 'Simpan semua perubahan data?',
+        html: 'Simpan semua perubahan data?' + (qtyBerubah ? '<br><small class="text-danger">Qty berubah dari ' + qtyOrig + ' menjadi ' + qtyNew + ', Qty Request akan ikut terubah.</small>' : ''),
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Ya, Simpan',
@@ -1479,20 +1573,21 @@ function saveEditedBppbDet() {
                     if (res.success) {
                         Swal.fire({
                             title: 'Berhasil',
-                            text: 'Data berhasil disimpan!',
+                            html: 'Data berhasil disimpan!' + (res.qty_req_changed ? '<br><small class="text-danger">Qty Request ikut terupdate.</small>' : ''),
                             icon: 'success',
                             confirmButtonText: 'OK'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                location.reload(); 
+                                location.reload();
                             }
                         });
                     } else {
                         Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan.', 'error');
                     }
                 },
-                error: function() {
-                    Swal.fire('Error', 'Tidak dapat terhubung ke server!', 'error');
+                error: function(xhr) {
+                    let msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Tidak dapat terhubung ke server!';
+                    Swal.fire('Gagal', msg, 'error');
                 }
             });
         }

@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,17 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
     @endsection
 
     @section('content')
+    <div class="marginnya">
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Pengeluaran Bahan Baku</h5>
@@ -96,7 +104,7 @@
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
-                <a href="{{ route('create-returmaterial') }}" class="btn btn-info">
+                <a href="{{ route('create-returmaterial') }}" class="btn btn-info d-none">
                     <i class="fas fa-plus"></i>
                     Add Data
                 </a>
@@ -116,22 +124,24 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center">No RO</th>
-                            <th class="text-center">Tgl RO</th>
+                            <th class="text-center" style="width: 11%;">No RO</th>
+                            <th class="text-center" style="width: 9%;">Tgl RO</th>
+                            <th class="text-center" style="width: 12%;">Jenis Pengeluaran</th>
+                            <th class="text-center" style="width: 14%;">Dikirim Ke</th>
                             <th class="text-center">Style</th>
                             <th class="text-center">WS</th>
                             <th class="text-center">Jenis Material</th>
                             <th class="text-center">Jenis Retur</th>
-                            <th class="text-center">Dokumen BC</th>
+                            <th class="text-center" style="width: 10%;">Dokumen BC</th>
                             <th class="text-center">Tujuan Pemasukan</th>
-                            <th class="text-center">Out Barcode</th>
-                            <th class="text-center">User</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center">Action</th>
+                            <th class="text-center" style="width: 9%;">Out Barcode</th>
+                            <th class="text-center" style="width: 11%;">User</th>
+                            <th class="text-center" style="width: 9%;">Status</th>
+                            <th class="text-center" style="width: 15%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -382,6 +392,7 @@
     </div>
 </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -426,11 +437,10 @@
             ordering: false,
             processing: true,
             serverSide: false,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -450,6 +460,12 @@
             },
             {
                 data: 'tgl_bppb'
+            },
+            {
+                data: 'jenis_pengeluaran'
+            },
+            {
+                data: 'tujuan'
             },
             {
                 data: 'styleno'
@@ -484,15 +500,19 @@
 
             ],
             columnDefs: [{
-                targets: [5],
-                render: (data, type, row, meta) => data ? data : "-"
+                targets: [4, 5, 6, 7, 9],
+                visible: false
             },
             {
                 targets: [7],
                 render: (data, type, row, meta) => data ? data : "-"
             },
             {
-                targets: [8],
+                targets: [9],
+                render: (data, type, row, meta) => data ? data : "-"
+            },
+            {
+                targets: [10],
                 render: (data, type, row, meta) => {
                    if (row.balance == 0) {
                     return `<div class='d-flex gap-1 justify-content-center'>
@@ -510,13 +530,14 @@
         }
     },
     {
-        targets: [11],
+        targets: [13],
         render: (data, type, row, meta) => {
             console.log(row);
             if (row.status == 'Pending') {
                 return `<div class='d-flex gap-1 justify-content-center'>
                 <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                <button type='button' class='btn btn-sm btn-danger' onclick='cancelRoBarcode("` + row.no_bppb + `")'><i class="fa-solid fa-ban"></i></button>
+                <button type='button' class='btn btn-sm btn-primary' onclick='editRoBarcode("` + row.id + `")'><i class="fa-solid fa-pen-to-square"></i></button>
+                <button type='button' class='btn btn-sm btn-danger' onclick='cancelRoBarcode("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
                 </div>`;
             }else{
                 return `<div class='d-flex gap-1 justify-content-center'>
@@ -535,7 +556,10 @@
         datatable.ajax.reload();
     }
 
+    let editRoBarcodeNavigating = false;
     function editRoBarcode(id) {
+        if (editRoBarcodeNavigating) return;
+        editRoBarcodeNavigating = true;
         window.location.href = "{{ route('edit-ro-barcode') }}" + '/' + id;
     }
 
@@ -700,28 +724,7 @@ function tambahdata(){
     }
 
     function printpdf(id) {
-
-        $.ajax({
-            url: '{{ route('print-pdf-outmaterial') }}/'+id,
-            type: 'post',
-            processData: false,
-            contentType: false,
-            xhrFields:
-            {
-                responseType: 'blob'
-            },
-            success: function(res) {
-                if (res) {
-                    console.log(res);
-
-                    var blob = new Blob([res], {type: 'application/pdf'});
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = id+".pdf";
-                    link.click();
-                }
-            }
-        });
+        window.open('{{ route('print-pdf-outmaterial') }}/'+id, '_blank');
     }
 </script>
 @endsection

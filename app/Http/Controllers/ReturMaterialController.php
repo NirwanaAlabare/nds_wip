@@ -31,10 +31,12 @@ use QrCode;
 use DNS1D;
 use PDF;
 use App\Http\Controllers\Traits\ChecksClosingPeriode;
+use App\Http\Controllers\Traits\LogsActivity;
 
 class ReturMaterialController extends Controller
 {
     use ChecksClosingPeriode;
+    use LogsActivity;
 
     /**
      * Display a listing of the resource.
@@ -60,7 +62,7 @@ class ReturMaterialController extends Controller
             }
 
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,a.tgl_bppb,ac.styleno,a.no_ws,'Fabric' jns_material,'' jns_retur,a.dok_bc,a.jns_pemasukan,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id,SUM(qty_out) qty_ro,coalesce(qty_barcode,0) qty_barcode, ROUND(SUM(qty_out) - coalesce(qty_barcode,0),2 ) balance from whs_bppb_h a inner join whs_bppb_ro b on b.no_bppb = a.no_bppb left join jo_det jod on b.id_jo=jod.id_jo left join jo on jod.id_jo=jo.id left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id left join (select no_bppb,id_jo,id_item,SUM(qty_out) qty_barcode from whs_bppb_det where no_bppb like '%RO%' and id_roll is not null GROUP BY no_bppb) c on c.no_bppb = a.no_bppb where a.no_bppb like '%RO%' and tgl_bppb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." ".$where2." GROUP BY a.no_bppb");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,a.tgl_bppb,ac.styleno,a.no_ws,'Fabric' jns_material,'' jns_retur,a.dok_bc,a.jns_pemasukan,a.jenis_pengeluaran,a.tujuan,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id,SUM(qty_out) qty_ro,coalesce(qty_barcode,0) qty_barcode, ROUND(SUM(qty_out) - coalesce(qty_barcode,0),2 ) balance from whs_bppb_h a inner join whs_bppb_ro b on b.no_bppb = a.no_bppb left join jo_det jod on b.id_jo=jod.id_jo left join jo on jod.id_jo=jo.id left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id left join (select no_bppb,id_jo,id_item,SUM(qty_out) qty_barcode from whs_bppb_det where no_bppb like '%RO%' and id_roll is not null GROUP BY no_bppb) c on c.no_bppb = a.no_bppb where a.no_bppb like '%RO%' and tgl_bppb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." ".$where2." GROUP BY a.no_bppb");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -853,9 +855,30 @@ class ReturMaterialController extends Controller
             ];
         }
 
-        DB::connection('mysql_sb')->update("UPDATE bppb SET qty_old = qty, qty = 0, cancel = 'Y' WHERE bppbno_int = ?", [$no_bppb]);
-        DB::connection('mysql_sb')->update("UPDATE whs_bppb_h SET status = 'Cancel' WHERE no_bppb = ?", [$no_bppb]);
-        DB::connection('mysql_sb')->update("UPDATE whs_bppb_det SET qty_stok = qty_out, qty_out = 0, status = 'N' WHERE no_bppb = ?", [$no_bppb]);
+        DB::connection('mysql_sb')->beginTransaction();
+
+        try {
+            DB::connection('mysql_sb')->enableQueryLog();
+
+            DB::connection('mysql_sb')->update("UPDATE bppb SET qty_old = qty, qty = 0, cancel = 'Y' WHERE bppbno_int = ?", [$no_bppb]);
+            DB::connection('mysql_sb')->update("UPDATE whs_bppb_h SET status = 'Cancel' WHERE no_bppb = ?", [$no_bppb]);
+            DB::connection('mysql_sb')->update("UPDATE whs_bppb_det SET qty_stok = qty_out, qty_out = 0, status = 'N' WHERE no_bppb = ?", [$no_bppb]);
+
+            $this->logRawQueryActivity('Cancel BPPB Return', $no_bppb, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return [
+                'status'     => 500,
+                'message'    => 'Gagal cancel RO: ' . $e->getMessage(),
+                'additional' => [],
+                'redirect'   => '',
+            ];
+        }
 
         return [
             'status'     => 200,
@@ -971,12 +994,18 @@ class ReturMaterialController extends Controller
         $not_found      = [];
         $duplicate      = [];
         $tujuan_mismatch = [];
+        $po_mismatch    = [];
         $inserted       = 0;
 
         $existing_supplier = RoBarcodeTemp::where('created_by', $user)
             ->whereNotNull('supplier')
             ->where('supplier', '!=', '')
             ->value('supplier');
+
+        $existing_po = RoBarcodeTemp::where('created_by', $user)
+            ->whereNotNull('no_po')
+            ->where('no_po', '!=', '')
+            ->value('no_po');
 
         foreach ($barcodes as $bc) {
             if ($bc === '') continue;
@@ -1009,8 +1038,18 @@ class ReturMaterialController extends Controller
                 $tujuan_mismatch[] = $bc;
                 continue;
             }
+
+            $new_po = trim((string) ($r->no_po ?? ''));
+            if ($new_po !== '' && $existing_po !== null && $existing_po !== '' && $existing_po !== $new_po) {
+                $po_mismatch[] = $bc;
+                continue;
+            }
+
             if ($new_supplier !== '') {
                 $existing_supplier = $new_supplier;
+            }
+            if ($new_po !== '') {
+                $existing_po = $new_po;
             }
 
             RoBarcodeTemp::create([
@@ -1040,6 +1079,7 @@ class ReturMaterialController extends Controller
         if (!empty($not_found)) $warnings[] = 'Tidak ditemukan di lokasi: ' . implode(', ', $not_found);
         if (!empty($duplicate)) $warnings[] = 'Sudah ada di daftar: ' . implode(', ', $duplicate);
         if (!empty($tujuan_mismatch)) $warnings[] = "Beda Tujuan/Supplier ($existing_supplier), tidak ditambahkan: " . implode(', ', $tujuan_mismatch);
+        if (!empty($po_mismatch)) $warnings[] = "Beda No PO ($existing_po), tidak ditambahkan: " . implode(', ', $po_mismatch);
 
         return response()->json([
             'status'          => 200,
@@ -1047,6 +1087,7 @@ class ReturMaterialController extends Controller
             'not_found'       => $not_found,
             'duplicate'       => $duplicate,
             'tujuan_mismatch' => $tujuan_mismatch,
+            'po_mismatch'     => $po_mismatch,
             'inserted'        => $inserted,
         ]);
     }
@@ -1212,12 +1253,18 @@ class ReturMaterialController extends Controller
         $not_found       = [];
         $duplicate       = [];
         $tujuan_mismatch = [];
+        $po_mismatch     = [];
         $inserted        = 0;
 
         $existing_supplier = RoBarcodeTemp::where('created_by', $user)
             ->whereNotNull('supplier')
             ->where('supplier', '!=', '')
             ->value('supplier');
+
+        $existing_po = RoBarcodeTemp::where('created_by', $user)
+            ->whereNotNull('no_po')
+            ->where('no_po', '!=', '')
+            ->value('no_po');
 
         foreach ($rows as $row) {
             $bc      = trim((string) ($row['A'] ?? ''));
@@ -1252,8 +1299,18 @@ class ReturMaterialController extends Controller
                 $tujuan_mismatch[] = $bc;
                 continue;
             }
+
+            $new_po = trim((string) ($r->no_po ?? ''));
+            if ($new_po !== '' && $existing_po !== null && $existing_po !== '' && $existing_po !== $new_po) {
+                $po_mismatch[] = $bc;
+                continue;
+            }
+
             if ($new_supplier !== '') {
                 $existing_supplier = $new_supplier;
+            }
+            if ($new_po !== '') {
+                $existing_po = $new_po;
             }
 
             RoBarcodeTemp::create([
@@ -1283,6 +1340,7 @@ class ReturMaterialController extends Controller
         if (!empty($not_found)) $warnings[] = 'Tidak ditemukan: ' . implode(', ', $not_found);
         if (!empty($duplicate)) $warnings[] = 'Sudah ada: ' . implode(', ', $duplicate);
         if (!empty($tujuan_mismatch)) $warnings[] = "Beda Tujuan/Supplier ($existing_supplier), tidak ditambahkan: " . implode(', ', $tujuan_mismatch);
+        if (!empty($po_mismatch)) $warnings[] = "Beda No PO ($existing_po), tidak ditambahkan: " . implode(', ', $po_mismatch);
 
         return response()->json([
             'status'          => 200,
@@ -1290,6 +1348,7 @@ class ReturMaterialController extends Controller
             'not_found'       => $not_found,
             'duplicate'       => $duplicate,
             'tujuan_mismatch' => $tujuan_mismatch,
+            'po_mismatch'     => $po_mismatch,
             'inserted'        => $inserted,
         ]);
     }
@@ -1353,51 +1412,73 @@ class ReturMaterialController extends Controller
 
         $bppbno_list = [];
 
-        foreach ($po_groups as $no_po => $po_temps) {
-            // Generate nomor RO
-            $no_gen = DB::connection('mysql_sb')->select(
-                "SELECT CONCAT('GK/RO/',DATE_FORMAT(?,'%m'),DATE_FORMAT(?,'%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int
-                 FROM bppb WHERE MONTH(bppbdate)=MONTH(?) AND YEAR(bppbdate)=YEAR(?) AND LEFT(bppbno_int,2)='GK'",
-                [$tglbppb, $tglbppb, $tglbppb, $tglbppb]
-            );
-            $bppbno_int = $no_gen[0]->bppbno_int;
+        DB::connection('mysql_sb')->beginTransaction();
 
-            // Generate nomor SJ-F...-R untuk pasangan baris di tabel bppb
-            $no_gen2 = DB::connection('mysql_sb')->select(
-                "SELECT CONCAT('SJ-F',IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)),'-R') bpbno
-                 FROM bppb WHERE LEFT(bppbno_int,5)='GK/RO'"
-            );
-            $bpbno = $no_gen2[0]->bpbno;
+        try {
+            foreach ($po_groups as $no_po => $po_temps) {
+                DB::connection('mysql_sb')->flushQueryLog();
+                DB::connection('mysql_sb')->enableQueryLog();
 
-            // Buat header RO
-            BppbHeader::create([
-                'no_bppb'          => $bppbno_int,
-                'tgl_bppb'         => $tglbppb,
-                'jenis_pengeluaran' => $request->input('txt_jns_klr'),
-                'no_bpb'           => $request->input('txt_nobpb'),
-                'jns_defect'       => $request->input('txt_jns_def'),
-                'tujuan'           => $nama_supp,
-                'dok_bc'           => $request->input('txt_type_bc'),
-                'no_ws'            => '',
-                'no_ws_aktual'     => '',
-                'no_po'            => '',
-                'no_aju'           => $request->input('txt_no_aju'),
-                'tgl_aju'          => $request->input('txt_tgl_aju') ?: $tglbppb,
-                'no_daftar'        => $request->input('txt_no_daftar'),
-                'tgl_daftar'       => $request->input('txt_tgl_daftar') ?: $tglbppb,
-                'catatan'          => $request->input('txt_notes'),
-                'status'           => 'Pending',
-                'created_by'       => $user,
-                'jns_pemasukan'    => $request->input('txt_tujuan'),
-                'status_return'    => $request->input('txt_stat_rtn'),
-            ]);
+                // Generate nomor RO
+                $no_gen = DB::connection('mysql_sb')->select(
+                    "SELECT CONCAT('GK/RO/',DATE_FORMAT(?,'%m'),DATE_FORMAT(?,'%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int
+                     FROM bppb WHERE MONTH(bppbdate)=MONTH(?) AND YEAR(bppbdate)=YEAR(?) AND LEFT(bppbno_int,2)='GK'",
+                    [$tglbppb, $tglbppb, $tglbppb, $tglbppb]
+                );
+                $bppbno_int = $no_gen[0]->bppbno_int;
 
-            $this->createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, $request, $user, $tglbppb);
+                // Generate nomor SJ-F...-R untuk pasangan baris di tabel bppb
+                $no_gen2 = DB::connection('mysql_sb')->select(
+                    "SELECT CONCAT('SJ-F',IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)),'-R') bpbno
+                     FROM bppb WHERE LEFT(bppbno_int,5)='GK/RO'"
+                );
+                $bpbno = $no_gen2[0]->bpbno;
 
-            $bppbno_list[] = $bppbno_int;
+                // Buat header RO
+                BppbHeader::create([
+                    'no_bppb'          => $bppbno_int,
+                    'tgl_bppb'         => $tglbppb,
+                    'jenis_pengeluaran' => $request->input('txt_jns_klr'),
+                    'no_bpb'           => $request->input('txt_nobpb'),
+                    'jns_defect'       => $request->input('txt_jns_def'),
+                    'tujuan'           => $nama_supp,
+                    'dok_bc'           => $request->input('txt_type_bc'),
+                    'no_ws'            => '',
+                    'no_ws_aktual'     => '',
+                    'no_po'            => '',
+                    'no_aju'           => $request->input('txt_no_aju'),
+                    'tgl_aju'          => $request->input('txt_tgl_aju') ?: $tglbppb,
+                    'no_daftar'        => $request->input('txt_no_daftar'),
+                    'tgl_daftar'       => $request->input('txt_tgl_daftar') ?: $tglbppb,
+                    'catatan'          => $request->input('txt_notes'),
+                    'status'           => 'Pending',
+                    'created_by'       => $user,
+                    'jns_pemasukan'    => $request->input('txt_tujuan'),
+                    'status_return'    => $request->input('txt_stat_rtn'),
+                ]);
+
+                $this->createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, $request, $user, $tglbppb);
+
+                $this->logRawQueryActivity('Create BPPB Return', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
+
+                $bppbno_list[] = $bppbno_int;
+            }
+
+            RoBarcodeTemp::where('created_by', $user)->delete();
+
+            DB::connection('mysql_sb')->flushQueryLog();
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return [
+                'status'     => 500,
+                'message'    => 'Gagal menyimpan RO: ' . $e->getMessage(),
+                'additional' => [],
+                'redirect'   => '',
+            ];
         }
-
-        RoBarcodeTemp::where('created_by', $user)->delete();
 
         $message = count($bppbno_list) > 1
             ? count($bppbno_list) . ' RO berhasil disimpan: ' . implode(', ', $bppbno_list)
@@ -1416,7 +1497,7 @@ class ReturMaterialController extends Controller
      * untuk satu nomor RO, dari kumpulan RoBarcodeTemp milik 1 PO. Dipakai oleh storeRoBarcode
      * dan updateRoBarcode.
      */
-    private function createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, Request $request, $user, $tglbppb)
+    private function createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, Request $request, $user, $tglbppb, $oldQtyMap = [])
     {
         // whs_bppb_ro + bppb, di-grup per id_item + id_jo
         $item_groups = $po_temps->groupBy(function ($t) {
@@ -1442,6 +1523,7 @@ class ReturMaterialController extends Controller
             BppbSB::create([
                 'id_item'       => $first->id_item,
                 'qty'           => $group->sum('qty_ro'),
+                'qty_old'       => $oldQtyMap[$first->id_item . '|' . $first->id_jo] ?? 0,
                 'curr'          => $po_curr,
                 'price'         => $po_price,
                 'unit'          => $first->unit,
@@ -1490,13 +1572,13 @@ class ReturMaterialController extends Controller
         $details = [];
         foreach ($po_temps as $t) {
             $det_barcode = DB::connection('mysql_sb')->select(
-                "select tgl_dok, curr, price from whs_barcode_in where no_barcode = ?",
+                "select IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = ? ORDER BY id ASC LIMIT 1",
                 [$t->no_barcode]
             );
 
-            $bcd_tgl_dok = $det_barcode[0]->tgl_dok ?? '';
-            $bcd_curr    = $det_barcode[0]->curr ?? '';
-            $bcd_price   = $det_barcode[0]->price ?? 0;
+            $bcd_tgl_dok = $det_barcode[0]->np_tgl_in ?? '';
+            $bcd_curr    = $det_barcode[0]->np_curr ?? '';
+            $bcd_price   = $det_barcode[0]->np_price ?? 0;
 
             $price_info = $po_price_map[$t->id_item . '|' . $t->id_jo] ?? ['curr' => '-', 'price' => 0];
 
@@ -1544,21 +1626,26 @@ class ReturMaterialController extends Controller
         $det_rows = DB::connection('mysql_sb')->select(
             "SELECT d.id_roll no_barcode, d.no_lot, d.no_roll, d.no_rak kode_lok, d.id_jo, d.id_item, c.goods_code kode_item, d.item_desc itemdesc, d.satuan unit, d.qty_out qty_ro,
                     (COALESCE(s.sal_akhir,0) + d.qty_out) qty_aktual,
-                    s.kpno no_ws, '' id_lokasi, s.no_dok no_dok_in,
+                    COALESCE(tmpjo.kpno, s.kpno) no_ws, '' id_lokasi, s.no_dok no_dok_in,
                     b.no_po, b.supplier, m.Id_Supplier id_supplier
              FROM whs_bppb_det d
              LEFT JOIN data_stock_fabric s ON s.no_barcode = d.id_roll
              LEFT JOIN whs_barcode_in b ON b.no_barcode = d.id_roll
              LEFT JOIN mastersupplier m ON m.Supplier = b.supplier
+             LEFT JOIN (select id_jo,kpno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo = d.id_jo
              INNER JOIN masteritem c ON c.id_item = d.id_item
              WHERE d.no_bppb = ? AND d.status = 'Y'",
             [$header->no_bppb]
         );
 
         foreach ($det_rows as $r) {
-            RoBarcodeTemp::create([
-                'id_lokasi'   => $r->id_lokasi,
+            // updateOrCreate (bukan create biasa) supaya idempotent kalau preload ini
+            // sempat kepanggil dobel (mis. request nyangkut/di-retry), tidak bikin duplikat.
+            RoBarcodeTemp::updateOrCreate([
+                'created_by'  => $user,
                 'no_barcode'  => $r->no_barcode,
+            ], [
+                'id_lokasi'   => $r->id_lokasi,
                 'no_dok_in'   => $r->no_dok_in,
                 'no_ws'       => $r->no_ws,
                 'no_po'       => $r->no_po,
@@ -1574,7 +1661,6 @@ class ReturMaterialController extends Controller
                 'no_roll'     => $r->no_roll,
                 'qty_aktual'  => $r->qty_aktual,
                 'qty_ro'      => $r->qty_ro,
-                'created_by'  => $user,
             ]);
         }
 
@@ -1636,86 +1722,122 @@ class ReturMaterialController extends Controller
 
         $old_no_bppb = $header->no_bppb;
 
-        // Hapus data lama. Stok otomatis ter-restore karena data_stock_fabric hanya menghitung
-        // baris whs_bppb_det yang masih ada dengan status = 'Y'.
-        BppbDet::where('no_bppb', $old_no_bppb)->delete();
-        BppbRO::where('no_bppb', $old_no_bppb)->delete();
-        BppbSB::where('bppbno_int', $old_no_bppb)->delete();
-
-        $po_groups = $temps->groupBy(function ($t) {
-            return $t->no_po ?? '';
-        });
-
         $bppbno_list = [];
-        $is_first    = true;
 
-        foreach ($po_groups as $no_po => $po_temps) {
-            if ($is_first) {
-                // PO pertama tetap memakai nomor RO & SJ yang sudah ada
-                $bppbno_int = $old_no_bppb;
-                $bpbno      = $header->no_bpb;
+        DB::connection('mysql_sb')->beginTransaction();
 
-                BppbHeader::where('id', $edit_id)->update([
-                    'tgl_bppb'          => $tglbppb,
-                    'jenis_pengeluaran' => $request->input('txt_jns_klr'),
-                    'no_bpb'            => $request->input('txt_nobpb'),
-                    'jns_defect'        => $request->input('txt_jns_def'),
-                    'tujuan'            => $nama_supp,
-                    'dok_bc'            => $request->input('txt_type_bc'),
-                    'no_aju'            => $request->input('txt_no_aju'),
-                    'tgl_aju'           => $request->input('txt_tgl_aju') ?: $tglbppb,
-                    'no_daftar'         => $request->input('txt_no_daftar'),
-                    'tgl_daftar'        => $request->input('txt_tgl_daftar') ?: $tglbppb,
-                    'catatan'           => $request->input('txt_notes'),
-                    'jns_pemasukan'     => $request->input('txt_tujuan'),
-                    'status_return'     => $request->input('txt_stat_rtn'),
-                ]);
+        try {
+            DB::connection('mysql_sb')->enableQueryLog();
 
-                $is_first = false;
-            } else {
-                // PO tambahan (hasil split saat edit) dibuatkan RO baru
-                $no_gen = DB::connection('mysql_sb')->select(
-                    "SELECT CONCAT('GK/RO/',DATE_FORMAT(?,'%m'),DATE_FORMAT(?,'%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int
-                     FROM bppb WHERE MONTH(bppbdate)=MONTH(?) AND YEAR(bppbdate)=YEAR(?) AND LEFT(bppbno_int,2)='GK'",
-                    [$tglbppb, $tglbppb, $tglbppb, $tglbppb]
-                );
-                $bppbno_int = $no_gen[0]->bppbno_int;
-
-                $no_gen2 = DB::connection('mysql_sb')->select(
-                    "SELECT CONCAT('SJ-F',IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)),'-R') bpbno
-                     FROM bppb WHERE LEFT(bppbno_int,5)='GK/RO'"
-                );
-                $bpbno = $no_gen2[0]->bpbno;
-
-                BppbHeader::create([
-                    'no_bppb'           => $bppbno_int,
-                    'tgl_bppb'          => $tglbppb,
-                    'jenis_pengeluaran' => $request->input('txt_jns_klr'),
-                    'no_bpb'            => $request->input('txt_nobpb'),
-                    'jns_defect'        => $request->input('txt_jns_def'),
-                    'tujuan'            => $nama_supp,
-                    'dok_bc'            => $request->input('txt_type_bc'),
-                    'no_ws'             => '',
-                    'no_ws_aktual'      => '',
-                    'no_po'             => '',
-                    'no_aju'            => $request->input('txt_no_aju'),
-                    'tgl_aju'           => $request->input('txt_tgl_aju') ?: $tglbppb,
-                    'no_daftar'         => $request->input('txt_no_daftar'),
-                    'tgl_daftar'        => $request->input('txt_tgl_daftar') ?: $tglbppb,
-                    'catatan'           => $request->input('txt_notes'),
-                    'status'            => 'Pending',
-                    'created_by'        => $user,
-                    'jns_pemasukan'     => $request->input('txt_tujuan'),
-                    'status_return'     => $request->input('txt_stat_rtn'),
-                ]);
+            // Simpan qty lama per id_item+id_jo dulu sebelum baris bppb yang lama dihapus,
+            // supaya bisa dibawa jadi qty_old di baris bppb yang baru.
+            $oldQtyMap = [];
+            foreach (DB::connection('mysql_sb')->table('bppb')->where('bppbno_int', $old_no_bppb)->get(['id_item', 'id_jo', 'qty']) as $oldRow) {
+                $oldQtyMap[$oldRow->id_item . '|' . $oldRow->id_jo] = $oldRow->qty;
             }
 
-            $this->createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, $request, $user, $tglbppb);
+            // Hapus data lama. Stok otomatis ter-restore karena data_stock_fabric hanya menghitung
+            // baris whs_bppb_det yang masih ada dengan status = 'Y'.
+            BppbDet::where('no_bppb', $old_no_bppb)->delete();
+            BppbRO::where('no_bppb', $old_no_bppb)->delete();
+            BppbSB::where('bppbno_int', $old_no_bppb)->delete();
 
-            $bppbno_list[] = $bppbno_int;
+            $po_groups = $temps->groupBy(function ($t) {
+                return $t->no_po ?? '';
+            });
+
+            $is_first = true;
+
+            foreach ($po_groups as $no_po => $po_temps) {
+                if ($is_first) {
+                    // PO pertama tetap memakai nomor RO yang sudah ada. Nomor SJ-F...-R
+                    // yang lama sudah ikut hilang bersama baris BppbSB yang dihapus di atas,
+                    // jadi generate baru (sama seperti PO tambahan di bawah).
+                    $bppbno_int = $old_no_bppb;
+
+                    $no_gen2 = DB::connection('mysql_sb')->select(
+                        "SELECT CONCAT('SJ-F',IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)),'-R') bpbno
+                         FROM bppb WHERE LEFT(bppbno_int,5)='GK/RO'"
+                    );
+                    $bpbno = $no_gen2[0]->bpbno;
+
+                    BppbHeader::where('id', $edit_id)->update([
+                        'tgl_bppb'          => $tglbppb,
+                        'jenis_pengeluaran' => $request->input('txt_jns_klr'),
+                        'no_bpb'            => $request->input('txt_nobpb'),
+                        'jns_defect'        => $request->input('txt_jns_def'),
+                        'tujuan'            => $nama_supp,
+                        'dok_bc'            => $request->input('txt_type_bc'),
+                        'no_aju'            => $request->input('txt_no_aju'),
+                        'tgl_aju'           => $request->input('txt_tgl_aju') ?: $tglbppb,
+                        'no_daftar'         => $request->input('txt_no_daftar'),
+                        'tgl_daftar'        => $request->input('txt_tgl_daftar') ?: $tglbppb,
+                        'catatan'           => $request->input('txt_notes'),
+                        'jns_pemasukan'     => $request->input('txt_tujuan'),
+                        'status_return'     => $request->input('txt_stat_rtn'),
+                    ]);
+
+                    $is_first = false;
+                } else {
+                    // PO tambahan (hasil split saat edit) dibuatkan RO baru
+                    $no_gen = DB::connection('mysql_sb')->select(
+                        "SELECT CONCAT('GK/RO/',DATE_FORMAT(?,'%m'),DATE_FORMAT(?,'%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int
+                         FROM bppb WHERE MONTH(bppbdate)=MONTH(?) AND YEAR(bppbdate)=YEAR(?) AND LEFT(bppbno_int,2)='GK'",
+                        [$tglbppb, $tglbppb, $tglbppb, $tglbppb]
+                    );
+                    $bppbno_int = $no_gen[0]->bppbno_int;
+
+                    $no_gen2 = DB::connection('mysql_sb')->select(
+                        "SELECT CONCAT('SJ-F',IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)),'-R') bpbno
+                         FROM bppb WHERE LEFT(bppbno_int,5)='GK/RO'"
+                    );
+                    $bpbno = $no_gen2[0]->bpbno;
+
+                    BppbHeader::create([
+                        'no_bppb'           => $bppbno_int,
+                        'tgl_bppb'          => $tglbppb,
+                        'jenis_pengeluaran' => $request->input('txt_jns_klr'),
+                        'no_bpb'            => $request->input('txt_nobpb'),
+                        'jns_defect'        => $request->input('txt_jns_def'),
+                        'tujuan'            => $nama_supp,
+                        'dok_bc'            => $request->input('txt_type_bc'),
+                        'no_ws'             => '',
+                        'no_ws_aktual'      => '',
+                        'no_po'             => '',
+                        'no_aju'            => $request->input('txt_no_aju'),
+                        'tgl_aju'           => $request->input('txt_tgl_aju') ?: $tglbppb,
+                        'no_daftar'         => $request->input('txt_no_daftar'),
+                        'tgl_daftar'        => $request->input('txt_tgl_daftar') ?: $tglbppb,
+                        'catatan'           => $request->input('txt_notes'),
+                        'status'            => 'Pending',
+                        'created_by'        => $user,
+                        'jns_pemasukan'     => $request->input('txt_tujuan'),
+                        'status_return'     => $request->input('txt_stat_rtn'),
+                    ]);
+                }
+
+                $this->createRoDetailRows($po_temps, $no_po, $bppbno_int, $bpbno, $id_supp, $request, $user, $tglbppb, $bppbno_int === $old_no_bppb ? $oldQtyMap : []);
+
+                $bppbno_list[] = $bppbno_int;
+            }
+
+            RoBarcodeTemp::where('created_by', $user)->delete();
+
+            $this->logRawQueryActivity('Edit BPPB Return', $old_no_bppb, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return [
+                'status'     => 500,
+                'message'    => 'Gagal menyimpan perubahan RO: ' . $e->getMessage(),
+                'additional' => [],
+                'redirect'   => '',
+            ];
         }
-
-        RoBarcodeTemp::where('created_by', $user)->delete();
 
         $message = count($bppbno_list) > 1
             ? 'RO berhasil diupdate: ' . implode(', ', $bppbno_list)

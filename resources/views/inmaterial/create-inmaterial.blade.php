@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,13 +8,26 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+    /* Footer di layout ini position:fixed, halaman ini butuh jarak aman
+       supaya konten paling bawah (tombol Kembali/Simpan) tidak ketutup footer */
+    .content-wrapper{
+        padding-bottom: 5rem !important;
+    }
+</style>
 @endsection
 
 @section('content')
+<div>
 <form action="{{ route('store-inmaterial-fabric') }}" method="post" id="store-inmaterial"
-onsubmit="validateAndSubmitRoForm(this, event)">
+onsubmit="validateAndSubmitRoForm(this, event)" autocomplete="off">
 @csrf
-<div class="card card-sb">
+<div class="card card-sb marginnya">
     <div class="card-header">
         <h5 class="card-title fw-bold">
             Data Header
@@ -158,7 +171,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
     </div>
 </div>
 
-<div class="col-md-12">
+<div class="col-md-12 d-none">
     <div class="mb-1">
         <div class="form-group">
             <label><small>Dokumen Asli</small></label>
@@ -184,7 +197,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
 <div class="col-12 col-md-5">
     <div class="row">
 
-        <div class="col-md-7">
+        <div class="col-md-7 d-none">
             <div class="mb-1">
                 <div class="form-group">
                     <label><small>No Aju</small></label>
@@ -194,7 +207,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-5 d-none">
             <div class="mb-1">
                 <div class="form-group">
                     <label><small>Tgl Aju</small></label>
@@ -204,7 +217,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             </div>
         </div>
 
-        <div class="col-md-7">
+        <div class="col-md-7 d-none">
             <div class="mb-1">
                 <div class="form-group">
                     <label><small>No Daftar</small></label>
@@ -214,7 +227,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-5 d-none">
             <div class="mb-1">
                 <div class="form-group">
                     <label><small>Tgl Daftar</small></label>
@@ -277,7 +290,7 @@ onsubmit="validateAndSubmitRoForm(this, event)">
 </div>
 </div>
 
-<div class="card card-sb">
+<div class="card card-sb marginnya">
     <div class="card-header">
         <h5 class="card-title fw-bold">
             Data Detail
@@ -293,22 +306,20 @@ onsubmit="validateAndSubmitRoForm(this, event)">
                 placeholder="Search Item..." onkeyup="cariitem()">
             </div> -->
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 12%;">No WS</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 4%;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">ID Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 20%;">Kode Barang</th>
+                            <th class="text-center d-none" style="font-size: 0.6rem;">Produk</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 30%;">Deskripsi</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 4%;">Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">Qty PO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 5%;">Balance</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">Qty BPB</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">Qty Reject</th>
                             <th class="text-center" style="font-size: 0.6rem;"></th>
                             <th class="text-center" style="font-size: 0.6rem;"></th>
                             <th class="text-center" style="font-size: 0.6rem;"></th>
@@ -326,18 +337,18 @@ onsubmit="validateAndSubmitRoForm(this, event)">
                 </table>
             </div>
         </div>
-        <div class="mb-1">
-            <div class="form-group">
-                <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i>
-                Simpan</button>
-                <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+        <div class="mb-5">
+            <div class="form-group d-flex justify-content-end gap-2 mt-2">
+                <a href="{{ route('in-material') }}" class="btn btn-danger">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
-                </div>
+                <button class="btn btn-sb"><i class="fa-solid fa-floppy-disk"></i>
+                Simpan</button>
             </div>
         </div>
     </div>
 </div>
 </form>
+</div>
 @endsection
 
 @section('custom-script')
@@ -416,6 +427,42 @@ onsubmit="validateAndSubmitRoForm(this, event)">
                 }
             }
 
+            if (datatable.search() !== '') {
+                // DataTables membuang row yang tidak match dari DOM saat difilter,
+                // jadi filter dikosongkan dulu supaya semua row detail ikut terkirim.
+                datatable.search('').draw();
+            }
+
+            let missing = [];
+            if (!$('#txt_supp').val()) missing.push('Supplier');
+            if (!$('#txt_type_gr').val()) missing.push('Tipe BPB');
+            if (!$('#txt_po').val() && !$('#txt_wsglobal').val()) missing.push('No PO atau WS (Global)');
+            if (!$('#txt_type_bc').val()) missing.push('Tipe BC');
+            if (!$('#txt_type_pch').val()) missing.push('Tipe Pembelian');
+            if (!$('#txt_invdok').val()) missing.push('No Invoice');
+
+            let anyQtyFilled = false;
+            $('input[name^="qty_good"]').each(function() {
+                let v = parseFloat($(this).val());
+                if (!isNaN(v) && v > 0) {
+                    anyQtyFilled = true;
+                }
+            });
+            if (!anyQtyFilled) missing.push('Qty BPB (minimal 1 baris data detail)');
+
+            if (missing.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                        '<ul style="margin-top:10px;">' +
+                        missing.map(m => '<li>' + m + '</li>').join('') +
+                        '</ul></div>'
+                });
+                return;
+            }
+
             submitForm(e, evt);
         }
 
@@ -428,6 +475,9 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             const form = document.getElementById('store-inmaterial');
             if (form) {
                 form.reset();
+                // form.reset() tidak mensinkronkan tampilan select2 kalau browser
+                // mengembalikan value lama saat refresh, jadi paksa render ulang.
+                $(form).find('select').val('').trigger('change');
             }
         };
 
@@ -606,15 +656,22 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             });
         }
 
+        function escAttr(v) {
+            if (v === null || v === undefined) return '';
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: false,
             paging: false,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 url: '{{ route('get-detail-list') }}',
                 data: function(d) {
@@ -643,25 +700,19 @@ onsubmit="validateAndSubmitRoForm(this, event)">
                 data: 'itemdesc'
             },
             {
+                data: 'unit'
+            },
+            {
                 data: 'qty_po'
             },
             {
-                data: 'unit'
-            },
-            {
                 data: 'qty'
             },
             {
                 data: 'qty'
             },
             {
-                data: 'unit'
-            },
-            {
                 data: 'qty'
-            },
-            {
-                data: 'unit'
             },
             {
                 data: 'kpno'
@@ -695,80 +746,84 @@ onsubmit="validateAndSubmitRoForm(this, event)">
             }
             ],
             columnDefs: [{
-                targets: [13],
+                targets: [4],
+                className: "d-none"
+            },
+            {
+                targets: [11],
                 className: "d-none",
                 render: (data, type, row, meta) => '<input type="hidden" id="det_kpno' + meta.row +
-                '" name="det_kpno[' + meta.row + ']" value="' + data + '" readonly />'
+                '" name="det_kpno[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
+            },
+            {
+                targets: [12],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_idjo' + meta.row +
+                '" name="det_idjo[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
+            },
+            {
+                targets: [13],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_iditem' + meta.row +
+                '" name="det_iditem[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [14],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_idjo' + meta.row +
-                '" name="det_idjo[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_code' + meta.row +
+                '" name="det_code[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [15],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_iditem' + meta.row +
-                '" name="det_iditem[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_produk' + meta.row +
+                '" name="det_produk[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [16],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_code' + meta.row +
-                '" name="det_code[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_itemdesc' + meta.row +
+                '" name="det_itemdesc[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [17],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_produk' + meta.row +
-                '" name="det_produk[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_qty' + meta.row +
+                '" name="det_qty[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [18],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_itemdesc' + meta.row +
-                '" name="det_itemdesc[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row +
+                '" name="det_unit[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [19],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_qty' + meta.row +
-                '" name="det_qty[' + meta.row + ']" value="' + data + '" readonly />'
+                render: (data, type, row, meta) => '<input type="hidden" id="det_price' + meta.row +
+                '" name="det_price[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
             {
                 targets: [20],
                 className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row +
-                '" name="det_unit[' + meta.row + ']" value="' + data + '" readonly />'
-            },
-            {
-                targets: [21],
-                className: "d-none",
-                render: (data, type, row, meta) => '<input type="hidden" id="det_price' + meta.row +
-                '" name="det_price[' + meta.row + ']" value="' + data + '" readonly />'
-            },
-            {
-                targets: [22],
-                className: "d-none",
                 render: (data, type, row, meta) => '<input type="hidden" id="det_curr' + meta.row +
-                '" name="det_curr[' + meta.row + ']" value="' + data + '" readonly />'
+                '" name="det_curr[' + meta.row + ']" value="' + escAttr(data) + '" readonly />'
             },
 
             {
                 targets: [9],
                 render: (data, type, row, meta) => {
                         // alert(meta.row)
-                        return '<input style="width:100px;" class="form-control-sm" type="text" min="0" max="' +
+                        return '<input style="width:100%;" class="form-control-sm" type="text" min="0" max="' +
                         data + '" id="qty_good' + meta.row + '" name="qty_good[' + meta.row +
                         ']" onkeyup="tambahqty(this.value)" />';
                     }
 
                 },
                 {
-                    targets: [11],
+                    targets: [10],
                     render: (data, type, row, meta) =>
-                    '<input style="width:100px;" class="form-control-sm" type="text" min="0" max="' + data +
+                    '<input style="width:100%;" class="form-control-sm" type="text" min="0" max="' + data +
                     '" id="qty_reject' + meta.row + '" name="qty_reject[' + meta.row + ']" />'
                 }
                 ]

@@ -17,6 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportLokasiMaterial;
 use App\Models\Journal;
 use App\Models\BpbSB;
+use App\Http\Controllers\Traits\LogsActivity;
 use DB;
 use QrCode;
 use DNS1D;
@@ -24,6 +25,8 @@ use PDF;
 
 class KonfPengeluaranController extends Controller
 {
+    use LogsActivity;
+
     /**
      * Display a listing of the resource.
      *
@@ -35,7 +38,7 @@ class KonfPengeluaranController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb where tgl_bppb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and a.status = 'Pending' GROUP BY a.no_bppb order by no_bppb asc");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb where a.status = 'Pending' GROUP BY a.no_bppb order by no_bppb asc");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -105,13 +108,16 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
     public function approvepengeluaranall(Request $request)
 {
     $timestamp = Carbon::now();
+    $approved = [];
+    $failed = [];
 
-    DB::beginTransaction();
-    try {
+    foreach ($request->id_bpb as $i => $id_bpb) {
+        $check = $request->chek_id[$i] ?? 0;
+        if ($check <= 0) continue;
 
-        foreach ($request->id_bpb as $i => $id_bpb) {
-            $check = $request->chek_id[$i] ?? 0;
-            if ($check <= 0) continue;
+        try {
+            DB::connection('mysql_sb')->beginTransaction();
+            DB::connection('mysql_sb')->enableQueryLog();
 
             // Update status BPPB
             BppbHeader::where('no_bppb', $id_bpb)->update([
@@ -128,11 +134,12 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
 
             // Ambil data BPPB
             $cekdata = DB::connection('mysql_sb')->select("
-                SELECT a.*, COALESCE(c.tax,0) as tax, (a.dpp + (a.dpp * (COALESCE(c.tax,0)/100))) as total, 
+                SELECT a.*, COALESCE(c.tax,0) as tax, phd.tipe_com, bh.buyer,
+                       (a.dpp + (a.dpp * (COALESCE(c.tax,0)/100))) as total,
                        (a.dpp * (COALESCE(c.tax,0)/100)) as ppn
                 FROM (
                     SELECT bppbno, bppbno_int, bppb.bppbdate, bppb.id_supplier, supplier, mattype, n_code_category,
-                           IF(matclass LIKE '%ACCESORIES%', 'ACCESORIES', mi.matclass) as matclass, 
+                           IF(matclass LIKE '%ACCESORIES%', 'ACCESORIES', mi.matclass) as matclass,
                            bppb.curr, bppb.username, bppb.dateinput, SUM(qty * price) as dpp, bpbno_ro
                     FROM bppb
                     INNER JOIN masteritem mi ON bppb.id_item = mi.id_item
@@ -144,11 +151,15 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     SELECT bpbno, pono FROM bpb GROUP BY bpbno
                 ) b ON b.bpbno = a.bpbno_ro
                 LEFT JOIN (
-                    SELECT pono, tax FROM po_header GROUP BY pono
+                    SELECT pono, tax, id_draft FROM po_header GROUP BY pono
                 ) c ON c.pono = b.pono
+                LEFT JOIN po_header_draft phd ON phd.id = c.id_draft
+                LEFT JOIN whs_bppb_h bh ON bh.no_bppb = a.bppbno_int
             ", [$id_bpb]);
 
-            if (!$cekdata) continue; // skip jika tidak ada data
+            if (!$cekdata) {
+                throw new \Exception('Data jurnal tidak ditemukan untuk ' . $id_bpb);
+            }
 
             $data = $cekdata[0];
 
@@ -166,6 +177,8 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
             $ppn = $data->ppn;
             $tgl_bpb = $data->bppbdate;
             $dateinput = $data->dateinput;
+            $tipe_com = $data->tipe_com;
+            $buyer = $data->buyer ?: '-';
 
             // Tentukan matclass
             $matclass = ($mattype == 'C') ? 
@@ -235,7 +248,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'nama_costcenter' => '-',
                 'reff_doc' => '-',
                 'reff_date' => '',
-                'buyer' => '-',
+                'buyer' => $buyer,
                 'no_ws' => '-',
                 'curr' => $curr,
                 'rate' => $rate,
@@ -274,7 +287,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'nama_costcenter' => '-',
                 'reff_doc' => '-',
                 'reff_date' => '',
-                'buyer' => '-',
+                'buyer' => $buyer,
                 'no_ws' => '-',
                 'curr' => $curr,
                 'rate' => $rate,
@@ -311,7 +324,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'nama_costcenter' => '-',
                     'reff_doc' => '-',
                     'reff_date' => '',
-                    'buyer' => '-',
+                    'buyer' => $buyer,
                     'no_ws' => '-',
                     'curr' => $curr,
                     'rate' => $rate,
@@ -330,24 +343,120 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'profit_center' => 'NAG',
                 ]);
             }
+
+            // Jurnal pasangan khusus untuk tipe_com BUYER
+            if ($tipe_com == 'BUYER') {
+                Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB RETURN',
+                    'no_coa' => $no_coa_deb,
+                    'nama_coa' => $nama_coa_deb,
+                    'no_costcenter' => '-',
+                    'nama_costcenter' => '-',
+                    'reff_doc' => '-',
+                    'reff_date' => '',
+                    'buyer' => $buyer,
+                    'no_ws' => '-',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => $dpp,
+                    'credit' => 0,
+                    'debit_idr' => $idr_dpp,
+                    'credit_idr' => 0,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'cancel_by' => '',
+                    'cancel_date' => '',
+                    'profit_center' => 'NAG',
+                ]);
+
+                Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB RETURN',
+                    'no_coa' => '1.34.05',
+                    'nama_coa' => 'PIUTANG LAIN-LAIN PIHAK KETIGA - BAHAN BAKU / BAHAN PEMBANTU',
+                    'no_costcenter' => '-',
+                    'nama_costcenter' => '-',
+                    'reff_doc' => '-',
+                    'reff_date' => '',
+                    'buyer' => $buyer,
+                    'no_ws' => '-',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => 0,
+                    'credit' => $total,
+                    'debit_idr' => 0,
+                    'credit_idr' => $idr_total,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'cancel_by' => '',
+                    'cancel_date' => '',
+                    'profit_center' => 'NAG',
+                ]);
+
+                if ($tax >= 1) {
+                    Journal::create([
+                        'no_journal' => $no_bpb,
+                        'tgl_journal' => $tgl_bpb,
+                        'type_journal' => 'AP - BPB RETURN',
+                        'no_coa' => '8.07.01',
+                        'nama_coa' => 'PENDAPATAN LAIN-LAIN',
+                        'no_costcenter' => '-',
+                        'nama_costcenter' => '-',
+                        'reff_doc' => '-',
+                        'reff_date' => '',
+                        'buyer' => $buyer,
+                        'no_ws' => '-',
+                        'curr' => $curr,
+                        'rate' => $rate,
+                        'debit' => 0,
+                        'credit' => $ppn,
+                        'debit_idr' => 0,
+                        'credit_idr' => $idr_ppn,
+                        'status' => 'Approved',
+                        'keterangan' => $description,
+                        'create_by' => $username,
+                        'create_date' => $dateinput,
+                        'approve_by' => Auth::user()->name,
+                        'approve_date' => $timestamp,
+                        'cancel_by' => '',
+                        'cancel_date' => '',
+                        'profit_center' => 'NAG',
+                    ]);
+                }
+            }
+
+            $this->logRawQueryActivity('Approve BPPB Return', $id_bpb, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+            $approved[] = $id_bpb;
+
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+            $failed[] = ['id_bpb' => $id_bpb, 'message' => $e->getMessage()];
         }
-
-        DB::commit();
-
-        return response()->json([
-            "status" => 200,
-            "message" => "Approved Data Successfully",
-            "additional" => [],
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            "status" => 500,
-            "message" => "Failed to approve: " . $e->getMessage(),
-            "additional" => [],
-        ]);
     }
+
+    return response()->json([
+        "status" => 200,
+        "message" => count($failed) > 0 ? "Sebagian data gagal diapprove" : "Approved Data Successfully",
+        "total" => count($approved) + count($failed),
+        "approved_count" => count($approved),
+        "approved" => $approved,
+        "failed" => $failed,
+    ]);
 }
 
 
