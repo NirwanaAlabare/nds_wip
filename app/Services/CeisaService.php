@@ -447,6 +447,7 @@ class CeisaService
     public function getStatus($nomorAju)
     {
         $this->useUserCredential();
+        $this->setEnv('live');
 
         $response = $this->requestWithRetry(
             'GET',
