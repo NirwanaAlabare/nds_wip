@@ -183,7 +183,6 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
 SELECT *
 FROM
 (
-    /* BC 25,27,41,261 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
@@ -194,7 +193,6 @@ FROM
         ON b.nomor_aju = a.nomor_aju
     WHERE
     (
-        /* BC 27 : prioritas 3,3,6 lalu fallback 8,8,6 */
         (
             (LEFT(b.nomor_aju,6)+0) = 27
             AND
@@ -224,7 +222,6 @@ FROM
 
         OR
 
-        /* BC 25,41,261 tetap */
         (
             (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
             AND a.seri='8'
@@ -236,7 +233,6 @@ FROM
 
     UNION
 
-    /* BC 40,262 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
@@ -247,9 +243,8 @@ FROM
         ON b.nomor_aju = a.nomor_aju
     WHERE
     (
-        /* BC 40 : prioritas 3,9,6 lalu fallback 9,9,6 */
         (
-            (LEFT(b.nomor_aju,6)+0)=40
+            (LEFT(b.nomor_aju,6)+0) IN (40,262)
             AND
             (
                 (
@@ -275,21 +270,11 @@ FROM
             )
         )
 
-        OR
-
-        /* BC 262 tetap */
-        (
-            (LEFT(b.nomor_aju,6)+0)=262
-            AND a.seri='9'
-            AND a.kode_entitas='9'
-            AND a.kode_jenis_identitas='6'
-        )
     )
     GROUP BY b.nomor_aju
 
     UNION
 
-    /* BC 23 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
