@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasMany(UserRole::class, 'user_id', 'id');
     }
 
+    public function userDepartment()
+    {
+        return $this->hasMany(UserDepartment::class, 'user_id', 'id');
+    }
+
     /**
      * Get the master CEISA credential for the User
      *
