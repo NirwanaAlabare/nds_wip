@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -8,10 +8,18 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
 @endsection
 
 @section('content')
-<form action="{{ route('update-reqmaterial-fabric') }}" method="post" id="store-reqmaterial" onsubmit="submitForm(this, event)">
+<div class="marginnya">
+<form action="{{ route('update-reqmaterial-fabric') }}" method="post" id="store-reqmaterial" onsubmit="validateAndSubmitEditReqForm(this, event)">
      @method('GET')
     @csrf
     <div class="card card-sb card-outline">
@@ -39,8 +47,11 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Request date</small></label>
-                <input type="date" class="form-control form-control" id="req_date" name="req_date"
-                        value="{{ $dh->bppbdate }}">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="req_date" name="req_date" autocomplete="off" readonly
+                            value="{{ $dh->bppbdate }}">
+                    <span class="input-group-text" id="req_date_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                </div>
                 </div>
             </div>
             </div>
@@ -143,20 +154,20 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
-    <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100 text-nowrap">
+    <div>
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100" style="table-layout: fixed;">
                 <thead>
                     <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">JO #</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS #</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS Act #</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Style #</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Nama Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Req</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">JO #</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">WS #</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">WS Act #</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Style #</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">ID Item</th>
+                        <th class="text-center d-none" style="font-size: 0.6rem;">Kode Barang</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 27%;">Nama Barang</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 9%;">Qty Req</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 6%;">Qty Out</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 6%;">Unit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -195,6 +206,7 @@
         </div>
     </div>
 </form>
+</div>
 @endsection
 
 @section('custom-script')
@@ -232,9 +244,84 @@
         $("#panel").prop("disabled", true);
         $('#p_unit').val("yard").trigger('change');
 
-        //Reset Form
-        if (document.getElementById('store-inmaterial')) {
-            document.getElementById('store-inmaterial').reset();
+        // ─── Request date datepicker (batasi periode closed) ─────────────────────────
+
+        let minTglRo = @json($min_tgl_ro ?? '');
+        let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+        function formatDateYmd(date) {
+            let m = date.getMonth() + 1;
+            let d = date.getDate();
+            return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        }
+
+        $('#req_date').datepicker({
+            dateFormat: 'yy-mm-dd',
+            minDate: minTglRo ? minTglRo : null,
+            beforeShowDay: function (date) {
+                let ymd = formatDateYmd(date);
+                for (let p of closedPeriods) {
+                    if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                        return [false, '', 'Periode sudah closed'];
+                    }
+                }
+                return [true, ''];
+            }
+        });
+
+        $('#req_date_icon').on('click', function () {
+            $('#req_date').datepicker('show');
+        });
+
+        function validateAndSubmitEditReqForm(e, evt) {
+            let tglRo = $('#req_date').val();
+
+            if (minTglRo && tglRo < minTglRo) {
+                evt.preventDefault();
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Request date tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+                return;
+            }
+
+            for (let p of closedPeriods) {
+                if (tglRo >= p.tgl_awal && tglRo <= p.tgl_akhir) {
+                    evt.preventDefault();
+                    Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Request date tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+                    return;
+                }
+            }
+
+            let missing = [];
+            if (!$('#dikirim_ke').val()) missing.push('Dikirim Ke');
+
+            let dikirimKeText = $('#dikirim_ke option:selected').text().toUpperCase().replace(/\s*-\s*/g, ' ').trim();
+            if (dikirimKeText.includes('PRODUCTION CUTTING') && !$('#ws_act').val()) {
+                missing.push('WS Actual #');
+            }
+
+            if (missing.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                        '<ul style="margin-top:10px;">' +
+                        missing.map(m => '<li>' + m + '</li>').join('') +
+                        '</ul></div>'
+                });
+                return;
+            }
+
+            // DataTables membuang row yang tidak match/tidak di halaman aktif dari DOM
+            // saat difilter atau di-paging, jadi filter & paging dikosongkan dulu supaya
+            // semua row detail ikut terkirim saat submit.
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                let table = $('#datatable').DataTable();
+                table.search('');
+                table.column(6).search('');
+                table.page.len(-1).draw(false);
+            }
+
+            submitForm(e, evt);
         }
 
         $('#ws_id').on('change', async function(e) {
@@ -264,11 +351,18 @@
             }
         });
 
-        $('#datatable').dataTable({
-            "bFilter": false,
-            "bInfo": false,
-            "bPaginate": false,
-            "bOrderable": false,
+        $('#datatable').DataTable({
+            ordering: false,
+            paging: true,
+            pageLength: 10,
+            searching: true,
+            info: false,
+            autoWidth: false,
+            dom: "<'d-none'f>rtip",
+            columnDefs: [{
+                targets: [5],
+                visible: false
+            }]
         });
 
 
@@ -571,25 +665,8 @@
         }
 
         function cariitem() {
-        // Declare variables
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("cari_item");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("datatable");
-        tr = table.getElementsByTagName("tr");
-
-        // Loop through all table rows, and hide those who don't match the search query
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[5]; //kolom ke berapa
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
+        let filter = document.getElementById("cari_item").value;
+        $('#datatable').DataTable().column(6).search(filter).draw();
     }
 
 

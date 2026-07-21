@@ -28,10 +28,12 @@ use QrCode;
 use DNS1D;
 use PDF;
 use App\Http\Controllers\Traits\ChecksClosingPeriode;
+use App\Http\Controllers\Traits\LogsActivity;
 
 class MutLokasiController extends Controller
 {
     use ChecksClosingPeriode;
+    use LogsActivity;
     /**
      * Display a listing of the resource.
      *
@@ -68,6 +70,11 @@ class MutLokasiController extends Controller
      */
     public function create()
     {
+        // Pastikan sesi edit sebelumnya (kalau ditinggal tanpa disimpan) tidak "nempel" ke create baru
+        session()->forget('mutlok_edit_no_mut');
+        MutasiDetailTemp::where('created_by', Auth::user()->name)->delete();
+        MutasiDetailTempCancel::where('created_by', Auth::user()->name)->delete();
+
         // $no_ws = DB::connection('mysql_sb')->select("select jd.kpno from (select * from bpb where bpbdate >= '2021-01-01' and LEFT(bpbno_int,2) = 'GK'  GROUP BY id_jo) a
         //          inner join (select ac.id_buyer, supplier buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd
         //  inner join so on jd.id_so = so.id
@@ -88,16 +95,88 @@ class MutLokasiController extends Controller
     public function editmutlok($id)
     {
 
-        $det_data = DB::connection('mysql_sb')->select("select a.id,id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id'");
-        $sum_data = DB::connection('mysql_sb')->select("select count(id_item)jml from (select id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id') a");
-        $d_header = DB::connection('mysql_sb')->select("select no_mut kode,tgl_mut,no_ws,rak_asal,deskripsi from whs_mut_lokasi_h where id = '$id'");
-        $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+        $d_header = DB::connection('mysql_sb')->select("select id,no_mut kode,tgl_mut,no_ws,rak_asal,rak_tujuan,deskripsi,status from whs_mut_lokasi_h where id = '$id'");
 
-        return view('mut-lokasi.edit-mutlokasi', ['d_header' => $d_header,'det_data' => $det_data,'sum_data' => $sum_data, 'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+        if (!$d_header) {
+            abort(404);
+        }
+
+        if ($d_header[0]->status != 'Pending') {
+            return redirect()->route('mutasi-lokasi')->with('error', 'Hanya mutasi berstatus Pending yang dapat diedit.');
+        }
+
+        $no_mut = $d_header[0]->kode;
+
+        // Tidak diblokir total di sini walau sebagian barcode sudah dimutasi lagi -
+        // baris yang terkunci tetap ditampilkan (background kuning, tidak bisa dihapus/diubah)
+        // di halaman edit, barcode yang belum dimutasi lagi tetap bisa ditambah/dikurangi.
+
+        // Reset temp milik user, lalu isi ulang dengan barcode dari mutasi yang sedang diedit
+        MutasiDetailTemp::where('created_by', Auth::user()->name)->delete();
+        MutasiDetailTempCancel::where('created_by', Auth::user()->name)->delete();
+
+        $timestamp = Carbon::now();
+        $detRows = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi where no_mut = ? and status = 'Y'", [$no_mut]);
+
+        $tempData = [];
+        foreach ($detRows as $row) {
+            $barcode_in = DB::connection('mysql_sb')->select("select IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $row->idbpb_det . "' ORDER BY id ASC LIMIT 1");
+            $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+            $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+            $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
+            $tempData[] = [
+                'id_jo' => $row->id_jo,
+                'id_item' => $row->id_item,
+                'item_desc' => $row->item_desc,
+                'no_ws' => $row->no_ws,
+                'no_bpb' => $row->no_bpb,
+                'no_lot' => $row->no_lot,
+                'no_roll' => $row->no_roll,
+                'no_roll_buyer' => $row->no_roll_buyer,
+                'qty' => $row->qty_roll,
+                'unit' => $row->unit,
+                'rak_asal' => $row->rak_asal,
+                'rak_tujuan' => $row->rak_tujuan,
+                'idbpb_det' => $row->idbpb_det,
+                'created_by' => Auth::user()->name,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+                'np_curr' => $np_curr,
+                'np_tgl_in' => $np_tgl_in,
+                'np_price' => $np_price,
+            ];
+        }
+
+        if (!empty($tempData)) {
+            DB::connection('mysql_sb')->table('whs_mut_lokasi_temp')->insert($tempData);
+        }
+
+        session(['mutlok_edit_no_mut' => $no_mut]);
+
+        $lokasi = DB::connection('mysql_sb')->select("select id, kode_lok from whs_master_lokasi where status = 'Active'");
+
+        return view('mut-lokasi.edit-mutlokasi', ['d_header' => $d_header[0],'no_mut' => $no_mut,'lokasi' => $lokasi, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function updatemutlok(Request $request)
     {
+
+        $idDetList = [];
+        for ($i = 1; $i <= intval($request['txt_sum_roll']); $i++) {
+            $idDetList[] = $request["id_det"][$i];
+        }
+
+        $blocking = $this->findBlockingNewerMutations($idDetList);
+        if ($blocking !== '') {
+            return [
+                'status' => 400,
+                'message' => 'Tidak bisa edit, ' . $blocking . '. Cancel/edit dulu mutasi yang lebih baru, baru edit mutasi ini.',
+                'additional' => [],
+            ];
+        }
+
+        DB::connection('mysql_sb')->enableQueryLog();
 
         for ($i = 1; $i <= intval($request['txt_sum_roll']); $i++) {
             $updateInMaterialDet = MutLokasi::where('id', $request["id_det"][$i])->update([
@@ -105,6 +184,9 @@ class MutLokasiController extends Controller
                 'rak_tujuan' => $request["selectlok"][$i],
             ]);
         }
+
+        $this->logRawQueryActivity('Edit Mutasi Lokasi', $request['txt_no_mut'] ?? null, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
 
         $massage = 'Edit Data Successfully';
 
@@ -115,6 +197,76 @@ class MutLokasiController extends Controller
             "redirect" => url('/mutasi-lokasi')
         );
 
+    }
+
+    /**
+     * Cek apakah baris whs_mut_lokasi (berdasarkan id) punya barcode yang sudah
+     * dimutasi lagi oleh mutasi lain yang lebih baru dan belum di-cancel.
+     * Hanya mutasi paling terakhir untuk suatu barcode yang boleh di-cancel/edit,
+     * supaya rantai mutasi (A->B->D->E) tidak jadi tidak konsisten kalau
+     * mutasi di tengah rantai diubah/dibatalkan.
+     *
+     * @return array [newerNoMut => [barcode, ...]]
+     */
+    private function groupBlockingNewerMutations(array $mutLokasiIds, $excludeNoMut = null)
+    {
+        if (empty($mutLokasiIds)) {
+            return [];
+        }
+
+        $rows = DB::connection('mysql_sb')->table('whs_mut_lokasi')->whereIn('id', $mutLokasiIds)->get(['id', 'idbpb_det']);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $newer = DB::connection('mysql_sb')->select("
+                select m.no_mut from whs_mut_lokasi m
+                inner join whs_mut_lokasi_h h on h.no_mut = m.no_mut
+                where m.idbpb_det = ? and m.id > ? and h.status != 'Cancel' and m.no_mut != ?
+                order by m.id asc limit 1
+            ", [$row->idbpb_det, $row->id, $excludeNoMut ?? '']);
+
+            if (!empty($newer)) {
+                $grouped[$newer[0]->no_mut][] = $row->idbpb_det;
+            }
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @return string pesan siap-tampil (dikelompokkan per no_mut baru), kosong kalau tidak ada blocking
+     */
+    private function findBlockingNewerMutations(array $mutLokasiIds, $excludeNoMut = null)
+    {
+        $grouped = $this->groupBlockingNewerMutations($mutLokasiIds, $excludeNoMut);
+
+        if (empty($grouped)) {
+            return '';
+        }
+
+        $parts = [];
+        foreach ($grouped as $newerNoMut => $barcodes) {
+            $parts[] = implode(', ', $barcodes) . ' sudah dimutasi lagi ke ' . $newerNoMut;
+        }
+
+        return implode('; ', $parts);
+    }
+
+    /**
+     * @return string[] daftar no_barcode yang terkunci (sudah dimutasi lagi)
+     */
+    private function getLockedBarcodes(array $mutLokasiIds, $excludeNoMut = null)
+    {
+        $grouped = $this->groupBlockingNewerMutations($mutLokasiIds, $excludeNoMut);
+
+        $barcodes = [];
+        foreach ($grouped as $list) {
+            foreach ($list as $barcode) {
+                $barcodes[] = $barcode;
+            }
+        }
+
+        return $barcodes;
     }
 
     public function getRakList(Request $request)
@@ -246,6 +398,21 @@ class MutLokasiController extends Controller
     {
         $timestamp = Carbon::now();
         $no_mut = $request['txt_nodok'];
+
+        $mutLokasiIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $no_mut)->where('status', 'Y')->pluck('id')->all();
+        $blocking = $this->findBlockingNewerMutations($mutLokasiIds);
+        if ($blocking !== '') {
+            return [
+                'status' => 400,
+                'message' => 'Tidak bisa cancel, ' . $blocking . '. Cancel dulu mutasi yang lebih baru.',
+                'additional' => [],
+            ];
+        }
+
+        DB::connection('mysql_sb')->beginTransaction();
+        DB::connection('mysql_sb')->enableQueryLog();
+        try {
+
         $updateLokasi_h = MutLokasiHeader::where('no_mut', $request['txt_nodok'])->update([
             'status' => 'Cancel',
             'cancel_by' => Auth::user()->name,
@@ -271,6 +438,11 @@ class MutLokasiController extends Controller
             WHERE b.no_mut = ?
         ", [$no_mut]);
 
+        $this->logRawQueryActivity('Cancel Mutasi Lokasi', $no_mut, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
+
+        DB::connection('mysql_sb')->commit();
+
         $massage = 'Cancel Data Successfully';
 
         return array(
@@ -279,6 +451,17 @@ class MutLokasiController extends Controller
             "additional" => [],
             "redirect" => url('/mutasi-lokasi')
         );
+
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+            return array(
+                "status" => 400,
+                "message" => "Gagal membatalkan data: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
+        }
 
     }
 
@@ -431,34 +614,168 @@ class MutLokasiController extends Controller
             return ['status' => 400, 'message' => "Tgl Mutasi $tgl_mut berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
         }
 
-        $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
-        $no_mut = $notrans[0]->kode;
+        $editNoMut = session('mutlok_edit_no_mut');
+
+        if ($editNoMut) {
+            $no_mut = $editNoMut;
+        } else {
+            $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+            $no_mut = $notrans[0]->kode;
+        }
 
         if (intval($validatedRequest['txt_total_roll']) > 0) {
 
-            $mutlokasiheader = MutLokasiHeader::create([
-                'no_mut' => $no_mut,
-                'tgl_mut' => $request['txt_tgl_mut'],
-                'rak_tujuan' => $request['txt_lokasi_tujuan'],
-                'deskripsi' => $request['txt_keterangan'],
-                'status' => 'Pending',
-                'created_by' => Auth::user()->name,
-                "created_at" => $timestamp,
-                "updated_at" => $timestamp,
-            ]);
+            DB::connection('mysql_sb')->beginTransaction();
+            DB::connection('mysql_sb')->enableQueryLog();
+            try {
 
-            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll ,no_roll_buyer, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at, '' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            if ($editNoMut) {
+                // Barcode yang sudah terkunci (dimutasi lagi) wajib tetap ada di temp, tidak boleh dihapus lewat edit
+                $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $no_mut)->where('status', 'Y')->pluck('id')->all();
+                $lockedBarcodes = $this->getLockedBarcodes($originalIds, $no_mut);
+                $tempBarcodes = DB::connection('mysql_sb')->table('whs_mut_lokasi_temp')->where('created_by', Auth::user()->name)->pluck('idbpb_det')->all();
+                $missingLocked = array_diff($lockedBarcodes, $tempBarcodes);
 
-            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, no_roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','',np_curr, np_tgl_in, np_price, null, null from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+                if (!empty($missingLocked)) {
+                    throw new \Exception('Barcode terkunci tidak boleh dihapus: ' . implode(', ', $missingLocked));
+                }
 
-            $trx_out = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '', '".$no_mut."' no_mut, idbpb_det, a.id_jo, a.id_item, a.rak_asal, no_lot, no_roll, no_roll_buyer, b.itemdesc, qty, a.unit, qty, '' curr, '0' price, 'Y' status, created_by, 'mutasi lokasi' deskripsi, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','','','',np_curr, np_tgl_in, np_price, null, null from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+                MutLokasiHeader::where('no_mut', $no_mut)->update([
+                    'tgl_mut' => $request['txt_tgl_mut'],
+                    'rak_tujuan' => $request['txt_lokasi_tujuan'],
+                    'deskripsi' => $request['txt_keterangan'],
+                    'updated_at' => $timestamp,
+                ]);
+
+                DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $no_mut)->delete();
+                DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')->where('no_dok', $no_mut)->delete();
+                DB::connection('mysql_sb')->table('whs_bppb_det')->where('no_bppb', $no_mut)->delete();
+            } else {
+                $mutlokasiheader = MutLokasiHeader::create([
+                    'no_mut' => $no_mut,
+                    'tgl_mut' => $request['txt_tgl_mut'],
+                    'rak_tujuan' => $request['txt_lokasi_tujuan'],
+                    'deskripsi' => $request['txt_keterangan'],
+                    'status' => 'Pending',
+                    'created_by' => Auth::user()->name,
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+            }
+
+            $tempRows = DB::connection('mysql_sb')->select("select a.*, b.goods_code, b.itemdesc from whs_mut_lokasi_temp a inner join masteritem b on b.id_item = a.id_item where a.created_by = '".Auth::user()->name."'");
+
+            $mutLokasiData = [];
+            $lokasiInData = [];
+            $bppbDetData = [];
+
+            foreach ($tempRows as $row) {
+                $mutLokasiData[] = [
+                    "no_mut" => $no_mut,
+                    "tgl_mut" => $request['txt_tgl_mut'],
+                    "id_jo" => $row->id_jo,
+                    "id_item" => $row->id_item,
+                    "kode_item" => $row->goods_code,
+                    "item_desc" => $row->itemdesc,
+                    "no_ws" => $row->no_ws,
+                    "no_bpb" => $row->no_bpb,
+                    "no_lot" => $row->no_lot,
+                    "no_roll" => $row->no_roll,
+                    "no_roll_buyer" => $row->no_roll_buyer,
+                    "qty_roll" => $row->qty,
+                    "qty_mutasi" => $row->qty,
+                    "unit" => $row->unit,
+                    "rak_asal" => $row->rak_asal,
+                    "rak_tujuan" => $row->rak_tujuan,
+                    "status" => 'Y',
+                    "idbpb_det" => $row->idbpb_det,
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ];
+
+                $lokasiInData[] = [
+                    "no_barcode" => $row->idbpb_det,
+                    "no_dok" => $no_mut,
+                    "no_ws" => $row->no_ws,
+                    "id_jo" => $row->id_jo,
+                    "id_item" => $row->id_item,
+                    "kode_item" => $row->goods_code,
+                    "item_desc" => $row->itemdesc,
+                    "no_roll" => $row->no_roll,
+                    "no_roll_buyer" => $row->no_roll_buyer,
+                    "no_lot" => $row->no_lot,
+                    "qty_sj" => $row->qty,
+                    "qty_aktual" => $row->qty,
+                    "no_mut" => $row->no_bpb,
+                    "satuan" => $row->unit,
+                    "kode_lok" => $row->rak_tujuan,
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                    "np_curr" => $row->np_curr,
+                    "np_tgl_in" => $row->np_tgl_in,
+                    "np_price" => $row->np_price,
+                ];
+
+                $bppbDetData[] = [
+                    "no_bppb" => $no_mut,
+                    "id_roll" => $row->idbpb_det,
+                    "id_jo" => $row->id_jo,
+                    "id_item" => $row->id_item,
+                    "no_rak" => $row->rak_asal,
+                    "no_lot" => $row->no_lot,
+                    "no_roll" => $row->no_roll,
+                    "no_roll_buyer" => $row->no_roll_buyer,
+                    "item_desc" => $row->itemdesc,
+                    "qty_stok" => $row->qty,
+                    "satuan" => $row->unit,
+                    "qty_out" => $row->qty,
+                    "curr" => '',
+                    "price" => 0,
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "deskripsi" => 'mutasi lokasi',
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                    "np_curr" => $row->np_curr,
+                    "np_tgl_in" => $row->np_tgl_in,
+                    "np_price" => $row->np_price,
+                ];
+            }
+
+            if (!empty($mutLokasiData)) {
+                DB::connection('mysql_sb')->table('whs_mut_lokasi')->insert($mutLokasiData);
+            }
+
+            if (!empty($lokasiInData)) {
+                DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')->insert($lokasiInData);
+            }
+
+            if (!empty($bppbDetData)) {
+                DB::connection('mysql_sb')->table('whs_bppb_det')->insert($bppbDetData);
+            }
 
             $mut_detail_temp = MutasiDetailTemp::where('created_by',Auth::user()->name)->delete();
 
             $mut_detail_temp_cancel = MutasiDetailTempCancel::where('created_by',Auth::user()->name)->delete();
 
-            $massage = $no_mut . ' Saved Succesfully';
+            $this->logRawQueryActivity($editNoMut ? 'Edit Mutasi Lokasi' : 'Create Mutasi Lokasi', $no_mut, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+
+            session()->forget('mutlok_edit_no_mut');
+
+            $massage = $no_mut . ($editNoMut ? ' Updated Succesfully' : ' Saved Succesfully');
             $stat = 200;
+
+            } catch (\Throwable $e) {
+                DB::connection('mysql_sb')->rollBack();
+                DB::connection('mysql_sb')->flushQueryLog();
+                $massage = 'Gagal menyimpan data: ' . $e->getMessage();
+                $stat = 400;
+            }
 
         }else{
             $massage = ' Please Input Data';
@@ -556,6 +873,18 @@ public function listscanbarcodemut(Request $request)
 
         $data_scan = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi_temp where created_by  = '".Auth::user()->name."' GROUP BY idbpb_det");
 
+        $editNoMut = session('mutlok_edit_no_mut');
+        if ($editNoMut) {
+            $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $editNoMut)->where('status', 'Y')->pluck('id')->all();
+            $lockedBarcodes = $this->getLockedBarcodes($originalIds, $editNoMut);
+        } else {
+            $lockedBarcodes = [];
+        }
+
+        foreach ($data_scan as $row) {
+            $row->locked = in_array($row->idbpb_det, $lockedBarcodes);
+        }
+
         return DataTables::of($data_scan)->toJson();
     }
 
@@ -563,6 +892,18 @@ public function listscanbarcodemut(Request $request)
 
 public function deletemuttemp(Request $request)
 {
+    $editNoMut = session('mutlok_edit_no_mut');
+    if ($editNoMut) {
+        $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $editNoMut)->where('status', 'Y')->pluck('id')->all();
+        $lockedBarcodes = $this->getLockedBarcodes($originalIds, $editNoMut);
+        if (in_array($request['no_barcode'], $lockedBarcodes)) {
+            return [
+                'status' => 400,
+                'message' => 'Barcode ' . $request['no_barcode'] . ' sudah dimutasi lagi, tidak bisa dihapus dari mutasi ini.',
+            ];
+        }
+    }
+
     $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where created_by = '".Auth::user()->name."' and idbpb_det = '".$request['no_barcode']."'");
 
     $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi_temp_cancel select * from whs_mut_lokasi_temp where created_by = '".Auth::user()->name."' and idbpb_det = '".$request['no_barcode']."'");
@@ -573,11 +914,18 @@ public function deletemuttemp(Request $request)
 
 public function deletemuttempall(Request $request)
 {
+    $editNoMut = session('mutlok_edit_no_mut');
+    $lockedBarcodes = [];
+    if ($editNoMut) {
+        $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $editNoMut)->where('status', 'Y')->pluck('id')->all();
+        $lockedBarcodes = $this->getLockedBarcodes($originalIds, $editNoMut);
+    }
+
     $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where created_by = '".Auth::user()->name."'");
 
-    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi_temp_cancel select * from whs_mut_lokasi_temp where created_by = '".Auth::user()->name."'");
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi_temp_cancel select * from whs_mut_lokasi_temp where created_by = '".Auth::user()->name."'".(!empty($lockedBarcodes) ? " and idbpb_det not in ('".implode("','", $lockedBarcodes)."')" : ""));
 
-    $deletescan = MutasiDetailTemp::where('created_by',Auth::user()->name)->delete();
+    $deletescan = MutasiDetailTemp::where('created_by',Auth::user()->name)->whereNotIn('idbpb_det', $lockedBarcodes)->delete();
 
 }
 
@@ -585,12 +933,49 @@ public function updatelokasimuttemp(Request $request)
 {
     $lokasi_tujuan = $request['lokasi_tujuan'];
 
+    $editNoMut = session('mutlok_edit_no_mut');
+    $lockedBarcodes = [];
+    if ($editNoMut) {
+        $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $editNoMut)->where('status', 'Y')->pluck('id')->all();
+        $lockedBarcodes = $this->getLockedBarcodes($originalIds, $editNoMut);
+    }
+
     $updatescan = MutasiDetailTemp::where('created_by', Auth::user()->name)
+    ->whereNotIn('idbpb_det', $lockedBarcodes)
     ->update([
         'rak_tujuan' => $lokasi_tujuan
     ]);
 
 
+}
+
+public function updateRowLokasiMutTemp(Request $request)
+{
+    $noBarcode = $request['no_barcode'];
+    $lokasiTujuan = $request['lokasi_tujuan'];
+
+    $editNoMut = session('mutlok_edit_no_mut');
+    if ($editNoMut) {
+        $originalIds = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $editNoMut)->where('status', 'Y')->pluck('id')->all();
+        $lockedBarcodes = $this->getLockedBarcodes($originalIds, $editNoMut);
+        if (in_array($noBarcode, $lockedBarcodes)) {
+            return [
+                'status' => 400,
+                'message' => 'Barcode ' . $noBarcode . ' sudah dimutasi lagi, lokasi tujuan tidak bisa diubah.',
+            ];
+        }
+    }
+
+    MutasiDetailTemp::where('created_by', Auth::user()->name)
+        ->where('idbpb_det', $noBarcode)
+        ->update([
+            'rak_tujuan' => $lokasiTujuan,
+        ]);
+
+    return [
+        'status' => 200,
+        'message' => 'OK',
+    ];
 }
 
 

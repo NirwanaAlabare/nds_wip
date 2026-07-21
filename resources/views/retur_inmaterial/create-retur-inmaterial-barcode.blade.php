@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,16 +8,28 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 @include('retur_inmaterial._tab-create-ri')
-<form action="{{ route('store-retur-inmaterial-fabric-new') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitRiForm(this, event)">
+<form action="{{ isset($edit_data) ? route('update-retur-inmaterial-barcode') : route('store-retur-inmaterial-fabric-new') }}" method="post" id="store-inmaterial" onsubmit="validateAndSubmitRiForm(this, event)">
     @csrf
+    <input type="hidden" name="txt_source_form" value="Barcode">
+    @if(isset($edit_data))
+    <input type="hidden" name="edit_id" value="{{ $edit_data->id }}">
+    @endif
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                Data Header
+                Data Header{{ isset($edit_data) ? ' - Edit ' . $edit_data->no_dok : '' }}
             </h5>
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
@@ -59,7 +71,7 @@
                                 <label><small>Tgl RI</small></label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="txt_tgl_ri" name="txt_tgl_ri" autocomplete="off" readonly
-                                            value="{{ date('Y-m-d') }}">
+                                            value="{{ isset($edit_data) ? \Carbon\Carbon::parse($edit_data->tgl_dok)->format('Y-m-d') : date('Y-m-d') }}">
                                     <span class="input-group-text" id="txt_tgl_ri_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
                                 </div>
                             </div>
@@ -97,16 +109,16 @@
             <div class="col-12 col-md-5">
                 <div class="row">
 
-                    <input type="hidden" class="form-control " id="txt_aju_num" name="txt_aju_num" value="" >
+                    <input type="hidden" class="form-control " id="txt_aju_num" name="txt_aju_num" value="{{ $edit_data->no_aju ?? '' }}" >
                     <input type="hidden" class="form-control form-control" id="txt_tgl_aju" name="txt_tgl_aju"
-                                                    value="{{ date('Y-m-d') }}">
-                     <input type="hidden" class="form-control " id="txt_faktur" name="txt_faktur" value="" >
+                                                    value="{{ isset($edit_data) && $edit_data->tgl_aju ? \Carbon\Carbon::parse($edit_data->tgl_aju)->format('Y-m-d') : date('Y-m-d') }}">
+                     <input type="hidden" class="form-control " id="txt_faktur" name="txt_faktur" value="{{ $edit_data->no_faktur ?? '' }}" >
                     <input type="hidden" class="form-control form-control" id="txt_tgl_faktur" name="txt_tgl_faktur"
-                                                    value="{{ date('Y-m-d') }}">
-                    <input type="hidden" class="form-control " id="txt_reg" name="txt_reg" value="" >
+                                                    value="{{ isset($edit_data) && $edit_data->tgl_faktur ? \Carbon\Carbon::parse($edit_data->tgl_faktur)->format('Y-m-d') : date('Y-m-d') }}">
+                    <input type="hidden" class="form-control " id="txt_reg" name="txt_reg" value="{{ $edit_data->no_daftar ?? '' }}" >
                     <input type="hidden" class="form-control form-control" id="txt_tgl_reg" name="txt_tgl_reg"
-                                                    value="{{ date('Y-m-d') }}">
-                    <input type="hidden" class="form-control " id="txt_no_kk" name="txt_no_kk" value="" >
+                                                    value="{{ isset($edit_data) && $edit_data->tgl_daftar ? \Carbon\Carbon::parse($edit_data->tgl_daftar)->format('Y-m-d') : date('Y-m-d') }}">
+                    <input type="hidden" class="form-control " id="txt_no_kk" name="txt_no_kk" value="{{ $edit_data->no_kontrak ?? '' }}" >
 
                     <!-- <div class="col-md-7">
                         <div class="mb-1">
@@ -169,7 +181,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Invoice/ No SJ</small></label>
-                                <input type="text" class="form-control " id="txt_noinvoice" name="txt_noinvoice" value="" >
+                                <input type="text" class="form-control " id="txt_noinvoice" name="txt_noinvoice" value="{{ $edit_data->no_invoice ?? '' }}" >
                             </div>
                         </div>
                     </div>
@@ -201,7 +213,6 @@
                                 <label><small>Tipe</small></label>
                                 <select class="form-control select2bs4" id="txt_tipe" name="txt_tipe" style="width: 100%;">
                                     <option value="standard">STANDARD</option>
-                                    <option value="flexible">FLEXIBLE</option>
                                 </select>
                             </div>
                         </div>
@@ -382,6 +393,7 @@
         </div>
     </div>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -441,9 +453,9 @@
         document.getElementById('store-inmaterial').reset();
     }
 
-    get_tujuan('INHOUSE');
+    get_tujuan('INHOUSE', @json($tujuan_existing ?? ''));
 
-    function get_tujuan(val) {
+    function get_tujuan(val, preselect) {
        return $.ajax({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -456,6 +468,9 @@
         success: function (res) {
             if (res) {
                 document.getElementById('txt_tujuan').innerHTML = res;
+                if (preselect) {
+                    $('#txt_tujuan').val(preselect).trigger('change');
+                }
             }
         },
     });

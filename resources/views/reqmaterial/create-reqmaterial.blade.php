@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,9 +8,17 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <form action="{{ route('store-reqmaterial-fabric') }}" method="post" id="store-reqmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
     <div class="card card-sb card-outline">
@@ -147,22 +155,25 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+            <div id="loading_detail_item" class="text-center text-muted mb-2" style="display:none;">
+                <i class="fa fa-spinner fa-spin"></i> Memuat data...
+            </div>
+            <div>
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">JO #</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS #</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Nama Barang</th>
-                            <th class="text-center hidden" style="font-size: 0.6rem;width: 300px;">Qty In</th>
-                            <th class="text-center hidden" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Stok</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Sisa Req</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Sisa</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Input Request</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 10%;">JO #</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 10%;">WS #</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Kode Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 30%;">Nama Barang</th>
+                            <th class="text-center d-none" style="font-size: 0.6rem;">Qty In</th>
+                            <th class="text-center d-none" style="font-size: 0.6rem;">Qty Out</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Stok</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Sisa Req</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Sisa</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 11%;">Input Request</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 8%;">Unit</th>
                         </tr>
                     </thead>
                     <tbody id="detail_item">
@@ -181,6 +192,7 @@
     </div>
 </div>
 </form>
+</div>
 @endsection
 
 @section('custom-script')
@@ -260,6 +272,38 @@
                 }
             }
 
+            let missing = [];
+            if (!$('#dikirim_ke').val()) missing.push('Dikirim Ke');
+
+            let dikirimKeText = $('#dikirim_ke option:selected').text().toUpperCase().replace(/\s*-\s*/g, ' ').trim();
+            if (dikirimKeText.includes('PRODUCTION CUTTING') && !$('#ws_act').val()) {
+                missing.push('WS Actual #');
+            }
+
+            if (missing.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                        '<ul style="margin-top:10px;">' +
+                        missing.map(m => '<li>' + m + '</li>').join('') +
+                        '</ul></div>'
+                });
+                return;
+            }
+
+            // DataTables membuang row yang tidak match/tidak di halaman aktif dari DOM
+            // saat difilter atau di-paging, jadi filter & paging dikosongkan dulu supaya
+            // semua row detail ikut terkirim saat submit.
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                let table = $('#datatable').DataTable();
+                if (table.search() !== '') {
+                    table.search('');
+                }
+                table.page.len(-1).draw(false);
+            }
+
             submitForm(e, evt);
         }
 
@@ -268,8 +312,11 @@
         $('#p_unit').val("yard").trigger('change');
 
         //Reset Form
-        if (document.getElementById('store-inmaterial')) {
-            document.getElementById('store-inmaterial').reset();
+        if (document.getElementById('store-reqmaterial')) {
+            document.getElementById('store-reqmaterial').reset();
+            // form.reset() tidak mensinkronkan tampilan select2 kalau browser
+            // mengembalikan value lama saat refresh, jadi paksa render ulang.
+            $('#store-reqmaterial').find('select').val('').trigger('change');
         }
 
         $('#ws_id').on('change', async function(e) {
@@ -304,12 +351,15 @@
                 ordering: false,
                 processing: true,
                 serverSide: false,
-                paging: false,
+                paging: true,
+                pageLength: 10,
                 searching: true,
-                scrollY: '300px',
-                scrollX: true,        
-                scrollCollapse: true,
-                dom: "lfrtip"     
+                autoWidth: false,
+                dom: "lfrtip",
+                columnDefs: [{
+                    targets: [3],
+                    visible: false
+                }]
             });
         });
 
@@ -375,6 +425,19 @@
 
 
       function getlist_item(id_jo) {
+    // Reset form (select2 di-trigger 'change' saat page load) ikut memicu
+    // onchange ini walau job_order masih kosong, jadi jangan fetch kalau
+    // belum benar-benar ada WS yang dipilih.
+    if (!$('#job_order').val()) {
+        $('#loading_detail_item').hide();
+        $('#detail_item').empty();
+        return;
+    }
+
+    // Query detail item cukup berat (+/- 7 detik), kasih indikator loading
+    // terpisah dari DataTables supaya tidak mengganggu struktur tabel.
+    $('#loading_detail_item').show();
+
     return $.ajax({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -409,15 +472,21 @@
                         ordering: false,
                         processing: true,
                         serverSide: false,
-                        paging: false,
+                        paging: true,
+                        pageLength: 10,
                         searching: true,
-                        scrollY: '300px',
-                        scrollX: true,
-                        scrollCollapse: true,
-                        dom: "lfrtip"
+                        autoWidth: false,
+                        dom: "lfrtip",
+                        columnDefs: [{
+                            targets: [3],
+                            visible: false
+                        }]
                     });
                 }
             }
+        },
+        complete: function () {
+            $('#loading_detail_item').hide();
         }
     });
 }

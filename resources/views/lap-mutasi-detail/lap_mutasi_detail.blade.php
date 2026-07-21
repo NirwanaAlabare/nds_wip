@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -9,9 +9,17 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <form action="{{ route('export_excel_mut_detail') }}" method="get">
     <div class="card card-sb">
         <div class="card-header">
@@ -83,6 +91,7 @@
             </div>
         </div>
     </div>
+</div>
     @endsection
 
     @section('custom-script')
