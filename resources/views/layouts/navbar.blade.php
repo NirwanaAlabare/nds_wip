@@ -1136,6 +1136,11 @@
                                     Update Data Ceisa
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('lock') }}" target="_blank" class="dropdown-item">
+                                    Master Data Closing
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
