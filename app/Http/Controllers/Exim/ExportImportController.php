@@ -207,7 +207,6 @@ class ExportImportController extends Controller
                 (SELECT *
 FROM
 (
-    /* BC 25,27,41,261 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
@@ -218,7 +217,6 @@ FROM
         ON b.nomor_aju = a.nomor_aju
     WHERE
     (
-        /* BC 27 : prioritas 3,3,6 lalu fallback 8,8,6 */
         (
             (LEFT(b.nomor_aju,6)+0) = 27
             AND
@@ -248,7 +246,6 @@ FROM
 
         OR
 
-        /* BC 25,41,261 tetap */
         (
             (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
             AND a.seri='8'
@@ -260,7 +257,6 @@ FROM
 
     UNION
 
-    /* BC 40,262 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
@@ -271,9 +267,8 @@ FROM
         ON b.nomor_aju = a.nomor_aju
     WHERE
     (
-        /* BC 40 : prioritas 3,9,6 lalu fallback 9,9,6 */
         (
-            (LEFT(b.nomor_aju,6)+0)=40
+            (LEFT(b.nomor_aju,6)+0) IN (40,262)
             AND
             (
                 (
@@ -299,21 +294,11 @@ FROM
             )
         )
 
-        OR
-
-        /* BC 262 tetap */
-        (
-            (LEFT(b.nomor_aju,6)+0)=262
-            AND a.seri='9'
-            AND a.kode_entitas='9'
-            AND a.kode_jenis_identitas='6'
-        )
     )
     GROUP BY b.nomor_aju
 
     UNION
 
-    /* BC 23 */
     SELECT
         b.nomor_aju,
         a.nomor_identitas,
@@ -543,7 +528,7 @@ FROM
         AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
     GROUP BY b.nomor_aju
 
-) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
+) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
                 UNION
                 select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, supplier, '-' kode_barang, nama_item, qty, satuan, a.curr, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$request->dateFrom."' and tanggal_daftar <= '".$request->dateTo."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
 

@@ -496,6 +496,31 @@ class StockerService
         $colorFormCutFilter = $color ? " and UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($color))."'" : null;
         $colorFormPieceFilter = $color ? " and UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($color))."'" : null;
 
+        if ($partId == 80329) {
+            \Log::info("Reorder Stocker Numbering interrupted for partId 80329 due to manual modification.");
+
+            return "data was manually modified";
+        }
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->where("part_form.part_id", $partId)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                \Log::info("Reorder Stocker Numbering interrupted due to Closed Period.");
+
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
+        }
+
         $formCutInputs = collect(DB::select("
             SELECT
                 UPPER(TRIM(marker_input.color)) color,
@@ -999,7 +1024,9 @@ class StockerService
                     $loadingLine->save();
                 }
 
-                array_push($log, $s->id_qr_stocker." Qty Updated.");
+                array_push($log, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
+
+                \Log::info("Recalculate Stocker ".$s->id_qr_stocker);
             }
         }
 
