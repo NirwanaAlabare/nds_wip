@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -8,9 +8,17 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
     <div class="card card-sb">
@@ -275,23 +283,23 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div> -->
-    <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+    <div>
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                 <thead>
                     <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Style</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Stok</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Request</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Sisa Qty Request</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Input</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">Style</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 6%;">ID Item</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 30%;">Deskripsi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 7%;">Stok</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Request</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Out</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">Balance</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 8%;">Qty Input</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 6%;">Satuan</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Aksi</th>
+                        <th class="text-center d-none">Lokasi</th>
+                        <th class="text-center d-none">Lokasi</th>
+                        <th class="text-center d-none">Lokasi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -455,6 +463,7 @@
         </div>
     </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -493,6 +502,24 @@
                     Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPPB tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
                     return;
                 }
+            }
+
+            let missing = [];
+            if (!$('#txt_noreq').val()) missing.push('No Request');
+            if (!$('#txt_jns_klr').val()) missing.push('Jenis Pengeluaran');
+            if (!$('#txt_dok_bc').val()) missing.push('Dokumen BC');
+
+            if (missing.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    html: '<div style="text-align:left;">Mohon lengkapi data berikut:' +
+                        '<ul style="margin-top:10px;">' +
+                        missing.map(m => '<li>' + m + '</li>').join('') +
+                        '</ul></div>'
+                });
+                return;
             }
 
             submitForm(e, evt);
@@ -920,11 +947,10 @@ function submitFormScan(e, evt) {
             ordering: false,
             processing: true,
             serverSide: false,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 url: '{{ route("get-detail-item") }}',
                 data: function (d) {

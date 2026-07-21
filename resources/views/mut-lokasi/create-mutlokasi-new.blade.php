@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,13 +8,26 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+    @media (max-width: 1366px){
+        .marginnya{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
 <form method="post" id="store-opname" onsubmit="submitForm(this, event)" >
     @method('GET')
     @csrf
-    <div class="card card-sb">
+    <div class="card card-sb marginnya">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                <i class="fas fa-dolly"></i> Mutasi Lokasi
@@ -141,7 +154,7 @@
 </div>
 
 
-<div class="card card-sb">
+<div class="card card-sb marginnya">
     <div class="card-header">
         <h5 class="card-title fw-bold">
             Data Detail Roll
@@ -150,20 +163,20 @@
     <div class="card-body">
         <div class="form-group row">
 
-            <div class="table-responsive" >
-                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi Barcode</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi Tujuan</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Action</th>
+                            <th class="text-center" style="font-size: 0.75rem;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.75rem;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.75rem;">No WS</th>
+                            <th class="text-center" style="font-size: 0.75rem;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Qty</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Unit</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Lokasi Barcode</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Lokasi Tujuan</th>
+                            <th class="text-center" style="font-size: 0.75rem;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -553,8 +566,7 @@ function GantilokasiTujuan(){
                 serverSide: true,
                 processing: true,
                 ordering: false,
-                scrollX: '400px',
-                scrollY: true,
+                autoWidth: false,
                 pageLength: 10,
                 ajax: {
                     headers: {
@@ -604,6 +616,39 @@ function GantilokasiTujuan(){
 
                 ],
                 columnDefs: [{
+                    targets: [4],
+                    width: '33%',
+                    className: 'text-wrap'
+                },
+                {
+                    targets: [0, 1, 3, 9],
+                    width: '7%'
+                },
+                {
+                    targets: [2],
+                    width: '9%'
+                },
+                {
+                    targets: [5],
+                    width: '6%'
+                },
+                {
+                    targets: [6],
+                    width: '5%'
+                },
+                {
+                    targets: [7],
+                    width: '10%'
+                },
+                {
+                    targets: [8],
+                    width: '12%',
+                    render: (data, type, row, meta) => {
+                        let options = '<option value="">Pilih Lokasi</option>' + lokasiOptions.map(opt => '<option value="' + opt + '"' + (opt === data ? ' selected' : '') + '>' + opt + '</option>').join('');
+                        return '<select class="form-control form-control-sm select2lok-row" style="width:100%;" onchange="updateRowLokasi(\'' + row.idbpb_det + '\', this.value)">' + options + '</select>';
+                    }
+                },
+                {
                     targets: [9],
                     render: (data, type, row, meta) => {
                    // if (row.qty_balance == 0) {
@@ -616,6 +661,34 @@ function GantilokasiTujuan(){
 
         ]
     });
+
+    datatable.on('draw.dt', function() {
+        $('.select2lok-row').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+    });
+
+    function updateRowLokasi(no_barcode, lokasi_tujuan) {
+        if (!lokasi_tujuan) return;
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("update-row-lokasi-mut-temp") }}',
+            type: 'get',
+            data: {
+                no_barcode: no_barcode,
+                lokasi_tujuan: lokasi_tujuan,
+            },
+            success: function (res) {
+                if (res && res.status == 400) {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+                }
+                dataTableReload();
+            }
+        });
+    }
 
             function dataTableReload() {
                 datatable.ajax.reload();

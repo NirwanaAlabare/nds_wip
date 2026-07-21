@@ -194,6 +194,7 @@ class Marketing_SOController extends Controller
 
         $existing = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $request->id_bom)
+            ->where('cancel', 'N')
             ->select('id_contents', 'id_color', 'id_size')
             ->get();
 
@@ -663,6 +664,7 @@ class Marketing_SOController extends Controller
             ->whereNotNull('id_color')
             ->where('id_color', '!=', '0')
             ->where('id_color', '!=', '')
+            ->where('cancel', 'N')
             ->pluck('id_color')
             ->unique()
             ->toArray();
@@ -672,6 +674,7 @@ class Marketing_SOController extends Controller
             ->whereNotNull('id_size')
             ->where('id_size', '!=', '0')
             ->where('id_size', '!=', '')
+            ->where('cancel', 'N')
             ->pluck('id_size')
             ->unique()
             ->toArray();
@@ -794,7 +797,7 @@ class Marketing_SOController extends Controller
         $allowed_colors = $bom_header && $bom_header->colors ? json_decode($bom_header->colors, true) : [];
         $allowed_sizes  = $bom_header && $bom_header->sizes ? json_decode($bom_header->sizes, true) : [];
 
-        $bom_details = $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id_bom)->get();
+        $bom_details = $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id_bom)->where('cancel', 'N') ->get();
 
         $required_contents = [];
         $content_combinations = [];
@@ -1606,6 +1609,7 @@ class Marketing_SOController extends Controller
                     FROM bom_marketing_detail
                     WHERE id_bom_marketing = ?
                     AND id_item IS NOT NULL
+                    AND cancel = 'N'
                 ", [$request->id_bom]);
 
                 $posno_counter = $mysql_sb->table('bom_jo_item')
@@ -1662,7 +1666,7 @@ class Marketing_SOController extends Controller
                             ON mi.id_item = bmd.id_item
                         LEFT JOIN act_costing_detail_new acd
                             ON bmd.id_costing_detail = acd.id
-                        WHERE sd.id_so = '$id_so'
+                        WHERE sd.id_so = '$id_so' AND bmd.cancel = 'N'
                         AND mi.id_gen IS NOT NULL
                     ";
 
@@ -1750,6 +1754,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('masterpilihan as u', 'd.unit', '=', 'u.id')
             ->leftJoin('master_set as mset', 'd.id_set', '=', 'mset.id')
             ->where('d.id_bom_marketing', $so->id_bom)
+            ->where('d.cancel','N')
             ->select(
                 'd.id as detail_id',
                 'd.id_item',
@@ -1900,6 +1905,7 @@ class Marketing_SOController extends Controller
                     'cur.nama_pilihan as currency'
                 )
                 ->where('d.id_bom_marketing', $id)
+                ->where('d.cancel', 'N')
                 ->orderBy('a.root_group', 'asc');
 
             return DataTables::of($data)
@@ -2044,6 +2050,7 @@ class Marketing_SOController extends Controller
                     ->where('id_contents', $request->item_contents)
                     ->where('id_color', $cId)
                     ->where('id_size', $sId)
+                    ->where('cancel', 'N')
                     ->exists();
 
                 if (!$isAlreadyExist && $id_item != '') {
@@ -2378,6 +2385,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('masterpanel as mpnl', 'bmd.shell', '=', 'mpnl.id')
             ->where('bmd.id_bom_marketing', $header->id_bom)
             ->whereNotNull('bmd.id_item')
+            ->where('bmd.cancel', 'N')
             ->get();
 
         // 6. Olah Hitungan Kuantiti Material & Pisahkan per Kategori
@@ -3376,7 +3384,7 @@ class Marketing_SOController extends Controller
                     ON mi.id_item = bmd.id_item
                 LEFT JOIN act_costing_detail_new acd
                     ON bmd.id_costing_detail = acd.id
-                WHERE sd.id_so = ?
+                WHERE sd.id_so = ? AND bmd.cancel = 'N'
                 AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
             ", [$id_jo, $id_bom, $id]);
 

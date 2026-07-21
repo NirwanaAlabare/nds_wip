@@ -29,10 +29,12 @@ use DNS1D;
 use PDF;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Traits\ChecksClosingPeriode;
+use App\Http\Controllers\Traits\LogsActivity;
 
 class OutMaterialController extends Controller
 {
     use ChecksClosingPeriode;
+    use LogsActivity;
 
     /**
      * Display a listing of the resource.
@@ -150,7 +152,7 @@ class OutMaterialController extends Controller
         DB::connection('mysql_sb')->delete("DELETE FROM whs_bppb_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('outmaterial.edit-outmaterial', ['det_data' => $det_data, 'data_out' => $data_out, 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
+        return view('outmaterial.edit-outmaterial', ['det_data' => $det_data, 'data_out' => $data_out, 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function getdetailreq(Request $request)
@@ -519,42 +521,63 @@ class OutMaterialController extends Controller
     {
         $timestamp = Carbon::now();
 
-    // Update detail tabel lain
-        DB::connection('mysql_sb')->update("
-            UPDATE bppb
-            SET qty_old = qty, qty = 0, cancel = 'Y'
-            WHERE bppbno_int = ?
-            ", [$request['txt_nodok']]);
+        DB::connection('mysql_sb')->beginTransaction();
 
-        if ($request->type === 'cancel_with_mr') {
+        try {
+            DB::connection('mysql_sb')->enableQueryLog();
+
+            // Update detail tabel lain
             DB::connection('mysql_sb')->update("
-                UPDATE bppb_req
-                SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0
-                WHERE bppbno = (
-                SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
-                )
+                UPDATE bppb
+                SET qty_old = qty, qty = 0, cancel = 'Y'
+                WHERE bppbno_int = ?
                 ", [$request['txt_nodok']]);
-        } else{
+
+            if ($request->type === 'cancel_with_mr') {
+                DB::connection('mysql_sb')->update("
+                    UPDATE bppb_req
+                    SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0
+                    WHERE bppbno = (
+                    SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
+                    )
+                    ", [$request['txt_nodok']]);
+            } else{
+                DB::connection('mysql_sb')->update("
+                    UPDATE bppb_req
+                    SET qty_out = 0
+                    WHERE bppbno = (
+                    SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
+                    )
+                    ", [$request['txt_nodok']]);
+            }
+
             DB::connection('mysql_sb')->update("
-                UPDATE bppb_req
-                SET qty_out = 0
-                WHERE bppbno = (
-                SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
-                )
+                UPDATE whs_bppb_h
+                SET status = 'Cancel'
+                WHERE no_bppb = ?
                 ", [$request['txt_nodok']]);
+
+            DB::connection('mysql_sb')->update("
+                UPDATE whs_bppb_det
+                SET qty_stok = qty_out, qty_out = 0, status = 'N'
+                WHERE no_bppb = ?
+                ", [$request['txt_nodok']]);
+
+            $this->logRawQueryActivity('Cancel BPPB', $request['txt_nodok'], DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return [
+                "status"     => 500,
+                "message"    => "Gagal cancel BPPB: " . $e->getMessage(),
+                "additional" => [],
+                "redirect"   => ''
+            ];
         }
-
-        DB::connection('mysql_sb')->update("
-            UPDATE whs_bppb_h
-            SET status = 'Cancel'
-            WHERE no_bppb = ?
-            ", [$request['txt_nodok']]);
-
-        DB::connection('mysql_sb')->update("
-            UPDATE whs_bppb_det
-            SET qty_stok = qty_out, qty_out = 0, status = 'N'
-            WHERE no_bppb = ?
-            ", [$request['txt_nodok']]);
 
         return [
             "status"     => 200,
@@ -675,6 +698,7 @@ class OutMaterialController extends Controller
             return ['status' => 400, 'message' => "Tgl BPPB $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
         }
 
+        try {
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $m_type = $Mattype1[0]->Mattype;
@@ -693,102 +717,127 @@ class OutMaterialController extends Controller
         $cek_mattype2 = DB::connection('mysql_sb')->select("select * from tempbpb where Mattype = '" . $m_type2 . "'");
         $hasilcek2 = $cek_mattype2 ? $cek_mattype2[0]->Mattype : 0;
 
-        if ($hasilcek != '0') {
-            $update_tempbpb = Tempbpb::where('Mattype', $m_type)->update([
-                'BPBNo' => $no_type,
+        DB::connection('mysql_sb')->beginTransaction();
+
+        try {
+            DB::connection('mysql_sb')->enableQueryLog();
+
+            if ($hasilcek != '0') {
+                $update_tempbpb = Tempbpb::where('Mattype', $m_type)->update([
+                    'BPBNo' => $no_type,
+                ]);
+            }else{
+                $TempBpbData = [];
+                array_push($TempBpbData, [
+                    "Mattype" => $m_type,
+                    "BPBNo" => $no_type,
+                ]);
+                $TempBpbStore = Tempbpb::insert($TempBpbData);
+            }
+
+            if ($hasilcek2 != '0') {
+                $update_tempbpb2 = Tempbpb::where('Mattype', $m_type2)->update([
+                    'BPBNo' => $no_type2,
+                ]);
+            }else{
+                $TempBpbData2 = [];
+                array_push($TempBpbData2, [
+                    "Mattype" => $m_type2,
+                    "BPBNo" => $no_type2,
+                ]);
+                $TempBpbStore2 = Tempbpb::insert($TempBpbData2);
+            }
+
+            $timestamp = Carbon::now();
+            $bppbSbData = [];
+            $uniqueIdItems = [];
+
+            for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
+                $bppbSbData[] = [
+                    'bppbno' => $bpbno,
+                    'bppbno_int' => $bppbno_int,
+                    'bppbno_req' => $request['txt_noreq'],
+                    'bppbdate' => $request['txt_tgl_bppb'],
+                    'id_item' => $request["id_item"][$i],
+                    'qty' => $request["input_qty"][$i],
+                    'price' => '0',
+                    'remark' => $request['txt_notes'],
+                    'use_kite' => '1',
+                    'berat_bersih' => '0',
+                    'berat_kotor' => '0',
+                    'username' => Auth::user()->name,
+                    'unit' => $request["unit"][$i],
+                    'qty_karton' => '0',
+                    'bcno' => $request['txt_no_daftar'],
+                    'bcdate' => $request['txt_tgl_daftar'],
+                    'jenis_dok' => $request['txt_dok_bc'],
+                    'id_supplier' => $request['txt_idsupp'],
+                    'id_jo' => $request['txt_id_jo'],
+                    'jenis_trans' => $request['txt_jns_klr'],
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ];
+
+                $uniqueIdItems[$request["id_item"][$i]] = true;
+            }
+
+            if (!empty($bppbSbData)) {
+                BppbSB::insert($bppbSbData);
+            }
+
+            $bppb_header = BppbHeader::create([
+                'no_bppb' => $bppbno_int,
+                'tgl_bppb' => $request['txt_tgl_bppb'],
+                'no_req' => $request['txt_noreq'],
+                'jenis_pengeluaran' => $request['txt_jns_klr'],
+                'no_jo' => $request['txt_nojo'],
+                'tujuan' => $request['txt_dikirim'],
+                'dok_bc' => $request['txt_dok_bc'],
+                'no_ws' => $request['txt_nows'],
+                'no_ws_aktual' => $request['txt_nows_act'],
+                'style_aktual' => $request['txt_style_act'],
+                'buyer' => $request['txt_buyer'],
+                'no_aju' => $request['txt_no_aju'],
+                'tgl_aju' => $request['txt_tgl_aju'],
+                'no_daftar' => $request['txt_no_daftar'],
+                'tgl_daftar' => $request['txt_tgl_daftar'],
+                'no_kontrak' => $request['txt_kontrak'],
+                'no_invoice' => $request['txt_invoice'],
+                'catatan' => $request['txt_notes'],
+                'status' => 'Pending',
+                'created_by' => Auth::user()->name,
+                'no_po_subkon' => $request['txt_po_sub'],
             ]);
-        }else{
-            $TempBpbData = [];
-            array_push($TempBpbData, [
-                "Mattype" => $m_type,
-                "BPBNo" => $no_type,
-            ]);
-            $TempBpbStore = Tempbpb::insert($TempBpbData);
+
+            $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.np_curr, a.np_tgl_in, a.np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at,np_curr,np_tgl_in,np_price from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN (select a.* from whs_lokasi_inmaterial a INNER JOIN data_stock_fabric b on b.no_barcode = a.no_barcode and b.kode_lok = a.kode_lok) b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
+            $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
+
+            $qtyReqChanged = false;
+            foreach (array_keys($uniqueIdItems) as $id_item) {
+                $qtyReqChanged = $this->syncBppbReqQty($bppbno_int, $id_item) || $qtyReqChanged;
+            }
+
+            $this->logRawQueryActivity('Create BPPB', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan BPPB: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
         }
-
-        if ($hasilcek2 != '0') {
-            $update_tempbpb2 = Tempbpb::where('Mattype', $m_type2)->update([
-                'BPBNo' => $no_type2,
-            ]);
-        }else{
-            $TempBpbData2 = [];
-            array_push($TempBpbData2, [
-                "Mattype" => $m_type2,
-                "BPBNo" => $no_type2,
-            ]);
-            $TempBpbStore2 = Tempbpb::insert($TempBpbData2);
-        }
-        $jml_qtyout = 0;
-
-        for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
-            $bppb_headerSB = BppbSB::create([
-                'bppbno' => $bpbno,
-                'bppbno_int' => $bppbno_int,
-                'bppbno_req' => $request['txt_noreq'],
-                'bppbdate' => $request['txt_tgl_bppb'],
-                'id_item' => $request["id_item"][$i],
-                'qty' => $request["input_qty"][$i],
-                'price' => '0',
-                'remark' => $request['txt_notes'],
-                'use_kite' => '1',
-                'berat_bersih' => '0',
-                'berat_kotor' => '0',
-                'username' => Auth::user()->name,
-                'unit' => $request["unit"][$i],
-                'qty_karton' => '0',
-                'bcno' => $request['txt_no_daftar'],
-                'bcdate' => $request['txt_tgl_daftar'],
-                'jenis_dok' => $request['txt_dok_bc'],
-                'id_supplier' => $request['txt_idsupp'],
-                'id_jo' => $request['txt_id_jo'],
-                'jenis_trans' => $request['txt_jns_klr'],
-            ]);
-            $jml_qtyout = $request["qty_sdh_out"][$i] + $request["input_qty"][$i];
-
-            $update_BppbReq = BppbReq::where('bppbno', $request['txt_noreq'])->where('id_item', $request["id_item"][$i])->update([
-                'qty_out' => $jml_qtyout,
-            ]);
-        }
-
-        $bppb_header = BppbHeader::create([
-            'no_bppb' => $bppbno_int,
-            'tgl_bppb' => $request['txt_tgl_bppb'],
-            'no_req' => $request['txt_noreq'],
-            'jenis_pengeluaran' => $request['txt_jns_klr'],
-            'no_jo' => $request['txt_nojo'],
-            'tujuan' => $request['txt_dikirim'],
-            'dok_bc' => $request['txt_dok_bc'],
-            'no_ws' => $request['txt_nows'],
-            'no_ws_aktual' => $request['txt_nows_act'],
-            'style_aktual' => $request['txt_style_act'],
-            'buyer' => $request['txt_buyer'],
-            'no_aju' => $request['txt_no_aju'],
-            'tgl_aju' => $request['txt_tgl_aju'],
-            'no_daftar' => $request['txt_no_daftar'],
-            'tgl_daftar' => $request['txt_tgl_daftar'],
-            'no_kontrak' => $request['txt_kontrak'],
-            'no_invoice' => $request['txt_invoice'],
-            'catatan' => $request['txt_notes'],
-            'status' => 'Pending',
-            'created_by' => Auth::user()->name,
-            'no_po_subkon' => $request['txt_po_sub'],
-        ]);
-
-
-            // $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'','0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
-
-        // $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det
-        //     select a.*, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'' a,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a INNER JOIN (select b.no_dok,a.type_pch, b.no_barcode ,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,price, nilai_barang from (select a.*,id_jo, id_item, price, nilai_barang from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y' ) b on b.no_barcode = a.id_roll");
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, np_curr, np_tgl_in, np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN (select a.* from whs_lokasi_inmaterial a INNER JOIN data_stock_fabric b on b.no_barcode = a.no_barcode and b.kode_lok = a.kode_lok) b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
-        $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
         $massage = $bppbno_int . ' Saved Succesfully';
+        if ($qtyReqChanged) {
+            $massage .= '<br><small class="text-danger">Qty Request ikut terupdate.</small>';
+        }
         $stat = 200;
-    // }else{
-    //     $massage = ' Please Input Data';
-    //     $stat = 400;
-    // }
-
 
         return array(
             "status" =>  $stat,
@@ -796,133 +845,179 @@ class OutMaterialController extends Controller
             "additional" => [],
             "redirect" => url('/out-material')
         );
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan BPPB: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
+        }
 
     }
 
     public function saveoutmanual(Request $request)
     {
-        $tglbppb = $request['m_tgl_bppb'];
-        $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
+        try {
+            $tglbppb = $request['m_tgl_bppb'];
+            $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
 
-        $bppbno_int = $Mattype1[0]->bppbno_int;
+            $bppbno_int = $Mattype1[0]->bppbno_int;
 
-        $qtyOut = collect($request['qty_out']);
+            $qtyOut = collect($request['qty_out']);
 
-        $qtyOutKeys = $qtyOut->keys();
+            $qtyOutKeys = $qtyOut->keys();
 
-        if (intval($request['t_roll']) > 0 && intval($request['m_qty_bal_h']) >= 0) {
-            $timestamp = Carbon::now();
-            $no_bppb = $request['m_no_bppb'];
-            $bppb_temp_det = [];
-            $data_aktual = 0;
-            foreach ($qtyOut as $key => $value) {
-                if ($request['qty_out'][$key] > 0) {
-                // dd(intval($request["qty_ak"][$i]));
-                    array_push($bppb_temp_det, [
-                        "no_bppb" => $bppbno_int,
-                        "id_roll" => $request["id_roll"][$key],
-                        "id_jo" => $request["id_jo"][$key],
-                        "id_item" => $request["id_item"][$key],
-                        "no_rak" => $request["rak"][$key],
-                        "no_lot" => $request["no_lot"][$key],
-                        "no_roll" => $request["no_roll"][$key],
-                        "item_desc" => $request["itemdesc"][$key],
-                        "qty_stok" => $request["qty_stok"][$key],
-                        "satuan" => $request["unit"][$key],
-                        "qty_out" => $request["qty_out"][$key],
-                        "status" => 'Y',
-                        "created_by" => Auth::user()->name,
-                        "deskripsi" => 'manual',
-                        "created_at" => $timestamp,
-                        "updated_at" => $timestamp,
-                    ]);
+            if (intval($request['t_roll']) > 0) {
+                $timestamp = Carbon::now();
+                $no_bppb = $request['m_no_bppb'];
+                $bppb_temp_det = [];
+                $data_aktual = 0;
+
+                DB::connection('mysql_sb')->beginTransaction();
+
+                try {
+                    foreach ($qtyOut as $key => $value) {
+                        if ($request['qty_out'][$key] > 0) {
+                        // dd(intval($request["qty_ak"][$i]));
+                            $barcode_in = DB::connection('mysql_sb')->select("select IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = ? and (no_dok LIKE 'GK/IN%' OR no_dok LIKE 'GK/RI%') ORDER BY CASE WHEN no_dok LIKE 'GK/IN%' THEN 0 ELSE 1 END, id ASC LIMIT 1", [$request["id_roll"][$key] ?? null]);
+                            $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+                            $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+                            $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
+                            array_push($bppb_temp_det, [
+                                "no_bppb" => $bppbno_int,
+                                "id_roll" => $request["id_roll"][$key] ?? null,
+                                "id_jo" => $request["id_jo"][$key] ?? null,
+                                "id_item" => $request["id_item"][$key] ?? null,
+                                "no_rak" => $request["rak"][$key] ?? null,
+                                "no_lot" => $request["no_lot"][$key] ?? null,
+                                "no_roll" => $request["no_roll"][$key] ?? null,
+                                "item_desc" => $request["itemdesc"][$key] ?? null,
+                                "qty_stok" => $request["qty_stok"][$key] ?? null,
+                                "satuan" => $request["unit"][$key] ?? null,
+                                "qty_out" => $request["qty_out"][$key],
+                                "status" => 'Y',
+                                "created_by" => Auth::user()->name,
+                                "deskripsi" => 'manual',
+                                "created_at" => $timestamp,
+                                "updated_at" => $timestamp,
+                                "np_curr" => $np_curr,
+                                "np_tgl_in" => $np_tgl_in,
+                                "np_price" => $np_price,
+                            ]);
+                        }
+                    }
+
+                    if (!empty($bppb_temp_det)) {
+                        BppbDetTemp::insert($bppb_temp_det);
+                    }
+
+                    DB::connection('mysql_sb')->commit();
+                } catch (\Throwable $e) {
+                    DB::connection('mysql_sb')->rollBack();
+                    throw $e;
                 }
+
+                $massage = 'Add data Succesfully';
+                $stat = 200;
+            }else{
+                $massage = ' Please Input Data';
+                $stat = 400;
             }
+            // dd($iddok);
 
-            $BppbdetStore = BppbDetTemp::insert($bppb_temp_det);
-
-
-            $massage = 'Add data Succesfully';
-            $stat = 200;
-        }elseif(intval($request['t_roll']) <= 0){
-            $massage = ' Please Input Data';
-            $stat = 400;
-        }elseif(intval($request['m_qty_bal_h']) >= 0){
-            $massage = ' Qty Out Melebihi Qty Request';
-            $stat = 400;
-        }else{
-            $massage = ' Data Error';
-            $stat = 400;
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => ''
+            );
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan data manual: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
         }
-        // dd($iddok);
-
-        return array(
-            "status" => $stat,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => ''
-        );
-
     }
 
     public function saveoutscan(Request $request)
     {
-        $tglbppb = $request['m_tgl_bppb2'];
-        $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
+        try {
+            $tglbppb = $request['m_tgl_bppb2'];
+            $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
 
-        $bppbno_int = $Mattype1[0]->bppbno_int;
-        // if (intval($request['m_qty_bal_h2']) >= 0) {
-        $timestamp = Carbon::now();
-        $no_bppb = $request['m_no_bppb2'];
-        $bppb_temp_det = [];
-        $data_aktual = 0;
-        for ($i = 1; $i <= $request['tot_roll']; $i++) {
-            if ($request["qty_out"][$i] > 0) {
-                // dd(intval($request["qty_ak"][$i]));
-                array_push($bppb_temp_det, [
-                    "no_bppb" => $bppbno_int ,
-                    "id_roll" => $request["id_roll"][$i],
-                    "id_jo" => $request["id_jo"][$i],
-                    "id_item" => $request["id_item"][$i],
-                    "no_rak" => $request["rak"][$i],
-                    "no_lot" => $request["no_lot"][$i],
-                    "no_roll" => $request["no_roll"][$i],
-                    "item_desc" => $request["itemdesc"][$i],
-                    "qty_stok" => $request["qty_stok"][$i],
-                    "satuan" => $request["unit"][$i],
-                    "qty_out" => $request["qty_out"][$i],
-                    "status" => 'Y',
-                    "created_by" => Auth::user()->name,
-                    "deskripsi" => 'scan',
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
-                ]);
+            $bppbno_int = $Mattype1[0]->bppbno_int;
+            // if (intval($request['m_qty_bal_h2']) >= 0) {
+            $timestamp = Carbon::now();
+            $no_bppb = $request['m_no_bppb2'];
+            $bppb_temp_det = [];
+            $data_aktual = 0;
+
+            DB::connection('mysql_sb')->beginTransaction();
+
+            try {
+                for ($i = 1; $i <= $request['tot_roll']; $i++) {
+                    if ($request["qty_out"][$i] > 0) {
+                        // dd(intval($request["qty_ak"][$i]));
+                        $barcode_in = DB::connection('mysql_sb')->select("select IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = ? and (no_dok LIKE 'GK/IN%' OR no_dok LIKE 'GK/RI%') ORDER BY CASE WHEN no_dok LIKE 'GK/IN%' THEN 0 ELSE 1 END, id ASC LIMIT 1", [$request["id_roll"][$i] ?? null]);
+                        $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+                        $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+                        $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
+                        array_push($bppb_temp_det, [
+                            "no_bppb" => $bppbno_int ,
+                            "id_roll" => $request["id_roll"][$i] ?? null,
+                            "id_jo" => $request["id_jo"][$i] ?? null,
+                            "id_item" => $request["id_item"][$i] ?? null,
+                            "no_rak" => $request["rak"][$i] ?? null,
+                            "no_lot" => $request["no_lot"][$i] ?? null,
+                            "no_roll" => $request["no_roll"][$i] ?? null,
+                            "item_desc" => $request["itemdesc"][$i] ?? null,
+                            "qty_stok" => $request["qty_stok"][$i] ?? null,
+                            "satuan" => $request["unit"][$i] ?? null,
+                            "qty_out" => $request["qty_out"][$i],
+                            "status" => 'Y',
+                            "created_by" => Auth::user()->name,
+                            "deskripsi" => 'scan',
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                            "np_curr" => $np_curr,
+                            "np_tgl_in" => $np_tgl_in,
+                            "np_price" => $np_price,
+                        ]);
+                    }
+                }
+
+                if (!empty($bppb_temp_det)) {
+                    BppbDetTemp::insert($bppb_temp_det);
+                }
+
+                DB::connection('mysql_sb')->commit();
+            } catch (\Throwable $e) {
+                DB::connection('mysql_sb')->rollBack();
+                throw $e;
             }
+
+            $massage = 'Add data Succesfully';
+            $stat = 200;
+
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => ''
+            );
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan scan barcode: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
         }
-
-        $BppbdetStore = BppbDetTemp::insert($bppb_temp_det);
-
-
-        $massage = 'Add data Succesfully';
-        $stat = 200;
-        // }elseif(intval($request['t_roll2']) <= 0){
-        //     $massage = ' Please Input Data';
-        //     $stat = 400;
-        // }elseif(intval($request['m_qty_bal_h2']) >= 0){
-        //     $massage = ' Qty Out Melebihi Qty Request';
-        //     $stat = 400;
-        // }else{
-        //     $massage = ' Data Error';
-        //     $stat = 400;
-        // }
-        // dd($iddok);
-
-        return array(
-            "status" => $stat,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => ''
-        );
 
     }
 
@@ -1056,7 +1151,7 @@ public function pdfoutmaterial(Request $request, $id)
 
     $fileName = 'pdf-material.pdf';
 
-    return $pdf->download(str_replace("/", "_", $fileName));
+    return $pdf->stream(str_replace("/", "_", $fileName));
 
 }
 
@@ -1121,39 +1216,84 @@ public function pdfoutmaterial(Request $request, $id)
 
     public function updateOut(Request $request)
     {
+        try {
+            $validatedRequest = $request->validate([
+                "txt_jns_klr" => "required",
+                "txt_dok_bc" => "required",
+            ]);
 
-        $id = $request['txt_idbppb'];
+            $tglbppb = $request['txt_tgl_bppb'];
 
-        $bppb = DB::connection('mysql_sb')->select("select * from whs_bppb_h where id = '" . $id . "' LIMIT 1");
-        $bppbno_int = $bppb ? $bppb[0]->no_bppb : null;
+            $min_tgl_ro = $this->getMinTglRo();
+            if ($min_tgl_ro && $tglbppb < $min_tgl_ro) {
+                return ['status' => 400, 'message' => "Tgl BPPB tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+            }
+            if ($this->isTglRoClosed($tglbppb)) {
+                return ['status' => 400, 'message' => "Tgl BPPB $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+            }
 
-        $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
-            'tgl_bppb' => $request['txt_tgl_bppb'],
-            'jenis_pengeluaran' => $request['txt_jns_klr'],
-            'tujuan' => $request['txt_dikirim'],
-            'dok_bc' => $request['txt_dok_bc'],
-            'no_kontrak' => $request['txt_kontrak'],
-            'no_invoice' => $request['txt_invoice'],
-            'no_po_subkon' => $request['txt_po_sub'],
-            'catatan' => $request['txt_notes'],
-        ]);
+            $id = $request['txt_idbppb'];
 
-        DB::connection('mysql_sb')->table('bppb')
-        ->where('bppbno_int', $bppbno_int)
-        ->update([
-            'bppbdate'    => $request['txt_tgl_bppb'],
-            'jenis_trans'    => $request['txt_jns_klr'],
-        ]);
+            $bppb = DB::connection('mysql_sb')->select("select * from whs_bppb_h where id = '" . $id . "' LIMIT 1");
+            $bppbno_int = $bppb ? $bppb[0]->no_bppb : null;
 
-        $massage = 'Edit Data Successfully';
+            DB::connection('mysql_sb')->beginTransaction();
 
-        return array(
-            "status" => 200,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => url('/out-material')
-        );
+            try {
+                DB::connection('mysql_sb')->enableQueryLog();
 
+                $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
+                    'tgl_bppb' => $request['txt_tgl_bppb'],
+                    'jenis_pengeluaran' => $request['txt_jns_klr'],
+                    'tujuan' => $request['txt_dikirim'],
+                    'dok_bc' => $request['txt_dok_bc'],
+                    'no_kontrak' => $request['txt_kontrak'],
+                    'no_invoice' => $request['txt_invoice'],
+                    'no_po_subkon' => $request['txt_po_sub'],
+                    'catatan' => $request['txt_notes'],
+                ]);
+
+                $idSupplier = DB::connection('mysql_sb')->table('mastersupplier')->where('Supplier', trim($request['txt_dikirim']))->value('id_supplier');
+
+                DB::connection('mysql_sb')->table('bppb')
+                ->where('bppbno_int', $bppbno_int)
+                ->update([
+                    'bppbdate'    => $request['txt_tgl_bppb'],
+                    'jenis_trans'    => $request['txt_jns_klr'],
+                    'jenis_dok'    => $request['txt_dok_bc'],
+                    'id_supplier'    => $idSupplier,
+                    'bppbno_req'    => $request['txt_noreq'],
+                    'remark'    => $request['txt_notes'],
+                ]);
+
+                $this->logRawQueryActivity('Edit BPPB', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
+                DB::connection('mysql_sb')->flushQueryLog();
+
+                DB::connection('mysql_sb')->commit();
+            } catch (\Throwable $e) {
+                DB::connection('mysql_sb')->rollBack();
+                DB::connection('mysql_sb')->flushQueryLog();
+                throw $e;
+            }
+
+            $massage = 'Edit Data Successfully';
+
+            return array(
+                "status" => 200,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => url('/out-material')
+            );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan BPPB: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
+        }
     }
 
     public function showdetailBppb(Request $request)
@@ -1180,7 +1320,7 @@ public function pdfoutmaterial(Request $request, $id)
 
         foreach ($det_bppb as $det) {
             $html .= '
-            <tr data-barcode="'.$det->id_roll.'">
+            <tr data-id_roll="'.$det->id_roll.'">
             <td class="text-center">'.$det->id_roll.'</td>
             <td class="text-center">'.$det->no_roll.'</td>
             <td class="text-center">'.$det->no_lot.'</td>
@@ -1200,36 +1340,132 @@ public function pdfoutmaterial(Request $request, $id)
         return $html;
     }
 
+    // qty_out di bppb_req adalah total qty yang sudah keluar untuk request ini,
+    // jadi setiap kali qty di dokumen BPPB Out berubah (edit qty roll, tambah scan/manual,
+    // cancel), qty_out di bppb_req harus disinkronkan ulang (dihitung dari total semua
+    // dokumen BPPB Out untuk item tsb). Return true kalau nilainya berubah dari sebelumnya.
+    private function syncBppbReqQty($bppbno_int, $id_item)
+    {
+        $no_req = DB::connection('mysql_sb')->table('whs_bppb_h')->where('no_bppb', $bppbno_int)->value('no_req');
+
+        if (!$no_req) {
+            return false;
+        }
+
+        $reqRow = DB::connection('mysql_sb')->table('bppb_req')->where('bppbno', $no_req)->where('id_item', $id_item)->first();
+
+        if (!$reqRow) {
+            return false;
+        }
+
+        $newQtyOut = DB::connection('mysql_sb')->select("
+            select COALESCE(SUM(b.qty),0) total
+            from bppb b
+            inner join whs_bppb_h h on h.no_bppb = b.bppbno_int
+            where h.no_req = ? and b.id_item = ?
+        ", [$no_req, $id_item])[0]->total;
+
+        $changed = abs((float) $reqRow->qty_out - (float) $newQtyOut) > 0.001;
+
+        DB::connection('mysql_sb')->table('bppb_req')->where('bppbno', $no_req)->where('id_item', $id_item)->update([
+            'qty_old' => $reqRow->qty,
+            'qty' => $newQtyOut,
+            'qty_out' => $newQtyOut,
+        ]);
+
+        return $changed;
+    }
 
     public function updateBarcodeBppb(Request $request)
     {
         $rows = $request->data;
-    // dd($rows);
+        $qtyReqChanged = false;
+        $processedGroups = [];
+
+        // Qty yang diedit tidak boleh melebihi qty barcode yang masih tersedia.
+        // Qty lama roll ini ditambahkan dulu ke sal_akhir karena qty tsb sedang
+        // "dipinjam" oleh baris ini sendiri, jadi bukan stok yang benar2 hilang.
         foreach ($rows as $row) {
-            $no_bppb = $row['no_bppb'];
-            $id_item = $row['id_item'];
-            $id_jo = $row['id_jo'];
-            $qty_out_h = $row['qty_out_h'];
+            $idRoll = $row['id_roll'] ?? null;
 
-            DB::connection('mysql_sb')
-            ->table('bppb')
-            ->where('bppbno_int', $no_bppb)
-            ->where('id_item', $id_item)
-            ->where('id_jo', $id_jo)
-            ->update([
-                'qty_old' => DB::raw('qty'),
-                'qty' => $qty_out_h,
-            ]);
+            if (!$idRoll || !isset($row['id_bppbdet']) || !isset($row['qty_out'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data barcode tidak lengkap, silakan muat ulang halaman dan coba lagi.',
+                ], 400);
+            }
 
-            DB::connection('mysql_sb')
-            ->table('whs_bppb_det')
-            ->where('id', $row['id_bppbdet'])
-            ->update([
-                'qty_out' => $row['qty_out'],
-            ]);
+            // Barcode yang sudah diterima di Cutting (database laravel_nds) tidak boleh diedit lagi
+            $sudahDiterima = DB::connection('mysql')->table('penerimaan_cutting')->where('whs_bppb_det_id', $row['id_bppbdet'])->exists();
+            if ($sudahDiterima) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Barcode " . $idRoll . " sudah diterima di Cutting, tidak bisa diedit.",
+                ], 400);
+            }
+
+            $oldQtyOut = DB::connection('mysql_sb')->table('whs_bppb_det')->where('id', $row['id_bppbdet'])->value('qty_out');
+            $salAkhir = DB::connection('mysql_sb')->table('data_stock_fabric')->where('no_barcode', $idRoll)->value('sal_akhir');
+
+            $maxQty = (float) $salAkhir + (float) $oldQtyOut;
+
+            if ((float) $row['qty_out'] > $maxQty) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Qty barcode " . $idRoll . " tersedia hanya " . $maxQty . ", tidak bisa diubah menjadi " . $row['qty_out'] . ".",
+                ], 400);
+            }
         }
 
-        return response()->json(['success' => true]);
+        DB::connection('mysql_sb')->beginTransaction();
+
+        try {
+            DB::connection('mysql_sb')->enableQueryLog();
+
+            foreach ($rows as $row) {
+                $no_bppb = $row['no_bppb'];
+                $id_item = $row['id_item'];
+                $id_jo = $row['id_jo'];
+                $qty_out_h = $row['qty_out_h'];
+
+                DB::connection('mysql_sb')
+                ->table('bppb')
+                ->where('bppbno_int', $no_bppb)
+                ->where('id_item', $id_item)
+                ->where('id_jo', $id_jo)
+                ->update([
+                    'qty_old' => DB::raw('qty'),
+                    'qty' => $qty_out_h,
+                ]);
+
+                DB::connection('mysql_sb')
+                ->table('whs_bppb_det')
+                ->where('id', $row['id_bppbdet'])
+                ->update([
+                    'qty_out' => $row['qty_out'],
+                ]);
+
+                $groupKey = $no_bppb . '-' . $id_item . '-' . $id_jo;
+                if (in_array($groupKey, $processedGroups)) {
+                    continue;
+                }
+                $processedGroups[] = $groupKey;
+
+                $qtyReqChanged = $this->syncBppbReqQty($no_bppb, $id_item) || $qtyReqChanged;
+            }
+
+            $this->logRawQueryActivity('Edit BPPB', $rows[0]['no_bppb'] ?? null, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            return response()->json(['success' => false, 'message' => 'Gagal menyimpan: ' . $e->getMessage()], 500);
+        }
+
+        return response()->json(['success' => true, 'qty_req_changed' => $qtyReqChanged]);
     }
 
     public function DeleteDataBarcodeBppb(Request $request)
@@ -1242,8 +1478,21 @@ public function pdfoutmaterial(Request $request, $id)
             return response()->json(['success' => false, 'message' => 'Parameter tidak lengkap.'], 400);
         }
 
+        // Barcode yang sudah diterima di Cutting (database laravel_nds) tidak boleh dicancel
+        $detIds = DB::connection('mysql_sb')->table('whs_bppb_det')
+            ->where('no_bppb', $no_bppb)
+            ->where('id_jo', $id_jo)
+            ->where('id_item', $id_item)
+            ->pluck('id');
+
+        $sudahDiterima = DB::connection('mysql')->table('penerimaan_cutting')->whereIn('whs_bppb_det_id', $detIds)->exists();
+        if ($sudahDiterima) {
+            return response()->json(['success' => false, 'message' => 'Sebagian/semua barcode sudah diterima di Cutting, tidak bisa dicancel.'], 400);
+        }
+
         try {
-            DB::beginTransaction();
+            DB::connection('mysql_sb')->beginTransaction();
+            DB::connection('mysql_sb')->enableQueryLog();
 
             $insertSql = "INSERT INTO whs_bppb_det_cancel
             SELECT * FROM whs_bppb_det
@@ -1268,7 +1517,12 @@ public function pdfoutmaterial(Request $request, $id)
             ->where('id_item', $id_item)
             ->delete();
 
-            DB::commit();
+            if ($deleted) {
+                $this->logRawQueryActivity('Cancel Barcode BPPB', $no_bppb, DB::connection('mysql_sb')->getQueryLog());
+            }
+            DB::connection('mysql_sb')->flushQueryLog();
+
+            DB::connection('mysql_sb')->commit();
 
             if ($deleted) {
                 return response()->json(['success' => true, 'deleted' => $deleted]);
@@ -1276,8 +1530,9 @@ public function pdfoutmaterial(Request $request, $id)
                 return response()->json(['success' => false, 'message' => 'Tidak ada data yang dihapus.'], 404);
             }
 
-        } catch (Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $e) {
+            DB::connection('mysql_sb')->rollBack();
+            DB::connection('mysql_sb')->flushQueryLog();
             Log::error('DeleteDataBarcode error: '.$e->getMessage(), [
                 'no_bppb' => $no_bppb,
                 'id_jo' => $id_jo,
@@ -1290,136 +1545,39 @@ public function pdfoutmaterial(Request $request, $id)
 
     public function saveoutscanEdit(Request $request)
     {
-        $tglbppb = $request['m_tgl_bppb2'];
-        $timestamp = Carbon::now();
-        $no_bppb = $request['m_no_bppb2'];
-        $bppb_temp_det = [];
-        $sumQty = [];
-        $data_aktual = 0;
-        for ($i = 1; $i <= $request['tot_roll']; $i++) {
-            if ($request["qty_out"][$i] > 0) {
-
-                $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $request["id_roll"][$i] . "' ORDER BY id ASC LIMIT 1");
-                $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
-                $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
-                $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
-                $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
-
-                array_push($bppb_temp_det, [
-                    "no_bppb" => $no_bppb ,
-                    "id_roll" => $request["id_roll"][$i],
-                    "id_jo" => $request["id_jo"][$i],
-                    "id_item" => $request["id_item"][$i],
-                    "no_rak" => $request["rak"][$i],
-                    "no_lot" => $request["no_lot"][$i],
-                    "no_roll" => $request["no_roll"][$i],
-                    "item_desc" => $request["itemdesc"][$i],
-                    "qty_stok" => $request["qty_stok"][$i],
-                    "satuan" => $request["unit"][$i],
-                    "qty_out" => $request["qty_out"][$i],
-                    "curr" => '',
-                    "price" => '',
-                    "status" => 'Y',
-                    "created_by" => Auth::user()->name,
-                    "deskripsi" => 'scan',
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
-                    "price_in" => '',
-                    "nilai_barang" => '',
-                    "bc_in" => '',
-                    "no_aju_in" => '',
-                    "tgl_aju_in" => '',
-                    "no_daftar_in" => '',
-                    "tgl_daftar_in" => '',
-                    "np_curr" => $np_curr,
-                    "np_tgl_in" => $np_tgl_in,
-                    "np_price" => $np_price,
-                    "np_curr_rev" => null,
-                    "np_price_rev" => null,
-                ]);
-
-                $groupKey = $no_bppb . '-' . $request["id_item"][$i] . '-' . $request["id_jo"][$i];
-
-                if (!isset($sumQty[$groupKey])) {
-                    $sumQty[$groupKey] = 0;
-                }
-
-                $sumQty[$groupKey] += $request['qty_out'][$i];
-            }
-        }
-
-        // dd($bppb_temp_det);
-
-        $BppbdetStore = BppbDet::insert($bppb_temp_det);
-
-        foreach ($sumQty as $groupKey => $totalQty) {
-
-            list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
-
-            DB::connection('mysql_sb')
-            ->table('bppb')
-            ->where('bppbno_int', $bppbno_int)
-            ->where('id_item', $id_item)
-            ->where('id_jo', $id_jo)
-            ->update([
-                'qty_old' => DB::raw('qty'),
-                'qty'     => $totalQty,
-            ]);
-        }
-
-
-        $massage = 'Add data Succesfully';
-        $stat = 200;
-
-        return array(
-            "status" => $stat,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => ''
-        );
-
-    }
-
-
-    public function saveoutmanualEdit(Request $request)
-    {
-        $tglbppb = $request['m_tgl_bppb'];
-        $qtyOut = collect($request['qty_out']);
-
-        $qtyOutKeys = $qtyOut->keys();
-
-        if (intval($request['t_roll']) > 0 && intval($request['m_qty_bal_h']) >= 0) {
+        try {
+            $tglbppb = $request['m_tgl_bppb2'];
             $timestamp = Carbon::now();
-            $no_bppb = $request['m_no_bppb'];
+            $no_bppb = $request['m_no_bppb2'];
             $bppb_temp_det = [];
             $sumQty = [];
             $data_aktual = 0;
-            foreach ($qtyOut as $key => $value) {
-                if ($request['qty_out'][$key] > 0) {
+            for ($i = 1; $i <= $request['tot_roll']; $i++) {
+                if ($request["qty_out"][$i] > 0) {
 
-                    $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $request["id_roll"][$key] . "' ORDER BY id ASC LIMIT 1");
+                    $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = ? ORDER BY id ASC LIMIT 1", [$request["id_roll"][$i] ?? null]);
                     $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
                     $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
                     $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
                     $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
 
                     array_push($bppb_temp_det, [
-                        "no_bppb" => $no_bppb,
-                        "id_roll" => $request["id_roll"][$key],
-                        "id_jo" => $request["id_jo"][$key],
-                        "id_item" => $request["id_item"][$key],
-                        "no_rak" => $request["rak"][$key],
-                        "no_lot" => $request["no_lot"][$key],
-                        "no_roll" => $request["no_roll"][$key],
-                        "item_desc" => $request["itemdesc"][$key],
-                        "qty_stok" => $request["qty_stok"][$key],
-                        "satuan" => $request["unit"][$key],
-                        "qty_out" => $request["qty_out"][$key],
+                        "no_bppb" => $no_bppb ,
+                        "id_roll" => $request["id_roll"][$i] ?? null,
+                        "id_jo" => $request["id_jo"][$i] ?? null,
+                        "id_item" => $request["id_item"][$i] ?? null,
+                        "no_rak" => $request["rak"][$i] ?? null,
+                        "no_lot" => $request["no_lot"][$i] ?? null,
+                        "no_roll" => $request["no_roll"][$i] ?? null,
+                        "item_desc" => $request["itemdesc"][$i] ?? null,
+                        "qty_stok" => $request["qty_stok"][$i] ?? null,
+                        "satuan" => $request["unit"][$i] ?? null,
+                        "qty_out" => $request["qty_out"][$i],
                         "curr" => '',
                         "price" => '',
                         "status" => 'Y',
                         "created_by" => Auth::user()->name,
-                        "deskripsi" => 'manual',
+                        "deskripsi" => 'scan',
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
                         "price_in" => '',
@@ -1436,55 +1594,207 @@ public function pdfoutmaterial(Request $request, $id)
                         "np_price_rev" => null,
                     ]);
 
-                    $groupKey = $no_bppb . '-' . $request["id_item"][$key] . '-' . $request["id_jo"][$key];
+                    $groupKey = $no_bppb . '-' . $request["id_item"][$i] . '-' . $request["id_jo"][$i];
 
                     if (!isset($sumQty[$groupKey])) {
                         $sumQty[$groupKey] = 0;
                     }
 
-                    $sumQty[$groupKey] += $request['qty_out'][$key];
+                    $sumQty[$groupKey] += $request['qty_out'][$i];
                 }
             }
 
-            $BppbdetStore = BppbDet::insert($bppb_temp_det);
+            DB::connection('mysql_sb')->beginTransaction();
+            $qtyReqChanged = false;
 
-            foreach ($sumQty as $groupKey => $totalQty) {
+            try {
+                DB::connection('mysql_sb')->enableQueryLog();
 
-                list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
+                if (!empty($bppb_temp_det)) {
+                    BppbDet::insert($bppb_temp_det);
+                }
 
-                DB::connection('mysql_sb')
-                ->table('bppb')
-                ->where('bppbno_int', $bppbno_int)
-                ->where('id_item', $id_item)
-                ->where('id_jo', $id_jo)
-                ->update([
-                    'qty_old' => DB::raw('qty'),
-                    'qty'     => $totalQty,
-                ]);
+                foreach ($sumQty as $groupKey => $totalQty) {
+
+                    list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
+
+                    DB::connection('mysql_sb')
+                    ->table('bppb')
+                    ->where('bppbno_int', $bppbno_int)
+                    ->where('id_item', $id_item)
+                    ->where('id_jo', $id_jo)
+                    ->update([
+                        'qty_old' => DB::raw('qty'),
+                        'qty'     => $totalQty,
+                    ]);
+
+                    $qtyReqChanged = $this->syncBppbReqQty($bppbno_int, $id_item) || $qtyReqChanged;
+                }
+
+                $this->logRawQueryActivity('Edit BPPB', $no_bppb, DB::connection('mysql_sb')->getQueryLog());
+                DB::connection('mysql_sb')->flushQueryLog();
+
+                DB::connection('mysql_sb')->commit();
+            } catch (\Throwable $e) {
+                DB::connection('mysql_sb')->rollBack();
+                DB::connection('mysql_sb')->flushQueryLog();
+                throw $e;
             }
-
 
             $massage = 'Add data Succesfully';
             $stat = 200;
-        }elseif(intval($request['t_roll']) <= 0){
-            $massage = ' Please Input Data';
-            $stat = 400;
-        }elseif(intval($request['m_qty_bal_h']) >= 0){
-            $massage = ' Qty Out Melebihi Qty Request';
-            $stat = 400;
-        }else{
-            $massage = ' Data Error';
-            $stat = 400;
+
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "qty_req_changed" => $qtyReqChanged,
+                "redirect" => ''
+            );
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan scan barcode: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
         }
-        // dd($iddok);
+    }
 
-        return array(
-            "status" => $stat,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => ''
-        );
 
+    public function saveoutmanualEdit(Request $request)
+    {
+        try {
+            $tglbppb = $request['m_tgl_bppb'];
+            $qtyOut = collect($request['qty_out']);
+
+            $qtyOutKeys = $qtyOut->keys();
+
+            if (intval($request['t_roll']) > 0) {
+                $timestamp = Carbon::now();
+                $no_bppb = $request['m_no_bppb'];
+                $bppb_temp_det = [];
+                $sumQty = [];
+                $data_aktual = 0;
+                foreach ($qtyOut as $key => $value) {
+                    if ($request['qty_out'][$key] > 0) {
+
+                        $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = ? ORDER BY id ASC LIMIT 1", [$request["id_roll"][$key] ?? null]);
+                        $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
+                        $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+                        $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+                        $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
+                        array_push($bppb_temp_det, [
+                            "no_bppb" => $no_bppb,
+                            "id_roll" => $request["id_roll"][$key] ?? null,
+                            "id_jo" => $request["id_jo"][$key] ?? null,
+                            "id_item" => $request["id_item"][$key] ?? null,
+                            "no_rak" => $request["rak"][$key] ?? null,
+                            "no_lot" => $request["no_lot"][$key] ?? null,
+                            "no_roll" => $request["no_roll"][$key] ?? null,
+                            "item_desc" => $request["itemdesc"][$key] ?? null,
+                            "qty_stok" => $request["qty_stok"][$key] ?? null,
+                            "satuan" => $request["unit"][$key] ?? null,
+                            "qty_out" => $request["qty_out"][$key],
+                            "curr" => '',
+                            "price" => '',
+                            "status" => 'Y',
+                            "created_by" => Auth::user()->name,
+                            "deskripsi" => 'manual',
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                            "price_in" => '',
+                            "nilai_barang" => '',
+                            "bc_in" => '',
+                            "no_aju_in" => '',
+                            "tgl_aju_in" => '',
+                            "no_daftar_in" => '',
+                            "tgl_daftar_in" => '',
+                            "np_curr" => $np_curr,
+                            "np_tgl_in" => $np_tgl_in,
+                            "np_price" => $np_price,
+                            "np_curr_rev" => null,
+                            "np_price_rev" => null,
+                        ]);
+
+                        $groupKey = $no_bppb . '-' . $request["id_item"][$key] . '-' . $request["id_jo"][$key];
+
+                        if (!isset($sumQty[$groupKey])) {
+                            $sumQty[$groupKey] = 0;
+                        }
+
+                        $sumQty[$groupKey] += $request['qty_out'][$key];
+                    }
+                }
+
+                DB::connection('mysql_sb')->beginTransaction();
+                $qtyReqChanged = false;
+
+                try {
+                    DB::connection('mysql_sb')->enableQueryLog();
+
+                    if (!empty($bppb_temp_det)) {
+                        BppbDet::insert($bppb_temp_det);
+                    }
+
+                    foreach ($sumQty as $groupKey => $totalQty) {
+
+                        list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
+
+                        DB::connection('mysql_sb')
+                        ->table('bppb')
+                        ->where('bppbno_int', $bppbno_int)
+                        ->where('id_item', $id_item)
+                        ->where('id_jo', $id_jo)
+                        ->update([
+                            'qty_old' => DB::raw('qty'),
+                            'qty'     => $totalQty,
+                        ]);
+
+                        $qtyReqChanged = $this->syncBppbReqQty($bppbno_int, $id_item) || $qtyReqChanged;
+                    }
+
+                    $this->logRawQueryActivity('Edit BPPB', $no_bppb, DB::connection('mysql_sb')->getQueryLog());
+                    DB::connection('mysql_sb')->flushQueryLog();
+
+                    DB::connection('mysql_sb')->commit();
+                } catch (\Throwable $e) {
+                    DB::connection('mysql_sb')->rollBack();
+                    DB::connection('mysql_sb')->flushQueryLog();
+                    throw $e;
+                }
+
+                $massage = 'Add data Succesfully';
+                $stat = 200;
+
+                return array(
+                    "status" => $stat,
+                    "message" => $massage,
+                    "additional" => [],
+                    "qty_req_changed" => $qtyReqChanged,
+                    "redirect" => ''
+                );
+            }else{
+                $massage = ' Please Input Data';
+                $stat = 400;
+            }
+            // dd($iddok);
+
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => ''
+            );
+        } catch (\Throwable $e) {
+            return array(
+                "status" => 500,
+                "message" => "Gagal menyimpan data manual: " . $e->getMessage(),
+                "additional" => [],
+                "redirect" => ''
+            );
+        }
     }
 
     public function out_barcode_fabric(Request $request)

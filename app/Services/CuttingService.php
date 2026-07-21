@@ -948,7 +948,7 @@ class CuttingService
 
             if ($formCutDetail) {
 
-                if ($formCut && $formCut->marker && $formCut->marker->markerDetails) {
+                if ($formCut->marker && $formCut->marker->markerDetails) {
 
                     // Marker Detail
                     $markerDetails = $formCut->marker->markerDetails;
@@ -1129,27 +1129,31 @@ class CuttingService
                     first();
 
                 if ($partData) {
-                    $lastPartForm = DB::table("part_form")->select("kode")->orderBy("kode", "desc")->first();
-                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
-                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+                    $currentPartForm = PartForm::where("part_id", $partData->id)->where("form_id", $formCutInputData->id)->first();
 
-                    $addToPartForm = PartForm::create([
-                        "kode" => $kodePartForm,
-                        "part_id" => $partData->id,
-                        "form_id" => $formCutInputData->id,
-                        "created_at" => Carbon::now(),
-                        "updated_at" => Carbon::now(),
-                    ]);
-                }
+                    if (!$currentPartForm) {
+                        $lastPartForm = DB::table("part_form")->select("kode")->orderBy("kode", "desc")->first();
+                        $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                        $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
-                // check part split
-                $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
-                if ($partSplit) {
+                        $addToPartForm = PartForm::create([
+                            "kode" => $kodePartForm,
+                            "part_id" => $partData->id,
+                            "form_id" => $formCutInputData->id,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
 
-                    // reset no. cut
-                    $updateFormCutInput = FormCutInput::where("id", $id)->update([
-                        'no_cut' => 1
-                    ]);
+                        // check part split
+                        $partSplit = DB::table("part_split")->where('part_id', $partData->id)->where("form_id", $formCutInputData->id)->first();
+                        if ($partSplit) {
+
+                            // reset no. cut
+                            $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                                'no_cut' => 1
+                            ]);
+                        }
+                    }
                 }
 
                 $this->generateFormCutInputDetailOutput($id);

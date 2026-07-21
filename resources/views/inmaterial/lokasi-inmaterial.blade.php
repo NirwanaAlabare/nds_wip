@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -8,9 +8,17 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <style>
 /* Highlight hanya untuk tabel di dalam modal */
 .modal-body #tableshow td.drag-highlight {
@@ -22,6 +30,11 @@
 /* Cursor hanya aktif di tabel dalam modal */
 .modal-body #tableshow td.editable {
   cursor: cell;
+}
+
+/* Batasi lebar select2 kolom Lokasi di tabel Show Lokasi */
+.modal-body #tableshow .select2-container {
+  max-width: 150px;
 }
 </style>
 
@@ -190,7 +203,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="col-md-12 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Dokumen Asli</small></label>
@@ -214,7 +227,7 @@
             <div class="col-md-5">
                 <div class="row">
 
-                    <div class="col-md-7">
+                    <div class="col-md-7 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Aju</small></label>
@@ -223,7 +236,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-5 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl Aju</small></label>
@@ -233,7 +246,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-7">
+                    <div class="col-md-7 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No Daftar</small></label>
@@ -242,7 +255,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-5 d-none">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl Daftar</small></label>
@@ -300,24 +313,24 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Ws</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
-                            <th class="text-center" style="font-size: 0.6rem;">Location</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 11%;">No Ws</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">ID Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 16%;">Kode Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Produk</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 20%;">Deskripsi</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Qty PO</th>
+                            <th class="text-center" style="font-size: 0.6rem;">PO Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 5%;">Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">Qty BPB</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 7%;">Qty Reject</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 6%;">Balance</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Reject Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 14%;">Location</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -331,51 +344,48 @@
                             <td value="{{$detdata->no_ws}}">{{$detdata->desc_item}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->qty_po}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
-                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_sisa}}</td>
-                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_good}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
-                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_reject}}</td>
+                            <td style="text-align: right;" value="{{$detdata->no_ws}}">{{$detdata->qty_good}}</td>
+                            <td style="text-align: right;" value="{{$detdata->no_ws}}">{{$detdata->qty_reject ?? 0}}</td>
+                            <td value="{{$detdata->no_ws}}">{{$detdata->qty_sisa}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
                             <td>
-                               @if($detdata->qty_sisa > 0)
-    <div class="d-flex gap-1 justify-content-center">
-        <button type="button" 
-                class="btn btn-sm btn-warning" 
-                onclick='addlocation(
-                    @json($detdata->no_ws),
-                    @json($detdata->id_jo),
-                    @json($detdata->id_item),
-                    @json($detdata->kode_item),
-                    @json($detdata->qty_good),
-                    @json($detdata->unit),
-                    @json($detdata->qty_good),
-                    @json($detdata->desc_item),
-                    @json($detdata->qty_sisa)
-                )'>
-            <i class="fa-solid fa-circle-plus fa-lg"></i>
-        </button>
+                                @php $qtyLok = $detdata->qty_lok ?? 0; @endphp
+                                <div class="d-flex flex-nowrap gap-1 justify-content-center">
+                                    @if($detdata->qty_sisa > 0)
+                                    <button type="button"
+                                            class="btn btn-sm btn-warning"
+                                            onclick='addlocation(
+                                                @json($detdata->no_ws),
+                                                @json($detdata->id_jo),
+                                                @json($detdata->id_item),
+                                                @json($detdata->kode_item),
+                                                @json($detdata->qty_good),
+                                                @json($detdata->unit),
+                                                @json($detdata->qty_good),
+                                                @json($detdata->desc_item),
+                                                @json($detdata->qty_sisa)
+                                            )'>
+                                        <i class="fa-solid fa-circle-plus fa-lg"></i>
+                                    </button>
 
-        <a href="{{ route('upload-lokasi', $detdata->id) }}">
-            <button type="button" class="btn btn-sm btn-info">
-                <i class="fa-solid fa-upload"></i>
-            </button>
-        </a>
+                                    <a href="{{ route((isset($is_retur) && $is_retur) ? 'upload-lokasi-retur' : 'upload-lokasi', $detdata->id) }}">
+                                        <button type="button" class="btn btn-sm btn-info">
+                                            <i class="fa-solid fa-upload"></i>
+                                        </button>
+                                    </a>
+                                    @endif
 
-        <button type="button" class="btn btn-sm btn-danger" 
-                onclick='deleteData(@json($detdata->no_dok), @json($detdata->id_item))'>
-            <i class="fa-solid fa-trash"></i>
-        </button>
-    </div>
-@endif
+                                    @if($qtyLok > 0)
+                                    <button type='button' class='btn btn-sm btn-success' onclick='showlocation(@json($detdata->no_ws),@json($detdata->id_jo),@json($detdata->id_item),@json($detdata->kode_item),@json($detdata->qty_good),@json($detdata->unit),@json($detdata->qty_good),@json($detdata->desc_item),@json($detdata->qty_sisa));getlist_showlokasi(@json($detdata->no_ws),@json($detdata->id_jo),@json($detdata->id_item))'>
+                                        <i class="fa-solid fa-clipboard-check fa-lg"></i>
+                                    </button>
 
-                                @if($detdata->qty_sisa <= 0)
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}");getlist_showlokasi("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-clipboard-check fa-lg"></i></button>
-                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_dok}}","{{$detdata->id_item}}")'>
+                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData(@json($detdata->no_dok), @json($detdata->id_item))'>
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
+                                    @endif
                                 </div>
-                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -386,7 +396,7 @@
         <div class="mb-1">
             <div class="form-group">
                 <!-- <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa fa-plus" aria-hidden="true"></i> Save</button> -->
-                <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+                <a href="{{ route((isset($is_retur) && $is_retur) ? 'retur-inmaterial' : 'in-material') }}" class="btn btn-danger float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -396,7 +406,7 @@
 </form>
 
 <div class="modal fade modal-add-lokasi" id="modal-add-lokasi">
-    <form action="{{ route('save-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
+    <form action="{{ route((isset($is_retur) && $is_retur) ? 'save-lokasi-retur' : 'save-lokasi') }}" method="post" onsubmit="return validateAddLokasiSubmit(this, event)">
        @method('POST')
        <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -449,6 +459,7 @@
                                     <div class="form-group">
                                         <label><small>Qty Lokasi</small></label>
                                         <input type="text" class="form-control" id="ttl_qty_sj" name="ttl_qty_sj" value="" readonly>
+                                        <input type="hidden" id="update_item_qty_add" name="update_item_qty" value="0">
                                         <!-- <input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="ttl_qty_sj" name="ttl_qty_sj" value="" readonly/> -->
                                     </div>
                                 </div>
@@ -571,9 +582,9 @@
                             <div class="col-md-6">
                                 <div class="mb-1">
                                     <div class="form-group">
-                                        <label><small>Kode Barang</small></label>
-                                        <input type="text" class="form-control " id="m_kode_item2" name="m_kode_item2" value="" readonly>
-                                        <input type="hidden" class="form-control " id="m_iditem2" name="m_iditem2" value="" readonly>
+                                        <label><small>ID Item</small></label>
+                                        <input type="text" class="form-control " id="m_iditem2" name="m_iditem2" value="" readonly>
+                                        <input type="hidden" id="m_idjo2" name="m_idjo2" value="">
                                     </div>
                                 </div>
                             </div>
@@ -608,11 +619,24 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="mb-1">
                                     <div class="form-group">
-                                        <label><small>Deskripsi</small></label>
-                                        <input type="text" class="form-control " id="m_desc2" name="m_desc2" value="" readonly>
+                                        <label><small>Update Lokasi (Semua Roll)</small></label>
+                                        <select class="form-control select2lokall" id="m_lokasi_all" style="width: 100%;" onchange="applyLokasiAll(this.value)">
+                                            <option selected="selected" value="">Pilih Lokasi</option>
+                                            @foreach ($lokasi as $lok)
+                                            <option value="{{ $lok->kode_lok }}">{{ $lok->lokasi }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Update Lot (Semua Roll)</small></label>
+                                        <input type="text" class="form-control" id="m_lot_all" value="" onkeyup="applyLotAll(this.value)">
                                     </div>
                                 </div>
                             </div>
@@ -620,6 +644,13 @@
                     </div>
 
                     <div class="col-md-12">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Deskripsi</small></label>
+                                <textarea class="form-control" id="m_desc2" name="m_desc2" rows="2" readonly></textarea>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-12" id="detail_showlok">
                             </div>
@@ -638,6 +669,7 @@
         </div>
     </div>
 </form>
+</div>
 </div>
 @endsection
 
@@ -660,10 +692,12 @@
             serverSide: false,
             paging: false,
             searching: true,
-            scrollY: '300px',
-            scrollX: true,        
-            scrollCollapse: true,
-            dom: "lfrtip"     
+            autoWidth: false,
+            dom: "lfrtip",
+            columnDefs: [{
+                targets: [4, 6, 7, 12],
+                visible: false
+            }]
         });
     });
 
@@ -690,6 +724,11 @@
         $('.select2lok').select2({
             theme: 'bootstrap4',
             dropdownParent: $('.modal-add-lokasi')
+        });
+
+        $('.select2lokall').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modal-show-lokasi')
         });
 
         $("#color").prop("disabled", true);
@@ -806,6 +845,65 @@
 
 
 
+        function validateAddLokasiSubmit(form, evt) {
+            evt.preventDefault();
+
+            const ttlQtySj = parseFloat($('#ttl_qty_sj').val()) || 0;
+            const balance = parseFloat($('#m_balance').val()) || 0;
+            const diff = ttlQtySj - balance;
+
+            function proceed(updateItemQty) {
+                $('#update_item_qty_add').val(updateItemQty ? '1' : '0');
+                submitForm(form, evt);
+            }
+
+            if (diff !== 0) {
+                const tandaSelisih = diff > 0 ? '+' + diff.toFixed(2) : diff.toFixed(2);
+
+                Swal.fire({
+                    title: 'Qty Lokasi Tidak Sama dengan Balance',
+                    html: `
+                        <div style="text-align:left;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td>Balance Item</td>
+                                    <td style="text-align:right;"><b>${balance}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Qty Lokasi</td>
+                                    <td style="text-align:right;"><b>${ttlQtySj}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Selisih</td>
+                                    <td style="text-align:right;"><b>${tandaSelisih}</b></td>
+                                </tr>
+                            </table>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    reverseButtons: true,
+                    confirmButtonText: 'Ubah Qty per Item Juga',
+                    denyButtonText: 'Ubah Barcode Saja',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745',
+                    denyButtonColor: '#ffc107',
+                    cancelButtonColor: '#6c757d',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        proceed(true);
+                    } else if (result.isDenied) {
+                        proceed(false);
+                    }
+                });
+            } else {
+                proceed(false);
+            }
+
+            return false;
+        }
+
         function submitLokasiForm(e, evt) {
             evt.preventDefault();
 
@@ -895,6 +993,7 @@
         $('#m_lot').val('');
         $('#ttl_qty_sj').val('');
         $('#ttl_qty_aktual').val('');
+        $('#update_item_qty_add').val('0');
     }
 
     function getlist_addlokasi(){
@@ -993,7 +1092,6 @@ function deleteData(no_dok, id_item) {
         let ws = $ws;
         let id_jo = $id_jo;
         let id_item = $id_item;
-        let kode_item = $kode_item;
         let qty = $qty;
         let unit = $unit;
         let balance = $qty_sisa;
@@ -1002,7 +1100,6 @@ function deleteData(no_dok, id_item) {
         // alert(id_item);
         $('#m_gr_dok2').val(no_dok);
         $('#m_no_ws2').val(ws);
-        $('#m_kode_item2').val(kode_item);
         $('#m_qty2').val(qty);
         $('#m_qty2_new').val(qty);
         $('#m_qty2_diff').val('0');
@@ -1011,7 +1108,22 @@ function deleteData(no_dok, id_item) {
         $('#m_unit2').val(unit);
         $('#m_idjo2').val(id_jo);
         $('#m_iditem2').val(id_item);
+        $('#m_lokasi_all').val('').trigger('change');
+        $('#m_lot_all').val('');
         $('#modal-show-lokasi').modal('show');
+    }
+
+    function applyLokasiAll(kodeLok) {
+        if (!kodeLok) return;
+        $('#tableshow tbody tr').each(function() {
+            $(this).find('td select').val(kodeLok).trigger('change');
+        });
+    }
+
+    function applyLotAll(lot) {
+        $('#tableshow tbody tr').each(function() {
+            $(this).find('td').eq(3).text(lot);
+        });
     }
 
     function getlist_showlokasi($ws,$id_jo, $id_item){
@@ -1033,6 +1145,11 @@ function deleteData(no_dok, id_item) {
             success: function (res) {
                 if (res) {
                     document.getElementById('detail_showlok').innerHTML = res;
+                    $('.select2lokshow').select2({
+                        theme: 'bootstrap4',
+                        width: '150px',
+                        dropdownParent: $('#modal-show-lokasi')
+                    });
                     $('#tableshow').dataTable({
                         "bFilter": false,
                         "paging": false,
@@ -1045,62 +1162,119 @@ function deleteData(no_dok, id_item) {
     }
 
 function saveEditedLokasi() {
-    const rows = [];
-    $("#tableshow tbody tr").each(function() {
-        const barcode = $(this).data('barcode');
-        const cols = $(this).find('td');
-        rows.push({
-            no_barcode: barcode,
-            no_roll: $(cols[1]).text().trim(),
-            no_roll_buyer: $(cols[2]).text().trim(),
-            no_lot: $(cols[3]).text().trim(),
-            qty_aktual: $(cols[4]).text().trim(),
-            kode_lok: $(cols[5]).text().trim(),
-            m_qty: $('#m_qty2_new').val(),
-            m_qty_diff: $('#m_qty2_diff').val(),
-            m_gr_dok: $('#m_gr_dok2').val(),
-            m_iditem: $('#m_iditem2').val(),
+    function buildRows(updateItemQty) {
+        const rows = [];
+        $("#tableshow tbody tr").each(function() {
+            const barcode = $(this).data('barcode');
+            const cols = $(this).find('td');
+            rows.push({
+                no_barcode: barcode,
+                no_roll: $(cols[1]).text().trim(),
+                no_roll_buyer: $(cols[2]).text().trim(),
+                no_lot: $(cols[3]).text().trim(),
+                qty_aktual: $(cols[4]).text().trim(),
+                kode_lok: $(cols[5]).find('select').val(),
+                m_qty: $('#m_qty2_new').val(),
+                m_qty_diff: $('#m_qty2_diff').val(),
+                m_gr_dok: $('#m_gr_dok2').val(),
+                m_iditem: $('#m_iditem2').val(),
+                m_idjo: $('#m_idjo2').val(),
+                update_item_qty: updateItemQty,
+            });
         });
-    });
+        return rows;
+    }
 
-    Swal.fire({
-        title: 'Konfirmasi',
-        text: 'Simpan semua perubahan data lokasi?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, Simpan',
-        cancelButtonText: 'Batal',
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                type: 'POST',
-                url: '{{ route("update-all-barcode-rak") }}',
-                data: { data: rows },
-                success: function(res) {
-                    if (res.success) {
-                        Swal.fire({
+    function doSave(updateItemQty) {
+        $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            type: 'POST',
+            url: '{{ route("update-all-barcode-rak") }}',
+            data: { data: buildRows(updateItemQty) },
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire({
                         title: 'Berhasil',
                         text: 'Data berhasil disimpan!',
                         icon: 'success',
                         confirmButtonText: 'OK'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            location.reload(); 
+                            location.reload();
                         }
                     });
-                    } else {
-                        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan.', 'error');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Error', 'Tidak dapat terhubung ke server!', 'error');
+                } else {
+                    Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan.', 'error');
                 }
-            });
-        }
-    });
+            },
+            error: function() {
+                Swal.fire('Error', 'Tidak dapat terhubung ke server!', 'error');
+            }
+        });
+    }
+
+    const diff = parseFloat($('#m_qty2_diff').val()) || 0;
+    const qtyLama = $('#m_qty2').val();
+    const qtyBaru = $('#m_qty2_new').val();
+
+    if (diff !== 0) {
+        const tandaSelisih = diff > 0 ? '+' + diff.toFixed(2) : diff.toFixed(2);
+        const arah = diff > 0 ? 'bertambah' : 'berkurang';
+
+        Swal.fire({
+            title: 'Qty Roll Tidak Sama dengan Qty Item',
+            html: `
+                <div style="text-align:left;">
+                    <p>Total qty roll/barcode ${arah} dibanding qty item semula:</p>
+                    <table style="width:100%; margin-bottom:12px;">
+                        <tr>
+                            <td>Qty Item Semula</td>
+                            <td style="text-align:right;"><b>${qtyLama}</b></td>
+                        </tr>
+                        <tr>
+                            <td>Total Qty Roll Sekarang</td>
+                            <td style="text-align:right;"><b>${qtyBaru}</b></td>
+                        </tr>
+                        <tr>
+                            <td>Selisih</td>
+                            <td style="text-align:right;"><b>${tandaSelisih}</b></td>
+                        </tr>
+                    </table>
+                </div>
+            `,
+            icon: 'warning',
+            showDenyButton: true,
+            showCancelButton: true,
+            reverseButtons: true,
+            confirmButtonText: 'Ubah Qty per Item Juga',
+            denyButtonText: 'Ubah Barcode Saja',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#28a745',
+            denyButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                doSave(true);
+            } else if (result.isDenied) {
+                doSave(false);
+            }
+        });
+    } else {
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: 'Simpan semua perubahan data lokasi?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                doSave(false);
+            }
+        });
+    }
 }
 
 

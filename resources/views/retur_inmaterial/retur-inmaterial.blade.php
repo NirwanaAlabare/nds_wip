@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,17 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <div class="card card-sb card-outline">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">Data Penerimaan Retur Bahan Baku</h5>
@@ -96,15 +104,15 @@
             <div class="mt-4 ">
                 <button class="btn btn-info" onclick="dataTableReload()"><i class="fas fa-search"></i> Search</button>
 
-                <a href="{{ route('create-retur-inmaterial') }}" class="btn btn-info">
+                <!-- <a href="{{ route('create-retur-inmaterial') }}" class="btn btn-info">
                 <i class="fas fa-plus"></i>
                 Add Data
-            </a>
+            </a> -->
 
-            <a href="{{ route('create-retur-inmaterial-cutting') }}" class="btn btn-success">
+            <!-- <a href="{{ route('create-retur-inmaterial-cutting') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i>
                 Add From Cutting
-            </a>
+            </a> -->
 
                 <a href="{{ route('create-retur-inmaterial') }}" class="btn btn-success">
                     <i class="fas fa-plus"></i> Add New
@@ -120,8 +128,8 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
         </div> -->
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+        <div>
+            <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
                 <thead>
                     <tr>
                         <th class="text-center">No RI</th>
@@ -144,39 +152,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-appv-material">
-    <form action="{{ route('cancel-retur-material') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('GET')
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Confirm Dialog</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!--  -->
-                    <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel BPB Number :</label>
-                        <br>
-                        <div class="col-sm-3">
-                        </div>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control" id="txt_nodok" name="txt_nodok" style="border:none;text-align: center;" readonly>
-                        </div>
-                    </div>
-                    <!-- Hidden Text -->
-                    <!--  -->
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-sb" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-trash" aria-hidden="true"></i> Cancel</button>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
 
 
  <div class="modal fade" id="modal-edit-lokasi">
@@ -385,6 +360,7 @@
         </div>
     </form>
 </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -425,15 +401,17 @@ $('.select2type').select2({
 </script>
 
 <script>
+    function editRetUrl(row) {
+        return (row.source_form === 'Barcode' ? '{{ route('edit-retur-inmaterial-barcode') }}' : '{{ route('edit-retur-inmaterial') }}') + '/' + row.id;
+    }
+
     let datatable = $("#datatable").DataTable({
         ordering: false,
             processing: true,
             serverSide: true,
             paging: false,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -485,6 +463,18 @@ $('.select2type').select2({
 
         ],
         columnDefs: [{
+                targets: [3, 4],
+                visible: false
+            },
+            {
+                targets: [10],
+                width: '12%'
+            },
+            {
+                targets: [6],
+                width: '20%'
+            },
+            {
                 targets: [4],
                 render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
             },
@@ -525,12 +515,14 @@ $('.select2type').select2({
                     console.log(row);
                     if (row.status == 'Pending' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
+                    <a href="`+editRetUrl(row)+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
+                    <a href="`+editRetUrl(row)+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
@@ -583,12 +575,52 @@ $('.select2type').select2({
     }
 </script>
 <script type="text/javascript">
-    function approve_inmaterial($nodok){
-        // alert($id);
-        let nodok  = $nodok;
-
-    $('#txt_nodok').val(nodok);
-    $('#modal-appv-material').modal('show');
+    function approve_inmaterial(nodok){
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirm Dialog',
+            html: 'Sure Cancel BPB Number : <b>' + nodok + '</b>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa fa-trash"></i> Cancel',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route('cancel-retur-material') }}',
+                    type: 'get',
+                    data: { txt_nodok: nodok },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: res.message,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                datatable.ajax.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: 'Terjadi kesalahan saat menghubungi server.'
+                        });
+                    }
+                });
+            }
+        });
     }
 
 
@@ -712,28 +744,7 @@ $('.select2type').select2({
         }
 
     function printpdf(id) {
-
-            $.ajax({
-                url: '{{ route('print-pdf-inmaterial') }}/'+id,
-                type: 'post',
-                processData: false,
-                contentType: false,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = id+".pdf";
-                        link.click();
-                    }
-                }
-            });
-        }
+        window.open('{{ route('pdfbpb-inmaterial') }}/'+id, '_blank');
+    }
 </script>
 @endsection

@@ -32,10 +32,48 @@ use QrCode;
 use DNS1D;
 use PDF;
 use App\Http\Controllers\Traits\ChecksClosingPeriode;
+use App\Http\Controllers\Traits\LogsActivity;
 
 class InMaterialController extends Controller
 {
     use ChecksClosingPeriode;
+    use LogsActivity;
+
+    /**
+     * Notifikasi log activity untuk menu-menu fabric/warehouse (whs_log_activity),
+     * ditampilkan sebagai bell notification di navbar khusus halaman dashboard-warehouse.
+     */
+    public function get_notif_log_activity(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        if ($search !== '') {
+            $items = DB::connection('mysql_sb')->select("
+                SELECT id, activity, no_dok, user, created_at
+                FROM whs_log_activity
+                WHERE no_dok LIKE ?
+                ORDER BY created_at DESC
+                LIMIT 50
+            ", ['%' . $search . '%']);
+        } else {
+            $items = DB::connection('mysql_sb')->select("
+                SELECT id, activity, no_dok, user, created_at
+                FROM whs_log_activity
+                ORDER BY created_at DESC
+                LIMIT 20
+            ");
+        }
+
+        $countToday = DB::connection('mysql_sb')->select("
+            SELECT COUNT(*) as jml FROM whs_log_activity WHERE DATE(created_at) = CURDATE()
+        ");
+
+        return response()->json([
+            'count' => $countToday ? intval($countToday[0]->jml) : 0,
+            'items' => $items,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -72,7 +110,7 @@ class InMaterialController extends Controller
             }
 
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select * from (select a.*,COALESCE(qty_lok,0) qty_lok,(round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,sum(COALESCE(qty_good,0)) qty from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.no_dok like '%IN%' GROUP BY b.id) a left JOIN
+            $data_inmaterial = DB::connection('mysql_sb')->select("select * from (select a.*,COALESCE(qty_lok,0) qty_lok,(round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,sum(COALESCE(qty_good,0)) qty from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_dok like '%IN%' GROUP BY b.id) a left JOIN
                 (select no_dok nodok,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok UNION select kode_lok id,concat(no_bpb,' ',kode_lok) no_bpb,tgl_bpb,shipp,type_dok,no_po,b.supplier,no_sj,type_bc,no_daftar,tgl_daftar,type_pch,user_craete,status,round(qty,2) qty,round(qty_lok,2) qty_lok,qty_bal from (select a.kode_lok,a.no_bpb,a.tgl_bpb,'' shipp,'-' type_dok, a.no_po,a.no_sj,'' type_bc,'-' no_daftar,'' tgl_daftar,'Saldo Awal'  type_pch, '-' user_craete,'Approved' status,sum(a.qty) qty,sum(a.qty) qty_lok,'0' qty_bal from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where a.qty != 0 GROUP BY kode_lok order by a.no_bpb asc) a left join (select a.bpbno_int,b.supplier from bpb a inner join mastersupplier b on b.id_supplier = a.id_supplier WHERE bpbdate >= '2021-10-01' and LEFT(bpbno_int,2) = 'GK' GROUP BY bpbno_int) b on b.bpbno_int = a.no_bpb GROUP BY kode_lok) a where a.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." ".$where2." ".$where3." ".$where4." order by no_dok asc");
 
 
@@ -164,7 +202,7 @@ class InMaterialController extends Controller
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
 
-        return view('inmaterial.edit-inmaterial', ['det_data' => $det_data,'jml_det' => $jml_det,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+        return view('inmaterial.edit-inmaterial', ['det_data' => $det_data,'jml_det' => $jml_det,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
 
@@ -179,8 +217,9 @@ class InMaterialController extends Controller
 
         $sum_data = DB::connection('mysql_sb')->select("select sum(qty_bpb) qty from whs_lokasi_material_temp where kode_lok != 'kode_lok' and created_by = '".Auth::user()->name."'");
         $count_data = DB::connection('mysql_sb')->select("select COUNT(qty_bpb) qty from (select * from whs_lokasi_material_temp where kode_lok != 'kode_lok' and created_by = '".Auth::user()->name."') a");
+        $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
 
-        return view('inmaterial.upload-lokasi', ['det_data' => $det_data,'data_head' => $data_head,'sum_data' => $sum_data,'count_data' => $count_data, 'page' => 'dashboard-warehouse']);
+        return view('inmaterial.upload-lokasi', ['det_data' => $det_data,'data_head' => $data_head,'sum_data' => $sum_data,'count_data' => $count_data,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
     }
 
 
@@ -321,6 +360,8 @@ public function showdetaillok(Request $request)
           and id_item = '".$request->id_item."' order by CAST(no_roll AS UNSIGNED) asc
     ");
 
+    $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+
     $html = '
     <div class="table-responsive" style="max-height: 250px">
         <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
@@ -338,6 +379,19 @@ public function showdetaillok(Request $request)
     ';
 
     foreach ($det_lokasi as $det) {
+        $pilih_lokasi = '';
+        $adaLokasi = false;
+        foreach ($lokasi as $lok) {
+            $selected = ($lok->kode_lok == $det->kode_lok) ? " selected='selected'" : '';
+            if ($selected != '') {
+                $adaLokasi = true;
+            }
+            $pilih_lokasi .= "<option value='".$lok->kode_lok."'".$selected.">".$lok->kode_lok."</option>";
+        }
+        if (!$adaLokasi && $det->kode_lok) {
+            $pilih_lokasi = "<option value='".$det->kode_lok."' selected='selected'>".$det->kode_lok."</option>" . $pilih_lokasi;
+        }
+
         $html .= '
             <tr data-barcode="'.$det->no_barcode.'">
                 <td class="text-center">'.$det->no_barcode.'</td>
@@ -345,7 +399,7 @@ public function showdetaillok(Request $request)
                 <td class="text-left editable" contenteditable="true">'.$det->no_roll_buyer.'</td>
                 <td class="text-left editable" contenteditable="true">'.$det->no_lot.'</td>
                 <td class="text-right editable" contenteditable="true">'.$det->qty_aktual.'</td>
-                <td class="text-left editable" contenteditable="true">'.$det->kode_lok.'</td>
+                <td class="text-left"><select class="form-control form-control-sm select2lokshow" style="width: 100%;">'.$pilih_lokasi.'</select></td>
             </tr>
         ';
     }
@@ -387,8 +441,27 @@ public function approvematerial(Request $request)
     $noDok = $request->input('txt_nodok'); // inputan dari form
     $timestamp = Carbon::now();
 
+    // Cek apakah ada barcode dari BPB ini yang sudah pernah di-output/dipakai (whs_bppb_det status = Y)
+    $barcodeSudahOut = DB::connection('mysql_sb')->select("
+        select distinct b.id_roll
+        from whs_lokasi_inmaterial a
+        inner join whs_bppb_det b on b.id_roll = a.no_barcode
+        where a.no_dok = ?
+          and a.status = 'Y'
+          and b.status = 'Y'
+    ", [$noDok]);
+
+    if (!empty($barcodeSudahOut)) {
+        $daftarBarcode = implode(', ', array_column($barcodeSudahOut, 'id_roll'));
+        return response()->json([
+            'status' => 400,
+            'message' => 'Tidak bisa cancel, barcode berikut sudah pernah di-output: ' . $daftarBarcode,
+        ]);
+    }
+
     try {
         DB::connection('mysql_sb')->beginTransaction();
+        DB::connection('mysql_sb')->enableQueryLog();
 
         // 1. Update status jadi 'Cancel' di header
         DB::connection('mysql_sb')->table('whs_inmaterial_fabric')
@@ -409,7 +482,7 @@ public function approvematerial(Request $request)
         DB::connection('mysql_sb')->table('bpb')
         ->where('bpbno_int', $noDok)
         ->update([
-            'qty_temp' => DB::raw('qty'),
+            'qty_old' => DB::raw('qty'),
             'qty' => 0,
             'cancel' => 'Y',
             'cancel_by' => Auth::user()->name,
@@ -427,6 +500,10 @@ public function approvematerial(Request $request)
         DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')
         ->where('no_dok', $noDok)
         ->delete();
+
+        // 6. Catat ke log activity
+        $this->logRawQueryActivity('Cancel BPB', $noDok, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
 
         DB::connection('mysql_sb')->commit();
 
@@ -454,6 +531,7 @@ public function CancelReturMaterial(Request $request)
 
     try {
         DB::connection('mysql_sb')->beginTransaction();
+        DB::connection('mysql_sb')->enableQueryLog();
 
         // 1. Update status jadi 'Cancel' di header
         DB::connection('mysql_sb')->table('whs_inmaterial_fabric')
@@ -493,6 +571,10 @@ public function CancelReturMaterial(Request $request)
         ->where('no_dok', $noDok)
         ->delete();
 
+        // 6. Catat ke log activity
+        $this->logRawQueryActivity('Cancel BPB Retur', $noDok, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
+
         DB::connection('mysql_sb')->commit();
 
         return response()->json([
@@ -503,6 +585,7 @@ public function CancelReturMaterial(Request $request)
 
     } catch (\Exception $e) {
         DB::connection('mysql_sb')->rollBack();
+        DB::connection('mysql_sb')->flushQueryLog();
 
         return response()->json([
             'status' => 500,
@@ -518,6 +601,17 @@ public function updatedet(Request $request)
 {
 
     $id = $request['txt_idgr'];
+    $tglbpb = $request['txt_tgl_gr'];
+
+    $min_tgl_ro = $this->getMinTglRo();
+    if ($min_tgl_ro && $tglbpb < $min_tgl_ro) {
+        return ['status' => 400, 'message' => "Tgl BPB tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+    }
+    if ($this->isTglRoClosed($tglbpb)) {
+        return ['status' => 400, 'message' => "Tgl BPB $tglbpb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+    }
+
+    DB::connection('mysql_sb')->enableQueryLog();
 
     $updateInMaterial = InMaterialFabric::where('id', $request['txt_idgr'])->update([
         'tgl_dok' => $request['txt_tgl_gr'],
@@ -550,15 +644,27 @@ public function updatedet(Request $request)
 
     for ($i = 1; $i <= intval($request['txt_jmldet']); $i++) {
         if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
-            $updateInMaterialDet = InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
-                'tgl_dok' => $request['txt_tgl_gr'],
-                'qty_good' => $request["qty_good"][$i],
-                'qty_reject' => $request["qty_reject"][$i],
-            ]);
-
             $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request["id_det"][$i]. "'");
             $sb_id_item = $get_det_bpb ? $get_det_bpb[0]->id_item : 0;
             $sb_id_jo = $get_det_bpb ? $get_det_bpb[0]->id_jo : 0;
+
+            // tgl_dok cuma kolom turunan dari header, selalu diupdate walau qty terkunci
+            InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
+                'tgl_dok' => $request['txt_tgl_gr'],
+            ]);
+
+            // Kalau item ini sudah punya lokasi/barcode, qty tidak boleh diubah dari sini
+            $cek_lokasi = DB::connection('mysql_sb')->select("select COALESCE(SUM(qty_aktual),0) qty_lok from whs_lokasi_inmaterial where no_dok = ? and id_item = ? and id_jo = ? and status = 'Y'", [$bpbno_int, $sb_id_item, $sb_id_jo]);
+            $qty_lok = $cek_lokasi ? floatval($cek_lokasi[0]->qty_lok) : 0;
+
+            if ($qty_lok > 0) {
+                continue;
+            }
+
+            $updateInMaterialDet = InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
+                'qty_good' => $request["qty_good"][$i],
+                'qty_reject' => $request["qty_reject"][$i],
+            ]);
 
             DB::connection('mysql_sb')->table('bpb')
                 ->where('bpbno_int', $bpbno_int)
@@ -567,11 +673,15 @@ public function updatedet(Request $request)
                 ->update([
                     'qty_old' => DB::raw('qty'),
                     'qty'    => $request["qty_good"][$i],
+                    'qty_reject' => $request["qty_reject"][$i],
                 ]);
         }
     }
 
     $massage = 'Edit Data Successfully';
+
+    $this->logRawQueryActivity('Edit BPB', $bpbno_int, DB::connection('mysql_sb')->getQueryLog());
+    DB::connection('mysql_sb')->flushQueryLog();
 
     return array(
         "status" => 200,
@@ -608,6 +718,39 @@ public function updatedet(Request $request)
                 return ['status' => 400, 'message' => "Tgl BPB $tglbpb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
             }
 
+            try {
+                DB::connection('mysql_sb')->enableQueryLog();
+
+                $bpbno_int = DB::connection('mysql_sb')->transaction(function () use ($request, $tglbpb) {
+                    return $this->storeInMaterialFabric($request, $tglbpb);
+                });
+
+                $this->logRawQueryActivity('Create BPB', $bpbno_int, DB::connection('mysql_sb')->getQueryLog());
+                DB::connection('mysql_sb')->flushQueryLog();
+
+                $massage = $bpbno_int . ' Saved Succesfully';
+                $stat = 200;
+            } catch (\Throwable $e) {
+                $massage = 'Gagal menyimpan data: ' . $e->getMessage();
+                $stat = 500;
+            }
+        }else{
+            $massage = ' Please Input Data';
+            $stat = 400;
+        }
+
+
+        return array(
+            "status" =>  $stat,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => url('/in-material')
+        );
+
+    }
+
+    private function storeInMaterialFabric(Request $request, string $tglbpb)
+    {
             $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0))) no_dok FROM whs_inmaterial_fabric WHERE MONTH(tgl_dok) = MONTH('" . $tglbpb . "') AND YEAR(tgl_dok) = YEAR('" . $tglbpb . "') AND LEFT(no_dok,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
             // dd($Mattype1);
@@ -747,6 +890,19 @@ public function updatedet(Request $request)
             $inmaterialDetailData2 = [];
             for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
                 if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
+                    if($no_po == null){
+                        $detdata = DB::connection('mysql_sb')->select("select sd.price,ac.curr,'' pono,'' id_po_item from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost inner join so_det sd on sd.id_so = so.id INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier INNER JOIN masteritem mi on mi.id_item = bom.id_item where bom.cancel = 'N' and ac.kpno ='" . $no_ws . "' and jd.id_jo ='" . $request["det_idjo"][$i] . "' and mi.id_item ='" . $request["det_iditem"][$i] . "' GROUP BY bom.id_item");
+                        $price      = '0';
+                        $curr       = $detdata[0]->curr;
+                        $pono       = $detdata[0]->pono;
+                        $id_po_item = $detdata[0]->id_po_item;
+                    }else{
+                        $detdata = DB::connection('mysql_sb')->select("select s.price,s.curr,a.pono,s.id id_po_item from po_header a inner join po_item s on a.id=s.id_po inner join masteritem d on s.id_gen=d.id_gen inner join jo_det jod on s.id_jo=jod.id_jo inner join jo on jod.id_jo=jo.id inner join so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id inner join masterproduct mp on ac.id_product=mp.id INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where a.pono ='" . $no_po . "' and s.id_jo ='" . $request["det_idjo"][$i] . "' and d.id_item ='" . $request["det_iditem"][$i] . "' group by s.id order by d.id_item");
+                        $price      = $detdata[0]->price;
+                        $curr       = $detdata[0]->curr;
+                        $pono       = $detdata[0]->pono;
+                        $id_po_item = $detdata[0]->id_po_item;
+                    }
 
                     $sql_subkon = DB::connection('mysql_sb')->select("select DISTINCT nilai_barang from (select no_bppb, nilai_barang from whs_bppb_det where id_item = '".$request["det_iditem"][$i]."' and id_jo = '".$request["det_idjo"][$i]."' and status = 'Y') a INNER JOIN (select no_bppb from whs_bppb_h where no_po_subkon = '".$request['txt_po_sub']."') b on b.no_bppb = a.no_bppb");
                     $nilai_subkon =  $sql_subkon ? $sql_subkon[0]->nilai_barang : 0;
@@ -777,22 +933,7 @@ public function updatedet(Request $request)
 
             $inmaterialDetailStore2 = InMaterialFabricDet::insert($inmaterialDetailData2);
 
-
-            $massage = $bpbno_int . ' Saved Succesfully';
-            $stat = 200;
-        }else{
-            $massage = ' Please Input Data';
-            $stat = 400;
-        }
-
-
-        return array(
-            "status" =>  $stat,
-            "message" => $massage,
-            "additional" => [],
-            "redirect" => url('/in-material')
-        );
-
+            return $bpbno_int;
     }
 
 
@@ -897,8 +1038,11 @@ public function updatedet(Request $request)
         // dd($request);
         $iddok = $request['txtidgr'];
         $ttl_qty_sj = $request['ttl_qty_sj'];
+        $updateItemQty = filter_var($request['update_item_qty'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $balanceOk = $updateItemQty || (intval($ttl_qty_sj) <= intval($request['m_balance']));
 
-        if ($request['ttl_qty_sj'] != 0 && intval($request['ttl_qty_sj']) <= intval($request['m_balance'])) {
+        if ($ttl_qty_sj != 0 && $balanceOk) {
+            DB::connection('mysql_sb')->enableQueryLog();
             $timestamp = Carbon::now();
             $nodok = $request['m_gr_dok'];
             $nows = $request['m_no_ws'];
@@ -920,10 +1064,15 @@ public function updatedet(Request $request)
                     $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
 
-                    $sql_det_in = DB::connection('mysql_sb')->select("select curr, price, tgl_dok from whs_inmaterial_fabric_det where no_dok = '".$nodok."' and id_item = '".$iditem."' and id_jo = '".$idjo."' and status = 'Y'");
+                    $sql_det_in = DB::connection('mysql_sb')->select("select a.curr, a.price, a.tgl_dok, b.no_po from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_dok = '".$nodok."' and a.id_item = '".$iditem."' and a.id_jo = '".$idjo."' and a.status = 'Y'");
                     $np_curr = $sql_det_in[0]->curr;
                     $np_price = $sql_det_in[0]->price;
                     $np_tgl_in = $sql_det_in[0]->tgl_dok;
+
+                    $sql_po_tipe = DB::connection('mysql_sb')->select("select a.pono, b.tipe_com from po_header a inner join po_header_draft b on a.id_draft = b.id where a.pono = '".$sql_det_in[0]->no_po."'");
+                    if (!empty($sql_po_tipe) && $sql_po_tipe[0]->tipe_com == 'BUYER') {
+                        $np_price = 0;
+                    }
 
                     $save_lokasi = InMaterialLokasi::create([
                         "no_barcode" => $barcode,
@@ -957,14 +1106,39 @@ public function updatedet(Request $request)
             }
             // $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
 
+            if ($updateItemQty) {
+                $newQtyGood = floatval($request['m_qty']) + (floatval($ttl_qty_sj) - floatval($request['m_balance']));
 
+                DB::connection('mysql_sb')
+                    ->table('whs_inmaterial_fabric_det')
+                    ->where('no_dok', $nodok)
+                    ->where('id_item', $iditem)
+                    ->where('id_jo', $idjo)
+                    ->update([
+                        'qty_good' => $newQtyGood,
+                    ]);
+
+                DB::connection('mysql_sb')
+                    ->table('bpb')
+                    ->where('bpbno_int', $nodok)
+                    ->where('id_item', $iditem)
+                    ->where('id_jo', $idjo)
+                    ->update([
+                        'qty_old' => DB::raw('qty'),
+                        'qty' => $newQtyGood,
+                    ]);
+            }
+
+            $activity = $updateItemQty ? 'Set Lokasi Roll & Qty Item' : 'Set Lokasi Roll';
+            $this->logRawQueryActivity($activity, $nodok, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
 
             $massage = $request['m_gr_dok'] . ' Saved Location Succesfully';
             $stat = 200;
-        }elseif(intval($request['ttl_qty_sj']) <= 0){
+        }elseif(intval($ttl_qty_sj) <= 0){
             $massage = ' Please Input Data';
             $stat = 400;
-        }elseif(intval($request['ttl_qty_sj']) > intval($request['m_balance'])){
+        }elseif(!$updateItemQty && intval($ttl_qty_sj) > intval($request['m_balance'])){
             $massage = ' Qty BPB Melebihi Qty Balance';
             $stat = 400;
         }else{
@@ -986,7 +1160,11 @@ public function updatedet(Request $request)
     public function saveuploadlokasi(Request $request)
     {
         $iddok = $request['txt_idgr'];
-        if (intval($request['qty_upload']) > 0 && intval($request['qty_upload']) <= intval($request['qty_bal'])) {
+        $updateItemQty = filter_var($request['update_item_qty'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $balanceOk = $updateItemQty || (intval($request['qty_upload']) <= intval($request['qty_bal']));
+
+        if (intval($request['qty_upload']) > 0 && $balanceOk) {
+            DB::connection('mysql_sb')->enableQueryLog();
             $timestamp = Carbon::now();
             $nodok = $request['txt_gr_dok'];
             $nows = $request['m_no_ws'];
@@ -1008,10 +1186,15 @@ public function updatedet(Request $request)
                     $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
 
-                    $sql_det_in = DB::connection('mysql_sb')->select("select curr, price, tgl_dok from whs_inmaterial_fabric_det where no_dok = '".$nodok."' and id_item = '".$iditem."' and id_jo = '".$idjo."' and status = 'Y'");
+                    $sql_det_in = DB::connection('mysql_sb')->select("select a.curr, a.price, a.tgl_dok, b.no_po from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_dok = '".$nodok."' and a.id_item = '".$iditem."' and a.id_jo = '".$idjo."' and a.status = 'Y'");
                     $np_curr = $sql_det_in[0]->curr;
                     $np_price = $sql_det_in[0]->price;
                     $np_tgl_in = $sql_det_in[0]->tgl_dok;
+
+                    $sql_po_tipe = DB::connection('mysql_sb')->select("select a.pono, b.tipe_com from po_header a inner join po_header_draft b on a.id_draft = b.id where a.pono = '".$sql_det_in[0]->no_po."'");
+                    if (!empty($sql_po_tipe) && $sql_po_tipe[0]->tipe_com == 'BUYER') {
+                        $np_price = 0;
+                    }
 
                     $save_lokasi = InMaterialLokasi::create([
                         "no_barcode" => $barcode,
@@ -1044,13 +1227,39 @@ public function updatedet(Request $request)
 
             $delete_temp = InMaterialLokTemp::where('created_by',Auth::user()->name)->delete();
 
+            if ($updateItemQty) {
+                $newQtyGood = floatval($request['orig_qty_bpb']) + (floatval($request['qty_upload']) - floatval($request['qty_bal']));
+
+                DB::connection('mysql_sb')
+                    ->table('whs_inmaterial_fabric_det')
+                    ->where('no_dok', $nodok)
+                    ->where('id_item', $iditem)
+                    ->where('id_jo', $idjo)
+                    ->update([
+                        'qty_good' => $newQtyGood,
+                    ]);
+
+                DB::connection('mysql_sb')
+                    ->table('bpb')
+                    ->where('bpbno_int', $nodok)
+                    ->where('id_item', $iditem)
+                    ->where('id_jo', $idjo)
+                    ->update([
+                        'qty_old' => DB::raw('qty'),
+                        'qty' => $newQtyGood,
+                    ]);
+            }
+
+            $activity = $updateItemQty ? 'Upload Lokasi Roll & Qty Item' : 'Upload Lokasi Roll';
+            $this->logRawQueryActivity($activity, $nodok, DB::connection('mysql_sb')->getQueryLog());
+            DB::connection('mysql_sb')->flushQueryLog();
 
             $massage = $request['txt_gr_dok'] . ' Saved Location Succesfully';
             $stat = 200;
         }elseif(intval($request['qty_upload']) <= 0){
             $massage = ' Please Input Data';
             $stat = 400;
-        }elseif(intval($request['qty_upload']) > intval($request['qty_bal'])){
+        }elseif(!$updateItemQty && intval($request['qty_upload']) > intval($request['qty_bal'])){
             $massage = ' Qty BPB Melebihi Qty Balance';
             $stat = 400;
         }else{
@@ -1193,7 +1402,7 @@ public function pdfinmaterial(Request $request, $id)
 
     $fileName = 'pdf-material.pdf';
 
-    return $pdf->download(str_replace("/", "_", $fileName));
+    return $pdf->stream(str_replace("/", "_", $fileName));
 }
 
     /**
@@ -1252,8 +1461,25 @@ public function pdfinmaterial(Request $request, $id)
         return response()->json(['success' => false, 'message' => 'Parameter tidak lengkap.'], 400);
     }
 
+    // Cek apakah ada barcode item ini yang sudah pernah di-output/dipakai (whs_bppb_det status = Y)
+    $barcodeSudahOut = DB::connection('mysql_sb')->select("
+        select distinct b.id_roll
+        from whs_lokasi_inmaterial a
+        inner join whs_bppb_det b on b.id_roll = a.no_barcode
+        where a.no_dok = ?
+          and a.id_item = ?
+          and a.status = 'Y'
+          and b.status = 'Y'
+    ", [$no_dok, $id_item]);
+
+    if (!empty($barcodeSudahOut)) {
+        $daftarBarcode = implode(', ', array_column($barcodeSudahOut, 'id_roll'));
+        return response()->json(['success' => false, 'message' => 'Tidak bisa clear, barcode berikut sudah pernah di-output: ' . $daftarBarcode]);
+    }
+
     try {
         DB::beginTransaction();
+        DB::connection('mysql_sb')->enableQueryLog();
 
         $insertSql = "INSERT INTO whs_lokasi_inmaterial_cancel
                       SELECT * FROM whs_lokasi_inmaterial
@@ -1266,6 +1492,11 @@ public function pdfinmaterial(Request $request, $id)
             ->where('no_dok', $no_dok)
             ->where('id_item', $id_item)
             ->delete();
+
+        if ($deleted) {
+            $this->logRawQueryActivity('Cancel Qty Barcode', $no_dok, DB::connection('mysql_sb')->getQueryLog());
+        }
+        DB::connection('mysql_sb')->flushQueryLog();
 
         DB::commit();
 
@@ -1332,17 +1563,33 @@ public function ExportUploadRoll(Request $request)
 public function updateAllLokasi(Request $request)
 {
     $rows = $request->data;
+    $updateItemQtyAny = false;
+    DB::connection('mysql_sb')->enableQueryLog();
     // dd($rows);
     foreach ($rows as $row) {
         $qty = $row['m_qty'];
         $qty_diff = $row['m_qty_diff'];
-        if ($qty_diff > 0) {
+        $updateItemQty = filter_var($row['update_item_qty'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if ($updateItemQty && $qty_diff != 0) {
+            $updateItemQtyAny = true;
             DB::connection('mysql_sb')
             ->table('whs_inmaterial_fabric_det')
             ->where('no_dok', $row['m_gr_dok'])
             ->where('id_item', $row['m_iditem'])
+            ->where('id_jo', $row['m_idjo'])
             ->update([
                 'qty_good' => $qty,
+            ]);
+
+            DB::connection('mysql_sb')
+            ->table('bpb')
+            ->where('bpbno_int', $row['m_gr_dok'])
+            ->where('id_item', $row['m_iditem'])
+            ->where('id_jo', $row['m_idjo'])
+            ->update([
+                'qty_old' => DB::raw('qty'),
+                'qty' => $qty,
             ]);
         }
         DB::connection('mysql_sb')
@@ -1357,6 +1604,12 @@ public function updateAllLokasi(Request $request)
                 'qty_aktual' => $row['qty_aktual'],
                 'kode_lok' => $row['kode_lok'],
             ]);
+    }
+
+    if (!empty($rows)) {
+        $activity = $updateItemQtyAny ? 'Update Lokasi Roll & Qty Item' : 'Update Lokasi Roll';
+        $this->logRawQueryActivity($activity, $rows[0]['m_gr_dok'] ?? null, DB::connection('mysql_sb')->getQueryLog());
+        DB::connection('mysql_sb')->flushQueryLog();
     }
 
     return response()->json(['success' => true]);

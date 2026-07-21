@@ -36,7 +36,7 @@
                         <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i>
                             Export</button>
                     </div>
-                    <div class="mb-3 d-none">
+                    <div class="mb-3">
                         <button class="btn btn-outline-success btn-sm" onclick="exportExcel(this, true)"><i class="fa fa-file-excel"></i>
                             Export Detail</button>
                     </div>

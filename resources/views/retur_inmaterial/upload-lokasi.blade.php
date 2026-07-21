@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -57,40 +57,61 @@ input[type=file]::file-selector-button:hover {
   transition: color .2s ease-in-out;
 }
 
-/*.loading {
-    z-index: 20;
-    position: absolute;
-    top: 0;
-    left:-5px;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.4);
-}
-.loading-content {
-    position: absolute;
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    top: 40%;
-    left:35%;
-    animation: spin 2s linear infinite;
-    }
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+        #datatable tr.lokasi-invalid > td {
+            background-color: #fbdede !important;
+        }
 
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-*/
+        .qty-summary {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .qty-tile {
+            flex: 1 1 0;
+            min-width: 0;
+            background: #f8f9fb;
+            border: 1px solid #e5e8ec;
+            border-left: 3px solid #0d6efd;
+            border-radius: 6px;
+            padding: 4px 10px;
+        }
+        .qty-tile.qty-balance { border-left-color: #6c757d; }
+        .qty-tile.qty-upload { border-left-color: #198754; }
+        .qty-tile .qty-label {
+            display: block;
+            font-size: .65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #6c757d;
+        }
+        .qty-tile .qty-value-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: .9rem;
+            font-weight: 600;
+            color: #1e2a38;
+        }
+        .qty-tile .qty-value-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
     </style>
 @endsection
 
 @section('content')
-<form action="{{ route('save-upload-lokasi-retur') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
+<div class="marginnya">
+<form action="{{ route('save-upload-lokasi-retur') }}" method="post" id="store-inmaterial" onsubmit="return validateUploadLokasiSubmit(this, event)">
     @method('POST')
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb card-outline mb-3">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -102,132 +123,106 @@ input[type=file]::file-selector-button:hover {
 @foreach ($data_head as $dhead)
     <div class="card-body">
     <div class="form-group row">
-    <div class="col-md-4">
-        <div class="row">
-            <div class="col-md-12">
+
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No BPB</small></label>
-                <input type="text" class="form-control " id="txt_gr_dok" name="txt_gr_dok" value="{{ $dhead->no_dok }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idgr" name="txt_idgr" value="{{ $dhead->id_dok }}" readonly>
-                <input type="hidden" class="form-control " id="txt_iddet" name="txt_iddet" value="{{ $dhead->id }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idjo" name="txt_idjo" value="{{ $dhead->id_jo }}" readonly>
-                <input type="hidden" class="form-control " id="txt_iditem" name="txt_iditem" value="{{ $dhead->id_item }}" readonly>
+                    <label><small>No RI</small></label>
+                    <input type="text" class="form-control" id="txt_gr_dok" name="txt_gr_dok" value="{{ $dhead->no_dok }}" readonly>
+                    <input type="hidden" id="txt_idgr" name="txt_idgr" value="{{ $dhead->id_dok }}">
+                    <input type="hidden" id="txt_iddet" name="txt_iddet" value="{{ $dhead->id }}">
+                    <input type="hidden" id="txt_idjo" name="txt_idjo" value="{{ $dhead->id_jo }}">
+                    <input type="hidden" id="txt_iditem" name="txt_iditem" value="{{ $dhead->id_item }}">
                 </div>
             </div>
-            </div>
+        </div>
 
-            <div class="col-md-12">
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Kode barang</small></label>
-                <input type="text" class="form-control " id="m_kode_item" name="m_kode_item" value="{{ $dhead->kode_item }}" readonly>
+                    <label><small>No WS</small></label>
+                    <input type="text" class="form-control" id="m_no_ws" name="m_no_ws" value="{{ $dhead->no_ws }}" readonly>
                 </div>
             </div>
-            </div>
+        </div>
 
-            <div class="col-md-12">
+        <div class="col-md-3">
             <div class="mb-1">
                 <div class="form-group">
-                 <button type="button" class="btn btn-primary mr-5" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
-                    <i class="fa-solid fa-file-arrow-up"></i> IMPORT EXCEL
+                    <label><small>Kode Barang</small></label>
+                    <input type="text" class="form-control" id="m_iditem_display" value="{{ $dhead->kode_item }}" readonly>
+                    <input type="hidden" id="m_kode_item" name="m_kode_item" value="{{ $dhead->kode_item }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Unit Detail</small></label>
+                    <input type="text" class="form-control" id="txt_unit" name="txt_unit" value="{{ $dhead->unit }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="mb-2 w-100 d-flex flex-column">
+                <label class="text-muted mb-1"><small>Ringkasan Quantity</small></label>
+                <div class="qty-summary flex-grow-1">
+                    <div class="qty-tile qty-bpb">
+                        <span class="qty-label">Qty BPB</span>
+                        <input type="text" class="qty-value-input" id="qty_bpb" name="qty_bpb" value="{{ $dhead->qty }}" readonly>
+                        <input type="hidden" id="orig_qty_bpb" name="orig_qty_bpb" value="{{ $dhead->qty }}">
+                        <input type="hidden" id="update_item_qty_upload" name="update_item_qty" value="0">
+                    </div>
+                    <div class="qty-tile qty-balance">
+                        <span class="qty-label">Qty Balance</span>
+                        <input type="text" class="qty-value-input" id="qty_bal" name="qty_bal" value="{{ $dhead->qty_sisa }}" readonly>
+                    </div>
+                    <div class="qty-tile qty-upload">
+                        <span class="qty-label">Qty Upload</span>
+                        @foreach ($sum_data as $sdata)
+                        <input type="text" class="qty-value-input" id="qty_upload" name="qty_upload" value="{{ $sdata->qty }}" readonly>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="mb-1 w-100 d-flex flex-column">
+                <div class="form-group h-100 d-flex flex-column mb-0">
+                    <label><small>Deskripsi</small></label>
+                    <textarea class="form-control flex-grow-1" id="txt_desc" name="txt_desc" readonly>{{ $dhead->desc_item }}</textarea>
+                    @foreach ($count_data as $cdata)
+                    <input type="hidden" id="jumlah_data" name="jumlah_data" value="{{ $cdata->qty }}">
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
+                    <i class="fa-solid fa-file-arrow-up"></i> Import Excel
                 </button>
-                </div>
+                <a onclick="export_excel()" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Template
+                </a>
             </div>
-            </div>
-
         </div>
+
     </div>
-
-    <div class="col-md-3">
-        <div class="row">
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No WS</small></label>
-                <input type="text" class="form-control " id="m_no_ws" name="m_no_ws" value="{{ $dhead->no_ws }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Qty Balance</small></label>
-                    <input type="text" class="form-control" id="qty_bal" name="qty_bal" value="{{ $dhead->qty_sisa }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Qty Upload</small></label>
-                @foreach ($sum_data as $sdata)
-                    @if ($sdata->qty == "")
-                    <input style="background-color: white;" type="text" class="form-control" id="qty_upload" name="qty_upload" value="" readonly>
-                    @endif
-                    @if ($sdata->qty != "")
-                    <input style="background-color: white;" type="text" class="form-control" id="qty_upload" name="qty_upload" value="{{ $sdata->qty }}" readonly>
-                    @endif
-                @endforeach
-                </div>
-            </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="col-md-5">
-        <div class="row">
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Qty BPB</small></label>
-                <input type="text" class="form-control" id="qty_bpb" name="qty_bpb" value="{{ $dhead->qty }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Unit Detail</small></label>
-                <input type="text" class="form-control " id="txt_unit" name="txt_unit" value="{{ $dhead->unit }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Deskripsi</small></label>
-                <input type="text" class="form-control " id="txt_desc" name="txt_desc" value="{{ $dhead->desc_item }}" readonly>
-                @foreach ($count_data as $cdata)
-                    @if ($cdata->qty == "")
-                   <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
-                    @endif
-                    @if ($cdata->qty != "")
-                    <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" value="{{ $cdata->qty }}" readonly>
-                    @endif
-                @endforeach
-                </div>
-            </div>
-            </div>
-
-        </div>
-    </div>
-    </div>
-</div>
 </div>
 @endforeach
-<!--
-<section id="loading">
-    <div id="loading-content"></div>
-  </section> -->
+
+
     <div class="card card-sb card-outline">
+        <div class="card-header">
+            <h5 class="card-title fw-bold">
+                Data Detail
+            </h5>
+        </div>
     <div class="card-body">
     <div class="form-group row">
     <div class="table-responsive" style="max-height: 300px">
@@ -282,11 +277,6 @@ input[type=file]::file-selector-button:hover {
 
                             {{ csrf_field() }}
 
-                           <!--  <label>Pilih file excel</label>
-                            <div class="form-group">
-                                <input type="file" name="file" required="required">
-                            </div> -->
-
                             <label for="images" class="drop-container" id="dropcontainer">
                                 <span class="drop-title">Drop files here</span>
                                 or
@@ -303,6 +293,7 @@ input[type=file]::file-selector-button:hover {
                 </form>
             </div>
         </div>
+</div>
 
 @endsection
 
@@ -338,44 +329,9 @@ input[type=file]::file-selector-button:hover {
             theme: 'bootstrap4'
         });
 
-        $("#color").prop("disabled", true);
-        $("#panel").prop("disabled", true);
-        $('#p_unit').val("yard").trigger('change');
-
         //Reset Form
         if (document.getElementById('store-inmaterial')) {
             document.getElementById('store-inmaterial').reset();
-        }
-
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-
-        function tambahqty($val){
-            var table = document.getElementById("datatable");
-            var qty = 0;
-            var jml_qty = 0;
-
-            for (var i = 1; i < (table.rows.length); i++) {
-                qty = document.getElementById("datatable").rows[i].cells[9].children[0].value || 0;
-                jml_qty += parseFloat(qty) ;
-            }
-
-            $('#jumlah_qty').val(jml_qty);
-
         }
 
         function deleteupload(){
@@ -406,7 +362,6 @@ input[type=file]::file-selector-button:hover {
                 },
                 success: function (res) {
                     if (res) {
-                        // console.log(res[0].jml)
                         $('#qty_upload').val(res[0].qty);
                     }
                 },
@@ -419,78 +374,7 @@ input[type=file]::file-selector-button:hover {
             });
         }
 
-        function getMarkerCount() {
-            document.getElementById('no_urut_marker').value = "";
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-count") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('no_urut_marker').value = res;
-                    }
-                }
-            });
-        }
-
-        function getNumber() {
-            document.getElementById('cons_ws').value = null;
-            document.getElementById('order_qty').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: ' {{ route("get-marker-number") }}',
-                type: 'get',
-                dataType: 'json',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('cons_ws').value = res.cons_ws;
-                        document.getElementById('order_qty').value = res.order_qty;
-                    }
-                }
-            });
-
-        }
-
-        function calculateRatio(id) {
-            let ratio = document.getElementById('ratio-'+id).value;
-            let gelarQty = document.getElementById('gelar_marker_qty').value;
-            document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
-        }
-
-        function calculateAllRatio(element) {
-            let gelarQty = element.value;
-
-            for (let i = 0; i < datatable.data().count(); i++) {
-                let ratio = document.getElementById('ratio-'+i).value;
-                document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
-            }
-        }
-
-        // document.getElementById("store-marker").onkeypress = function(e) {
-        //     var key = e.charCode || e.keyCode || 0;
-        //     if (key == 13) {
-        //         e.preventDefault();
-        //     }
-        // }
-
-
         function submitLokasiForm(e, evt) {
-            // document.querySelector('#loading').classList.add('loading');
-            // document.querySelector('#loading-content').classList.add('loading-content');
             evt.preventDefault();
 
             clearModified();
@@ -502,15 +386,10 @@ input[type=file]::file-selector-button:hover {
                 processData: false,
                 contentType: false,
                 success: async function(res) {
-                    // document.querySelector('#loading').classList.remove('loading');
-                    // document.querySelector('#loading-content').classList.remove('loading-content');
                     if (res.status == 200) {
                         console.log(res);
 
                         e.reset();
-
-                        // $('#cbows').val("").trigger("change");
-                        // $("#cbomarker").prop("disabled", true);
 
                         Swal.fire({
                             icon: 'success',
@@ -537,6 +416,76 @@ input[type=file]::file-selector-button:hover {
             window.location = '/nds_wip/public/index.php/retur-inmaterial/lokasi-retur-material/'+iddok;
         }
 
+        function validateUploadLokasiSubmit(form, evt) {
+            evt.preventDefault();
+
+            if ($('#datatable tr.lokasi-invalid').length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lokasi Tidak Valid',
+                    html: 'Ada kode lokasi (kolom Lokasi berwarna merah) yang tidak sesuai dengan master lokasi. Perbaiki data lokasi tersebut sebelum menyimpan.',
+                });
+                return false;
+            }
+
+            const qtyUpload = parseFloat($('#qty_upload').val()) || 0;
+            const qtyBal = parseFloat($('#qty_bal').val()) || 0;
+            const diff = qtyUpload - qtyBal;
+
+            function proceed(updateItemQty) {
+                $('#update_item_qty_upload').val(updateItemQty ? '1' : '0');
+                submitForm(form, evt);
+            }
+
+            if (diff !== 0) {
+                const tandaSelisih = diff > 0 ? '+' + diff.toFixed(2) : diff.toFixed(2);
+
+                Swal.fire({
+                    title: 'Qty Upload Tidak Sama dengan Balance',
+                    html: `
+                        <div style="text-align:left;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td>Balance Item</td>
+                                    <td style="text-align:right;"><b>${qtyBal}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Qty Upload</td>
+                                    <td style="text-align:right;"><b>${qtyUpload}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Selisih</td>
+                                    <td style="text-align:right;"><b>${tandaSelisih}</b></td>
+                                </tr>
+                            </table>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    reverseButtons: true,
+                    confirmButtonText: 'Ubah Qty per Item Juga',
+                    denyButtonText: 'Ubah Barcode Saja',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745',
+                    denyButtonColor: '#ffc107',
+                    cancelButtonColor: '#6c757d',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        proceed(true);
+                    } else if (result.isDenied) {
+                        proceed(false);
+                    }
+                });
+            } else {
+                proceed(false);
+            }
+
+            return false;
+        }
+
+
+        let masterLokasiList = @json($lokasi->pluck('kode_lok'));
 
         let datatable = $("#datatable").DataTable({
         ordering: false,
@@ -593,6 +542,14 @@ input[type=file]::file-selector-button:hover {
 
         ],
         columnDefs: [
+                {
+                    targets: [5],
+                    createdCell: function(td, cellData) {
+                        if (!masterLokasiList.includes(cellData)) {
+                            $(td).closest('tr').addClass('lokasi-invalid');
+                        }
+                    }
+                },
                 {
                     targets: [6],
                     className: "d-none",
@@ -753,7 +710,47 @@ input[type=file]::file-selector-button:hover {
             });
     }
 
+    function export_excel() {
+            let from = '';
+            let to = '';
 
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
+            $.ajax({
+                type: "get",
+                url: '{{ route('export-format-upload-roll') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Berhasil Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Format Upload Roll.xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
 </script>
 @endsection

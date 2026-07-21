@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,17 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style type="text/css">
+        .marginnya{
+            margin-left: 350px;
+            margin-right: 350px;
+            margin-top: 10px;
+        }
+    </style>
     @endsection
 
     @section('content')
+    <div class="marginnya">
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Permintaan Bahan Baku</h5>
@@ -23,19 +31,7 @@
                 <div class="col-md-12">
                     <div class="form-group row">
 
-                        <div class="col-12 col-md-3">
-                            <div class="mb-1">
-                                <div class="form-group">
-                                    <label>Tipe Data</label>
-                                    <select class="form-control select2supp" id="tipe_data" name="tipe_data" style="width: 100%;">
-                                        <option value="header">HEADER</option>
-                                        <option value="list">LIST</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <div class="form-group">
                                     <label class="form-label">From Date</label>
@@ -45,7 +41,7 @@
                             </div>
                         </div>
 
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <div class="form-group">
                                     <label class="form-label">To Date</label>
@@ -55,7 +51,7 @@
                             </div>
                         </div>
 
-                        <div class=" col-12 col-md-5" style="padding-top: 0.5rem;">
+                        <div class=" col-12 col-md-6" style="padding-top: 0.5rem;">
                             <div class="mt-4 ">
                                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
@@ -74,24 +70,24 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
             </div> -->
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+            <div>
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100" style="table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th class="text-center">No Request</th>
-                            <th class="text-center">Request Date</th>
-                            <th class="text-center">Buyer</th>
+                            <th class="text-center" style="width: 8%;">No Request</th>
+                            <th class="text-center" style="width: 7%;">Date</th>
+                            <th class="text-center" style="width: 18%;">Buyer</th>
                             <th class="text-center">Style #</th>
-                            <th class="text-center">WS #</th>
-                            <th class="text-center">WS Actual #</th>
-                            <th class="text-center">Send To</th>
-                            <th class="text-center">User Created</th>
-                            <th class="text-center">Unit</th>
-                            <th class="text-center">Qty Req</th>
+                            <th class="text-center" style="width: 13%;">WS #</th>
+                            <th class="text-center" style="width: 10%;">WS Actual #</th>
+                            <th class="text-center" style="width: 13%;">Send To</th>
+                            <th class="text-center" style="width: 8%;">User Created</th>
+                            <th class="text-center" style="width: 4%;">Unit</th>
+                            <th class="text-center" style="width: 6%;">Qty Req</th>
                             <th class="text-center">Qty Out</th>
                             <th class="text-center">No Bppb</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center">Action</th>
+                            <th class="text-center" style="width: 4%;">Status</th>
+                            <th class="text-center" style="width: 9%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -134,7 +130,7 @@
         </div>
     </form>
 </div>
-
+</div>
 
 
 
@@ -182,11 +178,10 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
+            pageLength: 10,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            autoWidth: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -197,7 +192,7 @@
                 data: function(d) {
                     d.tgl_awal = $('#tgl_awal').val();
                     d.tgl_akhir = $('#tgl_akhir').val();
-                    d.tipe_data = $('#tipe_data').val();
+                    d.tipe_data = 'header';
                 },
             },
             columns: [
@@ -255,6 +250,15 @@
 
             ],
             columnDefs: [{
+                targets: [3, 10, 11],
+                visible: false
+            },{
+                targets: [0],
+                render: (data, type, row, meta) => {
+                    let info = row.bppbno_int ? '<br><small class="text-muted">No BPPB: ' + row.bppbno_int + '</small>' : '';
+                    return data + info;
+                }
+            },{
                 targets: [9,10],
                 className: 'text-right'
             },{
@@ -284,20 +288,18 @@
             {
                 targets: [13],
                 render: (data, type, row, meta) => {
-                    console.log(row);
-                    if ($('#tipe_data').val() == 'header') {
-                        if (row.cancel != 'Y') {       
-                      return `<div class='d-flex gap-1 justify-content-center'>
-                      <a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                      <button type='button' class='btn btn-sm btn-success' onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
-                      <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='Cancel_Request("` + row.bppbno + `")'><i class="fa-solid fa-trash"></i></i></button>
-                      </div>`;
-                        }else{
-                            return `<div class='d-flex gap-1 justify-content-center'> - </div>`;
-                        }
-                  }else{
-                  return `<div class='d-flex gap-1 justify-content-center'> - </div>`;
-                  }
+                    if (row.cancel == 'Y') {
+                        return `<div class='d-flex flex-nowrap gap-1 justify-content-center'> - </div>`;
+                    }
+
+                    // Kalau sudah ada No BPPB (sudah diproses jadi keluaran), tidak boleh diedit/dicancel lagi
+                    let hasBppb = !!row.bppbno_int;
+
+                    let printBtn = `<button type='button' class='btn btn-sm btn-success' onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>`;
+                    let editBtn = hasBppb ? '' : `<a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>`;
+                    let cancelBtn = hasBppb ? '' : `<button type='button' class='btn btn-sm btn-danger' onclick='Cancel_Request("` + row.bppbno + `")'><i class="fa-solid fa-trash"></i></button>`;
+
+                    return `<div class='d-flex flex-nowrap gap-1 justify-content-center'>${editBtn}${printBtn}${cancelBtn}</div>`;
               }
           }
 
@@ -319,30 +321,43 @@
 
     function Cancel_Request($bppbno){
     let bppbno = $bppbno;
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: '{{ route("cancel-request") }}',
-        type: 'get',
-        data: { bppbno: bppbno },
-        success: function (res) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: res.message,
-                timer: 2000,
-                showConfirmButton: false
-            });
-            dataTableReload();
-        },
-        error: function (xhr) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Terjadi kesalahan saat membatalkan data.'
-            });
-        }
+
+    Swal.fire({
+        icon: 'warning',
+        title: 'Yakin batalkan?',
+        text: 'Request ' + bppbno + ' akan dibatalkan dan tidak bisa dikembalikan.',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tutup',
+        confirmButtonColor: '#dc3545',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("cancel-request") }}',
+            type: 'get',
+            data: { bppbno: bppbno },
+            success: function (res) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: res.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                dataTableReload();
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat membatalkan data.'
+                });
+            }
+        });
     });
 }
 
@@ -468,28 +483,7 @@ function tambahdata(){
     }
 
     function printpdf(bppbno) {
-
-        $.ajax({
-            url: '{{ route('print-pdf-reqmaterial') }}/'+bppbno,
-            type: 'post',
-            processData: false,
-            contentType: false,
-            xhrFields:
-            {
-                responseType: 'blob'
-            },
-            success: function(res) {
-                if (res) {
-                    console.log(res);
-
-                    var blob = new Blob([res], {type: 'application/pdf'});
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = bppbno+".pdf";
-                    link.click();
-                }
-            }
-        });
+        window.open('{{ route('print-pdf-reqmaterial') }}/'+bppbno, '_blank');
     }
 </script>
 @endsection

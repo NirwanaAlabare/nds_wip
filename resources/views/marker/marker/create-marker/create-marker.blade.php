@@ -28,7 +28,7 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label small">Tanggal</label>
-                            <input type="date" class="form-control form-control-sm" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control form-control-sm" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">

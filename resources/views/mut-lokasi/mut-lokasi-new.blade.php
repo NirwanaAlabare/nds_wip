@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
 <!-- DataTables -->
@@ -11,9 +11,23 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style type="text/css">
+    .marginnya{
+        margin-left: 350px;
+        margin-right: 350px;
+        margin-top: 10px;
+    }
+    @media (max-width: 1366px){
+        .marginnya{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
+<div class="marginnya">
 <div class="card card-sb">
   <div class="card-header py-2">
     <h6 class="card-title fw-bold mb-0">Data Mutasi Lokasi</h6>
@@ -45,8 +59,8 @@
 
     </div>
 
-    <div class="table-responsive">
-      <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+    <div>
+      <table id="datatable" class="table table-bordered table-striped w-100" style="table-layout: fixed;">
         <thead class="text-center">
           <tr>
             <th>No Mutasi</th>
@@ -65,39 +79,6 @@
   </div>
 </div>
 
-
-<div class="modal fade" id="modal-appv-mutlok">
-    <form action="{{ route('approve-mutlok') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('GET')
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Confirm Dialog</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!--  -->
-                    <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel Mutasi Location Number :</label>
-                        <br>
-                        <div class="col-sm-3">
-                        </div>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control" id="txt_nodok" name="txt_nodok" style="border:none;text-align: center;" readonly>
-                        </div>
-                    </div>
-                    <!-- Hidden Text -->
-                    <!--  -->
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Cancel</button>
-                </div>
-            </div>
-        </div>
-    </form>
 </div>
 
 
@@ -147,6 +128,7 @@ $('.select2type').select2({
         serverSide: true,
         paging: true,
         searching: true,
+        autoWidth: false,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -216,14 +198,62 @@ $('.select2type').select2({
     function dataTableReload() {
         datatable.ajax.reload();
     }
+
+    @if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: @json(session('error'))
+    });
+    @endif
 </script>
 <script type="text/javascript">
-    function approve_mutlok($nodok){
-        // alert($id);
-        let nodok  = $nodok;
-
-    $('#txt_nodok').val(nodok);
-    $('#modal-appv-mutlok').modal('show');
+    function approve_mutlok(nodok){
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirm Dialog',
+            html: 'Sure Cancel Mutasi Location Number : <b>' + nodok + '</b>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa fa-trash"></i> Cancel',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route('approve-mutlok') }}',
+                    type: 'get',
+                    data: { txt_nodok: nodok },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: res.message,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                dataTableReload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: 'Terjadi kesalahan saat menghubungi server.'
+                        });
+                    }
+                });
+            }
+        });
     }
 
 
