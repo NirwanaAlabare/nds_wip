@@ -1630,14 +1630,10 @@ class PartController extends Controller
         $exist = [];
 
         // Check Closing 
-        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
-            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
-            ->where("part_form.part_id", $request->part_id)
-            ->groupBy("form_cut_input.id")
-            ->get();
+        foreach ($request->partForms as $partForm) {
+            $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
-        foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if ($currentForm && checkClosingDate(date('Y-m-d', strtotime($currentForm->waktu_selesai)))) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1714,14 +1710,10 @@ class PartController extends Controller
         $exist = [];
 
         // Check Closing 
-        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
-            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
-            ->where("part_form.part_id", $request->part_id)
-            ->groupBy("form_cut_input.id")
-            ->get();
+        foreach ($request->partForms as $partForm) {
+            $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
-        foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if ($currentForm && checkClosingDate(date('Y-m-d', strtotime($currentForm->waktu_selesai)))) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
