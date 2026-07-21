@@ -202,28 +202,28 @@ class PackingCentralSwitchingController extends Controller
         DB::beginTransaction();
 
         // Check Closing
-        $dataCheckClosingAsal = DB::connection('mysql_sb')->table('output_rfts_packing_po')
-            ->where('po_id', $request->asal_ppic_master_so_id)
-            ->where('so_det_id', $request->asal_so_det_id)
-            ->orderBy('updated_at', 'desc')
-            ->first();
+        // $dataCheckClosingAsal = DB::connection('mysql_sb')->table('output_rfts_packing_po')
+        //     ->where('po_id', $request->asal_ppic_master_so_id)
+        //     ->where('so_det_id', $request->asal_so_det_id)
+        //     ->orderBy('updated_at', 'desc')
+        //     ->first();
 
-        $dataCheckClosingTujuan = DB::connection('mysql_sb')->table('output_rfts_packing_po')
-            ->where('po_id', $request->tujuan_ppic_master_so_id)
-            ->where('so_det_id', $request->tujuan_so_det_id)
-            ->orderBy('updated_at', 'desc')
-            ->first();
+        // $dataCheckClosingTujuan = DB::connection('mysql_sb')->table('output_rfts_packing_po')
+        //     ->where('po_id', $request->tujuan_ppic_master_so_id)
+        //     ->where('so_det_id', $request->tujuan_so_det_id)
+        //     ->orderBy('updated_at', 'desc')
+        //     ->first();
 
-        if (
-            ($dataCheckClosingAsal && checkClosingDate(date('Y-m-d', strtotime($dataCheckClosingAsal->updated_at)))) ||
-            ($dataCheckClosingTujuan && checkClosingDate(date('Y-m-d', strtotime($dataCheckClosingTujuan->updated_at))))
-        ) {
-            return [
-                "status" => 400,
-                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
-                "additional" => "Closing",
-            ];
-        }
+        // if (
+        //     ($dataCheckClosingAsal && checkClosingDate(date('Y-m-d', strtotime($dataCheckClosingAsal->updated_at)))) ||
+        //     ($dataCheckClosingTujuan && checkClosingDate(date('Y-m-d', strtotime($dataCheckClosingTujuan->updated_at))))
+        // ) {
+        //     return [
+        //         "status" => 400,
+        //         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+        //         "additional" => "Closing",
+        //     ];
+        // }
 
         try {
 
