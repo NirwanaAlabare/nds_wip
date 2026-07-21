@@ -258,6 +258,7 @@ class Marketing_BomController extends Controller
                             'price'            => $price,
                             'category'         => $category,
                             'created_at'       => now(),
+                            'cancel'           => 'N',
                         ];
                     }
                 }
@@ -277,8 +278,42 @@ class Marketing_BomController extends Controller
         }
     }
 
+    // public function updateBomHeader(Request $request)
+    // {
+    //     $id_bom = $request->id_bom ?? $request->id_bom_marketing;
+    //     $id_costing = $request->id_costing;
+
+
+    //     if (!$id_bom) {
+    //         return response()->json(['status' => 500, 'message' => 'Gagal: ID BOM tidak terdeteksi dari form!']);
+    //     }
+
+    //     try {
+    //         $colors = $request->colors ? array_values(array_unique($request->colors)) : [];
+    //         $sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+
+    //         DB::connection('mysql_sb')->table('bom_marketing')
+    //             ->where('id', $id_bom)
+    //             ->update([
+    //                 'style'        => $request->style,
+    //                 'market'       => $request->market,
+    //                 'id_costing'     => $id_costing,
+    //                 'colors'     => json_encode($colors),
+    //                 'sizes'      => json_encode($sizes),
+    //                 'updated_at' => now(),
+    //             ]);
+
+    //         $this->triggerAutoSyncSO($id_bom);
+
+    //         return response()->json(['status' => 200, 'message' => 'Data Berhasil Diperbarui!']);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+    //     }
+    // }
+
     public function updateBomHeader(Request $request)
     {
+        $mysql_sb = DB::connection('mysql_sb');
         $id_bom = $request->id_bom ?? $request->id_bom_marketing;
         $id_costing = $request->id_costing;
 
@@ -287,9 +322,47 @@ class Marketing_BomController extends Controller
             return response()->json(['status' => 500, 'message' => 'Gagal: ID BOM tidak terdeteksi dari form!']);
         }
 
+
         try {
             $colors = $request->colors ? array_values(array_unique($request->colors)) : [];
-            $sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+            $new_sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+
+            $old_bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+            $old_sizes = $old_bom->sizes ? json_decode($old_bom->sizes, true) : [];
+
+            if (count($old_sizes) === count($new_sizes) && $old_sizes !== $new_sizes) {
+
+                $affected_sos = $mysql_sb->table('so')->where('id_bom', $id_bom)->pluck('id');
+
+                foreach ($old_sizes as $idx => $old_size_id) {
+                    $new_size_id = $new_sizes[$idx];
+
+                    if ($old_size_id != $new_size_id) {
+
+                        $mysql_sb->table('bom_marketing_detail')
+                            ->where('id_bom_marketing', $id_bom)
+                            ->where('id_size', $old_size_id)
+                            ->where('cancel', 'N')
+                            ->update([
+                                'id_size' => $new_size_id,
+                            ]);
+
+                        $master = $mysql_sb->table('master_size_new')->where('id', $new_size_id)->first();
+                        $new_size_text = $master ? $master->size : '';
+
+                        foreach ($affected_sos as $id_so) {
+                            $mysql_sb->table('so_det')
+                                ->where('id_so', $id_so)
+                                ->where('id_size', $old_size_id)
+                                ->where('cancel', 'N')
+                                ->update([
+                                    'id_size' => $new_size_id,
+                                    'size'    => $new_size_text
+                                ]);
+                        }
+                    }
+                }
+            }
 
             DB::connection('mysql_sb')->table('bom_marketing')
                 ->where('id', $id_bom)
@@ -298,14 +371,17 @@ class Marketing_BomController extends Controller
                     'market'       => $request->market,
                     'id_costing'     => $id_costing,
                     'colors'     => json_encode($colors),
-                    'sizes'      => json_encode($sizes),
+                    'sizes'      => json_encode($new_sizes),
                     'updated_at' => now(),
                 ]);
 
+
             $this->triggerAutoSyncSO($id_bom);
 
-            return response()->json(['status' => 200, 'message' => 'Data Berhasil Diperbarui!']);
+            $mysql_sb->commit();
+            return response()->json(['status' => 200, 'message' => 'Size berhasil di-replace!']);
         } catch (\Exception $e) {
+            $mysql_sb->rollback();
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
         }
     }
@@ -436,6 +512,7 @@ class Marketing_BomController extends Controller
                                 'category'          => $category,
                                 'created_at'        => now(),
                                 'id_costing_detail' => $id_costing_detail,
+                                'cancel'            => 'N',
                             ];
                         }
                     }
@@ -486,6 +563,7 @@ class Marketing_BomController extends Controller
                     $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfcode ELSE e.id END) as id_content")
                 )
                 ->where('d.id_bom_marketing', $id)
+                ->where('d.cancel', 'N')
                 ->orderByRaw("(CASE WHEN d.category = 'Manufacturing' THEN 999 WHEN a.root_group IS NULL THEN 998 ELSE a.root_group END) ASC")
                 ->orderBy('d.id', 'asc');
 
@@ -533,6 +611,7 @@ class Marketing_BomController extends Controller
             ->leftJoin('masteritem as i', 'd.id_item', '=', 'i.id_item')
             ->select('d.*', 'i.itemdesc as item_name')
             ->where('d.id', $id)
+            ->where('d.cancel', 'N')
             ->first();
 
         if ($data) {
@@ -1010,6 +1089,7 @@ class Marketing_BomController extends Controller
             $savedItemsQuery = $mysql_sb->table('bom_marketing_detail')
                 ->where('id_bom_marketing', $id_bom)
                 ->where('id_contents', $id_contents)
+                ->where('cancel', 'N')
                 ->where('id_set', $id_set);
 
             if ($item_desc) {
@@ -1101,7 +1181,13 @@ class Marketing_BomController extends Controller
             $firstDetail = $mysql_sb->table('bom_marketing_detail')->where('id', $ids[0] ?? null)->first();
             $id_bom = $firstDetail ? $firstDetail->id_bom_marketing : null;
 
-            $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->delete();
+            // $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->delete();
+            // delete jangan hapus langsung ubah cancel jadi Y
+            $mysql_sb->table('bom_marketing_detail')
+                ->whereIn('id', $ids)
+                ->update([
+                    'cancel' => 'Y',
+                ]);
 
             if ($id_bom) {
                 $this->triggerAutoSyncSO($id_bom);
@@ -1254,6 +1340,7 @@ class Marketing_BomController extends Controller
             )
             ->where('d.id_bom_marketing', $id)
             ->where('d.id_item', '!=', null)
+            ->where('d.cancel', 'N')
             ->orderByRaw("(CASE WHEN ac.type = 'Manufacturing' THEN 999 WHEN a.root_group IS NULL THEN 998 ELSE a.root_group END) ASC")
             ->orderBy('d.id', 'asc')
             ->get();
