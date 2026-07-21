@@ -146,11 +146,10 @@
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
                 <thead>
                     <tr>
-                        {{-- untuk checklist --}}
                         <th>Nomor Trans</th>
                         <th>PO #</th>
                         <th>Tanggal Trans</th>
-                        <th>Pemasok</th>
+                        <th>Supplier</th>
                         <th>No. Invoice</th>
                         <th>Jenis BC</th>
                         <th>No. Daftar</th>
@@ -233,7 +232,6 @@
                     </div>
                     <div class="col-md-2">
                         <label class="small fw-bold">Dari Tanggal</label>
-                        <!-- Menggunakan ID baru khusus modal -->
                         <input type="date" id="modal_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
                     </div>
                     <div class="col-md-2">
@@ -259,7 +257,7 @@
                                 <th>Nomor Trans</th>
                                 <th>PO #</th>
                                 <th>Tanggal Trans</th>
-                                <th>Pemasok</th>
+                                <th>Supplier</th>
                                 <th>No. Invoice</th>
                                 <th>Jenis BC</th>
                             </tr>
@@ -991,7 +989,7 @@
         }
 
         if (uniqueSuppliers.length > 1) {
-            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa memilih satu pemasok yang sama.', 'error');
+            Swal.fire('Gagal', 'Supplier tidak sama. Anda hanya bisa memilih satu Supplier yang sama.', 'error');
             $(this).prop('checked', false);
         }
     });
@@ -1138,13 +1136,13 @@
         let isChecked = $(this).is(':checked');
         $('.check-batch-item').prop('checked', isChecked);
 
-        validasiPemasokBatch(this, true);
+        validasiSupplierBatch(this, true);
     });
 
 
     $(document).on('change', '.check-batch-item', function() {
 
-        validasiPemasokBatch(this, false);
+        validasiSupplierBatch(this, false);
 
         updateSelectedCount();
         let totalCheckboxes = $('.check-batch-item').length;
@@ -1153,7 +1151,7 @@
     });
 
 
-    function validasiPemasokBatch(element, isCheckAll = false) {
+    function validasiSupplierBatch(element, isCheckAll = false) {
         let selectedSuppliers = [];
         $('.check-batch-item:checked').each(function() {
             selectedSuppliers.push($(this).data('supplier'));
@@ -1163,7 +1161,7 @@
 
 
         if (uniqueSuppliers.length > 1) {
-            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa menggabungkan dokumen dengan Pemasok yang sama untuk 1 Batch.', 'error');
+            Swal.fire('Gagal', 'Supplier tidak sama. Anda hanya bisa menggabungkan dokumen dengan Supplier yang sama untuk 1 Batch.', 'error');
 
             if (isCheckAll) {
 
@@ -1194,7 +1192,7 @@
             showCancelButton: true,
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Buat Batch!',
+            confirmButtonText: 'Ya, Buat Batch',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
