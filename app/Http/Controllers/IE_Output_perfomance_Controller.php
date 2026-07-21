@@ -44,6 +44,7 @@ SELECT
     man_power,
     smv,
     styleno,
+    jam_kerja_act,
     tot_rfts,
     eff,
 
@@ -62,7 +63,11 @@ SELECT
 FROM summary;
         ", [$request->input('styleno')]);
 
-
+        $lastUpdated = DB::connection('mysql_sb')->selectOne("SELECT updated_at
+            FROM mgt_rep_tmp_earn
+            WHERE styleno = ?
+            ORDER BY tgl_trans DESC, updated_at DESC
+            LIMIT 1", [$request->input('styleno')]);
 
         // For non-AJAX (initial page load)
         return view('IE.output_perfomance', [
@@ -73,6 +78,7 @@ FROM summary;
             'user' => $user,
             'data' => $data,
             'styleno' => $request->input('styleno'),
+            'lastUpdated' => $lastUpdated->updated_at ?? null,
         ]);
     }
 
