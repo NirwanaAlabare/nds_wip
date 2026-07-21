@@ -70,8 +70,8 @@
                                             $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where('ratio', '>', '0')->first() : null;
                                             $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->filter(function ($item) { return ($item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null)) || ($item->difference_qty > 0); })->first() : null;
 
-                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
-                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' || $dataSpreading->part_id == '3401' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' || $dataSpreading->part_id == '3401' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">
@@ -91,10 +91,10 @@
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
-                                            @if ($dataSpreading->no_cut > 1)
+                                            @if ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383')
                                                 @if ($stockerBefore)
-                                                    @if ($stockerBefore->stocker_id != null)
-                                                        @if ($stockerThis && $stockerThis->stocker_id != null)
+                                                    @if ($stockerBefore->stocker_id !== null)
+                                                        @if ($stockerThis && $stockerThis->stocker_id !== null)
                                                             <i class="fa fa-check"></i>
                                                         @else
                                                             <i class="fa fa-times"></i>
@@ -104,26 +104,26 @@
                                                         <i class="fa fa-minus"></i>
                                                     @endif
                                                 @else
-                                                    @if ($stockerThis && $stockerThis->stocker_id != null)
+                                                    @if ($stockerThis && $stockerThis->stocker_id !== null)
                                                         <i class="fa fa-check"></i>
                                                     @else
                                                         <i class="fa fa-times"></i>
                                                     @endif
                                                 @endif
                                             @else
-                                                @if ($stockerThis && $stockerThis->stocker_id != null)
+                                                @if ($stockerThis && $stockerThis->stocker_id !== null)
                                                     <i class="fa fa-check"></i>
                                                 @else
                                                     <i class="fa fa-times"></i>
                                                 @endif
                                             @endif
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? "" : "disabled") : "") : "") }}>
                                                 <i class="fa fa-print fa-s"></i>
                                             </button>
                                         </td>
                                         {{-- <td>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? "" : "disabled") : "") : "") }}>
                                                 <i class="fa fa-print fa-s"></i>
                                             </button>
                                         </td> --}}

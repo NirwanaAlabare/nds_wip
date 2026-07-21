@@ -1754,7 +1754,7 @@ private function queryBarcodeDetailRi(array $id_barcode_array, $tipe = null)
     $placeholders = implode(',', array_fill(0, count($id_barcode_array), '?'));
     $tipe = $tipe ? $tipe : "standard";
 
-    $qtyColumn = "COALESCE(scanned_item.qty, wbd.qty_out) AS qty";
+    $qtyColumn = "COALESCE((CASE WHEN scanned_item.unit = 'METER' AND wbd.satuan IN ('YARD', 'YRD') THEN ROUND((scanned_item.qty * 1.09361), 2) ELSE scanned_item.qty END), wbd.qty_out) AS qty";
     if ($tipe != "standard") {
         $qtyColumn = "wbd.qty_out AS qty";
     }

@@ -141,8 +141,8 @@ class PartService
             ]);
 
             // Update Part Detail Secondary Tujuan
-            $stocker->tujuan = $currentPartDetailSecondary->tujuan;
-            $stocker->tempat = $currentPartDetailSecondary->proses;
+            $stocker->tujuan = $currentPartDetailSecondary->tujuan ?? null;
+            $stocker->tempat = $currentPartDetailSecondary->proses ?? null;
             $stocker->save();
 
             // Delete Secondary Dalam
