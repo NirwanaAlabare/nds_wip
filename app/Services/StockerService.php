@@ -496,8 +496,8 @@ class StockerService
         $colorFormCutFilter = $color ? " and UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($color))."'" : null;
         $colorFormPieceFilter = $color ? " and UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($color))."'" : null;
 
-        if ($partId == 80329) {
-            \Log::info("Reorder Stocker Numbering interrupted for partId 80329 due to manual modification.");
+        if ($partId == 3383 || $partId = 3401) {
+            \Log::info("Reorder Stocker Numbering interrupted for partId 3383 and 3401 due to manual modification.");
 
             return "data was manually modified";
         }
