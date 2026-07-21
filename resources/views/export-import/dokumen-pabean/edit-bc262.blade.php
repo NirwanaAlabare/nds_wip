@@ -2039,6 +2039,7 @@
                                                             <div class="form-group mb-2">
                                                                 <label>Kode Barang</label>
                                                                 <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->goods_code ?? $item->id_item ?? '-' }}">
+                                                                <input type="text" name="barang[{{ $index }}][idItem]" class="form-control form-control-sm hidden" value="{{ $item->id_item ?? '' }}">
                                                             </div>
                                                             <div class="form-group mb-2">
                                                                 <label class="d-flex justify-content-between align-items-center mb-1">
@@ -2457,7 +2458,7 @@
 
 @section('custom-script')
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 <script>
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });

@@ -1493,6 +1493,7 @@ Route::middleware('auth')->group(function () {
     // Industrial Engineering Output Perfomance Analyzer
     Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
         Route::get('/IE_output_performance', 'IE_output_performance')->name('IE_output_performance');
+        Route::get('/IE_output_performance_styleno_suggest', 'styleno_suggest')->name('IE_output_performance_styleno_suggest');
     });
 
     // Asset Management

@@ -43,58 +43,215 @@
             opacity: .85;
         }
 
-        .oppa-stat-card {
-            border: 1px solid #e9ecef;
-            border-radius: .5rem;
-            padding: .9rem 1rem;
+        .oppa-hero-card2 {
+            border-radius: 1rem;
+            padding: 1.5rem;
             height: 100%;
-            background: #fff;
+            background: linear-gradient(160deg, #eafcf1 0%, #ffffff 65%);
+            border: 1px solid #d7f5e3;
         }
 
-        .oppa-stat-label {
-            font-size: .75rem;
-            color: #6c757d;
-            font-weight: 600;
-            text-transform: none;
+        .oppa-hero-card2.eff {
+            background: linear-gradient(160deg, #eaf2ff 0%, #ffffff 65%);
+            border: 1px solid #d7e6ff;
         }
 
-        .oppa-stat-value {
-            font-size: 1.6rem;
+        .oppa-hero-pill2 {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: #37b06a;
+            color: #fff;
+            padding: .4rem 1rem;
+            border-radius: 2rem;
             font-weight: 700;
-            line-height: 1.3;
+            font-size: .78rem;
+            letter-spacing: .03em;
         }
 
-        .oppa-stat-sub {
+        .oppa-hero-pill2.eff {
+            background: #3d7ce0;
+        }
+
+        .oppa-hero-number2 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .oppa-hero-number2.rft {
+            color: #1f9d55;
+        }
+
+        .oppa-hero-number2.eff {
+            color: #2f6fe0;
+        }
+
+        .oppa-hero-unit {
+            font-size: .7rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            text-align: right;
+        }
+
+        .oppa-hero-line2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-top: .75rem;
+        }
+
+        .oppa-hero-line2.rft {
+            color: #1f9d55;
+        }
+
+        .oppa-hero-line2.eff {
+            color: #2f6fe0;
+        }
+
+        .oppa-hero-divider {
+            border: none;
+            border-top: 2px solid;
+            opacity: .5;
+            margin: .5rem 0 .85rem;
+            width: 55%;
+        }
+
+        .oppa-hero-divider.rft {
+            border-color: #37b06a;
+        }
+
+        .oppa-hero-divider.eff {
+            border-color: #3d7ce0;
+        }
+
+        .oppa-hero-caption2 {
+            font-size: .8rem;
+            color: #6c757d;
+            margin-bottom: .9rem;
+        }
+
+        .oppa-hero-row2 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem .9rem;
+            background: rgba(255, 255, 255, .65);
+            border-radius: .6rem;
+            margin-bottom: .5rem;
+            font-size: .85rem;
+        }
+
+        .oppa-hero-row2 .left {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            color: #495057;
+        }
+
+        .oppa-hero-row2 .icon {
+            width: 1.7rem;
+            height: 1.7rem;
+            min-width: 1.7rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: .72rem;
-            color: #9aa2ab;
         }
 
-        .oppa-stat-value.text-success {
-            color: #28a745 !important;
+        .oppa-hero-row2 .icon.rft {
+            background: #d7f5e3;
+            color: #1f9d55;
+        }
+
+        .oppa-hero-row2 .icon.eff {
+            background: #d7e6ff;
+            color: #2f6fe0;
+        }
+
+        .oppa-hero-row2 .value2 {
+            font-weight: 700;
+        }
+
+        .oppa-hero-row2 .value2.rft {
+            color: #1f9d55;
+        }
+
+        .oppa-hero-row2 .value2.eff {
+            color: #2f6fe0;
+        }
+
+        .oppa-hero-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: .6rem;
+            padding: .65rem 1.1rem;
+            font-size: .78rem;
+            color: #6c757d;
         }
     </style>
 @endsection
 
 @section('content')
     @php
-        $first = $data[0] ?? null;
-        $bestLine = $first->username ?? '-';
-        $bestOutput = $first->tot_rfts ?? 0;
-        $manPower = $first->man_power ?? 0;
-        $smv = $first->smv ?? 0;
-        // Estimasi efficiency berdasarkan SMV, asumsi 480 menit kerja/hari
-        $bestEfficiency = $manPower > 0 ? round((($bestOutput * $smv) / ($manPower * 480)) * 100, 1) : 0;
-        $outputPerPerson = $manPower > 0 ? round($bestOutput / $manPower, 1) : 0;
+        // Cari baris top_rfts & top_eff dari $data
+        $topRftRow = null;
+        $topEffRow = null;
+        foreach ($data as $row) {
+            if ($row->top_rfts === 'Y') {
+                $topRftRow = $row;
+            }
+            if ($row->top_eff === 'Y') {
+                $topEffRow = $row;
+            }
+        }
+        $sameLine = $topRftRow && $topEffRow && $topRftRow->sewing_line === $topEffRow->sewing_line;
 
-        // Susun data chart per line dari $chartData (semua line untuk style ini)
+        $first = $topRftRow ?? ($data[0] ?? null);
+        $bestLine = $first->sewing_line ?? '-';
+        $bestOutput = $first->tot_rfts ?? 0;
+        $smv = $first->smv ?? 0;
+
+        $effRow = $topEffRow ?? $first;
+        $bestEfficiency = $effRow->eff ?? 0;
+        $manPower = $effRow->man_power ?? 0;
+
+        $firstManPower = $first->man_power ?? 0;
+        $outputPerPerson = $firstManPower > 0 ? round($bestOutput / $firstManPower, 1) : 0;
+
+        $effOutput = $effRow->tot_rfts ?? 0;
+        $effOutputPerPerson = $manPower > 0 ? round($effOutput / $manPower, 1) : 0;
+
+        $fmtLineDate = function ($row) {
+            if (!$row) {
+                return ['line' => '-', 'date' => '-', 'date_short' => '-'];
+            }
+            $carbon = isset($row->tgl_trans) ? \Carbon\Carbon::parse($row->tgl_trans) : null;
+            return [
+                'line' => $row->sewing_line ?? '-',
+                'date' => $carbon ? $carbon->locale('id')->isoFormat('dddd, DD-MM-YYYY') : '-',
+                'date_short' => $carbon ? $carbon->locale('id')->isoFormat('DD MMM YYYY') : '-',
+            ];
+        };
+
+        // Susun data chart Top RFT (kiri) vs Top Efficiency (kanan) dari $data
+
         $chartLines = [];
-        foreach ($chartData as $row) {
-            $lineLabel = $row->username ?: ('Line ' . $row->master_plan_id);
-            $eff = $row->man_power > 0 ? round((($row->tot_rfts * $row->smv) / ($row->man_power * 480)) * 100, 1) : 0;
+        if ($topRftRow) {
             $chartLines[] = [
-                'label' => $lineLabel,
-                'output' => (int) $row->tot_rfts,
-                'efficiency' => $eff,
+                'label' => $topRftRow->sewing_line,
+                'output' => (int) $topRftRow->tot_rfts,
+                'efficiency' => (float) $topRftRow->eff,
+            ];
+        }
+        if ($topEffRow && !$sameLine) {
+            $chartLines[] = [
+                'label' => $topEffRow->sewing_line,
+                'output' => (int) $topEffRow->tot_rfts,
+                'efficiency' => (float) $topEffRow->eff,
             ];
         }
     @endphp
@@ -110,16 +267,10 @@
                 <div class="row align-items-end mb-4">
                     <div class="col-12 col-md-5">
                         <label class="fw-bold mb-1" style="font-size:.8rem;">Cari Style</label>
-                        <input type="text" name="styleno" id="styleno" class="form-control"
-                            placeholder="Ketik style, contoh: GP016433" value="{{ $styleno }}">
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <label class="fw-bold mb-1" style="font-size:.8rem;">Urutkan Berdasarkan</label>
-                        <select name="sort_by" id="sort_by" class="form-control select2bs4 w-100" style="width: 100%;">
-                            <option value="overall_score" selected>Overall Score</option>
-                            <option value="output">Output</option>
-                            <option value="efficiency">Efficiency</option>
-                            <option value="output_per_person">Output / Person</option>
+                        <select name="styleno" id="styleno" class="select2bs4" style="width:100%">
+                            @if ($styleno)
+                                <option value="{{ $styleno }}" selected>{{ $styleno }}</option>
+                            @endif
                         </select>
                     </div>
                     <div class="col-12 col-md-3 mt-3 mt-md-0">
@@ -130,53 +281,103 @@
                 </div>
             </form>
 
-            <div class="row mb-4">
-                <div class="col-6 col-md-4 col-lg mb-3">
-                    <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Best Line</div>
-                        <div class="oppa-stat-value text-success">{{ $bestLine }}</div>
-                        <div class="oppa-stat-sub">{{ $first->tgl_trans ?? '-' }}</div>
+            <div class="row mb-2">
+                <div class="col-md-6 mb-3">
+                    <div class="oppa-hero-card2 rft">
+                        @php($d = $fmtLineDate($first))
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="oppa-hero-pill2"><i class="fas fa-arrow-trend-up"></i> Top RFT</span>
+                            <div class="text-right">
+                                <div class="oppa-hero-number2 rft">{{ number_format($bestOutput) }}</div>
+                                <div class="oppa-hero-unit">pcs</div>
+                            </div>
+                        </div>
+                        <div class="oppa-hero-line2 rft">{{ $d['line'] }}</div>
+                        <hr class="oppa-hero-divider rft">
+                        <div class="oppa-hero-caption2">Total Output</div>
+
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon rft"><i
+                                        class="fas fa-calendar-alt"></i></span>Tanggal</span>
+                            <span class="value2">{{ $d['date_short'] }}</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon rft"><i class="fas fa-users"></i></span>Operator</span>
+                            <span class="value2 rft">{{ $firstManPower }} Orang</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon rft"><i class="fas fa-bolt"></i></span>Efficiency
+                                (%)</span>
+                            <span class="value2 rft">{{ $first->eff ?? 0 }} %</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon rft"><i class="fas fa-user"></i></span>Output /
+                                Operator</span>
+                            <span class="value2 rft">{{ $outputPerPerson }} pcs/orang</span>
+                        </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg mb-3">
-                    <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Best Output</div>
-                        <div class="oppa-stat-value">{{ number_format($bestOutput) }}</div>
-                        <div class="oppa-stat-sub">pcs / day</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg mb-3">
-                    <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Best Efficiency</div>
-                        <div class="oppa-stat-value">{{ $bestEfficiency }}%</div>
-                        <div class="oppa-stat-sub">berdasarkan SMV &amp; manpower</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg mb-3">
-                    <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Manpower Best Line</div>
-                        <div class="oppa-stat-value">{{ $manPower }}</div>
-                        <div class="oppa-stat-sub">operator</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg mb-3">
-                    <div class="oppa-stat-card">
-                        <div class="oppa-stat-label">Output / Person</div>
-                        <div class="oppa-stat-value">{{ $outputPerPerson }}</div>
-                        <div class="oppa-stat-sub">pcs / person / day</div>
+                <div class="col-md-6 mb-3">
+                    <div class="oppa-hero-card2 eff">
+                        @php($d = $fmtLineDate($effRow))
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="oppa-hero-pill2 eff"><i class="fas fa-arrow-trend-up"></i> Top
+                                Efficiency</span>
+                            <div class="text-right">
+                                <div class="oppa-hero-number2 eff">{{ $bestEfficiency }}%</div>
+                                <div class="oppa-hero-unit">efficiency</div>
+                            </div>
+                        </div>
+                        <div class="oppa-hero-line2 eff">{{ $d['line'] }}</div>
+                        <hr class="oppa-hero-divider eff">
+                        <div class="oppa-hero-caption2">Total Output</div>
+
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon eff"><i
+                                        class="fas fa-calendar-alt"></i></span>Tanggal</span>
+                            <span class="value2">{{ $d['date_short'] }}</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon eff"><i class="fas fa-users"></i></span>Operator</span>
+                            <span class="value2 eff">{{ $manPower }} Orang</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon eff"><i class="fas fa-box"></i></span>Output
+                                (pcs)</span>
+                            <span class="value2 eff">{{ number_format($effOutput) }} pcs</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon eff"><i class="fas fa-user"></i></span>Output /
+                                Operator</span>
+                            <span class="value2 eff">{{ $effOutputPerPerson }} pcs/orang</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- <div class="card">
+            <div class="oppa-hero-footer mb-4">
+                <span><i class="fas fa-sync-alt"></i> Data diperbarui:
+                    {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY HH:mm') }}</span>
+                <span>* Data bersifat real-time</span>
+            </div>
+
+            <div class="card">
                 <div class="card-header">
-                    <h6 class="fw-bold mb-0">Perbandingan Output dan Efficiency per Line</h6>
+                    <h6 class="fw-bold mb-0">Top RFT vs Top Efficiency Line</h6>
                 </div>
                 <div class="card-body">
-                    <div id="oppaChart"></div>
-                    <small class="text-muted">Overall score menggabungkan output, efficiency, dan output/person.</small>
+                    @if (count($chartLines) > 0)
+                        <div id="oppaChart"></div>
+                        <small class="text-muted">Kiri: total RFT (tot rft) | Kanan: efficiency (%). Jika line dengan tot
+                            rft tertinggi sama dengan line efficiency tertinggi, hanya tampil 1 bar.</small>
+                    @else
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <div>Belum ada data. Silakan cari style terlebih dahulu.</div>
+                        </div>
+                    @endif
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
 @endsection
@@ -204,10 +405,34 @@
         $('.select2').select2();
 
         // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
+        $('.select2bs4').not('#styleno').select2({
             theme: 'bootstrap4',
             width: 'resolve' // Ensures it respects the 100% width from inline style or Bootstrap
         });
+
+        // Select2BS4 dengan AJAX suggest untuk Cari Style
+        $('#styleno').select2({
+            theme: 'bootstrap4',
+            width: 'resolve',
+            placeholder: 'Ketik style, contoh: GP016433',
+            minimumInputLength: 2,
+            allowClear: true,
+            ajax: {
+                url: '{{ route('IE_output_performance_styleno_suggest') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function(data) {
+                    return data;
+                },
+                cache: true
+            }
+        });
+
         // Now set height and font-size on the Select2 container after init
         $('.select2-container--bootstrap4 .select2-selection--single').css({
             'height': '30px', // your desired height
@@ -219,61 +444,77 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        /* Chart: Output (bar) vs Efficiency (line) per line
-        var oppaCategories = @json(array_column($chartLines, 'label'));
-        var oppaOutput = @json(array_column($chartLines, 'output'));
-        var oppaEfficiency = @json(array_column($chartLines, 'efficiency'));
+        // Bersihkan query string (?styleno=...) dari address bar setelah hasil tampil,
+        // supaya kalau halaman di-refresh (F5), dashboard & card kembali kosong.
+        if (window.location.search) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
-        var oppaChartOptions = {
-            chart: {
-                height: 350,
-                type: 'line',
-                toolbar: {
-                    show: false
-                }
-            },
-            series: [{
-                    name: 'Output (pcs)',
-                    type: 'column',
-                    data: oppaOutput
-                },
-                {
-                    name: 'Efficiency (%)',
+        // Chart: Tot RFT (bar, kiri) vs Efficiency (line, kanan) - top_rft & top_eff line
+        if (document.querySelector('#oppaChart')) {
+            var oppaCategories = @json(array_column($chartLines, 'label'));
+            var oppaOutput = @json(array_column($chartLines, 'output'));
+            var oppaEfficiency = @json(array_column($chartLines, 'efficiency'));
+
+            var oppaChartOptions = {
+                chart: {
+                    height: 350,
                     type: 'line',
-                    data: oppaEfficiency
-                }
-            ],
-            stroke: {
-                width: [0, 3]
-            },
-            colors: ['#90caf9', '#e83e8c'],
-            plotOptions: {
-                bar: {
-                    columnWidth: '45%'
-                }
-            },
-            xaxis: {
-                categories: oppaCategories
-            },
-            yaxis: [{
-                    title: {
-                        text: 'Output'
+                    toolbar: {
+                        show: false
                     }
                 },
-                {
-                    opposite: true,
-                    title: {
-                        text: 'Efficiency %'
+                series: [{
+                        name: 'tot rft',
+                        type: 'column',
+                        data: oppaOutput
+                    },
+                    {
+                        name: 'eff (%)',
+                        type: 'line',
+                        data: oppaEfficiency
                     }
+                ],
+                stroke: {
+                    width: [0, 3]
+                },
+                colors: [
+                    function({
+                        dataPointIndex
+                    }) {
+                        // chartLines[0] selalu baris top_rfts (kalau ada)
+                        return dataPointIndex === 0 ? '#37b06a' : '#3d7ce0';
+                    },
+                    '#3d7ce0'
+                ],
+                plotOptions: {
+                    bar: {
+                        columnWidth: '45%',
+                        distributed: true
+                    }
+                },
+                xaxis: {
+                    categories: oppaCategories
+                },
+                yaxis: [{
+                        title: {
+                            text: 'tot rft'
+                        }
+                    },
+                    {
+                        opposite: true,
+                        title: {
+                            text: 'eff (%)'
+                        }
+                    }
+                ],
+                dataLabels: {
+                    enabled: false
                 }
-            ],
-            dataLabels: {
-                enabled: false
-            }
-        };
+            };
 
-        var oppaChart = new ApexCharts(document.querySelector('#oppaChart'), oppaChartOptions);
-        oppaChart.render();
-        */
+            var oppaChart = new ApexCharts(document.querySelector('#oppaChart'), oppaChartOptions);
+            oppaChart.render();
+        }
     </script>
 @endsection
