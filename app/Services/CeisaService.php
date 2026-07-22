@@ -147,6 +147,8 @@ class CeisaService
     public function cekStatus()
     {
         $this->useUserCredential();
+        $this->setEnv('live');
+
         $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/status", [
             'idPerusahaan' => $this->idPerusahaan
         ]);

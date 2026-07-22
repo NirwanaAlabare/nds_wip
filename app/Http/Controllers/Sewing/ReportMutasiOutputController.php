@@ -35,14 +35,14 @@ class ReportMutasiOutputController extends Controller
     }
 
 
-    private function buildQueryMutasiOutput($start_date, $end_date, $buyer) 
+    private function buildQueryMutasiOutput($start_date, $end_date, $buyer)
     {
         $start_date = $start_date;
         $end_date = $end_date;
         $prev_date = date('Y-m-d', strtotime($start_date . ' -1 day'));
         $tgl_saldo = '2026-03-01';
         $buyer = $buyer;
-        
+
         if (!empty($buyer)) {
             $filter = "WHERE buyer = '$buyer'";
             $filter_subcont = " AND buyer = '$buyer'";
@@ -54,7 +54,7 @@ class ReportMutasiOutputController extends Controller
             $filter_loading = '';
             $filter_terima_gudang = '';
         }
-        
+
         $query = "WITH
             saldo_loading as (
                 WITH loading_line_qty as (
@@ -84,39 +84,39 @@ class ReportMutasiOutputController extends Controller
                     LEFT JOIN laravel_nds.part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
                     LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
                     WHERE
-                        ll.tanggal_loading BETWEEN '$start_date' AND '$end_date' 
+                        ll.tanggal_loading BETWEEN '$start_date' AND '$end_date'
                         AND COALESCE(s.cancel, 'n') != 'y'
                         AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                 )
 
                 select tanggal_loading, so_det_id id_so_det, MIN(total) qty_loading FROM (
                     select tanggal_loading, panel, ws, color, style, size, so_det_id, MIN(total) total from (
-                        select 
+                        select
                             tanggal_loading,
-                            GROUP_CONCAT(loading_line_qty.id_qr_stocker), 
-                            COALESCE(p_com.panel, p.panel) panel, 
-                            mp.nama_part, 
-                            msb.ws, 
-                            msb.styleno style, 
-                            msb.color, 
-                            msb.size, 
-                            so_det_id, 
-                            part_detail_id, 
-                            SUM(loading_qty) total 
-                        from loading_line_qty 
+                            GROUP_CONCAT(loading_line_qty.id_qr_stocker),
+                            COALESCE(p_com.panel, p.panel) panel,
+                            mp.nama_part,
+                            msb.ws,
+                            msb.styleno style,
+                            msb.color,
+                            msb.size,
+                            so_det_id,
+                            part_detail_id,
+                            SUM(loading_qty) total
+                        from loading_line_qty
                         LEFT JOIN laravel_nds.part_detail pd ON pd.id = loading_line_qty.part_detail_id
                         LEFT JOIN laravel_nds.part p ON p.id = pd.part_id
                         LEFT JOIN laravel_nds.part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
                         LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
                         LEFT JOIN laravel_nds.master_part mp on mp.id = pd.master_part_id
                         LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = loading_line_qty.so_det_id
-                        group by  
+                        group by
                             so_det_id, mp.nama_part
                     ) loading
-                    group by 
+                    group by
                         so_det_id, panel
-                ) loading 
-                group by 
+                ) loading
+                group by
                     so_det_id
             ),
             saldo_sewing as (
@@ -1750,13 +1750,13 @@ class ReportMutasiOutputController extends Controller
                     CASE WHEN sewing_loading_inject.tanggal >= '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject
                 FROM laravel_nds.sewing_loading_inject
                 LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = sewing_loading_inject.so_det_id
-                WHERE sewing_loading_inject.tanggal <= '$end_date' 
+                WHERE sewing_loading_inject.tanggal <= '$end_date'
                 $filter_loading
                 GROUP BY so_det_id
             ),
 
             query_loading_inject as (
-                SELECT 
+                SELECT
                     buyer,
                     ws,
                     styleno,
@@ -1812,12 +1812,12 @@ class ReportMutasiOutputController extends Controller
                     0 qty_reject_in,
                     0 qty_reworked,
                     0 qty_rejected,
-                    0 saldo_akhir_qc_reject, 
+                    0 saldo_akhir_qc_reject,
                     loading_inject.loading_inject_bef,
                     loading_inject.loading_inject
-                FROM 
-                    loading_inject 
-                GROUP BY 
+                FROM
+                    loading_inject
+                GROUP BY
                     buyer, ws, styleno, color, size
             ),
 
@@ -1841,7 +1841,7 @@ class ReportMutasiOutputController extends Controller
                             SUM( qty_sew_reject ) qty_sew_reject,
                             SUM( qty_sewing ) qty_sewing,
                             ROUND(SUM( qty_out ),0) qty_out_subcont,
-                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) ) saldo_akhir_sewing,
+                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) + ((loading_inject_bef) + loading_inject) ) saldo_akhir_sewing,
                             SUM( saldo_awal_finishing ) saldo_awal_finishing,
                             SUM( input_rework_sewing_f ) input_rework_sewing_f,
                             SUM( input_rework_spotcleaning_f ) input_rework_spotcleaning_f,
@@ -1946,10 +1946,10 @@ class ReportMutasiOutputController extends Controller
                             select
                                     *
                             from
-                                    query_terima_gudang UNION ALL 
+                                    query_terima_gudang UNION ALL
                             select
                                     *
-                            from 
+                            from
                                     query_loading_inject
                             ) a
                     group by
@@ -2802,7 +2802,7 @@ class ReportMutasiOutputController extends Controller
         $sheet->writeTo('BG3', 'Keluar Gudang Stok', $stylePink);
         $sheet->writeTo('BH3', 'Adjustment', $stylePink);
         $sheet->writeTo('BI3', 'Saldo Akhir', $stylePink);
-        
+
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
             $sheet->writeAreas();
