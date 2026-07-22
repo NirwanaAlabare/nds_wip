@@ -185,6 +185,8 @@ function checkClosingDate($date)
         return false;
     }
 
+    $date = date('Y-m-d', strtotime($date));
+
     $lastClosing = DB::table('data_locks')
         ->where('is_locked', true)
         ->orderBy('end_date', 'desc')
