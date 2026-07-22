@@ -19,6 +19,18 @@ class BAPFormController extends Controller
         GROUP BY sub_dept_name
         ORDER BY sub_dept_name ASC");
 
+        // NEW
+        // $userDepartment = Auth::user()->userDepartment()->pluck('sub_dept_id')->toArray();
+
+        // $userDepartmentIds = addQuotesAround(implode("\n", $userDepartment));
+
+        // $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
+        // WHERE site_nirwana_id = 'NAG'
+        // AND status = 'AKTIF'
+        // AND sub_dept_id IN ($userDepartmentIds)
+        // GROUP BY sub_dept_name
+        // ORDER BY sub_dept_name ASC");
+
         return response()->json($departments);
     }
 

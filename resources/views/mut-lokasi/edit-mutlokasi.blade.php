@@ -14,6 +14,12 @@
         margin-right: 350px;
         margin-top: 10px;
     }
+    @media (max-width: 1366px){
+        .marginnya{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+    }
     #datatable tr.row-locked > td {
         background-color: #fff3cd !important;
     }

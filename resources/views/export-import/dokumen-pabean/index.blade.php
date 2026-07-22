@@ -146,12 +146,10 @@
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
                 <thead>
                     <tr>
-                        {{-- untuk checklist --}}
-                        <th></th>
                         <th>Nomor Trans</th>
                         <th>PO #</th>
                         <th>Tanggal Trans</th>
-                        <th>Pemasok</th>
+                        <th>Supplier</th>
                         <th>No. Invoice</th>
                         <th>Jenis BC</th>
                         <th>No. Daftar</th>
@@ -198,10 +196,11 @@
 <div class="modal fade" id="modal-buat-batch" tabindex="-1" role="dialog" aria-labelledby="modalBuatBatchLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white" style="border-radius: 8px 8px 0 0;">
+            <div class="modal-header bg-sb text-white" style="border-radius: 8px 8px 0 0;">
                 <h5 class="modal-title font-weight-bold" id="modalBuatBatchLabel">
                     <i class="fas fa-layer-group mr-2"></i> Buat Batch Dokumen Pabean
                 </h5>
+                <span class="badge badge-light text-dark fs-6 ml-2" id="info-selected-count">0 dokumen dipilih</span>
                 <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1;">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -215,7 +214,6 @@
                             <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
                         </select>
                     </div>
-
                     <div class="col-md-2">
                         <label class="small fw-bold">Tipe BC</label>
                         <select id="jenis_bc_modal" class="form-control form-control-sm select2bs4">
@@ -234,7 +232,6 @@
                     </div>
                     <div class="col-md-2">
                         <label class="small fw-bold">Dari Tanggal</label>
-                        <!-- Menggunakan ID baru khusus modal -->
                         <input type="date" id="modal_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
                     </div>
                     <div class="col-md-2">
@@ -260,7 +257,7 @@
                                 <th>Nomor Trans</th>
                                 <th>PO #</th>
                                 <th>Tanggal Trans</th>
-                                <th>Pemasok</th>
+                                <th>Supplier</th>
                                 <th>No. Invoice</th>
                                 <th>Jenis BC</th>
                             </tr>
@@ -307,28 +304,6 @@
                 }
             },
             columns: [
-                {
-                    data: null,
-                    name: 'checkbox',
-                    orderable: false,
-                    searchable: false,
-                    className: 'text-center',
-                    render: function (data, type, row, meta) {
-                        // let jenisBc = $('#jenis_bc').val();
-                        // let jenis = $('#jenis').val();
-
-                        // if(jenisBc == "BC 4.0" || jenisBc == "BC 4.1"){
-                        //     if(jenis == 'Pemasukan'){
-                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bpbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
-                        //     }else{
-                        //         return '<input type="checkbox" class="select-checkbox" value="' + row.bppbno + '" data-supplier="' + row.supplier + '" data-no-aju="' + row.nomor_aju_ceisa + '" data-id="'+row.id+'">';
-                        //     }
-                        // }else{
-                        //     return '';
-                        // }
-                        return '';
-                    }
-                },
                 {
                     data: null,
                     name: 'trx_no',
@@ -1014,7 +989,7 @@
         }
 
         if (uniqueSuppliers.length > 1) {
-            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa memilih satu pemasok yang sama.', 'error');
+            Swal.fire('Gagal', 'Supplier tidak sama. Anda hanya bisa memilih satu Supplier yang sama.', 'error');
             $(this).prop('checked', false);
         }
     });
@@ -1125,6 +1100,7 @@
                         d.supplier_batch = $('#filter_supplier_batch').val();
                     }
                 },
+                lengthMenu:[[15, 25, 50, 100, -1], [15, 25, 50, 100, 'All']],
                 columns: [
                     {
                         data: null,
@@ -1160,23 +1136,22 @@
         let isChecked = $(this).is(':checked');
         $('.check-batch-item').prop('checked', isChecked);
 
-        // Lempar parameter 'true' untuk menandakan ini dari Check All
-        validasiPemasokBatch(this, true);
+        validasiSupplierBatch(this, true);
     });
 
 
     $(document).on('change', '.check-batch-item', function() {
 
-        validasiPemasokBatch(this, false);
+        validasiSupplierBatch(this, false);
 
-
+        updateSelectedCount();
         let totalCheckboxes = $('.check-batch-item').length;
         let totalChecked = $('.check-batch-item:checked').length;
         $('#check-all-batch').prop('checked', totalCheckboxes === totalChecked && totalCheckboxes > 0);
     });
 
 
-    function validasiPemasokBatch(element, isCheckAll = false) {
+    function validasiSupplierBatch(element, isCheckAll = false) {
         let selectedSuppliers = [];
         $('.check-batch-item:checked').each(function() {
             selectedSuppliers.push($(this).data('supplier'));
@@ -1186,7 +1161,7 @@
 
 
         if (uniqueSuppliers.length > 1) {
-            Swal.fire('Gagal', 'Pemasok tidak sama. Anda hanya bisa menggabungkan dokumen dengan Pemasok yang sama untuk 1 Batch.', 'error');
+            Swal.fire('Gagal', 'Supplier tidak sama. Anda hanya bisa menggabungkan dokumen dengan Supplier yang sama untuk 1 Batch.', 'error');
 
             if (isCheckAll) {
 
@@ -1217,7 +1192,7 @@
             showCancelButton: true,
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Buat Batch!',
+            confirmButtonText: 'Ya, Buat Batch',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -1300,5 +1275,11 @@
             }
         });
     });
+
+    function updateSelectedCount() {
+        let totalChecked = $('.check-batch-item:checked').length;
+        console.log(totalChecked);
+        $('#info-selected-count').text(totalChecked + ' dokumen dipilih');
+    }
 </script>
 @endsection

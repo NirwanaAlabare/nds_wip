@@ -225,6 +225,12 @@
         $effOutput = $effRow->tot_rfts ?? 0;
         $effOutputPerPerson = $manPower > 0 ? round($effOutput / $manPower, 1) : 0;
 
+        $firstJamKerjaAct = $first->jam_kerja_act ?? 0;
+        $firstJamKerjaActMenit = round($firstJamKerjaAct * 60, 1);
+
+        $effJamKerjaAct = $effRow->jam_kerja_act ?? 0;
+        $effJamKerjaActMenit = round($effJamKerjaAct * 60, 1);
+
         $fmtLineDate = function ($row) {
             if (!$row) {
                 return ['line' => '-', 'date' => '-', 'date_short' => '-'];
@@ -315,6 +321,12 @@
                                 Operator</span>
                             <span class="value2 rft">{{ $outputPerPerson }} pcs/orang</span>
                         </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon rft"><i class="fas fa-clock"></i></span>Jam Kerja
+                                Act</span>
+                            <span class="value2 rft">{{ $firstJamKerjaAct }} jam ({{ $firstJamKerjaActMenit }}
+                                menit)</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -351,14 +363,19 @@
                                 Operator</span>
                             <span class="value2 eff">{{ $effOutputPerPerson }} pcs/orang</span>
                         </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon eff"><i class="fas fa-clock"></i></span>Jam Kerja
+                                Act</span>
+                            <span class="value2 eff">{{ $effJamKerjaAct }} jam ({{ $effJamKerjaActMenit }}
+                                menit)</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="oppa-hero-footer mb-4">
                 <span><i class="fas fa-sync-alt"></i> Data diperbarui:
-                    {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY HH:mm') }}</span>
-                <span>* Data bersifat real-time</span>
+                    {{ $lastUpdated ? \Carbon\Carbon::parse($lastUpdated)->locale('id')->isoFormat('DD MMM YYYY HH:mm') : '-' }}</span>
             </div>
 
             <div class="card">
