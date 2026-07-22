@@ -12,7 +12,7 @@
                 <th class="text-center align-middle" scope="col">Size</th>
                 <th class="text-center align-middle" scope="col">Style</th>
                 <th class="text-center align-middle" scope="col">Color</th>
-                <th class="text-center align-middle" scope="col">Qty</th>
+                <th class="text-center align-middle" scope="col">Qty PO</th>
             </tr>
         </thead>
         <tbody>

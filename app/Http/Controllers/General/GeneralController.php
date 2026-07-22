@@ -1114,13 +1114,31 @@ class GeneralController extends Controller
                 // Return the message when it was because of roll exhausted on other form
                 $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
                 if ($formCutInputDetail) {
-                    return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+                    return "Roll sudah habis di form '".$formCutInputDetail->no_form_cut_input."'";
                 } else {
+                    // Piece
                     $formCutPieceDetail = FormCutPieceDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
 
                     if ($formCutPieceDetail) {
-                        return "Roll sudah terpakai di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
+                        return "Roll sudah habis di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
+                    } else {
+                        // Piping
+                        $formCutPiping = Piping::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                        if ($formCutPiping) {
+                            return "Roll sudah habis di form '".($formCutPiping ? $formCutPiping->no_form : "-")."'";
+                        } else {
+                            // Reject
+                            $formCutReject = DB::table('form_cut_alokasi_gr_panel_barcode')->where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                            if ($formCutReject) {
+
+                                return "Roll sudah habis di form reject ws '".($formCutReject ? $formCutReject->ws : "-")."'";
+                            }
+                        }
                     }
+
+                    return "Roll sudah habis";
                 }
             } else {
 
@@ -1233,9 +1251,32 @@ class GeneralController extends Controller
                 }
 
                 $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
-
                 if ($formCutInputDetail) {
-                    return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+                    return "Roll sudah habis di form '".$formCutInputDetail->no_form_cut_input."'";
+                } else {
+                    // Piece
+                    $formCutPieceDetail = FormCutPieceDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                    if ($formCutPieceDetail) {
+                        return "Roll sudah habis di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
+                    } else {
+                        // Piping
+                        $formCutPiping = Piping::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                        if ($formCutPiping) {
+                            return "Roll sudah habis di form '".($formCutPiping ? $formCutPiping->no_form : "-")."'";
+                        } else {
+                            // Reject
+                            $formCutReject = DB::table('form_cut_alokasi_gr_panel_barcode')->where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                            if ($formCutReject) {
+
+                                return "Roll sudah habis di form reject ws '".($formCutReject ? $formCutReject->ws : "-")."'";
+                            }
+                        }
+                    }
+
+                    return "Roll sudah habis";
                 }
             } else {
                 $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;

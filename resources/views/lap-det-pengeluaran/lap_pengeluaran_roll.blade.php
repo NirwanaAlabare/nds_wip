@@ -197,7 +197,7 @@
                 }
             ],
             columnDefs: [{
-                targets: [9],
+                targets: [10],
                 className: 'text-right',
                 render: function (data) {
                     return data ? Number(data).toFixed(2) : "0.00";

@@ -29,6 +29,8 @@ class export_excel_packing_list implements FromView, ShouldAutoSize, WithEvents,
 
     public function view(): View
     {
+        // dd($this->po, $this->buyer, $this->dest, $this->styleno);
+
         $rawData = DB::select("
             SELECT
                 a.po,

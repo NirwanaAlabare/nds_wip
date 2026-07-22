@@ -403,7 +403,7 @@ input[type=file]::file-selector-button:hover {
                 success: function (res) {
                     if (res) {
                         // console.log(res[0].jml)
-                        $('#qty_upload').val(res[0].qty);
+                        $('#qty_upload').val((Math.round(parseFloat(res[0].qty || 0) * 100) / 100).toFixed(2));
                     }
                 },
             });
@@ -540,9 +540,10 @@ input[type=file]::file-selector-button:hover {
                 return false;
             }
 
-            const qtyUpload = parseFloat($('#qty_upload').val()) || 0;
-            const qtyBal = parseFloat($('#qty_bal').val()) || 0;
-            const diff = qtyUpload - qtyBal;
+            const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+            const qtyUpload = round2(parseFloat($('#qty_upload').val()) || 0);
+            const qtyBal = round2(parseFloat($('#qty_bal').val()) || 0);
+            const diff = round2(qtyUpload - qtyBal);
 
             function proceed(updateItemQty) {
                 $('#update_item_qty_upload').val(updateItemQty ? '1' : '0');
@@ -559,11 +560,11 @@ input[type=file]::file-selector-button:hover {
                             <table style="width:100%;">
                                 <tr>
                                     <td>Balance Item</td>
-                                    <td style="text-align:right;"><b>${qtyBal}</b></td>
+                                    <td style="text-align:right;"><b>${qtyBal.toFixed(2)}</b></td>
                                 </tr>
                                 <tr>
                                     <td>Total Qty Upload</td>
-                                    <td style="text-align:right;"><b>${qtyUpload}</b></td>
+                                    <td style="text-align:right;"><b>${qtyUpload.toFixed(2)}</b></td>
                                 </tr>
                                 <tr>
                                     <td>Selisih</td>

@@ -533,7 +533,7 @@ class PartController extends Controller
                 ->get();
             
             foreach($dataCheckClosing as $data){
-                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                if (checkClosingDate($data->waktu_selesai)) {
                     return array(
                         "status" => 400,
                         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -629,7 +629,7 @@ class PartController extends Controller
             ->get();
 
         foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if (checkClosingDate($data->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -953,7 +953,7 @@ class PartController extends Controller
             ->get();
 
         foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if (checkClosingDate($data->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1230,7 +1230,7 @@ class PartController extends Controller
             ->get();
 
         foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if (checkClosingDate($data->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1422,7 +1422,7 @@ class PartController extends Controller
             ->get();
 
         foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+            if (checkClosingDate($data->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1633,7 +1633,7 @@ class PartController extends Controller
         foreach ($request->partForms as $partForm) {
             $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
-            if ($currentForm && checkClosingDate(date('Y-m-d', strtotime($currentForm->waktu_selesai)))) {
+            if ($currentForm && checkClosingDate($currentForm->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1713,7 +1713,7 @@ class PartController extends Controller
         foreach ($request->partForms as $partForm) {
             $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
-            if ($currentForm && checkClosingDate(date('Y-m-d', strtotime($currentForm->waktu_selesai)))) {
+            if ($currentForm && checkClosingDate($currentForm->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -2006,7 +2006,7 @@ class PartController extends Controller
                 ->get();
 
             foreach($dataCheckClosing as $data){
-                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                if (checkClosingDate($data->waktu_selesai)) {
                     return array(
                         "status" => 400,
                         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -2068,7 +2068,7 @@ class PartController extends Controller
                 ->get();
 
             foreach($dataCheckClosing as $data){
-                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                if (checkClosingDate($data->waktu_selesai)) {
                     return array(
                         "status" => 400,
                         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -2132,7 +2132,7 @@ class PartController extends Controller
                 ->get();
 
             foreach($dataCheckClosing as $data){
-                if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
+                if (checkClosingDate($data->waktu_selesai)) {
                     return array(
                         "status" => 400,
                         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",

@@ -17,3 +17,4 @@ laravel-echo-server.lock
 miss rework schedule.bat
 composer.json
 composer.lock
+/public/uploads/costing
