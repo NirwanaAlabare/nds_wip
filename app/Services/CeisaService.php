@@ -279,7 +279,7 @@ class CeisaService
     public function kirimDokumenBc30($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('dev');
+        $this->setEnv('live');
 
         $response = $this->requestWithRetry(
             'POST',
