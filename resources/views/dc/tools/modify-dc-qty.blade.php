@@ -295,10 +295,19 @@
                     let secondaryIn = response.secondaryIn ? "Secondary In berhasil di update." : "Secondary In tidak ada";
                     let loadingLine = response.loadingLine ? "Loading Line berhasil di update." : "Loading Line tidak ada";
 
-                    Swal.fire({
-                        icon: "info",
-                        html: dc+"<br>"+secondaryInhouse+"<br>"+secondaryIn+"<br>"+loadingLine
-                    })
+
+                    if(response.status == 400){
+                        Swal.fire({
+                            icon: "info",
+                            html: response.message
+                        })
+                    }else{
+                        Swal.fire({
+                            icon: "info",
+                            html: dc+"<br>"+secondaryInhouse+"<br>"+secondaryIn+"<br>"+loadingLine
+                        })
+                    }
+
                 },
                 error: function (jqXHR) {
                     document.getElementById("loading").classList.add("d-none");

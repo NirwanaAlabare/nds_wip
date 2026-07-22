@@ -169,6 +169,17 @@ class CuttingToolsController extends Controller
     }
 
     public function updateFormRatio(Request $request) {
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "modify_ratio_form_id" => "required",
             "modify_ratio_kode_marker" => "required",
@@ -304,6 +315,17 @@ class CuttingToolsController extends Controller
     }
 
     public function updateFormMarker(Request $request, StockerService $stockerService) {
+
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
+        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "modify_marker_form_id" => "required",
             "modify_marker_kode_marker" => "required",
@@ -873,6 +895,32 @@ class CuttingToolsController extends Controller
 
     public function updateFormGroup(Request $request) {
         ini_set('max_execution_time', 3600);
+
+        // Check Closing 
+        if($request->form_type == 'reject'){
+            $dataCheckClosing = DB::table("form_cut_reject")
+            ->selectRaw("tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }elseif($request->form_type == 'piece'){
+            $dataCheckClosing = DB::table("form_cut_piece")
+            ->selectRaw("DATE_FORMAT(waktu_selesai, '%Y-%m-%d') as tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }else{
+            $dataCheckClosing = DB::table("form_cut_input")
+            ->selectRaw("DATE_FORMAT(waktu_selesai, '%Y-%m-%d') as tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }
+
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
 
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",
