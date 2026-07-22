@@ -172,7 +172,7 @@ class CuttingToolsController extends Controller
 
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -318,7 +318,7 @@ class CuttingToolsController extends Controller
 
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
