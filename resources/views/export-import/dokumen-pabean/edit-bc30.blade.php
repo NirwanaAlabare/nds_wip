@@ -2255,16 +2255,18 @@
                                                 </select>
                                             </div>
                                             <div class="col-8 pl-1">
-                                                <input type="text" name="entitas[2][nomorIdentitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nomorIdentitas'] ?? '' }}">
+                                                <input type="text" id="nomorIdentitas_2" name="entitas[2][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['nomorIdentitas'] ?? '' }}">
                                             </div>
                                         </div>
+                                        <small class="text-muted font-italic" style="font-size: 11px;">* Masukkan 22 digit lengkap (NPWP + NITKU). CEISA akan otomatis memotong NPWP menjadi 16 digit.</small>
                                     </div>
+
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">NITKU</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="text" name="entitas[2][nitku]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU 22 Digit">
-                                            <div class="input-group-append"><button class="btn btn-primary" type="button"><i class="fas fa-sync-alt"></i></button></div>
+                                            <input type="text" id="nitku_2" name="entitas[2][nitku]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU 22 Digit">
                                         </div>
+                                        <small class="text-muted font-italic" style="font-size: 11px;">* Otomatis terisi 22 digit dari nomor identitas atau dapat disesuaikan.</small>
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">Nama</label>
@@ -3448,5 +3450,14 @@
         });
         $(document).on('click', '.btn-hapus-entitas-brg', function() { $(this).closest('tr').remove(); });
     });
+</script>
+<script>
+$(document).ready(function() {
+    $('#nomorIdentitas_2').on('input', function() {
+        let valNomor = $(this).val();
+
+        $('#nitku_2').val(valNomor);
+    });
+});
 </script>
 @endsection
