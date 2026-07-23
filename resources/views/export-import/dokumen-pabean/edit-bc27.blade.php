@@ -3142,11 +3142,11 @@
             $('#totalVolume').val(formatDecimal(totalVolume));
 
 
-            let inputBruto = $('input[name="bruto"]');
-            let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
-            if (currentBruto < totalNetto) {
-                inputBruto.val(formatDecimal(totalNetto));
-            }
+            // let inputBruto = $('input[name="bruto"]');
+            // let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
+            // if (currentBruto < totalNetto) {
+            //     inputBruto.val(formatDecimal(totalNetto));
+            // }
 
 
             let hiddenContainer = $('#hidden-pungutan-container');

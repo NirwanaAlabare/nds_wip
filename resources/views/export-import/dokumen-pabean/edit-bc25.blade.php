@@ -3135,11 +3135,11 @@
             $('#totalNetto').val(formatDecimal(totalNetto));
             $('#totalVolume').val(formatDecimal(totalVolume));
 
-            let inputBruto = $('input[name="bruto"]');
-            let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
-            if (currentBruto < totalNetto) {
-                inputBruto.val(formatDecimal(totalNetto));
-            }
+            // let inputBruto = $('input[name="bruto"]');
+            // let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
+            // if (currentBruto < totalNetto) {
+            //     inputBruto.val(formatDecimal(totalNetto));
+            // }
 
             $('#text-ppn-ditangguhkan').text(formatIdr(dataPPN['3']));
             $('#text-ppn-dibebaskan').text(formatIdr(dataPPN['5']));

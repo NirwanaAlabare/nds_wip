@@ -40,12 +40,14 @@ class Bc41Service
         $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
         $items = $db->table('bppb as a')
-            ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+            ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->select(
                 'a.id_item',
-                DB::raw("IF(mi.itemdesc != '', mi.goods_code, ms.goods_code) as goods_code"),
-                DB::raw("IF(mi.itemdesc != '', mi.itemdesc , CONCAT(ms.itemname, ' ', IFNULL(ms.color,''))) as itemdesc"),
+
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+
                 DB::raw("MAX(a.unit) as unit"),
                 DB::raw('SUM(a.qty) as qty'),
                 DB::raw('AVG(a.price) as price'),
