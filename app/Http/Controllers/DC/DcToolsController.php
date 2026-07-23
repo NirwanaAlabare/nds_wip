@@ -235,6 +235,40 @@ class DcToolsController extends Controller
     }
 
     public function updateDcQty(Request $request) {
+
+        // Check Closing
+        $dataCheckClosing = DB::table("dc_in_input")
+            ->selectRaw("DATE_FORMAT(tgl_trans, '%Y-%m-%d') as tanggal")
+            ->where("id_qr_stocker", $request->id_qr_stocker)
+            ->first();
+        if(!$dataCheckClosing){
+            $dataCheckClosing = DB::table("secondary_inhouse_input")
+                ->selectRaw("tgl_trans as tanggal")
+                ->where("id_qr_stocker", $request->id_qr_stocker)
+                ->first();
+        }
+        if(!$dataCheckClosing){
+            $dataCheckClosing = DB::table("secondary_in_input")
+                ->selectRaw("tgl_trans as tanggal")
+                ->where("id_qr_stocker", $request->id_qr_stocker)
+                ->first();
+        }
+        if(!$dataCheckClosing){
+            $dataCheckClosing = DB::table("loading_line")
+                ->selectRaw("loading_line.tanggal_loading as tanggal")
+                ->leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")
+                ->where("stocker_input.id_qr_stocker", $request->id_qr_stocker)
+                ->first();
+        }
+
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+            );
+        }
+
         if ($request->id_qr_stocker) {
             $stocker = Stocker::selectRaw("stocker_input.*, master_sb_ws.buyer master_act_costing_buyer, master_sb_ws.id_act_cost master_act_costing_id, master_sb_ws.ws master_act_costing_ws, master_sb_ws.styleno master_act_costing_style, master_sb_ws.color master_act_costing_color")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->where("id_qr_stocker", $request->id_qr_stocker)->first();
 
@@ -333,6 +367,22 @@ class DcToolsController extends Controller
         $idQrStockers = explode("\n", $request->stocker_ids);
         $idQrStockers = array_filter(array_map('trim', $idQrStockers));
 
+        // Check Closing
+        $dataCheckClosing = DB::table("dc_in_input")
+            ->selectRaw("DATE_FORMAT(tgl_trans, '%Y-%m-%d') as tanggal")
+            ->whereIn("id_qr_stocker", $idQrStockers)
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+
         if ($idQrStockers && $request->tanggal) {
             $errors = [];
             $validStockers = [];
@@ -405,6 +455,22 @@ class DcToolsController extends Controller
     public function deleteDcIn(Request $request) {
         $idQrStockers = explode("\n", $request->stocker_ids);
         $idQrStockers = array_filter(array_map('trim', $idQrStockers));
+
+        // Check Closing
+        $dataCheckClosing = DB::table("dc_in_input")
+            ->selectRaw("DATE_FORMAT(tgl_trans, '%Y-%m-%d') as tanggal")
+            ->whereIn("id_qr_stocker", $idQrStockers)
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
 
         if ($idQrStockers) {
             $errors = [];

@@ -184,6 +184,28 @@
             startCalc();
         });
 
+        // Cegah double submit: disable tombol Simpan begitu form dikirim,
+        // lalu aktifkan lagi setelah request AJAX (dari submitForm di script.js) selesai.
+        (() => {
+            let $btnSimpan = $('#form button[type="submit"]');
+
+            $('#form').on('submit', () => {
+                $btnSimpan.prop('disabled', true);
+            });
+
+            let loadingEl = document.getElementById('loading');
+            if (loadingEl) {
+                new MutationObserver(() => {
+                    if (loadingEl.classList.contains('d-none')) {
+                        $btnSimpan.prop('disabled', false);
+                    }
+                }).observe(loadingEl, {
+                    attributes: true,
+                    attributeFilter: ['class']
+                });
+            }
+        })();
+
         function dataTableReload() {
             datatable.ajax.reload();
         }

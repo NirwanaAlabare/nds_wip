@@ -416,7 +416,7 @@ class SpreadingController extends Controller
         
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -571,6 +571,16 @@ class SpreadingController extends Controller
      */
     public function destroy(FormCutInput $formCutInput, $id, CuttingService $cuttingService, StockerService $stockerService)
     {
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();

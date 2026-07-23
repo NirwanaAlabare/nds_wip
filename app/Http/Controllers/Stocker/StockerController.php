@@ -4305,7 +4305,7 @@ class StockerController extends Controller
                 ->first();
         }
 
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -4635,7 +4635,7 @@ class StockerController extends Controller
                 ->first();
         }
 
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",

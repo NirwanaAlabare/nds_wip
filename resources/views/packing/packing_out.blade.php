@@ -97,8 +97,7 @@
                     <tfoot>
                         <tr>
                             <th colspan="10"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_chk'> </th>
+                            <th></th>
                             <th>PCS</th>
                             <th></th>
                         </tr>
@@ -162,29 +161,30 @@
         });
 
         let datatable = $("#datatable").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
 
-                // converting to interger to find total
                 var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
+                    return typeof i === 'string'
+                        ? i.replace(/[\$,]/g, '') * 1
+                        : typeof i === 'number'
+                        ? i
+                        : 0;
                 };
 
-                // computing column Total of the complete result
+                // Total sesuai search dan page saat ini
                 var sumTotal = api
-                    .column(10)
+                    .column(10, {
+                        search: 'applied',
+                        page: 'current'
+                    })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(10).footer()).html(sumTotal);
+                $(api.column(10).footer()).html(sumTotal.toLocaleString('id-ID'));
             },
             ordering: false,
             processing: true,

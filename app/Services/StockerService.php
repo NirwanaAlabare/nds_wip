@@ -496,30 +496,30 @@ class StockerService
         $colorFormCutFilter = $color ? " and UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($color))."'" : null;
         $colorFormPieceFilter = $color ? " and UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($color))."'" : null;
 
-        if ($partId == 3383 || $partId = 3401) {
+        if ($partId == 3383 || $partId == 3401) {
             \Log::info("Reorder Stocker Numbering interrupted for partId 3383 and 3401 due to manual modification.");
 
             return "data was manually modified";
         }
 
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
-            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
-            ->where("part_form.part_id", $partId)
-            ->groupBy("form_cut_input.id")
-            ->get();
+        // $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+        //     ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+        //     ->where("part_form.part_id", $partId)
+        //     ->groupBy("form_cut_input.id")
+        //     ->get();
 
-        foreach($dataCheckClosing as $data){
-            if (checkClosingDate(date('Y-m-d', strtotime($data->waktu_selesai)))) {
-                \Log::info("Reorder Stocker Numbering interrupted due to Closed Period.");
+        // foreach($dataCheckClosing as $data){
+        //     if (checkClosingDate($data->waktu_selesai)) {
+        //         \Log::info("Reorder Stocker Numbering interrupted due to Closed Period.");
 
-                return array(
-                    "status" => 400,
-                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
-                    "additional" => "Closing"
-                );
-            }
-        }
+        //         return array(
+        //             "status" => 400,
+        //             "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+        //             "additional" => "Closing"
+        //         );
+        //     }
+        // }
 
         $formCutInputs = collect(DB::select("
             SELECT

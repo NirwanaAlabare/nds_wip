@@ -5231,6 +5231,22 @@ class SewingToolsController extends Controller
             $kodeNumbering = "'no_filter'";
         }
 
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table("output_secondary_in")
+            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+
         if ($request->edit_secondary) {
             $message = [];
             $sewingSecondaryIn = SewingSecondaryIn::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
@@ -5258,6 +5274,22 @@ class SewingToolsController extends Controller
             $kodeNumbering = addQuotesAround($request->kode_numbering);
         } else {
             $kodeNumbering = "'no_filter'";
+        }
+
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table("output_secondary_in")
+            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
         }
 
         $message = [];
@@ -5665,6 +5697,22 @@ class SewingToolsController extends Controller
     public function modifyPackingPoUpdate(Request $request) {
         $kodeNumbering = addQuotesAround($request->kode_numbering);
 
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table("output_rfts_packing_po")
+            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+
         if ($kodeNumbering && $request->edit_packing_po) {
 
             // PPIC Master SO
@@ -5711,6 +5759,22 @@ class SewingToolsController extends Controller
 
     public function modifyPackingPoDelete(Request $request) {
         $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')->table("output_rfts_packing_po")
+            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
 
         if ($kodeNumbering) {
             $deletePackingPo = RftPackingPo::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();

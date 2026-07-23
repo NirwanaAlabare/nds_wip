@@ -1990,7 +1990,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group row mb-2">
                                         <label class="col-sm-4 col-form-label text-sm">Nomor Aju</label>
-                                        <div class="col-sm-8"><input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}" readonly></div>
+                                        <div class="col-sm-8"><input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}"></div>
                                     </div>
                                     <div class="form-group row mb-2">
                                         <label class="col-sm-4 col-form-label text-sm">Tanggal Aju</label>

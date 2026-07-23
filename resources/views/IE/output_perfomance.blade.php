@@ -208,8 +208,6 @@
                 $topEffRow = $row;
             }
         }
-        $sameLine = $topRftRow && $topEffRow && $topRftRow->sewing_line === $topEffRow->sewing_line;
-
         $first = $topRftRow ?? ($data[0] ?? null);
         $bestLine = $first->sewing_line ?? '-';
         $bestOutput = $first->tot_rfts ?? 0;
@@ -253,7 +251,7 @@
                 'efficiency' => (float) $topRftRow->eff,
             ];
         }
-        if ($topEffRow && !$sameLine) {
+        if ($topEffRow) {
             $chartLines[] = [
                 'label' => $topEffRow->sewing_line,
                 'output' => (int) $topEffRow->tot_rfts,
@@ -385,8 +383,8 @@
                 <div class="card-body">
                     @if (count($chartLines) > 0)
                         <div id="oppaChart"></div>
-                        <small class="text-muted">Kiri: total RFT (tot rft) | Kanan: efficiency (%). Jika line dengan tot
-                            rft tertinggi sama dengan line efficiency tertinggi, hanya tampil 1 bar.</small>
+                        <small class="text-muted">Kiri: total RFT (tot rft) | Kanan: efficiency (%). Semua bar
+                            ditampilkan apa adanya, termasuk jika line top RFT dan top efficiency sama.</small>
                     @else
                         <div class="text-center text-muted py-5">
                             <i class="fas fa-chart-bar fa-2x mb-2"></i>
