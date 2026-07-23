@@ -767,6 +767,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        size = '" . $request['size'][$index] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
@@ -837,6 +838,7 @@ class StockerController extends Controller
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_cut_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    size = '" . $request['size'][$index] . "' AND
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
@@ -1036,6 +1038,7 @@ class StockerController extends Controller
                                 part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                                 form_cut_id = '" . $request['form_cut_id'] . "' AND
                                 so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                                size = '" . $request['size'][$i] . "' AND
                                 color = '" . $request['color'] . "' AND
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
@@ -1105,6 +1108,7 @@ class StockerController extends Controller
                                 part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                                 form_cut_id = '" . $request['form_cut_id'] . "' AND
                                 so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                                size = '" . $request['size'][$i] . "' AND
                                 color = '" . $request['color'] . "' AND
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
@@ -1543,6 +1547,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_piece_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        size = '" . $request['size'][$index] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
@@ -1600,6 +1605,7 @@ class StockerController extends Controller
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_piece_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    size = '" . $request['size'][$index] . "' AND
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
@@ -1758,6 +1764,7 @@ class StockerController extends Controller
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_piece_id = '" . $request['form_cut_id'] . "' AND
                             so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            size = '" . $request['size'][$i] . "' AND
                             color = '" . $request['color'] . "' AND
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
@@ -1821,6 +1828,7 @@ class StockerController extends Controller
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_piece_id = '" . $request['form_cut_id'] . "' AND
                             so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            size = '" . $request['size'][$i] . "' AND
                             color = '" . $request['color'] . "' AND
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
@@ -2212,6 +2220,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                        size = '" . $request['size'][$i] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
@@ -2276,6 +2285,7 @@ class StockerController extends Controller
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         part_detail_id = '" . $request['part_detail_id_add'][$i] . "' AND
                         so_det_id = '" . $request['so_det_id_add'][$i] . "' AND
+                        size = '" . $request['size_add'][$i] . "' AND
                         color = '" . $request['color_add'] . "' AND
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$i] . "' AND
