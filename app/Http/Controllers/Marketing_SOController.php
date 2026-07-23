@@ -645,6 +645,7 @@ class Marketing_SOController extends Controller
         $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
 
+
         // Tarik Master Data dan bersihkan spasi & case-nya
         $raw_master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
         $master_colors = [];
@@ -657,6 +658,7 @@ class Marketing_SOController extends Controller
         foreach ($raw_master_sizes as $k => $v) {
             $master_sizes[strtoupper(trim($k))] = $v;
         }
+
 
         // Tarik Data BOM (Warna & Size yang terdaftar) - Di-unique langsung dari query
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
@@ -725,9 +727,13 @@ class Marketing_SOController extends Controller
                 $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
                 $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
 
+
+                $qty = str_replace(',', '', $qty);
+
             if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
+
                 if (empty($size_name)) continue;
 
                 // Validasi Size
@@ -738,10 +744,13 @@ class Marketing_SOController extends Controller
                 }
                 $size_id = $master_sizes[$size_key];
 
+
+
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
                     $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
                     continue;
                 }
+
 
                 $temp_data[] = [
                     'user_id'     => $user_id,

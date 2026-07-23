@@ -598,6 +598,7 @@
                                 <tbody id="preview-upload-tbody">
                                     {{-- rows di-render via JS --}}
                                 </tbody>
+                                <tfoot id="preview-upload-tfoot"></tfoot>
                             </table>
                         </div>
                     </div>
@@ -1472,15 +1473,22 @@
                 grouped[key].sizes[r.size] = (grouped[key].sizes[r.size] || 0) + (parseInt(r.qty) || 0);
             });
 
+            let grandTotalPerSize = {};
+            sizeList.forEach(s => grandTotalPerSize[s] = 0);
+            let grandTotal = 0;
+
             let bodyHtml = '';
             Object.values(grouped).forEach(g => {
                 let total = 0;
                 let sizeCells = sizeList.map(s => {
                     let qty = g.sizes[s] || 0;
                     total += qty;
+                    grandTotalPerSize[s] += qty;
                     let cellClass = qty > 0 ? 'col-size has-qty' : 'col-size text-muted';
                     return `<td class="${cellClass}">${qty > 0 ? qty : '-'}</td>`;
                 }).join('');
+
+                grandTotal += total;
 
                 bodyHtml += `
                     <tr>
@@ -1496,6 +1504,19 @@
             });
 
             $('#preview-upload-tbody').html(bodyHtml);
+
+            let footerSizeCells = sizeList.map(s => {
+                return `<td class="col-size fw-bold">${grandTotalPerSize[s]}</td>`;
+            }).join('');
+
+            let footerHtml = `
+                <tr class="fw-bold table-dark">
+                    <td class="col-size fw-bold" colspan="6">Grand Total</td>
+                    ${footerSizeCells}
+                    <td class="col-total">${grandTotal}</td>
+                </tr>`;
+
+            $('#preview-upload-tfoot').html(footerHtml);
         }
 
 
