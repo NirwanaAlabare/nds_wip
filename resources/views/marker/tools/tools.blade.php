@@ -259,7 +259,14 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $('.select2bs4').select2({ theme: 'bootstrap4', containerCssClass: 'form-control-sm rounded' });
+        $('.select2bs4').not('#modalSplitSize .select2bs4').select2({ theme: 'bootstrap4', containerCssClass: 'form-control-sm rounded' });
+
+        // Select2 inside a Bootstrap modal needs dropdownParent, otherwise the search input can't receive keyboard focus
+        $('#modalSplitSize .select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm rounded',
+            dropdownParent: $('#modalSplitSize'),
+        });
 
         let table;
         let subSizeTable;
