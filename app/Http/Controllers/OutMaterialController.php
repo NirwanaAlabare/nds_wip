@@ -1266,6 +1266,12 @@ public function pdfoutmaterial(Request $request, $id)
                     'remark'    => $request['txt_notes'],
                 ]);
 
+                if (!empty($request['txt_noreq'])) {
+                    DB::connection('mysql_sb')->table('bppb_req')
+                        ->where('bppbno', $request['txt_noreq'])
+                        ->update(['bppbdate' => $request['txt_tgl_bppb']]);
+                }
+
                 $this->logRawQueryActivity('Edit BPPB', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
                 DB::connection('mysql_sb')->flushQueryLog();
 

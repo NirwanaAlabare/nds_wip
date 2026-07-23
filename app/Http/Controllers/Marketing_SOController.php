@@ -1695,13 +1695,14 @@ class Marketing_SOController extends Controller
         }
     }
 
+
     public function get_detail($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
         $header = $mysql_sb->table('so')
             ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
             ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
-            ->select('so.so_no', 'ac.kpno as kpno', 'ms.Supplier as buyer', 'so.style')
+            ->select('so.so_no', 'ac.kpno as kpno', 'ms.Supplier as buyer', 'so.style', 'so.market')
             ->where('so.id', $id)
             ->first();
 
@@ -1710,7 +1711,9 @@ class Marketing_SOController extends Controller
         }
 
         $details = $mysql_sb->table('so_det')
-            ->where('id_so', $id)
+            ->leftJoin('master_size_new', 'so_det.id_size', '=', 'master_size_new.id')
+            ->select('so_det.*', 'master_size_new.urutan as size_urutan')
+            ->where('so_det.id_so', $id)
             ->get();
 
         return response()->json([
@@ -2180,48 +2183,39 @@ class Marketing_SOController extends Controller
             return response()->json(['status' => 500, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
         }
     }
-    public function updateQtySO(Request $request)
+    public function updateQtySo(Request $request)
     {
+        $idSo = $request->input('id_so');
+        $newStyle = $request->input('style');
+        $details = $request->input('data');
+
         DB::connection('mysql_sb')->beginTransaction();
-
         try {
-            $data = $request->input('data');
-
-            if (!$data || !is_array($data)) {
-                return response()->json(['status' => 400, 'message' => 'Data tidak valid!']);
+            if (!empty($idSo)) {
+                DB::connection('mysql_sb')->table('so')
+                    ->where('id', $idSo)
+                    ->update(['style' => $newStyle]);
             }
 
-            $firstDetailId = $data[0]['id'];
-            $detailData = DB::connection('mysql_sb')->table('so_det')->where('id', $firstDetailId)->first();
-            $so_id = $detailData->id_so;
-
-            foreach ($data as $item) {
+            foreach ($details as $item) {
                 DB::connection('mysql_sb')->table('so_det')
                     ->where('id', $item['id'])
                     ->update(['qty' => $item['qty']]);
-
-                $this->logSoDet($item['id']);
             }
 
-            $totalQty = DB::connection('mysql_sb')->table('so_det')
-                ->where('id_so', $so_id)
-                ->where(function($query) {
-                    $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
-                })
-                ->sum('qty');
-
-            DB::connection('mysql_sb')->table('so')
-                ->where('id', $so_id)
-                ->update(['qty' => $totalQty]);
-
-            $this->logSo($so_id);
-
             DB::connection('mysql_sb')->commit();
-            return response()->json(['status' => 200, 'message' => 'Semua Qty berhasil di Update']);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Style dan Qty berhasil diperbarui.'
+            ]);
 
         } catch (\Exception $e) {
             DB::connection('mysql_sb')->rollBack();
-            return response()->json(['status' => 500, 'message' => 'Gagal mengupdate Qty: ' . $e->getMessage()]);
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
