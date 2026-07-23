@@ -2276,18 +2276,18 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small mb-0">Status</label>
-                                        <select name="entitas[2][statusEntitas]" class="form-control form-control-sm select2bs4 ">
+                                        <select name="entitas[2][kodeStatus]" class="form-control form-control-sm select2bs4 ">
                                             <option value="">Pilih Status</option>
-                                            <option value="1" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '1' ? 'selected' : '' }}>KOPERASI</option>
-                                            <option value="2" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '2' ? 'selected' : '' }}>PMDN (MIGAS)</option>
-                                            <option value="3" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '3' ? 'selected' : '' }}>PMDN (NON MIGAS)</option>
-                                            <option value="4" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '4' ? 'selected' : '' }}>PMA (MIGAS)</option>
-                                            <option value="5" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '5' ? 'selected' : '' }}>PMA (NON MIGAS)</option>
-                                            <option value="6" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '6' ? 'selected' : '' }}>BUMN</option>
-                                            <option value="7" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '7' ? 'selected' : '' }}>BUMD</option>
-                                            <option value="8" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '8' ? 'selected' : '' }}>PERORANGAN</option>
-                                            <option value="9" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '9' ? 'selected' : '' }}>USAHA KECIL MIKRO DAN MENENGAH</option>
-                                            <option value="10" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '10' ? 'selected' : '' }}>LAINNYA</option>
+                                            <option value="1" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '1' ? 'selected' : '' }}>KOPERASI</option>
+                                            <option value="2" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '2' ? 'selected' : '' }}>PMDN (MIGAS)</option>
+                                            <option value="3" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '3' ? 'selected' : '' }}>PMDN (NON MIGAS)</option>
+                                            <option value="4" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '4' ? 'selected' : '' }}>PMA (MIGAS)</option>
+                                            <option value="5" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '5' ? 'selected' : '' }}>PMA (NON MIGAS)</option>
+                                            <option value="6" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '6' ? 'selected' : '' }}>BUMN</option>
+                                            <option value="7" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '7' ? 'selected' : '' }}>BUMD</option>
+                                            <option value="8" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '8' ? 'selected' : '' }}>PERORANGAN</option>
+                                            <option value="9" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '9' ? 'selected' : '' }}>USAHA KECIL MIKRO DAN MENENGAH</option>
+                                            <option value="10" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '10' ? 'selected' : '' }}>LAINNYA</option>
                                         </select>
                                     </div>
                                 </div>
