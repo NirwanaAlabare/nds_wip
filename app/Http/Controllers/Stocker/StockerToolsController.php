@@ -45,6 +45,32 @@ class StockerToolsController extends Controller
     {
         ini_set('max_execution_time', 3600);
 
+        // Check Closing 
+        if($request->form_type == 'reject'){
+            $dataCheckClosing = DB::table("form_cut_reject")
+            ->selectRaw("tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }elseif($request->form_type == 'piece'){
+            $dataCheckClosing = DB::table("form_cut_piece")
+            ->selectRaw("DATE_FORMAT(waktu_selesai, '%Y-%m-%d') as tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }else{
+            $dataCheckClosing = DB::table("form_cut_input")
+            ->selectRaw("DATE_FORMAT(waktu_selesai, '%Y-%m-%d') as tanggal")
+            ->where("id", $request->form_cut_id)
+            ->first();
+        }
+
+        if (checkClosingDate($dataCheckClosing->tanggal)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",
             "no_form" => "required",
@@ -164,6 +190,40 @@ class StockerToolsController extends Controller
         ]);
 
         $stockers = addQuotesAround($validatedRequest["stocker_ids"]);
+
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")
+            ->selectRaw("DATE_FORMAT(form_cut_input.waktu_selesai, '%Y-%m-%d') as tanggal")
+            ->leftJoin("stocker_input", "stocker_input.form_cut_id", "=", "form_cut_input.id")
+            ->whereRaw("stocker_input.id_qr_stocker in (" . $stockers . ")")
+            ->get();
+
+        if ($dataCheckClosing->isEmpty()) {
+            $dataCheckClosing = DB::table("form_cut_piece")
+                ->selectRaw("DATE_FORMAT(form_cut_piece.waktu_selesai, '%Y-%m-%d') as tanggal")
+                ->leftJoin("stocker_input", "stocker_input.form_piece_id", "=", "form_cut_piece.id")
+                ->whereRaw("stocker_input.id_qr_stocker in (" . $stockers . ")")
+                ->get();
+        }
+
+        if ($dataCheckClosing->isEmpty()) {
+            $dataCheckClosing = DB::table("form_cut_reject")
+                ->selectRaw("tanggal")
+                ->leftJoin("stocker_input", "stocker_input.form_reject_id", "=", "form_cut_reject.id")
+                ->whereRaw("stocker_input.id_qr_stocker in (" . $stockers . ")")
+                ->get();
+        }
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+
         if ($stockers) {
             $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
                 $join->on("stocker_input.form_cut_id", "=", "year_sequence.form_cut_id");
@@ -430,7 +490,7 @@ class StockerToolsController extends Controller
 
     function recalculateStockerTransaction(Request $request, StockerService $stockerService)
     {
-        return $stockerService->recalculateStockerTransaction($request->formCutId);
+        return logHistory($request->formCutId, $stockerService->recalculateStockerTransaction($request->formCutId));
     }
 
     function restoreStockerLog(Request $request)
@@ -576,6 +636,16 @@ class StockerToolsController extends Controller
 
     function undoStockerAdditional(Request $request)
     {
+        // Check Closing 
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $validatedRequest = $request->validate([
             "id" => "required"
         ]);

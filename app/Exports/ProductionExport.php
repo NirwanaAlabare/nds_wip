@@ -32,7 +32,7 @@ class ProductionExport implements FromView, ShouldAutoSize, ShouldQueue, WithTit
         $lines = UserLine::with('masterPlans')->where('username', $this->selectedLine)->first();
 
         $hours = array(
-            "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
+            "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"
         );
 
         $defectTypes = Defect::selectRaw('defect_type_id, count(defect_type_id) as defect_type_count')->

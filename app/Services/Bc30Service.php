@@ -52,8 +52,10 @@ class Bc30Service
             ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->select(
                 'a.id_item',
-                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0' AND a.bppbno_int NOT LIKE '%OFC%' AND a.bppbno_int NOT LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
-                DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0' AND a.bppbno_int NOT LIKE '%OFC%' AND a.bppbno_int NOT LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+
                 DB::raw("MAX(a.unit) as unit"),
                 DB::raw('SUM(a.qty) as qty'),
                 DB::raw('AVG(a.price) as price'),
@@ -64,7 +66,6 @@ class Bc30Service
             })
             ->groupBy('a.id_item')
             ->get();
-
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
         $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
@@ -542,11 +543,7 @@ class Bc30Service
                 ];
             }
             if (empty($payloadBankDevisa)) {
-                $payloadBankDevisa[] = [
-                    'seriBank' => 1,
-                    'kodeBank' => '014',
-                    'namaBank' => 'BANK CENTRAL ASIA',
-                ];
+                $payloadBankDevisa = [];
             }
 
             $entitasDraft = $draft['entitas'] ?? [];
@@ -599,7 +596,7 @@ class Bc30Service
             $payloadEntitas[] = [
                 'alamatEntitas' => !empty($pen['alamatEntitas']) ? strval($pen['alamatEntitas']) : '-',
                 'kodeEntitas'   => '8',
-                'kodeNegara'    => strval($pen['kodeNegara'] ?? 'MY'),
+                'kodeNegara'    => strval($pen['kodeNegara'] ?? ''),
                 'namaEntitas'   => !empty($pen['namaEntitas']) ? strval($pen['namaEntitas']) : '-',
                 'seriEntitas'   => $seriEnt++,
             ];
@@ -613,7 +610,7 @@ class Bc30Service
             $payloadEntitas[] = [
                 'alamatEntitas' => !empty($bel['alamatEntitas']) ? strval($bel['alamatEntitas']) : '-',
                 'kodeEntitas'   => '6',
-                'kodeNegara'    => strval($bel['kodeNegara'] ?? 'MY'),
+                'kodeNegara'    => strval($bel['kodeNegara'] ?? ''),
                 'namaEntitas'   => !empty($bel['namaEntitas']) ? strval($bel['namaEntitas']) : '-',
                 'seriEntitas'   => $seriEnt++,
             ];
@@ -803,7 +800,7 @@ class Bc30Service
                 'kodePelTujuan'         => !empty($draft['kodePelTujuan']) ? strval($draft['kodePelTujuan']) : 'MYPKG',
                 'kodeLokasi'            => !empty($draft['kodeLokasi']) ? strval($draft['kodeLokasi']) : '2',
                 'kodeTps'               => strval($draft['kodeTps'] ?? ''),
-                'kodeNegaraTujuan'      => !empty($draft['kodeNegaraTujuan']) ? strval($draft['kodeNegaraTujuan']) : 'MY',
+                'kodeNegaraTujuan'      => !empty($draft['kodeNegaraTujuan']) ? strval($draft['kodeNegaraTujuan']) : '',
                 'kodeJenisPengangkutan' => !empty($draft['kodeJenisPengangkutan']) ? strval($draft['kodeJenisPengangkutan']) : '1',
 
                 // Parameter Bisnis & Transaksi
@@ -1151,7 +1148,7 @@ class Bc30Service
             $payloadEntitas[] = [
                 'alamatEntitas' => !empty($pen['alamatEntitas']) ? strval($pen['alamatEntitas']) : '-',
                 'kodeEntitas'   => '8',
-                'kodeNegara'    => strval($pen['kodeNegara'] ?? 'MY'),
+                'kodeNegara'    => strval($pen['kodeNegara'] ?? ''),
                 'namaEntitas'   => !empty($pen['namaEntitas']) ? strval($pen['namaEntitas']) : '-',
                 'seriEntitas'   => $seriEnt++,
             ];
@@ -1165,7 +1162,7 @@ class Bc30Service
             $payloadEntitas[] = [
                 'alamatEntitas' => !empty($bel['alamatEntitas']) ? strval($bel['alamatEntitas']) : '-',
                 'kodeEntitas'   => '6',
-                'kodeNegara'    => strval($bel['kodeNegara'] ?? 'MY'),
+                'kodeNegara'    => strval($bel['kodeNegara'] ?? ''),
                 'namaEntitas'   => !empty($bel['namaEntitas']) ? strval($bel['namaEntitas']) : '-',
                 'seriEntitas'   => $seriEnt++,
             ];
@@ -1355,7 +1352,7 @@ class Bc30Service
                 'kodePelTujuan'         => !empty($draft['kodePelTujuan']) ? strval($draft['kodePelTujuan']) : 'MYPKG',
                 'kodeLokasi'            => !empty($draft['kodeLokasi']) ? strval($draft['kodeLokasi']) : '2',
                 'kodeTps'               => strval($draft['kodeTps'] ?? ''),
-                'kodeNegaraTujuan'      => !empty($draft['kodeNegaraTujuan']) ? strval($draft['kodeNegaraTujuan']) : 'MY',
+                'kodeNegaraTujuan'      => !empty($draft['kodeNegaraTujuan']) ? strval($draft['kodeNegaraTujuan']) : '',
                 'kodeJenisPengangkutan' => !empty($draft['kodeJenisPengangkutan']) ? strval($draft['kodeJenisPengangkutan']) : '1',
 
                 // Parameter Bisnis & Transaksi

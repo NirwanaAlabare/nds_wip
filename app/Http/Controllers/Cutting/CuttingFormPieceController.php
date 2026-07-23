@@ -562,7 +562,7 @@ class CuttingFormPieceController extends Controller
     {
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -888,7 +888,7 @@ class CuttingFormPieceController extends Controller
         try {
             // Check Closing 
             $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
-            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -985,7 +985,7 @@ class CuttingFormPieceController extends Controller
     {
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1030,7 +1030,7 @@ class CuttingFormPieceController extends Controller
     {
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1144,7 +1144,7 @@ class CuttingFormPieceController extends Controller
                 ->where("form_cut_piece_detail.id", $request->id)
                 ->first();
             
-            if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+            if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
                 return array(
                     "status" => 400,
                     "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -1283,7 +1283,7 @@ class CuttingFormPieceController extends Controller
     {
         // Check Closing 
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",

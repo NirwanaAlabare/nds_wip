@@ -37,5 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('marker-tools');
         Route::get('/activity-log', 'getMarkerActivityLog')->name('marker-activity-log');
         Route::get('/activity-log/export', 'exportMarkerActivityLog')->name('marker-activity-log-export');
+        Route::post('/split-size', 'addSubSize')->name('marker-tools-split-size');
+        Route::get('/split-size', 'getSubSizeList')->name('marker-tools-split-size-list');
     });
 });

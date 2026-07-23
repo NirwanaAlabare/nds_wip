@@ -15,6 +15,7 @@ use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
+use App\Models\Marker\SubSize;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
 use App\Models\Part\PartForm;
@@ -221,8 +222,8 @@ class StockerController extends Controller
                 form_detail.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
-                GROUP_CONCAT(DISTINCT COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
-                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT COALESCE(marker_input_detail.size, master_sb_ws.size, master_size_new.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(marker_input_detail.size, master_sb_ws.size, master_size_new.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part,
                 part.panel_status
             ")->
@@ -279,8 +280,8 @@ class StockerController extends Controller
         $dataRatio = MarkerDetail::selectRaw("
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
-                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
-                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
+                COALESCE(marker_input_detail.size, master_sb_ws.size) size,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(COALESCE(marker_input_detail.size, master_sb_ws.size), ' - ', master_sb_ws.dest) ELSE COALESCE(marker_input_detail.size, master_sb_ws.size) END), marker_input_detail.size) size_dest,
                 marker_input_detail.ratio
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
@@ -455,9 +456,9 @@ class StockerController extends Controller
                     stocker_ws_additional_detail.id additional_detail_id,
                     stocker_ws_additional_detail.so_det_id,
                     UPPER(TRIM(master_sb_ws.color)) color,
-                    COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
+                    COALESCE(stocker_ws_additional_detail.size, master_sb_ws.size) size,
                     master_sb_ws.dest dest,
-                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
+                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(COALESCE(stocker_ws_additional_detail.size, master_sb_ws.size), ' - ', master_sb_ws.dest) ELSE COALESCE(stocker_ws_additional_detail.size, master_sb_ws.size) END), stocker_ws_additional_detail.size) size_dest,
                     stocker_ws_additional_detail.ratio
                 ")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
@@ -766,6 +767,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        size = '" . $request['size'][$index] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
@@ -836,6 +838,7 @@ class StockerController extends Controller
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_cut_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    size = '" . $request['size'][$index] . "' AND
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
@@ -1035,6 +1038,7 @@ class StockerController extends Controller
                                 part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                                 form_cut_id = '" . $request['form_cut_id'] . "' AND
                                 so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                                size = '" . $request['size'][$i] . "' AND
                                 color = '" . $request['color'] . "' AND
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
@@ -1104,6 +1108,7 @@ class StockerController extends Controller
                                 part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                                 form_cut_id = '" . $request['form_cut_id'] . "' AND
                                 so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                                size = '" . $request['size'][$i] . "' AND
                                 color = '" . $request['color'] . "' AND
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
@@ -1542,6 +1547,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_piece_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        size = '" . $request['size'][$index] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
@@ -1599,6 +1605,7 @@ class StockerController extends Controller
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_piece_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    size = '" . $request['size'][$index] . "' AND
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
@@ -1757,6 +1764,7 @@ class StockerController extends Controller
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_piece_id = '" . $request['form_cut_id'] . "' AND
                             so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            size = '" . $request['size'][$i] . "' AND
                             color = '" . $request['color'] . "' AND
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
@@ -1820,6 +1828,7 @@ class StockerController extends Controller
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_piece_id = '" . $request['form_cut_id'] . "' AND
                             so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            size = '" . $request['size'][$i] . "' AND
                             color = '" . $request['color'] . "' AND
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
@@ -2211,6 +2220,7 @@ class StockerController extends Controller
                         part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                        size = '" . $request['size'][$i] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
@@ -2275,6 +2285,7 @@ class StockerController extends Controller
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         part_detail_id = '" . $request['part_detail_id_add'][$i] . "' AND
                         so_det_id = '" . $request['so_det_id_add'][$i] . "' AND
+                        size = '" . $request['size_add'][$i] . "' AND
                         color = '" . $request['color_add'] . "' AND
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$i] . "' AND
@@ -3182,8 +3193,8 @@ class StockerController extends Controller
             $dataRatio = MarkerDetail::selectRaw("
                     marker_input_detail.id marker_detail_id,
                     marker_input_detail.so_det_id,
-                    COALESCE(master_sb_ws.size, marker_input_detail.size) size,
-                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
+                    COALESCE(marker_input_detail.size, master_sb_ws.size) size,
+                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(COALESCE(marker_input_detail.size, master_sb_ws.size), ' - ', master_sb_ws.dest) ELSE COALESCE(marker_input_detail.size, master_sb_ws.size) END), marker_input_detail.size) size_dest,
                     marker_input_detail.ratio,
                     stocker_input.id stocker_id
                 ")->
@@ -4296,15 +4307,15 @@ class StockerController extends Controller
     public function modifySizeQty(Request $request, StockerService $stockerService) {
         ini_set('max_execution_time', 360000);
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
         if (!$dataCheckClosing) {
             $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->form_cut_id)
                 ->where("no_form", $request->no_form)
                 ->first();
         }
-        
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -4626,15 +4637,15 @@ class StockerController extends Controller
 
     public function separateStocker(Request $request) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->form_cut_id)->where("no_form", $request->no_form)->first();
         if (!$dataCheckClosing) {
             $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->form_cut_id)
                 ->where("no_form", $request->no_form)
                 ->first();
         }
-        
-        if (checkClosingDate(date('Y-m-d', strtotime($dataCheckClosing->waktu_selesai)))) {
+
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",

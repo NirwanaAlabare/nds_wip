@@ -1993,7 +1993,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="text-sm">Nomor Aju</label>
-                                        <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}" readonly>
+                                        <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}">
                                     </div>
                                 </div>
                             </div>

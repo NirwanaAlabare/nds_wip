@@ -27,7 +27,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Tanggal</label>
-                <input type="date" class="form-control" id="tanggal" onchange="getMasterPlan()">
+                <input type="date" class="form-control" id="tanggal" onchange="getMasterPlan()" min="{{ date('Y-m-d', strtotime(periodeClosing() . ' +1 day')) }}">
             </div>
             <div class="mb-3">
                 <label class="form-label">Line</label>

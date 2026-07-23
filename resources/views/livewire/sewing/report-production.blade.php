@@ -79,6 +79,7 @@
                         $summaryTarget = 0;
                         $summaryMinsProd = 0;
                         $summaryMinsAvail = 0;
+                        $summaryTargetDisplay = 0;
 
                         // Calculate realtime mins avail and real time target
                         if(strtotime(date('Y-m-d H:i:s')) <= strtotime($date.' 13:00:00')) {
@@ -171,6 +172,21 @@
                             <td class="text-center fw-bold text-rework">{{ num($totalRework) }}</td>
                             <td class="text-center fw-bold text-reject">{{ num($totalReject) }}</td>
                             <td class="text-center fs-5 fw-bold text-sb">{{ num($totalActual) }}</td>
+                            @php
+                                $targetDisplay = 0;
+
+                                if ($i != count($hours)-1) {
+                                    if ($hourTarget < 0) {
+                                        $targetDisplay = 0;
+                                    } else {
+                                        $targetDisplay = $leftTarget > 0
+                                            ? $hourTarget + 1
+                                            : $hourTarget;
+                                    }
+                                }
+
+                                $summaryTargetDisplay += $targetDisplay;
+                            @endphp
                             <td class="text-center fs-5 fw-bold text-sb">
                                 @if($i == count($hours)-1)
                                     {{ 0 }}
@@ -208,7 +224,8 @@
                         @endphp
                         <td colspan="5" class="fs-5 fw-bold text-center">Summary</td>
                         <td class="fs-5 fw-bold text-center">{{ num($summaryActual) }}</td>
-                        <td class="fs-5 fw-bold text-center">{{ num($summaryTarget) }}</td>
+                        {{-- <td class="fs-5 fw-bold text-center">{{ num($summaryTarget) }}</td> --}}
+                        <td class="fs-5 fw-bold text-center">{{ num($summaryTargetDisplay) }}</td>
                         <td class="fs-5 fw-bold text-center">{{ num($cumulativeEfficiency) }} %</td>
                     </tr>
                 </tfoot>

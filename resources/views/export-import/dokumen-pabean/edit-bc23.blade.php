@@ -3254,11 +3254,11 @@
             $('#totalVolume').val(formatDecimal(totalVolume));
 
             // Auto-correct bruto agar tidak < netto
-            let inputBruto = $('input[name="bruto"]');
-            let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
-            if (currentBruto < totalNetto) {
-                inputBruto.val(formatDecimal(totalNetto));
-            }
+            // let inputBruto = $('input[name="bruto"]');
+            // let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
+            // if (currentBruto < totalNetto) {
+            //     inputBruto.val(formatDecimal(totalNetto));
+            // }
 
             // Update tabel UI pungutan
             let hiddenContainer = $('#hidden-pungutan-container');

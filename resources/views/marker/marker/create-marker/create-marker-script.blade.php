@@ -197,7 +197,7 @@
         serverSide: true,
         paging: false,
         ajax: {
-            url: '{{ route("get-general-sizes") }}',
+            url: '{{ route("get-marker-sizes") }}',
             data: function (d) {
                 d.act_costing_id = $('#ws_id').val();
                 d.color = $('#color').val();

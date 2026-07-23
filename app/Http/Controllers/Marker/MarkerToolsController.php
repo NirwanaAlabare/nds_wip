@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Marker;
 
 use App\Http\Controllers\Controller;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Marker\SubSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -210,5 +212,47 @@ class MarkerToolsController extends Controller
         $filename = 'Marker_Activity_Log_' . $dateFrom . '_sd_' . $dateTo . '.xlsx';
 
         return $excel->download($filename);
+    }
+
+    public function getSubSizeList(Request $request)
+    {
+        $data = SubSize::selectRaw("
+                sub_size.id,
+                sub_size.so_det_id,
+                master_sb_ws.ws no_ws,
+                master_sb_ws.color,
+                master_sb_ws.size original_size,
+                sub_size.size sub_size,
+                sub_size.created_by_username,
+                sub_size.created_at
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "sub_size.so_det_id")->
+            orderByDesc("sub_size.created_at");
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function addSubSize(Request $request)
+    {
+        $request->validate([
+            'so_det_id'    => 'required',
+            'sub_size'     => 'required|array|min:1',
+            'sub_size.*'   => 'required|string',
+        ]);
+
+        $subSizes = collect($request->sub_size)->map(function ($size) use ($request) {
+            return SubSize::create([
+                'so_det_id'           => $request->so_det_id,
+                'size'                => $size,
+                'created_by'          => Auth::id(),
+                'created_by_username' => Auth::user()->username,
+            ]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sub size berhasil ditambahkan',
+            'data'    => $subSizes,
+        ]);
     }
 }
