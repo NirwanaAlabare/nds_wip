@@ -52,10 +52,10 @@ class Bc30Service
             ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
             ->select(
                 'a.id_item',
-                // DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0' AND a.bppbno_int NOT LIKE '%OFC%' AND a.bppbno_int NOT LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
-                // DB::raw("IF(a.id_so_det IS NOT NULL AND a.id_so_det != '' AND a.id_so_det != '0' AND a.bppbno_int NOT LIKE '%OFC%' AND a.bppbno_int NOT LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
-                DB::raw("ms.goods_code as goods_code"),
-                DB::raw("CONCAT(ms.itemname, ' ', IFNULL(ms.color,'') , ' ', IFNULL(ms.size,'')) as itemdesc"),
+
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
+                DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+
                 DB::raw("MAX(a.unit) as unit"),
                 DB::raw('SUM(a.qty) as qty'),
                 DB::raw('AVG(a.price) as price'),
@@ -66,7 +66,6 @@ class Bc30Service
             })
             ->groupBy('a.id_item')
             ->get();
-
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
         $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
