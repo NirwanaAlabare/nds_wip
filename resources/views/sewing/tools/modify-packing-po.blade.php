@@ -227,7 +227,7 @@
             });
         }
 
-        function undoPackingPo() {
+        function undoPackingPO() {
             Swal.fire({
                 title: 'UNDO Undo Packing PO ?',
                 html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan UNDO SECONDARY ini?',
