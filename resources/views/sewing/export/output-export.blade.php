@@ -179,7 +179,7 @@
             <th colspan="13" style="font-weight: 800; text-align: center;">Summary</th>
             <th style="font-weight: 800; text-align: center;">{{ $summaryActual }}</th>
             <th style="font-weight: 800; text-align: center;">{{ ($targetFromEfficiency)}}</th>
-            <th style="text-align: center; {{  $summaryEfficiency < 85 ? 'color: #07b54d;' : 'color: #d62718;' }}">{{ $summaryEfficiency }} %</th>
+            <th style="text-align: center; {{  $summaryEfficiency < 85 ? 'color: #d62718;' : 'color: #07b54d;' }}">{{ $summaryEfficiency }} %</th>
             <td style="text-align: center;">{{ $lastInput }}</td>
         </tr>
     @endif
