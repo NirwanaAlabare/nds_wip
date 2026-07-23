@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
+use App\Models\Marker\SubSize;
 use App\Models\Stocker\Stocker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -171,6 +172,8 @@ class MarkerController extends Controller
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END) size_dest,
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
@@ -194,11 +197,38 @@ class MarkerController extends Controller
 
         $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();
 
+        // Expand rows using Sub Size (only for so_det_id that has sub size records)
+        $subSizes = SubSize::whereIn('so_det_id', $sizes->pluck('so_det_id'))->get()->groupBy('so_det_id');
+
+        // Per-size saved ratio/cut_qty for this marker (so each sub size row shows its own value, not the base row's)
+        $markerDetailsBySize = MarkerDetail::where('marker_id', $request->marker_id)->get()->groupBy('so_det_id');
+
+        $data = collect();
+        foreach ($sizes as $row) {
+            $subs = $subSizes->get($row->so_det_id);
+
+            if ($subs && $subs->count() > 0) {
+                foreach ($subs as $sub) {
+                    $newRow = clone $row;
+                    $newRow->size = $sub->size;
+                    $newRow->size_dest = $sub->size;
+
+                    $detail = optional($markerDetailsBySize->get($row->so_det_id))->firstWhere('size', $sub->size);
+                    $newRow->ratio = $detail->ratio ?? 0;
+                    $newRow->cut_qty = $detail->cut_qty ?? 0;
+
+                    $data->push($newRow);
+                }
+            } else {
+                $data->push($row);
+            }
+        }
+
         return json_encode([
             "draw" => intval($request->input('draw')),
-            "recordsTotal" => intval(count($sizes)),
-            "recordsFiltered" => intval(count($sizes)),
-            "data" => $sizes
+            "recordsTotal" => $data->count(),
+            "recordsFiltered" => $data->count(),
+            "data" => $data->values()
         ]);
     }
 
