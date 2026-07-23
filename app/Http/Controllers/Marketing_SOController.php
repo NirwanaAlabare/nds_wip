@@ -2194,36 +2194,58 @@ class Marketing_SOController extends Controller
     }
     public function updateQtySo(Request $request)
     {
-        $idSo = $request->input('id_so');
         $newStyle = $request->input('style');
-        $details = $request->input('data');
+        $data = $request->input('data');
+
+        if (!$data || !is_array($data)) {
+            return response()->json(['status' => 400, 'message' => 'Data tidak valid!']);
+        }
 
         DB::connection('mysql_sb')->beginTransaction();
         try {
-            if (!empty($idSo)) {
-                DB::connection('mysql_sb')->table('so')
-                    ->where('id', $idSo)
-                    ->update(['style' => $newStyle]);
-            }
+            $firstDetailId = $data[0]['id'];
+            $detailData = DB::connection('mysql_sb')->table('so_det')->where('id', $firstDetailId)->first();
+            $so_id = $detailData->id_so;
 
-            foreach ($details as $item) {
+            foreach ($data as $item) {
                 DB::connection('mysql_sb')->table('so_det')
                     ->where('id', $item['id'])
                     ->update(['qty' => $item['qty']]);
+
+                $this->logSoDet($item['id']);
             }
+
+            $totalQty = DB::connection('mysql_sb')->table('so_det')
+                ->where('id_so', $so_id)
+                ->where(function($query) {
+                    $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+                })
+                ->sum('qty');
+
+            $updateData = ['qty' => $totalQty];
+
+            if ($newStyle !== null) {
+                $updateData['style'] = $newStyle;
+            }
+
+            DB::connection('mysql_sb')->table('so')
+                ->where('id', $so_id)
+                ->update($updateData);
+
+            $this->logSo($so_id);
 
             DB::connection('mysql_sb')->commit();
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Style dan Qty berhasil diperbarui.'
+                'message' => 'Style dan Semua Qty berhasil di Update'
             ]);
 
         } catch (\Exception $e) {
             DB::connection('mysql_sb')->rollBack();
             return response()->json([
                 'status' => 500,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Gagal mengupdate: ' . $e->getMessage()
             ], 500);
         }
     }
