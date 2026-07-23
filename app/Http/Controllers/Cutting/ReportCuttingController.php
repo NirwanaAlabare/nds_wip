@@ -237,7 +237,7 @@ class ReportCuttingController extends Controller
                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                         LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                         LEFT JOIN (
@@ -1784,7 +1784,7 @@ class ReportCuttingController extends Controller
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                     LEFT JOIN (
@@ -2107,7 +2107,7 @@ class ReportCuttingController extends Controller
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                     LEFT JOIN (
@@ -6222,7 +6222,7 @@ order by a.tgl_trans asc
                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                         WHERE
                             form_cut_input.status = 'SELESAI PENGERJAAN'
                             AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -6397,7 +6397,7 @@ order by a.tgl_trans asc
                                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                 LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                                LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.status = 'SELESAI PENGERJAAN'
                                     AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -6899,7 +6899,7 @@ order by a.tgl_trans asc
                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                            LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                             WHERE
                                     form_cut_input.status = 'SELESAI PENGERJAAN'
                                     AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -7255,7 +7255,7 @@ order by a.tgl_trans asc
                                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                                            LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                                             WHERE
                                                     form_cut_input.status = 'SELESAI PENGERJAAN'
                                                     AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -7692,7 +7692,7 @@ order by a.tgl_trans asc
         //                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
         //                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
         //                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+        //                                         LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
         //                                         AND modify_size_qty.form_cut_id = form_cut_input.id
         //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
         //                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -7951,7 +7951,7 @@ order by a.tgl_trans asc
         //                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
         //                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
         //                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+        //                                         LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
         //                                         AND modify_size_qty.form_cut_id = form_cut_input.id
         //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
         //                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -8960,7 +8960,7 @@ order by a.tgl_trans asc
                                                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                 LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                                                LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                 AND modify_size_qty.form_cut_id = form_cut_input.id
                                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -9220,7 +9220,7 @@ order by a.tgl_trans asc
                                                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                 LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                                                LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                 AND modify_size_qty.form_cut_id = form_cut_input.id
                                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -10204,8 +10204,7 @@ order by a.tgl_trans asc
                                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
                                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
@@ -10464,8 +10463,7 @@ order by a.tgl_trans asc
                                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
                                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
@@ -11476,7 +11474,7 @@ order by a.tgl_trans asc
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                     WHERE
                             form_cut_input.status = 'SELESAI PENGERJAAN'
                             AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -11892,7 +11890,7 @@ order by a.tgl_trans asc
                                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                     LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size and modify_size_qty.form_cut_id = form_cut_input.id
                                     WHERE
                                             form_cut_input.status = 'SELESAI PENGERJAAN'
                                             AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
@@ -12436,7 +12434,7 @@ order by a.tgl_trans asc
     //                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
     //                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
     //                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-    //                             LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+    //                             LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
     //                             AND modify_size_qty.form_cut_id = form_cut_input.id
     //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
     //                             LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -12645,7 +12643,7 @@ order by a.tgl_trans asc
     //                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
     //                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
     //                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-    //                             LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+    //                             LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
     //                             AND modify_size_qty.form_cut_id = form_cut_input.id
     //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
     //                             LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -13409,7 +13407,7 @@ order by a.tgl_trans asc
                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -13669,7 +13667,7 @@ order by a.tgl_trans asc
                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
@@ -14654,8 +14652,7 @@ order by a.tgl_trans asc
                                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
                                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
@@ -14914,8 +14911,7 @@ order by a.tgl_trans asc
                                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
                                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                                                        LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
                                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
                                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
@@ -17557,7 +17553,7 @@ order by a.tgl_trans asc
                             FROM laravel_nds.form_cut_input
                             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                            LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                             LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                             LEFT JOIN (
@@ -17706,7 +17702,7 @@ order by a.tgl_trans asc
                             FROM laravel_nds.form_cut_input
                             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                            LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                             LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                             LEFT JOIN (
@@ -18219,7 +18215,7 @@ order by a.tgl_trans asc
                     FROM laravel_nds.form_cut_input
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                     LEFT JOIN (
@@ -18368,7 +18364,7 @@ order by a.tgl_trans asc
                     FROM laravel_nds.form_cut_input
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
                     LEFT JOIN (
