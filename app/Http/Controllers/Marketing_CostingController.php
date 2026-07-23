@@ -579,8 +579,8 @@ class Marketing_CostingController extends Controller
                 $updateData['foto'] = $filename;
             }
 
-
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
+            $this->updateStyle($id, $request->style);
             $this->triggerAutoSyncSO($id);
 
             if ($request->ajax()) {
@@ -601,6 +601,29 @@ class Marketing_CostingController extends Controller
             }
             return redirect()->back()->with('error', 'Gagal update: ' . $e->getMessage());
         }
+    }
+
+    function updateStyle($id, $style)
+    {
+        $db = DB::connection('mysql_sb');
+
+        $bom = $db->table('bom_marketing')->where('id_costing', $id)->first();
+        if (!$bom) {
+            return;
+        }
+        $db->table('bom_marketing')->where('id_costing', $id)->update(['style' => $style]);
+
+        $so = $db->table('so')->where('id_bom', $bom->id)->first();
+        if (!$so) {
+            return;
+        }
+        $db->table('so')->where('id_bom', $bom->id)->update(['style' => $style]);
+
+        $actCosting = $db->table('act_costing')->where('id', $so->id_cost)->first();
+        if (!$actCosting) {
+            return;
+        }
+        $db->table('act_costing')->where('id', $so->id_cost)->update(['styleno' => $style]);
     }
     public function destroyDetail($id)
     {

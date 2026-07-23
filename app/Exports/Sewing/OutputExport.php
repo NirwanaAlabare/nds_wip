@@ -34,7 +34,11 @@ class OutputExport implements FromView, ShouldAutoSize
         $outputFilter = " between '".$this->date." 00:00:00' and '".$this->date." 23:59:59'";
         $leaderDate = $this->date;
 
-        $selectFilter = $masterPlanDateFilter1;
+        if (date('Y-m-d H:i:s') >= $this->date.' 16:00:00') {
+            $selectFilter = $masterPlanDateFilter;
+        } else {
+            $selectFilter = $masterPlanDateFilter1;
+        }
 
         if ($this->group == 'line') {
             $lines = MasterPlan::selectRaw("

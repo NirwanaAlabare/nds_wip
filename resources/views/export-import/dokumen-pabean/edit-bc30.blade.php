@@ -2255,16 +2255,18 @@
                                                 </select>
                                             </div>
                                             <div class="col-8 pl-1">
-                                                <input type="text" name="entitas[2][nomorIdentitas]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nomorIdentitas'] ?? '' }}">
+                                                <input type="text" id="nomorIdentitas_2" name="entitas[2][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['nomorIdentitas'] ?? '' }}">
                                             </div>
                                         </div>
+                                        <small class="text-muted font-italic" style="font-size: 11px;">* Masukkan 22 digit lengkap (NPWP + NITKU). CEISA akan otomatis memotong NPWP menjadi 16 digit.</small>
                                     </div>
+
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">NITKU</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="text" name="entitas[2][nitku]" class="form-control form-control-sm " value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU 22 Digit">
-                                            <div class="input-group-append"><button class="btn btn-primary" type="button"><i class="fas fa-sync-alt"></i></button></div>
+                                            <input type="text" id="nitku_2" name="entitas[2][nitku]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['nitku'] ?? '' }}" placeholder="NITKU 22 Digit">
                                         </div>
+                                        <small class="text-muted font-italic" style="font-size: 11px;">* Otomatis terisi 22 digit dari nomor identitas atau dapat disesuaikan.</small>
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small mb-0">Nama</label>
@@ -2276,18 +2278,18 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small mb-0">Status</label>
-                                        <select name="entitas[2][statusEntitas]" class="form-control form-control-sm select2bs4 ">
+                                        <select name="entitas[2][kodeStatus]" class="form-control form-control-sm select2bs4 ">
                                             <option value="">Pilih Status</option>
-                                            <option value="1" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '1' ? 'selected' : '' }}>KOPERASI</option>
-                                            <option value="2" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '2' ? 'selected' : '' }}>PMDN (MIGAS)</option>
-                                            <option value="3" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '3' ? 'selected' : '' }}>PMDN (NON MIGAS)</option>
-                                            <option value="4" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '4' ? 'selected' : '' }}>PMA (MIGAS)</option>
-                                            <option value="5" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '5' ? 'selected' : '' }}>PMA (NON MIGAS)</option>
-                                            <option value="6" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '6' ? 'selected' : '' }}>BUMN</option>
-                                            <option value="7" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '7' ? 'selected' : '' }}>BUMD</option>
-                                            <option value="8" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '8' ? 'selected' : '' }}>PERORANGAN</option>
-                                            <option value="9" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '9' ? 'selected' : '' }}>USAHA KECIL MIKRO DAN MENENGAH</option>
-                                            <option value="10" {{ ($dataDetail['entitas'][2]['statusEntitas'] ?? '') == '10' ? 'selected' : '' }}>LAINNYA</option>
+                                            <option value="1" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '1' ? 'selected' : '' }}>KOPERASI</option>
+                                            <option value="2" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '2' ? 'selected' : '' }}>PMDN (MIGAS)</option>
+                                            <option value="3" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '3' ? 'selected' : '' }}>PMDN (NON MIGAS)</option>
+                                            <option value="4" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '4' ? 'selected' : '' }}>PMA (MIGAS)</option>
+                                            <option value="5" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '5' ? 'selected' : '' }}>PMA (NON MIGAS)</option>
+                                            <option value="6" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '6' ? 'selected' : '' }}>BUMN</option>
+                                            <option value="7" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '7' ? 'selected' : '' }}>BUMD</option>
+                                            <option value="8" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '8' ? 'selected' : '' }}>PERORANGAN</option>
+                                            <option value="9" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '9' ? 'selected' : '' }}>USAHA KECIL MIKRO DAN MENENGAH</option>
+                                            <option value="10" {{ ($dataDetail['entitas'][2]['kodeStatus'] ?? '') == '10' ? 'selected' : '' }}>LAINNYA</option>
                                         </select>
                                     </div>
                                 </div>
@@ -3448,5 +3450,14 @@
         });
         $(document).on('click', '.btn-hapus-entitas-brg', function() { $(this).closest('tr').remove(); });
     });
+</script>
+<script>
+$(document).ready(function() {
+    $('#nomorIdentitas_2').on('input', function() {
+        let valNomor = $(this).val();
+
+        $('#nitku_2').val(valNomor);
+    });
+});
 </script>
 @endsection

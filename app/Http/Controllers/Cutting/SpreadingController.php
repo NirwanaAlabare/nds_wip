@@ -572,7 +572,7 @@ class SpreadingController extends Controller
     public function destroy(FormCutInput $formCutInput, $id, CuttingService $cuttingService, StockerService $stockerService)
     {
         // Check Closing 
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,

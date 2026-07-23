@@ -235,7 +235,7 @@ class Bc30Service
                     'alamatEntitas'      => $e['alamatEntitas'] ?? '',
                     'kodeNegara'         => $e['kodeNegara'] ?? '',
                     'nibEntitas'         => $e['nibEntitas'] ?? '',
-                    'statusEntitas'      => $e['statusEntitas'] ?? '',
+                    'kodeStatus'        => $e['kodeStatus'] ?? '',
                     'nitku'              => $e['nitku'] ?? '',
                     'kodeKategoriKonsolidator' => $e['kodeKategoriKonsolidator'] ?? '',
                 ];
@@ -371,6 +371,7 @@ class Bc30Service
                 'pemilik'               => array_values($pemilikInput),
                 'dok'                   => $dokumenList,
             ];
+
 
             // --- Update Database ---
             DB::connection('mysql_sb')->table('bpb_ceisa')->updateOrInsert(
@@ -567,9 +568,11 @@ class Bc30Service
                 'kodeEntitas'        => '2',
                 'kodeJenisIdentitas' => $jenisIdEks,
                 'namaEntitas'        => !empty($eks['namaEntitas']) ? strval($eks['namaEntitas']) : '-',
-                'nibEntitas'         => strval($eks['nibEntitas'] ?? ''),
+                'nibEntitas'         => strval($eks['nibEntitas'] ?? $eks['nitku']),
                 'nomorIdentitas'     => !empty($eks['nomorIdentitas']) && $eks['nomorIdentitas'] !== '-' ? strval($eks['nomorIdentitas']) : config('ceisa.id_perusahaan_dev', '0745406926444000'),
                 'seriEntitas'        => $seriEnt++,
+                'kodeStatus'         => $eks['kodeStatus'] ?? '',
+                'nitku'              => $eks['nitku'] ?? '',
             ];
 
             // 2. Pemilik (7)
@@ -850,6 +853,8 @@ class Bc30Service
                 'kesiapanBarang'        => $kesiapanBarangList,
                 'barang'                => $payloadBarang,
             ];
+
+
 
             $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
 
