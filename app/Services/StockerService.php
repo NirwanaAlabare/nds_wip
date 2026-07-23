@@ -51,7 +51,7 @@ class StockerService
 
             $stockerSql = Stocker::selectRaw("
                     (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    COALESCE(stocker_input.size, master_sb_ws.size) size,
                     stocker_input.range_awal,
                     stocker_input.range_akhir,
                     MAX(stocker_input.id_qr_stocker) id_qr_stocker,
@@ -144,7 +144,7 @@ class StockerService
 
             $stockerAdditionalSql = Stocker::selectRaw("
                     (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    COALESCE(stocker_input.size, master_sb_ws.size) size,
                     stocker_input.range_awal,
                     stocker_input.range_akhir,
                     stocker_input.id_qr_stocker,
@@ -289,7 +289,7 @@ class StockerService
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
                 COALESCE(master_sb_ws.size, marker_input_detail.size) size,
-                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(marker_input_detail.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
                 marker_input_detail.ratio
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
@@ -502,7 +502,7 @@ class StockerService
             return "data was manually modified";
         }
 
-        // Check Closing 
+        // Check Closing
         // $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
         //     ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
         //     ->where("part_form.part_id", $partId)

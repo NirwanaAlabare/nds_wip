@@ -62,14 +62,29 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">
-                <i class="fa-solid fa-clock-rotate-left"></i> Marker Activity Log
-            </h5>
-        </div>
-        <div class="card-body">
-            {{-- Filters --}}
+    <ul class="nav nav-tabs mb-3" id="markerToolsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-activity-log-btn" data-bs-toggle="tab" data-bs-target="#tab-activity-log" type="button" role="tab">
+                <i class="fa-solid fa-clock-rotate-left"></i> Activity Log
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-split-size-btn" data-bs-toggle="tab" data-bs-target="#tab-split-size" type="button" role="tab">
+                <i class="fa-solid fa-scissors"></i> Split Size
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="markerToolsTabContent">
+        <div class="tab-pane fade show active" id="tab-activity-log" role="tabpanel">
+            <div class="card card-sb">
+                <div class="card-header">
+                    <h5 class="card-title fw-bold mb-0">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Marker Activity Log
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{-- Filters --}}
             <div class="row g-3 mb-3 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label"><small><b>Dari</b></small></label>
@@ -112,23 +127,123 @@
                 </div>
             </div>
 
-            {{-- DataTable --}}
-            <div class="table-responsive">
-                <table id="activity-log-table" class="table table-bordered table-sm w-100">
-                    <thead>
-                        <tr>
-                            <th class="text-center">#</th>
-                            <th class="text-center">Tanggal</th>
-                            <th class="text-center">Subject ID</th>
-                            <th class="text-center">Event</th>
-                            <th class="text-center">Model</th>
-                            <th class="text-center">Action</th>
-                            <th class="text-center">Perubahan</th>
-                            <th class="text-center">Oleh</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                    {{-- DataTable --}}
+                    <div class="table-responsive">
+                        <table id="activity-log-table" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Tanggal</th>
+                                    <th class="text-center">Subject ID</th>
+                                    <th class="text-center">Event</th>
+                                    <th class="text-center">Model</th>
+                                    <th class="text-center">Action</th>
+                                    <th class="text-center">Perubahan</th>
+                                    <th class="text-center">Oleh</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-split-size" role="tabpanel">
+            <div class="card card-sb">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fa-solid fa-scissors"></i> Split Size
+                        </h5>
+                        <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#modalSplitSize">
+                            <i class="fa fa-plus fa-xs"></i> Tambah Sub Size
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {{-- DataTable --}}
+                    <div class="table-responsive">
+                        <table id="sub-size-table" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">No. WS</th>
+                                    <th class="text-center">Color</th>
+                                    <th class="text-center">Size Asli</th>
+                                    <th class="text-center">Sub Size</th>
+                                    <th class="text-center">Dibuat</th>
+                                    <th class="text-center">Oleh</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal: Tambah Sub Size --}}
+    <div class="modal fade" id="modalSplitSize" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="formSplitSize">
+                    <div class="modal-header bg-sb-secondary">
+                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-scissors"></i> Tambah Sub Size</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3"><small><i class="fa-solid fa-circle-info"></i> Pilih size order yang ingin dipecah, lalu tambahkan satu atau lebih nama sub size di bawah.</small></p>
+
+                        <label class="form-label mb-2"><small><b>Pilih Size Order</b></small></label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <select class="form-control select2bs4" id="split_ws_id" style="width: 100%;">
+                                    <option selected value="">Pilih WS</option>
+                                    @foreach ($orders as $order)
+                                        <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-control select2bs4" id="split_color" style="width: 100%;" disabled>
+                                    <option selected value="">Pilih Color</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-control select2bs4" id="split_size" style="width: 100%;" disabled>
+                                    <option selected value="">Pilih Size</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="so_det_id" id="split_so_det_id" required>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0"><small><b>Nama Sub Size</b></small></label>
+                            <button type="button" id="btnAddSubSize" class="btn btn-outline-primary btn-sm" disabled>
+                                <i class="fa fa-plus fa-xs"></i> Tambah Baris
+                            </button>
+                        </div>
+                        <div id="subSizeRows">
+                            <div class="input-group input-group-sm mb-2 sub-size-row">
+                                <span class="input-group-text bg-light text-muted sub-size-row-number">1</span>
+                                <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" required disabled>
+                                <button type="button" class="btn btn-outline-danger btn-remove-sub-size" disabled>
+                                    <i class="fa fa-trash fa-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSubmitSplitSize" class="btn btn-primary btn-sm" disabled>
+                            <i class="fa fa-save fa-xs"></i> Simpan Sub Size
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -144,12 +259,134 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $('.select2bs4').select2({ theme: 'bootstrap4', containerCssClass: 'form-control-sm rounded' });
+        $('.select2bs4').not('#modalSplitSize .select2bs4').select2({ theme: 'bootstrap4', containerCssClass: 'form-control-sm rounded' });
+
+        // Select2 inside a Bootstrap modal needs dropdownParent, otherwise the search input can't receive keyboard focus
+        $('#modalSplitSize .select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm rounded',
+            dropdownParent: $('#modalSplitSize'),
+        });
 
         let table;
+        let subSizeTable;
 
         $(document).ready(function () {
             tableReload();
+            subSizeTableReload();
+        });
+
+        // Step One (WS) on change — load Color list
+        $('#split_ws_id').on('change', function () {
+            $('#split_color').html('<option value="">Pilih Color</option>').val('').trigger('change').prop('disabled', true);
+            $('#split_size').html('<option value="">Pilih Size</option>').val('').trigger('change').prop('disabled', true);
+            $('#split_so_det_id').val('');
+
+            if (!this.value) return;
+
+            $.ajax({
+                url: '{{ route("get-marker-colors") }}',
+                type: 'get',
+                data: { act_costing_id: this.value },
+                success: function (res) {
+                    $('#split_color').html(res).prop('disabled', false);
+                },
+            });
+        });
+
+        // Step Two (Color) on change — load Size list
+        $('#split_color').on('change', function () {
+            $('#split_size').html('<option value="">Pilih Size</option>').val('').trigger('change').prop('disabled', true);
+            $('#split_so_det_id').val('');
+
+            if (!this.value) return;
+
+            $.ajax({
+                url: '{{ route("get-marker-sizes") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#split_ws_id').val(),
+                    color: this.value,
+                },
+                success: function (res) {
+                    let data = JSON.parse(res).data;
+                    let options = '<option value="">Pilih Size</option>';
+                    data.forEach(function (row) {
+                        options += `<option value="${row.so_det_id}">${row.size}</option>`;
+                    });
+                    $('#split_size').html(options).prop('disabled', false);
+                },
+            });
+        });
+
+        // Step Three (Size) on change — set hidden so_det_id, unlock Sub Size section
+        $('#split_size').on('change', function () {
+            $('#split_so_det_id').val(this.value);
+
+            let unlocked = !!this.value;
+            $('#btnAddSubSize').prop('disabled', !unlocked);
+            $('#btnSubmitSplitSize').prop('disabled', !unlocked);
+            $('#subSizeRows input[name="sub_size[]"]').prop('disabled', !unlocked);
+        });
+
+        // Renumber Sub Size rows
+        function renumberSubSizeRows() {
+            $('#subSizeRows .sub-size-row').each(function (i) {
+                $(this).find('.sub-size-row-number').text(i + 1);
+            });
+            $('#subSizeRows .btn-remove-sub-size').prop('disabled', $('#subSizeRows .sub-size-row').length <= 1);
+        }
+
+        // Add a new Sub Size row
+        $('#btnAddSubSize').on('click', function () {
+            let $row = $(`
+                <div class="input-group input-group-sm mb-2 sub-size-row">
+                    <span class="input-group-text bg-light text-muted sub-size-row-number"></span>
+                    <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" required>
+                    <button type="button" class="btn btn-outline-danger btn-remove-sub-size">
+                        <i class="fa fa-trash fa-xs"></i>
+                    </button>
+                </div>
+            `);
+            $('#subSizeRows').append($row);
+            renumberSubSizeRows();
+            $row.find('input').trigger('focus');
+        });
+
+        // Remove a Sub Size row
+        $('#subSizeRows').on('click', '.btn-remove-sub-size', function () {
+            $(this).closest('.sub-size-row').remove();
+            renumberSubSizeRows();
+        });
+
+        $('#formSplitSize').on('submit', function (e) {
+            e.preventDefault();
+
+            let $submitBtn = $('#btnSubmitSplitSize');
+            $submitBtn.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("marker-tools-split-size") }}',
+                data: $(this).serialize(),
+                success: function (response) {
+                    Swal.fire({ title: response.message, icon: 'success' });
+                    $('#formSplitSize')[0].reset();
+                    $('#subSizeRows .sub-size-row:gt(0)').remove();
+                    $('#split_ws_id').val('').trigger('change');
+                    $('#split_color, #split_size').prop('disabled', true).html('<option value="">Pilih Color</option>').trigger('change');
+                    $('#btnAddSubSize, #btnSubmitSplitSize, #subSizeRows input[name="sub_size[]"]').prop('disabled', true);
+                    $('#modalSplitSize').modal('hide');
+                    subSizeTableReload();
+                },
+                error: function (xhr) {
+                    let message = xhr.responseJSON?.message ?? 'Gagal menambahkan sub size';
+                    Swal.fire({ title: message, icon: 'error' });
+                },
+                complete: function () {
+                    $submitBtn.prop('disabled', false);
+                }
+            });
         });
 
         // Toggle perubahan — delegated karena DataTable render dinamis
@@ -292,6 +529,59 @@
                         table.column(i).search(this.value).draw();
                     }
                 });
+            });
+        }
+
+        function subSizeTableReload() {
+            if (subSizeTable) subSizeTable.destroy();
+
+            subSizeTable = $('#sub-size-table').DataTable({
+                ordering: false,
+                searching: false,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route("marker-tools-split-size-list") }}',
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'no_ws' },
+                    { data: 'color' },
+                    { data: 'original_size' },
+                    { data: 'sub_size' },
+                    { data: 'created_at' },
+                    { data: 'created_by_username' },
+                ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: 'text-center',
+                        render: (data, type, row, meta) => meta.row + 1,
+                    },
+                    {
+                        targets: [1, 2, 3],
+                        className: 'text-center text-nowrap',
+                    },
+                    {
+                        targets: [4],
+                        className: 'text-center text-nowrap',
+                        render: (data) => `<span class="badge badge-info">${data}</span>`,
+                    },
+                    {
+                        targets: [5],
+                        className: 'text-center',
+                        render: (data) => data ? data.substring(0, 19).replace('T', ' ') : '-',
+                    },
+                    {
+                        targets: [6],
+                        className: 'text-center',
+                        render: (data) => data ?? '<span class="text-muted">System</span>',
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
             });
         }
     </script>
