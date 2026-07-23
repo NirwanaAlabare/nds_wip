@@ -124,7 +124,7 @@
                             <tr wire:key="{{ $loop->index }}">
                                 @if ($currentLine != $line->username)
                                     <td rowspan="{{ $currentRowSpan }}" class="text-align align-middle">
-                                        <a style="font-weight: bold;" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
+                                        <a style="font-weight: bold;" href="{{ url('dashboard-wip/wip-line/' . $line->username) }}" target="_blank">
                                             {{ ucfirst(str_replace("_", " ", $line->username)) }}
                                         </a>
                                     </td>
@@ -240,7 +240,7 @@
                                 <tr wire:key="{{ $loop->index }}">
                                     @if ($currentLine != $line->username)
                                         <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
-                                            <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
+                                            <a class="text-sb" href="{{ url('dashboard-wip/wip-line/' . $line->username) }}" target="_blank">
                                                 {{ ucfirst(str_replace("_", " ", $line->username)) }}
                                             </a>
                                         </td>
