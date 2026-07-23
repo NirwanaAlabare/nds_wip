@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tanggal</label>
-                        <input type="date" class="form-select" wire:model="fromDate">
+                        <input type="date" class="form-select" wire:model="fromDate" min="{{ date('Y-m-d', strtotime(periodeClosing() . ' +1 day')) }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Line</label>
@@ -112,7 +112,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tanggal</label>
-                        <input type="date" class="form-select" wire:model="toDate">
+                        <input type="date" class="form-select" wire:model="toDate" min="{{ date('Y-m-d', strtotime(periodeClosing() . ' +1 day')) }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Line</label>

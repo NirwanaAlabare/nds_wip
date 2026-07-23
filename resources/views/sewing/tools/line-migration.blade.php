@@ -23,7 +23,7 @@
                         <div class="card-body">
                             <div class="form-group">
                                 <label for="tanggal">Tanggal</label>
-                                <input type="date" class="form-control" name="tanggal_from" id="tanggal_from" value="{{ date('Y-m-d') }}">
+                                <input type="date" class="form-control" name="tanggal_from" id="tanggal_from" value="{{ date('Y-m-d') }}"  min="{{ date('Y-m-d', strtotime(periodeClosing() . ' +1 day')) }}">
                             </div>
                             <div class="form-group">
                                 <label for="line">Line</label>
