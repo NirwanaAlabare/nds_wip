@@ -7,10 +7,10 @@
 
     <style>
         /* Plain HTML table with CSS sticky header/footer + sticky frozen columns.
-               No DataTables/FixedColumns here on purpose: FixedColumns clones the table
-               to build the frozen panel, and that clone can drift a pixel out of sync
-               with the scrolling body/header, producing the misaligned-header seam.
-               A single real table with position: sticky avoids the clone entirely. */
+                   No DataTables/FixedColumns here on purpose: FixedColumns clones the table
+                   to build the frozen panel, and that clone can drift a pixel out of sync
+                   with the scrolling body/header, producing the misaligned-header seam.
+                   A single real table with position: sticky avoids the clone entirely. */
         .rp-scroll {
             max-height: 560px;
             overflow: auto;
@@ -60,13 +60,13 @@
         }
 
         /* Frozen columns: Line, Chief, Leader, Style (indices 0-3).
-               Left offsets are cumulative sums of the preceding column widths below.
-               thead/tbody/tfoot all use four separate cells here (no colspan) so
-               every section has exactly one cell per column — mixing a colspan="4"
-               merged cell into a table-layout:fixed + sticky grid let the browser
-               compute that cell a hair narrower/wider than the four individual
-               frozen columns above it, which is what cut off / misaligned the
-               footer edge while scrolling. */
+                   Left offsets are cumulative sums of the preceding column widths below.
+                   thead/tbody/tfoot all use four separate cells here (no colspan) so
+                   every section has exactly one cell per column — mixing a colspan="4"
+                   merged cell into a table-layout:fixed + sticky grid let the browser
+                   compute that cell a hair narrower/wider than the four individual
+                   frozen columns above it, which is what cut off / misaligned the
+                   footer edge while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {
@@ -116,8 +116,8 @@
         }
 
         /* Sticky cells need their own opaque background — the parent <tr>'s
-               background does not show through a sticky-positioned cell reliably
-               while scrolling, so every td gets its stripe color explicitly. */
+                   background does not show through a sticky-positioned cell reliably
+                   while scrolling, so every td gets its stripe color explicitly. */
         table.rp-table tbody tr.stripe-odd td {
             background-color: #f7f9fd;
         }
@@ -140,8 +140,8 @@
         }
 
         /* Per-hour totals in the footer: under target reads red, meeting/beating it
-               reads blue. The tbody per-hour cells use real .rp-badge pills instead
-               (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
+                   reads blue. The tbody per-hour cells use real .rp-badge pills instead
+                   (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
         table.rp-table tfoot th.rp-qty-low {
             color: #e5484d;
         }
@@ -166,10 +166,10 @@
         }
 
         /* Keep the footer's own background (matches the rest of tfoot) instead
-               of the good/bad tint used for inline badges — only the font color
-               should reflect the eff threshold here. `table.rp-table tfoot th`
-               sets a fixed text color with higher specificity than .rp-badge-*,
-               so it must be overridden explicitly on the #id here too. */
+                   of the good/bad tint used for inline badges — only the font color
+                   should reflect the eff threshold here. `table.rp-table tfoot th`
+                   sets a fixed text color with higher specificity than .rp-badge-*,
+                   so it must be overridden explicitly on the #id here too. */
         #f-toteff.rp-badge-good,
         #f-toteff.rp-badge-bad {
             background-color: #eef2fa !important;
@@ -222,6 +222,10 @@
                         <a onclick="dataTableReload()" id="btn-search" class="btn btn-primary position-relative">
                             <i class="fas fa-search fa-sm"></i>
                         </a>
+                    </div>
+                    <div>
+                        <label class="form-label mb-1"><small><b>Cari</b></small></label>
+                        <input type="text" class="form-control" id="txt_search" placeholder="Cari nama / line...">
                     </div>
                     <div>
                         <div id="last-updated" class="text-muted" style="font-size: small;"></div>
@@ -302,7 +306,7 @@
                             <th>12</th>
                             <th>13</th>
                             <th>Output</th>
-                            <th>Eff</th>
+                            <th>Eff Style</th>
                             <th>Eff Line</th>
                         </tr>
                     </thead>
@@ -561,6 +565,32 @@
             effCell.classList.add(tot_eff >= 85 ? 'rp-badge-good' : 'rp-badge-bad');
         }
 
+        // Holds the last data fetched from the server so the search box can
+        // filter/re-render client-side without re-hitting the endpoint.
+        let lastFetchedRows = [];
+        let lastTotEffPercent = null;
+        let lastTotEff = null;
+
+        function filteredRows() {
+            const keyword = $('#txt_search').val().trim().toLowerCase();
+            if (!keyword) return lastFetchedRows;
+
+            return lastFetchedRows.filter((d) => {
+                const line = String(d.sewing_line ?? '').toLowerCase();
+                const chief = String(d.nm_chief ?? '').toLowerCase();
+                const leader = String(d.nm_leader ?? '').toLowerCase();
+                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword);
+            });
+        }
+
+        function applySearchFilter() {
+            const rows = filteredRows();
+            renderRows(rows);
+            updateFooter(rows, lastTotEffPercent, lastTotEff);
+        }
+
+        $('#txt_search').on('input', applySearchFilter);
+
         function dataTableReload() {
             let tgl_filter = $('#tgl_filter').val();
 
@@ -590,8 +620,10 @@
                     tgl_filter: tgl_filter
                 },
                 success: function(json) {
-                    renderRows(json.data);
-                    updateFooter(json.data, json.tot_eff_percent, json.tot_eff);
+                    lastFetchedRows = json.data;
+                    lastTotEffPercent = json.tot_eff_percent;
+                    lastTotEff = json.tot_eff;
+                    applySearchFilter();
                 },
                 error: function(jqXHR) {
                     console.error(jqXHR);
