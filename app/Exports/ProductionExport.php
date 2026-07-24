@@ -2,20 +2,23 @@
 
 namespace App\Exports;
 
-use App\Models\SignalBit\MasterPlan;
-use App\Models\SignalBit\UserLine;
-use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
-use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\Reject;
+use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\Rft;
+use App\Models\SignalBit\UserLine;
+use DB;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use DB;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class ProductionExport implements FromView, ShouldAutoSize, ShouldQueue, WithTitle
+class ProductionExport implements FromView, ShouldAutoSize, ShouldQueue, WithTitle, WithEvents
 {
     protected $date;
     protected $selectedLine;
@@ -70,5 +73,33 @@ class ProductionExport implements FromView, ShouldAutoSize, ShouldQueue, WithTit
     public function title(): string
     {
         return $this->selectedLine;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+
+                $sheet = $event->sheet->getDelegate();
+
+                // ==========================
+                // BORDER TABEL PRODUKSI
+                // ==========================
+                $sheet->getStyle('A1:H13')
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle(Border::BORDER_THIN);
+
+                // ==========================
+                // BORDER TABEL TOP 5 DEFECT
+                // ==========================
+                $lastRow = $sheet->getHighestRow();
+
+                $sheet->getStyle("A17:E{$lastRow}")
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle(Border::BORDER_THIN);
+            },
+        ];
     }
 }
