@@ -1102,7 +1102,7 @@ class ReturInMaterialController extends Controller
         UNION
         select id_roll no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, goods_code kode_item, itemdesc, no_roll, no_roll_buyer, no_lot,qty_retur qty_sj, qty_retur qty_aktual, unit satuan, a.kode_lok, 'Y' status,created_by,created_at,updated_at, price price_in, id_roll, c.np_curr, c.np_tgl_in, c.np_price
         from whs_inmaterial_barcode_ri_temp a
-        INNER JOIN whs_barcode_in b on b.no_barcode = a.id_roll
+        LEFT JOIN whs_barcode_in b on b.no_barcode = a.id_roll
         LEFT JOIN (select t.no_barcode, IFNULL(t.np_curr_rev,t.np_curr) np_curr, t.np_tgl_in, IFNULL(t.np_price_rev,t.np_price) np_price from whs_lokasi_inmaterial t inner join (select no_barcode, MIN(id) min_id from whs_lokasi_inmaterial GROUP BY no_barcode) m on m.no_barcode = t.no_barcode and m.min_id = t.id) c on c.no_barcode = a.id_roll
         where created_by = '".Auth::user()->name."' GROUP BY no_barcode
     ");
