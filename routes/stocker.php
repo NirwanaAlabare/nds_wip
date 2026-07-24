@@ -113,6 +113,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
         Route::post('/store', 'storeStockerProcessReject')->name('store-stocker-reject');
         Route::post('/store-batch', 'storeStockerProcessRejectBatch')->name('store-stocker-reject-batch');
+        Route::get('/generated-stocker-reject', 'generatedStockerReject')->name('generated-stocker-reject');
 
         Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
     });

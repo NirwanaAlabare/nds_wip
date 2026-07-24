@@ -248,6 +248,38 @@
             </div>
         </div>
     </form>
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title">Generated Stocker</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="generated-stocker-table">
+                    <thead>
+                        <tr>
+                            <th>ID QR Stocker</th>
+                            <th>No. WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Panel</th>
+                            <th>Part</th>
+                            <th>Size</th>
+                            <th>DC In</th>
+                            <th>Sec. Inhouse In</th>
+                            <th>Sec. Inhouse Out</th>
+                            <th>Sec. In</th>
+                            <th>Troli</th>
+                            <th>Line</th>
+                            <th>Dibuat</th>
+                            <th>Diubah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -261,6 +293,37 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        $(document).ready(function() {
+            let generatedStockerTable = $("#generated-stocker-table").DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route("generated-stocker-reject") }}',
+                    data: function(d) {
+                        d.id = '{{ $id }}';
+                        d.process = '{{ $process }}';
+                    }
+                },
+                columns: [
+                    { data: 'id_qr_stocker', name: 'stocker_input.id_qr_stocker' },
+                    { data: 'act_costing_ws', name: 'master_sb_ws.ws' },
+                    { data: 'style', name: 'master_sb_ws.styleno' },
+                    { data: 'color', name: 'stocker_input.color' },
+                    { data: 'panel', name: 'stocker_input.panel' },
+                    { data: 'nama_part', name: 'master_part.nama_part' },
+                    { data: 'size', name: 'master_sb_ws.size' },
+                    { data: 'dc_in', name: 'dc_in_input.tgl_trans' },
+                    { data: 'sec_inhouse_in', name: 'secondary_inhouse_in_input.created_at' },
+                    { data: 'sec_inhouse_out', name: 'secondary_inhouse_input.created_at' },
+                    { data: 'sec_in', name: 'secondary_in_input.created_at' },
+                    { data: 'trolley', name: 'trolley' },
+                    { data: 'line', name: 'line' },
+                    { data: 'created_at', name: 'stocker_input.created_at' },
+                    { data: 'updated_at', name: 'stocker_input.updated_at' }
+                ]
+            });
+        });
+
         // Save stocker reject
         function saveStockerReject() {
             document.getElementById("loading").classList.remove("d-none")

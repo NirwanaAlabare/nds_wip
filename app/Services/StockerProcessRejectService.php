@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\LoadingLine;
 use App\Models\Stocker\Stocker;
@@ -162,8 +163,8 @@ class StockerProcessRejectService
                     foreach ($storedStocker as $stocker) {
                         // Tujuan
                         $partDetail = $stocker->partDetail;
-                        $secondary = $partDetail ? $partDetail->secondary : null;
-                        $secondaries = $partDetail ? $partDetail->secondaries : null;
+                        $secondary = $partDetail && $partDetail->secondary ? $partDetail->secondary : null;
+                        $secondaries = $partDetail && count($partDetail->secondaries) ? $partDetail->secondaries : null;
                         $currentSecondary = null;
                         if ($secondaries) {
                             $currentSecondary = $secondaries->where("urutan", 1)->first();
@@ -217,9 +218,18 @@ class StockerProcessRejectService
                             }
 
                             if ($currentSecondaryInhouse && ($currentSecondary && $currentSecondary->tujuan == "SECONDARY DALAM")) {
-                                // Copy DC
-                                $this->copyDcInTransaction($currentSecondaryInhouse->id_qr_stocker, $stocker->id_qr_stocker);
 
+                                // Current Secondary Inhouse IN
+                                $createSecondaryInhouseIn = SecondaryInhouseIn::updateOrCreate([
+                                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                                    "urutan" => $currentSecondaryInhouse->urutan,
+                                ],[
+                                    "tgl_trans" => date("Y-m-d"),
+                                    "no_form" => $currentSecondaryInhouse->no_form,
+                                    "qty_in" => $stocker->qty_ply,
+                                    "ket" => $currentSecondaryInhouse->ket,
+                                    "user" => Auth::user()->username,
+                                ]);
 
                                 // Current Secondary Inhouse
                                 $createSecondaryInhouse = SecondaryInhouse::updateOrCreate([
@@ -239,6 +249,12 @@ class StockerProcessRejectService
                                 // Update urutan stocker
                                 $stocker->urutan = $currentSecondaryInhouse->urutan + 1;
                                 $stocker->save();
+                            } else {
+                                // Current Secondary
+                                $currentSecondaryInhouse = SecondaryInhouse::where("id", $request['secondary_inhouse_id'])->first();
+
+                                // Copy DC
+                                $this->copyDcInTransaction($currentSecondaryInhouse->id_qr_stocker, $stocker->id_qr_stocker);
                             }
                         }
 
@@ -257,7 +273,7 @@ class StockerProcessRejectService
                                 $currentSecondary = $secondary;
                             }
 
-                            if ($currentSecondaryIn && ($currentSecondary && ($currentSecondary == "SECONDARY DALAM" || $currentSecondary == "SECONDARY LUAR"))) {
+                            if ($currentSecondaryIn && ($currentSecondary && ($currentSecondary->tujuan == "SECONDARY DALAM" || $currentSecondary->tujuan == "SECONDARY LUAR"))) {
                                 // Copy Inhouse & DC
                                 $copyInhouse = $this->copySecondaryInhouseTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
                                 if (!$copyInhouse) {
@@ -283,8 +299,12 @@ class StockerProcessRejectService
                                 ]);
 
                                 // Update urutan stocker
-                                $stocker->urutan = $currentSecondaryInhouse->urutan + 1;
+                                $stocker->urutan = $currentSecondaryIn->urutan + 1;
                                 $stocker->save();
+                            } else {
+                                $currentSecondaryIn = SecondaryIn::where("id", $request['secondary_in_id'])->first();
+
+                                $copyDc = $this->copyDcInTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
                             }
                         }
                     }
@@ -336,6 +356,18 @@ class StockerProcessRejectService
             $this->copyDcInTransaction($idQrStockerSource, $idQrStocker);
 
             foreach ($currentSecondaryInhouse as $secInHouse) {
+                // Current Secondary Inhouse IN
+                $createSecondaryInhouseIn = SecondaryInhouseIn::updateOrCreate([
+                    "id_qr_stocker" => $idQrStocker,
+                    "urutan" => $secInHouse->urutan,
+                ],[
+                    "tgl_trans" => $secInHouse->tgl_trans,
+                    "no_form" => $secInHouse->no_form,
+                    "qty_in" => 0,
+                    "ket" => $secInHouse->ket,
+                    "user" => Auth::user()->username,
+                ]);
+
                 // Current Secondary Inhouse
                 $createSecondaryInhouse = SecondaryInhouse::updateOrCreate([
                     "id_qr_stocker" => $idQrStocker,

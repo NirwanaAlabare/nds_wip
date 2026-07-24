@@ -26,7 +26,7 @@
         }
 
         .rp-live-title {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             font-weight: 700;
             margin: 0;
             color: #fff;
@@ -41,11 +41,11 @@
             align-items: center;
             gap: 22px;
             color: #9fb0c9;
-            font-size: 1rem;
+            font-size: 0.85rem;
         }
 
         .rp-live-clock {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             color: #fff;
@@ -84,8 +84,8 @@
         }
 
         /* Same sticky-table approach as the working view: a single real table
-                                                                                                           with position: sticky for the header/footer/frozen columns, sized up
-                                                                                                           for legibility from a distance on a TV/monitor. */
+                                                                                                                       with position: sticky for the header/footer/frozen columns, sized up
+                                                                                                                       for legibility from a distance on a TV/monitor. */
         .rp-scroll {
             height: calc(100vh - 74px);
             overflow: auto;
@@ -97,7 +97,7 @@
             border-spacing: 0;
             table-layout: fixed;
             width: max-content;
-            font-size: 1.35rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #1c2333;
         }
@@ -105,7 +105,7 @@
         table.rp-table th,
         table.rp-table td {
             border: 1px solid #d5d9e2;
-            padding: 0.7rem 0.85rem;
+            padding: 0.5rem 0.65rem;
             white-space: nowrap;
             vertical-align: middle;
             text-align: center;
@@ -115,7 +115,7 @@
             position: sticky;
             top: 0;
             z-index: 2;
-            font-size: 1.1rem;
+            font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -127,7 +127,7 @@
             position: sticky;
             bottom: 0;
             z-index: 2;
-            font-size: 1.35rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #1c2b4a;
             background-color: #eef2fa;
@@ -135,11 +135,11 @@
 
 
         /* thead/tbody/tfoot all use four separate cells here (no colspan) so
-                                                                                                           every section has exactly one cell per column — mixing a colspan="4"
-                                                                                                           merged cell into a table-layout:fixed + sticky grid let the browser
-                                                                                                           compute that cell a hair narrower/wider than the four individual
-                                                                                                           frozen columns above it, cutting off / misaligning the footer edge
-                                                                                                           while scrolling. */
+                                                                                                                       every section has exactly one cell per column — mixing a colspan="4"
+                                                                                                                       merged cell into a table-layout:fixed + sticky grid let the browser
+                                                                                                                       compute that cell a hair narrower/wider than the four individual
+                                                                                                                       frozen columns above it, cutting off / misaligning the footer edge
+                                                                                                                       while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {
@@ -198,14 +198,13 @@
 
         .rp-badge {
             display: inline-block;
-            min-width: 3.2rem;
-            padding: 0.22rem 0.75rem;
+            min-width: 2.6rem;
+            padding: 0.18rem 0.6rem;
             border-radius: 999px;
-            font-size: 1.05rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: #1c2333;
-            background-color: #e7ebf1;
-            /* background-color: #eef1f6; */
+            background-color: transparent;
         }
 
         .rp-badge-good {
@@ -272,9 +271,9 @@
                 <col style="width:65px">
                 <col style="width:65px">
                 <col style="width:65px">
-                <col style="width:280px">
-                <col style="width:200px">
-                <col style="width:200px">
+                <col style="width:75px">
+                <col style="width:100px">
+                <col style="width:100px">
             </colgroup>
             <thead>
                 <tr>
@@ -308,7 +307,7 @@
                     <th>12</th>
                     <th>13</th>
                     <th>Output</th>
-                    <th>Eff</th>
+                    <th>Eff Style</th>
                     <th>Eff Line</th>
                 </tr>
             </thead>
@@ -346,7 +345,8 @@
                     <th id="f-ojam12"></th>
                     <th id="f-ojam13"></th>
                     <th id="f-totoutput" style="color: #1c4fa3;"></th>
-                    <th colspan="2" id="f-toteff"></th>
+                    <th></th>
+                    <th id="f-toteff"></th>
                 </tr>
             </tfoot>
         </table>
@@ -364,8 +364,37 @@
 
         const qtyBadge = (value, target) => {
             const t = intVal(target);
-            if (!t) return esc(value);
+            if (!t) return plain(value);
             return badge(value, intVal(value) >= t);
+        };
+
+        // Shift starts 07:00, and each column is one *completed* clock hour
+        // after that: jam ke-1 = 07:00-08:00, jam ke-2 = 08:00-09:00, dst.
+        const SHIFT_START_HOUR = 7;
+
+        // How many hour columns are relevant right now, based on the wall
+        // clock — e.g. at 13:00 (1 siang), hours 07-08 .. 12-13 have fully
+        // elapsed, so this returns 6. Clamped to [0, 13].
+        function currentJamKe() {
+            const now = new Date();
+            const jam = Math.floor(now.getHours() + now.getMinutes() / 60 - SHIFT_START_HOUR);
+            return Math.max(0, Math.min(13, jam));
+        }
+
+        // Only today's date gets cut off at the current hour — a past date's
+        // shift is already fully over, so all 13 columns show as-is straight
+        // from the database (0 included, nothing hidden). todayYmd() is
+        // defined further down in this same script.
+        function hourCutoff() {
+            return document.getElementById('tgl_filter_live').value === todayYmd() ? currentJamKe() : 13;
+        }
+
+        // Columns beyond the cutoff aren't rendered at all (that hour hasn't
+        // happened yet); columns within the cutoff always show the database
+        // value as-is, 0 included.
+        const hourCell = (value, target, hourIndex, cutoff) => {
+            if (hourIndex > cutoff) return '';
+            return qtyBadge(value, target);
         };
 
         const intVal = function(i) {
@@ -377,6 +406,7 @@
 
         function renderRows(rows) {
             let html = '';
+            const cutoff = hourCutoff();
 
             rows.forEach((data, i) => {
                 const stripe = i % 2 === 0 ? 'stripe-even' : 'stripe-odd';
@@ -398,19 +428,19 @@
                     `<td>${plain(data.set_target_perhari)}</td>` +
                     `<td>${plain(data.plan_target_perjam)}</td>` +
                     `<td>${plain(data.jam_kerja_act)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_1, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_2, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_3, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_4, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_5, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_6, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_7, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_8, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_9, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_10, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_11, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_12, data.plan_target_perjam)}</td>` +
-                    `<td>${qtyBadge(data.o_jam_13, data.plan_target_perjam)}</td>` +
+                    `<td>${hourCell(data.o_jam_1, data.plan_target_perjam, 1, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_2, data.plan_target_perjam, 2, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_3, data.plan_target_perjam, 3, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_4, data.plan_target_perjam, 4, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_5, data.plan_target_perjam, 5, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_6, data.plan_target_perjam, 6, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_7, data.plan_target_perjam, 7, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_8, data.plan_target_perjam, 8, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_9, data.plan_target_perjam, 9, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_10, data.plan_target_perjam, 10, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_11, data.plan_target_perjam, 11, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_12, data.plan_target_perjam, 12, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_13, data.plan_target_perjam, 13, cutoff)}</td>` +
                     `<td><span class="rp-badge rp-badge-neutral">${esc(data.tot_output)}</span></td>` +
                     `<td>${badge(data.eff_line, data.eff_line_angka >= 85)}</td>` +
                     `<td>${badge(data.eff_skrg, data.eff_skrg_angka >= 85)}</td>` +
@@ -446,7 +476,12 @@
             const totalTargetPerjam = sum('plan_target_perjam');
             setBadge('f-targetperjam', totalTargetPerjam);
 
+            const cutoff = hourCutoff();
             for (let i = 1; i <= 13; i++) {
+                if (i > cutoff) {
+                    setBadge('f-ojam' + i, '');
+                    continue;
+                }
                 const ojamTotal = sum('o_jam_' + i);
                 const colorClass = totalTargetPerjam ?
                     (ojamTotal < totalTargetPerjam ? 'rp-badge-bad' : 'rp-badge-good') : '';

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerReject;
 use App\Models\DC\DCIn;
+use App\Models\DC\SecondaryInhouseIn;
 use App\Models\DC\SecondaryInhouse;
 use App\Models\DC\SecondaryIn;
 use App\Services\StockerService;
@@ -562,7 +563,7 @@ class StockerRejectController extends Controller
 
                 $dataStockerReject = StockerReject::selectRaw("id, ratio, qty_reject")->where($filterColumn, $request->id)->get();
 
-                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-dc', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
+                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['id' => $request->id, 'process' => $request->process, 'data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-dc', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
             }
         }
     }
@@ -872,7 +873,7 @@ class StockerRejectController extends Controller
         ]);
     }
 
-     public function storeStockerProcessRejectBatch(Request $request, StockerProcessRejectService $stockerProcessRejectService)
+    public function storeStockerProcessRejectBatch(Request $request, StockerProcessRejectService $stockerProcessRejectService)
     {
         $items = $request->input('items', []);
 
@@ -1192,5 +1193,58 @@ class StockerRejectController extends Controller
         $filename = 'Stocker Reject List ' . $dateFrom . ' - ' . $dateTo . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
 
         return $excel->download($filename);
+    }
+
+    public function generatedStockerReject(Request $request)
+    {
+        $id = $request->id;
+        $process = $request->process;
+
+        $column = "";
+        switch ($process) {
+            case 'DC In' :
+                $column = "dc_in_id";
+                break;
+            case 'Secondary Inhouse' :
+                $column = "secondary_inhouse_id";
+                break;
+            case 'Secondary In' :
+                $column = "secondary_in_id";
+                break;
+        }
+
+        $currentStockerRejectIds = StockerReject::where($column, $id)->pluck("id");
+
+        $stockerQuery = Stocker::selectRaw("
+                stocker_input.id_qr_stocker,
+                master_sb_ws.ws as act_costing_ws,
+                master_sb_ws.styleno as style,
+                stocker_input.color,
+                stocker_input.panel,
+                master_part.nama_part,
+                master_sb_ws.size,
+                dc_in_input.tgl_trans dc_in,
+                secondary_inhouse_in_input.created_at sec_inhouse_in,
+                secondary_inhouse_input.created_at sec_inhouse_out,
+                secondary_in_input.created_at sec_in,
+                CONCAT(COALESCE(trolley.nama_trolley,'-'), ' (', COALESCE(trolley_stocker.created_at, '-'), ')') trolley,
+                CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') line,
+                stocker_input.created_at,
+                stocker_input.updated_at
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+            leftJoin("secondary_inhouse_in_input", "secondary_inhouse_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            whereIn("stocker_input.stocker_reject", $currentStockerRejectIds);
+
+        return DataTables::of($stockerQuery->get())->toJson();
     }
 }
