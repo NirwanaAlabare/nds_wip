@@ -520,6 +520,15 @@ order by a.tgl_trans asc, REPLACE(ul.username, '_', ' ') asc, sd.styleno_prod as
         );
     }
 
+    public function indexLive(Request $request)
+    {
+        return view('ppic.report_hourly_live', [
+            'containerFluid' => true,
+            'navbar' => false,
+            'footer' => false,
+        ]);
+    }
+
     public function exportExcelHourlyMonthly(Request $request)
     {
         $month = $request->month;

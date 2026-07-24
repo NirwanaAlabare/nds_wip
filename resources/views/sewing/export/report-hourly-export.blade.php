@@ -95,8 +95,8 @@
             <td style="border: 1px solid black;">{{ $d->smv }}</td>
             <td style="border: 1px solid black;">{{ $d->man_power }}</td>
             <td style="border: 1px solid black;">{{ $d->tot_days }}</td>
-            <td style="border: 1px solid black;{{ $d->kemarin_2 < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->kemarin_2 }}</td>
-            <td style="border: 1px solid black;{{ $d->kemarin_1 < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->kemarin_1 }}</td>
+            <td style="border: 1px solid black;{{ (float) $d->kemarin_2_angka < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->kemarin_2 }}</td>
+            <td style="border: 1px solid black;{{ (float) $d->kemarin_1_angka < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->kemarin_1 }}</td>
             <td style="border: 1px solid black;">{{ $d->jam_kerja }}</td>
             <td style="border: 1px solid black;">{{ $d->target_100 }}</td>
             <td style="border: 1px solid black;">{{ $d->target_effy }}</td>
@@ -118,9 +118,9 @@
             <td style="border: 1px solid black;">{{ $d->o_jam_12 }}</td>
             <td style="border: 1px solid black;">{{ $d->o_jam_13 }}</td>
             <td style="border: 1px solid black;">{{ $d->tot_output }}</td>
-            <td style="border: 1px solid black;{{ $d->eff_line < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->eff_line }}</td>
+            <td style="border: 1px solid black;{{ (float) $d->eff_line_angka < 85 ? 'color:#ff0000;' : 'color:#008000;' }}">{{ $d->eff_line }}</td>
             @if ($currentLine != $d->sewing_line)
-                <td style="border: 1px solid black;{{ $d->eff_skrg < 85 ? 'color:#ff0000;' : 'color:#008000;' }}" rowspan="{{ $data->where("sewing_line", $d->sewing_line)->count() }}">{{ $d->eff_skrg }}</td>
+                <td style="border: 1px solid black;{{ (float) $d->eff_skrg_angka < 85 ? 'color:#ff0000;' : 'color:#008000;' }}" rowspan="{{ $data->where("sewing_line", $d->sewing_line)->count() }}">{{ $d->eff_skrg }}</td>
 
                 @php
                     $currentLine = $d->sewing_line;
@@ -153,6 +153,6 @@
         <th style="font-weight: bold;border: 1px solid black">{{ $totalOutputJam12 }}</th>
         <th style="font-weight: bold;border: 1px solid black">{{ $totalOutputJam13 }}</th>
         <th style="font-weight: bold;border: 1px solid black">{{ $totalOutputAll }}</th>
-        <th colspan='2' style='border: 1px solid black;font-weight: bold;{{ $tot_eff_percent < 85 ? 'color:#ff0000;' : 'color:#008000;' }}'>{{ $tot_eff_percent }}</th>
+        <th colspan='2' style='border: 1px solid black;font-weight: bold;background-color: lightblue;{{ (float) $tot_eff < 85 ? 'color:#ff0000;' : 'color:#008000;' }}'>{{ $tot_eff_percent }}</th>
     </tr>
 </table>

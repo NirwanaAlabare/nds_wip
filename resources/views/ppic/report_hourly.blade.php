@@ -1,71 +1,278 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
-    <!-- jQuery -->
-    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
-
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
-        /* Custom styles for the table */
-
-        .table-bordered {
-
-            border: 1px solid black;
-            /* Change thickness of the outer border */
-
+        /* Plain HTML table with CSS sticky header/footer + sticky frozen columns.
+           No DataTables/FixedColumns here on purpose: FixedColumns clones the table
+           to build the frozen panel, and that clone can drift a pixel out of sync
+           with the scrolling body/header, producing the misaligned-header seam.
+           A single real table with position: sticky avoids the clone entirely. */
+        .rp-scroll {
+            max-height: 560px;
+            overflow: auto;
+            border: 1px solid #e3e7f0;
+            border-radius: 0.6rem;
         }
 
-        .table-bordered th,
-        .table-bordered td {
+        table.rp-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+            width: max-content;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #2b2f3a;
+        }
 
-            border: 1px solid black;
-            /* Change thickness of inner borders */
+        table.rp-table th,
+        table.rp-table td {
+            border: 1px solid #d5d9e2;
+            padding: 0.55rem 0.7rem;
+            white-space: nowrap;
+            vertical-align: middle;
+            text-align: center;
+        }
 
+        table.rp-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #1c4fa3 0%, #123a80 100%);
+            color: #fff;
+        }
+
+        table.rp-table tfoot th {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1c2b4a;
+            background-color: #eef2fa;
+        }
+
+        /* Frozen columns: Line, Chief, Leader, Style (indices 0-3).
+           Left offsets are cumulative sums of the preceding column widths below.
+           thead/tbody/tfoot all use four separate cells here (no colspan) so
+           every section has exactly one cell per column — mixing a colspan="4"
+           merged cell into a table-layout:fixed + sticky grid let the browser
+           compute that cell a hair narrower/wider than the four individual
+           frozen columns above it, which is what cut off / misaligned the
+           footer edge while scrolling. */
+        table.rp-table thead th:nth-child(1),
+        table.rp-table tbody td:nth-child(1),
+        table.rp-table tfoot th:nth-child(1) {
+            position: sticky;
+            left: 0;
+            text-align: left;
+        }
+
+        table.rp-table thead th:nth-child(2),
+        table.rp-table tbody td:nth-child(2),
+        table.rp-table tfoot th:nth-child(2) {
+            position: sticky;
+            left: 70px;
+            text-align: left;
+        }
+
+        table.rp-table thead th:nth-child(3),
+        table.rp-table tbody td:nth-child(3),
+        table.rp-table tfoot th:nth-child(3) {
+            position: sticky;
+            left: 160px;
+            text-align: left;
+        }
+
+        table.rp-table thead th:nth-child(4),
+        table.rp-table tbody td:nth-child(4),
+        table.rp-table tfoot th:nth-child(4) {
+            position: sticky;
+            left: 250px;
+            text-align: left;
+            box-shadow: 3px 0 6px -3px rgba(20, 30, 60, 0.18);
+        }
+
+        table.rp-table thead th:nth-child(-n+4) {
+            z-index: 3;
+        }
+
+        table.rp-table tfoot th:nth-child(-n+4) {
+            z-index: 3;
+            background-color: #eef2fa;
+        }
+
+        table.rp-table tbody td:nth-child(-n+4) {
+            z-index: 1;
+            font-weight: 700;
+            color: #17408b;
+        }
+
+        /* Sticky cells need their own opaque background — the parent <tr>'s
+           background does not show through a sticky-positioned cell reliably
+           while scrolling, so every td gets its stripe color explicitly. */
+        table.rp-table tbody tr.stripe-odd td {
+            background-color: #f7f9fd;
+        }
+
+        table.rp-table tbody tr.stripe-even td {
+            background-color: #fff;
+        }
+
+        table.rp-table tbody tr:hover td {
+            background-color: #e8f0ff !important;
+        }
+
+        .rp-badge {
+            display: inline-block;
+            min-width: 2.6rem;
+            padding: 0.18rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* Per-hour totals in the footer: under target reads red, meeting/beating it
+           reads blue. The tbody per-hour cells use real .rp-badge pills instead
+           (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
+        table.rp-table tfoot th.rp-qty-low {
+            color: #e5484d;
+        }
+
+        table.rp-table tfoot th.rp-qty-good {
+            color: #2f6fed;
+        }
+
+        .rp-badge-good {
+            color: #157347;
+            background-color: rgba(25, 135, 84, 0.12);
+        }
+
+        .rp-badge-bad {
+            color: #b02a37;
+            background-color: rgba(220, 53, 69, 0.12);
+        }
+
+        .rp-badge-neutral {
+            color: #1c4fa3;
+            background-color: rgba(28, 79, 163, 0.12);
+        }
+
+        /* Keep the footer's own background (matches the rest of tfoot) instead
+           of the good/bad tint used for inline badges — only the font color
+           should reflect the eff threshold here. `table.rp-table tfoot th`
+           sets a fixed text color with higher specificity than .rp-badge-*,
+           so it must be overridden explicitly on the #id here too. */
+        #f-toteff.rp-badge-good,
+        #f-toteff.rp-badge-bad {
+            background-color: #eef2fa !important;
+        }
+
+        #f-toteff.rp-badge-good {
+            color: #157347 !important;
+        }
+
+        #f-toteff.rp-badge-bad {
+            color: #b02a37 !important;
+        }
+
+        .rp-toolbar {
+            background-color: #f8f9fc;
+            border: 1px solid #eef0f6;
+            border-radius: 0.6rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .rp-toolbar .btn {
+            border-radius: 999px;
+        }
+
+        .card.card-sb {
+            box-shadow: 0 4px 18px rgba(20, 30, 60, 0.07);
+            border-radius: 0.75rem;
+            overflow: hidden;
         }
     </style>
 @endsection
 
 @section('content')
     <div class="card card-sb">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-area"></i> Hourly Output</h5>
+            <a href="{{ route('report-hourly-live') }}" target="_blank" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-tv"></i> Live View
+            </a>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div class="mb-3">
-                        <label class="form-label"><small><b>Tgl Filter</b></small></label>
+            <div class="rp-toolbar d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3">
+                    <div>
+                        <label class="form-label mb-1"><small><b>Tgl Filter</b></small></label>
                         <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter"
                             value="{{ date('Y-m-d') }}">
                     </div>
-                    <div class="mb-3">
-                        <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
+                    <div>
+                        <a onclick="dataTableReload()" id="btn-search" class="btn btn-primary position-relative">
                             <i class="fas fa-search fa-sm"></i>
                         </a>
                     </div>
-                    <div class="mb-3">
+                    <div>
                         <div id="last-updated" class="text-muted" style="font-size: small;"></div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <a class="btn btn-outline-success position-relative mb-3" data-bs-toggle="modal"
+                <div>
+                    <a class="btn btn-success position-relative" data-bs-toggle="modal"
                         data-bs-target="#exportModal">
-                        <i class="fas fa-file-excel fa-sm"></i>
+                        <i class="fas fa-file-excel fa-sm"></i> Export
                     </a>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
-                    <thead class="table-primary">
-                        <tr style='text-align:center; vertical-align:middle'>
+            <div class="rp-scroll">
+                <table class="rp-table">
+                    <colgroup>
+                        <col style="width:70px">
+                        <col style="width:90px">
+                        <col style="width:90px">
+                        <col style="width:160px">
+                        <col style="width:70px">
+                        <col style="width:50px">
+                        <col style="width:60px">
+                        <col style="width:70px">
+                        <col style="width:70px">
+                        <col style="width:50px">
+                        <col style="width:80px">
+                        <col style="width:60px">
+                        <col style="width:70px">
+                        <col style="width:80px">
+                        <col style="width:80px">
+                        <col style="width:60px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:55px">
+                        <col style="width:75px">
+                        <col style="width:75px">
+                        <col style="width:75px">
+                    </colgroup>
+                    <thead>
+                        <tr>
                             <th>Line</th>
                             <th>Chief</th>
                             <th>Leader</th>
@@ -100,33 +307,41 @@
                             <th>Eff Line</th>
                         </tr>
                     </thead>
+                    <tbody id="rp-tbody">
+                        <tr>
+                            <td colspan="32" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="4"> Total </th>
                             <th></th>
                             <th></th>
+                            <th></th>
+                            <th>Total</th>
+                            <th></th>
+                            <th id="f-mp"></th>
                             <th colspan="4"></th>
-                            <th>2</th>
+                            <th id="f-target100"></th>
                             <th></th>
-                            <th>4</th>
-                            <th>5</th>
+                            <th id="f-targetoutputeff"></th>
+                            <th id="f-settargetperhari"></th>
+                            <th id="f-targetperjam"></th>
                             <th></th>
-                            <th></th>
-                            <th>8</th>
-                            <th>9</th>
-                            <th>10</th>
-                            <th>11</th>
-                            <th>12</th>
-                            <th>13</th>
-                            <th>14</th>
-                            <th>15</th>
-                            <th>16</th>
-                            <th>17</th>
-                            <th>18</th>
-                            <th>19</th>
-                            <th>20</th>
-                            <th>21</th>
-                            <th colspan = '2' style='font-size: 30px; font-weight: bold;'></th>
+                            <th id="f-ojam1"></th>
+                            <th id="f-ojam2"></th>
+                            <th id="f-ojam3"></th>
+                            <th id="f-ojam4"></th>
+                            <th id="f-ojam5"></th>
+                            <th id="f-ojam6"></th>
+                            <th id="f-ojam7"></th>
+                            <th id="f-ojam8"></th>
+                            <th id="f-ojam9"></th>
+                            <th id="f-ojam10"></th>
+                            <th id="f-ojam11"></th>
+                            <th id="f-ojam12"></th>
+                            <th id="f-ojam13"></th>
+                            <th id="f-totoutput" style="font-size: 1.35rem; color: #1c4fa3;"></th>
+                            <th colspan="2" id="f-toteff" style="font-size: 40px; font-weight: bold;"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -183,12 +398,7 @@
 @endsection
 
 @section('custom-script')
-    <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables 2.0/dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
         // Select2 Autofocus
@@ -206,489 +416,113 @@
         });
     </script>
     <script>
-        let datatable;
-
-        $(document).ready(() => {
-            checkPeriod();
-
-            datatable = $("#datatable").DataTable({
-                scrollY: "450px",
-                scrollX: true,
-                scrollCollapse: true,
-                scroller: true,
-                processing: true,
-                serverside: true,
-                paging: false,
-                ordering: false,
-                search: {
-                    smart: false // Cocokkan search sebagai 1 frasa utuh, bukan kata terpisah
-                },
-                fixedColumns: {
-                    leftColumns: 4 // Fix the first three columns
-                },
-                ajax: {
-                    url: '{{ route('report-hourly') }}',
-                    type: "GET",
-                    data: function(d) {
-                        d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
-                    },
-                    dataSrc: function(json) {
-                        // Access the DataTable instance directly
-                        // Use the datatable variable to access the API
-                        $(datatable.column(30).footer()).html(json
-                            .tot_eff_percent); // Update the footer with total efficiency
-                        // Change the font color of the footer based on the value
-                        if (json.tot_eff < 85) {
-                            $(datatable.column(30).footer()).css({
-                                'color': 'red',
-                                'font-weight': 'bold'
-                            });
-                        } else {
-                            $(datatable.column(31).footer()).css({
-                                'color': 'green',
-                                'font-weight': 'bold'
-                            });
-                        }
-                        return json.data; // Return the data for DataTable
-                    }
-                },
-                columns: [{
-                        data: 'sewing_line'
-                    },
-                    {
-                        data: 'nm_chief'
-                    },
-                    {
-                        data: 'nm_leader'
-                    },
-                    {
-                        data: 'styleno_prod'
-                    },
-                    {
-                        data: 'smv'
-                    },
-                    {
-                        data: 'man_power'
-                    },
-                    {
-                        data: 'tot_days'
-                    },
-                    {
-                        data: 'kemarin_2'
-                    },
-                    {
-                        data: 'kemarin_1'
-                    },
-                    {
-                        data: 'jam_kerja'
-                    },
-                    {
-                        data: 'target_100'
-                    },
-                    {
-                        data: 'target_effy'
-                    },
-                    {
-                        data: 'target_output_eff'
-                    },
-                    {
-                        data: 'set_target_perhari'
-                    },
-                    {
-                        data: 'plan_target_perjam'
-                    },
-                    {
-                        data: 'jam_kerja_act'
-                    },
-                    {
-                        data: 'o_jam_1'
-                    },
-                    {
-                        data: 'o_jam_2'
-                    },
-                    {
-                        data: 'o_jam_3'
-                    },
-                    {
-                        data: 'o_jam_4'
-                    },
-                    {
-                        data: 'o_jam_5'
-                    },
-                    {
-                        data: 'o_jam_6'
-                    },
-                    {
-                        data: 'o_jam_7'
-                    },
-                    {
-                        data: 'o_jam_8'
-                    },
-                    {
-                        data: 'o_jam_9'
-                    },
-                    {
-                        data: 'o_jam_10'
-                    },
-                    {
-                        data: 'o_jam_11'
-                    },
-                    {
-                        data: 'o_jam_12'
-                    },
-                    {
-                        data: 'o_jam_13'
-                    },
-                    {
-                        data: 'tot_output'
-                    },
-                    {
-                        data: 'eff_line'
-                    },
-                    {
-                        data: 'eff_skrg'
-                    }
-                ],
-                columnDefs: [{
-                    "className": "align-middle",
-                    "targets": "_all"
-                }, {
-                    // Hanya kolom Line, Chief, Leader, Style yang bisa di-search
-                    "targets": [0, 1, 2, 3],
-                    "searchable": true
-                }, {
-                    // Kolom angka/output tidak ikut di-search agar hasil search lebih rinci
-                    "targets": "_all",
-                    "searchable": false
-                }],
-
-                drawCallback: function(settings) {
-                    var api = this.api();
-
-                    var intVal = function(i) {
-                        return typeof i === 'string' ?
-                            i.replace(/[\$,]/g, '') * 1 :
-                            typeof i === 'number' ?
-                            i : 0;
-                    };
-                    // Compute column Total of the complete result
-                    // Create an object to store unique man_power for each sewing_line
-                    let uniqueManPower = {};
-                    // Loop through the data to populate the uniqueManPower object
-                    api.rows({
-                        search: 'applied'
-                    }).every(function() {
-                        var data = this.data();
-                        // Get the sewing_line and man_power
-                        let line = data.sewing_line;
-                        let power = intVal(data.man_power);
-                        // If the line does not exist in the object, add it
-                        if (!uniqueManPower[line]) {
-                            uniqueManPower[line] = power;
-                        }
-                    });
-                    // Calculate the total of unique man_power values
-                    var totalUniqueManPower = Object.values(uniqueManPower).reduce((a, b) => a + b, 0);
-                    // Update footer for the total unique man_power
-                    $(api.column(5).footer()).html(
-                        totalUniqueManPower
-                    ); // Assuming man_power is in the 7th column (zero-based index 6)
-                    // Your existing sum calculations...
-                    var sumTotalA = api
-                        .column(10, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-                    // Update other footer calculations as needed...
-                    $(api.column(12).footer()).html(sumTotalA);
-
-
-                    var sumTotalB = api
-                        .column(12, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotalC = api
-                        .column(13, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_1 = api
-                        .column(16, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_2 = api
-                        .column(17, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_3 = api
-                        .column(18, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_4 = api
-                        .column(19, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_5 = api
-                        .column(20, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_6 = api
-                        .column(21, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_7 = api
-                        .column(22, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_8 = api
-                        .column(23, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_9 = api
-                        .column(24, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_10 = api
-                        .column(25, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_11 = api
-                        .column(26, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_12 = api
-                        .column(27, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_13 = api
-                        .column(28, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotal_tot_out = api
-                        .column(29, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    // Update footer for the "MP" column
-
-                    $(api.column(10).footer()).html(sumTotalA);
-                    $(api.column(12).footer()).html(sumTotalB);
-                    $(api.column(13).footer()).html(sumTotalC);
-                    $(api.column(16).footer()).html(sumTotal_1);
-                    $(api.column(17).footer()).html(sumTotal_2);
-                    $(api.column(18).footer()).html(sumTotal_3);
-                    $(api.column(19).footer()).html(sumTotal_4);
-                    $(api.column(20).footer()).html(sumTotal_5);
-                    $(api.column(21).footer()).html(sumTotal_6);
-                    $(api.column(22).footer()).html(sumTotal_7);
-                    $(api.column(23).footer()).html(sumTotal_8);
-                    $(api.column(24).footer()).html(sumTotal_9);
-                    $(api.column(25).footer()).html(sumTotal_10);
-                    $(api.column(26).footer()).html(sumTotal_11);
-                    $(api.column(27).footer()).html(sumTotal_12);
-                    $(api.column(28).footer()).html(sumTotal_13);
-                    $(api.column(29).footer()).html(sumTotal_tot_out);
-
-                },
-
-
-                createdRow: function(row, data, dataIndex) {
-
-                    $(row).find('td').css('font-weight', 'bold');
-
-                    // Check the value of eff_skrg
-
-                    if (data.eff_skrg_angka < 85) {
-
-                        // Apply a class to change the font color
-
-                        $('td:eq(31)', row).css({
-
-                            'color': 'red',
-
-                            'font-weight': 'bold'
-
-                        });
-
-                    } else {
-                        $('td:eq(31)', row).css({
-
-                            'color': 'green',
-
-                            'font-weight': 'bold'
-
-                        });
-                    }
-
-                    if (data.eff_line_angka < 85) {
-
-                        // Apply a class to change the font color
-
-                        $('td:eq(30)', row).css({
-
-                            'color': 'red',
-
-                            'font-weight': 'bold'
-
-                        });
-
-                    } else {
-                        $('td:eq(30)', row).css({
-
-                            'color': 'green',
-
-                            'font-weight': 'bold'
-
-                        });
-                    }
-
-                    if (data.kemarin_2_angka < 85) {
-
-                        // Apply a class to change the font color
-
-                        $('td:eq(7)', row).css({
-
-                            'color': 'red',
-
-                            'font-weight': 'bold'
-
-                        });
-
-                    } else {
-                        $('td:eq(7)', row).css({
-
-                            'color': 'green',
-
-                            'font-weight': 'bold'
-
-                        });
-                    }
-
-                    if (data.kemarin_1_angka < 85) {
-
-                        // Apply a class to change the font color
-
-                        $('td:eq(8)', row).css({
-
-                            'color': 'red',
-
-                            'font-weight': 'bold'
-
-                        });
-
-                    } else {
-                        $('td:eq(8)', row).css({
-
-                            'color': 'green',
-
-                            'font-weight': 'bold'
-
-                        });
-                    }
-
-                },
-                rowsGroup: [
-                    31 // Adjust this index to the correct column (zero-based)
-                ]
+        const esc = (v) => v === null || v === undefined ? '' : v;
+
+        const badge = (value, isGood) =>
+            `<span class="rp-badge ${isGood ? 'rp-badge-good' : 'rp-badge-bad'}">${esc(value)}</span>`;
+
+        const qtyBadge = (value, target) => {
+            const t = intVal(target);
+            if (!t) return esc(value);
+            return badge(value, intVal(value) >= t);
+        };
+
+        const intVal = function(i) {
+            return typeof i === 'string' ?
+                i.replace(/[\$,]/g, '') * 1 :
+                typeof i === 'number' ?
+                i : 0;
+        };
+
+        function renderRows(rows) {
+            let html = '';
+
+            rows.forEach((data, i) => {
+                const stripe = i % 2 === 0 ? 'stripe-even' : 'stripe-odd';
+
+                html += `<tr class="${stripe}">`
+                    + `<td>${esc(data.sewing_line)}</td>`
+                    + `<td>${esc(data.nm_chief)}</td>`
+                    + `<td>${esc(data.nm_leader)}</td>`
+                    + `<td>${esc(data.styleno_prod)}</td>`
+                    + `<td>${esc(data.smv)}</td>`
+                    + `<td>${esc(data.man_power)}</td>`
+                    + `<td>${esc(data.tot_days)}</td>`
+                    + `<td>${badge(data.kemarin_2, data.kemarin_2_angka >= 85)}</td>`
+                    + `<td>${badge(data.kemarin_1, data.kemarin_1_angka >= 85)}</td>`
+                    + `<td>${esc(data.jam_kerja)}</td>`
+                    + `<td>${esc(data.target_100)}</td>`
+                    + `<td>${esc(data.target_effy)}</td>`
+                    + `<td>${esc(data.target_output_eff)}</td>`
+                    + `<td>${esc(data.set_target_perhari)}</td>`
+                    + `<td>${esc(data.plan_target_perjam)}</td>`
+                    + `<td>${esc(data.jam_kerja_act)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_1, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_2, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_3, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_4, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_5, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_6, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_7, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_8, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_9, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_10, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_11, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_12, data.plan_target_perjam)}</td>`
+                    + `<td>${qtyBadge(data.o_jam_13, data.plan_target_perjam)}</td>`
+                    + `<td><span class="rp-badge rp-badge-neutral">${esc(data.tot_output)}</span></td>`
+                    + `<td>${badge(data.eff_line, data.eff_line_angka >= 85)}</td>`
+                    + `<td>${badge(data.eff_skrg, data.eff_skrg_angka >= 85)}</td>`
+                    + `</tr>`;
             });
 
-            dataTableReload();
+            document.getElementById('rp-tbody').innerHTML = html || '<tr><td colspan="32" class="text-center">No data</td></tr>';
+        }
 
-            setInterval(dataTableReload, 300000);
-            // 300000
-        });
+        function updateFooter(rows, tot_eff_percent, tot_eff) {
+            const sum = (key) => rows.reduce((a, d) => a + intVal(d[key]), 0);
 
-        function notif() {
-            alert("Maaf, Fitur belum tersedia!");
+            // Unique man power per sewing_line (a line can repeat across rows,
+            // once per style). Uses a Map (not a plain object) so a line value
+            // like "constructor" or "toString" can't collide with a property
+            // already on Object.prototype and get skipped by an `in` check.
+            let uniqueManPower = new Map();
+            rows.forEach((d) => {
+                const line = String(d.sewing_line ?? '').trim();
+                if (!uniqueManPower.has(line)) {
+                    uniqueManPower.set(line, intVal(d.man_power));
+                }
+            });
+            const totalManPower = Array.from(uniqueManPower.values()).reduce((a, b) => a + b, 0);
+
+            document.getElementById('f-mp').textContent = totalManPower;
+            document.getElementById('f-target100').textContent = sum('target_100');
+            document.getElementById('f-targetoutputeff').textContent = sum('target_output_eff');
+            document.getElementById('f-settargetperhari').textContent = sum('set_target_perhari');
+
+            const totalTargetPerjam = sum('plan_target_perjam');
+            document.getElementById('f-targetperjam').textContent = totalTargetPerjam;
+
+            for (let i = 1; i <= 13; i++) {
+                const ojamTotal = sum('o_jam_' + i);
+                const cell = document.getElementById('f-ojam' + i);
+                cell.textContent = ojamTotal;
+                cell.classList.remove('rp-qty-low', 'rp-qty-good');
+                if (totalTargetPerjam) {
+                    cell.classList.add(ojamTotal < totalTargetPerjam ? 'rp-qty-low' : 'rp-qty-good');
+                }
+            }
+            document.getElementById('f-totoutput').textContent = sum('tot_output');
+
+            const effCell = document.getElementById('f-toteff');
+            effCell.textContent = tot_eff_percent;
+            effCell.classList.remove('rp-badge-good', 'rp-badge-bad');
+            effCell.classList.add(tot_eff >= 85 ? 'rp-badge-good' : 'rp-badge-bad');
         }
 
         function dataTableReload() {
-
-            // Ambil value filter saat ini
             let tgl_filter = $('#tgl_filter').val();
 
-            // Update "Last Updated"
             let now = new Date();
             let options = {
                 year: 'numeric',
@@ -702,8 +536,40 @@
             document.getElementById('last-updated').innerText =
                 'Last Updated: ' + now.toLocaleString('en-US', options);
 
-            // Reload datatable dengan filter terbaru
-            datatable.ajax.reload(null, false);
+            const btnSearch = document.getElementById('btn-search');
+            btnSearch.classList.add('disabled');
+            btnSearch.innerHTML = '<i class="fas fa-spinner fa-spin fa-sm"></i>';
+            document.getElementById('rp-tbody').innerHTML =
+                '<tr><td colspan="32" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+            $.ajax({
+                url: '{{ route('report-hourly') }}',
+                type: 'GET',
+                data: {
+                    tgl_filter: tgl_filter
+                },
+                success: function(json) {
+                    renderRows(json.data);
+                    updateFooter(json.data, json.tot_eff_percent, json.tot_eff);
+                },
+                error: function(jqXHR) {
+                    console.error(jqXHR);
+                },
+                complete: function() {
+                    btnSearch.classList.remove('disabled');
+                    btnSearch.innerHTML = '<i class="fas fa-search fa-sm"></i>';
+                }
+            });
+        }
+
+        $(document).ready(() => {
+            checkPeriod();
+            dataTableReload();
+            setInterval(dataTableReload, 300000);
+        });
+
+        function notif() {
+            alert("Maaf, Fitur belum tersedia!");
         }
 
         function checkPeriod() {
