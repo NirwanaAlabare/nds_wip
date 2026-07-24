@@ -270,6 +270,7 @@ class PenerimaanCuttingController extends Controller
         $data = DB::connection("mysql_sb")
             ->table('whs_bppb_det')
             ->select(
+                'whs_bppb_h.tgl_bppb',
                 'whs_bppb_det.id',
                 'whs_bppb_det.id_roll AS barcode',
                 'whs_bppb_h.no_req',
@@ -308,6 +309,7 @@ class PenerimaanCuttingController extends Controller
             ->orderBy('whs_bppb_det.id', 'DESC')
             ->first();
         
+        // When data is nowhere to be found
         if (!$data) {
             $isExist = DB::table('penerimaan_cutting')
             ->where('id_roll', $id)
@@ -316,9 +318,17 @@ class PenerimaanCuttingController extends Controller
             if ($isExist) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Roll sudah pernah diterima!'
+                    'message' => 'Roll sudah pernah diterima'
                 ]);
             }
+        }
+
+        // When tgl_bppb > current_date
+        if ($data && $data->tgl_bppb > date("Y-m-d")) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tanggal bppb melebihi tanggal hari ini'
+            ]);
         }
 
         return $data;

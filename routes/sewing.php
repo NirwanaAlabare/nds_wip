@@ -307,6 +307,7 @@ Route::middleware('auth')->group(function () {
     // Report Hourly Output
     Route::controller(ReportHourlyController::class)->prefix("laporan-report-hourly")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('report-hourly');
+        Route::get('/live', 'indexLive')->name('report-hourly-live');
         Route::get('/export-excel-hourly', 'exportExcelHourly')->name('export-excel-hourly');
         Route::get('/export-excel-hourly-monthly', 'exportExcelHourlyMonthly')->name('export-excel-hourly-monthly');
         // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
