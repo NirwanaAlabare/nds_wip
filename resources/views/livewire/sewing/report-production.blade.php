@@ -78,6 +78,7 @@
                         // jam_kerja di-sum, sesuai SQL sistem asli: COALESCE(sum(jam_kerja),0)
                         $jamKerja = count($lineDataTargetCurrent) > 0 ? round($lineDataTargetCurrent->sum('jam_kerja')) : 0;
                         $planTarget = count($lineDataTargetCurrent) > 0 ? $lineDataTargetCurrent->sum('plan_target') : 0;
+                        $planTargetCurrent = count($lineDataCurrent) > 0 ? $lineDataCurrent->sum('plan_target') : 0;
 
                         $summaryActual = 0;
                         $summaryTarget = 0;
@@ -153,11 +154,11 @@
 
                             $summaryActual += $totalActual;
                             $summaryMinsProd += $minsProd;
-                            $summaryTarget = $planTarget;
+                            $summaryTarget = $planTargetCurrent;
 
                             if (strtotime(date('Y-m-d H:i:s')) >= strtotime($date.' 16:00:00')) {
                                 $summaryMinsAvail = $minsAvail;
-                                $summaryTarget = $planTarget;
+                                $summaryTarget = $planTargetCurrent;
                             } else {
                                 $summaryMinsAvail = $minsAvailNow;
                                 $summaryTarget = $targetNow;
