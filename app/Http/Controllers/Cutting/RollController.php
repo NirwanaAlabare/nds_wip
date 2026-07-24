@@ -495,7 +495,7 @@ class RollController extends Controller
 
         $area = $sheet->beginArea();
 
-        $sheet->writeTo('A1', 'Laporan Pemakaian Roll Roll');
+        $sheet->writeTo('A1', 'Laporan Pemakaian Roll');
         $sheet->writeTo('A2', $request->dateFrom . ' / ' . $request->dateTo);
         // $sheet->mergeCells('A1:S1');
 
