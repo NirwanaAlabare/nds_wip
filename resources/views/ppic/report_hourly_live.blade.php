@@ -83,6 +83,20 @@
             opacity: 0.6;
         }
 
+        .rp-live-filter input[type="text"] {
+            background-color: #182338;
+            border: 1px solid #33415c;
+            color: #fff;
+            border-radius: 0.4rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.95rem;
+            width: 170px;
+        }
+
+        .rp-live-filter input[type="text"]::placeholder {
+            color: #7d8ba3;
+        }
+
         /* Same sticky-table approach as the working view: a single real table
                                                                                                                        with position: sticky for the header/footer/frozen columns, sized up
                                                                                                                        for legibility from a distance on a TV/monitor. */
@@ -188,6 +202,51 @@
             color: #17408b;
         }
 
+        /* freeze last 3 columns (Output, Eff Style, Eff Line) on the right */
+        table.rp-table thead th:nth-last-child(-n+3),
+        table.rp-table tbody td:nth-last-child(-n+3) {
+            position: sticky;
+        }
+
+        table.rp-table thead th:nth-last-child(-n+3) {
+            z-index: 3;
+        }
+
+        table.rp-table tbody td:nth-last-child(-n+3) {
+            z-index: 1;
+        }
+
+        table.rp-table thead th:nth-last-child(1),
+        table.rp-table tbody td:nth-last-child(1) {
+            right: 0;
+        }
+
+        table.rp-table thead th:nth-last-child(2),
+        table.rp-table tbody td:nth-last-child(2) {
+            right: 100px;
+        }
+
+        table.rp-table thead th:nth-last-child(3),
+        table.rp-table tbody td:nth-last-child(3) {
+            right: 200px;
+            box-shadow: -3px 0 6px -3px rgba(20, 30, 60, 0.35);
+        }
+
+        table.rp-table tfoot th#f-toteff,
+        table.rp-table tfoot th#f-totoutput {
+            position: sticky;
+            z-index: 3;
+        }
+
+        table.rp-table tfoot th#f-toteff {
+            right: 0;
+        }
+
+        table.rp-table tfoot th#f-totoutput {
+            right: 200px;
+            box-shadow: -3px 0 6px -3px rgba(20, 30, 60, 0.35);
+        }
+
         table.rp-table tbody tr.stripe-odd td {
             background-color: #f7f9fd;
         }
@@ -232,6 +291,7 @@
                 <label for="tgl_filter_live">Tanggal:</label>
                 <input type="date" id="tgl_filter_live" value="{{ date('Y-m-d') }}">
                 <a onclick="reloadLiveData()" id="btn-search-live" title="Cari"><i class="fas fa-search"></i></a>
+                <input type="text" id="txt_search_live" placeholder="Cari nama / line...">
             </span>
             <span id="last-updated">Last Updated: -</span>
             <span>Refresh dalam: <span id="refreshCountdown">-</span>s</span>
@@ -345,8 +405,7 @@
                     <th id="f-ojam12"></th>
                     <th id="f-ojam13"></th>
                     <th id="f-totoutput" style="color: #1c4fa3;"></th>
-                    <th></th>
-                    <th id="f-toteff"></th>
+                    <th colspan="2" id="f-toteff" style="text-align: center;"></th>
                 </tr>
             </tfoot>
         </table>
@@ -501,6 +560,32 @@
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         }
 
+        // Holds the last data fetched from the server so the search box can
+        // filter/re-render client-side without re-hitting the endpoint.
+        let lastFetchedRows = [];
+        let lastTotEffPercent = null;
+        let lastTotEff = null;
+
+        function filteredRows() {
+            const keyword = document.getElementById('txt_search_live').value.trim().toLowerCase();
+            if (!keyword) return lastFetchedRows;
+
+            return lastFetchedRows.filter((d) => {
+                const line = String(d.sewing_line ?? '').toLowerCase();
+                const chief = String(d.nm_chief ?? '').toLowerCase();
+                const leader = String(d.nm_leader ?? '').toLowerCase();
+                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword);
+            });
+        }
+
+        function applySearchFilter() {
+            const rows = filteredRows();
+            renderRows(rows);
+            updateFooter(rows, lastTotEffPercent, lastTotEff);
+        }
+
+        document.getElementById('txt_search_live').addEventListener('input', applySearchFilter);
+
         function reloadLiveData() {
             let now = new Date();
             let options = {
@@ -527,8 +612,10 @@
                     tgl_filter: tglFilter
                 },
                 success: function(json) {
-                    renderRows(json.data);
-                    updateFooter(json.data, json.tot_eff_percent, json.tot_eff);
+                    lastFetchedRows = json.data;
+                    lastTotEffPercent = json.tot_eff_percent;
+                    lastTotEff = json.tot_eff;
+                    applySearchFilter();
                     document.getElementById('last-updated').innerText =
                         'Last Updated: ' + now.toLocaleString('en-US', options);
                 },
