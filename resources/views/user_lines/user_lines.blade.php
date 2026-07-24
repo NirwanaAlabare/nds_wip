@@ -40,6 +40,7 @@
                             <th>Password</th>
                             <th>Group</th>
                             <th>Locked</th>
+                            <th>Sample</th>
                         </thead>
                         <tbody>
                         </tbody>
@@ -49,7 +50,7 @@
         </div>
     </div>
 
-    {{-- Create User Type --}}
+    {{-- Create User --}}
     <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
@@ -92,6 +93,12 @@
                                 <option value="{{ strtoupper("secondarysewingout") }}">{{ strtoupper("Secondary Sewing OUT") }}</option>
                                 <option value="{{ strtoupper("secondarysewinginout") }}">{{ strtoupper("Secondary Sewing IN OUT") }}</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="is_sample" id="is_sample" value="1">
+                                <label class="form-check-label">Sample</label>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Sub User</label>
@@ -153,6 +160,12 @@
                                 <option value="">Unlock</option>
                                 <option value="1">Lock</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="edit_is_sample" id="edit_is_sample" value="1">
+                                <label class="form-check-label">Sample</label>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Add Sub User</label>
@@ -239,12 +252,21 @@
                 },
                 {
                     data: 'locked'
+                },
+                {
+                    data: 'is_sample'
                 }
             ],
             columnDefs: [
                 {
                     targets: "_all",
                     className: "text-nowrap"
+                },
+                {
+                    targets: [6], // Index for form_check
+                    render: (data, type, row, meta) => {
+                        return data ? "SAMPLE" : "-";
+                    }
                 },
                 // Act Column
                 {
