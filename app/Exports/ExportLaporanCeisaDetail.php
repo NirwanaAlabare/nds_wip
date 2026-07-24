@@ -217,20 +217,38 @@ GROUP BY b.nomor_aju
     UNION
 
     /* BC 30,33 */
-    SELECT
-        b.nomor_aju,
-        a.nomor_identitas,
-        a.nama_entitas,
-        a.alamat_entitas
-    FROM exim_entitas a
-    INNER JOIN exim_header b
-        ON b.nomor_aju = a.nomor_aju
-    WHERE
+     SELECT
+    b.nomor_aju,
+    a.nomor_identitas,
+    a.nama_entitas,
+    a.alamat_entitas
+FROM exim_entitas a
+INNER JOIN exim_header b
+    ON b.nomor_aju = a.nomor_aju
+WHERE
+(
+    (
         a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas=''
-        AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
-    GROUP BY b.nomor_aju
+    )
+    OR
+    (
+        a.seri='2'
+        AND a.kode_entitas='7'
+        AND a.kode_jenis_identitas='4'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM exim_entitas x
+            WHERE x.nomor_aju = a.nomor_aju
+              AND x.seri='8'
+              AND x.kode_entitas='8'
+              AND x.kode_jenis_identitas=''
+        )
+    )
+)
+AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+GROUP BY b.nomor_aju
 
 ) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$this->from."' and tgl_daftar <= '".$this->to."'
             UNION
