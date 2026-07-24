@@ -7,10 +7,10 @@
 
     <style>
         /* Plain HTML table with CSS sticky header/footer + sticky frozen columns.
-           No DataTables/FixedColumns here on purpose: FixedColumns clones the table
-           to build the frozen panel, and that clone can drift a pixel out of sync
-           with the scrolling body/header, producing the misaligned-header seam.
-           A single real table with position: sticky avoids the clone entirely. */
+               No DataTables/FixedColumns here on purpose: FixedColumns clones the table
+               to build the frozen panel, and that clone can drift a pixel out of sync
+               with the scrolling body/header, producing the misaligned-header seam.
+               A single real table with position: sticky avoids the clone entirely. */
         .rp-scroll {
             max-height: 560px;
             overflow: auto;
@@ -60,13 +60,13 @@
         }
 
         /* Frozen columns: Line, Chief, Leader, Style (indices 0-3).
-           Left offsets are cumulative sums of the preceding column widths below.
-           thead/tbody/tfoot all use four separate cells here (no colspan) so
-           every section has exactly one cell per column — mixing a colspan="4"
-           merged cell into a table-layout:fixed + sticky grid let the browser
-           compute that cell a hair narrower/wider than the four individual
-           frozen columns above it, which is what cut off / misaligned the
-           footer edge while scrolling. */
+               Left offsets are cumulative sums of the preceding column widths below.
+               thead/tbody/tfoot all use four separate cells here (no colspan) so
+               every section has exactly one cell per column — mixing a colspan="4"
+               merged cell into a table-layout:fixed + sticky grid let the browser
+               compute that cell a hair narrower/wider than the four individual
+               frozen columns above it, which is what cut off / misaligned the
+               footer edge while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {
@@ -116,8 +116,8 @@
         }
 
         /* Sticky cells need their own opaque background — the parent <tr>'s
-           background does not show through a sticky-positioned cell reliably
-           while scrolling, so every td gets its stripe color explicitly. */
+               background does not show through a sticky-positioned cell reliably
+               while scrolling, so every td gets its stripe color explicitly. */
         table.rp-table tbody tr.stripe-odd td {
             background-color: #f7f9fd;
         }
@@ -140,8 +140,8 @@
         }
 
         /* Per-hour totals in the footer: under target reads red, meeting/beating it
-           reads blue. The tbody per-hour cells use real .rp-badge pills instead
-           (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
+               reads blue. The tbody per-hour cells use real .rp-badge pills instead
+               (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
         table.rp-table tfoot th.rp-qty-low {
             color: #e5484d;
         }
@@ -166,10 +166,10 @@
         }
 
         /* Keep the footer's own background (matches the rest of tfoot) instead
-           of the good/bad tint used for inline badges — only the font color
-           should reflect the eff threshold here. `table.rp-table tfoot th`
-           sets a fixed text color with higher specificity than .rp-badge-*,
-           so it must be overridden explicitly on the #id here too. */
+               of the good/bad tint used for inline badges — only the font color
+               should reflect the eff threshold here. `table.rp-table tfoot th`
+               sets a fixed text color with higher specificity than .rp-badge-*,
+               so it must be overridden explicitly on the #id here too. */
         #f-toteff.rp-badge-good,
         #f-toteff.rp-badge-bad {
             background-color: #eef2fa !important;
@@ -228,8 +228,7 @@
                     </div>
                 </div>
                 <div>
-                    <a class="btn btn-success position-relative" data-bs-toggle="modal"
-                        data-bs-target="#exportModal">
+                    <a class="btn btn-success position-relative" data-bs-toggle="modal" data-bs-target="#exportModal">
                         <i class="fas fa-file-excel fa-sm"></i> Export
                     </a>
                 </div>
@@ -268,8 +267,8 @@
                         <col style="width:55px">
                         <col style="width:55px">
                         <col style="width:75px">
-                        <col style="width:75px">
-                        <col style="width:75px">
+                        <col style="width:100px">
+                        <col style="width:100px">
                     </colgroup>
                     <thead>
                         <tr>
@@ -341,7 +340,8 @@
                             <th id="f-ojam12"></th>
                             <th id="f-ojam13"></th>
                             <th id="f-totoutput" style="font-size: 1.35rem; color: #1c4fa3;"></th>
-                            <th colspan="2" id="f-toteff" style="font-size: 40px; font-weight: bold;"></th>
+                            <th></th>
+                            <th id="f-toteff" style="font-size: 40px; font-weight: bold;"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -423,8 +423,42 @@
 
         const qtyBadge = (value, target) => {
             const t = intVal(target);
-            if (!t) return esc(value);
+            if (!t) return `<span class="rp-badge rp-badge-neutral">${esc(value)}</span>`;
             return badge(value, intVal(value) >= t);
+        };
+
+        // Shift starts 07:00, and each column is one *completed* clock hour
+        // after that: jam ke-1 = 07:00-08:00, jam ke-2 = 08:00-09:00, dst.
+        const SHIFT_START_HOUR = 7;
+
+        // How many hour columns are relevant right now, based on the wall
+        // clock — e.g. at 13:00 (1 siang), hours 07-08 .. 12-13 have fully
+        // elapsed, so this returns 6. Clamped to [0, 13].
+        function currentJamKe() {
+            const now = new Date();
+            const jam = Math.floor(now.getHours() + now.getMinutes() / 60 - SHIFT_START_HOUR);
+            return Math.max(0, Math.min(13, jam));
+        }
+
+        function todayYmd() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+
+        // Only today's date gets cut off at the current hour — a past date's
+        // shift is already fully over, so all 13 columns show as-is straight
+        // from the database (0 included, nothing hidden).
+        function hourCutoff() {
+            return $('#tgl_filter').val() === todayYmd() ? currentJamKe() : 13;
+        }
+
+        // Columns beyond the cutoff aren't rendered at all (that hour hasn't
+        // happened yet); columns within the cutoff always show the database
+        // value as-is, 0 included.
+        const hourCell = (value, target, hourIndex, cutoff) => {
+            if (hourIndex > cutoff) return '';
+            return qtyBadge(value, target);
         };
 
         const intVal = function(i) {
@@ -436,47 +470,49 @@
 
         function renderRows(rows) {
             let html = '';
+            const cutoff = hourCutoff();
 
             rows.forEach((data, i) => {
                 const stripe = i % 2 === 0 ? 'stripe-even' : 'stripe-odd';
 
-                html += `<tr class="${stripe}">`
-                    + `<td>${esc(data.sewing_line)}</td>`
-                    + `<td>${esc(data.nm_chief)}</td>`
-                    + `<td>${esc(data.nm_leader)}</td>`
-                    + `<td>${esc(data.styleno_prod)}</td>`
-                    + `<td>${esc(data.smv)}</td>`
-                    + `<td>${esc(data.man_power)}</td>`
-                    + `<td>${esc(data.tot_days)}</td>`
-                    + `<td>${badge(data.kemarin_2, data.kemarin_2_angka >= 85)}</td>`
-                    + `<td>${badge(data.kemarin_1, data.kemarin_1_angka >= 85)}</td>`
-                    + `<td>${esc(data.jam_kerja)}</td>`
-                    + `<td>${esc(data.target_100)}</td>`
-                    + `<td>${esc(data.target_effy)}</td>`
-                    + `<td>${esc(data.target_output_eff)}</td>`
-                    + `<td>${esc(data.set_target_perhari)}</td>`
-                    + `<td>${esc(data.plan_target_perjam)}</td>`
-                    + `<td>${esc(data.jam_kerja_act)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_1, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_2, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_3, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_4, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_5, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_6, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_7, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_8, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_9, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_10, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_11, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_12, data.plan_target_perjam)}</td>`
-                    + `<td>${qtyBadge(data.o_jam_13, data.plan_target_perjam)}</td>`
-                    + `<td><span class="rp-badge rp-badge-neutral">${esc(data.tot_output)}</span></td>`
-                    + `<td>${badge(data.eff_line, data.eff_line_angka >= 85)}</td>`
-                    + `<td>${badge(data.eff_skrg, data.eff_skrg_angka >= 85)}</td>`
-                    + `</tr>`;
+                html += `<tr class="${stripe}">` +
+                    `<td>${esc(data.sewing_line)}</td>` +
+                    `<td>${esc(data.nm_chief)}</td>` +
+                    `<td>${esc(data.nm_leader)}</td>` +
+                    `<td>${esc(data.styleno_prod)}</td>` +
+                    `<td>${esc(data.smv)}</td>` +
+                    `<td>${esc(data.man_power)}</td>` +
+                    `<td>${esc(data.tot_days)}</td>` +
+                    `<td>${badge(data.kemarin_2, data.kemarin_2_angka >= 85)}</td>` +
+                    `<td>${badge(data.kemarin_1, data.kemarin_1_angka >= 85)}</td>` +
+                    `<td>${esc(data.jam_kerja)}</td>` +
+                    `<td>${esc(data.target_100)}</td>` +
+                    `<td>${esc(data.target_effy)}</td>` +
+                    `<td>${esc(data.target_output_eff)}</td>` +
+                    `<td>${esc(data.set_target_perhari)}</td>` +
+                    `<td>${esc(data.plan_target_perjam)}</td>` +
+                    `<td>${esc(data.jam_kerja_act_line)}</td>` +
+                    `<td>${hourCell(data.o_jam_1, data.plan_target_perjam, 1, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_2, data.plan_target_perjam, 2, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_3, data.plan_target_perjam, 3, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_4, data.plan_target_perjam, 4, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_5, data.plan_target_perjam, 5, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_6, data.plan_target_perjam, 6, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_7, data.plan_target_perjam, 7, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_8, data.plan_target_perjam, 8, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_9, data.plan_target_perjam, 9, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_10, data.plan_target_perjam, 10, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_11, data.plan_target_perjam, 11, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_12, data.plan_target_perjam, 12, cutoff)}</td>` +
+                    `<td>${hourCell(data.o_jam_13, data.plan_target_perjam, 13, cutoff)}</td>` +
+                    `<td><span class="rp-badge rp-badge-neutral">${esc(data.tot_output)}</span></td>` +
+                    `<td>${badge(data.eff_line, data.eff_line_angka >= 85)}</td>` +
+                    `<td>${badge(data.eff_skrg, data.eff_skrg_angka >= 85)}</td>` +
+                    `</tr>`;
             });
 
-            document.getElementById('rp-tbody').innerHTML = html || '<tr><td colspan="32" class="text-center">No data</td></tr>';
+            document.getElementById('rp-tbody').innerHTML = html ||
+                '<tr><td colspan="32" class="text-center">No data</td></tr>';
         }
 
         function updateFooter(rows, tot_eff_percent, tot_eff) {
@@ -503,11 +539,16 @@
             const totalTargetPerjam = sum('plan_target_perjam');
             document.getElementById('f-targetperjam').textContent = totalTargetPerjam;
 
+            const cutoff = hourCutoff();
             for (let i = 1; i <= 13; i++) {
-                const ojamTotal = sum('o_jam_' + i);
                 const cell = document.getElementById('f-ojam' + i);
-                cell.textContent = ojamTotal;
                 cell.classList.remove('rp-qty-low', 'rp-qty-good');
+                if (i > cutoff) {
+                    cell.textContent = '';
+                    continue;
+                }
+                const ojamTotal = sum('o_jam_' + i);
+                cell.textContent = ojamTotal;
                 if (totalTargetPerjam) {
                     cell.classList.add(ojamTotal < totalTargetPerjam ? 'rp-qty-low' : 'rp-qty-good');
                 }
