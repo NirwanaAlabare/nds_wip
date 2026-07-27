@@ -1197,9 +1197,13 @@ class StockerRejectController extends Controller
 
     public function generatedStockerReject(Request $request)
     {
-        $id = $request->id;
-        $process = $request->process;
+        $stockerQuery = $this->getGeneratedStockerRejectQuery($request->id, $request->process);
 
+        return DataTables::of($stockerQuery->get())->toJson();
+    }
+
+    private function getGeneratedStockerRejectQuery($id, $process)
+    {
         $column = "";
         switch ($process) {
             case 'DC In' :
@@ -1215,7 +1219,7 @@ class StockerRejectController extends Controller
 
         $currentStockerRejectIds = StockerReject::where($column, $id)->pluck("id");
 
-        $stockerQuery = Stocker::selectRaw("
+        return Stocker::selectRaw("
                 stocker_input.id_qr_stocker,
                 master_sb_ws.ws as act_costing_ws,
                 master_sb_ws.styleno as style,
@@ -1244,7 +1248,75 @@ class StockerRejectController extends Controller
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             whereIn("stocker_input.stocker_reject", $currentStockerRejectIds);
+    }
 
-        return DataTables::of($stockerQuery->get())->toJson();
+    public function exportGeneratedStockerReject(Request $request)
+    {
+        $id = $request->id;
+        $process = $request->process;
+
+        $dataGeneratedStocker = $this->getGeneratedStockerRejectQuery($id, $process)->get();
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Generated Stocker List');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'GENERATED STOCKER LIST', ['font-size' => 16, 'font-bold' => true]);
+        $sheet->mergeCells('A1:O1');
+
+        // Period
+        $sheet->writeTo('A2', 'Proses : ' . $process);
+        $sheet->mergeCells('A2:O2');
+
+        // Headers
+        $headers = [
+            'A4' => 'ID QR Stocker',
+            'B4' => 'No. WS',
+            'C4' => 'Style',
+            'D4' => 'Color',
+            'E4' => 'Panel',
+            'F4' => 'Part',
+            'G4' => 'Size',
+            'H4' => 'DC In',
+            'I4' => 'Sec. Inhouse In',
+            'J4' => 'Sec. Inhouse Out',
+            'K4' => 'Sec. In',
+            'L4' => 'Troli',
+            'M4' => 'Line',
+            'N4' => 'Dibuat',
+            'O4' => 'Diubah',
+        ];
+
+        foreach ($headers as $cell => $label) {
+            $sheet->writeTo($cell, $label)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $sheet->writeAreas();
+        foreach ($dataGeneratedStocker as $data) {
+            $rowArr = [
+                $data->id_qr_stocker ?? '-',
+                $data->act_costing_ws ?? '-',
+                $data->style ?? '-',
+                $data->color ?? '-',
+                $data->panel ?? '-',
+                $data->nama_part ?? '-',
+                $data->size ?? '-',
+                $data->dc_in ?? '-',
+                $data->sec_inhouse_in ?? '-',
+                $data->sec_inhouse_out ?? '-',
+                $data->sec_in ?? '-',
+                $data->trolley ?? '-',
+                $data->line ?? '-',
+                $data->created_at ?? '-',
+                $data->updated_at ?? '-',
+            ];
+
+            $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'Generated Stocker List ' . $process . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+
+        return $excel->download($filename);
     }
 }

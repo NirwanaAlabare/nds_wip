@@ -83,9 +83,23 @@
             opacity: 0.6;
         }
 
+        .rp-live-filter input[type="text"] {
+            background-color: #182338;
+            border: 1px solid #33415c;
+            color: #fff;
+            border-radius: 0.4rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.95rem;
+            width: 170px;
+        }
+
+        .rp-live-filter input[type="text"]::placeholder {
+            color: #7d8ba3;
+        }
+
         /* Same sticky-table approach as the working view: a single real table
-                                                                                                                       with position: sticky for the header/footer/frozen columns, sized up
-                                                                                                                       for legibility from a distance on a TV/monitor. */
+                                                                                                                           with position: sticky for the header/footer/frozen columns, sized up
+                                                                                                                           for legibility from a distance on a TV/monitor. */
         .rp-scroll {
             height: calc(100vh - 74px);
             overflow: auto;
@@ -135,11 +149,11 @@
 
 
         /* thead/tbody/tfoot all use four separate cells here (no colspan) so
-                                                                                                                       every section has exactly one cell per column — mixing a colspan="4"
-                                                                                                                       merged cell into a table-layout:fixed + sticky grid let the browser
-                                                                                                                       compute that cell a hair narrower/wider than the four individual
-                                                                                                                       frozen columns above it, cutting off / misaligning the footer edge
-                                                                                                                       while scrolling. */
+                                                                                                                           every section has exactly one cell per column — mixing a colspan="4"
+                                                                                                                           merged cell into a table-layout:fixed + sticky grid let the browser
+                                                                                                                           compute that cell a hair narrower/wider than the four individual
+                                                                                                                           frozen columns above it, cutting off / misaligning the footer edge
+                                                                                                                           while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {
@@ -188,6 +202,51 @@
             color: #17408b;
         }
 
+        /* freeze last 3 columns (Output, Eff Style, Eff Line) on the right */
+        table.rp-table thead th:nth-last-child(-n+3),
+        table.rp-table tbody td:nth-last-child(-n+3) {
+            position: sticky;
+        }
+
+        table.rp-table thead th:nth-last-child(-n+3) {
+            z-index: 3;
+        }
+
+        table.rp-table tbody td:nth-last-child(-n+3) {
+            z-index: 1;
+        }
+
+        table.rp-table thead th:nth-last-child(1),
+        table.rp-table tbody td:nth-last-child(1) {
+            right: 0;
+        }
+
+        table.rp-table thead th:nth-last-child(2),
+        table.rp-table tbody td:nth-last-child(2) {
+            right: 100px;
+        }
+
+        table.rp-table thead th:nth-last-child(3),
+        table.rp-table tbody td:nth-last-child(3) {
+            right: 200px;
+            box-shadow: -3px 0 6px -3px rgba(20, 30, 60, 0.35);
+        }
+
+        table.rp-table tfoot th#f-toteff,
+        table.rp-table tfoot th#f-totoutput {
+            position: sticky;
+            z-index: 3;
+        }
+
+        table.rp-table tfoot th#f-toteff {
+            right: 0;
+        }
+
+        table.rp-table tfoot th#f-totoutput {
+            right: 200px;
+            box-shadow: -3px 0 6px -3px rgba(20, 30, 60, 0.35);
+        }
+
         table.rp-table tbody tr.stripe-odd td {
             background-color: #f7f9fd;
         }
@@ -232,6 +291,7 @@
                 <label for="tgl_filter_live">Tanggal:</label>
                 <input type="date" id="tgl_filter_live" value="{{ date('Y-m-d') }}">
                 <a onclick="reloadLiveData()" id="btn-search-live" title="Cari"><i class="fas fa-search"></i></a>
+                <input type="text" id="txt_search_live" placeholder="Cari nama / line...">
             </span>
             <span id="last-updated">Last Updated: -</span>
             <span>Refresh dalam: <span id="refreshCountdown">-</span>s</span>
@@ -345,8 +405,7 @@
                     <th id="f-ojam12"></th>
                     <th id="f-ojam13"></th>
                     <th id="f-totoutput" style="color: #1c4fa3;"></th>
-                    <th></th>
-                    <th id="f-toteff"></th>
+                    <th colspan="2" id="f-toteff" style="text-align: center;"></th>
                 </tr>
             </tfoot>
         </table>
@@ -368,17 +427,28 @@
             return badge(value, intVal(value) >= t);
         };
 
-        // Shift starts 07:00, and each column is one *completed* clock hour
-        // after that: jam ke-1 = 07:00-08:00, jam ke-2 = 08:00-09:00, dst.
-        const SHIFT_START_HOUR = 7;
+        // Hour boundaries (jam 1-13) as configured in dim_jam_kerja_sewing —
+        // blocks aren't all one clock hour wide (e.g. the lunch block spans
+        // two), so the cutoff is looked up from this data instead of assumed.
+        const JAM_KERJA_SEWING = @json($jamKerjaSewing);
 
         // How many hour columns are relevant right now, based on the wall
-        // clock — e.g. at 13:00 (1 siang), hours 07-08 .. 12-13 have fully
-        // elapsed, so this returns 6. Clamped to [0, 13].
+        // clock — a column counts as soon as its jam_kerja_awal starts, so
+        // the hour that's currently in progress shows its partial data too
+        // (not hidden until the block fully closes). Clamped to [0, 13].
         function currentJamKe() {
             const now = new Date();
-            const jam = Math.floor(now.getHours() + now.getMinutes() / 60 - SHIFT_START_HOUR);
-            return Math.max(0, Math.min(13, jam));
+            const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+            let jamKe = 0;
+            JAM_KERJA_SEWING.forEach((row) => {
+                const [h, m, s] = row.jam_kerja_awal.split(':').map(Number);
+                const awalSec = h * 3600 + m * 60 + s;
+                if (nowSec >= awalSec) {
+                    jamKe = row.jam;
+                }
+            });
+            return Math.max(0, Math.min(13, jamKe));
         }
 
         // Only today's date gets cut off at the current hour — a past date's
@@ -501,6 +571,32 @@
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         }
 
+        // Holds the last data fetched from the server so the search box can
+        // filter/re-render client-side without re-hitting the endpoint.
+        let lastFetchedRows = [];
+        let lastTotEffPercent = null;
+        let lastTotEff = null;
+
+        function filteredRows() {
+            const keyword = document.getElementById('txt_search_live').value.trim().toLowerCase();
+            if (!keyword) return lastFetchedRows;
+
+            return lastFetchedRows.filter((d) => {
+                const line = String(d.sewing_line ?? '').toLowerCase();
+                const chief = String(d.nm_chief ?? '').toLowerCase();
+                const leader = String(d.nm_leader ?? '').toLowerCase();
+                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword);
+            });
+        }
+
+        function applySearchFilter() {
+            const rows = filteredRows();
+            renderRows(rows);
+            updateFooter(rows, lastTotEffPercent, lastTotEff);
+        }
+
+        document.getElementById('txt_search_live').addEventListener('input', applySearchFilter);
+
         function reloadLiveData() {
             let now = new Date();
             let options = {
@@ -527,8 +623,10 @@
                     tgl_filter: tglFilter
                 },
                 success: function(json) {
-                    renderRows(json.data);
-                    updateFooter(json.data, json.tot_eff_percent, json.tot_eff);
+                    lastFetchedRows = json.data;
+                    lastTotEffPercent = json.tot_eff_percent;
+                    lastTotEff = json.tot_eff;
+                    applySearchFilter();
                     document.getElementById('last-updated').innerText =
                         'Last Updated: ' + now.toLocaleString('en-US', options);
                 },

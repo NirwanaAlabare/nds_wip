@@ -506,6 +506,12 @@ order by a.tgl_trans asc, REPLACE(ul.username, '_', ' ') asc, sd.styleno_prod as
         $months = [['angka' => 1, 'nama' => 'Januari'], ['angka' => 2, 'nama' => 'Februari'], ['angka' => 3, 'nama' => 'Maret'], ['angka' => 4, 'nama' => 'April'], ['angka' => 5, 'nama' => 'Mei'], ['angka' => 6, 'nama' => 'Juni'], ['angka' => 7, 'nama' => 'Juli'], ['angka' => 8, 'nama' => 'Agustus'], ['angka' => 9, 'nama' => 'September'], ['angka' => 10, 'nama' => 'Oktober'], ['angka' => 11, 'nama' => 'November'], ['angka' => 12, 'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
+        $jam_kerja_sewing = DB::connection('mysql_sb')
+            ->table('dim_jam_kerja_sewing')
+            ->whereBetween('jam', [1, 13])
+            ->orderBy('jam')
+            ->get(['jam', 'jam_kerja_awal', 'jam_kerja_akhir']);
+
         return view(
             'ppic.report_hourly',
             [
@@ -516,16 +522,24 @@ order by a.tgl_trans asc, REPLACE(ul.username, '_', ' ') asc, sd.styleno_prod as
                 "user" => $user,
                 "months" => $months,
                 "years" => $years,
+                "jamKerjaSewing" => $jam_kerja_sewing,
             ]
         );
     }
 
     public function indexLive(Request $request)
     {
+        $jam_kerja_sewing = DB::connection('mysql_sb')
+            ->table('dim_jam_kerja_sewing')
+            ->whereBetween('jam', [1, 13])
+            ->orderBy('jam')
+            ->get(['jam', 'jam_kerja_awal', 'jam_kerja_akhir']);
+
         return view('ppic.report_hourly_live', [
             'containerFluid' => true,
             'navbar' => false,
             'footer' => false,
+            'jamKerjaSewing' => $jam_kerja_sewing,
         ]);
     }
 

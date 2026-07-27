@@ -35,6 +35,9 @@
                         <input type="hidden" name="unlocked_by" id="unlocked_by" value="{{ $formCutInputData->unlocked_by }}" readonly>
                         <input type="hidden" name="cons_locked" id="cons_locked" value="{{ $formCutInputData->cons_locked }}" readonly>
                         <input type="hidden" name="cons_unlocked_by" id="cons_unlocked_by" value="{{ $formCutInputData->cons_unlocked_by }}" readonly>
+                        <input type="hidden" name="selectmethod_locked" id="selectmethod_locked" value="{{ $formCutInputData->select_method_locked }}" readonly>
+                        <input type="hidden" name="selectmethod_unlocked_by" id="selectmethod_unlocked_by" value="{{ $formCutInputData->select_method_unlocked_by }}" readonly>
+                        <input type="hidden" name="multiple_locked_type" id="multiple_locked_type" value="{{ ($formCutInputData->locked ? "shortroll" : "") . ($formCutInputData->cons_locked ? ",consmarker" : "") . ($formCutInputData->select_method_locked ? ",selectmethod" : "")}}" readonly>
                         <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
 
                         <div class="col-6 col-md-4">
@@ -1188,6 +1191,8 @@
             // -Is Processing-
             var isProcessing = false;
 
+            var selectMethod = [];
+
         // Function List :
             // -On Load-
             $(document).ready(async () => {
@@ -1550,6 +1555,11 @@
                     }
                 }
 
+                // Push to select method array
+                if (dataObj.current_id_roll.length < 1) {
+                    selectMethod.push(dataObj);
+                }
+
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
@@ -1789,18 +1799,34 @@
 
                         // Lock when the cons marker uprate is larger than 1%
                         if (!($('#cons_unlocked_by').val() && $('#cons_unlocked_by').val() > 0)) {
-                            if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1) {
+                            if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1 || selectMethod.length > 0 ) {
                                 document.getElementById("loading").classList.add("d-none");
                                 document.getElementById("stopLapButton").removeAttribute("disabled");
 
-                                lockForm('consmarker');
+                                let lockType = [];
+                                let message = "";
+                                if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1) {
+                                    lockType.push('consmarker');
+                                    message += 'Kenaikan Cons Marker Lebih dari 1% <br>';
+                                }
+                                if (selectMethod.length > 0) {
+                                    lockType.push('selectmethod');
+                                    message += 'Terdapat metode pilih barang <br>';
+                                }
+                                lockType = lockType.join(',');
+
+                                lockForm(lockType);
 
                                 isProcessing = false;
 
                                 return Swal.fire({
                                     icon: 'error',
-                                    title: 'Kenaikan Cons. Marker Lebih dari 1%',
+                                    title: 'Form Dikunci',
                                     html: `
+                                        Karena
+                                        <br>
+                                        `+message+`
+                                        <br>
                                         Harap laporkan kepada atasan untuk dapat melanjutkan
                                         <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
                                         <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
@@ -2802,26 +2828,41 @@
                 }
 
                 // Lock by Cons. Marker
-                if ($("#cons_locked").val() > 0) {
+                if ($("#cons_locked").val() > 0 || $("#selectmethod_locked").val() > 0) {
                     Swal.close();
 
-                    lockForm("consmarker");
+                    let message = "";
+
+                    let currentLockType = [];
+                    if ($("#cons_locked").val() > 0) {
+                        currentLockType.push('consmarker');
+                        message += "Kenaikan Cons Marker lebih dari 1 % <br>";
+                    }
+                    if ($("#selectmethod_locked").val() > 0) {
+                        currentLockType.push('selectmethod');
+                        message += "Terdapat metode pilih barang <br>";
+                    }
+
+                    currentLockType = currentLockType.join(',');
+
+                    lockForm(currentLockType);
 
                     Swal.fire({
                         icon: 'error',
-                        title: 'Form terkunci karena kenaikan Cons. Marker lebih dari 1%',
-                        html: `
+                        title: 'Form terkunci',
+                        html: `Karena
+                            <br>
+                            ` + message + `
+                            <br>
                             Harap laporkan kepada atasan untuk dapat melanjutkan
-                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
-                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
-                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "consmarker")'>Lanjutkan Form</button>
+                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "`+currentLockType+`")'>
+                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "`+currentLockType+`")'>
+                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "`+currentLockType+`")'>Lanjutkan Form</button>
                         `,
                         showCancelButton: false,
                         showConfirmButton: false,
                         allowOutsideClick: false,
                     });
-                } else {
-                    Swal.close();
                 }
             }
 
@@ -3786,6 +3827,11 @@
                 latestQty = Number(data.qty);
                 latestUnit = data.unit;
                 latestEst = data.est_amparan;
+
+                console.log("check id roll", data.id_roll);
+                if (!data.id_roll) {
+                    selectMethod.push(data);
+                }
             }
 
         // Time Record Module :

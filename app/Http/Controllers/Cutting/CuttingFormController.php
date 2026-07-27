@@ -11,6 +11,7 @@ use App\Models\Cutting\FormCutInputDetailLap;
 use App\Models\Cutting\FormCutInputDetailSambungan;
 use App\Models\Cutting\FormCutInputLostTime;
 use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutSelectMethod;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\FormCutPieceDetailSizes;
 use App\Models\Cutting\ScannedItem;
@@ -1248,6 +1249,21 @@ class CuttingFormController extends Controller
         return $updatedForm;
     }
 
+    public function createSelectMethodLog($formCutId, $unlockerId, $unlockerUsername) {
+        $rollCount = FormCutInputDetail::where("form_cut_id", $formCutId)->whereNull("id_roll")->count();
+
+        $createSelectMethodLog = FormCutSelectMethod::updateOrCreate(
+            ["form_cut_id" => $formCutId],
+            [
+                "roll_count" => $rollCount,
+                "user_app" => $unlockerId,
+                "username_app" => $unlockerUsername,
+            ]
+        );
+
+        return $createSelectMethodLog;
+    }
+
     public function formCutLock(Request $request) {
         $validatedRequest = $request->validate([
             "id" => "required",
@@ -1273,8 +1289,48 @@ class CuttingFormController extends Controller
                 ];
 
                 break;
+            case "selectmethod":
+                $updateColumn = [
+                    "select_method_locked" => 1,
+                    "select_method_unlocked_by" => null,
+                ];
+
+                break;
             default:
-                return response()->json(['message' => 'Invalid lock type'], 400);
+                // Check if multi lock
+                $lockTypeExplode = explode(",", $lockType);
+
+                if (count($lockTypeExplode) > 1) {
+                    foreach ($lockTypeExplode as $lt) {
+                        switch ($lt) {
+                            case "shortroll":
+                                $updateColumn = array_merge($updateColumn, [
+                                    "locked" => 1,
+                                    "unlocked_by" => null,
+                                ]);
+
+                                break;
+                            case "consmarker":
+                                $updateColumn = array_merge($updateColumn, [
+                                    "cons_locked" => 1,
+                                    "cons_unlocked_by" => null,
+                                ]);
+
+                                break;
+                            case "selectmethod":
+                                $updateColumn = array_merge($updateColumn, [
+                                    "select_method_locked" => 1,
+                                    "select_method_unlocked_by" => null,
+                                ]);
+
+                                break;
+                        }
+                    }
+                } else {
+                    return response()->json(['message' => 'Invalid lock type'], 400);
+                }
+
+                break;
         }
 
         // At least one column
@@ -1319,11 +1375,59 @@ class CuttingFormController extends Controller
                         $updateColumn = [
                             "cons_locked" => 0,
                             "cons_unlocked_by" => $unlocker->id,
+                            "select_method_locked" => 0,
+                            "select_method_unlocked_by" => $unlocker->id,
                         ];
 
                         break;
+                    case "selectmethod":
+                        $updateColumn = [
+                            "select_method_locked" => 0,
+                            "select_method_unlocked_by" => $unlocker->id,
+                            "cons_locked" => 0,
+                            "cons_unlocked_by" => $unlocker->id,
+                        ];
+
+                        $this->createSelectMethodLog($validatedRequest['id'], $unlocker->id, $unlocker->username);
+
+                        break;
                     default:
-                        return response()->json(['message' => 'Invalid lock type'], 400);
+                        // Check if multi lock
+                        $lockTypeExplode = explode(",", $lockType);
+
+                        if (count($lockTypeExplode) > 1) {
+                            foreach ($lockTypeExplode as $lt) {
+                                switch ($lt) {
+                                    case "shortroll":
+                                        $updateColumn = array_merge($updateColumn, [
+                                            "locked" => 0,
+                                            "unlocked_by" => $unlocker->id,
+                                        ]);
+
+                                        break;
+                                    case "consmarker":
+                                        $updateColumn = array_merge($updateColumn, [
+                                            "cons_locked" => 0,
+                                            "cons_unlocked_by" => $unlocker->id,
+                                        ]);
+
+                                        break;
+                                    case "selectmethod":
+                                        $updateColumn = array_merge($updateColumn, [
+                                            "select_method_locked" => 0,
+                                            "select_method_unlocked_by" => $unlocker->id,
+                                        ]);
+
+                                        $this->createSelectMethodLog($validatedRequest['id'], $unlocker->id, $unlocker->username);
+
+                                        break;
+                                }
+                            }
+                        } else {
+                            return response()->json(['message' => 'Invalid lock type'], 400);
+                        }
+
+                        break;
                 }
 
                 // At least one column

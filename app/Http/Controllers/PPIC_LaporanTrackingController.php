@@ -896,20 +896,25 @@ m.color,
 m.size,
 m.styleno_prod,
 m.reff_no,
+-- tgl_shipment,
 total_scan as qty_scan
 from
 (
 SELECT
     a.id_so_det,
     COUNT(*) AS total_scan
+    -- ,ppic_master_so.tgl_shipment
 FROM laravel_nds.packing_packing_out_scan a
+-- LEFT JOIN ppic_master_so on ppic_master_so.id = a.id_ppic 
 WHERE id_ppic is not null
 GROUP BY a.id_so_det
+-- , tgl_shipment
 ) a
 left join laravel_nds.master_sb_ws m on a.id_so_det = m.id_so_det
 where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
 GROUP BY
 ws, color, size,styleno_prod, reff_no
+-- , tgl_shipment
 ),
 fg as (
 select
@@ -1013,6 +1018,7 @@ from master_data a
 left join mut_trans mt on a.ws = mt.ws and a.color = mt.color and a.size = mt.size and a.styleno_prod = mt.styleno_prod and a.reff_no = mt.reff_no
 left join cutt on a.ws = cutt.ws and a.color = cutt.color and a.size = cutt.size and a.styleno_prod = cutt.styleno_prod and a.reff_no = cutt.reff_no
 left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no
+-- and a.tgl_shipment = ps.tgl_shipment
 left join fg on a.ws = fg.ws and a.color = fg.color and a.size = fg.size and a.styleno_prod = fg.styleno_prod and a.reff_no = fg.reff_no
 )
 
@@ -1130,18 +1136,20 @@ end,0) - qty_po blc_output_rfts_packing,
 
 
 coalesce(qty_scan,0) qty_scan,
+coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_scan,
+coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) - qty_po blc_qty_scan_po,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
@@ -1153,7 +1161,7 @@ end,0) - qty_po blc_qty_scan,
 coalesce(qty_fg,0) qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
@@ -1162,7 +1170,7 @@ then '0'
 end,0) as final_qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
@@ -2471,20 +2479,25 @@ m.color,
 m.size,
 m.styleno_prod,
 m.reff_no,
+-- tgl_shipment,
 total_scan as qty_scan
 from
 (
 SELECT
     a.id_so_det,
     COUNT(*) AS total_scan
+    -- ,ppic_master_so.tgl_shipment
 FROM laravel_nds.packing_packing_out_scan a
+-- LEFT JOIN ppic_master_so on ppic_master_so.id = a.id_ppic 
 WHERE id_ppic is not null
 GROUP BY a.id_so_det
+-- , tgl_shipment
 ) a
 left join laravel_nds.master_sb_ws m on a.id_so_det = m.id_so_det
 where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
 GROUP BY
 ws, color, size,styleno_prod, reff_no
+-- , tgl_shipment
 ),
 fg as (
 select
@@ -2587,7 +2600,8 @@ qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_
 from master_data a
 left join mut_trans mt on a.ws = mt.ws and a.color = mt.color and a.size = mt.size and a.styleno_prod = mt.styleno_prod and a.reff_no = mt.reff_no
 left join cutt on a.ws = cutt.ws and a.color = cutt.color and a.size = cutt.size and a.styleno_prod = cutt.styleno_prod and a.reff_no = cutt.reff_no
-left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no
+left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no 
+-- and a.tgl_shipment = ps.tgl_shipment
 left join fg on a.ws = fg.ws and a.color = fg.color and a.size = fg.size and a.styleno_prod = fg.styleno_prod and a.reff_no = fg.reff_no
 )
 
@@ -2705,6 +2719,7 @@ end,0) - qty_po blc_output_rfts_packing,
 
 
 coalesce(qty_scan,0) qty_scan,
+coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
@@ -2714,6 +2729,7 @@ then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipm
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_scan,
+coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) - qty_po blc_qty_scan_po,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
@@ -2728,7 +2744,7 @@ end,0) - qty_po blc_qty_scan,
 coalesce(qty_fg,0) qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
@@ -2737,7 +2753,7 @@ then '0'
 end,0) as final_qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)

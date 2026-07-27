@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/generated-stocker-reject', 'generatedStockerReject')->name('generated-stocker-reject');
 
         Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
+        Route::post('/export-generated-stocker-reject', 'exportGeneratedStockerReject')->name('export-generated-stocker-reject');
     });
 
     // Stocker Tools

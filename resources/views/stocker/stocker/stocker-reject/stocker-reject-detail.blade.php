@@ -250,7 +250,10 @@
     </form>
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title">Generated Stocker</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Generated Stocker</h5>
+                <button type="button" class="btn btn-success btn-sm" onclick="exportGeneratedStocker()"><i class="fa fa-file-excel"></i> Export Excel</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -323,6 +326,54 @@
                 ]
             });
         });
+
+        // Export Generated Stocker to Excel
+        function exportGeneratedStocker() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            $.ajax({
+                url: "{{ route('export-generated-stocker-reject') }}",
+                type: "post",
+                data: {
+                    id: '{{ $id }}',
+                    process: '{{ $process }}',
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Generated Stocker List {{ $process }}.xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    Swal.close();
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Terjadi Kesalahan',
+                        position: 'topCenter'
+                    });
+
+                    console.error(jqXHR);
+                }
+            });
+        }
 
         // Save stocker reject
         function saveStockerReject() {
