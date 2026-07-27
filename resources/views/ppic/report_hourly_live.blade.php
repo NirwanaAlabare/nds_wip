@@ -98,8 +98,8 @@
         }
 
         /* Same sticky-table approach as the working view: a single real table
-                                                                                                                       with position: sticky for the header/footer/frozen columns, sized up
-                                                                                                                       for legibility from a distance on a TV/monitor. */
+                                                                                                                           with position: sticky for the header/footer/frozen columns, sized up
+                                                                                                                           for legibility from a distance on a TV/monitor. */
         .rp-scroll {
             height: calc(100vh - 74px);
             overflow: auto;
@@ -149,11 +149,11 @@
 
 
         /* thead/tbody/tfoot all use four separate cells here (no colspan) so
-                                                                                                                       every section has exactly one cell per column — mixing a colspan="4"
-                                                                                                                       merged cell into a table-layout:fixed + sticky grid let the browser
-                                                                                                                       compute that cell a hair narrower/wider than the four individual
-                                                                                                                       frozen columns above it, cutting off / misaligning the footer edge
-                                                                                                                       while scrolling. */
+                                                                                                                           every section has exactly one cell per column — mixing a colspan="4"
+                                                                                                                           merged cell into a table-layout:fixed + sticky grid let the browser
+                                                                                                                           compute that cell a hair narrower/wider than the four individual
+                                                                                                                           frozen columns above it, cutting off / misaligning the footer edge
+                                                                                                                           while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {

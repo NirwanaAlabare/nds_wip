@@ -7,10 +7,10 @@
 
     <style>
         /* Plain HTML table with CSS sticky header/footer + sticky frozen columns.
-                   No DataTables/FixedColumns here on purpose: FixedColumns clones the table
-                   to build the frozen panel, and that clone can drift a pixel out of sync
-                   with the scrolling body/header, producing the misaligned-header seam.
-                   A single real table with position: sticky avoids the clone entirely. */
+                       No DataTables/FixedColumns here on purpose: FixedColumns clones the table
+                       to build the frozen panel, and that clone can drift a pixel out of sync
+                       with the scrolling body/header, producing the misaligned-header seam.
+                       A single real table with position: sticky avoids the clone entirely. */
         .rp-scroll {
             max-height: 560px;
             overflow: auto;
@@ -60,13 +60,13 @@
         }
 
         /* Frozen columns: Line, Chief, Leader, Style (indices 0-3).
-                   Left offsets are cumulative sums of the preceding column widths below.
-                   thead/tbody/tfoot all use four separate cells here (no colspan) so
-                   every section has exactly one cell per column — mixing a colspan="4"
-                   merged cell into a table-layout:fixed + sticky grid let the browser
-                   compute that cell a hair narrower/wider than the four individual
-                   frozen columns above it, which is what cut off / misaligned the
-                   footer edge while scrolling. */
+                       Left offsets are cumulative sums of the preceding column widths below.
+                       thead/tbody/tfoot all use four separate cells here (no colspan) so
+                       every section has exactly one cell per column — mixing a colspan="4"
+                       merged cell into a table-layout:fixed + sticky grid let the browser
+                       compute that cell a hair narrower/wider than the four individual
+                       frozen columns above it, which is what cut off / misaligned the
+                       footer edge while scrolling. */
         table.rp-table thead th:nth-child(1),
         table.rp-table tbody td:nth-child(1),
         table.rp-table tfoot th:nth-child(1) {
@@ -116,8 +116,8 @@
         }
 
         /* Sticky cells need their own opaque background — the parent <tr>'s
-                   background does not show through a sticky-positioned cell reliably
-                   while scrolling, so every td gets its stripe color explicitly. */
+                       background does not show through a sticky-positioned cell reliably
+                       while scrolling, so every td gets its stripe color explicitly. */
         table.rp-table tbody tr.stripe-odd td {
             background-color: #f7f9fd;
         }
@@ -140,8 +140,8 @@
         }
 
         /* Per-hour totals in the footer: under target reads red, meeting/beating it
-                   reads blue. The tbody per-hour cells use real .rp-badge pills instead
-                   (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
+                       reads blue. The tbody per-hour cells use real .rp-badge pills instead
+                       (same treatment as the Eff/Eff Line columns), so this only targets tfoot. */
         table.rp-table tfoot th.rp-qty-low {
             color: #e5484d;
         }
@@ -166,10 +166,10 @@
         }
 
         /* Keep the footer's own background (matches the rest of tfoot) instead
-                   of the good/bad tint used for inline badges — only the font color
-                   should reflect the eff threshold here. `table.rp-table tfoot th`
-                   sets a fixed text color with higher specificity than .rp-badge-*,
-                   so it must be overridden explicitly on the #id here too. */
+                       of the good/bad tint used for inline badges — only the font color
+                       should reflect the eff threshold here. `table.rp-table tfoot th`
+                       sets a fixed text color with higher specificity than .rp-badge-*,
+                       so it must be overridden explicitly on the #id here too. */
         #f-toteff.rp-badge-good,
         #f-toteff.rp-badge-bad {
             background-color: #eef2fa !important;
@@ -506,7 +506,7 @@
                     `<td>${esc(data.target_output_eff)}</td>` +
                     `<td>${esc(data.set_target_perhari)}</td>` +
                     `<td>${esc(data.plan_target_perjam)}</td>` +
-                    `<td>${esc(data.jam_kerja_act_line)}</td>` +
+                    `<td>${esc(data.jam_kerja_act)}</td>` +
                     `<td>${hourCell(data.o_jam_1, data.plan_target_perjam, 1, cutoff)}</td>` +
                     `<td>${hourCell(data.o_jam_2, data.plan_target_perjam, 2, cutoff)}</td>` +
                     `<td>${hourCell(data.o_jam_3, data.plan_target_perjam, 3, cutoff)}</td>` +
