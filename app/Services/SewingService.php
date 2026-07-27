@@ -19,12 +19,15 @@ class SewingService
 {
     public function missMasterPlan($numberingList = null, $updateOrigin = false)
     {
-        ini_set("max_execution_time", 3600);
+        ini_set("max_execution_time", 36000);
 
         $additionalQuery = "";
         if ($numberingList) {
             $additionalQuery .= " AND kode_numbering in (".$numberingList.")";
         }
+
+        $dateFrom = date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"));
+        $dateTo = date("Y-m-d");
 
         // Rft
         $masterPlan = collect(DB::connection("mysql_sb")->select("
@@ -61,7 +64,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
-                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_rfts.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -114,7 +117,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
-                    output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -167,7 +170,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
-                    output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_rejects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -385,7 +388,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
-                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_rfts.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -437,7 +440,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
-                    output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -489,7 +492,7 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
-                    output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    output_rejects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
@@ -845,5 +848,183 @@ class SewingService
             'table' => '',
             'additional' => [],
         );
+    }
+
+    function updateMgtRepTmpEarn($date = null) {
+        $date = $date ? $date : date("Y-m-d");
+        $dateFrom = $date;
+        $dateTo = $date;
+
+        return "Not yet";
+
+        try {
+            DB::transaction(function () use ($dateFrom, $dateTo) {
+                // Delete existing data for the specified date range
+                DB::delete("DELETE FROM mgt_rep_tmp_earn WHERE tgl_trans BETWEEN ? AND ?", [$dateFrom, $dateTo]);
+
+                // Insert new calculated data
+                DB::insert("
+                    INSERT INTO
+                    mgt_rep_tmp_earn
+                SELECT
+                    '',
+                    a.tgl_trans,
+                    mp.tgl_plan,
+                    a.master_plan_id,
+                    acm.allowance,
+                    ul.username sewing_line,
+                    ms.supplier buyer,
+                    ac.kpno,
+                    ac.styleno,
+                    mp.color,
+                    mp.id,
+                    mp.smv,
+                    mp.man_power man_power_ori,
+                    cmp.man_power,
+                    mp.jam_kerja_awal,
+                    istirahat,
+                    op.jam_akhir_input_line,
+                    round(TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600,2) AS jam_kerja_act_line,
+                    round(((((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)) * 60) * cmp.man_power) / mp.smv) target,
+                    sum(a.tot_output) tot_output,
+                    sum(d_rfts.tot_rfts) tot_rfts,
+                    op.tot_output_line,
+                    ac.curr,
+                    acm.price AS cm_price,
+                    ROUND(SUM(a.tot_output) * acm.price, 2) AS earning,
+                    COALESCE(mr.kurs_tengah,mkb.kurs_tengah) kurs_tengah,
+                    ROUND( SUM(a.tot_output) * CASE WHEN acm.jenis_rate = 'B' THEN acm.price ELSE acm.price * COALESCE(mr.kurs_tengah,mkb.kurs_tengah) END , 2) tot_earning_rupiah,
+                    round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
+                    round(sum(a.tot_output) * mp.smv,2) mins_prod,
+                    round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
+                    round(((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)),2) jam_kerja_act,
+                    round((sum(d_rfts.tot_rfts) / sum(a.tot_output)) * 100,2) rfts,
+                    CURRENT_TIMESTAMP()
+                from
+                (
+                    select
+                    date(a.updated_at)tgl_trans,
+                    so_det_id,
+                    master_plan_id,
+                    count(so_det_id) tot_output,
+                    time(max(a.updated_at)) jam_akhir_input,
+                    userpassword.username
+                    from output_rfts a
+                    left join user_sb_wip on user_sb_wip.id = a.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where a.updated_at >= ? and a.updated_at <= ?
+                    group by master_plan_id, userpassword.username, date(a.updated_at)
+                ) a
+                inner join so_det sd on a.so_det_id = sd.id
+                inner join so on sd.id_so = so.id
+                inner join act_costing ac on so.id_cost = ac.id
+                inner join userpassword ul on ul.username = a.username
+                inner join master_plan mp on a.master_plan_id = mp.id
+                inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                left join (
+                    select
+                        date(output_rfts.updated_at) tgl_trans_line,max(time(output_rfts.updated_at)) jam_akhir_input_line,count(output_rfts.so_det_id) tot_output_line,
+                        case
+                            when time(max(output_rfts.updated_at)) >= '12:00:00' and time(max(output_rfts.updated_at)) <= '18:44:59' THEN '01:00:00'
+                            when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
+                            when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
+                        END as istirahat,
+                        userpassword.username
+                    from output_rfts
+                    left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where output_rfts.updated_at >= ? and output_rfts.updated_at <= ? group by userpassword.username, date(output_rfts.updated_at)
+                ) op on a.tgl_trans = op.tgl_trans_line and ul.username = op.username
+                left join (
+                    select * from act_costing_mfg where id_item = '8' group by id_act_cost
+                ) acm on ac.id = acm.id_act_cost
+                left join (
+                    select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal
+                ) konv_sb on ac.deldate = konv_sb.tanggal
+                left join (
+                    select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal ORDER BY tanggal DESC limit 1
+                ) last_konv_sb on ac.deldate >= last_konv_sb.tanggal
+                left join (
+                    SELECT
+                        master_plan_id,
+                        tgl_trans_rfts,
+                        sum(tot_rfts)tot_rfts
+                    from
+                    (
+                        select
+                        date(a.updated_at)tgl_trans_rfts,
+                        master_plan_id,
+                        count(so_det_id) tot_rfts,
+                        userpassword.username
+                        from output_rfts a
+                        left join user_sb_wip on user_sb_wip.id = a.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        where a.updated_at >= ? and a.updated_at <= ? and status = 'NORMAL'
+                        group by master_plan_id, userpassword.username, date(a.updated_at)
+                    ) a
+                    inner join master_plan mp on a.master_plan_id = mp.id
+                    group by tgl_trans_rfts, master_plan_id
+                ) d_rfts on a.tgl_trans = d_rfts.tgl_trans_rfts and a.master_plan_id = d_rfts.master_plan_id
+                left join
+                (
+                    select min(id), man_power, sewing_line, tgl_plan from master_plan
+                    where tgl_plan >= ? and  tgl_plan <= ? and cancel = 'N'
+                    group by sewing_line, tgl_plan
+                ) cmp on a.tgl_trans = cmp.tgl_plan and ul.username = cmp.sewing_line
+
+                -- Kurs join for pre-MySQL 8
+                LEFT JOIN (
+                    SELECT x.tgl_trans, x.max_kurs_date, k.kurs_tengah
+                    FROM (
+                            SELECT a_dates.tgl_trans, MAX(mkb.tanggal_kurs_bi) AS max_kurs_date
+                            FROM (
+                                    SELECT DISTINCT date(updated_at) AS tgl_trans
+                                    FROM output_rfts
+                            WHERE updated_at >= ? AND updated_at <= ?
+                            ) a_dates
+                            JOIN master_kurs_bi mkb
+                            ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
+                            GROUP BY a_dates.tgl_trans
+                    ) x
+                    JOIN master_kurs_bi k
+                    ON k.tanggal_kurs_bi = x.max_kurs_date
+                ) mkb ON a.tgl_trans = mkb.tgl_trans
+
+                LEFT JOIN (
+                    SELECT x.tgl_trans, x.max_kurs_date, k.rate as kurs_tengah
+                    FROM (
+                        SELECT a_dates.tgl_trans, MAX(mr.tanggal) AS max_kurs_date
+                        FROM (
+                            SELECT DISTINCT date(updated_at) AS tgl_trans
+                            FROM output_rfts
+                            WHERE updated_at >= ? AND updated_at <= ?
+                        ) a_dates
+                        JOIN masterrate mr
+                        ON mr.tanggal <= a_dates.tgl_trans
+                        GROUP BY a_dates.tgl_trans
+                    ) x
+                    JOIN masterrate k
+                    ON k.tanggal = x.max_kurs_date
+                    WHERE k.v_codecurr = 'HARIAN'
+                ) mr ON a.tgl_trans = mr.tgl_trans
+
+                group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+                HAVING ul.username NOT LIKE '%sample%'
+                order by a.tgl_trans asc, ul.username asc, ac.kpno asc;
+            ", [
+                    $dateFrom . " 00:00:00", $dateTo . " 23:59:59",
+                    $dateFrom . " 00:00:00", $dateTo . " 23:59:59",
+                    $dateFrom . " 00:00:00", $dateTo . " 23:59:59",
+                    $dateFrom, $dateTo,
+                    $dateFrom . " 00:00:00", $dateTo . " 23:59:59",
+                    $dateFrom . " 00:00:00", $dateTo . " 23:59:59",
+                ]);
+            });
+
+            Log::channel('mgtRepEarnTmp')->info("Query executed");
+
+        } catch (\Throwable $th) {
+            Log::channel('mgtRepEarnTmp')->info($th);
+        }
     }
 }
