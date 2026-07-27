@@ -898,6 +898,16 @@ class StockerToolsController extends Controller
     {
         $noFormId = $request->noFormId;
 
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $noFormId)->first();
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
         $data = ModifySizeQty::where('form_cut_id', $noFormId)->get();
 
         foreach ($data as $item) {
