@@ -18,3 +18,8 @@ miss rework schedule.bat
 composer.json
 composer.lock
 /public/uploads/costing
+activity-log-clean.bat
+hourly-scheduler.bat
+runserver.bat
+scheduler.bat
+start laravel-echo-server.bat
