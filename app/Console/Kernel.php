@@ -24,10 +24,27 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('production:fixrollqty')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
-        $schedule->command('production:missrework')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
-        $schedule->command('production:missreject')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
-        $schedule->command('general:updatemastersb')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        // $schedule->command('production:fixrollqty')->hourlyAt(10)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('production:missrework')->hourlyAt(10)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('production:missreject')->hourlyAt(10)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('general:updatemastersb')
+            ->everyMinute()
+            ->when(function () {
+                $now = now();
+
+                // Only between 8:00 AM and 8:00 PM
+                if ($now->lt($now->copy()->setTime(8, 0)) ||
+                    $now->gt($now->copy()->setTime(20, 0))) {
+                    return false;
+                }
+
+                // Minutes since 8:00 AM
+                $minutes = $now->diffInMinutes(
+                    $now->copy()->setTime(8, 0)
+                );
+
+                return $minutes % 45 === 0;
+            });
         $schedule->command('general:updatemgtreptmpearn')->dailyAt("01:00")->sendOutputTo(public_path().'/tasks/log.txt');
         $schedule->command('dc:rekap')->lastDayOfMonth('23:30')->sendOutputTo(public_path().'/tasks/log.txt');
     }
