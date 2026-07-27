@@ -267,80 +267,138 @@ order by created_at desc
         $id_trf_garmentArray    = $_POST['id_trf_garment'];
         $status              = implode(',', $_POST['status']);
         $tgl_penerimaan = date('Y-m-d');
+        $isTemporary = ($status == 'Temporary');
+        $sourceTable = $isTemporary ? 'packing_trf_garment_out_temporary' : 'packing_trf_garment';
+        $sumber = $isTemporary ? 'Temporary' : 'Sewing';
+        $sumberFilter = $isTemporary ? "sumber = 'Temporary'" : "sumber != 'Temporary'";
 
-        $tahun = date('Y', strtotime($tgl_penerimaan));
-        $no = date('my', strtotime($tgl_penerimaan));
-        $kode = 'PCK/IN/';
-        $cek_nomor = DB::select("
-        select max(cast(SUBSTR(no_trans,13,5) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
-        ");
-        $nomor_tr = $cek_nomor[0]->nomor;
-        $urutan = (int)($nomor_tr);
-        $urutan++;
-        $kode_cek = $urutan++;
-        $kodepay = sprintf("%05s", $kode_cek);
+        // Acquire a MySQL server-side named lock per id_trf_garment so that
+        // two devices/users submitting the same source transaction can never
+        // run the "check sisa qty then insert" section concurrently. This
+        // does not depend on the app cache driver (CACHE_DRIVER=file here,
+        // whose Cache::add() is a check-then-act pattern and not reliably
+        // atomic across processes) or on transaction/row-lock timing.
+        $lockNames = collect($id_trf_garmentArray)
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->map(fn ($id) => 'packing_in_trf_' . $id);
 
-        $kode_trans = $kode . $no . '/' . $kodepay;
-
-        if ($status != 'Temporary') {
-            foreach ($JmlArray as $key => $value) {
-                if ($value != '0' && $value != '') {
-                    $txtqty         = $JmlArray[$key];
-                    $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
-
-                        $cek = DB::select("select * from packing_trf_garment where id = '$txtid_trf_garment'");
-                        $id_ppic_master_so = $cek[0]->id_ppic_master_so;
-                        $id_so_det = $cek[0]->id_so_det;
-                        $line = $cek[0]->line;
-                        $po = $cek[0]->po;
-                        $barcode = $cek[0]->barcode;
-                        $dest = $cek[0]->dest;
-
-                        $insert_penerimaan =  DB::insert("
-        insert into packing_packing_in
-        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
-        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','Sewing','$user','$timestamp','$timestamp')");
-                    }
+        $acquiredLocks = [];
+        foreach ($lockNames as $lockName) {
+            $locked = DB::selectOne('select GET_LOCK(?, ?) as locked', [$lockName, 10]);
+            if ((int) $locked->locked !== 1) {
+                foreach ($acquiredLocks as $acquired) {
+                    DB::select('select RELEASE_LOCK(?)', [$acquired]);
                 }
+                return array(
+                    "status" => 200,
+                    "message" => 'Item ini sedang diproses oleh user lain, silakan coba lagi beberapa saat.',
+                    "additional" => [],
+                );
             }
-        } else  if ($status == 'Temporary') {
-            foreach ($JmlArray as $key => $value) {
-                if ($value != '0' && $value != '') {
-                    $txtqty         = $JmlArray[$key];
-                    $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
-
-                        $cek = DB::select("select * from packing_trf_garment_out_temporary where id = '$txtid_trf_garment'");
-                        $id_ppic_master_so = $cek[0]->id_ppic_master_so;
-                        $id_so_det = $cek[0]->id_so_det;
-                        $line = 'Temporary';
-                        $po = $cek[0]->po;
-                        $barcode = $cek[0]->barcode;
-                        $dest = $cek[0]->dest;
-
-                        $insert_penerimaan =  DB::insert("
-        insert into packing_packing_in
-        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
-        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','Temporary','$user','$timestamp','$timestamp')");
-                    }
-                }
-            }
+            $acquiredLocks[] = $lockName;
         }
 
-        if ($insert_penerimaan != '') {
-            return array(
-                "status" => 900,
-                "message" => 'No Transaksi :
-                 ' . $kode_trans . '
-                 Sudah Terbuat',
-                "additional" => [],
-            );
-        } else {
+        try {
+            $kode_trans = DB::transaction(function () use (
+                $JmlArray,
+                $id_trf_garmentArray,
+                $tgl_penerimaan,
+                $timestamp,
+                $user,
+                $isTemporary,
+                $sourceTable,
+                $sumber,
+                $sumberFilter
+            ) {
+                $tahun = date('Y', strtotime($tgl_penerimaan));
+                $no = date('my', strtotime($tgl_penerimaan));
+                $kode = 'PCK/IN/';
+                $cek_nomor = DB::select("
+                select max(cast(SUBSTR(no_trans,13,5) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
+                ");
+                $nomor_tr = $cek_nomor[0]->nomor;
+                $urutan = (int)($nomor_tr);
+                $urutan++;
+                $kode_cek = $urutan++;
+                $kodepay = sprintf("%05s", $kode_cek);
+
+                $kode_trans = $kode . $no . '/' . $kodepay;
+
+                $insertedAny = false;
+
+                foreach ($JmlArray as $key => $value) {
+                    if ($value == '0' || $value == '') {
+                        continue;
+                    }
+
+                    $txtqty = (float) $JmlArray[$key];
+                    $txtid_trf_garment = $id_trf_garmentArray[$key];
+
+                    // Row-lock the source transfer so concurrent submissions
+                    // (different user/device, same no_trans) queue up instead
+                    // of both reading a stale "sisa qty".
+                    $cek = DB::select("select * from $sourceTable where id = ? for update", [$txtid_trf_garment]);
+                    if (empty($cek)) {
+                        continue;
+                    }
+                    $cek = $cek[0];
+
+                    $qtyInRow = DB::selectOne("
+                        select coalesce(sum(qty),0) qty_in from packing_packing_in
+                        where id_trf_garment = ? and $sumberFilter
+                    ", [$txtid_trf_garment]);
+                    $sisa = (float) $cek->qty - (float) $qtyInRow->qty_in;
+
+                    if ($txtqty > $sisa) {
+                        throw new \RuntimeException(
+                            'Qty untuk No. Transaksi sumber tidak lagi mencukupi (sisa: ' . $sisa . '). '
+                            . 'Kemungkinan data sudah diinput oleh user lain, silakan refresh dan coba lagi.'
+                        );
+                    }
+
+                    $id_ppic_master_so = $cek->id_ppic_master_so;
+                    $id_so_det = $cek->id_so_det;
+                    $line = $isTemporary ? 'Temporary' : $cek->line;
+                    $po = $cek->po;
+                    $barcode = $cek->barcode;
+                    $dest = $cek->dest;
+
+                    DB::insert("
+        insert into packing_packing_in
+        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$sumber','$user','$timestamp','$timestamp')");
+
+                    $insertedAny = true;
+                }
+
+                if (!$insertedAny) {
+                    throw new \RuntimeException('Tidak ada Data');
+                }
+
+                return $kode_trans;
+            });
+        } catch (\RuntimeException $e) {
             return array(
                 "status" => 200,
-                "message" => 'Tidak ada Data',
+                "message" => $e->getMessage(),
                 "additional" => [],
             );
+        } finally {
+            foreach ($acquiredLocks as $lockName) {
+                DB::select('select RELEASE_LOCK(?)', [$lockName]);
+            }
         }
+
+        return array(
+            "status" => 900,
+            "message" => 'No Transaksi :
+             ' . $kode_trans . '
+             Sudah Terbuat',
+            "additional" => [],
+        );
     }
 
     public function undo(Request $request)
