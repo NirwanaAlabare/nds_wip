@@ -259,6 +259,7 @@ class PackingLineController extends Controller
                 SELECT
                     a.po_id,
                     p.po,
+                    tgl_shipment,
                     a.created_by_line   AS line,
                     a.so_det_id         AS so_det_id,
                     COUNT(*)            AS qty_packing_line
@@ -272,6 +273,7 @@ class PackingLineController extends Controller
                 SELECT
                     a.id_ppic_master_so,
                     a.po,
+                    tgl_shipment,
                     a.line,
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
@@ -284,19 +286,20 @@ class PackingLineController extends Controller
             mut AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po, a.line, a.so_det_id,
+                    a.po, a.line, a.so_det_id, tgl_shipment,
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 UNION ALL
-                SELECT po_id, po, line, so_det_id, 0, qty_packing_line, 0 FROM m
+                SELECT po_id, po, line, so_det_id, tgl_shipment, 0, qty_packing_line, 0 FROM m
                 UNION ALL
-                SELECT id_ppic_master_so, po, line, so_det_id, 0, 0, qty_trf_gmt FROM g
+                SELECT id_ppic_master_so, po, line, so_det_id, tgl_shipment, 0, 0, qty_trf_gmt FROM g
             )
             SELECT
                 mut.so_det_id,
                 po,
+                tgl_shipment,
                 line,
                 ws,
                 COALESCE(d.buyer,   '-') AS buyer,
@@ -311,7 +314,7 @@ class PackingLineController extends Controller
             LEFT JOIN laravel_nds.master_sb_ws d ON mut.so_det_id = d.id_so_det
             LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
             WHERE mut.line IS NOT NULL AND mut.line != ''
-            GROUP BY mut.so_det_id,po, line
+            GROUP BY mut.so_det_id,po, line, tgl_shipment
             HAVING SUM(sa) != 0
             OR SUM(qty_packing_line) != 0
             OR SUM(qty_trf_gmt) != 0
@@ -328,7 +331,7 @@ class PackingLineController extends Controller
 
         /* ── Header ── */
         $sheet->writeRow(
-            ['Line', 'PO', 'Buyer', 'WS', 'Style', 'Color', 'Size', 'SA', 'Output ▲', 'Transfer ▼', 'WIP'],
+            ['Line', 'PO', 'Tgl Shipment', 'Buyer', 'WS', 'Style', 'Color', 'Size', 'SA', 'Output ▲', 'Transfer ▼', 'WIP'],
             [
                 'font-style' => 'bold',
                 'border'     => 'thin',
@@ -337,6 +340,8 @@ class PackingLineController extends Controller
                 'color'      => '#FFFFFF',
             ]
         );
+
+        $sheet->setColFormat('C', '@date');
 
         /* ── Data rows (mulai baris 4: title, kosong, header) ── */
         $rowNum = 4;
@@ -348,6 +353,7 @@ class PackingLineController extends Controller
                 [
                     $row->line    ?? '-',
                     $row->po      ?? '-',
+                    $row->tgl_shipment ?? '-',
                     $row->buyer   ?? '-',
                     $row->ws      ?? '-',
                     $row->styleno ?? '-',
@@ -361,7 +367,7 @@ class PackingLineController extends Controller
                 ['border' => 'thin']
             );
 
-            $sheet->setCellStyle('K' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
+            $sheet->setCellStyle('L' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
             $rowNum++;
         }
 
@@ -379,6 +385,7 @@ class PackingLineController extends Controller
                 'I' => 12,
                 'J' => 14,
                 'K' => 12,
+                'L' => 12,
             ] as $col => $width
         ) {
             $sheet->setColWidth($col, $width);
