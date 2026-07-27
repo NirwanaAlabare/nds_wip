@@ -1,4 +1,4 @@
-11@extends('layouts.index')
+@extends('layouts.index')
 
 @section('custom-link')
     <!-- DataTables -->
