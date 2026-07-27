@@ -16,11 +16,12 @@
             Data line tidak ditemukan
         </h5>
     @else
-        @if (!$loadingLine)
+        {{-- @if (!$loadingLine)
             <div class="d-flex justify-content-between flex-wrap gap-3" wire:poll.30000ms>
         @else
             <div class="d-flex justify-content-between flex-wrap gap-3">
-        @endif
+        @endif --}}
+        <div class="d-flex justify-content-between flex-wrap gap-3" wire:poll.30000ms>
             <div class="d-flex justify-content-start align-items-center gap-3">
                 <div wire:ignore>
                     <select class="select2 form-select form-select-sm" name="line" id="select-line">
@@ -445,14 +446,117 @@
             Livewire.emit('loadingStart');
         });
 
-        function exportExcel(elm, type, date, line) {
-            @this.set('loadingLine', true);
+        // function exportExcel(elm, type, date, line) {
+        //     @this.set('loadingLine', true);
 
+        //     elm.setAttribute('disabled', 'true');
+        //     elm.innerText = "";
+        //     let loading = document.createElement('div');
+        //     loading.classList.add('loading-small');
+        //     elm.appendChild(loading);
+
+        //     iziToast.info({
+        //         title: 'Exporting...',
+        //         message: 'Data sedang di export. Mohon tunggu...',
+        //         position: 'topCenter'
+        //     });
+
+        //     if (type == 'production') {
+        //         $.ajax({
+        //             url: "{{ url("/report/production/export") }}",
+        //             type: 'post',
+        //             data: { date : date, line : line },
+        //             xhrFields: { responseType : 'blob' },
+        //             success: function(res) {
+        //                 @this.set('loadingLine', false);
+
+        //                 elm.removeAttribute('disabled');
+        //                 elm.innerText = "Export ";
+        //                 let icon = document.createElement('i');
+        //                 icon.classList.add('fa-solid');
+        //                 icon.classList.add('fa-file-excel');
+        //                 elm.appendChild(icon);
+
+        //                 iziToast.success({
+        //                     title: 'Success',
+        //                     message: 'Success',
+        //                     position: 'topCenter'
+        //                 });
+
+        //                 var blob = new Blob([res]);
+        //                 var link = document.createElement('a');
+        //                 link.href = window.URL.createObjectURL(blob);
+        //                 link.download = line.replace("_", "-")+" "+date+" Production Report.xlsx";
+        //                 link.click();
+        //             }, error: function (jqXHR) {
+        //                 @this.set('loadingLine', false);
+
+        //                 let res = jqXHR.responseJSON;
+        //                 let message = '';
+        //                 console.log(res.message);
+        //                 for (let key in res.errors) {
+        //                     message += res.errors[key]+' ';
+        //                     document.getElementById(key).classList.add('is-invalid');
+        //                 };
+        //                 iziToast.error({
+        //                     title: 'Error',
+        //                     message: message,
+        //                     position: 'topCenter'
+        //                 });
+        //             }
+        //         });
+        //     } else if (type == 'production-all') {
+        //         @this.set('loadingLine', true);
+
+        //         $.ajax({
+        //             url: "{{ url("/report/production-all/export") }}",
+        //             type: 'post',
+        //             data: { date : date },
+        //             xhrFields: { responseType : 'blob' },
+        //             success: function(res) {
+        //                 @this.set('loadingLine', false);
+
+        //                 elm.removeAttribute('disabled');
+        //                 elm.innerText = "Export All ";
+        //                 let icon = document.createElement('i');
+        //                 icon.classList.add('fa-solid');
+        //                 icon.classList.add('fa-file-excel');
+        //                 elm.appendChild(icon);
+
+        //                 iziToast.success({
+        //                     title: 'Success',
+        //                     message: 'Success',
+        //                     position: 'topCenter'
+        //                 });
+
+        //                 var blob = new Blob([res]);
+        //                 var link = document.createElement('a');
+        //                 link.href = window.URL.createObjectURL(blob);
+        //                 link.download = date+" Production Report.xlsx";
+        //                 link.click();
+        //             }, error: function (jqXHR) {
+        //                 @this.set('loadingLine', false);
+
+        //                 let res = jqXHR.responseJSON;
+        //                 let message = '';
+        //                 console.log(res.message);
+        //                 for (let key in res.errors) {
+        //                     message += res.errors[key]+' ';
+        //                     document.getElementById(key).classList.add('is-invalid');
+        //                 };
+        //                 iziToast.error({
+        //                     title: 'Error',
+        //                     message: message,
+        //                     position: 'topCenter'
+        //                 });
+        //             }
+        //         });
+        //     }
+        // }
+
+        function exportExcel(elm, type, date, line) {
             elm.setAttribute('disabled', 'true');
-            elm.innerText = "";
-            let loading = document.createElement('div');
-            loading.classList.add('loading-small');
-            elm.appendChild(loading);
+            elm.innerHTML = '<div class="loading-small"></div>';
 
             iziToast.info({
                 title: 'Exporting...',
@@ -460,43 +564,56 @@
                 position: 'topCenter'
             });
 
+            let restoreButton = function(text) {
+                elm.removeAttribute('disabled');
+                elm.innerHTML = text + ' <i class="fa-solid fa-file-excel"></i>';
+            };
+
             if (type == 'production') {
                 $.ajax({
                     url: "{{ url("/report/production/export") }}",
                     type: 'post',
-                    data: { date : date, line : line },
-                    xhrFields: { responseType : 'blob' },
+                    data: { 
+                        date: date, 
+                        line: line 
+                    },
+                    xhrFields: { 
+                        responseType: 'blob' 
+                    },
                     success: function(res) {
-                        @this.set('loadingLine', false);
-
-                        elm.removeAttribute('disabled');
-                        elm.innerText = "Export ";
-                        let icon = document.createElement('i');
-                        icon.classList.add('fa-solid');
-                        icon.classList.add('fa-file-excel');
-                        elm.appendChild(icon);
-
-                        iziToast.success({
-                            title: 'Success',
-                            message: 'Success',
-                            position: 'topCenter'
-                        });
-
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
                         link.download = line.replace("_", "-")+" "+date+" Production Report.xlsx";
+
+                        // download dulu
                         link.click();
-                    }, error: function (jqXHR) {
-                        @this.set('loadingLine', false);
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'File berhasil di download',
+                            position: 'topCenter',
+                            onOpened: function() {
+                                restoreButton('Export');
+                            }
+                        });
+                    },
+                    error: function(jqXHR) {
+                        restoreButton('Export');
 
                         let res = jqXHR.responseJSON;
                         let message = '';
-                        console.log(res.message);
-                        for (let key in res.errors) {
-                            message += res.errors[key]+' ';
-                            document.getElementById(key).classList.add('is-invalid');
-                        };
+
+                        if (res && res.errors) {
+                            for (let key in res.errors) {
+                                message += res.errors[key]+' ';
+
+                                if(document.getElementById(key)){
+                                    document.getElementById(key).classList.add('is-invalid');
+                                }
+                            }
+                        }
+
                         iziToast.error({
                             title: 'Error',
                             message: message,
@@ -505,44 +622,49 @@
                     }
                 });
             } else if (type == 'production-all') {
-                @this.set('loadingLine', true);
-
                 $.ajax({
                     url: "{{ url("/report/production-all/export") }}",
                     type: 'post',
-                    data: { date : date },
-                    xhrFields: { responseType : 'blob' },
+                    data: { 
+                        date: date 
+                    },
+                    xhrFields: { 
+                        responseType: 'blob' 
+                    },
                     success: function(res) {
-                        @this.set('loadingLine', false);
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
 
-                        elm.removeAttribute('disabled');
-                        elm.innerText = "Export All ";
-                        let icon = document.createElement('i');
-                        icon.classList.add('fa-solid');
-                        icon.classList.add('fa-file-excel');
-                        elm.appendChild(icon);
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = date+" Production Report.xlsx";
+
+                        link.click();
 
                         iziToast.success({
                             title: 'Success',
-                            message: 'Success',
-                            position: 'topCenter'
+                            message: 'File berhasil di download',
+                            position: 'topCenter',
+                            onOpened: function() {
+                                restoreButton('Export All');
+                            }
                         });
-
-                        var blob = new Blob([res]);
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = date+" Production Report.xlsx";
-                        link.click();
-                    }, error: function (jqXHR) {
-                        @this.set('loadingLine', false);
+                    },
+                    error: function(jqXHR) {
+                        restoreButton('Export All');
 
                         let res = jqXHR.responseJSON;
                         let message = '';
-                        console.log(res.message);
-                        for (let key in res.errors) {
-                            message += res.errors[key]+' ';
-                            document.getElementById(key).classList.add('is-invalid');
-                        };
+
+                        if (res && res.errors) {
+                            for (let key in res.errors) {
+                                message += res.errors[key]+' ';
+
+                                if(document.getElementById(key)){
+                                    document.getElementById(key).classList.add('is-invalid');
+                                }
+                            }
+                        }
+
                         iziToast.error({
                             title: 'Error',
                             message: message,
