@@ -323,6 +323,14 @@
                     { data: 'line', name: 'line' },
                     { data: 'created_at', name: 'stocker_input.created_at' },
                     { data: 'updated_at', name: 'stocker_input.updated_at' }
+                ],
+                columnDefs: [
+                    {
+                        targets: [13, 14],
+                        render: function(data, type, row) {
+                            return formatDateTime(data);
+                        }
+                    }
                 ]
             });
         });
