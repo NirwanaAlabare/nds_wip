@@ -431,17 +431,28 @@
             return badge(value, intVal(value) >= t);
         };
 
-        // Shift starts 07:00, and each column is one *completed* clock hour
-        // after that: jam ke-1 = 07:00-08:00, jam ke-2 = 08:00-09:00, dst.
-        const SHIFT_START_HOUR = 7;
+        // Hour boundaries (jam 1-13) as configured in dim_jam_kerja_sewing —
+        // blocks aren't all one clock hour wide (e.g. the lunch block spans
+        // two), so the cutoff is looked up from this data instead of assumed.
+        const JAM_KERJA_SEWING = @json($jamKerjaSewing);
 
         // How many hour columns are relevant right now, based on the wall
-        // clock — e.g. at 13:00 (1 siang), hours 07-08 .. 12-13 have fully
-        // elapsed, so this returns 6. Clamped to [0, 13].
+        // clock — a column counts as soon as its jam_kerja_awal starts, so
+        // the hour that's currently in progress shows its partial data too
+        // (not hidden until the block fully closes). Clamped to [0, 13].
         function currentJamKe() {
             const now = new Date();
-            const jam = Math.floor(now.getHours() + now.getMinutes() / 60 - SHIFT_START_HOUR);
-            return Math.max(0, Math.min(13, jam));
+            const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+            let jamKe = 0;
+            JAM_KERJA_SEWING.forEach((row) => {
+                const [h, m, s] = row.jam_kerja_awal.split(':').map(Number);
+                const awalSec = h * 3600 + m * 60 + s;
+                if (nowSec >= awalSec) {
+                    jamKe = row.jam;
+                }
+            });
+            return Math.max(0, Math.min(13, jamKe));
         }
 
         function todayYmd() {
