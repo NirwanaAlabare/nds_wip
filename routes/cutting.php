@@ -299,6 +299,11 @@ Route::middleware('auth')->group(function () {
 
             // summary
             Route::get('/summary/{id?}', 'summary')->name('summary-edit-cutting-piece');
+
+            // lock form
+            Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock-piece');
+            // unlock form
+            Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock-piece');
         });
 
         // Piping Stock
