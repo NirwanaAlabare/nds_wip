@@ -159,5 +159,9 @@ Route::middleware('auth')->group(function () {
         // Check Stocker By Filter
         Route::get('/check-stocker-by-filter', 'checkStockerByFilter')->name('check-stocker-by-filter');
         Route::post('/check-stocker-by-filter-list', 'checkStockerByFilterList')->name('check-stocker-by-filter-list');
+
+        Route::get('/get-no-form-modify-size-qty', 'getNoFormModifySizeQty')->name('get-no-form-modify-size-qty');
+        Route::post('/get-data-form-reset-modify-size-qty', 'getDataFormResetModifySizeQty')->name('get-data-form-reset-modify-size-qty');
+        Route::post('/reset-modify-size-qty', 'resetModifySizeQty')->name('reset-modify-size-qty');
     });
 });

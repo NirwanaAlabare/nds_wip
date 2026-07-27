@@ -109,6 +109,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetModifySizeQty">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Modify Size Qty</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Restore Data</h5>
                 </div>
@@ -304,6 +313,56 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
                     <button type="button" class="btn btn-sb" onclick="restoreStockerLog()"><i class="fa fa-rotate-left"></i> Restore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Stocker -->
+    <div class="modal fade" id="resetModifySizeQty" tabindex="-1" aria-labelledby="resetModifySizeQtyLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="resetModifySizeQtyLabel">Reset Modify Size Qty</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_modify_size_qty" id="no_form_modify_size_qty" class="form-control select2bs4modifysizeqty" style="width: 100%;">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                        <div class="row">
+                        <div class="table-responsive">
+                            <table id="tableResetModifySizeQty" class="table table-bordered table-hover w-100">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center">Size</th>
+                                        <th class="text-center">Ratio</th>
+                                        <th class="text-center">Qty Cut</th>
+                                        <th class="text-center">Catatan</th>
+                                        <th class="text-center">Group</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">
+                                            Belum ada data
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="resetModifySizeQty()"><i class="fa fa-rotate-left"></i> Reset</button>
                 </div>
             </div>
         </div>
@@ -630,9 +689,14 @@
             theme: 'bootstrap4',
             dropdownParent: $('#modifyStockerOrderModal')
         });
+        $('.select2bs4modifysizeqty').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#resetModifySizeQty')
+        });
 
         $(document).ready(function () {
             getFormList();
+            getFormListModifySizeQty();
         });
 
         function getFormList() {
@@ -671,6 +735,30 @@
                     console.error(xhr);
 
                     document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function getFormListModifySizeQty() {
+            $.ajax({
+                type: "GET",
+                url: "{{ route('get-no-form-modify-size-qty') }}",
+                dataType: "json",
+                success: function (response) {
+                    let options = '<option value="">Pilih Form</option>';
+
+                    $.each(response, function (key, value) {
+                        options += `
+                            <option value="${value.form_cut_id}">
+                                ${value.no_form}
+                            </option>
+                        `;
+                    });
+
+                    $('#no_form_modify_size_qty').html(options);
+                },
+                error: function (xhr) {
+                    console.error(xhr);
                 }
             });
         }
@@ -1412,6 +1500,147 @@
                         text: 'Gagal simpan data'
                     });
                 }
+            });
+        }
+
+        let tableResetModifySizeQty = $('#tableResetModifySizeQty').DataTable({
+            processing: true,
+            serverSide: false,
+            searching: true,
+            ordering: true,
+            order: [],
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+            ajax: function(data, callback, settings) {
+                let noFormId = $('#no_form_modify_size_qty').val();
+
+                if (!noFormId) {
+                    callback({data: []});
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('get-data-form-reset-modify-size-qty') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        noFormId: noFormId
+                    },
+                    success: function(response) {
+                        callback({data: response});
+                    },
+                    error: function(xhr) {
+                        console.error(xhr);
+                        callback({data: []});
+                    }
+                });
+            },
+            columns: [
+                {
+                    data: 'size',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'ratio',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'qty_cut',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'note',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'group_stocker',
+                    className: 'text-center',
+                    defaultContent: '-'
+                }
+            ]
+        });
+
+        $('#no_form_modify_size_qty').on('change', function() {
+            let noFormId = $(this).val();
+
+            if (!noFormId) {
+                tableResetModifySizeQty.clear().draw();
+                return;
+            }
+
+            tableResetModifySizeQty.ajax.reload();
+        });
+
+        function resetModifySizeQty() {
+            let noFormId = $('#no_form_modify_size_qty').val();
+
+            if (!noFormId) {
+                iziToast.warning({
+                    title: 'Warning',
+                    message: 'Silakan pilih No Form terlebih dahulu.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Reset Modify Size Qty?',
+                text: 'Data Modify Size Qty akan di-reset.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('reset-modify-size-qty') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        noFormId: noFormId
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: 'Sedang melakukan reset.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
+                    success: function(response) {
+                        let table = $('#tableResetModifySizeQty').DataTable();
+                        table.clear().draw();
+
+                        $('#no_form_modify_size_qty').val('').trigger('change');
+                        $('#resetModifySizeQty').modal('hide');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: xhr.responseJSON?.message ?? 'Terjadi kesalahan saat melakukan reset.'
+                        });
+                    }
+                });
             });
         }
     </script>

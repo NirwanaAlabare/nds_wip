@@ -45,18 +45,18 @@
                             <input type="hidden" name="multiple_locked_type" id="multiple_locked_type" value="" readonly>
                             <input type="hidden" name="no_meja"
                                 {{-- Conditional ID --}}
-                                id="{{ Auth::user()->type != 'admin' ? 'no_meja' : 'no_meja_text' }}"
+                                id="{{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'no_meja' : 'no_meja_text' }}"
                                 {{-- Conditional Value --}}
-                                value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : (Auth::user()->type != 'admin' ? Auth::user()->id : '')) : (Auth::user()->type != 'admin' ? Auth::user()->id : '') }}"
+                                value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : (Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? Auth::user()->id : '')) : (Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? Auth::user()->id : '') }}"
                                 {{-- Conditional Disabled --}}
-                                {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}
+                                {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? '' : 'disabled' }}
                             >
-                            <div class="col-12 col-md-12 {{ Auth::user()->type != 'admin' ? 'd-none' : '' }}">
+                            <div class="col-12 col-md-12 {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'd-none' : '' }}">
                                 <div class="mb-3">
                                     <label class="form-label small">Meja</label>
                                     <select class="form-control select2bs4"
-                                        id="{{ Auth::user()->type == 'admin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja"
-                                        style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
+                                        id="{{ Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja"
+                                        style="width: 100%;" {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'disabled' : '' }}>
                                         <option value="">Pilih Meja</option>
                                         @foreach ($meja as $m)
                                             <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
@@ -376,7 +376,7 @@
                             <div class="mb-3">
                                 <label class="form-label small">Cons. Marker</label>
                                 <div class="input-group input-group-sm">
-                                    <input type="number" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="" step=".001" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)">
+                                    <input type="number" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="" step=".001" onkeyup="calculateEstKain(this.value);consUpRate();" onchange="calculateEstKain(this.value);consUpRate();">
                                     <select class="form-select form-select-sm" name="unit_cons_marker" id="unit_cons_marker" onchange="updateConsMarkerUnit()">
                                         <option value="METER">METER</option>
                                         <option value="KGM">KGM</option>
@@ -3551,9 +3551,9 @@
         // Function :
         // -Check Spreading Form-
         function checkSpreadingForm() {
-            let id = document.getElementById("id").value;
-            let noForm = document.getElementById("no_form").value;
-            let noMeja = document.getElementById("no_meja").value;
+            let id = document.getElementById("id") ? document.getElementById("id").value : '';
+            let noForm = document.getElementById("no_form") ? document.getElementById("no_form").value : '';
+            let noMeja = document.getElementById("no_meja") ? document.getElementById("no_meja").value : '';
 
             $.ajax({
                 url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + (noMeja ? '/' + noMeja : ''),

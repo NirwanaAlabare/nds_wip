@@ -14,6 +14,7 @@ use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\SignalBit\FormCut;
+use App\Models\Stocker\ModifySizeQty;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Stocker\StockerAdditionalDetail;
@@ -26,8 +27,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use Yajra\DataTables\Facades\DataTables;
 use PDF;
+use Yajra\DataTables\Facades\DataTables;
 
 class StockerToolsController extends Controller
 {
@@ -855,5 +856,72 @@ class StockerToolsController extends Controller
             ->orderBy('stocker_input.ratio', 'asc');
 
         return DataTables::eloquent($data)->make(true);
+    }
+
+    public function getNoFormModifySizeQty()
+    {
+        $data = ModifySizeQty::select('form_cut_id', 'no_form')
+            ->groupBy('form_cut_id', 'no_form')
+            ->orderBy('no_form')
+            ->get();
+
+        return response()->json($data);
+    }
+
+    public function getDataFormResetModifySizeQty(Request $request)
+    {
+        $data = ModifySizeQty::selectRaw("
+                modify_size_qty.id,
+                modify_size_qty.so_det_id,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(COALESCE(marker_input_detail.size, master_sb_ws.size), ' - ', master_sb_ws.dest) ELSE COALESCE(marker_input_detail.size, master_sb_ws.size) END), marker_input_detail.size) size,
+                marker_input_detail.ratio,
+                modify_size_qty.original_qty as qty_cut,
+                modify_size_qty.note,
+                modify_size_qty.group_stocker
+            ")
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'modify_size_qty.form_cut_id')
+            ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+            ->leftJoin('marker_input_detail', function ($join) {
+                $join->on('marker_input_detail.marker_id', '=', 'marker_input.id');
+                $join->on('marker_input_detail.so_det_id', '=', 'modify_size_qty.so_det_id');
+            })
+            ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'marker_input_detail.so_det_id')
+            ->where('modify_size_qty.form_cut_id', $request->noFormId)
+            ->groupBy('modify_size_qty.id')
+            ->orderBy('modify_size_qty.id', 'ASC')
+            ->get();
+
+        return response()->json($data);
+    }
+
+    public function resetModifySizeQty(Request $request)
+    {
+        $noFormId = $request->noFormId;
+
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $noFormId)->first();
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
+        $data = ModifySizeQty::where('form_cut_id', $noFormId)->get();
+
+        foreach ($data as $item) {
+            logHistory(
+                $item->id,
+                $item->toArray()
+            );
+        }
+
+        ModifySizeQty::where('form_cut_id', $noFormId)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modify Size Qty berhasil di-reset.'
+        ]);
     }
 }
