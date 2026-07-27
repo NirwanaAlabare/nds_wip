@@ -75,6 +75,8 @@
                 <div class="card-body">
                     {{-- ID --}}
                     <input type="hidden" id="id" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : null }}" readonly>
+                    <input type="hidden" id="locked" name="locked" value="{{ $currentCuttingPiece ? $currentCuttingPiece->locked : 0 }}" readonly>
+                    <input type="hidden" id="unlocked_by" name="unlocked_by" value="{{ $currentCuttingPiece ? $currentCuttingPiece->unlocked_by : null }}" readonly>
                     <div class="row row-gap-3">
                         <div class="col-md-6">
                             <label class="form-label">No. Form</label>
@@ -484,6 +486,9 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        // -Select Method Tracking-
+        var selectMethod = [];
+
         // Initial Window On Load Event
         $(document).ready(async function () {
             if ($("#id").val() >= 1) {
@@ -495,6 +500,8 @@
             disableFormSubmit("#process-three-form");
 
             summaryReload();
+
+            checkLockStatus();
         });
 
         // Select2 Autofocus
@@ -1272,6 +1279,10 @@
                         dataType: "json",
                         success: function (response) {
                             if (response.status == 200) {
+                                if (dataObj.method === "select") {
+                                    selectMethod.push(dataObj);
+                                }
+
                                 clearQrCodeScannerItem();
 
                                 initProcessThree(response.additional ? response.additional : null);
@@ -1357,6 +1368,10 @@
                         success: async function (response) {
                             if (response && response.length > 0) {
                                 for (let i = 0; i < response.length; i++) {
+                                    if (response[i].method === "select") {
+                                        selectMethod.push(response[i]);
+                                    }
+
                                     if (response[i].status == 'incomplete') {
                                         await setProcessThree(response[i]);
                                     } else {
@@ -1827,6 +1842,31 @@
 
                 event.preventDefault();
 
+                // Lock when items were selected via "Pilih Barang" method
+                if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
+                    if (selectMethod.length > 0) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        lockFormPiece();
+
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Form Dikunci',
+                            html: `
+                                Karena terdapat metode pilih barang
+                                <br>
+                                Harap laporkan kepada atasan untuk dapat melanjutkan
+                                <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnterPiece(event, 1)'>
+                                <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnterPiece(event, 1)'>
+                                <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockFormPiece(1)'>Lanjutkan Form</button>
+                            `,
+                            showCancelButton: false,
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                        });
+                    }
+                }
+
                 let dataObj = {
                     "id": document.getElementById("id").value,
                     "id_detail": document.getElementById("id_detail").value,
@@ -1914,6 +1954,131 @@
                 document.getElementById("group_roll").focus();
             }
         // END OF THE LINE
+
+        // LOCK / UNLOCK FORM (Select Method)
+            function checkLockStatus() {
+                if ($("#locked").val() > 0) {
+                    Swal.close();
+
+                    lockFormPiece();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form terkunci karena terdapat metode pilih barang',
+                        html: `
+                            Harap laporkan kepada atasan untuk dapat melanjutkan
+                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnterPiece(event)'>
+                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnterPiece(event)'>
+                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockFormPiece()'>Lanjutkan Form</button>
+                        `,
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                    });
+                }
+            }
+
+            function lockFormPiece() {
+                document.getElementById("loading").classList.remove('d-none');
+
+                $.ajax({
+                    url: '{{ route('form-cut-lock-piece') }}',
+                    method: 'POST',
+                    data: {
+                        id: $("#id").val(),
+                    },
+                    success: function (res) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        if (res) {
+                            $("#locked").val(1);
+
+                            iziToast.warning({
+                                title: 'Form di Kunci',
+                                message: 'Harap hubungi atasan untuk melanjutkan',
+                                position: 'topCenter'
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        console.error(jqXHR);
+                    }
+                });
+            }
+
+            async function unlockEnterPiece(evt, isFinishing = 0) {
+                if (evt.keyCode == 13) {
+                    unlockFormPiece(isFinishing);
+                }
+            }
+
+            async function unlockFormPiece(isFinishing = 0) {
+                document.getElementById("loading").classList.remove('d-none');
+
+                if ($("#unlock_form_username").val() && $("#unlock_form_password").val()) {
+                    $.ajax({
+                        url: '{{ route('form-cut-unlock-piece') }}',
+                        method: 'POST',
+                        data: {
+                            id: $("#id").val(),
+                            username: $("#unlock_form_username").val(),
+                            password: $("#unlock_form_password").val(),
+                        },
+                        success: function (res) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            if (res) {
+                                if (res.locked < 1) {
+                                    Swal.close();
+
+                                    iziToast.success({
+                                        title: 'Berhasil',
+                                        message: 'Form berhasil dibuka',
+                                        position: 'topCenter'
+                                    });
+
+                                    $("#locked").val(res.locked);
+                                    $("#unlocked_by").val(res.unlocked_by);
+
+                                    if (isFinishing > 0) {
+                                        finish();
+                                    }
+                                } else {
+                                    iziToast.error({
+                                        title: 'Form gagal dibuka',
+                                        message: 'Password salah',
+                                        position: 'topCenter'
+                                    });
+                                }
+                            }
+                        },
+                        error: function (jqXHR) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            let message = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : 'Terjadi kesalahan saat membuka form';
+
+                            iziToast.error({
+                                title: 'Form gagal dibuka',
+                                message: message,
+                                position: 'topCenter'
+                            });
+
+                            console.error(jqXHR);
+                        }
+                    });
+                } else {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    iziToast.error({
+                        title: 'Form gagal dibuka',
+                        message: 'Harap isi kolom password',
+                        position: 'topCenter'
+                    });
+                }
+            }
+        // END OF LOCK / UNLOCK FORM
 
         // GO TO BOTTOM
             const scrollBtn = document.getElementById("scroll-to-bottom");

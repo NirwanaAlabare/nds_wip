@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
+use App\Models\Cutting\FormCutSelectMethod;
 use App\Services\CuttingPieceService;
 use App\Models\Part\PartDetail;
 use App\Models\Cutting\ScannedItem;
@@ -13,6 +14,7 @@ use App\Models\Part\Part;
 use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
 use App\Models\Hris\MasterEmployee;
+use App\Models\Auth\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
 use Illuminate\Http\Request;
@@ -560,7 +562,7 @@ class CuttingFormPieceController extends Controller
      */
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -886,7 +888,7 @@ class CuttingFormPieceController extends Controller
     public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     {
         try {
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
             if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
                 return array(
@@ -983,7 +985,7 @@ class CuttingFormPieceController extends Controller
 
     public function updateWaktuSelesai(Request $request)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -1028,7 +1030,7 @@ class CuttingFormPieceController extends Controller
      */
     public function destroy(FormCutPiece $formCutPiece, $id)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -1037,7 +1039,7 @@ class CuttingFormPieceController extends Controller
                 "additional" => "Closing"
             );
         }
-        
+
         $stocker = Stocker::selectRaw("
                 stocker_input.id,
                 stocker_input.form_piece_id,
@@ -1138,12 +1140,12 @@ class CuttingFormPieceController extends Controller
     {
         try {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_piece_detail")->select('form_cut_piece.waktu_selesai')
                 ->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')
                 ->where("form_cut_piece_detail.id", $request->id)
                 ->first();
-            
+
             if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
                 return array(
                     "status" => 400,
@@ -1281,7 +1283,7 @@ class CuttingFormPieceController extends Controller
 
     public function updateProcessStatus(Request $request)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_piece")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -1337,5 +1339,72 @@ class CuttingFormPieceController extends Controller
         get();
 
         return Datatables::of($formCutPieceSummary)->toJson();
+    }
+
+    public function createSelectMethodLog($formPieceId, $unlockerId, $unlockerUsername) {
+        $rollCount = FormCutPieceDetail::where("form_id", $formPieceId)->whereNull("id_roll")->count();
+
+        $createSelectMethodLog = FormCutSelectMethod::updateOrCreate(
+            ["form_piece_id" => $formPieceId],
+            [
+                "roll_count" => $rollCount,
+                "user_app" => $unlockerId,
+                "username_app" => $unlockerUsername,
+            ]
+        );
+
+        return $createSelectMethodLog;
+    }
+
+    public function formCutLock(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+        ]);
+
+        $formCutPiece = FormCutPiece::where("id", $validatedRequest['id'])->update([
+            "locked" => 1,
+            "unlocked_by" => null,
+        ]);
+
+        return $formCutPiece;
+    }
+
+    public function formCutUnlock(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "username" => "required",
+            "password" => "required",
+        ]);
+
+        if (Auth::validate(['username' => $validatedRequest['username'], 'password' => $validatedRequest['password']])) {
+            $unlocker = User::where("username", $validatedRequest['username'])->whereIn("type", ["admin", "superadmin"])->where("cutting_unlocker", 1)->first();
+
+            if ($unlocker) {
+                $formCutPiece = FormCutPiece::where("id", $validatedRequest['id'])->update([
+                    "locked" => 0,
+                    "unlocked_by" => $unlocker->id,
+                ]);
+
+                $this->createSelectMethodLog($validatedRequest['id'], $unlocker->id, $unlocker->username);
+
+                $formCutPieceFetch = FormCutPiece::where("id", $validatedRequest['id'])->first();
+
+                if ($formCutPieceFetch) {
+
+                    return $formCutPieceFetch;
+
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Terjadi kesalahan saat membuka kunci",
+                        "additional" => [],
+                    );
+                }
+            } else {
+                return response()->json(['message' => 'Unauthorized: User is not a cutting unlocker'], 401);
+            }
+        } else {
+            return response()->json(['message' => 'Unauthorized: Invalid credentials'], 401);
+        }
     }
 }

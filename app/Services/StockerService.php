@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\LoadingLine;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerDetail;
@@ -989,6 +990,7 @@ class StockerService
                     (COALESCE(secondary_inhouse.qty_in, 0)) != COALESCE(secondary_in.qty_awal, 0)
                 )
             ".($formCutId ? " and stocker_input.form_cut_id = '".$formCutId."' " : " AND DATE(stocker_input.updated_at) > '".(date('Y-m-d', strtotime('-7 days')))."'")."")->
+            whereNull("stocker_input.stocker_reject")->
             get();
 
         $log = [];
@@ -1001,32 +1003,41 @@ class StockerService
                 $dc->qty_awal = $s->qty_ply_mod != null ? $s->qty_ply_mod : $s->qty_ply;
                 $dc->save();
 
+                // Sec inhouse in
+                $secondaryInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $s->id_qr_stocker)->first();
+                if ($secondaryInhouseIn) {
+                    $secondaryInhouseIn->qty_in = $dc->qty_awal - $dc->qty_reject + $dc->qty_replace;
+                    $secondaryInhouseIn->save();
+                }
+
                 // Sec inhouse
                 $secondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $s->id_qr_stocker)->first();
                 if ($secondaryInhouse) {
                     $secondaryInhouse->qty_awal = $dc->qty_awal - $dc->qty_reject + $dc->qty_replace;
                     $secondaryInhouse->qty_in = $secondaryInhouse->qty_awal - $secondaryInhouse->qty_reject + $secondaryInhouse->qty_replace;
                     $secondaryInhouse->save();
+                }
 
-                    // Sec in
-                    $secondaryIn = SecondaryIn::where("id_qr_stocker", $s->id_qr_stocker)->first();
-                    if ($secondaryIn) {
-                        $secondaryIn->qty_awal = $secondaryInhouse->qty_in;
-                        $secondaryIn->qty_in = $secondaryIn->qty_awal - $secondaryIn->qty_reject + $secondaryIn->qty_replace;
-                        $secondaryIn->save();
-                    }
+                // Sec in
+                $secondaryIn = SecondaryIn::where("id_qr_stocker", $s->id_qr_stocker)->first();
+                if ($secondaryIn) {
+                    $secondaryIn->qty_awal = (isset($secondaryInhouse) && $secondaryInhouse ? $secondaryInhouse->qty_in : ($dc->qty_awal - $dc->qty_reject + $dc->qty_replace));
+                    $secondaryIn->qty_in = $secondaryIn->qty_awal - $secondaryIn->qty_reject + $secondaryIn->qty_replace;
+                    $secondaryIn->save();
                 }
 
                 // Loading Line
                 $loadingLine = LoadingLine::where("stocker_id", $s->id)->first();
                 if ($loadingLine) {
-                    $loadingLine->qty = (isset($secondaryIn) ? $secondaryIn->qty_in : ($dc->qty_awal - $dc->qty_reject + $dc->qty_replace));
+                    $loadingLine->qty = (isset($secondaryIn) && $secondaryInhouse ? $secondaryIn->qty_in : ($dc->qty_awal - $dc->qty_reject + $dc->qty_replace));
                     $loadingLine->save();
                 }
 
                 array_push($log, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
 
                 \Log::info("Recalculate Stocker ".$s->id_qr_stocker);
+
+                logHistory($s->id, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
             }
         }
 
