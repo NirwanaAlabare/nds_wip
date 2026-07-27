@@ -1752,9 +1752,4 @@ class DCInController extends Controller
 
         return DataTables::of($dcInList)->toJson();
     }
-
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
 }
