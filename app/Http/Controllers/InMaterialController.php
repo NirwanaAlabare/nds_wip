@@ -706,7 +706,7 @@ public function updatedet(Request $request)
             "txt_type_bc" => "required",
         ]);
 
-        if (intval($request['jumlah_qty']) > 0) {
+        if (floatval($request['jumlah_qty']) > 0) {
 
             $tglbpb = $request['txt_tgl_gr'];
 

@@ -3064,9 +3064,9 @@
         // Function :
             // -Check Spreading Form-
             function checkSpreadingForm() {
-                let id = document.getElementById("id").value;
-                let noForm = document.getElementById("no_form").value;
-                let noMeja = document.getElementById("no_meja").value;
+                let id = document.getElementById("id") ? document.getElementById("id").value : '';
+                let noForm = document.getElementById("no_form") ? document.getElementById("no_form").value : '';
+                let noMeja = document.getElementById("no_meja") ? document.getElementById("no_meja").value : '';
 
                 $.ajax({
                     url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + '/' + noMeja,

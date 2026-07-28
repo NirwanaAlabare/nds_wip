@@ -47,7 +47,7 @@
                             <div class="col-12 col-md-12 {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'd-none' : '' }}">
                                 <div class="mb-3">
                                     <label class="form-label small">Meja</label>
-                                    <select class="form-control select2bs4" id="{{ Auth::user()->type == 'admin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'disabled' : '' }}>
+                                    <select class="form-control select2bs4" id="{{ Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' && Auth::user()->type != 'superadmin' ? 'disabled' : '' }}>
                                         <option value="">Pilih Meja</option>
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
@@ -462,7 +462,7 @@
                             <div class="mb-3">
                                 <label class="form-label small">Cons Marker</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker ? $formCutInputData->cons_marker : 0 }}" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)">
+                                    <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker ? $formCutInputData->cons_marker : 0 }}" onkeyup="calculateEstKain(this.value); consUpRate();" onchange="calculateEstKain(this.value); consUpRate();">
                                     <select class="form-select form-select-sm" name="unit_cons_marker" id="unit_cons_marker">
                                         <option value="METER">METER</option>
                                         <option value="KGM">KGM</option>
@@ -3598,9 +3598,9 @@
             // Function :
                 // -Check Spreading Form-
                 function checkSpreadingForm() {
-                    let id = document.getElementById("id").value;
-                    let noForm = document.getElementById("no_form").value;
-                    let noMeja = document.getElementById("no_meja").value;
+                    let id = document.getElementById("id") ? document.getElementById("id").value : '';
+                    let noForm = document.getElementById("no_form") ? document.getElementById("no_form").value : '';
+                    let noMeja = document.getElementById("no_meja") ? document.getElementById("no_meja").value : '';
 
                     $.ajax({
                         url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + (noMeja ? '/' + noMeja : ''),

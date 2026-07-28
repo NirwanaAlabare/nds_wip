@@ -317,7 +317,7 @@ class CuttingToolsController extends Controller
     public function updateFormMarker(Request $request, StockerService $stockerService) {
 
         // Check Closing 
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_marker_form_id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,

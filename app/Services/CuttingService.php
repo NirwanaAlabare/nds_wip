@@ -339,463 +339,470 @@ class CuttingService
         $rollQty = $qty;
         $rollUse = null;
 
-        // When there are no input
-        if (!$rollQty) {
-            $roll = ScannedItem::where("id_roll", $idRoll)->first();
+        if ($rollId) {
+            // When there are no input
+            if (!$rollQty) {
+                $roll = ScannedItem::where("id_roll", $idRoll)->first();
 
-            if ($roll && $roll->unit == 'PCS') {
-                return array(
-                    "status" => 200,
-                    "message" => "Qty Roll ID ".$idRoll." dengan unit PCS belum bisa diperbaiki otomatis."
-                );
-            }
+                if ($roll && $roll->unit == 'PCS') {
+                    return array(
+                        "status" => 200,
+                        "message" => "Qty Roll ID ".$idRoll." dengan unit PCS belum bisa diperbaiki otomatis."
+                    );
+                }
 
-            $agg = DB::table(function ($q) use ($idRoll) {
-                $q->selectRaw('id_roll, SUM(total_pemakaian_roll) AS total_pakai')
-                    ->from('form_cut_input_detail')
-                    ->where('id_roll', $idRoll)
-                    ->groupBy('id_roll');
-
-                $q->unionAll(function ($q2) use ($idRoll) {
-                    $q2->selectRaw('id_roll, SUM(piping) AS total_pakai')
-                        ->from('form_cut_piping')
+                $agg = DB::table(function ($q) use ($idRoll) {
+                    $q->selectRaw('id_roll, SUM(total_pemakaian_roll) AS total_pakai')
+                        ->from('form_cut_input_detail')
                         ->where('id_roll', $idRoll)
                         ->groupBy('id_roll');
-                });
 
-                $q->unionAll(function ($q3) use ($idRoll) {
-                    $q3->selectRaw('barcode as id_roll, SUM(qty_pakai) AS total_pakai')
-                        ->from('form_cut_alokasi_gr_panel_barcode')
-                        ->where('barcode', $idRoll)
-                        ->groupBy('barcode');
-                });
-            }, 'form')
-            ->selectRaw('id_roll, SUM(total_pakai) AS total_pakai')
-            ->groupBy('id_roll')
-            ->first();
+                    $q->unionAll(function ($q2) use ($idRoll) {
+                        $q2->selectRaw('id_roll, SUM(piping) AS total_pakai')
+                            ->from('form_cut_piping')
+                            ->where('id_roll', $idRoll)
+                            ->groupBy('id_roll');
+                    });
 
-            $inputLatest = FormCutInputDetail::selectRaw("
-                    id_roll,
-                    ROUND(
-                        CASE
-                            WHEN status IN ('extension','extension complete')
-                                THEN qty - total_pemakaian_roll
-                            ELSE sisa_kain
-                        END,
-                        2
-                    ) AS sisa_kain,
-                    COALESCE(created_at, updated_at) AS ts
-                ")
-                ->where('id_roll', $idRoll)
-                ->orderByDesc('ts')
-                ->limit(1);
+                    $q->unionAll(function ($q3) use ($idRoll) {
+                        $q3->selectRaw('barcode as id_roll, SUM(qty_pakai) AS total_pakai')
+                            ->from('form_cut_alokasi_gr_panel_barcode')
+                            ->where('barcode', $idRoll)
+                            ->groupBy('barcode');
+                    });
+                }, 'form')
+                ->selectRaw('id_roll, SUM(total_pakai) AS total_pakai')
+                ->groupBy('id_roll')
+                ->first();
 
-            $pipingLatest = Piping::selectRaw("
-                    id_roll,
-                    ROUND(qty_sisa, 2) AS sisa_kain,
-                    created_at AS ts
-                ")
-                ->where('id_roll', $idRoll)
-                ->orderByDesc('created_at')
-                ->limit(1);
+                $inputLatest = FormCutInputDetail::selectRaw("
+                        id_roll,
+                        ROUND(
+                            CASE
+                                WHEN status IN ('extension','extension complete')
+                                    THEN qty - total_pemakaian_roll
+                                ELSE sisa_kain
+                            END,
+                            2
+                        ) AS sisa_kain,
+                        COALESCE(created_at, updated_at) AS ts
+                    ")
+                    ->where('id_roll', $idRoll)
+                    ->orderByDesc('ts')
+                    ->limit(1);
 
-            $alokasiGantiRejectPanelLatest = FormCutAlokasiGantiRejectPanel::selectRaw("
-                    barcode as id_roll,
-                    ROUND(sisa_kain, 2) AS sisa_kain,
-                    created_at AS ts
-                ")
-                ->where('barcode', $idRoll)
-                ->orderByDesc('created_at')
-                ->limit(1);
+                $pipingLatest = Piping::selectRaw("
+                        id_roll,
+                        ROUND(qty_sisa, 2) AS sisa_kain,
+                        created_at AS ts
+                    ")
+                    ->where('id_roll', $idRoll)
+                    ->orderByDesc('created_at')
+                    ->limit(1);
 
-            $latestUnion = DB::query()
-                ->select('id_roll','sisa_kain','ts')
-                ->fromSub($inputLatest, 'input')
-                ->unionAll($pipingLatest)
-                ->unionAll($alokasiGantiRejectPanelLatest);
+                $alokasiGantiRejectPanelLatest = FormCutAlokasiGantiRejectPanel::selectRaw("
+                        barcode as id_roll,
+                        ROUND(sisa_kain, 2) AS sisa_kain,
+                        created_at AS ts
+                    ")
+                    ->where('barcode', $idRoll)
+                    ->orderByDesc('created_at')
+                    ->limit(1);
 
-            $newestSisa = DB::query()
-                ->fromSub($latestUnion, 'latest')
-                ->orderByDesc('ts')
-                ->value('sisa_kain');
+                $latestUnion = DB::query()
+                    ->select('id_roll','sisa_kain','ts')
+                    ->fromSub($inputLatest, 'input')
+                    ->unionAll($pipingLatest)
+                    ->unionAll($alokasiGantiRejectPanelLatest);
 
-            if ($agg) {
-                $rollQty = $newestSisa;
-                $rollUse = $agg->total_pakai;
+                $newestSisa = DB::query()
+                    ->fromSub($latestUnion, 'latest')
+                    ->orderByDesc('ts')
+                    ->value('sisa_kain');
+
+                if ($agg) {
+                    $rollQty = $newestSisa;
+                    $rollUse = $agg->total_pakai;
+                } else {
+
+                    // Check Origin
+                    $newItem = DB::connection("mysql_sb")->select("
+                        SELECT
+                            id_roll,
+                            id_jo,
+                            detail_item,
+                            detail_item_color,
+                            detail_item_size,
+                            id_item,
+                            lot,
+                            roll,
+                            roll_buyer,
+                            qty_stok,
+                            SUM(qty)-COALESCE(qty_ri, 0) as qty,
+                            unit,
+                            rule_bom,
+                            so_det_list,
+                            size_list
+                        FROM (
+                            SELECT
+                                whs_bppb_det.id_roll,
+                                whs_bppb_det.id_jo,
+                                masteritem.itemdesc detail_item,
+                                masteritem.color detail_item_color,
+                                masteritem.size detail_item_size,
+                                whs_bppb_det.id_item,
+                                whs_bppb_det.no_lot lot,
+                                whs_bppb_det.no_roll roll,
+                                whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                                whs_bppb_det.qty_stok,
+                                whs_bppb_det.qty_out qty,
+                                whs_bppb_det.satuan unit,
+                                bji.rule_bom,
+                                GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+                                GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+                            FROM
+                                laravel_nds.penerimaan_cutting
+                                LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
+                                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                                LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$idRoll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                                LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                                LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+                                LEFT JOIN so_det ON so_det.id = bji.id_so_det
+                                LEFT JOIN so ON so.id = so_det.id_so
+                                LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                            WHERE
+                                whs_bppb_det.id_roll = '".$idRoll."'
+                                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                                AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
+                            GROUP BY
+                                whs_bppb_det.id
+                        ) item
+                        LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$idRoll."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$idRoll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+                        GROUP BY
+                            id_roll
+                        LIMIT 1
+                    ");
+
+                    // Set Qty based on Origin Source
+                    $rollQty = $newItem && $newItem[0] ? ($newItem[0]->unit == 'YARD' || $newItem[0]->unit == 'YRD' ? round(($newItem[0]->qty * 0.9144), 2) : $newItem[0]->qty) : null;
+                    $rollUse = 0;
+                }
+            }
+
+            // Roll Filter Query
+            $additionalQuery = "";
+            $additionalQuerySub = "";
+            if ($rollId) {
+                $additionalQuery = "WHERE si.id_roll = '".$rollId."'";
+                $additionalQuerySub = " and id_roll = '".$rollId."'";
+                $additionalQuerySubGr = " and barcode = '".$rollId."'";
             } else {
+                $additionalQuery = "WHERE si.qty != latest_sisa_overall.sisa_kain";
+                $additionalQuerySub = "";
+                $additionalQuerySubGr = "";
+            }
 
-                // Check Origin
-                $newItem = DB::connection("mysql_sb")->select("
+            // Roll Query
+            $roll = collect(DB::select("
+                WITH latest_input AS (
                     SELECT
                         id_roll,
-                        id_jo,
-                        detail_item,
-                        detail_item_color,
-                        detail_item_size,
-                        id_item,
-                        lot,
-                        roll,
-                        roll_buyer,
-                        qty_stok,
-                        SUM(qty)-COALESCE(qty_ri, 0) as qty,
-                        unit,
-                        rule_bom,
-                        so_det_list,
-                        size_list
-                    FROM (
-                        SELECT
-                            whs_bppb_det.id_roll,
-                            whs_bppb_det.id_jo,
-                            masteritem.itemdesc detail_item,
-                            masteritem.color detail_item_color,
-                            masteritem.size detail_item_size,
-                            whs_bppb_det.id_item,
-                            whs_bppb_det.no_lot lot,
-                            whs_bppb_det.no_roll roll,
-                            whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
-                            whs_bppb_det.qty_stok,
-                            whs_bppb_det.qty_out qty,
-                            whs_bppb_det.satuan unit,
-                            bji.rule_bom,
-                            GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
-                            GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
-                        FROM
-                            laravel_nds.penerimaan_cutting
-                            LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
-                            LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                            LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$idRoll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                            LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
-                            LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
-                            LEFT JOIN so_det ON so_det.id = bji.id_so_det
-                            LEFT JOIN so ON so.id = so_det.id_so
-                            LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                        WHERE
-                            whs_bppb_det.id_roll = '".$idRoll."'
-                            AND whs_bppb_h.tujuan = 'Production - Cutting'
-                            AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
-                            AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
-                        GROUP BY
-                            whs_bppb_det.id
-                    ) item
-                    LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$idRoll."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$idRoll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
-                    GROUP BY
-                        id_roll
-                    LIMIT 1
-                ");
-
-                // Set Qty based on Origin Source
-                $rollQty = $newItem && $newItem[0] ? ($newItem[0]->unit == 'YARD' || $newItem[0]->unit == 'YRD' ? round(($newItem[0]->qty * 0.9144), 2) : $newItem[0]->qty) : null;
-                $rollUse = 0;
-            }
-        }
-
-        // Roll Filter Query
-        $additionalQuery = "";
-        $additionalQuerySub = "";
-        if ($rollId) {
-            $additionalQuery = "WHERE si.id_roll = '".$rollId."'";
-            $additionalQuerySub = " and id_roll = '".$rollId."'";
-            $additionalQuerySubGr = " and barcode = '".$rollId."'";
-        } else {
-            $additionalQuery = "WHERE si.qty != latest_sisa_overall.sisa_kain";
-            $additionalQuerySub = "";
-            $additionalQuerySubGr = "";
-        }
-
-        // Roll Query
-        $roll = collect(DB::select("
-            WITH latest_input AS (
-                SELECT
-                    id_roll,
-                    ROUND(
-                        CASE
-                            WHEN status IN ('extension', 'extension complete') THEN qty - total_pemakaian_roll
-                            ELSE sisa_kain
-                        END,
-                        2
-                    ) AS sisa_kain,
-                    COALESCE(created_at, updated_at) AS ts,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY id_roll
-                        ORDER BY COALESCE(created_at, updated_at) DESC
-                    ) AS rn
-                FROM form_cut_input_detail
-                WHERE id_roll IS NOT NULL ".$additionalQuerySub."
-            ),
-            latest_piping AS (
-                SELECT
-                    id_roll,
-                    qty,
-                    qty_sisa AS sisa_kain,
-                    created_at AS ts,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY id_roll
-                        ORDER BY created_at DESC
-                    ) AS rn
-                FROM form_cut_piping
-                WHERE id_roll IS NOT NULL ".$additionalQuerySub."
-            ),
-            latest_gr_panel AS (
-                SELECT
-                    barcode AS id_roll,
-                    sisa_kain,
-                    COALESCE(created_at, updated_at) AS ts,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY barcode
-                        ORDER BY COALESCE(created_at, updated_at) DESC
-                    ) AS rn
-                FROM form_cut_alokasi_gr_panel_barcode
-                WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
-            ),
-            agg AS (
-                    SELECT id_roll, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
-                        SELECT
-                                id_roll,
-                                MAX(qty) AS max_qty,
-                                SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty
-                        FROM form_cut_input_detail
-                        WHERE id_roll IS NOT NULL  ".$additionalQuerySub."
-                        GROUP BY id_roll
-
-                        UNION ALL
-
-                        SELECT
-                                id_roll,
-                                MAX(qty) AS max_qty,
-                                SUM(piping) AS total_pakai_qty
-                        FROM form_cut_piping
-                        WHERE id_roll IS NOT NULL ".$additionalQuerySub."
-                        GROUP BY id_roll
-
-                        UNION ALL
-
-                        SELECT
-                                barcode AS id_roll,
-                                MAX(qty_roll) AS max_qty,
-                                SUM(qty_pakai) AS total_pakai_qty
-                        FROM form_cut_alokasi_gr_panel_barcode
-                        WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
-                        GROUP BY barcode
-                    ) form
-                    group by id_roll
-            ),
-            combined_latest AS (
-                SELECT id_roll, sisa_kain, ts FROM latest_input WHERE rn = 1
-                UNION ALL
-                SELECT id_roll, sisa_kain, ts FROM latest_piping WHERE rn = 1
-                UNION ALL
-                SELECT id_roll, sisa_kain, ts FROM latest_gr_panel WHERE rn = 1
-            ),
-            latest_sisa_overall AS (
-                SELECT id_roll, sisa_kain
-                FROM (
-                    SELECT *,
+                        ROUND(
+                            CASE
+                                WHEN status IN ('extension', 'extension complete') THEN qty - total_pemakaian_roll
+                                ELSE sisa_kain
+                            END,
+                            2
+                        ) AS sisa_kain,
+                        COALESCE(created_at, updated_at) AS ts,
                         ROW_NUMBER() OVER (
                             PARTITION BY id_roll
-                            ORDER BY ts DESC
+                            ORDER BY COALESCE(created_at, updated_at) DESC
                         ) AS rn
-                    FROM combined_latest
-                ) t
-                WHERE rn = 1
-            )
-            SELECT
-                si.id_roll,
-                si.qty_in,
-                si.qty,
-                agg.total_pakai_qty,
-                latest_sisa_overall.sisa_kain
-            FROM scanned_item si
-            LEFT JOIN agg ON si.id_roll = agg.id_roll
-            INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
-            ".$additionalQuery."
-        "));
+                    FROM form_cut_input_detail
+                    WHERE id_roll IS NOT NULL ".$additionalQuerySub."
+                ),
+                latest_piping AS (
+                    SELECT
+                        id_roll,
+                        qty,
+                        qty_sisa AS sisa_kain,
+                        created_at AS ts,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY id_roll
+                            ORDER BY created_at DESC
+                        ) AS rn
+                    FROM form_cut_piping
+                    WHERE id_roll IS NOT NULL ".$additionalQuerySub."
+                ),
+                latest_gr_panel AS (
+                    SELECT
+                        barcode AS id_roll,
+                        sisa_kain,
+                        COALESCE(created_at, updated_at) AS ts,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY barcode
+                            ORDER BY COALESCE(created_at, updated_at) DESC
+                        ) AS rn
+                    FROM form_cut_alokasi_gr_panel_barcode
+                    WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
+                ),
+                agg AS (
+                        SELECT id_roll, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
+                            SELECT
+                                    id_roll,
+                                    MAX(qty) AS max_qty,
+                                    SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty
+                            FROM form_cut_input_detail
+                            WHERE id_roll IS NOT NULL  ".$additionalQuerySub."
+                            GROUP BY id_roll
 
-        if ($roll) {
+                            UNION ALL
 
-            // Single Item
-            if ($rollId) {
-                $scannedItem = ScannedItem::where("id_roll", $rollId)->first();
+                            SELECT
+                                    id_roll,
+                                    MAX(qty) AS max_qty,
+                                    SUM(piping) AS total_pakai_qty
+                            FROM form_cut_piping
+                            WHERE id_roll IS NOT NULL ".$additionalQuerySub."
+                            GROUP BY id_roll
 
-                if ($scannedItem) {
+                            UNION ALL
+
+                            SELECT
+                                    barcode AS id_roll,
+                                    MAX(qty_roll) AS max_qty,
+                                    SUM(qty_pakai) AS total_pakai_qty
+                            FROM form_cut_alokasi_gr_panel_barcode
+                            WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
+                            GROUP BY barcode
+                        ) form
+                        group by id_roll
+                ),
+                combined_latest AS (
+                    SELECT id_roll, sisa_kain, ts FROM latest_input WHERE rn = 1
+                    UNION ALL
+                    SELECT id_roll, sisa_kain, ts FROM latest_piping WHERE rn = 1
+                    UNION ALL
+                    SELECT id_roll, sisa_kain, ts FROM latest_gr_panel WHERE rn = 1
+                ),
+                latest_sisa_overall AS (
+                    SELECT id_roll, sisa_kain
+                    FROM (
+                        SELECT *,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY id_roll
+                                ORDER BY ts DESC
+                            ) AS rn
+                        FROM combined_latest
+                    ) t
+                    WHERE rn = 1
+                )
+                SELECT
+                    si.id_roll,
+                    si.qty_in,
+                    si.qty,
+                    agg.total_pakai_qty,
+                    latest_sisa_overall.sisa_kain
+                FROM scanned_item si
+                LEFT JOIN agg ON si.id_roll = agg.id_roll
+                INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
+                ".$additionalQuery."
+            "));
+
+            if ($roll) {
+
+                // Single Item
+                if ($rollId) {
+                    $scannedItem = ScannedItem::where("id_roll", $rollId)->first();
+
+                    if ($scannedItem) {
+                        Log::channel('fixRollQty')->info([
+                            "Fix Roll Qty",
+                            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                            $scannedItem
+                        ]);
+
+                        if ($scannedItem->qty != $rollQty) {
+                            $scannedItem->qty = $rollQty;
+                        } else {
+                            $currentRoll = $roll->where("id_roll", $rollId)->first();
+
+                            if ($currentRoll) {
+                                if ($scannedItem->qty != $currentRoll->sisa_kain) {
+                                    $scannedItem->qty = $currentRoll->sisa_kain;
+                                }
+                            }
+                        }
+
+                        if ($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) {
+                            $scannedItem->qty_pakai = $rollUse;
+                        }
+
+                        $scannedItem->save();
+
+                        return array(
+                            "status" => 200,
+                            "message" => $scannedItem->id_roll." berhasil diubah."
+                        );
+                    }
+                }
+
+                // Multi Item
+                else {
+                    // Pre update Log
+                    $toUpdateRoll = DB::select("
+                        SELECT si.* FROM scanned_item si
+                        INNER JOIN (
+                            SELECT cand.id_roll, cand.sisa_kain
+                            FROM (
+                                SELECT
+                                    id_roll,
+                                    ROUND(
+                                        CASE
+                                            WHEN status IN ('extension','extension complete')
+                                                THEN qty - total_pemakaian_roll
+                                            ELSE sisa_kain
+                                        END,
+                                        2
+                                    ) AS sisa_kain,
+                                    COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_input_detail
+                                WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT
+                                    id_roll,
+                                    qty_sisa AS sisa_kain,
+                                    created_at AS ts
+                                FROM form_cut_piping
+                                WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT
+                                    barcode AS id_roll,
+                                    sisa_kain,
+                                    COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_alokasi_gr_panel_barcode
+                                WHERE barcode IS NOT NULL
+                            ) cand
+                            JOIN (
+                                SELECT id_roll, MAX(ts) AS ts
+                                FROM (
+                                    SELECT id_roll, COALESCE(created_at, updated_at) AS ts
+                                    FROM form_cut_input_detail
+                                    WHERE id_roll IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT id_roll, created_at AS ts
+                                    FROM form_cut_piping
+                                    WHERE id_roll IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
+                                    FROM form_cut_alokasi_gr_panel_barcode
+                                    WHERE barcode IS NOT NULL
+                                ) all_ts
+                                GROUP BY id_roll
+                            ) last_ts ON cand.id_roll = last_ts.id_roll
+                            AND cand.ts = last_ts.ts
+                        ) sub ON si.id_roll = sub.id_roll
+                        WHERE si.qty != sub.sisa_kain
+                    ");
+
                     Log::channel('fixRollQty')->info([
                         "Fix Roll Qty",
                         "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                        $scannedItem
+                        $roll,
+                        $toUpdateRoll
                     ]);
 
-                    if ($scannedItem->qty != $rollQty) {
-                        $scannedItem->qty = $rollQty;
-                    } else {
-                        $currentRoll = $roll->where("id_roll", $rollId)->first();
+                    // Update Roll
+                    $updateRollQty = DB::statement("
+                        UPDATE scanned_item si
+                        INNER JOIN (
+                            SELECT cand.id_roll, cand.sisa_kain
+                            FROM (
+                                SELECT
+                                    id_roll,
+                                    ROUND(
+                                        CASE
+                                            WHEN status IN ('extension','extension complete')
+                                                THEN qty - total_pemakaian_roll
+                                            ELSE sisa_kain
+                                        END,
+                                        2
+                                    ) AS sisa_kain,
+                                    COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_input_detail
+                                WHERE id_roll IS NOT NULL
 
-                        if ($currentRoll) {
-                            if ($scannedItem->qty != $currentRoll->sisa_kain) {
-                                $scannedItem->qty = $currentRoll->sisa_kain;
-                            }
-                        }
-                    }
+                                UNION ALL
 
-                    if ($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) {
-                        $scannedItem->qty_pakai = $rollUse;
-                    }
+                                SELECT
+                                    id_roll,
+                                    qty_sisa AS sisa_kain,
+                                    created_at AS ts
+                                FROM form_cut_piping
+                                WHERE id_roll IS NOT NULL
 
-                    $scannedItem->save();
+                                UNION ALL
+
+                                SELECT
+                                    barcode AS id_roll,
+                                    sisa_kain,
+                                    COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_alokasi_gr_panel_barcode
+                                WHERE barcode IS NOT NULL
+                            ) cand
+                            JOIN (
+                                SELECT id_roll, MAX(ts) AS ts
+                                FROM (
+                                    SELECT id_roll, COALESCE(created_at, updated_at) AS ts
+                                    FROM form_cut_input_detail
+                                    WHERE id_roll IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT id_roll, created_at AS ts
+                                    FROM form_cut_piping
+                                    WHERE id_roll IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
+                                    FROM form_cut_alokasi_gr_panel_barcode
+                                    WHERE barcode IS NOT NULL
+                                ) all_ts
+                                GROUP BY id_roll
+                            ) last_ts ON cand.id_roll = last_ts.id_roll
+                            AND cand.ts = last_ts.ts
+                        ) sub ON si.id_roll = sub.id_roll
+                        SET si.qty = sub.sisa_kain
+                        WHERE si.qty != sub.sisa_kain
+                    ");
 
                     return array(
                         "status" => 200,
-                        "message" => $scannedItem->id_roll." berhasil diubah."
+                        "message" => $roll->count()." roll berhasil diubah."
                     );
                 }
             }
 
-            // Multi Item
-            else {
-                // Pre update Log
-                $toUpdateRoll = DB::select("
-                    SELECT si.* FROM scanned_item si
-                    INNER JOIN (
-                        SELECT cand.id_roll, cand.sisa_kain
-                        FROM (
-                            SELECT
-                                id_roll,
-                                ROUND(
-                                    CASE
-                                        WHEN status IN ('extension','extension complete')
-                                            THEN qty - total_pemakaian_roll
-                                        ELSE sisa_kain
-                                    END,
-                                    2
-                                ) AS sisa_kain,
-                                COALESCE(created_at, updated_at) AS ts
-                            FROM form_cut_input_detail
-                            WHERE id_roll IS NOT NULL
-
-                            UNION ALL
-
-                            SELECT
-                                id_roll,
-                                qty_sisa AS sisa_kain,
-                                created_at AS ts
-                            FROM form_cut_piping
-                            WHERE id_roll IS NOT NULL
-
-                            UNION ALL
-
-                            SELECT
-                                barcode AS id_roll,
-                                sisa_kain,
-                                COALESCE(created_at, updated_at) AS ts
-                            FROM form_cut_alokasi_gr_panel_barcode
-                            WHERE barcode IS NOT NULL
-                        ) cand
-                        JOIN (
-                            SELECT id_roll, MAX(ts) AS ts
-                            FROM (
-                                SELECT id_roll, COALESCE(created_at, updated_at) AS ts
-                                FROM form_cut_input_detail
-                                WHERE id_roll IS NOT NULL
-
-                                UNION ALL
-
-                                SELECT id_roll, created_at AS ts
-                                FROM form_cut_piping
-                                WHERE id_roll IS NOT NULL
-
-                                UNION ALL
-
-                                SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
-                                FROM form_cut_alokasi_gr_panel_barcode
-                                WHERE barcode IS NOT NULL
-                            ) all_ts
-                            GROUP BY id_roll
-                        ) last_ts ON cand.id_roll = last_ts.id_roll
-                        AND cand.ts = last_ts.ts
-                    ) sub ON si.id_roll = sub.id_roll
-                    WHERE si.qty != sub.sisa_kain
-                ");
-
-                Log::channel('fixRollQty')->info([
-                    "Fix Roll Qty",
-                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                    $roll,
-                    $toUpdateRoll
-                ]);
-
-                // Update Roll
-                $updateRollQty = DB::statement("
-                    UPDATE scanned_item si
-                    INNER JOIN (
-                        SELECT cand.id_roll, cand.sisa_kain
-                        FROM (
-                            SELECT
-                                id_roll,
-                                ROUND(
-                                    CASE
-                                        WHEN status IN ('extension','extension complete')
-                                            THEN qty - total_pemakaian_roll
-                                        ELSE sisa_kain
-                                    END,
-                                    2
-                                ) AS sisa_kain,
-                                COALESCE(created_at, updated_at) AS ts
-                            FROM form_cut_input_detail
-                            WHERE id_roll IS NOT NULL
-
-                            UNION ALL
-
-                            SELECT
-                                id_roll,
-                                qty_sisa AS sisa_kain,
-                                created_at AS ts
-                            FROM form_cut_piping
-                            WHERE id_roll IS NOT NULL
-
-                            UNION ALL
-
-                            SELECT
-                                barcode AS id_roll,
-                                sisa_kain,
-                                COALESCE(created_at, updated_at) AS ts
-                            FROM form_cut_alokasi_gr_panel_barcode
-                            WHERE barcode IS NOT NULL
-                        ) cand
-                        JOIN (
-                            SELECT id_roll, MAX(ts) AS ts
-                            FROM (
-                                SELECT id_roll, COALESCE(created_at, updated_at) AS ts
-                                FROM form_cut_input_detail
-                                WHERE id_roll IS NOT NULL
-
-                                UNION ALL
-
-                                SELECT id_roll, created_at AS ts
-                                FROM form_cut_piping
-                                WHERE id_roll IS NOT NULL
-
-                                UNION ALL
-
-                                SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
-                                FROM form_cut_alokasi_gr_panel_barcode
-                                WHERE barcode IS NOT NULL
-                            ) all_ts
-                            GROUP BY id_roll
-                        ) last_ts ON cand.id_roll = last_ts.id_roll
-                        AND cand.ts = last_ts.ts
-                    ) sub ON si.id_roll = sub.id_roll
-                    SET si.qty = sub.sisa_kain
-                    WHERE si.qty != sub.sisa_kain
-                ");
-
-                return array(
-                    "status" => 200,
-                    "message" => $roll->count()." roll berhasil diubah."
-                );
-            }
+            return array(
+                "status" => 400,
+                "message" => "Roll yang tidak sesuai tidak ditemukan."
+            );
         }
 
         return array(
             "status" => 400,
-            "message" => "Roll yang tidak sesuai tidak ditemukan."
+            "message" => "Roll tidak valid."
         );
     }
 
@@ -808,14 +815,16 @@ class CuttingService
             $rollQty = null;
             $rollUse = null;
 
-            $fixRollQty = $this->fixRollQty($rollId, $rollQty);
+            if ($rollId) {
+                $fixRollQty = $this->fixRollQty($rollId, $rollQty);
 
-            if ($fixRollQty) {
-                if (isset($fixRollQty->status)) {
-                    if ($fixRollQty->status == 200) {
-                        array_push($rollSuccessArr, $rollId);
+                if ($fixRollQty) {
+                    if (isset($fixRollQty->status)) {
+                        if ($fixRollQty->status == 200) {
+                            array_push($rollSuccessArr, $rollId);
 
-                        continue;
+                            continue;
+                        }
                     }
                 }
             }
