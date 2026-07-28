@@ -4,48 +4,168 @@
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 <style>
-    .nav-tabs { border-bottom: none; }
-    .nav-tabs .nav-item { margin-bottom: 0; margin-right: 5px; }
+    /* ============ TAB NAVIGASI ============ */
+    .nav-tabs {
+        border-bottom: none;
+        gap: 4px;
+    }
+    .nav-tabs .nav-item { margin-bottom: 0; margin-right: 2px; }
     .nav-tabs .nav-link {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 8px 15px;
-        font-size: 13px;
-        transition: all 0.3s ease;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #475569;
+        background: #fff;
+        transition: all 0.2s ease;
     }
     .nav-tabs .nav-link.active {
-        font-weight: bold;
-        background-color: #003366 !important;
+        font-weight: 700;
+        background-color: #0f172a !important;
         color: #ffffff !important;
-        border-color: #003366 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-color: #0f172a !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
     }
     .nav-tabs .nav-link.active::after { display: none; }
     .nav-tabs .nav-link:not(.active) {
-        color: #000000 !important;
+        color: #475569 !important;
         background-color: #ffffff;
     }
     .nav-tabs .nav-link:not(.active):hover {
-        background-color: #f8f9fa;
-        border-color: #ddd;
-        color: #000000 !important;
+        background-color: #f0f6ff;
+        border-color: #93c5fd;
+        color: #1e3a8a !important;
     }
+
     .form-group label {
-        font-size: 13px;
-        font-weight: 600;
-        margin-bottom: 0.2rem;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.25rem;
     }
-    .form-control-sm { font-size: 13px; }
+    .form-control-sm { font-size: 13px; border-radius: 7px; border: 1.5px solid #e2e8f0; }
+    .form-control-sm:focus {
+        border-color: #3085d6;
+        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12);
+    }
+
+    /* ============ SECTION TITLE (editorial, konsisten dgn halaman lain) ============ */
     .section-title {
-        font-size: 14px;
-        font-weight: bold;
-        color: #333;
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 5px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #0f172a;
+        border: none;
+        border-left: 4px solid #3085d6;
+        padding: 4px 0 4px 10px;
         margin-bottom: 15px;
-        margin-top: 20px;
+        margin-top: 22px;
+    }
+
+    /* ============ CARD HEADER UTAMA (judul dokumen BC 4.0) ============ */
+    .card-sb {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+    }
+    .card-sb > .card-header {
+        background: #0f172a;
+        border: none;
+        padding: 1.5rem 1.75rem;
+        position: relative;
+    }
+
+    .card-sb > .card-header .card-title {
+        color: #f8fafc;
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+    .card-sb > .card-header .card-title i {
+        color: #5aa9f0;
+    }
+
+    .card-sb > .card-body {
+        background: #fbfcff;
+    }
+
+    .alert-info {
+        border-radius: 10px;
+        border: 1px solid #bae0fd;
+        background: #f0f9ff;
+        color: #0369a1;
+        font-size: 13px;
+    }
+
+    /* ============ MINI CARD HEADER DI DALAM ACCORDION BARANG (ganti bg-navy) ============ */
+    .card-header.bg-navy {
+        background: #1e293b !important;
+        border-radius: 6px 6px 0 0;
+    }
+
+    /* ============ ACCORDION BARANG ============ */
+    .btn-collapse-barang {
+        border-radius: 8px 8px 0 0 !important;
+        background: #f1f5f9 !important;
+        transition: background 0.2s ease;
+    }
+    .btn-collapse-barang:hover { background: #e2e8f0 !important; }
+
+    #accordionBarang > .card {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+    }
+
+    /* ============ TABEL DOKUMEN / KEMASAN / KONTAINER ============ */
+    #table-dokumen thead,
+    #table-kemasan thead,
+    #table-kontainer thead {
+        background: #0f172a !important;
+    }
+    #table-dokumen thead th,
+    #table-kemasan thead th,
+    #table-kontainer thead th {
+        color: #f8fafc !important;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border-color: #1e293b !important;
+    }
+
+    /* ============ TABEL PUNGUTAN ============ */
+    #tab-pungutan .table thead {
+        background: #0f172a !important;
+    }
+    #tab-pungutan .table thead th {
+        color: #f8fafc !important;
+        font-size: 11.5px;
+        text-transform: uppercase;
+    }
+
+    /* ============ FOOTER ============ */
+    .card-footer {
+        background: #fff !important;
+        border-top: 1px solid #e7ecf3 !important;
+        padding: 1rem 1.75rem;
+    }
+    .card-footer .btn-success {
+        border-radius: 8px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        border: none;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+    }
+    .card-footer .btn-default {
+        border-radius: 8px;
+        font-weight: 600;
     }
 </style>
+
 @endsection
 
 @section('content')

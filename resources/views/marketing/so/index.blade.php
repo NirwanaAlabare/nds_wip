@@ -5,20 +5,29 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
     <style>
-        .select2-container--open {
-            z-index: 99999 !important;
+        :root {
+            --sb-navy: #0f172a;
+            --sb-navy-soft: #16213c;
+            --sb-blue: #3085d6;
+            --sb-blue-dark: #1e3a8a;
+            --sb-blue-light: #eaf1ff;
+            --sb-ink: #1e293b;
+            --sb-muted: #64748b;
+            --sb-border: #e2e8f0;
+            --sb-bg-soft: #f8fafc;
+            --sb-success: #198754;
+            --sb-danger: #dc3545;
+            --sb-warning: #f0ad4e;
+            --sb-radius: 14px;
+            --sb-radius-sm: 8px;
         }
-        #table-material-so thead th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #f8f9fa;
-            vertical-align: middle;
-        }
-        .modal-xl {
-            max-width: 95% !important;
-        }
+
+        /* ============ GLOBAL / MISC ============ */
+        .select2-container--open { z-index: 99999 !important; }
+
+        .modal-xl { max-width: 95% !important; }
 
         .table-scroll-modal {
             max-height: 60vh;
@@ -26,57 +35,182 @@
             overflow-x: auto;
         }
 
-        #table-detail-so thead th,
-        #table-material-so thead th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #f8f9fa;
+        /* ============ CARD UTAMA ============ */
+        .card-sb {
+            border: none;
+            border-radius: var(--sb-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        }
+
+        .card-sb > .card-header {
+            background: var(--sb-navy) !important;
+            border: none;
+            padding: 1.6rem 2rem;
+            position: relative;
+        }
+
+        .card-sb > .card-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 5px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card-sb > .card-header .card-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #5aa9f0;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card-sb > .card-header .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f8fafc !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-sb > .card-body {
+            background: #fbfcff;
+            padding: 1.75rem 2rem 2rem;
+        }
+
+        /* ============ BUTTON CREATE ============ */
+        .btn-outline-primary {
+            border-radius: var(--sb-radius-sm);
+            font-weight: 600;
+            border: 1.5px solid var(--sb-blue);
+            color: #1e5da8;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-primary:hover {
+            background: var(--sb-blue);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
+        }
+
+        /* ============ FILTER PANEL ============ */
+        .filter-panel {
+            background: #fff;
+            border: 1px solid #e7ecf3;
+            border-radius: var(--sb-radius);
+            padding: 1.1rem 1.4rem;
+            margin-bottom: 1.6rem;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        }
+
+        .filter-panel label {
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 4px;
+        }
+
+        .filter-panel .form-control {
+            border-radius: 10px;
+            border: 1.5px solid var(--sb-border);
+            height: calc(1.5em + 0.9rem + 2px);
+            padding: 0.45rem 0.8rem;
+        }
+        .filter-panel .form-control:focus {
+            border-color: var(--sb-blue);
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12);
+        }
+
+        .filter-panel .btn-primary {
+            border-radius: 10px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--sb-blue), var(--sb-blue-dark));
+            border: none;
+            box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
+            transition: all 0.2s ease;
+            height: calc(1.5em + 0.9rem + 2px);
+        }
+        .filter-panel .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(48, 133, 214, 0.35);
+        }
+
+        /* ============ TABLE UTAMA (table-so) ============ */
+        #table-so thead tr { background: var(--sb-navy); }
+        #table-so thead th {
+            color: #f8fafc !important;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 700;
             vertical-align: middle;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
+            border-color: #1e293b;
+            white-space: nowrap;
         }
+        #table-so tbody td { font-size: 13px; vertical-align: middle; }
+        #table-so tbody tr:hover { background-color: #f4f8fd; }
+        #table-so .btn { border-radius: 6px; font-weight: 600; }
 
-        .modal-xl {
-            max-width: 95% !important;
-        }
-
-        #table-material-so thead th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background-color: #f8f9fa;
-            box-shadow: inset 0 -1px 0 #dee2e6, inset 0 1px 0 #dee2e6;
-        }
-    </style>
-    <style>
-        /* ===== Modal Detail SO - Redesign ===== */
+        /* ============ MODAL DETAIL SO ============ */
         #modal-detail .modal-content {
             border: none;
-            border-radius: 14px;
+            border-radius: var(--sb-radius);
             overflow: hidden;
         }
 
         #modal-detail .modal-header {
-            background: linear-gradient(135deg, #0d1b3e 0%, #0d1b3e 100%);
+            background: var(--sb-navy);
             border-bottom: none;
-            padding: 1rem 1.5rem;
+            padding: 1.1rem 1.5rem;
+            position: relative;
         }
 
-        #modal-detail .modal-header .modal-title {
+        #modal-detail .modal-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 8px, transparent 8px, transparent 16px);
+        }
+
+        #modal-detail .modal-title {
             font-weight: 600;
             letter-spacing: .3px;
+            font-size: 1rem;
+            color: #f8fafc;
         }
+
+        #modal-detail .close { color: #f8fafc; opacity: .85; }
+        #modal-detail .close:hover { opacity: 1; }
 
         #modal-detail .modal-body {
             background: #f4f6f9;
             padding: 1.25rem 1.5rem;
         }
 
-        /* Info header card (No SO, WS, Style, Buyer) */
+        #modal-detail .modal-footer {
+            border-top: 1px solid #e7ecf3;
+            background: #fff;
+            padding: .9rem 1.5rem;
+        }
+
+        #modal-detail .modal-footer .btn {
+            border-radius: var(--sb-radius-sm);
+            font-weight: 600;
+            padding: .5rem 1.1rem;
+        }
+
+        /* Info header card (No SO, WS, Style, Buyer, Market) */
         .so-info-card {
             background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
+            border: 1px solid var(--sb-border);
+            border-radius: var(--sb-radius);
             padding: 1.15rem 1.25rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             margin-bottom: 1.25rem;
@@ -105,7 +239,7 @@
             font-size: 10.5px;
             text-transform: uppercase;
             letter-spacing: .6px;
-            color: #64748b;
+            color: var(--sb-muted);
             font-weight: 700;
             margin-bottom: 3px;
             display: flex;
@@ -113,18 +247,27 @@
             gap: 5px;
         }
 
-        .so-info-item .so-info-label i {
-            color: #3b82f6;
-            font-size: 11px;
-        }
+        .so-info-item .so-info-label i { color: var(--sb-blue); font-size: 11px; }
 
         .so-info-item .so-info-value {
             font-size: 14px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--sb-ink);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        #style_input_header {
+            font-size: 14px;
+            background-color: var(--sb-bg-soft);
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+        }
+        #style_input_header:focus {
+            border-color: var(--sb-blue);
+            border-style: solid;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12);
         }
 
         /* Section cards (List Detail Qty / Tambah Warna) */
@@ -158,24 +301,16 @@
             gap: 8px;
         }
 
-        .section-card-header h6 i {
-            color: #2a5298;
-        }
+        .section-card-header h6 i { color: var(--sb-blue-dark); }
 
         .section-card-header .section-toggle-icon {
             color: #8a94a6;
             transition: transform .2s ease;
         }
 
-        .section-card-header.collapsed .section-toggle-icon {
-            transform: rotate(-90deg);
-        }
+        .section-card-header.collapsed .section-toggle-icon { transform: rotate(-90deg); }
 
-        .section-card-header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .section-card-header-right { display: flex; align-items: center; gap: 10px; }
 
         .section-card-body {
             padding: 1rem 1.1rem;
@@ -192,45 +327,41 @@
             overflow: hidden;
         }
 
-        .section-card.section-add .section-card-header h6 i {
-            color: #198754;
-        }
+        .section-card.section-add .section-card-header h6 i { color: var(--sb-success); }
 
         /* Badge total qty di header list detail */
         .badge-total-qty {
-            background: #eaf1ff;
-            color: #2a5298;
-            font-weight: 600;
+            background: var(--sb-blue-light);
+            color: var(--sb-blue-dark);
+            font-weight: 700;
             font-size: 12px;
             padding: 5px 10px;
             border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         /* Table detail qty */
-        #table-detail-so {
-            font-size: 13px;
-        }
+        #table-detail-so { font-size: 13px; }
 
         #table-detail-so thead th {
-            background: #f8f9fb !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--sb-navy) !important;
+            color: #f8fafc !important;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: .4px;
-            color: #6c7788;
-            border-bottom: 2px solid #eef1f5 !important;
+            border-color: #1e293b;
         }
 
-        #table-detail-so tbody tr:hover {
-            background: #f8fafd;
-        }
+        #table-detail-so tbody tr:hover { background: #f8fafd; }
 
-        #table-detail-so .qty-input {
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
+        #table-detail-so .qty-input { border-radius: 6px; font-weight: 600; }
         #table-detail-so .qty-input:focus {
-            border-color: #2a5298;
+            border-color: var(--sb-blue-dark);
             box-shadow: 0 0 0 .15rem rgba(42,82,152,.15);
         }
 
@@ -239,6 +370,7 @@
             border-radius: 6px;
             font-size: 12px;
             padding: .25rem .6rem;
+            font-weight: 600;
         }
 
         /* Form tambah warna/size */
@@ -251,16 +383,21 @@
 
         #form-add-color-so .select2-container .select2-selection--multiple,
         #form-add-color-so input[type="number"] {
-            border-radius: 8px;
+            border-radius: var(--sb-radius-sm);
             border: 1px solid #e1e5ea;
         }
 
         #form-add-color-so .btn-primary {
-            border-radius: 8px;
+            border-radius: var(--sb-radius-sm);
             font-weight: 600;
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            background: linear-gradient(135deg, var(--sb-blue-dark) 0%, var(--sb-navy) 100%);
             border: none;
-            padding: .55rem 0;
+            padding: .6rem 0;
+            transition: all .2s ease;
+        }
+        #form-add-color-so .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
         }
 
         .divider-hint {
@@ -269,33 +406,23 @@
             margin-top: .75rem;
             padding-top: .75rem;
             border-top: 1px dashed #e6e9ee;
+            display: flex;
+            gap: 6px;
         }
 
-        #modal-detail .modal-footer {
-            background: #fff;
-            border-top: 1px solid #eef1f5;
-            padding: .9rem 1.5rem;
-        }
-
-        #modal-detail .modal-footer .btn {
-            border-radius: 8px;
-            font-weight: 600;
-            padding: .5rem 1.1rem;
-        }
-    </style>
-
-    <style>
+        /* ============ PREVIEW UPLOAD (SO Detail matrix) ============ */
         .preview-upload-card {
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,.08);
             margin-bottom: 1.25rem;
+            border: 1px solid #eef1f5;
         }
 
         .preview-upload-header {
-            background: #0d1b3e;
+            background: var(--sb-navy);
             color: #fff;
-            padding: .75rem 1.1rem;
+            padding: .8rem 1.1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -312,13 +439,8 @@
             gap: 8px;
         }
 
-        .preview-upload-header .toggle-icon {
-            transition: transform .2s ease;
-        }
-
-        .preview-upload-header.collapsed .toggle-icon {
-            transform: rotate(-90deg);
-        }
+        .preview-upload-header .toggle-icon { transition: transform .2s ease; }
+        .preview-upload-header.collapsed .toggle-icon { transform: rotate(-90deg); }
 
         .preview-upload-body {
             background: #fff;
@@ -326,21 +448,12 @@
             overflow: auto;
             transition: max-height .25s ease;
         }
+        .preview-upload-body.collapsed { max-height: 0; overflow: hidden; }
 
-        .preview-upload-body.collapsed {
-            max-height: 0;
-            overflow: hidden;
-        }
-
-        /* Table */
-        #table-preview-so-det {
-            margin: 0;
-            font-size: 12px;
-            white-space: nowrap;
-        }
+        #table-preview-so-det { margin: 0; font-size: 12px; white-space: nowrap; }
 
         #table-preview-so-det thead th {
-            background: #0d1b3e;
+            background: var(--sb-navy);
             color: #fff;
             text-align: center;
             vertical-align: middle;
@@ -350,8 +463,6 @@
             z-index: 2;
         }
 
-        /* Kolom-kolom identitas (Style s/d Color) dibuat sticky ke kiri supaya
-        saat scroll horizontal ke kanan (lihat Size), tetap kelihatan */
         #table-preview-so-det thead th.sticky-col,
         #table-preview-so-det tbody td.sticky-col {
             position: sticky;
@@ -360,15 +471,11 @@
             z-index: 1;
         }
 
-        #table-preview-so-det thead th.sticky-col {
-            background: #0d1b3e;
-            z-index: 3;
-        }
+        #table-preview-so-det thead th.sticky-col { background: var(--sb-navy); z-index: 3; }
 
-        /* Kolom Size di-highlight beda supaya kebaca sebagai "grup size" */
         #table-preview-so-det th.col-size,
         #table-preview-so-det td.col-size {
-            background: #0d1b3e;
+            background: var(--sb-navy);
             text-align: center;
             min-width: 55px;
         }
@@ -376,22 +483,85 @@
         #table-preview-so-det td.col-size.has-qty {
             background: #d7e6ff;
             font-weight: 700;
-            color: #0d1b3e;
+            color: var(--sb-navy);
         }
 
         #table-preview-so-det td.col-total {
-            background: #0d1b3e;
+            background: var(--sb-navy);
             color: #fff;
             font-weight: 700;
             text-align: center;
         }
 
-        #table-preview-so-det tbody tr:hover td:not(.col-size):not(.col-total) {
-            background: #f8fafd;
+        #table-preview-so-det tbody tr:hover td:not(.col-size):not(.col-total) { background: #f8fafd; }
+
+        /* ============ MODAL MATERIAL BOM ============ */
+        #modal-detail-material .modal-content {
+            border: none;
+            border-radius: var(--sb-radius);
+            overflow: hidden;
+        }
+        #modal-detail-material .modal-header {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+            border: none;
+            padding: 1.1rem 1.5rem;
+        }
+        #modal-detail-material .modal-title { font-weight: 700; }
+        #modal-detail-material .modal-footer {
+            border-top: 1px solid #e7ecf3;
+            background: #fff;
+        }
+
+        #table-material-so thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--sb-navy) !important;
+            color: #f8fafc !important;
+            box-shadow: none;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+        #table-material-so tbody tr:hover { background-color: #fff8e6; }
+
+        /* ============ MODAL MERGE SO ============ */
+        #modal-merge-so .modal-content {
+            border: none;
+            border-radius: var(--sb-radius);
+            overflow: hidden;
+        }
+        #modal-merge-so .modal-header {
+            background: linear-gradient(135deg, var(--sb-navy), #1e293b) !important;
+            border: none;
+        }
+        #modal-merge-so .modal-footer {
+            border-top: 1px solid #e7ecf3;
+            background: #fff;
+        }
+        #modal-merge-so .alert-info {
+            border-radius: 10px;
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1e40af;
+        }
+        #table-merge-detail thead th {
+            position: sticky;
+            top: 0;
+            background: var(--sb-navy) !important;
+            color: #f8fafc !important;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+        #table-merge-detail tbody tr:hover { background-color: #f4f8fd; }
+        #merge-selected-count {
+            background: var(--sb-blue-dark);
+            font-weight: 600;
+            padding: .4rem .7rem;
+            border-radius: 20px;
         }
     </style>
-
-
 @endsection
 
 @php
@@ -402,7 +572,8 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Data Sales Order</h5>
+        <span class="card-eyebrow">Marketing &middot; Sales Order</span>
+        <h5 class="card-title mb-0"><i class="fas fa-list"></i> List Data Sales Order</h5>
     </div>
     <div class="card-body">
         <div class="mb-3">
@@ -411,19 +582,21 @@
             </a>
         </div>
 
-        <div class="row align-items-end mb-4">
-            <div class="col-md-2">
-                <label class="small fw-bold">Tgl Awal</label>
-                <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="small fw-bold">Tgl Akhir</label>
-                <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary btn-sm" onclick="refreshTable()">
-                    <i class="fas fa-search"></i> Filter
-                </button>
+        <div class="filter-panel">
+            <div class="row align-items-end">
+                <div class="col-md-2 col-6 mb-2 mb-md-0">
+                    <label class="d-block mb-1">Tgl Awal</label>
+                    <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2 col-6 mb-2 mb-md-0">
+                    <label class="d-block mb-1">Tgl Akhir</label>
+                    <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2 col-6">
+                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="refreshTable()">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -450,6 +623,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="modal-detail" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -477,7 +651,7 @@
                         <div class="col-6 col-md-3 mb-2 mb-md-0">
                             <div class="so-info-item">
                                 <span class="so-info-label"><i class="fas fa-tshirt"></i> Style</span>
-                                <input type="text" id="style_input_header" class="form-control form-control-sm font-weight-bold text-dark px-2 py-1" style="font-size: 14px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px;" placeholder="Nama Style...">
+                                <input type="text" id="style_input_header" class="form-control form-control-sm font-weight-bold text-dark px-2 py-1" placeholder="Nama Style...">
                             </div>
                         </div>
                         <div class="col-6 col-md-3 mb-2 mb-md-0">
@@ -567,7 +741,7 @@
 
                                     <div class="divider-hint">
                                         <i class="fas fa-info-circle"></i>
-                                        Bisa pilih lebih dari 1 warna & size sekaligus, kombinasi akan otomatis dibuat.
+                                        <span>Bisa pilih lebih dari 1 warna & size sekaligus, kombinasi akan otomatis dibuat.</span>
                                     </div>
                                 </form>
                             </div>
@@ -577,7 +751,7 @@
 
                 <div class="preview-upload-card mt-5">
                     <div class="preview-upload-header" id="preview-upload-toggle">
-                        <h6><i class="fas fa-table"></i>SO Detail</h6>
+                        <h6><i class="fas fa-table"></i> SO Detail</h6>
                         <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                     <div class="preview-upload-body" id="preview-upload-body">
@@ -591,12 +765,10 @@
                                         <th class="sticky-col">Market</th>
                                         <th class="sticky-col">Ex Fty</th>
                                         <th class="sticky-col">Color</th>
-                                        {{-- kolom size akan di-generate otomatis oleh JS di sini --}}
                                         <th class="col-total">Total Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody id="preview-upload-tbody">
-                                    {{-- rows di-render via JS --}}
                                 </tbody>
                                 <tfoot id="preview-upload-tfoot"></tfoot>
                             </table>
@@ -613,111 +785,10 @@
     </div>
 </div>
 
-{{-- <div class="modal fade" id="modal-detail" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-sb text-white">
-                <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detail Sales Order</h5>
-                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
-            </div>
-            <div class="modal-body">
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <th width="30%">No SO</th>
-                                <td>: <span id="so_no">-</span></td>
-                            </tr>
-                            <tr>
-                                <th>WS</th>
-                                <td>: <span id="kpno">-</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-8">
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <th>Style</th>
-                                <td>: <span id="style">-</span></td>
-                            </tr>
-                            <tr>
-                                <th width="30%">Buyer</th>
-                                <td>: <span id="buyer">-</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-7" style="border-right: 1px solid #dee2e6;">
-                        <h6 class="font-weight-bold mb-2"><i class="fas fa-list"></i> List Detail Qty</h6>
-                        <div class="table-responsive table-scroll-modal">
-                            <table class="table table-bordered table-sm w-100" id="table-detail-so">
-                                <thead class="bg-light text-center">
-                                    <tr>
-                                        <th>Color</th>
-                                        <th width="20%">Size</th>
-                                        <th width="20%">Qty</th>
-                                        <th width="15%">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dtl_table_body">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="col-md-5">
-                        <form id="form-add-color-so">
-                            <h6 class="font-weight-bold mb-2"><i class="fas fa-plus"></i> Tambah Warna / Size</h6>
-
-                            <div class="form-group mb-3">
-                                <label>Warna</label>
-                                <select class="form-control select2-modal" id="add_id_color" multiple="multiple" data-placeholder="- Pilih Warna -" style="width: 100%;">
-                                    @foreach($master_colors as $color)
-                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label>Size</label>
-                                <select class="form-control select2-modal" id="add_id_size" multiple="multiple" data-placeholder="- Pilih Size -" style="width: 100%;">
-                                    @foreach($master_sizes as $size)
-                                        <option value="{{ $size->id }}">{{ $size->size }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Qty (Default)</label>
-                                        <input type="number" id="add_qty" class="form-control" value="0" min="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label><br>
-                                        <button type="button" class="btn btn-primary w-100" onclick="addSoDetailRow()"><i class="fas fa-plus"></i> Tambah Data</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success btn-sm" onclick="saveAllQtySO()"><i class="fas fa-save"></i> Edit All Qty</button>
-                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i class="fas fa-times-circle"></i> Tutup</button>
-            </div>
-        </div>
-    </div>
-</div> --}}
 <div class="modal fade" id="modal-detail-material" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
+            <div class="modal-header text-dark">
                 <h5 class="modal-title fw-bold"><i class="fas fa-boxes"></i> Detail Material BOM</h5>
                 <button type="button" class="close text-dark btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -726,7 +797,7 @@
             <div class="modal-body">
                 <div class="table-responsive table-scroll-modal">
                     <table class="table table-bordered table-sm w-100 text-nowrap" id="table-material-so" style="font-size: 11px;">
-                        <thead class="bg-light text-center">
+                        <thead class="text-center">
                             <tr>
                                 <th>No</th>
                                 <th>ID Item</th>
@@ -762,7 +833,7 @@
 <div class="modal fade" id="modal-merge-so" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-secondary text-white">
+            <div class="modal-header text-white">
                 <h5 class="modal-title"><i class="fas fa-code-branch"></i> Merge / Pindah Detail SO</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
@@ -814,7 +885,7 @@
                 {{-- Tabel Detail SO Sumber --}}
                 <div class="table-responsive" style="max-height: 55vh; overflow-y:auto;">
                     <table class="table table-bordered table-sm table-hover" id="table-merge-detail" style="font-size:12px;">
-                        <thead class="bg-light text-center">
+                        <thead class="text-center">
                             <tr>
                                 <th width="3%">
                                     <input type="checkbox" id="check-all-merge" title="Pilih Semua">
@@ -1522,26 +1593,19 @@
 
     </script>
     <script>
-    $('#preview-upload-toggle').on('click', function() {
-        $(this).toggleClass('collapsed');
-        $('#preview-upload-body').toggleClass('collapsed');
-    });
+        $('#preview-upload-toggle').on('click', function() {
+            $(this).toggleClass('collapsed');
+            $('#preview-upload-body').toggleClass('collapsed');
+        });
+    </script>
 
-</script>
+    <script>
+        $(document).on('click', '.section-toggle', function() {
+            let $header = $(this);
+            let target  = $header.data('target');
 
-<script>
-    $(document).on('click', '.section-toggle', function() {
-        let $header = $(this);
-        let target  = $header.data('target');
-
-        $header.toggleClass('collapsed');
-        $(target).toggleClass('collapsed');
-    });
-
-    let totalQty = res.details.filter(i => i.cancel !== 'Y').reduce((sum, i) => sum + parseInt(i.qty || 0), 0);
-    $('#total_qty_value').text(totalQty.toLocaleString());
-
-</script>
-
-
+            $header.toggleClass('collapsed');
+            $(target).toggleClass('collapsed');
+        });
+    </script>
 @endsection
