@@ -46,7 +46,7 @@ class StockerToolsController extends Controller
     {
         ini_set('max_execution_time', 3600);
 
-        // Check Closing 
+        // Check Closing
         if($request->form_type == 'reject'){
             $dataCheckClosing = DB::table("form_cut_reject")
             ->selectRaw("tanggal")
@@ -637,7 +637,7 @@ class StockerToolsController extends Controller
 
     function undoStockerAdditional(Request $request)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -894,7 +894,7 @@ class StockerToolsController extends Controller
         return response()->json($data);
     }
 
-    public function resetModifySizeQty(Request $request)
+    public function resetModifySizeQty(Request $request, StockerService $stockerService)
     {
         $noFormId = $request->noFormId;
 
@@ -908,6 +908,16 @@ class StockerToolsController extends Controller
             );
         }
 
+        // Check Stocker
+        $stockers = $stockerService->getStockerForm($noFormId);
+        if ($stockers->count() > 0) {
+            return array(
+                "status" => 400,
+                "message" => "Stocker sudah di Print",
+            );
+        }
+
+        // Logging
         $data = ModifySizeQty::where('form_cut_id', $noFormId)->get();
 
         foreach ($data as $item) {
@@ -917,10 +927,11 @@ class StockerToolsController extends Controller
             );
         }
 
+        // Delete
         ModifySizeQty::where('form_cut_id', $noFormId)->delete();
 
         return response()->json([
-            'success' => true,
+            'status' => 200,
             'message' => 'Modify Size Qty berhasil di-reset.'
         ]);
     }
