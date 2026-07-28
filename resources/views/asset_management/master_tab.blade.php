@@ -72,6 +72,8 @@
                             <th scope="col" class="text-center align-middle">RFID Code</th>
                             <th scope="col" class="text-center align-middle">Line Code</th>
                             <th scope="col" class="text-center align-middle">Tab Code</th>
+                            <th scope="col" class="text-center align-middle">Status</th>
+                            <th scope="col" class="text-center align-middle">Lokasi</th>
                             <th scope="col" class="text-center align-middle">Act</th>
                         </tr>
                     </thead>
@@ -396,6 +398,18 @@
                 {
                     data: 'tab_code'
                 }, // Tab Code
+                {
+                    data: 'status',
+                    className: 'text-center',
+                    render: function(data) {
+                        let badgeClass = data === 'TAKEN' ? 'badge-danger' : 'badge-success';
+                        return `<span class="badge ${badgeClass}">${data ?? ''}</span>`;
+                    }
+                }, // Status
+                {
+                    data: 'lokasi',
+                    className: 'text-center'
+                }, // Lokasi
                 {
                     data: 'id',
                     render: function(data) {

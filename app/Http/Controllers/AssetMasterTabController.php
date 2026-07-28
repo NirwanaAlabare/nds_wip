@@ -17,7 +17,7 @@ class AssetMasterTabController extends Controller
     {
         if ($request->ajax()) {
             $data_input = DB::select("
-                SELECT id, rfid_code, line_code, tab_code
+                SELECT id, rfid_code, line_code, tab_code, lokasi, status
                 FROM asset_master_tab
                 ORDER BY id DESC
             ");
@@ -58,13 +58,17 @@ class AssetMasterTabController extends Controller
             rfid_code,
             line_code,
             tab_code,
+            lokasi,
+            status,
             created_by,
             created_at,
             updated_at
-        ) VALUES (?,?,?,?,?,?)", [
+        ) VALUES (?,?,?,?,?,?,?,?)", [
             $request->rfid_code,
             $request->line_code,
             $request->tab_code,
+            'IT',
+            'IDLE',
             $user,
             $timestamp,
             $timestamp
