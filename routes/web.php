@@ -152,7 +152,10 @@ use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
+use App\Http\Controllers\AssetMasterTabController;
+use App\Http\Controllers\AssetTransTabController;
 use App\Http\Controllers\AssetMesinReportController;
+
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
@@ -1643,6 +1646,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_report_stok_jenis_area/unit', 'get_area_jenis_unit')->name('asset_mesin_report_area_jenis_unit');
     });
 
+    // Master Asset Tab IT
+    Route::controller(AssetMasterTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_master_tab', 'asset_master_tab')->name('asset_master_tab');
+        Route::post('/asset_master_tab/store', 'store_master_tab')->name('store_master_tab');
+        Route::get('/asset_master_tab/show', 'show_master_tab')->name('show_master_tab');
+        Route::post('/asset_master_tab/update', 'update_master_tab')->name('update_master_tab');
+        Route::post('/asset_master_tab/delete', 'delete_master_tab')->name('delete_master_tab');
+        Route::post('/asset_master_tab/delete_all', 'delete_all_master_tab')->name('delete_all_master_tab');
+        Route::post('/asset_master_tab/import', 'import_master_tab')->name('import_master_tab');
+    });
+
+    // Trans Asset Tab IT
+    Route::controller(AssetTransTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_trans_tab', 'asset_trans_tab')->name('asset_trans_tab');
+    });
+
     // Dashboard Helpdesk
     Route::controller(HelpdeskDashboardController::class)->group(function () {
         Route::get('/dashboard_helpdesk', 'dashboard_helpdesk')->name('dashboard-helpdesk');
@@ -1693,8 +1712,8 @@ Route::middleware('auth')->group(function () {
 
         // BC 4.0 routes
 
-        Route::get('/dokumen-pabean/edit-batch-bc40/{ids}','editBatchBc40')->name('dokumen-pabean-edit-batch-bc40');
-        Route::put('/dokumen-pabean/update-draft-batch-bc40/{ids}','updateDraftBatchBc40')->name('dokumen-pabean-update_draft_batch_bc40');
+        Route::get('/dokumen-pabean/edit-batch-bc40/{ids}', 'editBatchBc40')->name('dokumen-pabean-edit-batch-bc40');
+        Route::put('/dokumen-pabean/update-draft-batch-bc40/{ids}', 'updateDraftBatchBc40')->name('dokumen-pabean-update_draft_batch_bc40');
 
         // BC 2.3 routes
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
@@ -1720,8 +1739,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
         Route::put('/update-draft-bc41/{id}', 'updateDraftBc41')->name('dokumen-pabean-update_draft_bc41')->where('id', '.*');
         Route::post('/send-bc41/{id}', 'sendCeisaBc41')->name('dokumen-pabean-send-bc41')->where('id', '.*');
-        Route::get('/dokumen-pabean/edit-batch-bc41/{ids}','editBatchBc41')->name('dokumen-pabean-edit-batch-bc41');
-        Route::put('/dokumen-pabean/update-draft-batch-bc41/{ids}','updateDraftBatchBc41')->name('dokumen-pabean-update_draft_batch_bc41');
+        Route::get('/dokumen-pabean/edit-batch-bc41/{ids}', 'editBatchBc41')->name('dokumen-pabean-edit-batch-bc41');
+        Route::put('/dokumen-pabean/update-draft-batch-bc41/{ids}', 'updateDraftBatchBc41')->name('dokumen-pabean-update_draft_batch_bc41');
 
 
         // BC 2.5 routes
