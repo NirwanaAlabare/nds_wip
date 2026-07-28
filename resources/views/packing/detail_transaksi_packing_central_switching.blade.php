@@ -166,6 +166,7 @@
                             <th class="text-center align-middle">Tgl Shipment</th>
                             <th class="text-center align-middle">PO</th>
                             <th class="text-center align-middle">WS</th>
+                            <th class="text-center align-middle">Style</th>
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Dest</th>
@@ -318,6 +319,9 @@
                     },
                     {
                         data: 'ws'
+                    },
+                    {
+                        data: 'styleno'
                     },
                     {
                         data: 'color'
