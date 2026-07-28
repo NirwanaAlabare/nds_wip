@@ -6,27 +6,204 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        :root {
+            --sb-navy: #0f172a;
+            --sb-blue: #3085d6;
+            --sb-blue-dark: #1e3a8a;
+        }
+
+        #table-detail thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: #0f172a;
+            color: #f8fafc;
+            box-shadow: inset 0 -1px 0 #1e293b;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        #table-detail thead tr:nth-child(2) th {
+            top: 33px;
+            z-index: 1;
+            background-color: #f8fafc;
+            box-shadow: none;
+        }
+
+        #table-detail thead tr:nth-child(2) .form-control {
+            border-radius: 6px;
+            border: 1.5px solid #e2e8f0;
+        }
+
+        .card-sb {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        }
+
+        .card-sb > .card-header {
+            background: var(--sb-navy) !important;
+            border: none;
+            padding: 1.6rem 2rem;
+            position: relative;
+        }
+
+        .card-sb > .card-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 5px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card-sb > .card-header .card-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #5aa9f0;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card-sb > .card-header .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f8fafc !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-sb > .card-body {
+            background: #fbfcff;
+            padding: 1.75rem 2rem 2rem;
+        }
+
+        /* ============ BUTTON CREATE ============ */
+        .btn-outline-primary {
+            border-radius: 8px;
+            font-weight: 600;
+            border: 1.5px solid #3085d6;
+            color: #1e5da8;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-primary:hover {
+            background: #3085d6;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
+        }
+
+        /* ============ FILTER PANEL ============ */
+        .filter-panel {
+            background: #fff;
+            border: 1px solid #e7ecf3;
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        }
+
+        .filter-panel label {
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .filter-panel .form-control {
+            border-radius: 8px;
+            border: 1.5px solid #e2e8f0;
+        }
+        .filter-panel .form-control:focus {
+            border-color: #3085d6;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12);
+        }
+
+        .filter-panel .btn-primary {
+            border-radius: 8px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #3085d6, #1e3a8a);
+            border: none;
+            box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
+            transition: all 0.2s ease;
+        }
+        .filter-panel .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(48, 133, 214, 0.35);
+        }
+
+        /* ============ TABLE ============ */
+        #table-bom thead tr {
+            background: #0f172a;
+        }
+        #table-bom thead th {
+            color: #f8fafc !important;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 700;
+            vertical-align: middle;
+            border-color: #1e293b;
+        }
+        #table-bom tbody td {
+            font-size: 13px;
+            vertical-align: middle;
+        }
+        #table-bom tbody tr:hover {
+            background-color: #f4f8fd;
+        }
+
+        /* ============ ACTION BUTTONS DI TABEL ============ */
+        #table-bom .btn {
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* ============ MODAL DETAIL ============ */
+        #modalDetail .modal-content {
+            border: none;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        #modalDetail .modal-header.bg-sb {
+            background: #0f172a !important;
+            border: none;
+            position: relative;
+            padding: 1.1rem 1.5rem;
+        }
+        #modalDetail .modal-header.bg-sb::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: repeating-linear-gradient(180deg, #3085d6 0px, #3085d6 8px, transparent 8px, transparent 16px);
+        }
+        #modalDetail .modal-title {
+            font-size: 1rem;
+        }
+        #modalDetail .modal-footer {
+            border-top: 1px solid #e7ecf3;
+            background: #fbfcff;
+        }
+        #modalDetail .btn-outline-danger {
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
 @endsection
-
-<style>
-    #table-detail thead th {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background-color: #f8f9fa;
-        box-shadow: inset 0 -1px 0 #dee2e6;
-    }
-
-    #table-detail thead tr:nth-child(2) th {
-        top: 36px;
-        z-index: 1;
-    }
-</style>
 
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Data</h5>
+        <span class="card-eyebrow">Marketing &middot; BOM</span>
+        <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Data BOM</h5>
     </div>
     <div class="card-body">
         <div class="mb-3">
@@ -36,19 +213,21 @@
             </a>
         </div>
 
-        <div class="row align-items-end mb-4">
-            <div class="col-md-2">
-                <label class="small fw-bold">Tgl Awal</label>
-                <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="small fw-bold">Tgl Akhir</label>
-                <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary btn-sm" onclick="refreshTable()">
-                    <i class="fas fa-search"></i> Filter
-                </button>
+        <div class="filter-panel">
+            <div class="row align-items-end">
+                <div class="col-md-2">
+                    <label class="small fw-bold">Tgl Awal</label>
+                    <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="small fw-bold">Tgl Akhir</label>
+                    <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm w-100" onclick="refreshTable()">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
             </div>
         </div>
 
