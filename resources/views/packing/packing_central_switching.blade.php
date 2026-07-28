@@ -59,10 +59,162 @@
 
         /* ── Row highlight on hover ── */
         #tbl-preview tbody tr:hover { background: #eef4ff !important; cursor: default; }
+
+        /* ===============================
+        SUMMARY WIP PO
+        ================================ */
+        .summary-content {
+            display: flex;
+            align-items: stretch;
+            gap: 15px;
+        }
+
+        .summary-box {
+            width: 250px;
+            min-height: 100px;
+            padding: 13px 18px;
+            border-radius: 10px;
+        }
+
+        .summary-blue {
+            border: 1px solid #a9d7ff;
+            background: #f0f8ff;
+        }
+
+        .summary-yellow {
+            border: 1px solid #f1d477;
+            background: #fffaf0;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #68778d;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 34px;
+            line-height: 38px;
+            font-weight: 700;
+            color: #0879c9;
+            margin-top: 6px;
+        }
+
+        .summary-yellow .summary-value {
+            color: #d97900;
+        }
+
+        .summary-value span {
+            font-size: 16px;
+            font-weight: 500;
+            margin-left: 3px;
+        }
+
+        /* BUTTON AREA */
+        .summary-action {
+            flex: 1;
+            min-height: 100px;
+            border: 1px dashed #5794ff;
+            border-radius: 9px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fbfdff;
+        }
+
+        .summary-action-text {
+            color: #718096;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .btn-detail-po {
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 7px 20px;
+            background: #2864df;
+            border-color: #2864df;
+        }
+        .btn-detail-po:hover {
+            background: #1d52c2;
+            border-color: #1d52c2;
+        }
+
+
+        /* TABLET */
+        @media (min-width: 577px) and (max-width: 991px) {
+            .summary-content {
+                flex-wrap: wrap;
+            }
+            .summary-box {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+            .summary-action {
+                flex: 0 0 100%;
+                width: 100%;
+            }
+        }
+
+        /* MOBILE */
+        @media (max-width: 576px) {
+            .summary-content {
+                flex-direction: column;
+            }
+            .summary-box {
+                width: 100%;
+            }
+            .summary-action {
+                width: 100%;
+                min-height: 100px;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
+
+    {{-- ═══════════════ RINGKASAN WIP PO ═══════════════ --}}
+    <div class="card card-sb mb-3">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-list"></i> Ringkasan WIP PO (Summary)
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="summary-content">
+                <div class="summary-box summary-blue">
+                    <div class="summary-label">JUMLAH WIP PO</div>
+                    <div class="summary-value" id="totalPo">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>PO</span>
+                    </div>
+                </div>
+
+                <div class="summary-box summary-yellow">
+                    <div class="summary-label">TOTAL QTY WIP SISA</div>
+                    <div class="summary-value" id="totalQtySisa">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Pcs</span>
+                    </div>
+                </div>
+
+                <div class="summary-action">
+                    <div class="summary-action-text">
+                        Klik tombol di bawah untuk membuka rincian:
+                    </div>
+
+                    <a href="{{ route('detail_transaksi_packing_central_switching') }}" class="btn btn-primary btn-detail-po">
+                        Buka Detail Transaksi PO
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     {{-- ═══════════════ FORM SWITCHING ═══════════════ --}}
     <form id="form-switching" method="post" action="{{ route('store_packing_central_switching') }}">
@@ -277,11 +429,56 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        $(document).ready(function() {
+            loadSummaryWipPo();
+        });
+
         /* ── Select2 ── */
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
         $('.select2bs4').select2({ theme: 'bootstrap4' });
+
+        function loadSummaryWipPo() {
+            $('#totalPo').html(`
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>PO</span>
+            `);
+
+            $('#totalQtySisa').html(`
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Pcs</span>
+            `);
+
+            $.ajax({
+                url: "{{ route('summary_wip_po_packing_central_switching') }}",
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    $('#totalPo').html(
+                        Number(response.total_po).toLocaleString('id-ID') +
+                        ' <span>PO</span>'
+                    );
+
+                    $('#totalQtySisa').html(
+                        Number(response.total_qty_sisa).toLocaleString('id-ID') +
+                        ' <span>Pcs</span>'
+                    );
+                },
+                error: function(xhr) {
+                    $('#totalPo').html(`
+                        <span class="text-danger">Error</span>
+                        <span>PO</span>
+                    `);
+
+                    $('#totalQtySisa').html(`
+                        <span class="text-danger">Error</span>
+                        <span>Pcs</span>
+                    `);
+                }
+            });
+        }
+
 
         /* ── State ── */
         let sourceSelected = false;

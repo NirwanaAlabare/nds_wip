@@ -16,104 +16,13 @@ class PackingCentralSwitchingController extends Controller
 {
     public function index(Request $request)
     {
-        // $sourceData = DB::select("
-        //     WITH a AS (              
-        //         SELECT
-        //             a.id_ppic_master_so,
-        //             a.id_so_det          AS so_det_id,
-        //             SUM(a.qty)           AS qty_trf_gmt
-        //         FROM laravel_nds.packing_trf_garment a
-        //         INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-        //         WHERE YEAR(p.tgl_shipment) >= 2026
-        //         GROUP BY a.id_ppic_master_so, a.id_so_det
-        //     ),
-        //     p AS (
-        //         SELECT id_ppic, id_so_det, COUNT(*) AS qty_scan
-        //         FROM packing_packing_out_scan
-        //         GROUP BY id_ppic, id_so_det
-        //     ),
-        //     s AS(
-        //         SELECT asal_ppic_master_so_id, asal_so_det_id, SUM(qty_switch) AS qty_switch
-        //         FROM packing_central_switching
-        //         GROUP BY asal_ppic_master_so_id, asal_so_det_id
-        //     ),
-        //     combined AS (
-        //         SELECT id_ppic_master_so, so_det_id, qty_trf_gmt AS qty, 0 AS qty_scan, 0 AS qty_switch FROM a
-        //         UNION ALL
-        //         SELECT id_ppic as id_ppic_master_so, id_so_det as so_det_id, 0 as qty, qty_scan, 0 as qty_switch FROM p
-        //         UNION ALL
-        //         SELECT asal_ppic_master_so_id as id_ppic_master_so, asal_so_det_id as so_det_id, 0 as qty, 0 as qty_scan, qty_switch FROM s
-        //     )
-
-        //     SELECT
-        //         combined.id_ppic_master_so,
-        //         packing_packing_in.id AS packing_packing_in_id,
-        //         packing_packing_in.po,
-        //         master_sb_ws.ws,
-        //         master_sb_ws.color,
-        //         master_sb_ws.size,
-        //         master_sb_ws.dest,
-        //         combined.so_det_id,
-        //         SUM(combined.qty)      AS qty_trf_gmt,
-        //         SUM(combined.qty_scan) AS qty_scan,
-        //         SUM(combined.qty_switch) AS qty_switch,
-        //         SUM(combined.qty) - SUM(combined.qty_scan) - SUM(combined.qty_switch) AS qty_sisa
-        //     FROM combined
-        //     LEFT JOIN (
-        //         SELECT
-        //             id_ppic_master_so,
-        //             id_so_det,
-        //             MIN(id) AS id,
-        //             MAX(po) AS po
-        //         FROM packing_packing_in
-        //         GROUP BY
-        //             id_ppic_master_so,
-        //             id_so_det
-        //     ) packing_packing_in
-        //         ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
-        //     AND packing_packing_in.id_so_det = combined.so_det_id
-        //     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
-        //     GROUP BY id_ppic_master_so, so_det_id
-        //     HAVING qty_sisa > 0
-        // ");
-
-        // $tujuanData = DB::select("
-        //     SELECT
-        //         ppic_master_so.id,
-        //         ppic_master_so.po,
-        //         ppic_master_so.barcode,
-        //         ppic_master_so.dest,
-        //         master_sb_ws.ws,
-        //         master_sb_ws.color,
-        //         master_sb_ws.size,
-        //         master_sb_ws.dest,
-        //         ppic_master_so.qty_po + COALESCE(sw.qty_switch, 0) AS qty_po,
-        //         ppic_master_so.id_so_det
-        //     FROM ppic_master_so
-        //     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = ppic_master_so.id_so_det 
-        //     LEFT JOIN (
-        //         SELECT
-        //             tujuan_ppic_master_so_id,
-        //             tujuan_so_det_id,
-        //             SUM(qty_switch) AS qty_switch
-        //         FROM packing_central_switching
-        //         GROUP BY
-        //             tujuan_ppic_master_so_id,
-        //             tujuan_so_det_id
-        //     ) sw
-        //         ON sw.tujuan_ppic_master_so_id = ppic_master_so.id
-        //     AND sw.tujuan_so_det_id = ppic_master_so.id_so_det
-        //     LIMIT 100
-        // ");
-
+        
         return view(
             'packing.packing_central_switching',
             [
                 'page' => 'dashboard-packing',
                 "subPageGroup" => "packing-packing-in",
                 "subPage" => "packing_central_switching",
-                // "sourceData" => $sourceData,
-                // "tujuanData" => $tujuanData,
             ]
         );
     }
@@ -979,6 +888,644 @@ class PackingCentralSwitchingController extends Controller
         }
 
         foreach (range('A', 'V') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
+    public function summaryWipPo(Request $request){
+        $dataPo = DB::selectOne("
+            WITH a AS (
+                SELECT
+                    a.id_ppic_master_so,
+                    a.id_so_det AS so_det_id,
+                    SUM(a.qty) AS qty_pck_in
+                from packing_packing_in a
+                    INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                    WHERE YEAR(p.tgl_shipment) >= 2026
+                group by id_ppic_master_so,a.id_so_det
+                ),
+                
+                p AS (
+                    SELECT
+                        id_ppic,
+                        id_so_det,
+                        COUNT(*) AS qty_scan
+                    FROM packing_packing_out_scan
+                    GROUP BY
+                        id_ppic,
+                        id_so_det
+                ),
+
+                s AS (
+                    SELECT
+                        asal_ppic_master_so_id,
+                        asal_so_det_id,
+                        SUM(qty_switch) AS qty_switch
+                    FROM packing_central_switching
+                    GROUP BY
+                        asal_ppic_master_so_id,
+                        asal_so_det_id
+                ),
+
+                t AS (
+                    SELECT
+                        tujuan_ppic_master_so_id AS id_ppic_master_so,
+                        tujuan_so_det_id AS so_det_id,
+                        SUM(qty_switch) AS qty_switch_masuk
+                    FROM packing_central_switching
+                    GROUP BY
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id
+                ),
+
+                combined AS (
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        qty_pck_in AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM a
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic AS id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM p
+
+                    UNION ALL
+
+                    SELECT
+                        asal_ppic_master_so_id AS id_ppic_master_so,
+                        asal_so_det_id AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM s
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        qty_switch_masuk
+                    FROM t
+                ),
+
+                result AS (
+                    SELECT
+                        combined.id_ppic_master_so,
+                        packing_packing_in.id AS packing_packing_in_id,
+                        packing_packing_in.po,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        combined.so_det_id,
+                        SUM(combined.qty) AS qty_pck_in,
+                        SUM(combined.qty_switch_masuk) AS qty_switch_in,
+                        SUM(combined.qty_switch) AS qty_switch_out,
+                        SUM(combined.qty_scan) AS qty_scan,
+                        SUM(combined.qty)
+                            + SUM(combined.qty_switch_masuk)
+                            - SUM(combined.qty_scan)
+                            - SUM(combined.qty_switch) AS qty_sisa
+                    FROM combined
+                    LEFT JOIN (
+                        SELECT
+                            id_ppic_master_so,
+                            id_so_det,
+                            MIN(id) AS id,
+                            MAX(po) AS po
+                        FROM packing_packing_in
+                        GROUP BY
+                            id_ppic_master_so,
+                            id_so_det
+                    ) packing_packing_in
+                        ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
+                        AND packing_packing_in.id_so_det = combined.so_det_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
+                    GROUP BY
+                        combined.id_ppic_master_so,
+                        combined.so_det_id,
+                        packing_packing_in.id,
+                        packing_packing_in.po,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest
+                    HAVING qty_sisa > 0
+                )
+
+               SELECT
+                    COUNT(DISTINCT po) AS total_po,
+                    SUM(qty_sisa) AS total_qty_sisa
+                FROM result
+        ");
+
+         return response()->json([
+            'total_po' => $dataPo->total_po ?? 0,
+            'total_qty_sisa' => $dataPo->total_qty_sisa ?? 0,
+        ]);
+    }
+    
+    public function detailTransaksi(Request $request)
+    {
+        $dataPo = DB::select("SELECT DISTINCT(po) FROM ppic_master_so WHERE tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)");
+
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date'); 
+        $status = $request->input('status');
+        $po = $request->input('po');
+
+        $dateCondition = '';
+        if (!empty($start_date) && !empty($end_date)) {
+            $dateCondition = "AND ppic_master_so.tgl_shipment BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $poCondition = '';
+        if (!empty($po)) {
+            if (!is_array($po)) {
+                $po = [$po];
+            }
+
+            $poList = "'" . implode("','", $po) . "'";
+            $poCondition = "AND packing_packing_in.po IN ($poList)";
+        }
+
+        if ($request->ajax()) {
+            $rawData = DB::select("
+                WITH a AS (
+
+                SELECT
+                    a.id_ppic_master_so,
+                    a.id_so_det AS so_det_id,
+                    SUM(a.qty) AS qty_pck_in
+                from packing_packing_in a
+                    INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                    WHERE YEAR(p.tgl_shipment) >= 2026
+                    group by id_ppic_master_so,a.id_so_det
+                ),
+                
+                p AS (
+                    SELECT
+                        id_ppic,
+                        id_so_det,
+                        COUNT(*) AS qty_scan
+                    FROM packing_packing_out_scan
+                    GROUP BY
+                        id_ppic,
+                        id_so_det
+                ),
+
+                s AS (
+                    SELECT
+                        asal_ppic_master_so_id,
+                        asal_so_det_id,
+                        SUM(qty_switch) AS qty_switch
+                    FROM packing_central_switching
+                    GROUP BY
+                        asal_ppic_master_so_id,
+                        asal_so_det_id
+                ),
+
+                t AS (
+                    SELECT
+                        tujuan_ppic_master_so_id AS id_ppic_master_so,
+                        tujuan_so_det_id AS so_det_id,
+                        SUM(qty_switch) AS qty_switch_masuk
+                    FROM packing_central_switching
+                    GROUP BY
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id
+                ),
+
+                combined AS (
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        qty_pck_in AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM a
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic AS id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM p
+
+                    UNION ALL
+
+                    SELECT
+                        asal_ppic_master_so_id AS id_ppic_master_so,
+                        asal_so_det_id AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        qty_switch,
+                        0 AS qty_switch_masuk
+                    FROM s
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        qty_switch_masuk
+                    FROM t
+                ),
+
+                result AS (
+                    SELECT
+                        DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                        combined.id_ppic_master_so,
+                        packing_packing_in.id AS packing_packing_in_id,
+                        packing_packing_in.po,
+                        master_sb_ws.ws,
+                        master_sb_ws.styleno,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        combined.so_det_id,
+                        ppic_master_so.qty_po,
+                        SUM(combined.qty) AS qty_pck_in,
+                        SUM(combined.qty_switch_masuk) AS qty_switch_in,
+                        SUM(combined.qty_switch) AS qty_switch_out,
+                        SUM(combined.qty_scan) AS qty_scan,
+                        SUM(combined.qty)
+                            + SUM(combined.qty_switch_masuk)
+                            - SUM(combined.qty_scan)
+                            - SUM(combined.qty_switch) AS qty_sisa,
+                        CASE
+                            WHEN (
+                                SUM(combined.qty)
+                                + SUM(combined.qty_switch_masuk)
+                                - SUM(combined.qty_scan)
+                                - SUM(combined.qty_switch)
+                            ) = 0 THEN 'Kosong'
+                            WHEN (
+                                SUM(combined.qty)
+                                + SUM(combined.qty_switch_masuk)
+                                - SUM(combined.qty_scan)
+                                - SUM(combined.qty_switch)
+                            ) > 0 THEN 'Tersedia'
+                            ELSE 'Kosong'
+                        END AS status
+                    FROM combined
+                    LEFT JOIN (
+                        SELECT
+                            id_ppic_master_so,
+                            id_so_det,
+                            MIN(id) AS id,
+                            MAX(po) AS po
+                        FROM packing_packing_in
+                        GROUP BY
+                            id_ppic_master_so,
+                            id_so_det
+                    ) packing_packing_in
+                        ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
+                        AND packing_packing_in.id_so_det = combined.so_det_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
+                    LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+                    WHERE 1=1
+                        $dateCondition
+                        $poCondition
+                        AND YEAR(ppic_master_so.tgl_shipment) >= 2026
+                    GROUP BY
+                        combined.id_ppic_master_so,
+                        combined.so_det_id,
+                        packing_packing_in.id,
+                        packing_packing_in.po,
+                        master_sb_ws.ws,
+                        master_sb_ws.styleno,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest
+                )
+
+                SELECT
+                    *
+                FROM result
+                WHERE ('$status' = '' OR status = '$status')
+            ");
+
+            return DataTables::of($rawData)->toJson();
+        }
+
+        // For non-AJAX (initial page load)
+        return view(
+            'packing.detail_transaksi_packing_central_switching',
+            [
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-packing-in",
+                "subPage" => "detail_transaksi_packing_central_switching",
+                "dataPo" => $dataPo
+            ]
+        );
+    }
+
+    public function export_detail_transaksi_packing_central_switching(Request $request)
+    {
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+        $status = $request->status;
+        $po = $request->po;
+
+        $dateCondition = '';
+        if (!empty($start_date) && !empty($end_date)) {
+            $dateCondition = "AND ppic_master_so.tgl_shipment BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $poCondition = '';
+        $poList = '';
+        if (!empty($po)) {
+            if (!is_array($po)) {
+                $po = [$po];
+            }
+
+            $poList = "'" . implode("','", $po) . "'";
+            $poCondition = "AND packing_packing_in.po IN ($poList)";
+        }
+
+        $data = DB::select("
+            WITH a AS (
+
+            SELECT
+                a.id_ppic_master_so,
+                a.id_so_det AS so_det_id,
+                SUM(a.qty) AS qty_pck_in
+            from packing_packing_in a
+                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                WHERE YEAR(p.tgl_shipment) >= 2026
+                group by id_ppic_master_so,a.id_so_det
+            ),
+            
+            p AS (
+                SELECT
+                    id_ppic,
+                    id_so_det,
+                    COUNT(*) AS qty_scan
+                FROM packing_packing_out_scan
+                GROUP BY
+                    id_ppic,
+                    id_so_det
+            ),
+
+            s AS (
+                SELECT
+                    asal_ppic_master_so_id,
+                    asal_so_det_id,
+                    SUM(qty_switch) AS qty_switch
+                FROM packing_central_switching
+                GROUP BY
+                    asal_ppic_master_so_id,
+                    asal_so_det_id
+            ),
+
+            t AS (
+                SELECT
+                    tujuan_ppic_master_so_id AS id_ppic_master_so,
+                    tujuan_so_det_id AS so_det_id,
+                    SUM(qty_switch) AS qty_switch_masuk
+                FROM packing_central_switching
+                GROUP BY
+                    tujuan_ppic_master_so_id,
+                    tujuan_so_det_id
+            ),
+
+            combined AS (
+                SELECT
+                    id_ppic_master_so,
+                    so_det_id,
+                    qty_pck_in AS qty,
+                    0 AS qty_scan,
+                    0 AS qty_switch,
+                    0 AS qty_switch_masuk
+                FROM a
+
+                UNION ALL
+
+                SELECT
+                    id_ppic AS id_ppic_master_so,
+                    id_so_det AS so_det_id,
+                    0 AS qty,
+                    qty_scan,
+                    0 AS qty_switch,
+                    0 AS qty_switch_masuk
+                FROM p
+
+                UNION ALL
+
+                SELECT
+                    asal_ppic_master_so_id AS id_ppic_master_so,
+                    asal_so_det_id AS so_det_id,
+                    0 AS qty,
+                    0 AS qty_scan,
+                    qty_switch,
+                    0 AS qty_switch_masuk
+                FROM s
+
+                UNION ALL
+
+                SELECT
+                    id_ppic_master_so,
+                    so_det_id,
+                    0 AS qty,
+                    0 AS qty_scan,
+                    0 AS qty_switch,
+                    qty_switch_masuk
+                FROM t
+            ),
+
+            result AS (
+                SELECT
+                    DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                    combined.id_ppic_master_so,
+                    packing_packing_in.id AS packing_packing_in_id,
+                    packing_packing_in.po,
+                    master_sb_ws.ws,
+                    master_sb_ws.styleno,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    master_sb_ws.dest,
+                    combined.so_det_id,
+                    ppic_master_so.qty_po,
+                    SUM(combined.qty) AS qty_pck_in,
+                    SUM(combined.qty_switch_masuk) AS qty_switch_in,
+                    SUM(combined.qty_switch) AS qty_switch_out,
+                    SUM(combined.qty_scan) AS qty_scan,
+                    SUM(combined.qty)
+                        + SUM(combined.qty_switch_masuk)
+                        - SUM(combined.qty_scan)
+                        - SUM(combined.qty_switch) AS qty_sisa,
+                    CASE
+                        WHEN (
+                            SUM(combined.qty)
+                            + SUM(combined.qty_switch_masuk)
+                            - SUM(combined.qty_scan)
+                            - SUM(combined.qty_switch)
+                        ) = 0 THEN 'Kosong'
+                        WHEN (
+                            SUM(combined.qty)
+                            + SUM(combined.qty_switch_masuk)
+                            - SUM(combined.qty_scan)
+                            - SUM(combined.qty_switch)
+                        ) > 0 THEN 'Tersedia'
+                        ELSE 'Kosong'
+                    END AS status
+                FROM combined
+                LEFT JOIN (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        MIN(id) AS id,
+                        MAX(po) AS po
+                    FROM packing_packing_in
+                    GROUP BY
+                        id_ppic_master_so,
+                        id_so_det
+                ) packing_packing_in
+                    ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
+                    AND packing_packing_in.id_so_det = combined.so_det_id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
+                LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+                WHERE 1=1
+                    $dateCondition
+                    $poCondition
+                    AND YEAR(ppic_master_so.tgl_shipment) >= 2026
+                GROUP BY
+                    combined.id_ppic_master_so,
+                    combined.so_det_id,
+                    packing_packing_in.id,
+                    packing_packing_in.po,
+                    master_sb_ws.ws,
+                    master_sb_ws.styleno,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    master_sb_ws.dest
+            )
+
+            SELECT
+                *
+            FROM result
+            WHERE ('$status' = '' OR status = '$status')
+        ");
+
+        $fileName = 'detail-transaksi-wip-po';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Detail Transaksi WIP PO'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            [
+                !empty($start_date) && !empty($end_date)
+                    ? 'Periode : ' . $start_date . ' s/d ' . $end_date
+                    : 'Periode : '
+            ],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['PO : ' . str_replace(',', ', ', trim(str_replace("'", "", $poList), ", "))],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Status : ' . (!empty($status) ? $status : 'Semua')],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $header = [
+            'Tgl Shipment',
+            'PO',
+            'WS',
+            'Style',
+            'Color',
+            'Size',
+            'Dest',
+            'Qty PO',
+            'Terima Packing Central',
+            'Switching Out',
+            'Switching In',
+            'Scan',
+            'Qty Sisa WIP',
+            'Status',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
+        );
+
+        foreach ($data as $row) {
+
+            $rows = [
+                $row->tgl_shipment ?: '',
+                $row->po ?: '',
+                $row->ws ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->dest ?: '',
+                (float) $row->qty_po,
+                (float) $row->qty_pck_in,
+                (float) $row->qty_switch_out,
+                (float) $row->qty_switch_in,
+                (float) $row->qty_scan,
+                (float) $row->qty_sisa,
+                $row->status,
+            ];
+
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        foreach (range('A', 'Z') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

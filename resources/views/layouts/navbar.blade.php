@@ -1508,6 +1508,12 @@
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_jenis_mesin' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Jenis</a>
                                     </div>
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Tab</div>
+                                        <a href="{{ route('asset_master_tab') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_tab' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Master Tab</a>
+                                    </div>
                                 </div>
                             </li>
                         </ul>
@@ -1556,6 +1562,22 @@
                                         <a href="{{ route('asset_mesin_spareparts_pengeluaran') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_spareparts_pengeluaran' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-minus"></i>Pengeluaran Spareparts (Pembelian)</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'asset-master' ? 'active' : '' }}">IT</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow mega-dropdown">
+                            <li>
+                                <div class="mega-dropdown-body">
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Tab</div>
+                                        <a href="{{ route('asset_trans_tab') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_trans_tab' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Trans Tab</a>
                                     </div>
                                 </div>
                             </li>
@@ -2009,11 +2031,14 @@
                             res.items.forEach(function(item) {
                                 $list.append(
                                     '<div class="dropdown-item-text px-3 py-2" style="white-space: normal; user-select: text; cursor: default;" onclick="event.stopPropagation()">' +
-                                        '<div class="d-flex justify-content-between">' +
-                                            '<span><i class="fas fa-file-alt text-info mr-2"></i>' + item.activity + '</span>' +
-                                        '</div>' +
-                                        '<div class="text-muted text-sm">' + (item.no_dok || '-') + ' &middot; ' + (item.user || '-') + '</div>' +
-                                        '<div class="text-muted text-sm">' + formatDateTimeNotifLog(item.created_at) + '</div>' +
+                                    '<div class="d-flex justify-content-between">' +
+                                    '<span><i class="fas fa-file-alt text-info mr-2"></i>' + item
+                                    .activity + '</span>' +
+                                    '</div>' +
+                                    '<div class="text-muted text-sm">' + (item.no_dok || '-') +
+                                    ' &middot; ' + (item.user || '-') + '</div>' +
+                                    '<div class="text-muted text-sm">' + formatDateTimeNotifLog(item
+                                        .created_at) + '</div>' +
                                     '</div><div class="dropdown-divider"></div>'
                                 );
                             });
