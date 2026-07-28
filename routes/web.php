@@ -758,6 +758,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/preview', 'preview')->name('preview_packing_central_switching');
         Route::post('/store', 'store')->name('store_packing_central_switching');
         Route::get('/export_excel_packing_central_switching', 'export_excel_packing_central_switching')->name('export_excel_packing_central_switching');
+
+        Route::get('/summary-wip-po', 'summaryWipPo')->name('summary_wip_po_packing_central_switching');
+        Route::get('/detail-transaksi', 'detailTransaksi')->name('detail_transaksi_packing_central_switching');
+        Route::get('/export-detail-transaksi', 'export_detail_transaksi_packing_central_switching')->name('export_detail_transaksi_packing_central_switching');
     });
 
     // Packing Out

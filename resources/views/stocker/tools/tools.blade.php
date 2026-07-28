@@ -334,7 +334,7 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                         <div class="row">
                         <div class="table-responsive">
@@ -1623,11 +1623,11 @@
                         table.clear().draw();
 
                         $('#no_form_modify_size_qty').val('').trigger('change');
-                        $('#resetModifySizeQty').modal('hide');
+                        // $('#resetModifySizeQty').modal('hide');
 
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
+                            icon: response.status == 200 ? 'success' : 'error',
+                            title: response.status == 200 ? 'Berhasil' : 'Gagal',
                             text: response.message,
                             timer: 1500,
                             showConfirmButton: false

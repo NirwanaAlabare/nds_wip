@@ -13,9 +13,14 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
-        <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
-            <i class="fas fa-reply"></i> Kembali ke Stok Trolley
-        </a>
+        <div class="d-flex justify-content-end gap-1">
+            <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-reply"></i> Kembali ke Stok Trolley
+            </a>
+            <a href="{{ route('allocate-this-trolley')."/".$trolley->id }}" class="btn btn-sb-secondary btn-sm">
+                Alokasi Stok Trolley <i class="fas fa-share"></i>
+            </a>
+        </div>
     </div>
     <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)">
         <div class="d-flex justify-content-center">
