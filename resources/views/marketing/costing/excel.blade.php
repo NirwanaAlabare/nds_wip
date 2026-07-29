@@ -102,28 +102,15 @@ header("Cache-Control: max-age=0");
                     } elseif ($key == 'Other Cost') {
                         if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                             $overhead_row = $det;
-                        } else {
-                            $sum_oth_norm_idr += $det->value_idr; $sum_oth_norm_usd += $det->value_usd;
                         }
+                        $sum_oth_norm_idr += $det->value_idr; $sum_oth_norm_usd += $det->value_usd;
                     }
                 }
             }
         }
 
-        $base_overhead_idr = $sum_fab_idr + $sum_sew_idr + $sum_pack_idr + $sum_mfg_idr + $sum_oth_norm_idr;
-        $base_overhead_usd = $sum_fab_usd + $sum_sew_usd + $sum_pack_usd + $sum_mfg_usd + $sum_oth_norm_usd;
-
-        $overhead_idr = 0; $overhead_usd = 0;
-        if ($overhead_row) {
-            $oh_allow = $overhead_row->allowance > 0 ? $overhead_row->allowance : 6;
-            $overhead_idr = $base_overhead_idr * ($oh_allow / 100);
-            $overhead_usd = $base_overhead_usd * ($oh_allow / 100);
-            $overhead_row->value_idr = $overhead_idr;
-            $overhead_row->value_usd = $overhead_usd;
-        }
-
-        $tot_other_idr = $sum_oth_norm_idr + $overhead_idr;
-        $tot_other_usd = $sum_oth_norm_usd + $overhead_usd;
+        $tot_other_idr = $sum_oth_norm_idr;
+        $tot_other_usd = $sum_oth_norm_usd;
         $base_ga_idr = $sum_fab_idr + $sum_sew_idr + $sum_pack_idr + $sum_mfg_idr + $tot_other_idr;
         $base_ga_usd = $sum_fab_usd + $sum_sew_usd + $sum_pack_usd + $sum_mfg_usd + $tot_other_usd;
         $ga_idr = $base_ga_idr * 0.03;

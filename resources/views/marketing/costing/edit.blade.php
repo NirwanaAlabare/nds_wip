@@ -1028,32 +1028,24 @@
             $('#txt_set, #txt_supplier, #txt_curr, #txt_unit').prop('disabled', true);
             $('#txt_desc, #txt_price, #txt_cons').prop('readonly', true);
 
-            if (item_text.includes('OVERHEAD')) {
-                $('#txt_allowance').val('6').prop('readonly', true).addClass('bg-light');
-                $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
+            $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
+            $('#txt_val_idr').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
+            $('#txt_val_usd').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
 
-                $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
-                $('#txt_val_idr, #txt_val_usd').val('0').data('raw', 0);
+            $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
+
+            if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
+                let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
+                let val_idr = val_usd * rate_to_idr;
+
+                $('#txt_val_usd').data('raw', val_usd);
+                $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
             } else {
-                $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
-                $('#txt_val_idr').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
-                $('#txt_val_usd').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
+                let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
+                let val_usd = val_idr / rate_to_idr;
 
-                $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
-
-                if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
-                    let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
-                    let val_idr = val_usd * rate_to_idr;
-
-                    $('#txt_val_usd').data('raw', val_usd);
-                    $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-                } else {
-                    let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
-                    let val_usd = val_idr / rate_to_idr;
-
-                    $('#txt_val_idr').data('raw', val_idr);
-                    $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-                }
+                $('#txt_val_idr').data('raw', val_idr);
+                $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
             }
         } else {
             $('#txt_supplier, #txt_curr, #txt_unit').prop('disabled', false);
@@ -1094,58 +1086,24 @@
             $('#m_set, #m_supplier, #m_curr, #m_unit').prop('disabled', true);
             $('#m_desc, #m_price, #m_cons').prop('readonly', true);
 
-            let sum_fab_idr = 0, sum_sew_idr = 0, sum_pack_idr = 0;
-            let sum_fab_usd = 0, sum_sew_usd = 0, sum_pack_usd = 0;
+            $('#m_allowance').prop('readonly', false).removeClass('bg-light');
+            $('#m_val_idr').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
+            $('#m_val_usd').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
 
-            $('.row-costing').each(function() {
-                let row_cat = $(this).data('category');
-                let val_idr = parseFloat($(this).find('.val-idr-td, .val-idr-td-other').data('val')) || 0;
-                let val_usd = parseFloat($(this).find('.val-usd-td, .val-usd-td-other').data('val')) || 0;
+            $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
 
-                if (row_cat === 'Fabric') { sum_fab_idr += val_idr; sum_fab_usd += val_usd; }
-                else if (row_cat === 'Accessories Sewing') { sum_sew_idr += val_idr; sum_sew_usd += val_usd; }
-                else if (row_cat === 'Accessories Packing') { sum_pack_idr += val_idr; sum_pack_usd += val_usd; }
-            });
+            if (document.activeElement && document.activeElement.id === 'm_val_usd') {
+                let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
+                let current_val_idr = current_val_usd * rate_to_idr;
 
-            let base_material_idr = sum_fab_idr + sum_sew_idr + sum_pack_idr;
-            let base_material_usd = sum_fab_usd + sum_sew_usd + sum_pack_usd;
+                $('#m_val_usd').data('raw', current_val_usd);
+                $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
+            } else {
+                let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
+                let current_val_usd = current_val_idr / rate_to_idr;
 
-            if (item_text.includes('OVERHEAD')) {
-                $('#m_allowance').val('6').prop('readonly', true).addClass('bg-light');
-                $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
-                allow_pct = 6;
-
-                // FIX OVERHEAD: MURNI HANYA DARI BASE MATERIAL SAJA
-                let base_overhead_idr = base_material_idr;
-                let base_overhead_usd = base_material_usd;
-
-                let val_idr = base_overhead_idr * (allow_pct / 100);
-                let val_usd = base_overhead_usd * (allow_pct / 100);
-
-                $('#m_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-                $('#m_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-                $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
-            }
-            else {
-                $('#m_allowance').prop('readonly', false).removeClass('bg-light');
-                $('#m_val_idr').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
-                $('#m_val_usd').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
-
-                $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
-
-                if (document.activeElement && document.activeElement.id === 'm_val_usd') {
-                    let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
-                    let current_val_idr = current_val_usd * rate_to_idr;
-
-                    $('#m_val_usd').data('raw', current_val_usd);
-                    $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
-                } else {
-                    let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
-                    let current_val_usd = current_val_idr / rate_to_idr;
-
-                    $('#m_val_idr').data('raw', current_val_idr);
-                    $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
-                }
+                $('#m_val_idr').data('raw', current_val_idr);
+                $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
             }
 
         }
@@ -1632,256 +1590,6 @@
             }
         });
 
-    // function calculate_summary() {
-
-    //     let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
-    //     let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-
-    //     let cat_totals = {
-    //         'Fabric': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'fab', sets: {} },
-    //         'Accessories Sewing': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'sew', sets: {} },
-    //         'Accessories Packing': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'pack', sets: {} },
-    //         'Manufacturing': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'mfg', sets: {} }
-    //     };
-    //     let grand_totals = { val: 0, bom: 0, sets: {} };
-
-    //     let active_sets = new Set();
-    //     if ($('#type').val() === 'multiple') {
-    //         $('#txt_set option').each(function() {
-    //             let txt = $(this).text().toUpperCase().trim();
-    //             if(txt && txt !== '-- SET --') active_sets.add(txt);
-    //         });
-    //     }
-
-    //     let sets_arr = Array.from(active_sets).sort(function(a, b) {
-    //         let orderA = masterSetOrder[a] !== undefined ? masterSetOrder[a] : 999;
-    //         let orderB = masterSetOrder[b] !== undefined ? masterSetOrder[b] : 999;
-    //         return orderA - orderB;
-    //     });
-
-    //     sets_arr.forEach(s => {
-    //         for(let c in cat_totals) { cat_totals[c].sets[s] = { idr: 0, usd: 0, val: 0, bom: 0 }; }
-    //         grand_totals.sets[s] = { val: 0, bom: 0 };
-    //     });
-
-    //     $('.row-costing').each(function() {
-    //         let cat = $(this).data('category');
-
-    //         if (cat !== 'Other Cost' && cat_totals[cat]) {
-    //             let val_idr = parseFloat($(this).find('.val-idr-td').data('val')) || 0;
-    //             let val_usd = parseFloat($(this).find('.val-usd-td').data('val')) || 0;
-    //             let cons = parseFloat($(this).find('.cons-td').data('val')) || 0;
-    //             let allow = parseFloat($(this).find('.allow-td').data('val')) || 0;
-    //             let px_idr = parseFloat($(this).find('.px-idr-td').data('val')) || 0;
-
-    //             let qty_bom = Math.ceil((1 + (allow / 100)) * order_qty * cons);
-    //             let tot_val = qty_bom * px_idr;
-
-    //             let set_name = $(this).find('.set-td').text().toUpperCase().trim();
-
-    //             $(this).find('.qty-bom-td').data('val', qty_bom).text(qty_bom.toLocaleString('en-US'));
-    //             $(this).find('.tot-val-td').data('val', tot_val).text(tot_val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-
-    //             cat_totals[cat].idr += val_idr;
-    //             cat_totals[cat].usd += val_usd;
-    //             cat_totals[cat].val += tot_val;
-    //             cat_totals[cat].bom += qty_bom;
-
-    //             grand_totals.val += tot_val;
-    //             grand_totals.bom += qty_bom;
-
-    //             if (set_name && cat_totals[cat].sets[set_name]) {
-    //                 cat_totals[cat].sets[set_name].idr += val_idr;
-    //                 cat_totals[cat].sets[set_name].usd += val_usd;
-    //                 cat_totals[cat].sets[set_name].val += tot_val;
-    //                 cat_totals[cat].sets[set_name].bom += qty_bom;
-
-    //                 grand_totals.sets[set_name].val += tot_val;
-    //                 grand_totals.sets[set_name].bom += qty_bom;
-    //             }
-    //         }
-    //     });
-
-    //     let base_material_idr = cat_totals['Fabric'].idr + cat_totals['Accessories Sewing'].idr + cat_totals['Accessories Packing'].idr;
-    //     let base_material_usd = cat_totals['Fabric'].usd + cat_totals['Accessories Sewing'].usd + cat_totals['Accessories Packing'].usd;
-
-    //     let sum_oth_norm_idr = 0, sum_oth_norm_usd = 0;
-    //     let overhead_row = null;
-
-    //     $('#tbody-other-cost tr').each(function() {
-    //         let name = $(this).find('.item-name').text().toUpperCase();
-    //         let val_idr = parseFloat($(this).find('.val-idr-td-other').data('val')) || 0;
-    //         let allow_val = parseFloat($(this).find('.allow-td').data('val')) || 0;
-
-    //         if (name.includes('OVERHEAD')) {
-    //             overhead_row = $(this);
-    //         } else {
-    //             let val_usd = val_idr / rate_to_idr;
-    //             $(this).find('.val-usd-td-other').data('val', val_usd).text(val_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //             $(this).find('.allow-td').text(allow_val > 0 ? allow_val.toFixed(2) + '%' : '');
-
-    //             sum_oth_norm_idr += val_idr;
-    //             sum_oth_norm_usd += val_usd;
-    //         }
-    //     });
-
-    //     let overhead_idr = 0, overhead_usd = 0;
-    //     if (overhead_row) {
-    //         let oh_allow = parseFloat(overhead_row.find('.allow-td').data('val'));
-    //         if (isNaN(oh_allow) || oh_allow === 0) {
-    //             oh_allow = 6;
-    //             overhead_row.find('.allow-td').data('val', 6).text('6.00%');
-    //         } else {
-    //             overhead_row.find('.allow-td').text(oh_allow > 0 ? oh_allow.toFixed(2) + '%' : '');
-    //         }
-
-    //         // FIX OVERHEAD: MURNI HANYA DARI BASE MATERIAL SAJA
-    //         let base_overhead_idr = base_material_idr;
-    //         let base_overhead_usd = base_material_usd;
-
-    //         overhead_idr = base_overhead_idr * (oh_allow / 100);
-    //         overhead_usd = base_overhead_usd * (oh_allow / 100);
-
-    //         overhead_row.find('.val-idr-td-other').data('val', overhead_idr).text(overhead_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //         overhead_row.find('.val-usd-td-other').data('val', overhead_usd).text(overhead_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     }
-
-    //     let tot_other_idr = sum_oth_norm_idr + overhead_idr;
-    //     let tot_other_usd = sum_oth_norm_usd + overhead_usd;
-
-    //     $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-
-    //     let base_ga_idr = base_material_idr + cat_totals['Manufacturing'].idr + tot_other_idr;
-    //     let base_ga_usd = base_material_usd + cat_totals['Manufacturing'].usd + tot_other_usd;
-
-    //     let input_ga_pct = parseFloat($('#ga_percent').val()) || 0;
-    //     let ga_idr = base_ga_idr * (input_ga_pct / 100);
-    //     let ga_usd = base_ga_usd * (input_ga_pct / 100);
-
-    //     let grand_idr = base_ga_idr + ga_idr;
-    //     let grand_usd = grand_idr / rate_to_idr;
-
-    //     $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-
-    //     let ga_pct = (grand_idr > 0) ? (ga_idr / grand_idr) * 100 : 0;
-    //     $('.pct-ga').text(ga_pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
-    //     let pct_other = (grand_idr > 0) ? (tot_other_idr / grand_idr) * 100 : 0;
-    //     $('#tot-other-pct').text(pct_other.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
-
-    //     $('.row-costing').each(function() {
-    //         let val_idr = parseFloat($(this).find('.val-idr-td, .val-idr-td-other').data('val')) || 0;
-    //         let pct = (grand_idr > 0) ? (val_idr / grand_idr) * 100 : 0;
-    //         $(this).find('.pct-td').text(pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
-    //     });
-
-    //     for (let c in cat_totals) {
-    //         let obj = cat_totals[c];
-    //         let pfx = obj.prefix;
-    //         let title = c.toUpperCase();
-
-    //         let tfoot_html = '';
-
-    //         sets_arr.forEach(s => {
-    //             let d = obj.sets[s];
-    //             tfoot_html += `
-    //                 <tr style="background-color: #f8f9fa;">
-    //                     <td colspan="10" class="text-left">${title} - TOTAL ${s}</td>
-    //                     <td class="text-right">${d.idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //                     <td class="text-right">${d.usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})}</td>
-    //                     <td></td>
-    //                     <td class="text-right">${d.bom.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-    //                     <td class="text-right">${d.val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //                     <td></td>
-    //                 </tr>
-    //             `;
-    //         });
-
-    //         let cat_pct = (grand_idr > 0) ? (obj.idr / grand_idr) * 100 : 0;
-    //         tfoot_html += `
-    //             <tr class="bg-warning text-dark">
-    //                 <td colspan="10" class="text-left">TOTAL ${title} :</td>
-    //                 <td class="text-right">${obj.idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //                 <td class="text-right">${obj.usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})}</td>
-    //                 <td class="text-center"></td>
-    //                 <td class="text-right">${obj.bom.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-    //                 <td class="text-right">${obj.val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //                 <td></td>
-    //             </tr>
-    //         `;
-
-    //         $('#tfoot-' + pfx).html(tfoot_html);
-    //     }
-
-    //     let grand_set_html = '';
-    //     sets_arr.forEach(s => {
-    //         let d = grand_totals.sets[s];
-    //         grand_set_html += `
-    //             <tr style="font-weight: bold; background-color: #f8f9fa;">
-    //                 <td width="40%">TOTAL ${s}</td>
-    //                 <td width="30%" class="text-center">${d.bom.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-    //                 <td width="30%" class="text-center">${d.val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //             </tr>
-    //         `;
-    //     });
-
-    //     $('#table-grand-total').html(`
-    //         <tr style="border-top: 2px solid #000; font-weight: bold; background-color: #f2f2f2;">
-    //             <td width="40%"></td>
-    //             <td width="30%" class="text-center">TOTAL QTY BOM</td>
-    //             <td width="30%" class="text-center">TOTAL VALUE</td>
-    //         </tr>
-
-    //         ${grand_set_html}
-    //         <tr style="font-weight: bold;">
-    //             <td>GRAND TOTAL</td>
-    //             <td class="text-center text-dark">${grand_totals.bom.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-    //             <td class="text-center text-dark">${grand_totals.val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-    //         </tr>
-    //     `);
-
-    //     let input_vat = parseFloat($('input[name="vat"]').val()) || 0;
-    //     let shipment_type = $('#shipment_type').val();
-    //     let actual_vat_pct = (shipment_type === 'export') ? 0 : input_vat;
-    //     $('#vat-label-pct').text(actual_vat_pct + '%');
-
-    //     let vat_multiplier = 1 + (actual_vat_pct / 100);
-    //     let vat_idr = Math.round((grand_idr * vat_multiplier) * 100) / 100;
-    //     let vat_usd = Math.round((grand_usd * vat_multiplier) * 10000000) / 10000000;
-    //     let profit_idr = Math.round((vat_idr * 1.06) * 100) / 100;
-    //     let profit_usd = Math.round((vat_usd * 1.06) * 10000000) / 10000000;
-
-    //     let confirm_price = parseFloat($('#confirm_price').val()) || 0;
-    //     let suggest_idr = 0;
-    //     let suggest_usd = 0;
-
-    //     if (confirm_price !== 0) {
-    //         let diff_total = confirm_price - grand_idr;
-    //         let oh_allow_pct = 0;
-    //         if (overhead_row) {
-    //             oh_allow_pct = parseFloat(overhead_row.find('.allow-td').data('val'));
-    //             if (isNaN(oh_allow_pct) || oh_allow_pct === 0) oh_allow_pct = 6;
-    //         }
-    //         let oh_multiplier = 1 + (oh_allow_pct / 100);
-
-    //         suggest_idr = diff_total / (oh_multiplier * 1.03);
-    //         suggest_usd = suggest_idr / rate_to_idr;
-    //     }
-
-    //     $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#grand-tot-usd').text(grand_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-
-    //     $('#val-suggest-idr').text(suggest_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#val-suggest-usd').text(suggest_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-
-    //     $('#val-profit-idr').text(profit_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-    //     $('#val-profit-usd').text(profit_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
-
-    //     lock_type_dropdown();
-    // }
     function calculate_summary() {
 
         // ============================
@@ -1977,7 +1685,6 @@
 
             if (name.includes('OVERHEAD')) {
                 overhead_row = $(this);
-                return;
             }
 
             let val_usd = val_idr / rate_to_idr;
@@ -1988,26 +1695,8 @@
             sum_oth_norm_usd += val_usd;
         });
 
-        let overhead_idr = 0, overhead_usd = 0;
-        if (overhead_row) {
-            let oh_allow = parseFloat(overhead_row.find('.allow-td').data('val'));
-            if (isNaN(oh_allow) || oh_allow === 0) {
-                oh_allow = 6;
-                overhead_row.find('.allow-td').data('val', 6).text('6.00%');
-            } else {
-                overhead_row.find('.allow-td').text(oh_allow > 0 ? oh_allow.toFixed(2) + '%' : '');
-            }
-
-            // Overhead murni dihitung dari base material saja (tidak termasuk manufacturing/other cost lain)
-            overhead_idr = base_material_idr * (oh_allow / 100);
-            overhead_usd = base_material_usd * (oh_allow / 100);
-
-            overhead_row.find('.val-idr-td-other').data('val', overhead_idr).text(overhead_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-            overhead_row.find('.val-usd-td-other').data('val', overhead_usd).text(overhead_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        }
-
-        let tot_other_idr = sum_oth_norm_idr + overhead_idr;
-        let tot_other_usd = sum_oth_norm_usd + overhead_usd;
+        let tot_other_idr = sum_oth_norm_idr;
+        let tot_other_usd = sum_oth_norm_usd;
 
         $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
         $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
@@ -2141,8 +1830,7 @@
 
             let oh_allow_pct = 0;
             if (overhead_row) {
-                oh_allow_pct = parseFloat(overhead_row.find('.allow-td').data('val'));
-                if (isNaN(oh_allow_pct) || oh_allow_pct === 0) oh_allow_pct = 6;
+                oh_allow_pct = parseFloat(overhead_row.find('.allow-td').data('val')) || 0;
             }
             let oh_multiplier = 1 + (oh_allow_pct / 100);
 

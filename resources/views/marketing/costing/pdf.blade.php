@@ -182,19 +182,15 @@
         if(!empty($details['Other Cost'])) {
             foreach($details['Other Cost'] as $det) {
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) $overhead_row = $det;
-                else {
-                    $sum_oth_norm_idr += $det->value_idr;
-                    $sum_oth_norm_usd += ($det->value_idr / $rate_to_idr);
-                }
+                $sum_oth_norm_idr += $det->value_idr;
+                $sum_oth_norm_usd += ($det->value_idr / $rate_to_idr);
             }
         }
 
         $base_overhead_idr = $sum_fab_idr + $sum_sew_idr + $sum_pack_idr;
-        $overhead_idr = $overhead_row ? ($base_overhead_idr * ($overhead_row->allowance / 100)) : 0;
-        $overhead_usd = $overhead_idr / $rate_to_idr;
 
         $input_ga_pct = floatval($costing->ga_percent ?? 3.00);
-        $base_ga_idr = $base_overhead_idr + $sum_mfg_idr + $sum_oth_norm_idr + $overhead_idr;
+        $base_ga_idr = $base_overhead_idr + $sum_mfg_idr + $sum_oth_norm_idr;
         $ga_idr = $base_ga_idr * ($input_ga_pct / 100);
         $ga_usd  = $ga_idr / $rate_to_idr;
         $grand_idr = $base_ga_idr + $ga_idr;
@@ -210,6 +206,26 @@
         $vat_usd    = round($grand_usd * $vat_multiplier, 7);
         $profit_idr = round($vat_idr * 1.06, 2);
         $profit_usd = round($vat_usd * 1.06, 7);
+
+        // BALANCE OTHER COST — sama persis dengan JS (section 8 calculate_summary di edit.blade)
+        $header_curr = strtoupper($costing->nama_curr ?? $costing->curr ?? '');
+        $confirm_price_raw = floatval($costing->confirm_price ?? 0);
+        $suggest_idr = 0;
+        $suggest_usd = 0;
+
+        if ($confirm_price_raw !== 0.0) {
+            $confirm_price_idr = ($header_curr === 'USD')
+                ? $confirm_price_raw * $rate_to_idr
+                : $confirm_price_raw;
+
+            $diff_total = $confirm_price_idr - $grand_idr;
+
+            $oh_allow_pct = $overhead_row ? floatval($overhead_row->allowance ?? 0) : 0;
+            $oh_multiplier = 1 + ($oh_allow_pct / 100);
+
+            $suggest_idr = $diff_total / ($oh_multiplier * 1.03);
+            $suggest_usd = $suggest_idr / $rate_to_idr;
+        }
     @endphp
 
 
@@ -411,6 +427,11 @@
             <td class="text-right">{{ number_format($grand_idr, 7) }}</td>
             <td class="text-right">{{ number_format($grand_usd, 7) }}</td>
         </tr>
+        {{-- <tr>
+            <td class="fw-bold bg-light">BALANCE OTHER COST</td>
+            <td class="text-right">{{ number_format($suggest_idr, 7) }}</td>
+            <td class="text-right">{{ number_format($suggest_usd, 7) }}</td>
+        </tr> --}}
         <tr>
             <td class="fw-bold bg-light">VAT ({{ $actual_vat }}%)</td>
             <td class="text-right">{{ number_format($vat_idr, 7) }}</td>
