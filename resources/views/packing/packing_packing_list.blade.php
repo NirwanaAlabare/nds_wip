@@ -523,6 +523,8 @@
                             <th>Style</th>
                             <th>Tot. Carton</th>
                             <th>Tot. Qty</th>
+                            <th>Created At</th>
+                            <th>Created By</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -820,6 +822,12 @@
                     data: 'tot_qty'
                 },
                 {
+                    data: 'created_at'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
                     data: 'po'
                 },
             ],
@@ -828,7 +836,7 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [7],
+                    targets: [9],
                     render: (data, type, row, meta) => {
                         return `
                 <div class='d-flex gap-1 justify-content-center'>
