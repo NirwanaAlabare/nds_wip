@@ -358,7 +358,8 @@
                             let printUrl = "{{ route('print-bom-pdf', ':id') }}".replace(':id', data);
 
                             let hidden_button = '';
-                            if(row.cancelable == 'false'){
+                            console.log(row.cancelable);
+                            if(row.cancelable === false){
                                 hidden_button = 'hidden';
                             }
                             return `

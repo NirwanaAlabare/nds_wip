@@ -155,12 +155,13 @@ use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMasterTabController;
 use App\Http\Controllers\AssetTransTabController;
 use App\Http\Controllers\AssetMesinReportController;
-
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
 use App\Http\Controllers\HelpdeskDashboardController;
 use App\Http\Controllers\BAPFormController;
+use App\Http\Controllers\ReportBc\ReportBcController;
+use App\Http\Controllers\ReportBc\DashboardReportBcController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1732,6 +1733,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc27', 'editBc27')->name('dokumen-pabean-edit-bc27')->where('id', '.*');
         Route::put('/update-draft-bc27/{id}', 'updateDraftBc27')->name('dokumen-pabean-update_draft_bc27')->where('id', '.*');
         Route::post('/send-bc27/{id}', 'sendCeisaBc27')->name('dokumen-pabean-send-bc27')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc27/{ids}','editBatchBc27')->name('dokumen-pabean-edit-batch-bc27');
+        Route::put('/dokumen-pabean/update-draft-batch-bc27/{ids}','updateDraftBatchBc27')->name('dokumen-pabean-update_draft_batch_bc27');
 
         // BC 3.0 routes
         Route::get('/{id}/edit-bc30', 'editBc30')->name('dokumen-pabean-edit-bc30')->where('id', '.*');
@@ -2083,6 +2086,15 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportPackingLineReturnController::class)->prefix("report-packing-line-return")->middleware('role:packing')->group(function () {
         Route::get('/', 'index')->name('report-packing-line-return');
         Route::post('/export', 'export')->name('export-report-packing-line-return');
+    });
+
+    Route::controller(DashboardReportBcController::class)->prefix("dashboard-report-bc")->middleware('role:export_import')->group(function () {
+        Route::get('/index', 'index')->name('dashboard-report-bc');
+    });
+
+    Route::controller(ReportBcController::class)->prefix("report-bc")->middleware('role:export_import')->group(function () {
+        Route::get('/index', 'index')->name('index-report-bc');
+        Route::get('/{jenis}/{kategori}/{kategoribarang}', 'showReport')->name('report-bc.show');
     });
 });
 

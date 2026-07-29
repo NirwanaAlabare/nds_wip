@@ -1332,6 +1332,27 @@ class Marketing_BomController extends Controller
                     'cancel' => 'Y',
                 ]);
 
+            // check SO
+            $so = $mysql_sb->table('so')
+                  ->where('id_bom', $id)
+                  ->first();
+
+            if ($so) {
+                $mysql_sb->table('so')
+                    ->where('id', $so->id)
+                    ->update(['cancel_h' => 'Y']);
+
+                $mysql_sb->table('so_det')
+                    ->where('id_so', $so->id)
+                    ->update(['cancel' => 'Y']);
+
+                $mysql_sb->table('act_costing')
+                    ->where('id', $so->id_cost)
+                    ->update(['status' => 'CANCEL', 'aktif' => 'N']);
+            }
+
+
+
             $mysql_sb->commit();
             return response()->json(['status' => 200, 'message' => 'BOM berhasil dibatalkan (dihapus)!']);
         } catch (\Exception $e) {

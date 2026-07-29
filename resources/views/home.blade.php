@@ -530,7 +530,12 @@
             <span class="menu-label">Helpdesk</span>
         </a>
 
-
+        @role(['export_import', 'accounting'])
+            <a href="{{ route('dashboard-report-bc') }}" class="menu-card">
+                <div class="menu-img-wrap"><img src="{{ asset('dist/img/doc_report.png') }}" alt="report BC"></div>
+                <span class="menu-label">Report BC</span>
+            </a>
+        @endrole
 
         @role('superadmin')
         <a href="{{ route('manage-user') }}" class="menu-card">

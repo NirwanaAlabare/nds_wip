@@ -7,17 +7,205 @@
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
 <style>
+    .dokpabean-card {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+    }
+
+    .dokpabean-card .card-header {
+        background: #0f172a;
+        border: none;
+        padding: 1.9rem 2rem 1.7rem;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .dokpabean-card .card-header::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: repeating-linear-gradient(
+            180deg,
+            #3085d6 0px, #3085d6 10px,
+            transparent 10px, transparent 20px
+        );
+    }
+
+    .dokpabean-card .card-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+        color: #5aa9f0;
+        margin: 0 0 6px 2px;
+        display: block;
+    }
+
+    .dokpabean-card .card-title {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: #f8fafc;
+        margin: 0 0 0 2px;
+        line-height: 1.15;
+    }
+
+    .dokpabean-card .card-subtitle {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin: 6px 0 0 2px;
+        max-width: 480px;
+    }
+
+    .dokpabean-card .card-header-tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #0f172a;
+        background: #5aa9f0;
+        padding: 5px 12px;
+        border-radius: 999px;
+        white-space: nowrap;
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        .dokpabean-card .card-header-tag { display: inline-block; }
+    }
+
+    .dokpabean-card .card-body {
+        background: #fbfcff;
+        padding: 1.75rem 2rem 2rem;
+    }
+
+    /* ============ FILTER BAR ============ */
+    .filter-panel {
+        background: #fff;
+        border: 1px solid #e7ecf3;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem 0.9rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    }
+
+    .filter-panel .filter-label {
+        font-weight: 700;
+        font-size: 0.72rem;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-panel .filter-label i {
+        color: #3085d6;
+        font-size: 0.72rem;
+    }
+
+    .filter-panel .form-control,
+    .filter-panel .select2-container--bootstrap4 .select2-selection {
+        border-radius: 8px;
+        border: 1.5px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .filter-panel .form-control:focus,
+    .filter-panel .select2-container--bootstrap4.select2-container--focus .select2-selection {
+        border-color: #3085d6;
+        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12);
+    }
+
+    #btn-filter {
+        border-radius: 8px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #3085d6, #1e3a8a);
+        border: none;
+        box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
+        transition: all 0.2s ease;
+    }
+
+    #btn-filter:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(48, 133, 214, 0.35);
+    }
+
+    /* ============ ACTION BAR ============ */
+    .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 1.1rem;
+    }
+
+    .action-bar .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.45rem 0.95rem;
+    }
+
+    #btn-status-periode {
+        border: 1.5px solid #38bdf8;
+        color: #0369a1;
+        background: #f0f9ff;
+    }
+
+    #btn-status-periode:hover {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    #btn-buat-batch {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        border: none;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+    }
+
+    #btn-buat-batch:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+    }
+
+    .section-divider {
+        border: none;
+        border-top: 1px dashed #dbe4ee;
+        margin: 0 0 1.2rem;
+    }
+
+    /* ============ TABLE ============ */
+    .table-custom {
+        border-radius: 10px;
+        overflow: hidden;
+    }
     .table-custom th {
         background-color: var(--sb-color) !important;
         color: white;
         white-space: nowrap;
         text-align: center;
         vertical-align: middle !important;
-        font-size: 13px;
+        font-size: 12.5px;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        font-weight: 700;
     }
     .table-custom td {
         vertical-align: middle !important;
         font-size: 13px;
+    }
+    .table-custom tbody tr:hover {
+        background-color: #f4f8fd;
     }
     .select2-container--bootstrap4 .select2-selection--multiple {
         min-height: calc(1.5em + .5rem + 2px) !important;
@@ -26,20 +214,34 @@
         background-color: rgba(40, 167, 69, 0.12) !important;
     }
 
-    /* Modal Status Periode */
+    /* ============ Modal Status Periode ============ */
+    #modal-status-periode .modal-content,
+    #modal-buat-batch .modal-content {
+        border: none;
+        border-radius: 14px;
+        overflow: hidden;
+    }
     #modal-status-periode .modal-header {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        background: #0f172a;
         color: white;
-        border-radius: 8px 8px 0 0;
+        border-radius: 0;
+        position: relative;
+    }
+    #modal-status-periode .modal-header::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 5px;
+        background: repeating-linear-gradient(180deg, #38bdf8 0px, #38bdf8 10px, transparent 10px, transparent 20px);
     }
     #modal-status-periode .modal-header .close { color: white; opacity: 1; }
     #modal-status-periode .modal-title { font-size: 16px; font-weight: 700; }
     .accordion-doc-card {
         border: 1px solid #dee2e6;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 8px;
         overflow: hidden;
-        box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
     .accordion-doc-header {
         background: #f8f9fa;
@@ -66,81 +268,91 @@
         border-radius: 50%;
         margin-right: 5px;
     }
+
+    /* Modal Buat Batch header tetap pakai bg-sb dari layout, hanya dihaluskan */
+    #modal-buat-batch .modal-header.bg-sb {
+        border-radius: 0;
+    }
+    #modal-buat-batch #info-selected-count {
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 5px 12px;
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="card card-sb">
+<div class="card dokpabean-card">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">
-            <i class="fas fa-file-invoice"></i> List Dokumen Pabean
-        </h5>
+        <div>
+            <h5 class="card-title fw-bold mb-0">List Dokumen Pabean</h5>
+        </div>
     </div>
     <div class="card-body">
 
-        <div class="row align-items-end mb-4">
-            <div class="col-md-2">
-                <label class="small fw-bold">Jenis Transaksi</label>
-                <select id="jenis" class="form-control form-control-sm select2bs4">
-                    <option value="Pemasukan" {{ $jenis == 'Pemasukan' ? 'selected' : '' }}>Pemasukan</option>
-                    <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
-                </select>
-            </div>
+        <div class="filter-panel">
+            <div class="row align-items-end">
+                <div class="col-md-2">
+                    <label class="filter-label"><i class="fas fa-exchange-alt"></i> Jenis Transaksi</label>
+                    <select id="jenis" class="form-control form-control-sm select2bs4">
+                        <option value="Pemasukan" {{ $jenis == 'Pemasukan' ? 'selected' : '' }}>Pemasukan</option>
+                        <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                    </select>
+                </div>
 
-            <div class="col-md-2">
-                <label class="small fw-bold">Tipe BC</label>
-                <select id="jenis_bc" class="form-control form-control-sm select2bs4">
-                    <option value="" {{ $jenis_bc == '' ? 'selected' : '' }}>Semua Tipe</option>
-                    <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
-                    <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
-                    <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
-                    <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
-                    <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
-                    <option value="BC 2.6.1" {{ $jenis_bc == 'BC 2.6.1' ? 'selected' : '' }}>BC 2.6.1</option>
-                    <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
-                    <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
-                    <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
-                    <option value="INHOUSE" {{ $jenis_bc == 'INHOUSE' ? 'selected' : '' }}>INHOUSE</option>
-                </select>
-            </div>
+                <div class="col-md-2">
+                    <label class="filter-label"><i class="fas fa-tag"></i> Tipe BC</label>
+                    <select id="jenis_bc" class="form-control form-control-sm select2bs4">
+                        <option value="" {{ $jenis_bc == '' ? 'selected' : '' }}>Semua Tipe</option>
+                        <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
+                        <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
+                        <option value="BC 3.0" {{ $jenis_bc == 'BC 3.0' ? 'selected' : '' }}>BC 3.0</option>
+                        <option value="BC 3.3" {{ $jenis_bc == 'BC 3.3' ? 'selected' : '' }}>BC 3.3</option>
+                        <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
+                        <option value="BC 2.6.1" {{ $jenis_bc == 'BC 2.6.1' ? 'selected' : '' }}>BC 2.6.1</option>
+                        <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
+                        <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
+                        <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
+                        <option value="INHOUSE" {{ $jenis_bc == 'INHOUSE' ? 'selected' : '' }}>INHOUSE</option>
+                    </select>
+                </div>
 
-            <div class="col-md-2">
-                <label class="small fw-bold">Status Kirim</label>
-                <select id="status_ceisa" class="form-control form-control-sm select2bs4">
-                    <option value="" {{ $status_ceisa == '' ? 'selected' : '' }}>Semua</option>
-                    <option value="sent" {{ $status_ceisa == 'sent' ? 'selected' : '' }}>Sudah Kirim</option>
-                    <option value="unsent" {{ $status_ceisa == 'unsent' ? 'selected' : '' }}>Belum Kirim</option>
-                </select>
-            </div>
+                <div class="col-md-2">
+                    <label class="filter-label"><i class="fas fa-paper-plane"></i> Status Kirim</label>
+                    <select id="status_ceisa" class="form-control form-control-sm select2bs4">
+                        <option value="" {{ $status_ceisa == '' ? 'selected' : '' }}>Semua</option>
+                        <option value="sent" {{ $status_ceisa == 'sent' ? 'selected' : '' }}>Sudah Kirim</option>
+                        <option value="unsent" {{ $status_ceisa == 'unsent' ? 'selected' : '' }}>Belum Kirim</option>
+                    </select>
+                </div>
 
-            <div class="col-md-2">
-                <label class="small fw-bold">Dari Tanggal</label>
-                <input type="date" id="filter_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
-            </div>
-            <div class="col-md-2">
-                <label class="small fw-bold">Sampai Tanggal</label>
-                <input type="date" id="filter_tanggal_akhir" class="form-control form-control-sm" value="{{ $tgl_akhir }}">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary btn-sm w-100" id="btn-filter" onclick="refreshTable()">
-                    <i class="fas fa-search"></i> Filter
-                </button>
+                <div class="col-md-2">
+                    <label class="filter-label"><i class="fas fa-calendar-day"></i> Dari Tanggal</label>
+                    <input type="date" id="filter_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="filter-label"><i class="fas fa-calendar-check"></i> Sampai Tanggal</label>
+                    <input type="date" id="filter_tanggal_akhir" class="form-control form-control-sm" value="{{ $tgl_akhir }}">
+                </div>
+                <div class="col-md-2 mb-1">
+                    <button class="btn btn-primary btn-sm w-100 text-white" id="btn-filter" onclick="refreshTable()">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <button class="btn btn-sm btn-outline-info" id="btn-status-periode">
-                    Cek Status CEISA Periode Ini
-                </button>
-                {{-- <button id="btn-send" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Send Batch</button> --}}
-                <button id="btn-buat-batch" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-buat-batch">
-                    <i class="fas fa-layer-group"></i> Buat Batch Dokumen Pabean
-                </button>
-            </div>
+        <div class="action-bar">
+            <button class="btn btn-sm" id="btn-status-periode">
+                <i class="fas fa-satellite-dish mr-1"></i> Cek Status CEISA Periode Ini
+            </button>
+            {{-- <button id="btn-send" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Send Batch</button> --}}
+            <button id="btn-buat-batch" class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modal-buat-batch">
+                <i class="fas fa-layer-group"></i> Buat Batch Dokumen Pabean
+            </button>
         </div>
 
-        <hr>
+        <hr class="section-divider">
 
         <div class="table-responsive mb-3">
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
@@ -1112,7 +1324,7 @@
                             let valId = (jenis == 'Pemasukan') ? row.bpbno : row.bppbno;
                             let jenisBc = $('#jenis_bc_modal').val();
 
-                            if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1'){
+                            if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1' || jenisBc === 'BC 2.7' ){
                                 return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
                             }else{
                                 return '';
@@ -1212,6 +1424,10 @@
 
                 if(jenisBc === 'BC 4.1'){
                     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc41", "") }}/' + ids;
+                }
+
+                if(jenisBc === 'BC 2.7'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc27", "") }}/' + ids;
                 }
             }
         });
