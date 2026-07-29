@@ -39,7 +39,9 @@ m.buyer,
 m.styleno,
 p.tgl_shipment,
 concat((DATE_FORMAT(p.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(p.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(p.tgl_shipment,  '%Y')) tgl_shipment_fix,
-sum(a.qty) tot_qty
+sum(a.qty) tot_qty,
+a.created_at,
+a.created_by
 from packing_master_packing_list a
 left join ppic_master_so p on a.id_ppic_master_so = p.id
 left join master_sb_ws m on p.id_so_det = m.id_so_det

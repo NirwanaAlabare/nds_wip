@@ -27,6 +27,7 @@ class Marketing_CostingController extends Controller
 
             $data = $db->table('act_costing_new as a')
                 ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
+                ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
                 ->select(
                     'a.id',
                     'a.no_costing',
@@ -41,7 +42,9 @@ class Marketing_CostingController extends Controller
                     'a.main_dest',
                     'a.market',
                     'a.qty',
-                    'a.confirm_price'
+                    'a.confirm_price',
+                    'p.product_group as product_group_text',
+                    'p.product_item as product_item_text'
                 )->orderBy('a.id', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {

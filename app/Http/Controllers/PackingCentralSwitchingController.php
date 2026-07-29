@@ -37,7 +37,7 @@ class PackingCentralSwitchingController extends Controller
                     a.id_ppic_master_so,
                     a.id_so_det AS so_det_id,
                     SUM(a.qty) AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
+                FROM laravel_nds.packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p
                     ON a.id_ppic_master_so = p.id
                 WHERE YEAR(p.tgl_shipment) >= 2026
@@ -420,7 +420,7 @@ class PackingCentralSwitchingController extends Controller
                     a.id_ppic_master_so,
                     a.id_so_det AS so_det_id,
                     SUM(a.qty) AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
+                FROM laravel_nds.packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p
                     ON a.id_ppic_master_so = p.id
                 WHERE YEAR(p.tgl_shipment) >= 2026

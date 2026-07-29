@@ -353,9 +353,14 @@
                         className: "text-center align-middle",
                         width: "25%",
                         orderable: false,
-                        render: function (data) {
+                        render: function (data, type, row, meta) {
                             let editUrl = "{{ route('edit-bom', ':id') }}".replace(':id', data);
                             let printUrl = "{{ route('print-bom-pdf', ':id') }}".replace(':id', data);
+
+                            let hidden_button = '';
+                            if(row.cancelable == 'false'){
+                                hidden_button = 'hidden';
+                            }
                             return `
                                 <div class="d-flex justify-content-center align-items-center" style="gap: 4px;">
                                     <button class="btn btn-sm btn-info py-1 px-2" style="font-size: 12px;" onclick="viewDetail(${data})" title="Detail BOM">
@@ -370,7 +375,7 @@
                                     <button class="btn btn-sm py-1 px-2 text-white" style="font-size: 12px; background-color: #2e7d32; border-color: #2e7d32;" onclick="exportExcel(${data})" title="Export Excel">
                                         <i class="fas fa-file-excel"></i> Excel
                                     </button>
-                                    <button class="btn btn-sm btn-danger py-1 px-2" style="font-size: 12px;" onclick="deleteBom(${data})" title="Hapus BOM">
+                                    <button class="btn btn-sm btn-danger py-1 px-2 ${hidden_button}" style="font-size: 12px;" onclick="deleteBom(${data})" title="Hapus BOM">
                                         <i class="fas fa-trash-alt"></i> Delete
                                     </button>
                                 </div>
