@@ -1623,6 +1623,7 @@
                         table.clear().draw();
 
                         $('#no_form_modify_size_qty').val('').trigger('change');
+                        getFormListModifySizeQty();
                         // $('#resetModifySizeQty').modal('hide');
 
                         Swal.fire({
