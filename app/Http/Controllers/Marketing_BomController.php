@@ -27,12 +27,57 @@ class Marketing_BomController extends Controller
                 ->leftJoin('act_costing_new as c', 'h.id_costing', '=', 'c.id')
                 ->leftJoin('so', 'h.id', '=', 'so.id_bom')
                 ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
-                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons') , 'act.kpno')
+                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id AND cancel = \'N\') as total_cons') , 'act.kpno')
                 ->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
                 ->where('h.created_at', '<=', $dateTo . ' 23:59:59')
+                ->where(function($q) {
+                    $q->whereNull('h.cancel')
+                      ->orWhere('h.cancel', '!=', 'Y');
+                })
                 ->groupBy('h.no_katalog_bom')
                 ->orderBy('h.created_at', 'desc')
                 ->get();
+
+            foreach ($data as $idx => $data_bom) {
+                $data[$idx]->cancelable = true;
+
+                $so = $mysql_sb->table('so')
+                    ->where('id_bom', $data_bom->id)
+                    ->first();
+
+                if (!$so) continue;
+
+                $jo_det = $mysql_sb->table('jo_det')
+                    ->where('id_so', $so->id)
+                    ->first();
+
+                if (!$jo_det) continue;
+
+                // Cek apakah udah ada PO
+                $po_item = $mysql_sb->table('po_item')
+                    ->where('id_jo', $jo_det->id_jo)
+                    ->exists();
+
+                if ($po_item) {
+                    $data[$idx]->cancelable = false;
+                    continue;
+                }
+
+                $so_det = $mysql_sb->table('so_det')
+                    ->where('id_so', $so->id)
+                    ->first();
+
+                if (!$so_det) continue;
+
+                // Cek apakah udah ada Marker
+                $has_marker = DB::table('marker_input_detail')
+                    ->where('so_det_id', $so_det->id)
+                    ->exists();
+
+                if ($has_marker) {
+                    $data[$idx]->cancelable = false;
+                }
+            }
 
             return response()->json(['data' => $data]);
         }
@@ -712,6 +757,9 @@ class Marketing_BomController extends Controller
             ->join('masterothers as b', 'a.item_id', '=', 'b.id')
             ->select('a.*', DB::raw("CONCAT(b.otherscode, ' ', b.othersdesc) as tampil"))
             ->where('a.id_bom_marketing', $id)
+            ->where(function($q){
+                $q->whereNull('a.cancel')->orWhere('a.cancel', 'N');
+            })
             ->get();
 
         return response()->json($data);
@@ -720,7 +768,10 @@ class Marketing_BomController extends Controller
     public function destroyOther($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
-        $mysql_sb->table('bom_marketing_others')->where('id', $id)->delete();
+        $mysql_sb->table('bom_marketing_others')
+            ->where('id', $id)
+            ->update(['cancel' => 'Y']);
+
         return response()->json(['message' => 'Item berhasil dihapus']);
     }
 
@@ -1267,12 +1318,22 @@ class Marketing_BomController extends Controller
         $mysql_sb = DB::connection('mysql_sb');
         $mysql_sb->beginTransaction();
         try {
-            $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id)->delete();
-            $mysql_sb->table('bom_marketing_others')->where('id_bom_marketing', $id)->delete();
-            $mysql_sb->table('bom_marketing')->where('id', $id)->delete();
+            $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $id)
+                ->update(['cancel' => 'Y']);
+
+            $mysql_sb->table('bom_marketing_others')
+                ->where('id_bom_marketing', $id)
+                ->update(['cancel' => 'Y']);
+
+            $mysql_sb->table('bom_marketing')
+                ->where('id', $id)
+                ->update([
+                    'cancel' => 'Y',
+                ]);
 
             $mysql_sb->commit();
-            return response()->json(['status' => 200, 'message' => 'BOM berhasil dihapus!']);
+            return response()->json(['status' => 200, 'message' => 'BOM berhasil dibatalkan (dihapus)!']);
         } catch (\Exception $e) {
             $mysql_sb->rollback();
             return response()->json(['status' => 500, 'message' => 'Gagal menghapus BOM: ' . $e->getMessage()]);

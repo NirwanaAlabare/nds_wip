@@ -195,6 +195,8 @@
                             <th>Market</th>
                             <th>Qty</th>
                             <th>Confirm Price</th>
+                            <th>Product Group</th>
+                            <th>Product Item</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -239,6 +241,8 @@
                     { data: 'market', name: 'a.market', className: 'align-middle' },
                     { data: 'qty', name: 'a.qty', className: 'text-center align-middle' },
                     { data: 'confirm_price', name: 'a.confirm_price', className: 'text-center align-middle' },
+                    { data: 'product_group_text', name: 'p.product_group', className: 'text-center align-middle' },
+                    { data: 'product_item_text', name: 'p.product_item', className: 'text-center align-middle' },
                     {
                         data: 'id',
                         name: 'a.id',
