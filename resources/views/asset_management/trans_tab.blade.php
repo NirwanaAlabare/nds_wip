@@ -84,6 +84,40 @@
                 font-size: 13px;
             }
         }
+
+        #nikBox {
+            position: relative;
+        }
+
+        #nikSuggestList {
+            display: none;
+            position: absolute;
+            z-index: 1050;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        #nikSuggestList .nik-suggest-item {
+            padding: 6px 10px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        #nikSuggestList .nik-suggest-item:hover {
+            background: #f1f3f5;
+        }
+
+        #nikSuggestList .nik-suggest-item b {
+            margin-right: 6px;
+        }
     </style>
 @endsection
 
@@ -112,9 +146,10 @@
             <div class="alert alert-info py-2 px-3 mb-3" id="ttBanner" role="alert"></div>
 
             <div class="mb-3" id="nikBox">
-                <label for="txtnik"><small><b>Ketik NIK :</b></small></label>
-                <input type="text" id="txtnik" class="form-control" placeholder="Masukkan NIK" autocomplete="off"
-                    oninput="refreshSubmitState()">
+                <label for="txtnik"><small><b>Ketik Enroll ID :</b></small></label>
+                <input type="text" id="txtnik" class="form-control" placeholder="Masukkan Enroll ID" autocomplete="off">
+                <div id="nikSuggestList"></div>
+                <small class="text-muted" id="nikEmployeeName"></small>
             </div>
 
             <div class="mb-3">
@@ -124,13 +159,10 @@
                 </label>
                 <input type="text" id="txtscan" class="form-control" placeholder="Tembak tag di sini"
                     autocomplete="off" onkeydown="handleScanEnter(event)">
-                <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2" onclick="simulateScan()">
-                    <i class="fas fa-plus"></i> Simulasikan scan (demo)
-                </button>
                 <div id="scannedTagList"></div>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-3" id="tujuanBox">
                 <label for="cbotujuan"><small><b>Tujuan :</b></small></label>
                 <select id="cbotujuan" class="form-control form-control-sm select2bs4" style="width: 100%;"
                     onchange="refreshSubmitState()">
@@ -145,11 +177,11 @@
 
             <div class="row mt-4 pt-3 border-top text-center" id="locationStats">
                 <div class="col-6">
-                    <div class="tt-stat-value">128</div>
+                    <div class="tt-stat-value">{{ $idleCount }}</div>
                     <div class="tt-stat-label">Di ruangan</div>
                 </div>
                 <div class="col-6">
-                    <div class="tt-stat-value">37</div>
+                    <div class="tt-stat-value">{{ $takenCount }}</div>
                     <div class="tt-stat-label">Di lapangan</div>
                 </div>
             </div>
@@ -173,13 +205,83 @@
         let state = {
             mode: 'single', // single | bulk
             action: 'ambil', // ambil | kembalikan
-            tags: [] // daftar kode tag yang sudah discan
+            tags: [], // daftar kode tag yang sudah discan
+            nikEmployeeName: null
         };
-        let scanSeq = 0;
+        let nikSuggestTimer = null;
+
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2200,
+            timerProgressBar: true,
+        });
 
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
+
+        // NIK diketik manual (bukan select2) supaya cepat dipakai scanner/keyboard,
+        // suggestion diambil dari HRIS via AJAX dengan debounce
+        $('#txtnik').on('input', function () {
+            state.nikEmployeeName = null;
+            $('#nikEmployeeName').text('');
+
+            let term = $(this).val().trim();
+            clearTimeout(nikSuggestTimer);
+
+            if (!term) {
+                $('#nikSuggestList').hide().empty();
+                refreshSubmitState();
+                return;
+            }
+
+            nikSuggestTimer = setTimeout(function () {
+                $.get('{{ route('nik_suggest_trans_tab') }}', { q: term }, function (data) {
+                    renderNikSuggestList(data);
+                });
+            }, 300);
+
+            refreshSubmitState();
+        });
+
+        function renderNikSuggestList(data) {
+            let $list = $('#nikSuggestList').empty();
+
+            if (!data || !data.length) {
+                $list.hide();
+                return;
+            }
+
+            data.forEach(function (row) {
+                $list.append(`
+                    <div class="nik-suggest-item" data-enroll-id="${row.enroll_id}" data-name="${row.employee_name}">
+                        <b>${row.enroll_id}</b>${row.nik} - ${row.employee_name}
+                    </div>
+                `);
+            });
+
+            $list.show();
+        }
+
+        $(document).on('click', '.nik-suggest-item', function () {
+            let enrollId = $(this).data('enroll-id');
+            let name = $(this).data('name');
+
+            $('#txtnik').val(enrollId);
+            state.nikEmployeeName = name;
+            $('#nikEmployeeName').text(name);
+            $('#nikSuggestList').hide().empty();
+
+            refreshSubmitState();
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#nikBox').length) {
+                $('#nikSuggestList').hide();
+            }
+        });
 
         function setMode(mode) {
             state.mode = mode;
@@ -194,6 +296,12 @@
 
         function setAction(action) {
             state.action = action;
+
+            $('#tujuanBox').toggleClass('d-none', action === 'kembalikan');
+            if (action === 'kembalikan') {
+                $('#cbotujuan').val('').trigger('change');
+            }
+
             updateBanner();
             refreshSubmitState();
         }
@@ -228,12 +336,27 @@
 
             if (!code) return;
 
-            addScannedTag(code);
-        }
+            if (state.tags.includes(code)) {
+                toast.fire({ icon: 'warning', title: 'Tag ' + code + ' sudah discan.' });
+                $('#txtscan').focus();
+                return;
+            }
 
-        function simulateScan() {
-            scanSeq++;
-            addScannedTag('DEMO-' + String(scanSeq).padStart(3, '0'));
+            $('#txtscan').prop('disabled', true);
+
+            $.get('{{ route('check_rfid_trans_tab') }}', { rfid_code: code, action: state.action })
+                .done(function () {
+                    addScannedTag(code);
+                })
+                .fail(function (xhr) {
+                    let message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'RFID Code tidak terdaftar.';
+                    toast.fire({ icon: 'error', title: message });
+                })
+                .always(function () {
+                    $('#txtscan').prop('disabled', false).focus();
+                });
         }
 
         function addScannedTag(code) {
@@ -270,12 +393,12 @@
         function refreshSubmitState() {
             let nik = $('#txtnik').val();
             let tujuan = $('#cbotujuan').val();
-            let hasTag = state.tags.length >= 1;
+            let hasTag = state.mode === 'bulk' ? state.tags.length > 1 : state.tags.length >= 1;
 
             let requirements = [];
             if (state.mode === 'single' && !nik) requirements.push('Isi NIK');
-            if (!hasTag) requirements.push('scan minimal 1 tag');
-            if (!tujuan) requirements.push('pilih tujuan');
+            if (!hasTag) requirements.push(state.mode === 'bulk' ? 'scan lebih dari 1 tag' : 'scan minimal 1 tag');
+            if (state.action === 'ambil' && !tujuan) requirements.push('pilih tujuan');
 
             let $btn = $('#btnSubmit');
 
@@ -288,11 +411,72 @@
             }
         }
 
+        function updateLocationStats(action, tagCount) {
+            let $idle = $('#locationStats .col-6:eq(0) .tt-stat-value');
+            let $taken = $('#locationStats .col-6:eq(1) .tt-stat-value');
+
+            let idle = parseInt($idle.text(), 10) || 0;
+            let taken = parseInt($taken.text(), 10) || 0;
+
+            if (action === 'ambil') {
+                idle = Math.max(0, idle - tagCount);
+                taken += tagCount;
+            } else {
+                taken = Math.max(0, taken - tagCount);
+                idle += tagCount;
+            }
+
+            $idle.text(idle);
+            $taken.text(taken);
+        }
+
         updateBanner();
         refreshSubmitState();
 
         function submitTransTab() {
-            notif();
+            let $btn = $('#btnSubmit');
+            let originalLabel = $btn.text();
+
+            $btn.prop('disabled', true).text('Memproses...');
+
+            $.ajax({
+                url: '{{ route('store_trans_tab') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    mode: state.mode,
+                    action: state.action,
+                    enroll_id: $('#txtnik').val().trim(),
+                    tags: state.tags,
+                    id_tujuan: $('#cbotujuan').val()
+                },
+                success: function (res) {
+                    toast.fire({
+                        icon: 'success',
+                        title: state.action === 'ambil' ? 'Barang berhasil diambil' : 'Barang berhasil dikembalikan',
+                        text: res.message,
+                    });
+
+                    updateLocationStats(state.action, state.tags.length);
+
+                    state.tags = [];
+                    $('#txtnik').val('');
+                    $('#nikEmployeeName').text('');
+                    state.nikEmployeeName = null;
+                    $('#cbotujuan').val('').trigger('change');
+                    renderScannedTagList();
+                },
+                error: function (xhr) {
+                    let message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'Gagal menyimpan transaksi.';
+                    toast.fire({ icon: 'error', title: message });
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).text(originalLabel);
+                    refreshSubmitState();
+                }
+            });
         }
     </script>
 @endsection

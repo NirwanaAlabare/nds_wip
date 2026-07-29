@@ -1664,6 +1664,10 @@ Route::middleware('auth')->group(function () {
     // Trans Asset Tab IT
     Route::controller(AssetTransTabController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_trans_tab', 'asset_trans_tab')->name('asset_trans_tab');
+        Route::get('/asset_trans_tab/nik_suggest', 'nik_suggest_trans_tab')->name('nik_suggest_trans_tab');
+        Route::get('/asset_trans_tab/check_rfid', 'check_rfid_trans_tab')->name('check_rfid_trans_tab');
+        Route::post('/asset_trans_tab/store', 'store_trans_tab')->name('store_trans_tab');
+        Route::get('/asset_trans_tab/history', 'history_trans_tab')->name('history_trans_tab');
     });
 
     // Dashboard Helpdesk

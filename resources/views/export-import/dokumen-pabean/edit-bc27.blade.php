@@ -4,46 +4,142 @@
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 <style>
+    :root {
+        --sb-navy: #0f172a;
+        --sb-blue: #3085d6;
+        --sb-blue-dark: #1e3a8a;
+    }
+
+    /* ============ CARD UTAMA (konsisten dgn halaman lain) ============ */
+    .card-sb {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+    }
+
+    .card-sb > .card-header {
+        background: var(--sb-navy) !important;
+        border: none;
+        padding: 1.6rem 2rem;
+        position: relative;
+    }
+
+    .card-sb > .card-header::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 5px;
+        background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+    }
+
+    .card-sb > .card-header .card-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: #5aa9f0;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .card-sb > .card-header .card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #f8fafc !important;
+        line-height: 1.4;
+    }
+
+    .card-sb > .card-body {
+        background: #fbfcff;
+        padding: 1.75rem 2rem 2rem;
+    }
+
+    /* ============ NAV TABS ============ */
     .nav-tabs { border-bottom: none; }
     .nav-tabs .nav-item { margin-bottom: 0; margin-right: 5px; }
     .nav-tabs .nav-link {
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
         padding: 8px 15px;
         font-size: 13px;
-        transition: all 0.3s ease;
+        font-weight: 600;
+        color: #475569;
+        transition: all 0.2s ease;
     }
     .nav-tabs .nav-link.active {
-        font-weight: bold;
-        background-color: #003366 !important;
+        background: linear-gradient(135deg, var(--sb-blue), var(--sb-blue-dark)) !important;
         color: #ffffff !important;
-        border-color: #003366 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-color: transparent !important;
+        box-shadow: 0 4px 12px rgba(48, 133, 214, 0.25);
     }
     .nav-tabs .nav-link.active::after { display: none; }
     .nav-tabs .nav-link:not(.active) {
-        color: #000000 !important;
         background-color: #ffffff;
     }
     .nav-tabs .nav-link:not(.active):hover {
-        background-color: #f8f9fa;
-        border-color: #ddd;
-        color: #000000 !important;
+        background-color: #f4f8fd;
+        border-color: var(--sb-blue);
+        color: var(--sb-blue-dark) !important;
     }
+
+    /* ============ FORM & TYPOGRAPHY ============ */
     .form-group label {
         font-size: 13px;
         font-weight: 600;
         margin-bottom: 0.2rem;
     }
     .form-control-sm { font-size: 13px; }
+    .form-control-sm:focus,
+    .select2-container--bootstrap4 .select2-selection:focus {
+        border-color: var(--sb-blue) !important;
+        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+    }
+
     .section-title {
         font-size: 14px;
-        font-weight: bold;
-        color: #333;
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 5px;
+        font-weight: 700;
+        color: var(--sb-navy);
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 6px;
         margin-bottom: 15px;
         margin-top: 20px;
+    }
+
+    /* ============ NESTED CARDS (Data Barang, Harga, dsb) ============ */
+    /* ============ NESTED CARDS (Data Barang, Harga, dsb) ============ */
+    .card.card-outline.card-secondary,
+    .card.shadow-sm {
+        border-radius: 10px;
+        border: 1px solid #e7ecf3;
+    }
+    .card.shadow-sm > .card-header,
+    .card.card-outline.card-secondary > .card-header,
+    #accordionBarang .card-header {
+        background: #f4f8fd !important;
+        border-bottom: 1px solid #e7ecf3;
+        border-radius: 10px 10px 0 0;
+        color: #1e293b !important;
+    }
+    .card.shadow-sm > .card-header *,
+    .card.card-outline.card-secondary > .card-header *,
+    #accordionBarang .card-header * {
+        color: #1e293b !important;
+    }
+
+    /* Icon chevron biar tetap kebaca di header terang */
+    #accordionBarang .icon-collapse {
+        color: #64748b;
+    }
+
+    /* ============ FOOTER ============ */
+    .card-footer.text-right {
+        border-top: 1px solid #e7ecf3;
+        padding: 1rem 2rem;
+    }
+    .card-footer .btn {
+        border-radius: 8px;
+        font-weight: 600;
     }
 </style>
 @endsection
@@ -1888,7 +1984,7 @@
                                                 <div class="card-body">
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Nilai CIF</label>
-                                                        <input type="number" step="any" name="barang[{{ $index }}][cif]" class="form-control form-control-sm" value="{{ $draftItem['cif'] ?? 0 }}">
+                                                        <input type="number" step="any" name="barang[{{ $index }}][cif]" class="form-control form-control-sm input-cif-barang" value="{{ $draftItem['cif'] ?? 0 }}">
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">CIF Rupiah</label>
@@ -2521,7 +2617,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Jenis Valuta</label>
-                                        <select name="kodeValuta" class="form-control form-control-sm select2bs4">
+                                        <select name="kodeValuta" class="form-control form-control-sm select2bs4" id="kode_valuta">
                                             <option value="">Pilih Valuta</option>
                                             @foreach($listValuta as $k => $v)
                                                 <option value="{{ $k }}" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
@@ -2530,15 +2626,22 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">NDPBM</label>
-                                        <input type="number" step="any" name="ndpbm" class="form-control form-control-sm" value="{{ $dataDetail['ndpbm'] ?? 0 }}">
+                                        <input type="number" step="any" name="ndpbm" class="form-control form-control-sm" value="{{ $dataDetail['ndpbm'] ?? 0 }}" id="ndpbm">
+                                        <div class="d-flex justify-content-end">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-get-kurs">
+                                                    <i class="fas fa-sync-alt"></i> Tarik Kurs CEISA
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nilai CIF</label>
-                                        <input type="number" step="any" name="cif" class="form-control form-control-sm" value="{{ $dataDetail['cif'] ?? 0 }}">
+                                        <input type="number" step="any" name="cif" class="form-control form-control-sm" value="{{ $dataDetail['cif'] ?? 0 }}" id="total_cif">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Nilai Pabean dalam Rupiah</label>
-                                        <input type="number" step="any" name="nilaiPabean" class="form-control form-control-sm" value="{{ $dataDetail['nilaiPabean'] ?? 0 }}">
+                                        <input type="number" step="any" name="nilaiPabean" class="form-control form-control-sm" value="{{ $dataDetail['nilaiPabean'] ?? 0 }}" id="nilai_pabean">
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Harga Penyerahan/Harga Jual/Harga Barang</label>
@@ -3237,6 +3340,86 @@
             },
             minimumInputLength: 2
         });
+
+        // Transaksi
+
+        $('#btn-get-kurs').click(function() {
+            let valuta = $('#kode_valuta').val();
+            let $btn = $(this);
+            let originalText = $btn.html();
+
+            if (!valuta) {
+                alert('Silakan pilih valuta terlebih dahulu!');
+                return;
+            }
+
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Loading...');
+            $btn.prop('disabled', true);
+
+
+            let baseUrl = '{{ url("/tes-ceisa-kurs") }}';
+
+            $.ajax({
+                url: baseUrl + '/' + valuta,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response && response.status === "true" && response.data && response.data.length > 0) {
+                        let nilaiKurs = response.data[0].nilaiKurs;
+
+                        $('#ndpbm').val(nilaiKurs);
+
+                        kalkulasiNilaiPabean();
+                    } else {
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: 'Terjadi kesalahan saat mengambil data.',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: 'Terjadi kesalahan saat mengambil data.',
+                        icon: 'error'
+                    });
+                    console.error(xhr);
+                },
+                complete: function() {
+
+                    $btn.html(originalText);
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+
+
+        function kalkulasiTotalCif() {
+            let grandTotalCif = 0;
+            $('.input-cif-barang').each(function() {
+                let cifBarang = parseFloat($(this).val()) || 0;
+                grandTotalCif += cifBarang;
+            });
+            $('#total_cif').val(grandTotalCif.toFixed(2));
+
+            kalkulasiNilaiPabean();
+        }
+
+
+        $(document).on('input', '.input-cif-barang', function() {
+            kalkulasiTotalCif();
+        });
+
+
+        function kalkulasiNilaiPabean() {
+            let ndpbm = parseFloat($('#ndpbm').val()) || 0;
+            let totalCif = parseFloat($('#total_cif').val()) || 0;
+            let nilaiPabeanRupiah = ndpbm * totalCif;
+
+            $('#nilai_pabean').val(nilaiPabeanRupiah.toFixed(2));
+        }
     });
 </script>
 @endsection

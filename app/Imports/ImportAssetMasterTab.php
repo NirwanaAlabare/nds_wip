@@ -73,13 +73,17 @@ class ImportAssetMasterTab implements ToCollection
                 rfid_code,
                 line_code,
                 tab_code,
+                lokasi,
+                status,
                 created_by,
                 created_at,
                 updated_at
-            ) VALUES (?,?,?,?,?,?)", [
+            ) VALUES (?,?,?,?,?,?,?,?)", [
                 $rfid_code,
                 $line_code,
                 $tab_code,
+                'IT',
+                'IDLE',
                 $user,
                 $timestamp,
                 $timestamp
