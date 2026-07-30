@@ -121,6 +121,10 @@
         #tabel-report tbody tr:hover {
             background-color: #f4f8fd !important;
         }
+
+        .report-detail-card .card-header .card-tools {
+            margin-left: auto;
+        }
     </style>
 @endsection
 

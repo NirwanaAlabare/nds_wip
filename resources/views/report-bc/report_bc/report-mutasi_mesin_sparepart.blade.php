@@ -26,6 +26,10 @@
         #tabel-report thead th { background: #0f172a !important; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; vertical-align: middle; color: #f8fafc !important; }
         #tabel-report tbody td { font-size: 12.5px; vertical-align: middle; }
         #tabel-report tbody tr:hover { background-color: #f4f8fd !important; }
+
+        .report-detail-card .card-header .card-tools {
+            margin-left: auto;
+        }
     </style>
 @endsection
 

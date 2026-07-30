@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use App\Services\ReportBc\PemasukanService;
 use App\Services\ReportBc\PengeluaranService;
 use App\Services\ReportBc\MutasiService;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+use Carbon\Carbon;
 
 class ReportBcController extends Controller
 {
@@ -67,20 +69,45 @@ class ReportBcController extends Controller
         }
 
         if ($export == 'excel') {
-            $fileName = "Laporan_" . ucfirst($jenis) . "_" . strtoupper($cleanKategori) . "_" . date('Ymd') . ".xls";
 
-            return response(view('report-bc.report_bc.excel-' . $jenis, [
-                'data' => $dataLaporan,
-                'jenis' => $jenis,
-                'kategori' => $kategori,
-                'fromDate' => $fromDate,
-                'toDate' => $toDate,
-                'kategoriBarang' => $kategoriBarang,
-                'filterBy' => $filterBy,
-                'fileName' => $fileName
-            ]))
-            ->header('Content-Type', 'application/vnd.ms-excel')
-            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+
+            if($jenis == 'pemasukan'){
+                $this->pemasukanService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
+            if($jenis == 'pengeluaran'){
+                $this->pengeluaranService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
+            if($jenis == 'mutasi_bahan_baku'){
+                $this->mutasiService->exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
+            if($jenis == 'mutasi_barang_jadi'){
+                $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
+            if($jenis == 'mutasi_mesin_sparepart'){
+                $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
+            if($jenis == 'mutasi_barang_sisa'){
+                $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+            // $fileName = "Laporan_" . ucfirst($jenis) . "_" . strtoupper($cleanKategori) . "_" . date('Ymd') . ".xls";
+
+            // return response(view('report-bc.report_bc.excel-' . $jenis, [
+            //     'data' => $dataLaporan,
+            //     'jenis' => $jenis,
+            //     'kategori' => $kategori,
+            //     'fromDate' => $fromDate,
+            //     'toDate' => $toDate,
+            //     'kategoriBarang' => $kategoriBarang,
+            //     'filterBy' => $filterBy,
+            //     'fileName' => $fileName
+            // ]))
+            // ->header('Content-Type', 'application/vnd.ms-excel')
+            // ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
         }
 
         $viewName = 'report-bc.report_bc.report-' . $jenis;
