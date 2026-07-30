@@ -1865,9 +1865,8 @@ class RollController extends Controller
         );
     }
 
-    public function update_alokasi_fabric_gr_panel(Request $request, $id)
+    public function update_alokasi_fabric_gr_panel(Request $request, $id, CuttingService $cuttingService) 
     {
-        $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
         $request->validate([
@@ -1879,7 +1878,7 @@ class RollController extends Controller
             'unit' => 'required',
         ]);
 
-        DB::transaction(function () use ($request, $id, $user, $timestamp) {
+        DB::transaction(function () use ($request, $id, $timestamp, $cuttingService) {
 
             $dataLama = DB::table('form_cut_alokasi_gr_panel_barcode')
                 ->where('id', $id)
@@ -1889,31 +1888,19 @@ class RollController extends Controller
                 abort(404, 'Data alokasi fabric tidak ditemukan.');
             }
 
-            $barcodeLama = $dataLama->barcode;
-            $barcodeBaru = $request->barcode;
+            $barcode = $dataLama->barcode;
 
-            // Jika barcode berubah
-            if ($barcodeLama != $barcodeBaru) {
-                ScannedItem::updateOrCreate(
-                    ['id_roll' => $barcodeBaru],
-                    [
-                        'qty' => $request->qty_sisa,
-                    ]
-                );
-            } else {
-                // Barcode tetap, cukup update qty
-                ScannedItem::updateOrCreate(
-                    ['id_roll' => $barcodeBaru],
-                    [
-                        'qty' => $request->qty_sisa,
-                    ]
-                );
-            }
+            // Update qty ScannedItem
+            ScannedItem::updateOrCreate(
+                ['id_roll' => $barcode],
+                [
+                    'qty' => $request->qty_sisa,
+                ]
+            );
 
             DB::table('form_cut_alokasi_gr_panel_barcode')
                 ->where('id', $id)
                 ->update([
-                    'barcode'    => $barcodeBaru,
                     'ws'         => $request->ws_act,
                     'qty_roll'   => $request->qty_roll,
                     'qty_pakai'  => $request->qty_pakai,
@@ -1921,6 +1908,8 @@ class RollController extends Controller
                     'unit'       => $request->unit,
                     'updated_at' => $timestamp,
                 ]);
+
+            $cuttingService->fixRollQty($barcode);
         });
 
         return response()->json([
@@ -1929,13 +1918,29 @@ class RollController extends Controller
         ]);
     }
 
-    public function delete_alokasi_fabric_gr_panel($id)
+    public function delete_alokasi_fabric_gr_panel($id, CuttingService $cuttingService) 
     {
+        $data = DB::table('form_cut_alokasi_gr_panel_barcode')
+            ->where('id', $id)
+            ->first();
+
+        if (!$data) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
+        $barcode = $data->barcode;
+
         $deleted = DB::table('form_cut_alokasi_gr_panel_barcode')
             ->where('id', $id)
             ->delete();
 
         if ($deleted) {
+
+            $fixRollQty = $cuttingService->fixRollQty($barcode);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data berhasil dihapus'
@@ -1944,7 +1949,7 @@ class RollController extends Controller
 
         return response()->json([
             'status' => 'error',
-            'message' => 'Data tidak ditemukan'
-        ], 404);
+            'message' => 'Data gagal dihapus'
+        ], 500);
     }
 }
