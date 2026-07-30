@@ -709,6 +709,17 @@ class Bc27Service
             $responseCeisa = $this->ceisaService->kirimDokumenBc27($payload);
 
             if ($responseCeisa['successful']) {
+
+                $db->table('bpb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => $tanggalAju,
+                        'bcdate', $tanggalAju,
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => $tanggalAju,
