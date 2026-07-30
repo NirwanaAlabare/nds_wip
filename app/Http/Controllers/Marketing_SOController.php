@@ -39,6 +39,7 @@ class Marketing_SOController extends Controller
             if ($request->date_from && $request->date_to) {
                 $query->whereBetween(DB::raw('DATE(so.d_insert)'), [$request->date_from, $request->date_to]);
             }
+            $query->where('cancel_h', 'N');
 
 
             return DataTables::of($query)

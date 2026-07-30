@@ -119,6 +119,10 @@ class DokumenPabeanController extends Controller
                             $editUrl = route('dokumen-pabean-edit-batch-bc40', ['ids' => $row->no_dokumen_merge]);
                         }
 
+                        if($row->jenis_dok == 'BC 2.7'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc27', ['ids' => $row->no_dokumen_merge]);
+                        }
+
                         $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Batch"><i class="fas fa-edit"></i> Edit Batch</a>';
 
                         if ($row->ceisa_status == 1) {
@@ -2140,6 +2144,16 @@ class DokumenPabeanController extends Controller
         return app(\App\Services\Bc40Service::class)->updateDraftBatchBc40($id, $request);
     }
 
+    public function editBatchBc27($id, Request $request)
+    {
+        return app(\App\Services\Bc27Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc27($id, Request $request)
+    {
+        return app(\App\Services\Bc27Service::class)->updateDraftBatchBc27($id, $request);
+    }
+
 
 
     // send batch
@@ -2150,7 +2164,6 @@ class DokumenPabeanController extends Controller
         $bpbs = $request->input('bpbs');
         $jenisBc = $request->input('jenis_bc', 'BC 4.0');
 
-        // Jika $bpbs berupa string ber-separator koma (hasil GROUP_CONCAT), ubah ke array
         if (is_string($bpbs)) {
             $bpbs = array_filter(explode(',', $bpbs));
         }

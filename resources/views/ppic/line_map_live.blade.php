@@ -262,7 +262,7 @@
         </div>
     </div>
 
-    <div class="line-map-calendar-wrapper">
+    <div class="line-map-calendar-wrapper" id="lineMapCalendarWrapper">
         <table class="table table-sm line-map-table">
             <thead>
                 <tr>
@@ -423,6 +423,36 @@
         tickLiveClock();
         setInterval(tickLiveClock, 1000);
 
+        // Preserve the calendar's horizontal/vertical scroll position across the
+        // auto-refresh reload, so the view stays on whichever date the user was
+        // looking at instead of jumping back to the first day of the month.
+        const SCROLL_STORAGE_KEY = 'lineMapLiveScrollPos';
+        const calendarWrapper = document.getElementById('lineMapCalendarWrapper');
+
+        (function restoreScrollPosition() {
+            if (!calendarWrapper) return;
+            const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+            if (!saved) return;
+            try {
+                const {
+                    left,
+                    top
+                } = JSON.parse(saved);
+                calendarWrapper.scrollLeft = left || 0;
+                calendarWrapper.scrollTop = top || 0;
+            } catch (e) {
+                /* ignore malformed stored value */
+            }
+        })();
+
+        function saveScrollPosition() {
+            if (!calendarWrapper) return;
+            sessionStorage.setItem(SCROLL_STORAGE_KEY, JSON.stringify({
+                left: calendarWrapper.scrollLeft,
+                top: calendarWrapper.scrollTop
+            }));
+        }
+
         // Auto-refresh data every 5 minutes so the live view stays up to date.
         // Based on an absolute deadline (not a per-tick counter) because
         // browsers throttle setInterval on hidden/background tabs, which let
@@ -440,6 +470,7 @@
             if (remaining <= 0) {
                 refreshTriggered = true;
                 clearInterval(refreshIntervalId);
+                saveScrollPosition();
                 window.location.reload();
                 return;
             }
