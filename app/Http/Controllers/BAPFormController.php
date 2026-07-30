@@ -13,10 +13,10 @@ class BAPFormController extends Controller
 {
     public function getDepartments()
     {
-        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
+        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_id, sub_dept_name FROM department_all
         WHERE site_nirwana_id = 'NAG'
         AND status = 'AKTIF'
-        GROUP BY sub_dept_name
+        GROUP BY sub_dept_id, sub_dept_name
         ORDER BY sub_dept_name ASC");
 
         // NEW
@@ -258,6 +258,94 @@ class BAPFormController extends Controller
 
         return response()->json([
             'message' => 'Form BAP dibatalkan',
+        ]);
+    }
+
+    public function listUsersDepartment()
+    {
+        $data = DB::table('users as u')
+            ->leftJoin('user_department as ud', 'ud.user_id', '=', 'u.id')
+            ->select('u.id', 'u.name', 'u.username', DB::raw('COUNT(ud.id) as dept_count'))
+            ->groupBy('u.id', 'u.name', 'u.username')
+            ->orderBy('u.name');
+
+        return DataTables::of($data)->make(true);
+    }
+
+    public function getUserDepartments(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $rows = DB::select("SELECT id, sub_dept_id FROM user_department WHERE user_id = ? ORDER BY id DESC", [$request->user_id]);
+
+        $subDeptIds = collect($rows)->pluck('sub_dept_id')->filter()->unique()->values();
+
+        $names = collect();
+        if ($subDeptIds->isNotEmpty()) {
+            $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+            $departmentRows = DB::connection('mysql_hris')->select(
+                "SELECT sub_dept_id, sub_dept_name FROM department_all WHERE sub_dept_id IN ($placeholders) and status = 'aktif' and site_nirwana_id = 'NAG'",
+                $subDeptIds->all()
+            );
+
+            $names = collect($departmentRows)->pluck('sub_dept_name', 'sub_dept_id');
+        }
+
+        $result = collect($rows)->map(function ($row) use ($names) {
+            return [
+                'id' => $row->id,
+                'sub_dept_id' => $row->sub_dept_id,
+                'sub_dept_name' => $names->get($row->sub_dept_id, $row->sub_dept_id),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    public function syncUserDepartment(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'sub_dept_id' => 'array',
+            'sub_dept_id.*' => 'string|max:30',
+        ]);
+
+        $selected = collect($request->sub_dept_id ?? [])->filter()->unique()->values();
+
+        $existingRows = DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [$request->user_id]);
+        $existing = collect($existingRows)->pluck('sub_dept_id');
+
+        $toInsert = $selected->diff($existing);
+        $toDelete = $existing->diff($selected);
+
+        if ($toInsert->isNotEmpty()) {
+            $now = Carbon::now();
+            $insertRows = $toInsert->map(function ($subDeptId) use ($request, $now) {
+                return [
+                    'user_id' => $request->user_id,
+                    'sub_dept_id' => $subDeptId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            })->all();
+
+            DB::table('user_department')->insert($insertRows);
+        }
+
+        if ($toDelete->isNotEmpty()) {
+            $placeholders = implode(',', array_fill(0, $toDelete->count(), '?'));
+
+            DB::delete(
+                "DELETE FROM user_department WHERE user_id = ? AND sub_dept_id IN ($placeholders)",
+                array_merge([$request->user_id], $toDelete->all())
+            );
+        }
+
+        return response()->json([
+            'message' => 'Department berhasil disimpan',
         ]);
     }
 }
