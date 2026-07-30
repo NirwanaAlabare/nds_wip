@@ -372,7 +372,7 @@ class MutasiService
         ]);
         $sheet->mergeCells('A1:Q1');
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+        $judulLaporan = "LAPORAN MUTASI BAHAN BAKU - " . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
@@ -463,7 +463,7 @@ class MutasiService
         ]);
         $sheet->mergeCells('A1:Q1');
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+        $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
@@ -559,7 +559,7 @@ class MutasiService
         ]);
         $sheet->mergeCells('A1:Q1');
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+        $judulLaporan = "LAPORAN MUTASI MESIN/SPAREPART -" . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
@@ -647,7 +647,7 @@ class MutasiService
         ]);
         $sheet->mergeCells('A1:Q1');
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+        $judulLaporan = "LAPORAN MUTASI BARANG SISA/SCRAP -" . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
