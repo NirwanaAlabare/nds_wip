@@ -1644,31 +1644,32 @@ class RollController extends Controller
 
         if ($request->ajax()) {
             $data_input = DB::select("SELECT
-a.tgl_trans,
-DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tgl_trans_fix,
-barcode,
-id_item,
-buyer,
-a.ws,
-c.styleno,
-color,
-a.qty_pakai,
-b.unit,
-a.created_by,
-a.updated_at
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item b on a.barcode = b.id_roll
-left join (
-select supplier as buyer,ac.styleno,jd.id_jo, ac.kpno
-from signalbit_erp.jo_det jd
-         inner join signalbit_erp.so on jd.id_so = so.id
-         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-		    inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
-         where jd.cancel = 'N'
-         group by id_cost order by id_jo asc
-) c on b.id_jo = c.id_jo
- where a.tgl_trans >= '$tgl_awal' and a.tgl_trans <= '$tgl_akhir'
- order by a.tgl_trans desc
+                a.id,
+                a.tgl_trans,
+                DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tgl_trans_fix,
+                barcode,
+                id_item,
+                buyer,
+                a.ws,
+                c.styleno,
+                color,
+                a.qty_pakai,
+                b.unit,
+                a.created_by,
+                a.updated_at
+                from form_cut_alokasi_gr_panel_barcode a
+                left join scanned_item b on a.barcode = b.id_roll
+                left join (
+                select supplier as buyer,ac.styleno,jd.id_jo, ac.kpno
+                from signalbit_erp.jo_det jd
+                        inner join signalbit_erp.so on jd.id_so = so.id
+                        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                            inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+                        where jd.cancel = 'N'
+                        group by id_cost order by id_jo asc
+                ) c on b.id_jo = c.id_jo
+                where a.tgl_trans >= '$tgl_awal' and a.tgl_trans <= '$tgl_akhir'
+                order by a.tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -1812,5 +1813,138 @@ from signalbit_erp.jo_det jd
     public function destroy($id)
     {
         //
+    }
+
+    public function edit_alokasi_fabric_gr_panel($id)
+    {
+        $user = Auth::user()->name;
+
+        $data_ws = DB::connection('mysql_sb')->select("
+            SELECT
+                ac.kpno AS isi,
+                ac.kpno AS tampil
+            FROM jo_det jd
+            INNER JOIN so ON jd.id_so = so.id
+            INNER JOIN act_costing ac ON so.id_cost = ac.id
+            WHERE jd.cancel = 'N'
+            AND ac.cost_date >= '2025-01-01'
+            AND ac.type_ws = 'STD'
+            GROUP BY id_cost
+            ORDER BY ac.kpno ASC
+        ");
+
+        $data = DB::table('form_cut_alokasi_gr_panel_barcode')
+            ->selectRaw('
+                form_cut_alokasi_gr_panel_barcode.*,
+                COALESCE(scanned_item.roll_buyer, scanned_item.roll) no_roll,
+                scanned_item.lot as no_lot,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.qty,
+                scanned_item.qty_in,
+                scanned_item.unit as unit_awal
+            ')
+            ->leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_alokasi_gr_panel_barcode.barcode')
+            ->where('form_cut_alokasi_gr_panel_barcode.id', $id)
+            ->first();
+
+        if (!$data) {
+            abort(404, 'Data alokasi fabric tidak ditemukan.');
+        }
+
+        return view(
+            'cutting.roll.edit_alokasi_fabric_gr_panel',
+            [
+                'page' => 'dashboard-cutting',
+                'subPageGroup' => 'laporan-cutting',
+                'subPage' => 'alokasi-fabric-gr-panel',
+                'user' => $user,
+                'data_ws' => $data_ws,
+                'data' => $data,
+            ]
+        );
+    }
+
+    public function update_alokasi_fabric_gr_panel(Request $request, $id)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        $request->validate([
+            'barcode' => 'required',
+            'ws_act' => 'required',
+            'qty_roll' => 'required|numeric',
+            'qty_sisa' => 'required|numeric',
+            'qty_pakai' => 'required|numeric',
+            'unit' => 'required',
+        ]);
+
+        DB::transaction(function () use ($request, $id, $user, $timestamp) {
+
+            $dataLama = DB::table('form_cut_alokasi_gr_panel_barcode')
+                ->where('id', $id)
+                ->first();
+
+            if (!$dataLama) {
+                abort(404, 'Data alokasi fabric tidak ditemukan.');
+            }
+
+            $barcodeLama = $dataLama->barcode;
+            $barcodeBaru = $request->barcode;
+
+            // Jika barcode berubah
+            if ($barcodeLama != $barcodeBaru) {
+                ScannedItem::updateOrCreate(
+                    ['id_roll' => $barcodeBaru],
+                    [
+                        'qty' => $request->qty_sisa,
+                    ]
+                );
+            } else {
+                // Barcode tetap, cukup update qty
+                ScannedItem::updateOrCreate(
+                    ['id_roll' => $barcodeBaru],
+                    [
+                        'qty' => $request->qty_sisa,
+                    ]
+                );
+            }
+
+            DB::table('form_cut_alokasi_gr_panel_barcode')
+                ->where('id', $id)
+                ->update([
+                    'barcode'    => $barcodeBaru,
+                    'ws'         => $request->ws_act,
+                    'qty_roll'   => $request->qty_roll,
+                    'qty_pakai'  => $request->qty_pakai,
+                    'sisa_kain'  => $request->qty_sisa,
+                    'unit'       => $request->unit,
+                    'updated_at' => $timestamp,
+                ]);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil diperbarui.'
+        ]);
+    }
+
+    public function delete_alokasi_fabric_gr_panel($id)
+    {
+        $deleted = DB::table('form_cut_alokasi_gr_panel_barcode')
+            ->where('id', $id)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data berhasil dihapus'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data tidak ditemukan'
+        ], 404);
     }
 }

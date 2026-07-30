@@ -73,6 +73,7 @@
                 <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
                     <thead class="bg-sb">
                         <tr>
+                            <th scope="col" class="text-center align-middle">Action</th>
                             <th scope="col" class="text-center align-middle">Tgl</th>
                             <th scope="col" class="text-center align-middle">Barcode</th>
                             <th scope="col" class="text-center align-middle">ID Item</th>
@@ -145,7 +146,11 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
                     data: 'tgl_trans_fix'
                 },
                 {
@@ -182,6 +187,39 @@
                     }
                 },
             ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+
+                        let btnEdit = `
+                            <a href="{{ url('lap_pemakaian/edit_alokasi_fabric_gr_panel') }}/${row.id}">
+                                <button type="button" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </a>
+                        `;
+
+                        let btnDelete = `
+                            <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                data-id="${row.id}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        `;
+
+                        return `
+                            <div class="d-flex gap-1 justify-content-center">
+                                ${btnEdit}
+                                ${btnDelete}
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap'
+                }
+            ]
         });
     </script>
 
@@ -335,5 +373,52 @@
             link.download = 'fabric_relaxation_export.xlsx';
             link.click();
         }
+        
+        $(document).on('click', '.btn-delete', function () {
+            let id = $(this).data('id');
+            let url = "{{ url('lap_pemakaian/delete_alokasi_fabric_gr_panel') }}/" + id;
+
+            Swal.fire({
+                title: 'Yakin delete data ini?',
+                text: "Data yang didelete tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'DELETE'
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                icon: response.status === 'success' ? 'success' : 'error',
+                                title: response.status === 'success' ? 'Berhasil' : 'Gagal',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            $('#datatable').DataTable().ajax.reload();
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: xhr.responseJSON?.message || 'Terjadi kesalahan',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                }
+            });
+        });
     </script>
 @endsection

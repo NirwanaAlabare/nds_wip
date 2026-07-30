@@ -420,7 +420,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
             Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
             Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
-
+            Route::get('/edit_alokasi_fabric_gr_panel/{id}', 'edit_alokasi_fabric_gr_panel')->name('edit_alokasi_fabric_gr_panel');
+            Route::put('/update_alokasi_fabric_gr_panel/{id}', 'update_alokasi_fabric_gr_panel')->name('update_alokasi_fabric_gr_panel');
+            Route::delete('/delete_alokasi_fabric_gr_panel/{id}', 'delete_alokasi_fabric_gr_panel')->name('delete_alokasi_fabric_gr_panel');
         });
 
         // Ganti Reject GR
