@@ -153,6 +153,10 @@
             background: #60a5fa;
             color: #0f172a;
         }
+
+        .report-detail-card .card-header .card-tools {
+            margin-left: auto;
+        }
     </style>
 @endsection
 
