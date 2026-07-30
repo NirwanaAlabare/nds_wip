@@ -504,7 +504,7 @@
 
         tableDokumen = $('#table-dokumen').DataTable({
             processing: true,
-            serverSide: false,
+            serverSide: true,
             ajax: {
                 url: '{{ route("dokumen-pabean-index") }}',
                 data: function (d) {
