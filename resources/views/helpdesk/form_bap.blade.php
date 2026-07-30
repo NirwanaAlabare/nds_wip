@@ -21,6 +21,71 @@
             white-space: normal;
             word-break: break-word;
         }
+
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: 31px;
+            font-size: 12px;
+            line-height: 30px;
+        }
+
+        .dept-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding: 6px 4px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+        }
+
+        .dept-chip input[type="checkbox"] {
+            display: none;
+        }
+
+        .dept-chip label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #495057;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: all .15s ease-in-out;
+        }
+
+        .dept-chip label:hover {
+            border-color: #17a2b8;
+        }
+
+        .dept-chip label i {
+            font-size: 11px;
+            visibility: hidden;
+        }
+
+        .dept-chip input[type="checkbox"]:checked+label {
+            background: #17a2b8;
+            border-color: #17a2b8;
+            color: #fff;
+        }
+
+        .dept-chip input[type="checkbox"]:checked+label i {
+            visibility: visible;
+        }
+
+        .dept-chip.d-none {
+            display: none;
+        }
+
+        #departmentEmptyState {
+            width: 100%;
+        }
     </style>
 @endsection
 
@@ -30,10 +95,16 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt"></i> Form BAP</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
+            <div class="mb-3 d-flex justify-content-between">
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ModalFormBap">
                     <i class="fas fa-plus"></i> New
                 </button>
+                @if (in_array(auth()->user()->username, ['admin_01', 'nirwana_it']))
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#ModalAccessRole">
+                        <i class="fas fa-user-shield"></i> Access Role
+                    </button>
+                @endif
             </div>
             <div class="d-flex align-items-end justify-content-between flex-wrap gap-3 mb-4">
                 <div class="d-flex align-items-end gap-3">
@@ -177,6 +248,77 @@
             </div>
         </div>
     </div>
+    <!-- Modal Access Role -->
+    <div class="modal fade" id="ModalAccessRole" tabindex="-1" aria-labelledby="ModalAccessRoleLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="ModalAccessRoleLabel">Access Role - Department User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="datatable-user-department" class="table table-bordered table-hover align-middle w-100">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th scope="col" class="text-center align-middle">Nama</th>
+                                    <th scope="col" class="text-center align-middle">Username</th>
+                                    <th scope="col" class="text-center align-middle">Jml. Department</th>
+                                    <th scope="col" class="text-center align-middle">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Kelola Department User -->
+    <div class="modal fade" id="ModalUserDepartment" tabindex="-1" aria-labelledby="ModalUserDepartmentLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="ModalUserDepartmentLabel">Kelola Department - <span
+                            id="txtudUserName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="txtudUserId" value="">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                        <div class="input-group input-group-sm" style="max-width: 260px;">
+                            <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchDepartment"
+                                placeholder="Cari department...">
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge badge-info" id="deptSelectedCount">0 dipilih</span>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="checkAllDepartment">
+                                <label class="form-check-label" for="checkAllDepartment"><b>Pilih Semua</b></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="departmentChecklist" class="dept-chip-list"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-sm" id="saveUserDepartmentButton"
+                        onclick="saveUserDepartment();">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="backToUserListButton">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -188,6 +330,8 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        let allDepartments = [];
+
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
@@ -222,6 +366,8 @@
                             $('<option>').val(item.sub_dept_name).text(item.sub_dept_name)
                         );
                     });
+
+                    allDepartments = response;
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
@@ -560,5 +706,198 @@
                 },
             ],
         });
+
+        let datatableUserDepartment;
+
+        $('#ModalAccessRole').on('shown.bs.modal', function() {
+            if (!datatableUserDepartment) {
+                datatableUserDepartment = $('#datatable-user-department').DataTable({
+                    ordering: false,
+                    responsive: false,
+                    processing: true,
+                    serverSide: false,
+                    paging: true,
+                    searching: true,
+                    ajax: {
+                        url: '{{ route('list-users-department-form-bap') }}'
+                    },
+                    columns: [{
+                            data: 'name'
+                        },
+                        {
+                            data: 'username'
+                        },
+                        {
+                            data: 'dept_count',
+                            className: 'text-center'
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                let name = $('<div>').text(row.name).html();
+                                return `<button type="button" class="btn btn-sm btn-primary btn-manage-user-department" data-id="${row.id}" data-name="${name}"><i class="fas fa-cog"></i> Kelola</button>`;
+                            }
+                        },
+                    ],
+                });
+            } else {
+                datatableUserDepartment.ajax.reload();
+            }
+        });
+
+        let selectedUserId = null;
+
+        $('#datatable-user-department').on('click', '.btn-manage-user-department', function() {
+            selectedUserId = $(this).data('id');
+            $('#txtudUserId').val(selectedUserId);
+            $('#txtudUserName').text($(this).data('name'));
+            loadUserDepartmentList();
+            $('#ModalAccessRole').modal('hide');
+        });
+
+        $('#ModalAccessRole').on('hidden.bs.modal', function() {
+            if (selectedUserId) {
+                $('#ModalUserDepartment').modal('show');
+            }
+        });
+
+        $('#backToUserListButton').on('click', function() {
+            $('#ModalUserDepartment').modal('hide');
+        });
+
+        $('#ModalUserDepartment').on('hidden.bs.modal', function() {
+            let goBack = selectedUserId !== null;
+            selectedUserId = null;
+            $('#txtudUserId').val('');
+            $('#txtudUserName').text('');
+            $('#checkAllDepartment').prop('checked', false);
+            $('#searchDepartment').val('');
+            $('#departmentChecklist').empty();
+            $('#deptSelectedCount').text('0 dipilih');
+
+            if (goBack) {
+                $('#ModalAccessRole').modal('show');
+            }
+        });
+
+        $('#checkAllDepartment').on('change', function() {
+            $('#departmentChecklist .dept-chip:not(.d-none) .department-checkbox').prop('checked', $(this).prop(
+                'checked'));
+            updateDeptSelectedCount();
+        });
+
+        $('#departmentChecklist').on('change', '.department-checkbox', function() {
+            updateDeptSelectedCount();
+        });
+
+        $('#searchDepartment').on('input', function() {
+            let keyword = $(this).val().toLowerCase().trim();
+            let $chips = $('#departmentChecklist .dept-chip');
+            let visibleCount = 0;
+
+            $chips.each(function() {
+                let match = $(this).data('name').includes(keyword);
+                $(this).toggleClass('d-none', !match);
+                if (match) visibleCount++;
+            });
+
+            $('#departmentEmptyState').toggleClass('d-none', visibleCount > 0);
+        });
+
+        function updateDeptSelectedCount() {
+            let total = $('#departmentChecklist .department-checkbox').length;
+            let checked = $('#departmentChecklist .department-checkbox:checked').length;
+            $('#deptSelectedCount').text(checked + ' dari ' + total + ' dipilih');
+            $('#checkAllDepartment').prop('checked', total > 0 && checked === total);
+        }
+
+        function loadUserDepartmentList() {
+            let userId = $('#txtudUserId').val();
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('get-user-departments-form-bap') }}',
+                data: {
+                    user_id: userId
+                },
+                success: function(response) {
+                    let assignedIds = response.map(item => String(item.sub_dept_id));
+                    renderDepartmentChecklist(assignedIds);
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        function renderDepartmentChecklist(assignedIds) {
+            let $checklist = $('#departmentChecklist');
+            $checklist.empty();
+
+            if (!allDepartments.length) {
+                $checklist.append('<p class="text-muted mb-0">Data department belum tersedia</p>');
+                return;
+            }
+
+            allDepartments.forEach(function(item, index) {
+                let checked = assignedIds.includes(String(item.sub_dept_id)) ? 'checked' : '';
+                let name = $('<div>').text(item.sub_dept_name).html();
+                $checklist.append(`
+                    <div class="dept-chip" data-name="${item.sub_dept_name.toLowerCase()}">
+                        <input class="department-checkbox" type="checkbox" value="${item.sub_dept_id}" id="deptCheck${index}" ${checked}>
+                        <label for="deptCheck${index}"><i class="fas fa-check"></i>${name}</label>
+                    </div>
+                `);
+            });
+
+            $checklist.append('<p id="departmentEmptyState" class="text-muted text-center mb-0 d-none">Department tidak ditemukan</p>');
+
+            updateDeptSelectedCount();
+        }
+
+        function saveUserDepartment() {
+            let userId = $('#txtudUserId').val();
+            let subDeptIds = $('#departmentChecklist .department-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            let $btn = $('#saveUserDepartmentButton');
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                type: "POST",
+                url: '{{ route('sync-user-department-form-bap') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    user_id: userId,
+                    sub_dept_id: subDeptIds
+                },
+                success: function(response) {
+                    if (datatableUserDepartment) {
+                        datatableUserDepartment.ajax.reload(null, false);
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan department.',
+                    });
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        }
     </script>
 @endsection
