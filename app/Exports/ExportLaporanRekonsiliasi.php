@@ -351,6 +351,20 @@ WHERE
               AND x.kode_jenis_identitas=''
         )
     )
+    OR
+    (
+        a.seri='3'
+        AND a.kode_entitas='8'
+        AND a.kode_jenis_identitas='0'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM exim_entitas x
+            WHERE x.nomor_aju = a.nomor_aju
+              AND x.seri='8'
+              AND x.kode_entitas='8'
+              AND x.kode_jenis_identitas=''
+        )
+    )
 )
 AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
 GROUP BY b.nomor_aju
