@@ -370,29 +370,40 @@ class MutasiService
             'font' => ['size' => 14, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet->mergeCells('A1:J1');
 
         $judulLaporan = "LAPORAN MUTASI BAHAN BAKU - " . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->mergeCells('A2:J2');
 
         $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
         $sheet->writeTo('A3', $periode, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->mergeCells('A3:J3');
 
         $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
         $sheet->writeTo('A4', $filterText, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A4:Q4');
-
+        $sheet->mergeCells('A4:J4');
+        $sheet->setColWidths([
+            6,   // A - No
+            12,  // B - ID Item
+            16,  // C - Kode Barang
+            30,  // D - Nama Barang
+            14,  // E - No WS
+            14,  // F - Saldo Awal
+            14,  // G - Pemasukan
+            14,  // H - Pengeluaran
+            14,  // I - Saldo Akhir
+            10,  // J - Satuan
+        ]);
 
         $headerKolom = [
             'No',
@@ -456,33 +467,48 @@ class MutasiService
 
         $excel = FastExcel::create('Laporan');
         $sheet = $excel->getSheet();
+        $sheet->setColWidths([
+            6,   // A - No
+            14,  // B - Id So Det
+            16,  // C - Kode Barang
+            20,  // D - Style
+            14,  // E - No WS
+            12,  // F - Color
+            10,  // G - Size
+            16,  // H - Dest/Country
+            8,   // I - Unit
+            14,  // J - Saldo Awal
+            14,  // K - Penerimaan
+            14,  // L - Pengeluaran
+            14,  // M - Saldo Akhir
+        ]);
 
         $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
             'font' => ['size' => 14, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet->mergeCells('A1:M1');
 
         $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->mergeCells('A2:M2');
 
         $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
         $sheet->writeTo('A3', $periode, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->mergeCells('A3:M3');
 
         $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
         $sheet->writeTo('A4', $filterText, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A4:Q4');
+        $sheet->mergeCells('A4:M4');
 
         $headerKolom = [
             'No',
@@ -507,7 +533,7 @@ class MutasiService
             'text-align' => 'center'
         ];
 
-        $kolomHuruf = range('A', 'Q');
+        $kolomHuruf = range('A', 'M');
         foreach ($headerKolom as $i => $judul) {
             $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
         }
@@ -553,32 +579,44 @@ class MutasiService
         $excel = FastExcel::create('Laporan');
         $sheet = $excel->getSheet();
 
+        $sheet->setColWidths([
+            6,   // A - No
+            12,  // B - Id Item
+            16,  // C - Kode Barang
+            30,  // D - Nama Barang
+            14,  // E - Saldo Awal
+            14,  // F - Penerimaan
+            14,  // G - Pengeluaran
+            14,  // H - Saldo Akhir
+            10,  // I - Unit
+        ]);
+
         $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
             'font' => ['size' => 14, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet->mergeCells('A1:I1');
 
         $judulLaporan = "LAPORAN MUTASI MESIN/SPAREPART -" . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->mergeCells('A2:I2');
 
         $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
         $sheet->writeTo('A3', $periode, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->mergeCells('A3:I3');
 
         $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
         $sheet->writeTo('A4', $filterText, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A4:Q4');
+        $sheet->mergeCells('A4:I4');
 
         $headerKolom = [
             'No',
@@ -599,7 +637,7 @@ class MutasiService
             'text-align' => 'center'
         ];
 
-        $kolomHuruf = range('A', 'Q');
+        $kolomHuruf = range('A', 'I');
         foreach ($headerKolom as $i => $judul) {
             $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
         }
@@ -641,32 +679,44 @@ class MutasiService
         $excel = FastExcel::create('Laporan');
         $sheet = $excel->getSheet();
 
+        $sheet->setColWidths([
+            6,   // A - No
+            12,  // B - Id Item
+            16,  // C - Kode Barang
+            30,  // D - Nama Barang
+            14,  // E - Saldo Awal
+            14,  // F - Penerimaan
+            14,  // G - Pengeluaran
+            14,  // H - Saldo Akhir
+            10,  // I - Unit
+        ]);
+
         $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
             'font' => ['size' => 14, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet->mergeCells('A1:I1');
 
         $judulLaporan = "LAPORAN MUTASI BARANG SISA/SCRAP -" . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->mergeCells('A2:I2');
 
         $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
         $sheet->writeTo('A3', $periode, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->mergeCells('A3:I3');
 
         $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
         $sheet->writeTo('A4', $filterText, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A4:Q4');
+        $sheet->mergeCells('A4:I4');
 
         $headerKolom = [
             'No',
@@ -687,7 +737,7 @@ class MutasiService
             'text-align' => 'center'
         ];
 
-        $kolomHuruf = range('A', 'Q');
+        $kolomHuruf = range('A', 'I');
         foreach ($headerKolom as $i => $judul) {
             $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
         }

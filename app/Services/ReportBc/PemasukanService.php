@@ -147,8 +147,17 @@ class PemasukanService
             $unionQuery = $queryBarangJadi;
         }
 
+         $rateSubQuery = $mysql_sb->table('masterrate')
+            ->select('tanggal', 'curr', 'rate')
+            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
+            ->groupBy('tanggal', 'curr');
+
         return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
             ->mergeBindings($unionQuery)
+            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
+                $join->on('mr.tanggal', '=', 'a.bcdate')
+                    ->on('mr.curr', '=', 'a.curr');
+            })
             ->select(
                 DB::raw("'' as kode_kantor"),
                 'a.jenis_dokumen',
@@ -165,8 +174,8 @@ class PemasukanService
                 'a.qty as jumlah_satuan',
                 'a.curr as kode_valuta',
                 'a.nilai_barang',
-                DB::raw("1 as kurs"),
-                'a.nilai_barang as nilai_barang_idr',
+                DB::raw('COALESCE(mr.rate, 1) as kurs'),
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
                 'a.berat_bersih',
                 'a.berat_kotor',
                 'a.tujuan'
