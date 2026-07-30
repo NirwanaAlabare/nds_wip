@@ -436,10 +436,7 @@
         // clock — a column counts as soon as its jam_kerja_awal starts, so
         // the hour that's currently in progress shows its partial data too
         // (not hidden until the block fully closes). Clamped to [0, 13].
-        function currentJamKe() {
-            const now = new Date();
-            const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-
+        function jamKeFromSec(nowSec) {
             let jamKe = 0;
             JAM_KERJA_SEWING.forEach((row) => {
                 const [h, m, s] = row.jam_kerja_awal.split(':').map(Number);
@@ -451,12 +448,29 @@
             return Math.max(0, Math.min(13, jamKe));
         }
 
-        // Only today's date gets cut off at the current hour — a past date's
-        // shift is already fully over, so all 13 columns show as-is straight
-        // from the database (0 included, nothing hidden). todayYmd() is
-        // defined further down in this same script.
-        function hourCutoff() {
-            return document.getElementById('tgl_filter_live').value === todayYmd() ? currentJamKe() : 13;
+        function currentJamKe() {
+            const now = new Date();
+            const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            return jamKeFromSec(nowSec);
+        }
+
+        // Maps a HH:MM:SS clock time to the dim_jam_kerja_sewing block it
+        // falls in (matched the same way currentJamKe() matches "now").
+        function jamKeFromTime(timeStr) {
+            if (!timeStr) return 13;
+            const [h, m, s] = timeStr.split(':').map(Number);
+            return jamKeFromSec(h * 3600 + m * 60 + (s || 0));
+        }
+
+        // Today's date is cut off at the current wall-clock hour. A past
+        // date's shift is already over, so instead of always showing all 13
+        // columns, cut it off at the block where jam_akhir_input_line (the
+        // last actual input time for that row) falls — hours after that
+        // never had a chance to produce output, so they're hidden instead of
+        // showing as 0. todayYmd() is defined further down in this script.
+        function hourCutoff(data) {
+            if (document.getElementById('tgl_filter_live').value === todayYmd()) return currentJamKe();
+            return jamKeFromTime(data && data.jam_akhir_input_line);
         }
 
         // Columns beyond the cutoff aren't rendered at all (that hour hasn't
@@ -476,10 +490,10 @@
 
         function renderRows(rows) {
             let html = '';
-            const cutoff = hourCutoff();
 
             rows.forEach((data, i) => {
                 const stripe = i % 2 === 0 ? 'stripe-even' : 'stripe-odd';
+                const cutoff = hourCutoff(data);
 
                 html += `<tr class="${stripe}">` +
                     `<td>${plain(data.sewing_line)}</td>` +
@@ -546,7 +560,9 @@
             const totalTargetPerjam = sum('plan_target_perjam');
             setBadge('f-targetperjam', totalTargetPerjam);
 
-            const cutoff = hourCutoff();
+            // Footer sums across every row, so a column counts as "reached"
+            // as soon as any single row's cutoff gets there.
+            const cutoff = rows.reduce((max, d) => Math.max(max, hourCutoff(d)), 0);
             for (let i = 1; i <= 13; i++) {
                 if (i > cutoff) {
                     setBadge('f-ojam' + i, '');
