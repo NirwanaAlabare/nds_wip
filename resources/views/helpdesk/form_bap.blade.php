@@ -157,16 +157,11 @@
                 <table id="datatable" class="table table-bordered table-hover align-middle w-100">
                     <thead class="bg-sb">
                         <tr>
-                            <th scope="col" class="text-center align-middle">No. Form</th>
-                            <th scope="col" class="text-center align-middle">Tgl. Form</th>
-                            <th scope="col" class="text-center align-middle">Department</th>
-                            <th scope="col" class="text-center align-middle">Modul</th>
-                            <th scope="col" class="text-center align-middle">No. Dokumen</th>
-                            <th scope="col" class="text-center align-middle">Tgl. Masalah</th>
+                            <th scope="col" class="text-center align-middle">Form</th>
+                            <th scope="col" class="text-center align-middle">Modul / Dokumen</th>
                             <th scope="col" class="text-center align-middle">Masalah</th>
                             <th scope="col" class="text-center align-middle">Penyebab</th>
-                            <th scope="col" class="text-center align-middle">Usulan</th>
-                            <th scope="col" class="text-center align-middle">Keterangan</th>
+                            <th scope="col" class="text-center align-middle">Usulan / Keterangan</th>
                             <th scope="col" class="text-center align-middle">Status</th>
                             <th scope="col" class="text-center align-middle">Aksi</th>
                         </tr>
@@ -599,6 +594,12 @@
             });
         }
 
+        function escHtml(v) {
+            if (!v) return '';
+            let decoded = $('<textarea>').html(v).text();
+            return $('<div>').text(decoded).html();
+        }
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             responsive: false,
@@ -607,6 +608,8 @@
             paging: true,
             searching: true,
             scrollX: false,
+            scrollY: '55vh',
+            scrollCollapse: true,
             autoWidth: false,
             ajax: {
                 url: '{{ route('form-bap') }}',
@@ -617,32 +620,39 @@
                 }
             },
             columns: [{
-                    data: 'no_form'
+                    data: 'no_form',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return [data, row.tgl_form, row.department, row.created_by].filter(Boolean).join(' ');
+                        }
+                        let creator = row.created_by ?
+                            `<br><small class="text-muted"><i class="fas fa-user fa-xs"></i> ${escHtml(row.created_by)}</small>` :
+                            '';
+                        return `<div class="fw-bold">${escHtml(data) || '-'}</div>` +
+                            `<small class="text-muted">${escHtml(row.tgl_form)} &middot; ${escHtml(row.department)}</small>` +
+                            creator;
+                    }
                 },
                 {
-                    data: 'tgl_form'
-                },
-                {
-                    data: 'department'
-                },
-                {
-                    data: 'modul'
-                },
-                {
-                    data: 'no_dokumen'
-                },
-                {
-                    data: 'tgl_masalah'
+                    data: 'modul',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return [data, row.no_dokumen].filter(Boolean).join(' ');
+                        }
+                        return `<div>${escHtml(data) || '-'}</div>` +
+                            `<small class="text-muted">${escHtml(row.no_dokumen) || '-'}</small>`;
+                    }
                 },
                 {
                     data: 'masalah',
                     className: 'text-wrap',
                     render: function(data, type, row) {
-                        if (type !== 'display' || !data) {
-                            return data;
+                        if (type !== 'display') {
+                            return [data, row.tgl_masalah].filter(Boolean).join(' ');
                         }
-                        let escaped = $('<div>').text(data).html();
-                        return `<span title="${escaped}">${escaped}</span>`;
+                        let text = escHtml(data);
+                        return `<small class="text-muted d-block mb-1">Ditemukan: ${escHtml(row.tgl_masalah)}</small>` +
+                            (text ? `<span title="${text}">${text}</span>` : '-');
                     }
                 },
                 {
@@ -652,7 +662,7 @@
                         if (type !== 'display' || !data) {
                             return data;
                         }
-                        let escaped = $('<div>').text(data).html();
+                        let escaped = escHtml(data);
                         return `<span title="${escaped}">${escaped}</span>`;
                     }
                 },
@@ -660,22 +670,21 @@
                     data: 'usulan',
                     className: 'text-wrap',
                     render: function(data, type, row) {
-                        if (type !== 'display' || !data) {
-                            return data;
+                        if (type !== 'display') {
+                            return [data, row.keterangan].filter(Boolean).join(' ');
                         }
-                        let escaped = $('<div>').text(data).html();
-                        return `<span title="${escaped}">${escaped}</span>`;
-                    }
-                },
-                {
-                    data: 'keterangan',
-                    className: 'text-wrap',
-                    render: function(data, type, row) {
-                        if (type !== 'display' || !data) {
-                            return data;
+                        let usulan = escHtml(data);
+                        let keterangan = escHtml(row.keterangan);
+                        let parts = [];
+                        if (usulan) {
+                            parts.push(`<span title="${usulan}">${usulan}</span>`);
                         }
-                        let escaped = $('<div>').text(data).html();
-                        return `<span title="${escaped}">${escaped}</span>`;
+                        if (keterangan) {
+                            parts.push(
+                                `<small class="text-muted d-block mt-1"><i class="fas fa-sticky-note fa-xs"></i> ${keterangan}</small>`
+                            );
+                        }
+                        return parts.length ? parts.join('') : '-';
                     }
                 },
                 {
