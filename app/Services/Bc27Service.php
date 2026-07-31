@@ -717,7 +717,7 @@ class Bc27Service
                     ->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $tanggalAju,
-                        'bcdate', $tanggalAju,
+                        'bcdate' => $tanggalAju,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
