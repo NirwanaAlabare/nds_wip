@@ -1070,6 +1070,46 @@ class CompletedFormController extends Controller
                     // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
                     $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
 
+                    // Jika hanya tersisa 1 row, update status FormCutInput
+                    $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
+                    if (!$hasFormCutDetail) {
+
+                        FormCutInput::where('id', $formCutDetail->form_cut_id)
+                            ->update([
+                                'status' => 'PENGERJAAN FORM CUTTING SPREAD',
+                                'updated_at' => now(),
+                            ]);
+
+                        $updatedData = FormCutInput::where('id', $formCutDetail->form_cut_id)->first();
+
+                        // Redirect Route
+                        $redirect = '';
+                        switch ($updatedData->tipe_form_cut) {
+                            case 'NORMAL' :
+                                $redirect = route('process-form-cut-input', $updatedData->id);
+                                break;
+                            case 'MANUAL' :
+                                $redirect = route('process-manual-form-cut', $updatedData->id);
+                                break;
+                            case 'PILOT' :
+                                $redirect = route('process-pilot-form-cut', $updatedData->id);
+                                break;
+                            default :
+                                $redirect = null;
+                                break;
+                        }
+
+                        DB::commit();
+
+                        return array(
+                            'status' => 201,
+                            'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status PENGERJAAN FORM CUTTING SPREAD',
+                            'redirect' => $redirect,
+                            'table' => 'datatable',
+                            'additional' => [],
+                        );
+                    }
+
                     // $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
 
                     // if (!$hasFormCutDetail) {
