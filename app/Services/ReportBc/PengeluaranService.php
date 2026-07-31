@@ -68,6 +68,7 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+                ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if ($kategori !== 'all') {
@@ -95,6 +96,7 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
