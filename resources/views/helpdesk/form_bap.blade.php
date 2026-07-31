@@ -358,15 +358,25 @@
 
             $.ajax({
                 type: "GET",
-                url: '{{ route('departments-form-bap') }}',
+                url: '{{ route('my-departments-form-bap') }}',
                 success: function(response) {
                     let $select = $('#txtdepartment');
                     response.forEach(function(item) {
                         $select.append(
                             $('<option>').val(item.sub_dept_name).text(item.sub_dept_name)
+                            .attr('data-sub-dept-id', item.sub_dept_id)
                         );
                     });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
 
+            $.ajax({
+                type: "GET",
+                url: '{{ route('departments-form-bap') }}',
+                success: function(response) {
                     allDepartments = response;
                 },
                 error: function(xhr) {
@@ -400,6 +410,7 @@
                 return;
             }
 
+            let subDeptId = $('#txtdepartment option:selected').data('sub-dept-id');
             let editId = $('#txtedit_id').val();
             let $btn = $('#saveFormBapButton');
             $btn.prop('disabled', true);
@@ -411,6 +422,7 @@
                     _token: '{{ csrf_token() }}',
                     id: editId,
                     department: department,
+                    sub_dept_id: subDeptId,
                     modul: $('#txtmodul').val(),
                     no_dokumen: $('#txtno_dokumen').val(),
                     tgl_masalah: $('#txttgl_masalah').val(),
