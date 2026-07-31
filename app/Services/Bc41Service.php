@@ -616,7 +616,7 @@ class Bc41Service
                     ->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => date('Y-m-d'),
-                        'bcdate', date('Y-m-d'),
+                        'bcdate' => date('Y-m-d'),
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([

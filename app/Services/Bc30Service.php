@@ -866,7 +866,7 @@ class Bc30Service
                     ->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $draft['tanggalAju'] ?? date('Y-m-d'),
-                        'bcdate', $draft['tanggalAju'] ?? date('Y-m-d'),
+                        'bcdate' => $draft['tanggalAju'] ?? date('Y-m-d'),
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
