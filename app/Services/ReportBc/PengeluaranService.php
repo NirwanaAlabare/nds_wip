@@ -431,6 +431,7 @@ class PengeluaranService
 
         $baseFilter = function ($query) {
             $query->where('a.bcno', '!=', '-')
+                ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.1');
         };
 
@@ -677,7 +678,8 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 2.5');
+            $query->where('a.jenis_dok', 'BC 2.5')
+                    ->where('a.cancel', 'N');
         };
 
         $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $matclassExpr) => [
@@ -778,7 +780,8 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 4.1');
+            $query->where('a.jenis_dok', 'BC 4.1')
+                    ->where('a.cancel', 'N');
         };
 
         $jenisDokExpr = "
