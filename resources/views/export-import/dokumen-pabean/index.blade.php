@@ -358,7 +358,8 @@
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-dokumen">
                 <thead>
                     <tr>
-                        <th>Nomor Trans</th>
+                        <th>BPB NO/BPPB NO</th>
+                        <th>BPB NO INT/BPPB NO INT</th>
                         <th>PO #</th>
                         <th>Tanggal Trans</th>
                         <th>Supplier</th>
@@ -523,6 +524,16 @@
                     render: function (data, type, row) {
                         let jenis = $('#jenis').val();
                         let nomor = (jenis === 'Pemasukan') ? (row.bpbno ?? '-') : (row.bppbno ?? '-');
+                        return nomor;
+                    }
+                },
+                {
+                    data: null,
+                    name: 'trx_no',
+                    searchable: true,
+                    render: function (data, type, row) {
+                        let jenis = $('#jenis').val();
+                        let nomor = (jenis === 'Pemasukan') ? (row.bpbno_int ?? '-') : (row.bppbno_int ?? '-');
                         return nomor;
                     }
                 },
