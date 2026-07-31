@@ -547,16 +547,135 @@ class PengeluaranService
             ->get();
     }
 
+    // public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
+    // {
+    //     $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     $baseFilter = function ($query) {
+    //         $query->where('a.jenis_dok', 'BC 2.7')
+    //             ->where('a.cancel', 'N')
+    //             ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
+    //     };
+
+    //     $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $idItemExpr, $matclassExpr) => [
+    //         DB::raw("'BC 2.7' as jenis_dokumen"),
+    //         DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
+    //         'a.bcdate',
+    //         DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
+    //         'a.bppbdate as trans_date',
+    //         'd.supplier',
+    //         DB::raw("$kodeBrgExpr as kode_brg"),
+    //         DB::raw("$itemdescExpr as itemdesc"),
+    //         'a.unit',
+    //         DB::raw("SUM(a.qty) as qty"),
+    //         DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
+    //         DB::raw("ROUND(SUM(a.qty * IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price)), 2) as nilai_barang"),
+    //         DB::raw("$idItemExpr as id_item"),
+    //         DB::raw("$matclassExpr as matclass")
+    //     ];
+
+    //     $kategori = strtolower($kategoriBarang);
+    //     $queryBarangJadi = null;
+    //     $queryBahanBaku = null;
+
+    //     if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+    //         $queryBarangJadi = $mysql_sb->table('bppb as a')
+    //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+    //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+    //             ->where($baseFilter)
+    //             ->where('a.bppbno', 'like', 'SJ-FG%')
+    //             ->whereBetween($dateField, [$fromDate, $toDate])
+    //             ->select($selectCommon(
+    //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
+    //                 "s.itemname",
+    //                 "s.id_so_det",
+    //                 "'BARANG JADI'"
+    //             ))
+    //             ->groupBy('a.bcno', 'a.bppbno', 's.goods_code', 's.itemname', 'a.price');
+    //     }
+
+    //     if (in_array($kategori, ['all', 'fabric', 'accesories'])) {
+    //         $queryBahanBaku = $mysql_sb->table('bppb as a')
+    //             ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
+    //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+    //             ->where($baseFilter)
+    //             ->where('a.bppbno', 'not like', 'SJ-FG%')
+    //             ->whereBetween($dateField, [$fromDate, $toDate]);
+
+    //         if ($kategori !== 'all') {
+    //             $searchTerm = '%' . $kategori . '%';
+    //             $queryBahanBaku->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+    //         }
+
+    //         $queryBahanBaku->select($selectCommon(
+    //             "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT(s.mattype, s.id_item))",
+    //             "s.itemdesc",
+    //             "a.id_item",
+    //             "s.matclass"
+    //         ))
+    //         ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price');
+    //     }
+
+    //     $queries = array_filter([$queryBarangJadi, $queryBahanBaku]);
+    //     if (empty($queries)) {
+    //         return collect();
+    //     }
+    //     $unionQuery = array_shift($queries);
+    //     foreach ($queries as $q) {
+    //         $unionQuery = $unionQuery->unionAll($q);
+    //     }
+
+    //     $rateSubQuery = $mysql_sb->table('masterrate')
+    //         ->select('tanggal', 'curr', 'rate')
+    //         ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
+    //         ->groupBy('tanggal', 'curr');
+
+    //     return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
+    //         ->mergeBindings($unionQuery)
+    //         ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
+    //             $join->on('mr.tanggal', '=', 'a.bcdate')
+    //                 ->on('mr.curr', '=', 'a.curr');
+    //         })
+    //         ->select(
+    //             DB::raw("'' as kode_kantor"),
+    //             'a.jenis_dokumen',
+    //             'a.matclass',
+    //             'a.matclass as kategori_barang',
+    //             'a.bcno',
+    //             'a.bcno as nomor_daftar',
+    //             'a.bcdate',
+    //             'a.bcdate as tanggal_daftar',
+    //             'a.supplier',
+    //             'a.supplier as nama_pengirim',
+    //             'a.trans_no',
+    //             'a.trans_no as nomor_bpb',
+    //             'a.trans_date',
+    //             'a.trans_date as tanggal_bpb',
+    //             'a.id_item',
+    //             'a.kode_brg',
+    //             'a.itemdesc',
+    //             'a.itemdesc as uraian_barang',
+    //             'a.unit',
+    //             'a.unit as jenis_satuan',
+    //             'a.qty',
+    //             'a.qty as jumlah_satuan',
+    //             'a.curr',
+    //             'a.curr as kode_valuta',
+    //             'a.nilai_barang',
+    //             DB::raw('COALESCE(mr.rate, 1) as rate'),
+    //             DB::raw('COALESCE(mr.rate, 1) as kurs'),
+    //             DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+    //         )
+    //         ->orderBy('a.bcdate', 'ASC')
+    //         ->orderBy('a.bcno', 'ASC')
+    //         ->get();
+    // }
+
     public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
         $mysql_sb = DB::connection('mysql_sb');
-
-        $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 2.7')
-                ->where('a.cancel', 'N')
-                ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
-        };
 
         $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $idItemExpr, $matclassExpr) => [
             DB::raw("'BC 2.7' as jenis_dokumen"),
@@ -583,7 +702,14 @@ class PengeluaranService
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                ->where(function ($query) {
+                    $query->where('a.jenis_dok', 'BC 2.7')
+                          ->where(function($q) {
+                              $q->where('a.cancel', 'N')->orWhereNull('a.cancel')->orWhere('a.cancel', '!=', 'Y');
+                          })
+                          ->where('a.qty', '>', 0)
+                          ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
+                })
                 ->where('a.bppbno', 'like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
@@ -599,7 +725,14 @@ class PengeluaranService
             $queryBahanBaku = $mysql_sb->table('bppb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                ->where(function ($query) {
+                    $query->where('a.jenis_dok', 'BC 2.7')
+                          ->where(function($q) {
+                              $q->where('a.cancel', 'N')->orWhereNull('a.cancel')->orWhere('a.cancel', '!=', 'Y');
+                          })
+                          ->where('a.qty', '>', 0)
+                          ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
+                })
                 ->where('a.bppbno', 'not like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
