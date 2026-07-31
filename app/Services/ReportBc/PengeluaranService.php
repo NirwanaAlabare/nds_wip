@@ -552,10 +552,10 @@ class PengeluaranService
         $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
         $mysql_sb = DB::connection('mysql_sb');
 
-        $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 2.7')
-                ->whereRaw("a.cancel != 'Y'");
-        };
+        // $baseFilter = function ($query) {
+        //     $query->where('a.jenis_dok', 'BC 2.7')
+        //         ->whereRaw("a.cancel != 'Y'");
+        // };
 
         $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $idItemExpr, $matclassExpr) => [
             DB::raw("'BC 2.7' as jenis_dokumen"),
@@ -582,7 +582,9 @@ class PengeluaranService
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                // ->where($baseFilter)
+                ->where('a.jenis_dok', 'BC 2.7')
+                ->whereRaw("a.cancel != 'Y'")
                 ->where('a.bppbno', 'like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
@@ -599,7 +601,9 @@ class PengeluaranService
             $queryBahanBaku = $mysql_sb->table('bppb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                // ->where($baseFilter)
+                ->where('a.jenis_dok', 'BC 2.7')
+                ->whereRaw("a.cancel != 'Y'")
                 ->where('a.bppbno', 'not like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
