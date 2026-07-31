@@ -1145,7 +1145,7 @@ class Bc27Service
                 'jenisTpbTujuan'       => $request->input('jenisTpbTujuan', ''),
                 'kodeKantorBongkar'    => $request->input('kodeKantorBongkar', ''),
                 'kodeTujuanTpb'        => $request->input('kodeTujuanTpb', ''),
-                'kodeTujuanPengiriman' => $request->input('kodeTujuanTpb', '1'),
+                'kodeTujuanPengiriman' => $request->input('kodeTujuanPengiriman', '1'),
                 'kodeTutupPu'          => $request->input('kodeTutupPu', ''),
                 'bruto'                => (float) $request->input('bruto', 0),
                 'netto'                => (float) $request->input('netto', 0),
