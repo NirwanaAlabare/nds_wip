@@ -791,7 +791,7 @@ class PemasukanService
                     $row->jenis_dokumen ?? $jenisDokumenFixed,
                     $row->kategori_barang ?? '-',
                     $row->nomor_daftar ?? '-',
-                    $row->tanggal_daftar ?? '-',
+                    $row->tanggal_daftar ? date('d-m-Y' , strtotime($row->tanggal_daftar)) : '-',
                     $row->nama_pengirim ?? '-',
                     $row->nomor_bpb ?? '-',
                     $row->tanggal_bpb ?? '-',

@@ -717,7 +717,7 @@ class Bc27Service
                     ->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $tanggalAju,
-                        'bcdate', $tanggalAju,
+                        'bcdate' => $tanggalAju,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
@@ -1145,7 +1145,7 @@ class Bc27Service
                 'jenisTpbTujuan'       => $request->input('jenisTpbTujuan', ''),
                 'kodeKantorBongkar'    => $request->input('kodeKantorBongkar', ''),
                 'kodeTujuanTpb'        => $request->input('kodeTujuanTpb', ''),
-                'kodeTujuanPengiriman' => $request->input('kodeTujuanPengiriman', '1'),
+                'kodeTujuanPengiriman' => $request->input('kodeTujuanTpb', '1'),
                 'kodeTutupPu'          => $request->input('kodeTutupPu', ''),
                 'bruto'                => (float) $request->input('bruto', 0),
                 'netto'                => (float) $request->input('netto', 0),
@@ -1627,7 +1627,7 @@ class Bc27Service
             $jenisTpb = !empty($draft['jenisTpb']) ? strval($draft['jenisTpb']) : "1";
             if (!in_array($jenisTpb, ["1", "2", "3", "4", "5", "6", "7", "8"])) $jenisTpb = "1";
 
-            $tujuanPengiriman = !empty($draft['kodeTujuanPengiriman']) ? strval($draft['kodeTujuanPengiriman']) : "1";
+            $tujuanPengiriman = !empty($draft['kodeTujuanPengiriman']) ? strval($draft['kodeTujuanPengiriman']) : strval($draft['kodeTujuanTpb']);
             if (!in_array($tujuanPengiriman, ["1", "2", "3", "4", "5"])) $tujuanPengiriman = "1";
 
             // --- Payload Final ---
