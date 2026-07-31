@@ -286,7 +286,7 @@
                                 <td>{{ ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000' }}</td>
                                 <td>{{ $row->nama_pengirim ?? '-' }}</td>
                                 <td>{{ $row->nomor_bpb ?? '-' }}</td>
-                                <td>{{ ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000' }}</td>
+                                <td>{{ ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000' }}</td>
                                 <td>{{ $row->id_item ?? '-' }}</td>
                                 <td>{{ $row->uraian_barang ?? '-' }}</td>
                                 <td>{{ $row->jenis_satuan ?? '-' }}</td>
