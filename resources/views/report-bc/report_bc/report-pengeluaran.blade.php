@@ -262,9 +262,9 @@
                             <th>Kategori Barang</th>
                             <th>Nomor Daftar</th>
                             <th>Tanggal Daftar</th>
-                            <th>Nama Penerima / Pembeli</th>
-                            <th>Nomor Bukti Pengeluaran</th>
-                            <th>Tanggal Bukti Pengeluaran</th>
+                            <th>Nama Penerima</th>
+                            <th>No BPPB</th>
+                            <th>Tanggal BPPB</th>
                             <th>ID Item</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
