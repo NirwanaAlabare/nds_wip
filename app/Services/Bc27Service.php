@@ -710,9 +710,9 @@ class Bc27Service
 
             if ($responseCeisa['successful']) {
 
-                $db->table('bpb')
+                $db->table('bppb')
                     ->where(function($query) use ($id) {
-                        $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
+                        $query->where('bppbno', $id)->orWhere('bppbno_int', $id);
                     })
                     ->update([
                         'nomor_aju'   => $nomorAju,
