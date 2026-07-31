@@ -105,7 +105,7 @@ class BAPFormController extends Controller
             $status = $request->status;
 
             $data = DB::table('bap_form')
-                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel')
+                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel', 'created_by')
                 ->whereIn('department', $this->getAllowedDepartmentNames())
                 ->orderBy('tgl_form', 'desc');
 
