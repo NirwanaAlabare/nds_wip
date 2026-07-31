@@ -521,6 +521,7 @@
                     data: null,
                     name: 'trx_no',
                     searchable: true,
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         let jenis = $('#jenis').val();
                         let nomor = (jenis === 'Pemasukan') ? (row.bpbno ?? '-') : (row.bppbno ?? '-');
@@ -531,6 +532,7 @@
                     data: null,
                     name: 'trx_no',
                     searchable: true,
+                    responsivePriority: 2,
                     render: function (data, type, row) {
                         let jenis = $('#jenis').val();
                         let nomor = (jenis === 'Pemasukan') ? (row.bpbno_int ?? '-') : (row.bppbno_int ?? '-');
