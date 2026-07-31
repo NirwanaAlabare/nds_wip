@@ -168,12 +168,14 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
             select nomor_aju, kode_barang, uraian, jumlah_satuan, CASE
             WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
             WHEN fil_aju IN (23, 27, 261, 262) THEN cif
-            WHEN fil_aju IN (30,33) THEN (harga_satuan * jumlah_satuan)
+            WHEN fil_aju IN (30) THEN (harga_satuan * jumlah_satuan)
+            WHEN fil_aju IN (33) THEN (fob)
             ELSE '0'
             END AS cif, CASE
             WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
             WHEN fil_aju IN (23, 27, 261, 262) THEN cif_rupiah
-            WHEN fil_aju IN (30,33) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+            WHEN fil_aju IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+            WHEN fil_aju IN (33) THEN (fob * ndpbm)
             ELSE '0'
             END AS cif_rupiah, kode_satuan
             from (SELECT nomor_aju, LEFT(nomor_aju,6) + 0 fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM exim_barang) a
@@ -340,6 +342,20 @@ WHERE
         a.seri='2'
         AND a.kode_entitas='7'
         AND a.kode_jenis_identitas='4'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM exim_entitas x
+            WHERE x.nomor_aju = a.nomor_aju
+              AND x.seri='8'
+              AND x.kode_entitas='8'
+              AND x.kode_jenis_identitas=''
+        )
+    )
+    OR
+    (
+        a.seri='3'
+        AND a.kode_entitas='8'
+        AND a.kode_jenis_identitas='0'
         AND NOT EXISTS (
             SELECT 1
             FROM exim_entitas x

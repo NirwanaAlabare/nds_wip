@@ -961,6 +961,16 @@ class Bc33Service
             $responseCeisa = $this->ceisaService->kirimDokumenBc33($finalPayload);
 
             if ($responseCeisa['successful']) {
+                 $db->table('bppb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bppbno', $id)->orWhere('bppbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => $draft['tanggalAju'] ?? date('Y-m-d'),
+                        'bcdate', $draft['tanggalAju'] ?? date('Y-m-d'),
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'status'       => 1,
                     'updated_at'   => \Carbon\Carbon::now(),
