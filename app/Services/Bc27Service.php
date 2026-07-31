@@ -709,6 +709,17 @@ class Bc27Service
             $responseCeisa = $this->ceisaService->kirimDokumenBc27($payload);
 
             if ($responseCeisa['successful']) {
+
+                $db->table('bppb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bppbno', $id)->orWhere('bppbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => $tanggalAju,
+                        'bcdate' => $tanggalAju,
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => $tanggalAju,
@@ -1616,7 +1627,7 @@ class Bc27Service
             $jenisTpb = !empty($draft['jenisTpb']) ? strval($draft['jenisTpb']) : "1";
             if (!in_array($jenisTpb, ["1", "2", "3", "4", "5", "6", "7", "8"])) $jenisTpb = "1";
 
-            $tujuanPengiriman = !empty($draft['kodeTujuanPengiriman']) ? strval($draft['kodeTujuanPengiriman']) : "1";
+            $tujuanPengiriman = !empty($draft['kodeTujuanPengiriman']) ? strval($draft['kodeTujuanPengiriman']) : strval($draft['kodeTujuanTpb']);
             if (!in_array($tujuanPengiriman, ["1", "2", "3", "4", "5"])) $tujuanPengiriman = "1";
 
             // --- Payload Final ---

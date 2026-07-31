@@ -1690,7 +1690,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/dashboard_bap/form/cancel', 'cancel')->name('cancel-form-bap');
         Route::get('/dashboard_bap/form/print/{id}', 'printPdf')->name('print-form-bap');
         Route::get('/dashboard_bap/form/departments', 'getDepartments')->name('departments-form-bap');
+        Route::get('/dashboard_bap/form/my-departments', 'getMyDepartments')->name('my-departments-form-bap');
         Route::get('/dashboard_bap/form/summary', 'summary')->name('summary-form-bap');
+        Route::get('/dashboard_bap/form/users-department', 'listUsersDepartment')->name('list-users-department-form-bap');
+        Route::get('/dashboard_bap/form/users-department/list', 'getUserDepartments')->name('get-user-departments-form-bap');
+        Route::post('/dashboard_bap/form/users-department/sync', 'syncUserDepartment')->name('sync-user-department-form-bap');
     });
     // Export Import (EXIM)
 

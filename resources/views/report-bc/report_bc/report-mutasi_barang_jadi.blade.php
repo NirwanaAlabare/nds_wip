@@ -121,6 +121,10 @@
         #tabel-report tbody tr:hover {
             background-color: #f4f8fd !important;
         }
+
+        .report-detail-card .card-header .card-tools {
+            margin-left: auto;
+        }
     </style>
 @endsection
 
@@ -138,7 +142,7 @@
             </div>
             <div class="card-tools" style="text-align: right;">
                 <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali
                 </a>
             </div>
         </div>

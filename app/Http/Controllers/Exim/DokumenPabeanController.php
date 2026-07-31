@@ -643,7 +643,8 @@ class DokumenPabeanController extends Controller
                     })
                     ->update([
                         'nomor_aju'   => $nomorAju,
-                        'tanggal_aju' => $tanggalAju
+                        'tanggal_aju' => $tanggalAju,
+                        'bcdate' => $tanggalAju,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
@@ -1985,6 +1986,17 @@ class DokumenPabeanController extends Controller
             $responseCeisa = $this->ceisaService->kirimDokumenBc23($payload);
 
             if ($responseCeisa['successful']) {
+
+                $db->table('bpb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => $tanggalAju,
+                        'bcdate' => $tanggalAju,
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => $tanggalAju,

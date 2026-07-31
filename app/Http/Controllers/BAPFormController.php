@@ -13,25 +13,62 @@ class BAPFormController extends Controller
 {
     public function getDepartments()
     {
-        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
+        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_id, sub_dept_name FROM department_all
         WHERE site_nirwana_id = 'NAG'
         AND status = 'AKTIF'
-        GROUP BY sub_dept_name
+        GROUP BY sub_dept_id, sub_dept_name
         ORDER BY sub_dept_name ASC");
 
-        // NEW
-        // $userDepartment = Auth::user()->userDepartment()->pluck('sub_dept_id')->toArray();
+        return response()->json($departments);
+    }
 
-        // $userDepartmentIds = addQuotesAround(implode("\n", $userDepartment));
+    public function getMyDepartments()
+    {
+        $subDeptIds = collect(DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [Auth::id()]))
+            ->pluck('sub_dept_id')
+            ->filter()
+            ->unique()
+            ->values();
 
-        // $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
-        // WHERE site_nirwana_id = 'NAG'
-        // AND status = 'AKTIF'
-        // AND sub_dept_id IN ($userDepartmentIds)
-        // GROUP BY sub_dept_name
-        // ORDER BY sub_dept_name ASC");
+        if ($subDeptIds->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+        $departments = DB::connection('mysql_hris')->select(
+            "SELECT sub_dept_id, sub_dept_name FROM department_all
+            WHERE site_nirwana_id = 'NAG'
+            AND status = 'AKTIF'
+            AND sub_dept_id IN ($placeholders)
+            GROUP BY sub_dept_id, sub_dept_name
+            ORDER BY sub_dept_name ASC",
+            $subDeptIds->all()
+        );
 
         return response()->json($departments);
+    }
+
+    private function getAllowedDepartmentNames()
+    {
+        $subDeptIds = collect(DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [Auth::id()]))
+            ->pluck('sub_dept_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($subDeptIds->isEmpty()) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+        $names = DB::connection('mysql_hris')->select(
+            "SELECT sub_dept_name FROM department_all WHERE sub_dept_id IN ($placeholders)",
+            $subDeptIds->all()
+        );
+
+        return collect($names)->pluck('sub_dept_name')->unique()->values()->all();
     }
 
     public function summary(Request $request)
@@ -39,7 +76,8 @@ class BAPFormController extends Controller
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
 
-        $query = DB::table('bap_form');
+        $query = DB::table('bap_form')
+            ->whereIn('department', $this->getAllowedDepartmentNames());
 
         if (!empty($tgl_awal) && !empty($tgl_akhir)) {
             $query->whereDate('tgl_form', '>=', $tgl_awal)
@@ -67,7 +105,8 @@ class BAPFormController extends Controller
             $status = $request->status;
 
             $data = DB::table('bap_form')
-                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel')
+                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel', 'created_by')
+                ->whereIn('department', $this->getAllowedDepartmentNames())
                 ->orderBy('tgl_form', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
@@ -115,6 +154,7 @@ class BAPFormController extends Controller
     {
         $request->validate([
             'department' => 'required|string|max:100',
+            'sub_dept_id' => 'nullable|string|max:30',
             'modul' => 'nullable|string|max:100',
             'no_dokumen' => 'nullable|string|max:100',
             'tgl_masalah' => 'nullable|date',
@@ -142,6 +182,7 @@ class BAPFormController extends Controller
             'no_form' => $noForm,
             'tgl_form' => $tglForm,
             'department' => $request->department,
+            'sub_dept_id' => $request->sub_dept_id,
             'modul' => $request->modul,
             'no_dokumen' => $request->no_dokumen,
             'tgl_masalah' => $request->tgl_masalah,
@@ -200,6 +241,7 @@ class BAPFormController extends Controller
         $request->validate([
             'id' => 'required|integer',
             'department' => 'required|string|max:100',
+            'sub_dept_id' => 'nullable|string|max:30',
             'modul' => 'nullable|string|max:100',
             'no_dokumen' => 'nullable|string|max:100',
             'tgl_masalah' => 'nullable|date',
@@ -213,6 +255,7 @@ class BAPFormController extends Controller
             ->where('id', $request->id)
             ->update([
                 'department' => $request->department,
+                'sub_dept_id' => $request->sub_dept_id,
                 'modul' => $request->modul,
                 'no_dokumen' => $request->no_dokumen,
                 'tgl_masalah' => $request->tgl_masalah,
@@ -258,6 +301,94 @@ class BAPFormController extends Controller
 
         return response()->json([
             'message' => 'Form BAP dibatalkan',
+        ]);
+    }
+
+    public function listUsersDepartment()
+    {
+        $data = DB::table('users as u')
+            ->leftJoin('user_department as ud', 'ud.user_id', '=', 'u.id')
+            ->select('u.id', 'u.name', 'u.username', DB::raw('COUNT(ud.id) as dept_count'))
+            ->groupBy('u.id', 'u.name', 'u.username')
+            ->orderBy('u.name');
+
+        return DataTables::of($data)->make(true);
+    }
+
+    public function getUserDepartments(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $rows = DB::select("SELECT id, sub_dept_id FROM user_department WHERE user_id = ? ORDER BY id DESC", [$request->user_id]);
+
+        $subDeptIds = collect($rows)->pluck('sub_dept_id')->filter()->unique()->values();
+
+        $names = collect();
+        if ($subDeptIds->isNotEmpty()) {
+            $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+            $departmentRows = DB::connection('mysql_hris')->select(
+                "SELECT sub_dept_id, sub_dept_name FROM department_all WHERE sub_dept_id IN ($placeholders) and status = 'aktif' and site_nirwana_id = 'NAG'",
+                $subDeptIds->all()
+            );
+
+            $names = collect($departmentRows)->pluck('sub_dept_name', 'sub_dept_id');
+        }
+
+        $result = collect($rows)->map(function ($row) use ($names) {
+            return [
+                'id' => $row->id,
+                'sub_dept_id' => $row->sub_dept_id,
+                'sub_dept_name' => $names->get($row->sub_dept_id, $row->sub_dept_id),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    public function syncUserDepartment(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'sub_dept_id' => 'array',
+            'sub_dept_id.*' => 'string|max:30',
+        ]);
+
+        $selected = collect($request->sub_dept_id ?? [])->filter()->unique()->values();
+
+        $existingRows = DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [$request->user_id]);
+        $existing = collect($existingRows)->pluck('sub_dept_id');
+
+        $toInsert = $selected->diff($existing);
+        $toDelete = $existing->diff($selected);
+
+        if ($toInsert->isNotEmpty()) {
+            $now = Carbon::now();
+            $insertRows = $toInsert->map(function ($subDeptId) use ($request, $now) {
+                return [
+                    'user_id' => $request->user_id,
+                    'sub_dept_id' => $subDeptId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            })->all();
+
+            DB::table('user_department')->insert($insertRows);
+        }
+
+        if ($toDelete->isNotEmpty()) {
+            $placeholders = implode(',', array_fill(0, $toDelete->count(), '?'));
+
+            DB::delete(
+                "DELETE FROM user_department WHERE user_id = ? AND sub_dept_id IN ($placeholders)",
+                array_merge([$request->user_id], $toDelete->all())
+            );
+        }
+
+        return response()->json([
+            'message' => 'Department berhasil disimpan',
         ]);
     }
 }

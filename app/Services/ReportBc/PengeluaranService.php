@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 class PengeluaranService
 {
@@ -39,7 +40,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -67,6 +68,7 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+                ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if ($kategori !== 'all') {
@@ -94,6 +96,7 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -133,7 +136,7 @@ class PengeluaranService
                 'a.bcdate as tanggal_daftar',
                 'a.supplier as nama_pengirim',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.itemdesc as uraian_barang',
                 'a.unit as jenis_satuan',
@@ -165,7 +168,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -264,8 +267,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -302,7 +304,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -399,8 +401,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -430,6 +431,7 @@ class PengeluaranService
 
         $baseFilter = function ($query) {
             $query->where('a.bcno', '!=', '-')
+                ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.1');
         };
 
@@ -438,7 +440,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -524,8 +526,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -550,17 +551,17 @@ class PengeluaranService
         $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
         $mysql_sb = DB::connection('mysql_sb');
 
-        $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 2.7')
-                ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
-        };
+        // $baseFilter = function ($query) {
+        //     $query->where('a.jenis_dok', 'BC 2.7')
+        //         ->whereRaw("a.cancel != 'Y'");
+        // };
 
         $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $idItemExpr, $matclassExpr) => [
             DB::raw("'BC 2.7' as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -580,7 +581,9 @@ class PengeluaranService
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                // ->where($baseFilter)
+                ->where('a.jenis_dok', 'BC 2.7')
+                ->whereRaw("a.cancel != 'Y'")
                 ->where('a.bppbno', 'like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
@@ -590,13 +593,16 @@ class PengeluaranService
                     "'BARANG JADI'"
                 ))
                 ->groupBy('a.bcno', 'a.bppbno', 's.goods_code', 's.itemname', 'a.price');
+
         }
 
         if (in_array($kategori, ['all', 'fabric', 'accesories'])) {
             $queryBahanBaku = $mysql_sb->table('bppb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where($baseFilter)
+                // ->where($baseFilter)
+                ->where('a.jenis_dok', 'BC 2.7')
+                ->whereRaw("a.cancel != 'Y'")
                 ->where('a.bppbno', 'not like', 'SJ-FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -647,8 +653,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -675,7 +680,8 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 2.5');
+            $query->where('a.jenis_dok', 'BC 2.5')
+                    ->where('a.cancel', 'N');
         };
 
         $selectCommon = fn ($kodeBrgExpr, $itemdescExpr, $matclassExpr) => [
@@ -683,7 +689,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -748,8 +754,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -776,7 +781,8 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.jenis_dok', 'BC 4.1');
+            $query->where('a.jenis_dok', 'BC 4.1')
+                    ->where('a.cancel', 'N');
         };
 
         $jenisDokExpr = "
@@ -792,7 +798,7 @@ class PengeluaranService
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
-            'a.bppbdate as trans_date',
+            'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
@@ -881,8 +887,7 @@ class PengeluaranService
                 'a.supplier as nama_pengirim',
                 'a.trans_no',
                 'a.trans_no as nomor_bpb',
-                'a.trans_date',
-                'a.trans_date as tanggal_bpb',
+                'a.bppbdate as tanggal_bpb',
                 'a.id_item',
                 'a.kode_brg',
                 'a.itemdesc',
@@ -902,4 +907,113 @@ class PengeluaranService
             ->orderBy('a.bcno', 'ASC')
             ->get();
     }
+
+    public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+        $methodName = 'getData' . ucfirst($cleanKategori);
+
+        $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+
+        $excel = FastExcel::create('Laporan');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+            'font' => ['size' => 14, 'style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A1:Q1');
+
+        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+        $sheet->writeTo('A2', $judulLaporan, [
+            'font' => ['size' => 12, 'style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A2:Q2');
+
+        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+        $sheet->writeTo('A3', $periode, [
+            'font' => ['style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A3:Q3');
+
+        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+        $sheet->writeTo('A4', $filterText, [
+            'font' => ['style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A4:Q4');
+
+
+        $headerKolom = [
+            'No',
+            'Kode Kantor',
+            'Jenis Dokumen',
+            'Kategori Barang',
+            'Nomor Daftar',
+            'Tanggal Daftar',
+            'Nama Penerima',
+            'No BPPB',
+            'Tanggal BPPB',
+            'ID Item',
+            'Uraian Barang',
+            'Jenis Satuan',
+            'Jumlah Satuan',
+            'Kode Valuta',
+            'Nilai Barang',
+            'Kurs',
+            'Nilai Barang IDR',
+        ];
+
+        $styleHeaderKolom = [
+            'font' => ['style' => 'bold'],
+            'border' => 'thin',
+            'background-color' => '#d9edf7',
+            'text-align' => 'center'
+        ];
+
+        $kolomHuruf = range('A', 'Q');
+        foreach ($headerKolom as $i => $judul) {
+            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+        }
+
+        $no = 1;
+        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $no++,
+                    $row->kode_kantor ?? '-',
+                    $row->jenis_dokumen ?? $jenisDokumenFixed,
+                    $row->kategori_barang ?? '-',
+                    $row->nomor_daftar ?? '-',
+                    ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                    $row->nama_pengirim ?? '-',
+                    $row->nomor_bpb ?? '-',
+                    ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+                    $row->id_item ?? '-',
+                    $row->uraian_barang ?? '-',
+                    $row->jenis_satuan ?? '-',
+                    (float) ($row->jumlah_satuan ?? 0),
+                    $row->kode_valuta ?? '-',
+                    (float) ($row->nilai_barang ?? 0),
+                    (float) ($row->kurs ?? 0),
+                    (float) ($row->nilai_barang_idr ?? 0),
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+        return $excel->download($filename);
+    }
+
 }

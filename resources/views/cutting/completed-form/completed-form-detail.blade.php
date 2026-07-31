@@ -2555,6 +2555,22 @@
                                     await getSummary(true);
 
                                     await finishProcess();
+                                    
+                                } else if (res.status == 201) {
+
+                                    document.getElementById("loading").classList.add("d-none");
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: res.message,
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                    }).then(() => {
+                                        window.open(res.redirect, '_blank');
+                                    });
+
                                 } else {
                                     document.getElementById("loading").classList.add("d-none");
 
@@ -2566,7 +2582,8 @@
                                         });
                                     }
                                 }
-                            }, error: function (jqXHR) {
+                            }, 
+                            error: function (jqXHR) {
                                 document.getElementById("loading").classList.add("d-none");
 
                                 let res = jqXHR.responseJSON;
