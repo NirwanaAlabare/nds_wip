@@ -1809,10 +1809,10 @@
                                     <div class="form-group row">
                                         <label class="col-sm-4 col-form-label text-sm">Jenis TPB Tujuan</label>
                                         <div class="col-sm-8">
-                                            <select name="jenisTpbTujuan" class="form-control form-control-sm select2bs4">
+                                            <select name="kodeTujuanTpb" class="form-control form-control-sm select2bs4">
                                             <option value="">Pilih Jenis TPB Tujuan</option>
                                             @foreach($listJenisTpb as $k => $v)
-                                                <option value="{{ $k }}" {{ ($dataDetail['jenisTpbTujuan'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                <option value="{{ $k }}" {{ ($dataDetail['kodeTujuanTpb'] ?? '') == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
                                             @endforeach
                                         </select>
                                         </div>
@@ -1820,9 +1820,9 @@
                                     <div class="form-group row">
                                         <label class="col-sm-4 col-form-label text-sm">Tujuan Pengiriman</label>
                                         <div class="col-sm-8">
-                                            <select name="kodeTujuanTpb" class="form-control form-control-sm select2bs4">
+                                            <select name="kodeTujuanPengiriman" class="form-control form-control-sm select2bs4">
                                                 <option value="">Pilih Tujuan Pengiriman</option>
-                                                @php $tujuanTpb = $dataDetail['kodeTujuanTpb'] ?? '' @endphp
+                                                @php $tujuanTpb = $dataDetail['kodeTujuanPengiriman'] ?? '' @endphp
                                                 <option value="1" {{ $tujuanTpb == '1' ? 'selected' : '' }}>1 - PENYERAHAN BKP</option>
                                                 <option value="2" {{ $tujuanTpb == '2' ? 'selected' : '' }}>2 - PENYERAHAN JKP</option>
                                                 <option value="3" {{ $tujuanTpb == '3' ? 'selected' : '' }}>3 - RETUR</option>

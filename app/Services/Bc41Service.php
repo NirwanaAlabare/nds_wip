@@ -608,6 +608,17 @@ class Bc41Service
             $responseCeisa = $this->ceisaService->kirimDokumenBc41($finalPayload);
 
             if ($responseCeisa['successful']) {
+
+                $db->table('bppb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bppbno', $id)->orWhere('bppbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => date('Y-m-d'),
+                        'bcdate' => date('Y-m-d'),
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => Carbon::now()->format('Y-m-d'),

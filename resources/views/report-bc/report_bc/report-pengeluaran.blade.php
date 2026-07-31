@@ -119,12 +119,26 @@
             box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
         }
 
-        #tabel-report {
-            border-radius: 10px;
-            overflow: hidden;
+        /* ============================================================
+           TABEL REPORT — wrapper luar (bingkai rounded + bayangan)
+           overflow TIDAK hidden di sini karena scrollX/scrollY DataTables
+           butuh area sendiri buat scroll, biar gak ke-clip.
+        ============================================================ */
+        .report-table-wrapper {
+            border: 1px solid #e7ecf3;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            overflow: hidden; /* ini aman karena cuma bungkus radius luar */
         }
 
-        #tabel-report thead th {
+        #tabel-report {
+            margin-bottom: 0 !important;
+        }
+
+        /* Header (di-clone DataTables ke tabel terpisah saat scrollX aktif) */
+        #tabel-report thead th,
+        .dataTables_scrollHeadTable thead th,
+        .dataTables_scrollHead thead th {
             background: #0f172a !important;
             color: #f8fafc !important;
             font-size: 12px;
@@ -133,21 +147,57 @@
             font-weight: 700;
             vertical-align: middle;
             border-color: #1e293b !important;
+            white-space: nowrap;
         }
 
         #tabel-report tbody td {
             font-size: 12.5px;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         #tabel-report tbody tr:hover {
             background-color: #fffbeb !important;
         }
 
-        #tabel-report .thead-report th,
-        .dataTables_scrollHead .thead-report th {
+        /* Paksa tabel head & body punya lebar identik biar kolom gak geser */
+        .dataTables_scrollHeadTable,
+        .dataTables_scrollBody table {
+            width: 100% !important;
+        }
+
+        .dataTables_scrollBody {
+            border-top: none !important;
+        }
+
+        /* Scrollbar custom biar enak dilihat (opsional, tapi bikin scroll kanan kelihatan jelas) */
+        .dataTables_scrollBody::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        .dataTables_scrollBody::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dataTables_scrollBody::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Info & length/pagination DataTables biar konsisten sama tema */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            padding: 0.85rem 1rem;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
             background: #0f172a !important;
-            color: #f8fafc !important;
+            border-color: #0f172a !important;
+            color: #fff !important;
         }
 
          .report-detail-card .card-header .card-tools {
@@ -172,8 +222,8 @@
                 </h3>
             </div>
             <div class="card-tools" style="text-align: right;">
-                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard
+                <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali
                 </a>
             </div>
         </div>
@@ -201,8 +251,9 @@
                 </div>
             </form>
 
-            <div class="table-responsive">
-                <table id="tabel-report" class="table table-bordered table-striped table-hover table-sm w-100 text-nowrap">
+            {{-- Tanpa div.table-responsive: biar scrollX/scrollY DataTables yang handle scroll --}}
+            <div class="report-table-wrapper">
+                <table id="tabel-report" class="table table-bordered table-striped table-hover table-sm w-100">
                     <thead class="thead-report text-center">
                         <tr>
                             <th>No</th>
@@ -232,10 +283,10 @@
                                 <td>{{ $row->jenis_dokumen ?? '-' }}</td>
                                 <td>{{ $row->kategori_barang ?? '-' }}</td>
                                 <td>{{ $row->nomor_daftar ?? '-' }}</td>
-                                <td>{{ $row->tanggal_daftar ?? '-' }}</td>
-                                <td>{{ $row->supplier ?? '-' }}</td>
-                                <td>{{ $row->nomor_bukti ?? '-' }}</td>
-                                <td>{{ $row->tanggal_bukti ?? '-' }}</td>
+                                <td>{{ $row->tanggal_daftar ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '-' }}</td>
+                                <td>{{ $row->nama_pengirim ?? '-' }}</td>
+                                <td>{{ $row->nomor_bpb ?? '-' }}</td>
+                                <td>{{ $row->tanggal_bpb ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-' }}</td>
                                 <td>{{ $row->id_item ?? '-' }}</td>
                                 <td>{{ $row->uraian_barang ?? '-' }}</td>
                                 <td>{{ $row->jenis_satuan ?? '-' }}</td>
@@ -265,11 +316,23 @@
 
     <script>
         $(document).ready(function() {
-            $('#tabel-report').DataTable({
+            let table = $('#tabel-report').DataTable({
                 "responsive": false,
                 "autoWidth": false,
                 "scrollX": true,
+                "scrollY": "60vh",
+                "scrollCollapse": true,
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "initComplete": function() {
+                    let api = this.api();
+                    setTimeout(function() {
+                        api.columns.adjust();
+                    }, 50);
+                }
+            });
+
+            $(window).on('resize', function() {
+                table.columns.adjust();
             });
 
             $('#btn-export-excel').on('click', function(e) {
