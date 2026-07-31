@@ -553,6 +553,7 @@ class PengeluaranService
 
         $baseFilter = function ($query) {
             $query->where('a.jenis_dok', 'BC 2.7')
+                ->where('a.cancel', 'N')
                 ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
         };
 
