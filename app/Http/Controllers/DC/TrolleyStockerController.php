@@ -1398,11 +1398,15 @@ class TrolleyStockerController extends Controller
                 // BatchId
                 $batchId = Str::uuid()->toString();
 
+                // Take smallest qty
+                $stockers = [];
+                $smallestQty = null;
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
+                    $stockers[] = $thisStockerData;
 
                     // Qty
-                    $currentQty = 0;
+                    $currentQty = null;
 
                     $thisStockerPartDetailSecondaries = $thisStockerData->partDetail ? ($thisStockerData->partDetail->secondaries ? $thisStockerData->partDetail->secondaries : null) : null;
                     if ($thisStockerPartDetailSecondaries) {
@@ -1427,9 +1431,18 @@ class TrolleyStockerController extends Controller
                         $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
                     }
 
+                    if ($smallestQty === null || $currentQty < $smallestQty) {
+                        $smallestQty = $currentQty;
+                        $smallestStocker = $thisStockerData;
+                    }
+                }
+
+                // Generate Loading Line Array
+                foreach ($stockers as $i => $thisStockerData) {
+
                     $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->where("tanggal", $request['tanggal_loading'])->first();
 
-                    $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
+                    $isExist = LoadingLine::where("stocker_id", $thisStockerData['id'])->count();
                     if ($isExist < 1) {
                         if ($loadingLinePlan) {
                             array_push($loadingStockArr, [
@@ -1438,7 +1451,7 @@ class TrolleyStockerController extends Controller
                                 "loading_plan_id" => $loadingLinePlan['id'],
                                 "nama_line" => $lineData['username'],
                                 "stocker_id" => $thisStockerData['id'],
-                                "qty" => $currentQty,
+                                "qty" => $smallestQty,
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],
@@ -1472,7 +1485,7 @@ class TrolleyStockerController extends Controller
                                 "loading_plan_id" => $storeLoadingPlan['id'],
                                 "nama_line" => $lineData['username'],
                                 "stocker_id" => $thisStockerData['id'],
-                                "qty" => $currentQty,
+                                "qty" => $smallestQty,
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],
@@ -1484,7 +1497,7 @@ class TrolleyStockerController extends Controller
                             ]);
                         }
                     } else {
-                        $currentLoadingLine = LoadingLine::where("stocker_id", $stockerIds[$i])->first();
+                        $currentLoadingLine = LoadingLine::where("stocker_id", $thisStockerData['id'])->first();
                         array_push($exist, ['stocker' => $thisStockerData['id'], "line" => $currentLoadingLine->nama_line, "additional" => "BON : ".$currentLoadingLine->no_bon." | Pada : ".$currentLoadingLine->created_at." | Oleh : ".$currentLoadingLine->created_by_username]);
                     }
                 }
