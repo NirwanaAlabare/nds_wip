@@ -66,6 +66,14 @@
             font-size: 0.95rem;
         }
 
+        .rp-live-filter input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(1.5);
+            cursor: pointer;
+            width: 1.1rem;
+            height: 1.1rem;
+            padding: 2px;
+        }
+
         .rp-live-filter a {
             display: inline-flex;
             align-items: center;
