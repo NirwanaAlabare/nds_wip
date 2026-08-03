@@ -121,7 +121,7 @@ class TrolleyStockerController extends Controller
                         stocker_input.color,
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_main,
                         null qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -159,7 +159,7 @@ class TrolleyStockerController extends Controller
                         stocker_input.color,
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         null qty_main,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -223,7 +223,7 @@ class TrolleyStockerController extends Controller
                                     SELECT * FROM trolley_stock
                                 ) trolley_stock
                             group by
-                                trolley_id, `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `group_stocker`, `ratio`, `stocker_reject`
+                                trolley_id, `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `size`, `group_stocker`, `ratio`, `stocker_reject`
                     ) as trolley_stock_group on trolley_stock_group.trolley_id = trolley.id
                 left join
                     (
@@ -268,7 +268,7 @@ class TrolleyStockerController extends Controller
                 //         stocker_input.color,
                 //         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                 //         GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
-                //         COALESCE(master_sb_ws.size, stocker_input.size) size,
+                //         COALESCE(stocker_input.size, master_sb_ws.size) size,
                 //         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                 //         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
                 //     ")->
@@ -330,7 +330,7 @@ class TrolleyStockerController extends Controller
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
                         part_detail.part_status,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_main,
                         null qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -367,7 +367,7 @@ class TrolleyStockerController extends Controller
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
                         part_detail.part_status,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         null qty_main,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -417,7 +417,7 @@ class TrolleyStockerController extends Controller
                         SELECT * FROM trolley_stock
                     ) trolley_stock
                 group by
-                    `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `group_stocker`, `ratio`, `stocker_reject`
+                    `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `size`, `group_stocker`, `ratio`, `stocker_reject`
             ", [$request->trolley_id, $request->trolley_id]);
 
             return DataTables::of($trolley)->
@@ -479,7 +479,7 @@ class TrolleyStockerController extends Controller
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
                         part_detail.part_status,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_main,
                         null qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -516,7 +516,7 @@ class TrolleyStockerController extends Controller
                         CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                         GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
                         part_detail.part_status,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         null qty_main,
                         COALESCE(last_in.qty_in, MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                         CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
@@ -566,7 +566,7 @@ class TrolleyStockerController extends Controller
                         SELECT * FROM trolley_stock
                     ) trolley_stock
                 group by
-                    `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `group_stocker`, `ratio`, `stocker_reject`
+                    `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `size`, `group_stocker`, `ratio`, `stocker_reject`
             ", [$id, $id]);
 
             return DataTables::of($trolley)->
@@ -665,7 +665,8 @@ class TrolleyStockerController extends Controller
             leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-            where("so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.size", $stockerData->size)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             where("stocker_reject", $stockerData->stocker_reject)->
@@ -741,7 +742,8 @@ class TrolleyStockerController extends Controller
         if (count($trolleyStockArr) > 0) {
             // Update Stocker Status After Trolley Stock created
             $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
-                where("so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.size", $stockerData->size)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
                 where("stocker_reject", $stockerData->stocker_reject)->
@@ -830,7 +832,8 @@ class TrolleyStockerController extends Controller
             leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-            where("so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.size", $stockerData->size)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             where("stocker_reject", $stockerData->stocker_reject)->
@@ -905,7 +908,8 @@ class TrolleyStockerController extends Controller
         if (count($trolleyStockArr) > 0) {
             // Update Stocker Status
             $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
-                where("so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.size", $stockerData->size)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
                 where("stocker_reject", $stockerData->stocker_reject)->
@@ -1002,6 +1006,7 @@ class TrolleyStockerController extends Controller
             whereRaw("trolley_stocker.trolley_id = '".$getTrolleyStockData->trolley_id."'")->
             whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
             where("stocker_input.so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.size", $stockerData->size)->
             where("stocker_input.group_stocker", $stockerData->group_stocker)->
             where("stocker_input.ratio", $stockerData->ratio)->
             where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
@@ -1011,6 +1016,7 @@ class TrolleyStockerController extends Controller
             // Get Stocker QR
             $currentStockerQr = Stocker::whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.size", $stockerData->size)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
                 where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
@@ -1096,7 +1102,7 @@ class TrolleyStockerController extends Controller
                     stocker_input.color,
                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
-                    COALESCE ( master_sb_ws.size, stocker_input.size ) size,
+                    COALESCE ( stocker_input.size, stocker_input.size ) size,
                     COALESCE (last_in.qty_in, MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty_main,
                     COALESCE (last_in.qty_in, MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
@@ -1160,7 +1166,7 @@ class TrolleyStockerController extends Controller
                     stocker_input.color,
                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
-                    COALESCE ( master_sb_ws.size, stocker_input.size ) size,
+                    COALESCE ( stocker_input.size, stocker_input.size ) size,
                     null as qty_main,
                     COALESCE (last_in.qty_in, MIN(COALESCE (stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
@@ -1216,6 +1222,7 @@ class TrolleyStockerController extends Controller
                 `no_cut`,
                 `form_cut_id`,
                 `so_det_id`,
+                `size`,
                 `group_stocker`,
                 `ratio`,
                 `stocker_reject`
@@ -1343,7 +1350,8 @@ class TrolleyStockerController extends Controller
                     leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                     leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                     leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                    where("so_det_id", $stockerData->first()->so_det_id)->
+                    where("stocker_input.so_det_id", $stockerData->first()->so_det_id)->
+                    where("stocker_input.size", $stockerData->first()->size)->
                     where("group_stocker", $stockerData->first()->group_stocker)->
                     where("ratio", $stockerData->first()->ratio)->
                     where("stocker_reject", $stockerData->first()->stocker_reject)->
@@ -1580,7 +1588,7 @@ class TrolleyStockerController extends Controller
                 stocker_input.act_costing_ws,
                 stocker_input.color,
                 stocker_input.id_qr_stocker,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                COALESCE(stocker_input.size, master_sb_ws.size) size,
                 coalesce(stocker_input.qty_ply_mod, stocker_input.qty_ply) qty_ply,
                 stocker_input.status,
                 trolley_stocker.id trolley_stock_id,

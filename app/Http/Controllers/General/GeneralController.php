@@ -1006,6 +1006,8 @@ class GeneralController extends Controller
             LIMIT 1
         ");
 
+        // dd($newItem);
+
         // When current item
         if ($newItem) {
 
@@ -1093,6 +1095,8 @@ class GeneralController extends Controller
                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
 
                 if ($scannedItemUpdate) {
+
+                    // dd($newItemQty, $scannedItem->qty_in, $scannedItem->qty);
 
                     // Update local stock qty & specs
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
