@@ -11,6 +11,7 @@ use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
+use App\Http\Controllers\FGStokOpnameController;
 use App\Http\Controllers\FGStokLokasiScanBPBController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
@@ -699,6 +700,28 @@ Route::middleware('auth')->group(function () {
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
         Route::get('/rep_mutasi_global_fg_stock', 'rep_mutasi_global_fg_stock')->name('rep_mutasi_global_fg_stock');
         Route::get('/export_excel_rep_mutasi_global_fg_stock', 'export_excel_rep_mutasi_global_fg_stock')->name('export_excel_rep_mutasi_global_fg_stock');
+    });
+
+    Route::controller(FGStokOpnameController::class)->prefix("opname-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('opname-fg-stock');
+        Route::get('/create', 'create')->name('create-opname-fg-stock');
+        Route::get('/print-qr', 'printQr')->name('print-qr-opname-fg-stock');
+        Route::get('/get-master-carton', 'getMasterCarton')->name('get-master-carton-opname-fg-stock');
+        Route::post('/store-master-carton', 'storeMasterCarton')->name('store-master-carton-opname-fg-stock');
+        Route::get('/get-buyer', 'getBuyer')->name('get-buyer-opname-fg-stock');
+        Route::get('/get-ws', 'getWs')->name('get-ws-opname-fg-stock');
+        Route::get('/get-buyer-by-ws', 'getBuyerByWs')->name('get-buyer-by-ws-opname-fg-stock');
+        Route::get('/get-style', 'getStyle')->name('get-style-opname-fg-stock');
+        Route::get('/get-dest', 'getDest')->name('get-dest-opname-fg-stock');
+        Route::get('/get-color', 'getColor')->name('get-color-opname-fg-stock');
+        Route::get('/get-size', 'getSize')->name('get-size-opname-fg-stock');
+        Route::get('/get-grade', 'getGrade')->name('get-grade-opname-fg-stock');
+        Route::post('/store', 'storeOpname')->name('store-opname-fg-stock');
+        Route::post('/cancel-item', 'cancelOpnameItem')->name('cancel-opname-item-fg-stock');
+        Route::post('/update-item', 'updateOpnameItem')->name('update-opname-item-fg-stock');
+        Route::get('/get-opname-items', 'getOpnameItems')->name('get-opname-items-fg-stock');
+        Route::post('/finish', 'finishOpname')->name('finish-opname-fg-stock');
+        Route::get('/export-excel', 'exportExcel')->name('export-excel-opname-fg-stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
@@ -1737,8 +1760,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc27', 'editBc27')->name('dokumen-pabean-edit-bc27')->where('id', '.*');
         Route::put('/update-draft-bc27/{id}', 'updateDraftBc27')->name('dokumen-pabean-update_draft_bc27')->where('id', '.*');
         Route::post('/send-bc27/{id}', 'sendCeisaBc27')->name('dokumen-pabean-send-bc27')->where('id', '.*');
-        Route::get('/dokumen-pabean/edit-batch-bc27/{ids}','editBatchBc27')->name('dokumen-pabean-edit-batch-bc27');
-        Route::put('/dokumen-pabean/update-draft-batch-bc27/{ids}','updateDraftBatchBc27')->name('dokumen-pabean-update_draft_batch_bc27');
+        Route::get('/dokumen-pabean/edit-batch-bc27/{ids}', 'editBatchBc27')->name('dokumen-pabean-edit-batch-bc27');
+        Route::put('/dokumen-pabean/update-draft-batch-bc27/{ids}', 'updateDraftBatchBc27')->name('dokumen-pabean-update_draft_batch_bc27');
 
         // BC 3.0 routes
         Route::get('/{id}/edit-bc30', 'editBc30')->name('dokumen-pabean-edit-bc30')->where('id', '.*');
