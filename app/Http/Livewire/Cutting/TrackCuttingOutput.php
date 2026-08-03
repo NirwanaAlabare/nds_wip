@@ -329,7 +329,7 @@ class TrackCuttingOutput extends Component
                 marker_input.color,
                 marker_input.panel,
                 form_cut_input.no_meja,
-                marker_input_detail.so_det_id
+                marker_input_detail.id
         UNION
             SELECT
                 'reject' id_meja,
@@ -552,7 +552,7 @@ class TrackCuttingOutput extends Component
                             ".($this->selectedOrder ? "AND marker_input.act_costing_id = '".$this->selectedOrder."'" : "")."
                         group by
                             marker_input.id,
-                            marker_input_detail.so_det_id,
+                            marker_input_detail.id,
                             form_cut.id
                     union ALL
                         SELECT

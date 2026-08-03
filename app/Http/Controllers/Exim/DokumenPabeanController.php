@@ -186,6 +186,12 @@ class DokumenPabeanController extends Controller
                           ->orWhere("{$tbl}.{$fldno_int}", 'LIKE', "%{$keyword}%");
                     });
                 })
+                ->filterColumn('trx_no_par', function ($query, $keyword) use ($tbl, $fldno) {
+                    $query->where("{$tbl}.{$fldno}", 'LIKE', "%{$keyword}%");
+                })
+                ->filterColumn('trx_no_int', function ($query, $keyword) use ($tbl, $fldno_int) {
+                    $query->where("{$tbl}.{$fldno_int}", 'LIKE', "%{$keyword}%");
+                })
                 ->filterColumn('supplier', function ($query, $keyword) {
                     $query->where('ms.supplier', 'LIKE', "%{$keyword}%");
                 })
@@ -1209,6 +1215,7 @@ class DokumenPabeanController extends Controller
         try {
             $nomorDaftar = $request->input('nomor_daftar');
             $tanggalDaftar = $request->input('tanggal_daftar');
+            $jenis = $request->input('jenis');
 
             if (empty($nomorDaftar)) {
                 return response()->json([
@@ -1231,8 +1238,11 @@ class DokumenPabeanController extends Controller
             // if (!empty($tanggalDaftar)) {
             //     $updateData['bcdate'] = date('Y-m-d', strtotime($tanggalDaftar));
             // }
-
-            $db->table('bpb')->where('nomor_aju', $noAju)->update($updateData);
+            if($jenis === 'Pemasukan'){
+                $db->table('bpb')->where('nomor_aju', $noAju)->update($updateData);
+            }else{
+                $db->table('bppb')->where('nomor_aju', $noAju)->update($updateData);
+            }
 
             return response()->json([
                 'status' => 200,
