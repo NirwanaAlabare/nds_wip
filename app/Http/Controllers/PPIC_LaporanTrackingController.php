@@ -449,6 +449,7 @@ FROM (
 				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				b.so_det_id,
+				b.size,
 				b.form_cut_id,
 				b.group_stocker,
 				b.ratio,
@@ -641,7 +642,7 @@ cutt as (
 								AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
 								group by
 								marker_input.id,
-								marker_input_detail.so_det_id,
+								marker_input_detail.id,
 								form_cut.id
 							union all
 								-- FORM CUT REJECT
@@ -2032,6 +2033,7 @@ FROM (
 				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				b.so_det_id,
+				b.size,
 				b.form_cut_id,
 				b.group_stocker,
 				b.ratio,

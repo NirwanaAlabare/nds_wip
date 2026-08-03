@@ -93,7 +93,7 @@ class LoadingLineController extends Controller
                                 trolley.id trolley_id,
                                 trolley.nama_trolley,
                                 stocker_input.so_det_id,
-                                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                                COALESCE(stocker_input.size, master_sb_ws.size) size,
                                 loading_line.loading_plan_id
                             FROM
                                 loading_line
@@ -114,6 +114,7 @@ class LoadingLineController extends Controller
                                 stocker_input.form_reject_id,
                                 stocker_input.form_piece_id,
                                 stocker_input.so_det_id,
+                                stocker_input.size,
                                 stocker_input.group_stocker,
                                 stocker_input.ratio,
                                 stocker_input.stocker_reject
@@ -134,6 +135,7 @@ class LoadingLineController extends Controller
                                     trolley_stocker.stocker_id,
                                     stocker_input.act_costing_ws trolley_ws,
                                     stocker_input.color trolley_color,
+                                    stocker_input.size trolley_size,
                                     stocker_input.qty_ply trolley_qty
                                 FROM
                                     trolley_stocker
@@ -146,6 +148,7 @@ class LoadingLineController extends Controller
                                     stocker_input.form_reject_id,
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
+                                    stocker_input.size,
                                     stocker_input.group_stocker,
                                     stocker_input.ratio,
                                     stocker_input.stocker_reject
@@ -289,7 +292,7 @@ class LoadingLineController extends Controller
                                     trolley.id trolley_id,
                                     trolley.nama_trolley,
                                     stocker_input.so_det_id,
-                                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                                    COALESCE(stocker_input.size, master_sb_ws.size) size,
                                     loading_line.loading_plan_id
                                 FROM
                                     loading_line
@@ -310,6 +313,7 @@ class LoadingLineController extends Controller
                                     stocker_input.form_reject_id,
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
+                                    stocker_input.size,
                                     stocker_input.group_stocker,
                                     stocker_input.ratio,
                                     stocker_input.stocker_reject
@@ -330,6 +334,7 @@ class LoadingLineController extends Controller
                                         trolley_stocker.stocker_id,
                                         stocker_input.act_costing_ws trolley_ws,
                                         stocker_input.color trolley_color,
+                                        stocker_input.size trolley_size,
                                         stocker_input.qty_ply trolley_qty
                                     FROM
                                         trolley_stocker
@@ -342,6 +347,7 @@ class LoadingLineController extends Controller
                                         stocker_input.form_reject_id,
                                         stocker_input.form_piece_id,
                                         stocker_input.so_det_id,
+                                        stocker_input.size,
                                         stocker_input.group_stocker,
                                         stocker_input.ratio,
                                         stocker_input.stocker_reject
@@ -508,7 +514,7 @@ class LoadingLineController extends Controller
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
                 stocker_input.so_det_id,
-                master_sb_ws.size,
+                COALESCE(stocker_input.size, master_sb_ws.size) size,
                 master_sb_ws.dest,
                 stocker_input.shade,
                 stocker_input.group_stocker,
@@ -561,6 +567,7 @@ class LoadingLineController extends Controller
                                     s.form_reject_id,
                                     s.form_piece_id,
                                     s.so_det_id,
+                                    s.size,
                                     s.group_stocker,
                                     s.ratio,
                                     s.stocker_reject
@@ -590,6 +597,7 @@ class LoadingLineController extends Controller
                 stocker_input.form_reject_id,
                 stocker_input.form_piece_id,
                 stocker_input.so_det_id,
+                stocker_input.size,
                 stocker_input.range_awal,
                 stocker_input.stocker_reject,
                 FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
@@ -781,7 +789,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            COALESCE(stocker_input.size, master_sb_ws.size) size,
                             loading_line.loading_plan_id,
                             loading_line.no_bon
                         FROM
@@ -802,6 +810,7 @@ class LoadingLineController extends Controller
                             stocker_input.form_reject_id,
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
+                            stocker_input.size,
                             stocker_input.group_stocker,
                             stocker_input.range_awal,
                             stocker_input.stocker_reject
@@ -820,6 +829,7 @@ class LoadingLineController extends Controller
                                     trolley_stocker.stocker_id,
                                     stocker_input.act_costing_ws trolley_ws,
                                     stocker_input.color trolley_color,
+                                    stocker_input.size trolley_size,
                                     stocker_input.qty_ply trolley_qty
                                 FROM
                                     trolley_stocker
@@ -831,6 +841,7 @@ class LoadingLineController extends Controller
                                     stocker_input.form_reject_id,
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
+                                    stocker_input.size,
                                     stocker_input.group_stocker,
                                     stocker_input.range_awal,
                                     stocker_input.stocker_reject
@@ -888,7 +899,7 @@ class LoadingLineController extends Controller
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
                 stocker_input.so_det_id,
-                master_sb_ws.size,
+                COALESCE(stocker_input.size, master_sb_ws.size) size,
                 master_sb_ws.dest,
                 stocker_input.shade,
                 stocker_input.group_stocker,
@@ -944,6 +955,7 @@ class LoadingLineController extends Controller
                                     s.form_reject_id,
                                     s.form_piece_id,
                                     s.so_det_id,
+                                    s.size,
                                     s.group_stocker,
                                     s.ratio,
                                     s.stocker_reject
@@ -975,6 +987,7 @@ class LoadingLineController extends Controller
                 stocker_input.form_reject_id,
                 stocker_input.form_piece_id,
                 stocker_input.so_det_id,
+                stocker_input.size,
                 stocker_input.range_awal,
                 FIELD(part_detail.part_status, 'main', 'regular', 'complement')
         ");
@@ -1140,7 +1153,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            COALESCE(stocker_input.size, master_sb_ws.size) size,
                             master_size_new.urutan
                         FROM
                             loading_line
@@ -1159,6 +1172,7 @@ class LoadingLineController extends Controller
                             stocker_input.form_reject_id,
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
+                            stocker_input.size,
                             stocker_input.group_stocker,
                             stocker_input.ratio,
                             stocker_input.stocker_reject
@@ -1179,6 +1193,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
                     loading_stock.so_det_id,
+                    loading_stock.size,
                     loading_stock.urutan
             ");
 
@@ -1255,7 +1270,7 @@ class LoadingLineController extends Controller
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         master_size_new.urutan
                     FROM
                         loading_line
@@ -1274,6 +1289,7 @@ class LoadingLineController extends Controller
                         stocker_input.form_reject_id,
                         stocker_input.form_piece_id,
                         stocker_input.so_det_id,
+                        stocker_input.size,
                         stocker_input.group_stocker,
                         stocker_input.ratio,
                         stocker_input.stocker_reject
@@ -1293,6 +1309,7 @@ class LoadingLineController extends Controller
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
                 loading_stock.so_det_id,
+                loading_stock.size,
                 loading_stock.urutan
         "));
 
@@ -1420,7 +1437,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            COALESCE(stocker_input.size, master_sb_ws.size) size,
                             master_size_new.urutan
                         FROM
                             loading_line
@@ -1439,6 +1456,7 @@ class LoadingLineController extends Controller
                             stocker_input.form_reject_id,
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
+                            stocker_input.size,
                             stocker_input.group_stocker,
                             stocker_input.ratio,
                             stocker_input.stocker_reject
@@ -1460,6 +1478,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
                     loading_stock.so_det_id,
+                    loading_stock.size,
                     loading_stock.urutan
             ");
 
@@ -1540,7 +1559,7 @@ class LoadingLineController extends Controller
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        COALESCE(stocker_input.size, master_sb_ws.size) size,
                         master_size_new.urutan
                     FROM
                         loading_line
@@ -1559,6 +1578,7 @@ class LoadingLineController extends Controller
                         stocker_input.form_reject_id,
                         stocker_input.form_piece_id,
                         stocker_input.so_det_id,
+                        stocker_input.size,
                         stocker_input.group_stocker,
                         stocker_input.ratio,
                         stocker_input.stocker_reject
@@ -1578,6 +1598,7 @@ class LoadingLineController extends Controller
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
                 loading_stock.so_det_id,
+                loading_stock.size,
                 loading_stock.urutan
         ");
 
@@ -1650,6 +1671,7 @@ class LoadingLineController extends Controller
             foreach($stockerDatas as $stockerData) {
                 $similarStockerData = Stocker::where(($stockerData->form_piece_id ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                     where("so_det_id", $stockerData->so_det_id)->
+                    where("size", $stockerData->size)->
                     where("group_stocker", $stockerData->group_stocker)->
                     where("ratio", $stockerData->ratio)->
                     where("stocker_reject", $stockerData->stocker_reject)->
@@ -1667,7 +1689,7 @@ class LoadingLineController extends Controller
                     loading_line.nama_line,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    COALESCE(stocker_input.size, master_sb_ws.size) size,
                     GROUP_CONCAT(DISTINCT stocker_input.lokasi SEPARATOR ' || ') as lokasi,
                     GROUP_CONCAT(DISTINCT trolley.nama_trolley SEPARATOR ' || ') as trolley,
                     GROUP_CONCAT(COALESCE(COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod), '-') SEPARATOR ' || ') qty,
@@ -1685,7 +1707,7 @@ class LoadingLineController extends Controller
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                 whereIn("stocker_input.id", $allStockerIds)->
-                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
+                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.size', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 get();
 
             return DataTables::of($loadingLines)->toJson();
@@ -1724,6 +1746,7 @@ class LoadingLineController extends Controller
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
                 where(($stockerData->form_piece_id > 0 ? "stocker_input.form_piece_id" : ($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.size", $stockerData->size)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
                 where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
@@ -1837,6 +1860,7 @@ class LoadingLineController extends Controller
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
                 where(($stockerData->form_piece_id > 0 ? "stocker_input.form_piece_id" : ($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.size", $stockerData->size)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
                 where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
