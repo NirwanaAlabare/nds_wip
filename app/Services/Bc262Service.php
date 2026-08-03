@@ -759,6 +759,16 @@ $listJenisKontainer = \App\Services\BcReferenceService::getJenisKontainer();
             $responseCeisa = $this->ceisaService->kirimDokumenBc262($finalPayload);
 
             if ($responseCeisa['successful']) {
+                $db->table('bpb')
+                    ->where(function($query) use ($id) {
+                        $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
+                    })
+                    ->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => date('Y-m-d'),
+                        'bcdate' => date('Y-m-d'),
+                    ]);
+
                 $db->table('bpb_ceisa')->where('bpbno', $id)->orWhere('bpbno_int', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => Carbon::now()->format('Y-m-d'),

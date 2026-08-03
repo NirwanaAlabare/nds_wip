@@ -19,19 +19,56 @@ class BAPFormController extends Controller
         GROUP BY sub_dept_id, sub_dept_name
         ORDER BY sub_dept_name ASC");
 
-        // NEW
-        // $userDepartment = Auth::user()->userDepartment()->pluck('sub_dept_id')->toArray();
+        return response()->json($departments);
+    }
 
-        // $userDepartmentIds = addQuotesAround(implode("\n", $userDepartment));
+    public function getMyDepartments()
+    {
+        $subDeptIds = collect(DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [Auth::id()]))
+            ->pluck('sub_dept_id')
+            ->filter()
+            ->unique()
+            ->values();
 
-        // $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_name FROM department_all
-        // WHERE site_nirwana_id = 'NAG'
-        // AND status = 'AKTIF'
-        // AND sub_dept_id IN ($userDepartmentIds)
-        // GROUP BY sub_dept_name
-        // ORDER BY sub_dept_name ASC");
+        if ($subDeptIds->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+        $departments = DB::connection('mysql_hris')->select(
+            "SELECT sub_dept_id, sub_dept_name FROM department_all
+            WHERE site_nirwana_id = 'NAG'
+            AND status = 'AKTIF'
+            AND sub_dept_id IN ($placeholders)
+            GROUP BY sub_dept_id, sub_dept_name
+            ORDER BY sub_dept_name ASC",
+            $subDeptIds->all()
+        );
 
         return response()->json($departments);
+    }
+
+    private function getAllowedDepartmentNames()
+    {
+        $subDeptIds = collect(DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [Auth::id()]))
+            ->pluck('sub_dept_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($subDeptIds->isEmpty()) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+        $names = DB::connection('mysql_hris')->select(
+            "SELECT sub_dept_name FROM department_all WHERE sub_dept_id IN ($placeholders)",
+            $subDeptIds->all()
+        );
+
+        return collect($names)->pluck('sub_dept_name')->unique()->values()->all();
     }
 
     public function summary(Request $request)
@@ -39,7 +76,8 @@ class BAPFormController extends Controller
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
 
-        $query = DB::table('bap_form');
+        $query = DB::table('bap_form')
+            ->whereIn('department', $this->getAllowedDepartmentNames());
 
         if (!empty($tgl_awal) && !empty($tgl_akhir)) {
             $query->whereDate('tgl_form', '>=', $tgl_awal)
@@ -67,7 +105,8 @@ class BAPFormController extends Controller
             $status = $request->status;
 
             $data = DB::table('bap_form')
-                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel')
+                ->select('id', 'no_form', 'tgl_form', 'department', 'modul', 'no_dokumen', 'tgl_masalah', 'masalah', 'penyebab', 'usulan', 'keterangan', 'is_selesai', 'is_cancel', 'created_by')
+                ->whereIn('department', $this->getAllowedDepartmentNames())
                 ->orderBy('tgl_form', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
@@ -115,6 +154,7 @@ class BAPFormController extends Controller
     {
         $request->validate([
             'department' => 'required|string|max:100',
+            'sub_dept_id' => 'nullable|string|max:30',
             'modul' => 'nullable|string|max:100',
             'no_dokumen' => 'nullable|string|max:100',
             'tgl_masalah' => 'nullable|date',
@@ -142,6 +182,7 @@ class BAPFormController extends Controller
             'no_form' => $noForm,
             'tgl_form' => $tglForm,
             'department' => $request->department,
+            'sub_dept_id' => $request->sub_dept_id,
             'modul' => $request->modul,
             'no_dokumen' => $request->no_dokumen,
             'tgl_masalah' => $request->tgl_masalah,
@@ -200,6 +241,7 @@ class BAPFormController extends Controller
         $request->validate([
             'id' => 'required|integer',
             'department' => 'required|string|max:100',
+            'sub_dept_id' => 'nullable|string|max:30',
             'modul' => 'nullable|string|max:100',
             'no_dokumen' => 'nullable|string|max:100',
             'tgl_masalah' => 'nullable|date',
@@ -213,6 +255,7 @@ class BAPFormController extends Controller
             ->where('id', $request->id)
             ->update([
                 'department' => $request->department,
+                'sub_dept_id' => $request->sub_dept_id,
                 'modul' => $request->modul,
                 'no_dokumen' => $request->no_dokumen,
                 'tgl_masalah' => $request->tgl_masalah,
