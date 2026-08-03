@@ -10,6 +10,7 @@ use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputDetailDelete;
 use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
+use App\Models\Cutting\PenerimaanCutting;
 use Illuminate\Http\Request;
 use Illuminate\HttpRequest;
 use Illuminate\Support\Facades\Auth;
@@ -549,9 +550,10 @@ class CuttingService
                     WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
                 ),
                 agg AS (
-                        SELECT id_roll, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
+                        SELECT id_roll, MAX(DATE(created_at)) created_at,  MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
                             SELECT
                                     id_roll,
+                                    created_at,
                                     MAX(qty) AS max_qty,
                                     SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty
                             FROM form_cut_input_detail
@@ -562,6 +564,7 @@ class CuttingService
 
                             SELECT
                                     id_roll,
+                                    created_at,
                                     MAX(qty) AS max_qty,
                                     SUM(piping) AS total_pakai_qty
                             FROM form_cut_piping
@@ -572,6 +575,7 @@ class CuttingService
 
                             SELECT
                                     barcode AS id_roll,
+                                    created_at,
                                     MAX(qty_roll) AS max_qty,
                                     SUM(qty_pakai) AS total_pakai_qty
                             FROM form_cut_alokasi_gr_panel_barcode
@@ -588,7 +592,7 @@ class CuttingService
                     SELECT id_roll, sisa_kain, ts FROM latest_gr_panel WHERE rn = 1
                 ),
                 latest_sisa_overall AS (
-                    SELECT id_roll, sisa_kain
+                    SELECT id_roll, ts, sisa_kain
                     FROM (
                         SELECT *,
                             ROW_NUMBER() OVER (
@@ -604,7 +608,8 @@ class CuttingService
                     si.qty_in,
                     si.qty,
                     agg.total_pakai_qty,
-                    latest_sisa_overall.sisa_kain
+                    latest_sisa_overall.sisa_kain,
+                    COALESCE(latest_sisa_overall.ts, agg.created_at) as created_at
                 FROM scanned_item si
                 LEFT JOIN agg ON si.id_roll = agg.id_roll
                 INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
@@ -633,6 +638,15 @@ class CuttingService
                                 if ($scannedItem->qty != $currentRoll->sisa_kain) {
                                     $scannedItem->qty = $currentRoll->sisa_kain;
                                 }
+
+                                // Checking new penerimaan after last input
+                                $newPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
+                                    where("created_at", ">", $currentRoll->created_at)->
+                                    sum("qty_konv");
+
+                                if ($newPenerimaan > 0) {
+                                    $scannedItem->qty += $newPenerimaan;
+                                }
                             }
                         }
 
@@ -651,6 +665,11 @@ class CuttingService
 
                 // Multi Item
                 else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Fitur dinonaktifkan."
+                    );
+
                     // Pre update Log
                     $toUpdateRoll = DB::select("
                         SELECT si.* FROM scanned_item si
@@ -885,7 +904,7 @@ class CuttingService
                         $sambungan = 0;
 
                         // Est. Ampar
-                        $estAmpar = $qty / $pAct;
+                        $estAmpar = $pAct > 0 ? $qty / $pAct : 0;
 
                         // Pemakaian Lembar
                         $pemakaianLembar = ($pAct * $detail->lembar_gelaran) + $sambunganRoll + $detail->sisa_gelaran;
