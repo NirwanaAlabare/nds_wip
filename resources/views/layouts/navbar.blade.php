@@ -495,6 +495,18 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'fgstock-opname' ? 'active' : '' }}">Tools</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('opname-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'opname-fg-stock' ? 'active' : '' }}">
+                                    Stock Opname <i class="fas fa-list fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
                 @if ($page == 'dashboard-packing')

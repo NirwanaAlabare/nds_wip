@@ -575,6 +575,8 @@ class Bc33Service
                 ->get()
                 ->toArray();
 
+            $nomorAju = $ceisaInfo->nomor_aju ?? '';
+
 
             $payloadDokumen = [];
             foreach (($draft['dok'] ?? []) as $d) {

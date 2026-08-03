@@ -519,7 +519,7 @@
             columns: [
                 {
                     data: null,
-                    name: 'trx_no',
+                    name: 'trx_no_par',
                     searchable: true,
                     responsivePriority: 1,
                     render: function (data, type, row) {
@@ -530,7 +530,7 @@
                 },
                 {
                     data: null,
-                    name: 'trx_no',
+                    name: 'trx_no_int',
                     searchable: true,
                     responsivePriority: 2,
                     render: function (data, type, row) {
@@ -572,7 +572,7 @@
 
     function toggleKolomPO() {
         let jenisTrx = $('#jenis').val();
-        let column = tableDokumen.column(1);
+        let column = tableDokumen.column(2);
 
         if (jenisTrx === 'Pengeluaran') {
             column.visible(false);
@@ -1139,6 +1139,7 @@
         let noAju = btn.data('noaju');
         let noDaftar = btn.data('nodaftar');
         let tglDaftar = btn.data('tgldaftar');
+        let jenis = $('#jenis').val();
         let actionUrl = '{{ route("dokumen-pabean-sync-bcno", ":noAju") }}'.replace(':noAju', noAju);
 
         let infoHtml = !noDaftar ? '<div class="alert alert-warning p-2" style="font-size:13px;"><i class="fas fa-exclamation-triangle"></i> Nomor pabean tidak ditemukan di CEISA. Silakan isi secara manual.</div>' : '';
@@ -1177,7 +1178,8 @@
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        nomor_daftar: result.value.noDaftar
+                        nomor_daftar: result.value.noDaftar,
+                        jenis: jenis
                     },
                     success: function(res) {
                         if (res.status === 200) {
@@ -1242,7 +1244,6 @@
         bpbListHtml = bpbListHtml.replace(/<li>/g, '').replace(/<\/li>/g, '\n');
 
         let jenisBc = $('#jenis_bc').val();
-
         if(jenisBc === 'BC 4.0'){
             Swal.fire({ title: 'Peringatan!', text: 'Kirim Batch 4.0 belum dapat di kirim', icon: 'warning' });
             return;

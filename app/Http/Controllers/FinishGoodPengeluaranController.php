@@ -63,6 +63,8 @@ group by no_sb
 		left join fg_fg_in f on p.id_so_det = f.id_so_det
         group by buyer");
 
+        $jenis_trans = DB::connection('mysql_sb')->select("select nama_trans isi,nama_trans tampil from mastertransaksi where jenis_trans='OUT' and jns_gudang = 'FG' order by id");
+
         $data_dok = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil
         from masterpilihan where
          kode_pilihan='Status KB Out' order by nama_pilihan");
@@ -73,6 +75,7 @@ group by no_sb
             "subPageGroup" => "finish_good_pengeluaran",
             "subPage" => "finish_good_pengeluaran",
             "data_buyer" => $data_buyer,
+            "jenis_trans" => $jenis_trans,
             "data_dok" => $data_dok,
             "user" => $user
         ]);
@@ -327,6 +330,7 @@ order by po asc, no_carton asc
         $ctn_awal   = $_POST['txtctn_awal'];
         $ctn_akhir  = $_POST['txtctn_akhir'];
         $tgl_pengeluaran        = date('Y-m-d');
+        $jenis_trans = $_POST['jenis_trans'];
 
         $data_buyer = DB::connection('mysql_sb')->select("select * from mastersupplier where supplier = '$buyer' and tipe_sup ='C'");
         $id_buyer   = $data_buyer ? ($data_buyer[0] ? $data_buyer[0]->Id_Supplier : '') : '';
@@ -356,7 +360,7 @@ where a.created_by = '$user'");
 
 
         $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
-                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
+                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,jenis_trans)
                 select
 'SJ-FG$bppbno',
 '$bppbno_int',
@@ -379,7 +383,8 @@ sd.price,
 'GRADE A',
 '0',
 'NDS',
-'$id_buyer'
+'$id_buyer',
+'$jenis_trans'
 from
 (
 select * from laravel_nds.fg_fg_out where no_sb = '$bppbno_int'

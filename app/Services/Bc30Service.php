@@ -449,6 +449,8 @@ class Bc30Service
                 }
             }
 
+            $nomorAju = $ceisaInfo->nomor_aju ?? '';
+
             // if (!$invoice) {
             //     throw new \Exception('Validasi Gagal: Dokumen BC 3.0 wajib melampirkan INVOICE (Kode 380). Silakan tambahkan terlebih dahulu di Tab Dokumen Pendukung.');
             // }
