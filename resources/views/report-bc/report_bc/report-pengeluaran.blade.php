@@ -239,7 +239,7 @@
                         <label class="mr-3 mb-0" for="filter_by">Filter Berdasarkan:</label>
                         <select class="form-control form-control-sm w-auto select2bs4" id="filter_by" name="filter_by" onchange="changeFilter(this)">
                             <option value="dokumen" {{ $filterBy == 'dokumen' ? 'selected' : '' }}>Tanggal Dokumen</option>
-                            <option value="transaksi" {{ $filterBy == 'transaksi' ? 'selected' : '' }}>Tanggal Transaksi (BPB)</option>
+                            <option value="transaksi" {{ $filterBy == 'transaksi' ? 'selected' : '' }}>Tanggal Transaksi (BPPB)</option>
                         </select>
                     </div>
 
@@ -262,9 +262,9 @@
                             <th>Kategori Barang</th>
                             <th>Nomor Daftar</th>
                             <th>Tanggal Daftar</th>
-                            <th>Nama Penerima / Pembeli</th>
-                            <th>Nomor Bukti Pengeluaran</th>
-                            <th>Tanggal Bukti Pengeluaran</th>
+                            <th>Nama Penerima</th>
+                            <th>No BPPB</th>
+                            <th>Tanggal BPPB</th>
                             <th>ID Item</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
@@ -283,10 +283,10 @@
                                 <td>{{ $row->jenis_dokumen ?? '-' }}</td>
                                 <td>{{ $row->kategori_barang ?? '-' }}</td>
                                 <td>{{ $row->nomor_daftar ?? '-' }}</td>
-                                <td>{{ $row->tanggal_daftar ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '-' }}</td>
+                                <td>{{ ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000' }}</td>
                                 <td>{{ $row->nama_pengirim ?? '-' }}</td>
                                 <td>{{ $row->nomor_bpb ?? '-' }}</td>
-                                <td>{{ $row->tanggal_bpb ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-' }}</td>
+                                <td>{{ ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000' }}</td>
                                 <td>{{ $row->id_item ?? '-' }}</td>
                                 <td>{{ $row->uraian_barang ?? '-' }}</td>
                                 <td>{{ $row->jenis_satuan ?? '-' }}</td>
