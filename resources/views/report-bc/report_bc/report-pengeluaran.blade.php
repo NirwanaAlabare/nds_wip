@@ -223,7 +223,10 @@
             </div>
             <div class="card-tools" style="text-align: right;">
                 <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Report BC
+                </a>
+                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
                 </a>
             </div>
         </div>
