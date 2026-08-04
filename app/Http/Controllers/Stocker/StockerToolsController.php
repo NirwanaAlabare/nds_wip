@@ -18,6 +18,8 @@ use App\Models\Stocker\ModifySizeQty;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Stocker\StockerAdditionalDetail;
+use App\Models\Stocker\StockerSeparate;
+use App\Models\Stocker\StockerSeparateDetail;
 use App\Models\Stocker\YearSequence;
 use App\Services\StockerService;
 use DB;
@@ -933,6 +935,156 @@ class StockerToolsController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Modify Size Qty berhasil di-reset.'
+        ]);
+    }
+
+    public function getNoFormSeparateStocker()
+    {
+        $data = StockerSeparate::select('form_cut_id', 'no_form')
+            ->groupBy('form_cut_id', 'no_form')
+            ->orderBy('no_form')
+            ->get();
+
+        return response()->json($data);
+    }
+
+    public function getDataFormResetSeparateStocker(Request $request)
+    {
+        $latestStocker = StockerSeparate::selectRaw("
+            MAX(id) as id
+        ")
+        ->where('form_cut_id', $request->noFormId)
+        ->groupBy(
+            'so_det_id',
+            'group_roll',
+            'group_stocker'
+        );
+
+        $data = StockerSeparate::selectRaw("
+            stocker_separate.id,
+            stocker_separate.so_det_id,
+            COALESCE(
+                CASE
+                    WHEN master_sb_ws.dest IS NOT NULL
+                        AND master_sb_ws.dest != '-'
+                    THEN CONCAT(
+                        COALESCE(marker_input_detail.size, master_sb_ws.size),
+                        ' - ',
+                        master_sb_ws.dest
+                    )
+                    ELSE COALESCE(marker_input_detail.size, master_sb_ws.size)
+                END,
+                marker_input_detail.size
+            ) size,
+            marker_input_detail.ratio,
+            CASE
+                WHEN modify_size_qty.id IS NULL THEN
+                    CAST(SUM(stocker_separate_detail.qty) AS CHAR)
+                WHEN modify_size_qty.modified_qty = modify_size_qty.original_qty THEN
+                    CAST(modify_size_qty.modified_qty AS CHAR)
+                ELSE
+                    CONCAT(
+                        modify_size_qty.modified_qty,
+                        ' (',
+                        modify_size_qty.original_qty,
+                        CASE
+                            WHEN modify_size_qty.difference_qty >= 0
+                            THEN CONCAT('+', modify_size_qty.difference_qty)
+                            ELSE modify_size_qty.difference_qty
+                        END,
+                        ')'
+                    )
+            END AS qty_cut,
+            stocker_separate.group_roll,
+            stocker_separate.group_stocker,
+            GROUP_CONCAT(
+                stocker_separate_detail.qty
+                ORDER BY stocker_separate_detail.id
+                SEPARATOR ' | '
+            ) separate_qty
+        ")
+        ->joinSub($latestStocker,'latest',function($join){
+            $join->on('latest.id','=','stocker_separate.id');
+        })
+        ->leftJoin('stocker_separate_detail', 'stocker_separate_detail.separate_id', '=', 'stocker_separate.id')
+        ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_separate.form_cut_id')
+        ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+        ->leftJoin('marker_input_detail',function($join){
+            $join->on('marker_input_detail.marker_id', '=', 'marker_input.id');
+            $join->on('marker_input_detail.so_det_id', '=', 'stocker_separate.so_det_id');
+        })
+        ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'marker_input_detail.so_det_id')
+        ->leftJoin('modify_size_qty',function($join){
+            $join->on('modify_size_qty.form_cut_id', '=', 'stocker_separate.form_cut_id');
+            $join->on('modify_size_qty.so_det_id', '=', 'stocker_separate.so_det_id');
+            $join->on('modify_size_qty.group_stocker', '=', 'stocker_separate.group_stocker');
+        })
+        ->where(function ($q) {
+            $q->whereNull('modify_size_qty.id')
+            ->orWhere('modify_size_qty.modified_qty', '>', 0);
+        })
+        ->groupBy(
+            'stocker_separate.id',
+            'stocker_separate.so_det_id',
+            'master_sb_ws.dest',
+            'master_sb_ws.size',
+            'marker_input_detail.size',
+            'marker_input_detail.ratio',
+            'stocker_separate.group_roll',
+            'stocker_separate.group_stocker',
+            'modify_size_qty.modified_qty',
+            'modify_size_qty.original_qty',
+            'modify_size_qty.difference_qty'
+        )
+        ->orderBy('stocker_separate.group_stocker')
+        ->orderBy('marker_input_detail.id')
+        ->get();
+
+        return response()->json($data);
+    }
+
+    public function resetSeparateStocker(Request $request, StockerService $stockerService)
+    {
+        $noFormId = $request->noFormId;
+
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $noFormId)->first();
+        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
+        // Check Stocker
+        $stockers = $stockerService->getStockerForm($noFormId);
+        if ($stockers->count() > 0) {
+            return array(
+                "status" => 400,
+                "message" => "Stocker sudah di Print",
+            );
+        }
+
+        // Logging
+        $data = StockerSeparate::where('form_cut_id', $noFormId)->get();
+        $details = StockerSeparateDetail::whereIn('separate_id', $data->pluck('id'))->get();
+
+        foreach ($data as $item) {
+            logHistory($item->id, $item->toArray());
+        }
+
+        foreach ($details as $detail) {
+            logHistory($detail->id, $detail->toArray());
+        }
+
+        // Delete
+        StockerSeparateDetail::whereIn('separate_id', $data->pluck('id'))->delete();
+        StockerSeparate::where('form_cut_id', $noFormId)->delete();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Separate Stocker berhasil di-reset.'
         ]);
     }
 }
