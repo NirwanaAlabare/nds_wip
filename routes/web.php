@@ -2117,6 +2117,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(DashboardReportBcController::class)->prefix("dashboard-report-bc")->middleware('role:export_import')->group(function () {
         Route::get('/index', 'index')->name('dashboard-report-bc');
+        Route::get('/summary', 'getSummary')->name('dashboard-report-bc.summary');
     });
 
     Route::controller(ReportBcController::class)->prefix("report-bc")->middleware('role:export_import')->group(function () {

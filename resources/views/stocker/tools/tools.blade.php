@@ -118,6 +118,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetSeparateStocker">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Separate Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Restore Data</h5>
                 </div>
@@ -318,7 +327,7 @@
         </div>
     </div>
 
-    <!-- Reset Stocker -->
+    <!-- Reset Modify Size Qty -->
     <div class="modal fade" id="resetModifySizeQty" tabindex="-1" aria-labelledby="resetModifySizeQtyLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -367,6 +376,58 @@
             </div>
         </div>
     </div>
+
+    <!-- Reset Separate Stocker -->
+    <div class="modal fade" id="resetSeparateStocker" tabindex="-1" aria-labelledby="resetSeparateStockerLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="resetSeparateStockerLabel">Reset Separate Stocker</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_separate_stocker" id="no_form_separate_stocker" class="form-control select2bs4separatestocker" style="width: 100%;">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="table-responsive">
+                            <table id="tableResetSeparateStocker" class="table table-bordered table-hover w-100">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center">Size</th>
+                                        <th class="text-center">Ratio</th>
+                                        <th class="text-center">Qty Cut</th>
+                                        <th class="text-center">Group Roll</th>
+                                        <th class="text-center">Group</th>
+                                        <th class="text-center">Separate Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">
+                                            Belum ada data
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="resetSeparateStocker()"><i class="fa fa-rotate-left"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     {{-- Import Manual --}}
     {{-- <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -693,10 +754,15 @@
             theme: 'bootstrap4',
             dropdownParent: $('#resetModifySizeQty')
         });
+        $('.select2bs4separatestocker').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#resetSeparateStocker')
+        });
 
         $(document).ready(function () {
             getFormList();
             getFormListModifySizeQty();
+            getFormListSeparateStocker();
         });
 
         function getFormList() {
@@ -756,6 +822,30 @@
                     });
 
                     $('#no_form_modify_size_qty').html(options);
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                }
+            });
+        }
+
+        function getFormListSeparateStocker() {
+            $.ajax({
+                type: "GET",
+                url: "{{ route('get-no-form-separate-stocker') }}",
+                dataType: "json",
+                success: function (response) {
+                    let options = '<option value="">Pilih Form</option>';
+
+                    $.each(response, function (key, value) {
+                        options += `
+                            <option value="${value.form_cut_id}">
+                                ${value.no_form}
+                            </option>
+                        `;
+                    });
+
+                    $('#no_form_separate_stocker').html(options);
                 },
                 error: function (xhr) {
                     console.error(xhr);
@@ -1503,6 +1593,7 @@
             });
         }
 
+        // Reset Modify Size Qty
         let tableResetModifySizeQty = $('#tableResetModifySizeQty').DataTable({
             processing: true,
             serverSide: false,
@@ -1625,6 +1716,153 @@
                         $('#no_form_modify_size_qty').val('').trigger('change');
                         getFormListModifySizeQty();
                         // $('#resetModifySizeQty').modal('hide');
+
+                        Swal.fire({
+                            icon: response.status == 200 ? 'success' : 'error',
+                            title: response.status == 200 ? 'Berhasil' : 'Gagal',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: xhr.responseJSON?.message ?? 'Terjadi kesalahan saat melakukan reset.'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Reset Separate Stocker
+        let tableResetSeparateStocker = $('#tableResetSeparateStocker').DataTable({
+            processing: true,
+            serverSide: false,
+            searching: true,
+            ordering: true,
+            order: [],
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+            ajax: function(data, callback, settings) {
+                let noFormId = $('#no_form_separate_stocker').val();
+
+                if (!noFormId) {
+                    callback({data: []});
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('get-data-form-reset-separate-stocker') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        noFormId: noFormId
+                    },
+                    success: function(response) {
+                        callback({data: response});
+                    },
+                    error: function(xhr) {
+                        console.error(xhr);
+                        callback({data: []});
+                    }
+                });
+            },
+            columns: [
+                {
+                    data: 'size',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'ratio',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'qty_cut',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'group_roll',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'group_stocker',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'separate_qty',
+                    className: 'text-center',
+                    defaultContent: '-'
+                }
+            ]
+        });
+
+        $('#no_form_separate_stocker').on('change', function() {
+            let noFormId = $(this).val();
+
+            if (!noFormId) {
+                tableResetSeparateStocker.clear().draw();
+                return;
+            }
+
+            tableResetSeparateStocker.ajax.reload();
+        });
+
+        function resetSeparateStocker() {
+            let noFormId = $('#no_form_separate_stocker').val();
+
+            if (!noFormId) {
+                iziToast.warning({
+                    title: 'Warning',
+                    message: 'Silakan pilih No Form terlebih dahulu.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Reset Separate Stocker?',
+                text: 'Data Separate Stocker akan di-reset.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('reset-separate-stocker') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        noFormId: noFormId
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: 'Sedang melakukan reset.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
+                    success: function(response) {
+                        let table = $('#tableResetSeparateStocker').DataTable();
+                        table.clear().draw();
+
+                        $('#no_form_separate_stocker').val('').trigger('change');
+                        getFormListSeparateStocker();
 
                         Swal.fire({
                             icon: response.status == 200 ? 'success' : 'error',

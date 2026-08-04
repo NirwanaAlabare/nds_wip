@@ -163,5 +163,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form-modify-size-qty', 'getNoFormModifySizeQty')->name('get-no-form-modify-size-qty');
         Route::post('/get-data-form-reset-modify-size-qty', 'getDataFormResetModifySizeQty')->name('get-data-form-reset-modify-size-qty');
         Route::post('/reset-modify-size-qty', 'resetModifySizeQty')->name('reset-modify-size-qty');
+
+        Route::get('/get-no-form-separate-stocker', 'getNoFormSeparateStocker')->name('get-no-form-separate-stocker');
+        Route::post('/get-data-form-reset-separate-stocker', 'getDataFormResetSeparateStocker')->name('get-data-form-reset-separate-stocker');
+        Route::post('/reset-separate-stocker', 'resetSeparateStocker')->name('reset-separate-stocker');
     });
 });
