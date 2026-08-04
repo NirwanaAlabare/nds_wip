@@ -100,12 +100,20 @@
                 },
                 columns: [
                     {
-                        data: null,
-                        render: function(data, type, row) {
-                            return `<button class="btn btn-success btn-sm btn-restore-packing-po" data-kode_numbering="${row.kode_numbering}"><i class="fa-solid fa-rotate-left"></i> Restore</button>`;
-                        },
+                        data: 'id',
+                        orderable: false,
                         searchable: false,
-                        orderable: false
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return `
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-success btn-restore"
+                                    data-id="${data}">
+                                    <i class="fas fa-undo"></i> Restore
+                                </button>
+                            `;
+                        }
                     },
                     { data: 'updated_at' },
                     { data: 'kode_numbering' },
@@ -138,76 +146,70 @@
                     var api = this.api();
                     $('#datatable-undo-packing-po thead tr:first').clone(true).appendTo('#datatable-undo-packing-po thead');
                     $('#datatable-undo-packing-po thead tr:eq(1) th').each(function(i) {
-                        if (i === api.columns().count() - 1) { // Skip the last column (Action)
+                        if (i === 0) {
                             $(this).html('');
-                        } else {
-                            $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
-                            $('input', this).on('keyup change', function() {
-                                if (api.column(i).search() !== this.value) {
-                                    api.column(i).search(this.value).draw();
-                                }
-                            });
+                            return;
                         }
+
+                        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+
+                        $('input', this).on('keyup change', function() {
+                            if (api.column(i).search() !== this.value) {
+                                api.column(i).search(this.value).draw();
+                            }
+                        });
                     });
                 },
             });
         }
 
+         $(document).on('click', '.btn-restore', function () {
+            let id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Restore Data?',
+                text: 'Data yang sudah di-undo akan dikembalikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Restore',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        url: "{{ route('restore-undo-packing-po-list') }}",
+                        type: "POST",
+                        data: {
+                            id: id,
+                            department : $('#type').val(),
+                            _token: "{{ csrf_token() }}"
+                        },
+                        beforeSend: function () {
+                            Swal.showLoading();
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message ?? 'Data berhasil direstore.'
+                            });
+
+                            table.ajax.reload(null, false);
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
         $(document).ready(function() {
             tableReload();
-
-            // Handle Undo button click
-            $('#datatable-undo-packing-po').on('click', '.btn-restore-packing-po', function() {
-                let kode_numbering = $(this).data('kode_numbering');
-                // Placeholder for AJAX call
-                console.log('Undo button clicked for kode_numbering:', kode_numbering);
-
-                Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Anda akan mengembalikan status packing untuk kode numbering ini!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Ya, kembalikan!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "{{ route('restore-packing-po') }}", // This route needs to be defined
-                            type: 'POST',
-                            data: {
-                                _token: '{{ csrf_token() }}',
-                                kode_numbering: kode_numbering
-                            },
-                            success: function(response) {
-                                if (response.status == 200) {
-                                    Swal.fire(
-                                        'Berhasil!',
-                                        response.message,
-                                        'success'
-                                    );
-                                    tableReload(); // Reload the datatable
-                                } else {
-                                    Swal.fire(
-                                        'Gagal!',
-                                        response.message,
-                                        'error'
-                                    );
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                Swal.fire(
-                                    'Error!',
-                                    'Terjadi kesalahan saat memproses permintaan.',
-                                    'error'
-                                );
-                                console.error(xhr.responseText);
-                            }
-                        });
-                    }
-                });
-            });
         });
 
         $('#tgl_awal, #tgl_akhir').on('change', function() {

@@ -23,6 +23,7 @@ use App\Models\SignalBit\RejectOutDetail;
 use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\RejectPackingPo; // Added for packing_po
 use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\RftPacking;
 use App\Models\SignalBit\RftPackingPo; // Added for packing_po
@@ -770,87 +771,186 @@ class SewingToolsController extends Controller
         return $response;
     }
 
-    public function restorePackingPo(Request $request)
+    // DEPRECATED
+    // public function restoreUndoPackingPoList(Request $request)
+    // {
+    //     try {
+    //         $kodeNumbering = $request->input('kode_numbering');
+    //         $currentUserId = Auth::user() ? Auth::user()->id : null;
+    //         $currentUsername = Auth::user() ? Auth::user()->username : "System";
+    //         dd($kodeNumbering);
+
+    //         DB::connection('mysql_sb')->beginTransaction();
+
+    //         $message = [];
+    //         $undoPackingPos = UndoPackingPo::where('kode_numbering', $kodeNumbering)->get();
+
+    //         if ($undoPackingPos->isEmpty()) {
+    //             return response()->json([
+    //                 'status' => 404,
+    //                 'message' => 'No records found to restore for kode numbering: '.$kodeNumbering,
+    //             ]);
+    //         }
+
+    //         foreach ($undoPackingPos as $undo) {
+    //             switch ($undo->keterangan) {
+    //                 case 'rft':
+    //                     $rft = RftPackingPo::create([
+    //                         'id'                    => $undo->output_rft_id,
+    //                         'master_plan_id'        => $undo->master_plan_id,
+    //                         'so_det_id'             => $undo->so_det_id,
+    //                         'po_id'                 => $undo->po_id,
+    //                         'kode_numbering'        => $undo->kode_numbering,
+    //                         'alokasi'               => $undo->alokasi,
+    //                         'created_by'            => $undo->created_by,
+    //                         'created_by_username'   => $undo->created_by_username,
+    //                         'created_by_line'       => $undo->created_by_line,
+    //                         'created_at'            => $undo->created_at,
+    //                         'updated_at'            => $undo->updated_at,
+    //                     ]);
+    //                     if ($undo->alokasi == "gudang stok") {
+    //                         OutputGudangStok::create([
+    //                             'packing_po_id' => $undo->output_rft_id,
+    //                             'so_det_id' => $undo->so_det_id,
+    //                             'kode_numbering' => $undo->kode_numbering,
+    //                             'status' => 'in',
+    //                         ]);
+    //                     }
+    //                     $message[] = "RFT Packing PO ".$kodeNumbering." (ID: ".$undo->output_rft_id.") restored.";
+    //                     break;
+    //                 case 'reject':
+    //                     RftPackingPo::create([
+    //                         'id'                => $undo->output_reject_id,
+    //                         'master_plan_id'    => $undo->master_plan_id,
+    //                         'so_det_id'         => $undo->so_det_id,
+    //                         'kode_numbering'    => $undo->kode_numbering,
+    //                         'reject_type_id'    => $undo->reject_type_id,
+    //                         'reject_area_id'    => $undo->reject_area_id,
+    //                         'reject_area_x'     => $undo->reject_area_x,
+    //                         'reject_area_y'     => $undo->reject_area_y,
+    //                         'created_by'        => $undo->created_by,
+    //                         'created_at'        => $undo->created_at,
+    //                         'updated_at'        => $undo->updated_at,
+    //                     ]);
+    //                     $message[] = "Reject Packing PO ".$kodeNumbering." (ID: ".$undo->output_reject_id.") restored.";
+    //                     break;
+    //             }
+    //             $undo->delete();
+    //         }
+
+    //         DB::connection('mysql_sb')->commit();
+
+    //         Log::channel('restorePackingPo')->info("Restore Packing PO request successfully processed for kode_numbering: ".$kodeNumbering." by user: ".$currentUsername.". Details: ".implode(", ", $message));
+
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Restore request for '.$kodeNumbering.' processed successfully. '.(count($message) > 0 ? implode(". ", $message) : "No records found to restore."),
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::connection('mysql_sb')->rollBack();
+    //         Log::channel('restorePackingPo')->error("Error processing restore Packing PO request: ".$e->getMessage()." for kode_numbering: ".$request->input('kode_numbering')." by user: ".(Auth::user() ? Auth::user()->username : "System"));
+    //         return response()->json([
+    //             'status' => 500,
+    //             'message' => 'Failed to process restore request: '.$e->getMessage(),
+    //         ]);
+    //     }
+    // }
+
+    public function restoreUndoPackingPoList(Request $request)
     {
-        try {
-            $kodeNumbering = $request->input('kode_numbering');
-            $currentUserId = Auth::user() ? Auth::user()->id : null;
-            $currentUsername = Auth::user() ? Auth::user()->username : "System";
+        $ids = addQuotesAround($request->id);
+        $department = 'packing_po';
 
-            DB::connection('mysql_sb')->beginTransaction();
+        if ($ids) {
+            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
 
-            $message = [];
-            $undoPackingPos = UndoPackingPo::where('kode_numbering', $kodeNumbering)->get();
+            $rft = [];
+            $rftNds = [];
+            $defect = [];
+            $rework = [];
+            $reject = [];
+            $gudangStok = [];
+            $deleteUndoIds = [];
 
-            if ($undoPackingPos->isEmpty()) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'No records found to restore for kode numbering: '.$kodeNumbering,
-                ]);
-            }
+            foreach ($restoreData as $restore) {
+                // RFT
+                if ($restore->output_rft_id && $restore->keterangan == "rft") {
+                    array_push($rft, [
+                        "id" => $restore->output_rft_id,
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        "po_id" => $restore->po_id,
+                        'status' => 'NORMAL',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "alokasi" => $restore->alokasi,
+                        "created_by" => $restore->created_by,
+                        "created_by_username" => $restore->created_by_username,
+                        "created_by_line" => $restore->created_by_line,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
 
-            foreach ($undoPackingPos as $undo) {
-                switch ($undo->keterangan) {
-                    case 'rft':
-                        $rft = RftPackingPo::create([
-                            'id'                    => $undo->output_rft_id,
-                            'master_plan_id'        => $undo->master_plan_id,
-                            'so_det_id'             => $undo->so_det_id,
-                            'po_id'                 => $undo->po_id,
-                            'kode_numbering'        => $undo->kode_numbering,
-                            'alokasi'               => $undo->alokasi,
-                            'created_by'            => $undo->created_by,
-                            'created_by_username'   => $undo->created_by_username,
-                            'created_by_line'       => $undo->created_by_line,
-                            'created_at'            => $undo->created_at,
-                            'updated_at'            => $undo->updated_at,
+                    if ($restore->alokasi == "gudang stok") {
+                        array_push($gudangStok, [
+                            "kode_numbering" => $restore->kode_numbering,
+                            "so_det_id" => $restore->so_det_id,
+                            "packing_po_id" => $restore->output_rft_id,
+                            "created_by" => $restore->created_by,
+                            "created_by_username" => $restore->created_by_username,
+                            "created_by_line" => $restore->created_by_line,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
                         ]);
-                        if ($undo->alokasi == "gudang stok") {
-                            OutputGudangStok::create([
-                                'packing_po_id' => $undo->output_rft_id,
-                                'so_det_id' => $undo->so_det_id,
-                                'kode_numbering' => $undo->kode_numbering,
-                                'status' => 'in',
-                            ]);
-                        }
-                        $message[] = "RFT Packing PO ".$kodeNumbering." (ID: ".$undo->output_rft_id.") restored.";
-                        break;
-                    case 'reject':
-                        RftPackingPo::create([
-                            'id'                => $undo->output_reject_id,
-                            'master_plan_id'    => $undo->master_plan_id,
-                            'so_det_id'         => $undo->so_det_id,
-                            'kode_numbering'    => $undo->kode_numbering,
-                            'reject_type_id'    => $undo->reject_type_id,
-                            'reject_area_id'    => $undo->reject_area_id,
-                            'reject_area_x'     => $undo->reject_area_x,
-                            'reject_area_y'     => $undo->reject_area_y,
-                            'created_by'        => $undo->created_by,
-                            'created_at'        => $undo->created_at,
-                            'updated_at'        => $undo->updated_at,
-                        ]);
-                        $message[] = "Reject Packing PO ".$kodeNumbering." (ID: ".$undo->output_reject_id.") restored.";
-                        break;
+                    }
                 }
-                $undo->delete();
+
+                // REJECT
+                if ($restore->output_reject_id) {
+
+                    // With REJECT
+                    $currentDefect = null;
+
+                    // Create REJECT
+                    array_push($reject, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : null,
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        'status' => "NORMAL",
+                        'reject_status' => $currentDefect ? 'defect' : 'mati',
+                        "reject_type_id" => $restore->defect_type_id,
+                        "reject_area_id" => $restore->defect_area_id,
+                        "reject_area_x" => $restore->defect_area_x,
+                        "reject_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                array_push($deleteUndoIds, $restore->undo_id);
             }
 
-            DB::connection('mysql_sb')->commit();
+            if (count($rft) > 0) {
+                RftPackingPo::insert($rft);
 
-            Log::channel('restorePackingPo')->info("Restore Packing PO request successfully processed for kode_numbering: ".$kodeNumbering." by user: ".$currentUsername.". Details: ".implode(", ", $message));
+                if (count($gudangStok) > 0) {
+                    OutputGudangStok::insert($gudangStok);
+                }
+            }
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Restore request for '.$kodeNumbering.' processed successfully. '.(count($message) > 0 ? implode(". ", $message) : "No records found to restore."),
-            ]);
+            if (count($reject) > 0) {
+                DB::connection('mysql_sb')->table('output_rejects_packing_po')->insert($reject);
+            }
 
-        } catch (\Exception $e) {
-            DB::connection('mysql_sb')->rollBack();
-            Log::channel('restorePackingPo')->error("Error processing restore Packing PO request: ".$e->getMessage()." for kode_numbering: ".$request->input('kode_numbering')." by user: ".(Auth::user() ? Auth::user()->username : "System"));
-            return response()->json([
-                'status' => 500,
-                'message' => 'Failed to process restore request: '.$e->getMessage(),
-            ]);
+            if (count($deleteUndoIds) > 0) {
+                UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+            }
+
+            return array("rft" => $rft, "defect" => $defect, "reject" => $reject, "rework" => $rework);
         }
     }
 
@@ -5139,6 +5239,7 @@ class SewingToolsController extends Controller
         $kode     = $request->kode_numbering;
 
         $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.id,
                 output_undo_packing_po.kode_numbering,
                 CASE
                     WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
