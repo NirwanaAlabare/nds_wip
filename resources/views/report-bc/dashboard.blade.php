@@ -431,9 +431,9 @@
         return 'Rp ' + Math.round(v).toLocaleString('id-ID');
     }
 
-    function renderRadial(containerId, dataObj) {
+    function renderRadial(containerId, dataObj, maxOverride) {
         const el = document.getElementById(containerId);
-        const max = Math.max(...Object.values(dataObj), 1);
+        const max = maxOverride || Math.max(...Object.values(dataObj), 1);
         el.innerHTML = '';
 
         Object.entries(dataObj).forEach(([label, value]) => {
@@ -657,8 +657,13 @@
         document.getElementById('penangguhanLabel').textContent =
             'Penangguhan BC 23 — ' + summary.periode.ytd.label;
 
-        renderRadial('dbc-radial-ytd', NILAI_YTD);
-        renderRadial('dbc-radial-bulan', NILAI_BULAN);
+        const globalMax = Math.max(
+            ...Object.values(NILAI_YTD),
+            ...Object.values(NILAI_BULAN),
+            1
+        );
+        renderRadial('dbc-radial-ytd', NILAI_YTD, globalMax);
+        renderRadial('dbc-radial-bulan', NILAI_BULAN, globalMax);
         renderDonut();
         renderSlope();
         renderDocGrid('docGridYtd', summary.dokumen.ytd);
