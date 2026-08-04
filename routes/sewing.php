@@ -184,6 +184,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/undo-packing-po-list', 'undoPackingPoList')->name("undo-packing-po-list");
         Route::get('/get-undo-packing-po-list', 'getUndoPackingPoList')->name("get-undo-packing-po-list");
         Route::get('/export-undo-packing-po-list', 'exportUndoPackingPoList')->name("export-undo-packing-po-list");
+        Route::post('/restore-packing-po', 'restorePackingPo')->name("restore-packing-po");
 
         // Reject IN OUT
         Route::get('/undo-reject', 'undoReject')->name("undo-reject");
