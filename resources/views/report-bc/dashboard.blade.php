@@ -366,7 +366,7 @@
             </div>
             <div class="slope-legend">
                 <span><i class="slope-dot" style="background:#007bff"></i> <span id="legendYtd"></span></span>
-                <span><i class="slope-dot" style="background:#f59e0b"></i> <span id="legendBulan"></span></span>
+                <span><i class="slope-dot" style="background:#00671a"></i> <span id="legendBulan"></span></span>
             </div>
             <div id="dbc-slope"></div>
         </div>
@@ -609,7 +609,7 @@
 
             svg.appendChild(svgEl('line', { x1, y1: y, x2, y2: y, stroke: '#cbd5e1', 'stroke-width': 2 }));
             svg.appendChild(svgEl('circle', { cx: x1, cy: y, r: 6, fill: '#007bff' }));
-            svg.appendChild(svgEl('circle', { cx: x2, cy: y, r: 6, fill: '#f59e0b' }));
+            svg.appendChild(svgEl('circle', { cx: x2, cy: y, r: 6, fill: '#00671a' }));
 
             svg.appendChild(svgEl('text', {
                 x: 8, y: y + 4, 'font-size': 12, 'font-weight': 700, fill: '#343a40'
@@ -618,10 +618,10 @@
             if (closeTogether) {
                 const midX = (x1 + x2) / 2;
                 svg.appendChild(svgEl('text', { x: midX, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#007bff' }, formatIdr(v1)));
-                svg.appendChild(svgEl('text', { x: midX, y: y + 22, 'text-anchor': 'middle', 'font-size': 10, fill: '#f59e0b' }, formatIdr(v2)));
+                svg.appendChild(svgEl('text', { x: midX, y: y + 22, 'text-anchor': 'middle', 'font-size': 10, fill: '#00671a' }, formatIdr(v2)));
             } else {
                 svg.appendChild(svgEl('text', { x: x1, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#007bff' }, formatIdr(v1)));
-                svg.appendChild(svgEl('text', { x: x2, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#f59e0b' }, formatIdr(v2)));
+                svg.appendChild(svgEl('text', { x: x2, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#00671a' }, formatIdr(v2)));
             }
         });
     }
