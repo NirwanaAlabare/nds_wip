@@ -158,11 +158,62 @@
     .slope-legend span { display: inline-flex; align-items: center; gap: 5px; }
     .slope-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-    /* ===== Treemap ===== */
-    #dbc-bubbles text.bubble-label { font-size: 11px; font-weight: 700; fill: #fff; pointer-events: none; text-anchor: middle; }
-    #dbc-bubbles text.bubble-value { font-size: 9.5px; font-weight: 500; fill: rgba(255,255,255,0.9); pointer-events: none; text-anchor: middle; }
-    #dbc-bubbles polygon { stroke: rgba(255,255,255,.55); stroke-width: 1.5; stroke-linejoin: round; transition: transform .15s; transform-origin: center; }
-    #dbc-bubbles polygon:hover { transform: scale(1.03); }
+    /* ===== Donut Proporsi (pengganti hexagon packing) ===== */
+    .donut-wrap {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.75rem;
+        align-items: center;
+    }
+    @media (max-width: 560px) {
+        .donut-wrap { grid-template-columns: 1fr; justify-items: center; }
+    }
+    .donut-svg-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
+    .donut-svg-wrap svg circle.donut-seg {
+        transition: stroke-width .18s ease, filter .18s ease, opacity .18s ease;
+        cursor: pointer;
+    }
+    .donut-svg-wrap svg circle.donut-seg:hover { filter: brightness(1.08); }
+    .donut-svg-wrap.has-hover svg circle.donut-seg:not(.is-active) { opacity: 0.35; }
+    .donut-center {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        pointer-events: none;
+    }
+    .donut-center .dc-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 3px;
+    }
+    .donut-center .dc-value {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.15;
+    }
+
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .donut-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background .15s;
+    }
+    .donut-legend-item:hover,
+    .donut-legend-item.is-active { background: #f8fafc; }
+    .donut-legend-dot { width: 11px; height: 11px; border-radius: 4px; flex-shrink: 0; }
+    .donut-legend-text { flex: 1; min-width: 0; }
+    .donut-legend-name { font-size: 0.76rem; font-weight: 700; color: #334155; }
+    .donut-legend-value { font-size: 0.7rem; color: #94a3b8; margin-top: 1px; }
+    .donut-legend-pct { font-size: 0.78rem; font-weight: 800; color: #1e293b; flex-shrink: 0; }
 
     .chart-tooltip {
         position: fixed;
@@ -261,7 +312,6 @@
 
 @section('content')
 <div class="dash-wrap" id="dashWrap">
-
     <div class="page-header d-flex align-items-center justify-content-between flex-wrap">
         <div>
             <h5 class="dash-title">Dashboard Report BC</h5>
@@ -280,7 +330,6 @@
             <i class="fas fa-rotate-right"></i> Coba Lagi
         </button>
     </div>
-
     <div class="report-body fade-in" id="reportBody">
         <div class="section-label">Nilai Ekspor, Impor &amp; Penjualan Lokal</div>
         <div class="chart-grid mb-3">
@@ -306,7 +355,7 @@
                     <span class="heading-main"><span class="card-icon-badge"><i class="fas fa-th-large"></i></span> Proporsi Nilai</span>
                     <span class="sub" id="ytdLabelSub2"></span>
                 </div>
-                <div id="dbc-bubbles"></div>
+                <div class="donut-wrap" id="dbc-donut"></div>
             </div>
         </div>
 
@@ -317,7 +366,7 @@
             </div>
             <div class="slope-legend">
                 <span><i class="slope-dot" style="background:#007bff"></i> <span id="legendYtd"></span></span>
-                <span><i class="slope-dot" style="background:#028d10"></i> <span id="legendBulan"></span></span>
+                <span><i class="slope-dot" style="background:#f59e0b"></i> <span id="legendBulan"></span></span>
             </div>
             <div id="dbc-slope"></div>
         </div>
@@ -355,9 +404,7 @@
                 </div>
             </div>
         </div>
-
     </div>
-
 </div>
 
 <div id="chartTooltip" class="chart-tooltip"></div>
@@ -378,22 +425,10 @@
 
     function formatIdr(v) {
         v = Number(v) || 0;
-
-        const neg = v < 0;
-        const abs = Math.abs(v);
-
-        let formatted;
-        if (abs >= 1e9) {
-            formatted = (abs / 1e9).toFixed(1).replace('.', ',') + ' M';
-        } else if (abs >= 1e6) {
-            formatted = (abs / 1e6).toFixed(1).replace('.', ',') + ' Jt';
-        } else if (abs >= 1e3) {
-            formatted = (abs / 1e3).toFixed(0) + ' Rb';
-        } else {
-            formatted = Math.round(abs).toLocaleString('id-ID');
-        }
-
-        return (neg ? '-Rp ' : 'Rp ') + formatted;
+        if (v >= 1e9) return 'Rp ' + (v / 1e9).toFixed(1) + ' M';
+        if (v >= 1e6) return 'Rp ' + (v / 1e6).toFixed(1) + ' Jt';
+        if (v >= 1e3) return 'Rp ' + (v / 1e3).toFixed(0) + ' Rb';
+        return 'Rp ' + Math.round(v).toLocaleString('id-ID');
     }
 
     function renderRadial(containerId, dataObj) {
@@ -432,89 +467,8 @@
     }
     function hideTooltip() { $tooltip.style.display = 'none'; }
 
-    function packCircles(items, width, height) {
-        const total = items.reduce((s, d) => s + d.value, 0) || 1;
-        const areaBudget = width * height * 0.5;
-
-        const circles = items.map(d => {
-            const share = d.value / total;
-            const area = Math.max(areaBudget * share, 1);
-            return { ...d, r: Math.sqrt(area / Math.PI) };
-        });
-
-        const minAllowedR = Math.min(width, height) * 0.06;
-        circles.forEach(c => { c.r = Math.max(c.r, minAllowedR); });
-
-        const cx0 = width / 2, cy0 = height / 2;
-        const placed = [];
-
-        circles.forEach((c, i) => {
-            if (i === 0) {
-                c.x = cx0; c.y = cy0;
-                placed.push(c);
-                return;
-            }
-
-            let angle = 0;
-            let radius = 2;
-            const angleStep = 0.28;
-            const radiusStep = 1.6;
-            let found = false;
-            let tx = cx0, ty = cy0;
-
-            for (let step = 0; step < 4000 && !found; step++) {
-                tx = cx0 + radius * Math.cos(angle);
-                ty = cy0 + radius * Math.sin(angle);
-
-                const overlaps = placed.some(p => {
-                    const dx = p.x - tx, dy = p.y - ty;
-                    return Math.sqrt(dx * dx + dy * dy) < (p.r + c.r + 3);
-                });
-
-                if (!overlaps) { found = true; break; }
-
-                angle += angleStep;
-                radius += radiusStep;
-            }
-
-            c.x = tx; c.y = ty;
-            placed.push(c);
-        });
-
-        let maxReach = 0;
-        placed.forEach(c => {
-            maxReach = Math.max(
-                maxReach,
-                Math.abs(c.x - cx0) + c.r,
-                Math.abs(c.y - cy0) + c.r
-            );
-        });
-        const limit = Math.min(width, height) / 2 - 4;
-        const scale = maxReach > limit ? limit / maxReach : 1;
-        if (scale < 1) {
-            placed.forEach(c => {
-                c.x = cx0 + (c.x - cx0) * scale;
-                c.y = cy0 + (c.y - cy0) * scale;
-                c.r = c.r * scale;
-            });
-        }
-
-        return placed;
-    }
-
-    function hexPoints(cx, cy, r) {
-        const pts = [];
-        for (let i = 0; i < 6; i++) {
-            const angle = (Math.PI / 180) * (60 * i - 90);
-            pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
-        }
-        return pts.join(' ');
-    }
-
-    function renderBubbles() {
-        const container = document.getElementById('dbc-bubbles');
-        const width = container.clientWidth || 400;
-        const height = 280;
+    function renderDonut() {
+        const container = document.getElementById('dbc-donut');
 
         try {
             const entries = Object.entries(NILAI_YTD)
@@ -527,34 +481,100 @@
                 return;
             }
 
-            const hexes = packCircles(entries, width, height);
+            const total = entries.reduce((s, d) => s + d.value, 0);
+            const size = 200, cx = size / 2, cy = size / 2;
+            const strokeW = 30;
+            const r = (size - strokeW) / 2;
+            const circumference = 2 * Math.PI * r;
 
-            const svg = svgEl('svg', { width, height, viewBox: `0 0 ${width} ${height}` });
-            container.innerHTML = '';
-            container.appendChild(svg);
+            const svg = svgEl('svg', { width: size, height: size, viewBox: `0 0 ${size} ${size}` });
 
-            hexes.forEach(c => {
-                if (!isFinite(c.x) || !isFinite(c.y) || !isFinite(c.r)) return;
 
-                const g = svgEl('g');
+            svg.appendChild(svgEl('circle', {
+                cx, cy, r,
+                fill: 'none', stroke: '#eef1f6', 'stroke-width': strokeW
+            }));
 
-                const hex = svgEl('polygon', {
-                    points: hexPoints(c.x, c.y, c.r),
-                    fill: PALETTE[c.label] || '#007bff'
+            let offset = 0;
+            const gapDeg = 2.2;
+            entries.forEach((d, i) => {
+                const share = d.value / total;
+                const gapLen = (gapDeg / 360) * circumference;
+                const segLen = Math.max(share * circumference - gapLen, 0);
+
+                const seg = svgEl('circle', {
+                    cx, cy, r,
+                    fill: 'none',
+                    stroke: PALETTE[d.label] || '#007bff',
+                    'stroke-width': strokeW,
+                    'stroke-linecap': 'round',
+                    'stroke-dasharray': `${segLen} ${circumference - segLen}`,
+                    'stroke-dashoffset': -offset,
+                    transform: `rotate(-90 ${cx} ${cy})`,
+                    class: 'donut-seg',
+                    'data-label': d.label
                 });
-                hex.addEventListener('mousemove', (evt) => showTooltip(`<strong>${c.label}</strong><br>${formatIdr(c.value)}`, evt));
-                hex.addEventListener('mouseleave', hideTooltip);
-                g.appendChild(hex);
+                seg.addEventListener('mousemove', (evt) => showTooltip(
+                    `<strong>${d.label}</strong><br>${formatIdr(d.value)} (${(share * 100).toFixed(1)}%)`, evt
+                ));
+                seg.addEventListener('mouseleave', hideTooltip);
+                seg.addEventListener('mouseenter', () => setActiveSegment(d.label));
+                svg.appendChild(seg);
 
-                if (c.r >= 24) {
-                    g.appendChild(svgEl('text', { x: c.x, y: c.y - 3, class: 'bubble-label' }, c.label));
-                    g.appendChild(svgEl('text', { x: c.x, y: c.y + 12, class: 'bubble-value' }, formatIdr(c.value)));
-                }
-
-                svg.appendChild(g);
+                offset += share * circumference;
             });
+
+            const svgWrap = document.createElement('div');
+            svgWrap.className = 'donut-svg-wrap';
+            svgWrap.appendChild(svg);
+            svgWrap.insertAdjacentHTML('beforeend', `
+                <div class="donut-center">
+                    <div class="dc-label">Total</div>
+                    <div class="dc-value">${formatIdr(total)}</div>
+                </div>
+            `);
+
+            const legend = document.createElement('div');
+            legend.className = 'donut-legend';
+            entries.forEach(d => {
+                const pct = ((d.value / total) * 100).toFixed(1);
+                const color = PALETTE[d.label] || '#007bff';
+                const item = document.createElement('div');
+                item.className = 'donut-legend-item';
+                item.dataset.label = d.label;
+                item.innerHTML = `
+                    <span class="donut-legend-dot" style="background:${color}"></span>
+                    <span class="donut-legend-text">
+                        <div class="donut-legend-name">${d.label}</div>
+                        <div class="donut-legend-value">${formatIdr(d.value)}</div>
+                    </span>
+                    <span class="donut-legend-pct">${pct}%</span>
+                `;
+                item.addEventListener('mouseenter', () => setActiveSegment(d.label));
+                item.addEventListener('mouseleave', clearActiveSegment);
+                legend.appendChild(item);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(svgWrap);
+            container.appendChild(legend);
+
+            function setActiveSegment(label) {
+                svgWrap.classList.add('has-hover');
+                svg.querySelectorAll('.donut-seg').forEach(el => {
+                    el.classList.toggle('is-active', el.dataset.label === label);
+                });
+                legend.querySelectorAll('.donut-legend-item').forEach(el => {
+                    el.classList.toggle('is-active', el.dataset.label === label);
+                });
+            }
+            function clearActiveSegment() {
+                svgWrap.classList.remove('has-hover');
+                svg.querySelectorAll('.donut-seg').forEach(el => el.classList.remove('is-active'));
+                legend.querySelectorAll('.donut-legend-item').forEach(el => el.classList.remove('is-active'));
+            }
         } catch (err) {
-            console.error('renderBubbles error:', err);
+            console.error('renderDonut error:', err);
             container.innerHTML = '<div class="text-center text-muted py-5" style="font-size:0.8rem;">Gagal menampilkan grafik.</div>';
         }
     }
@@ -589,7 +609,7 @@
 
             svg.appendChild(svgEl('line', { x1, y1: y, x2, y2: y, stroke: '#cbd5e1', 'stroke-width': 2 }));
             svg.appendChild(svgEl('circle', { cx: x1, cy: y, r: 6, fill: '#007bff' }));
-            svg.appendChild(svgEl('circle', { cx: x2, cy: y, r: 6, fill: '#028d10' }));
+            svg.appendChild(svgEl('circle', { cx: x2, cy: y, r: 6, fill: '#f59e0b' }));
 
             svg.appendChild(svgEl('text', {
                 x: 8, y: y + 4, 'font-size': 12, 'font-weight': 700, fill: '#343a40'
@@ -598,10 +618,10 @@
             if (closeTogether) {
                 const midX = (x1 + x2) / 2;
                 svg.appendChild(svgEl('text', { x: midX, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#007bff' }, formatIdr(v1)));
-                svg.appendChild(svgEl('text', { x: midX, y: y + 22, 'text-anchor': 'middle', 'font-size': 10, fill: '#028d10' }, formatIdr(v2)));
+                svg.appendChild(svgEl('text', { x: midX, y: y + 22, 'text-anchor': 'middle', 'font-size': 10, fill: '#f59e0b' }, formatIdr(v2)));
             } else {
                 svg.appendChild(svgEl('text', { x: x1, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#007bff' }, formatIdr(v1)));
-                svg.appendChild(svgEl('text', { x: x2, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#028d10' }, formatIdr(v2)));
+                svg.appendChild(svgEl('text', { x: x2, y: y - 12, 'text-anchor': 'middle', 'font-size': 10, fill: '#f59e0b' }, formatIdr(v2)));
             }
         });
     }
@@ -639,7 +659,7 @@
 
         renderRadial('dbc-radial-ytd', NILAI_YTD);
         renderRadial('dbc-radial-bulan', NILAI_BULAN);
-        renderBubbles();
+        renderDonut();
         renderSlope();
         renderDocGrid('docGridYtd', summary.dokumen.ytd);
         renderDocGrid('docGridBulan', summary.dokumen.bulan);
@@ -680,7 +700,6 @@
                 setState('error');
             });
     }
-
     document.addEventListener('DOMContentLoaded', loadReport);
     document.getElementById('btnRetryReport').addEventListener('click', loadReport);
 </script>
