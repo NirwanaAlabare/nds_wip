@@ -115,7 +115,7 @@
                                     type="button"
                                     class="btn btn-sm btn-success btn-restore"
                                     data-id="${data}">
-                                    <i class="fas fa-undo"></i>
+                                    <i class="fas fa-undo"></i> Restore
                                 </button>
                             `;
                         }
