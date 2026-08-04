@@ -377,10 +377,23 @@
     };
 
     function formatIdr(v) {
-        if (v >= 1e9) return 'Rp ' + (v / 1e9).toFixed(1) + ' M';
-        if (v >= 1e6) return 'Rp ' + (v / 1e6).toFixed(1) + ' Jt';
-        if (v >= 1e3) return 'Rp ' + (v / 1e3).toFixed(0) + ' Rb';
-        return 'Rp ' + v;
+        v = Number(v) || 0;
+
+        const neg = v < 0;
+        const abs = Math.abs(v);
+
+        let formatted;
+        if (abs >= 1e9) {
+            formatted = (abs / 1e9).toFixed(1).replace('.', ',') + ' M';
+        } else if (abs >= 1e6) {
+            formatted = (abs / 1e6).toFixed(1).replace('.', ',') + ' Jt';
+        } else if (abs >= 1e3) {
+            formatted = (abs / 1e3).toFixed(0) + ' Rb';
+        } else {
+            formatted = Math.round(abs).toLocaleString('id-ID');
+        }
+
+        return (neg ? '-Rp ' : 'Rp ') + formatted;
     }
 
     function renderRadial(containerId, dataObj) {
