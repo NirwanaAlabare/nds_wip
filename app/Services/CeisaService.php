@@ -96,7 +96,6 @@ class CeisaService
                 'username' => $this->username,
                 'password' => $this->password,
             ]);
-
             if ($response->successful()) {
                 return $response->json()['item']['access_token'];
             }
@@ -554,7 +553,7 @@ class CeisaService
     public function kirimDokumenBatch27($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('dev');
+        $this->setEnv('live');
         if (is_array($payload) && !empty($this->idPlatform)) {
             $payload['idPlatform'] = $this->idPlatform;
         }
@@ -581,6 +580,28 @@ class CeisaService
             $payload['idPlatform'] = $this->idPlatform;
         }
 
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    // kirim dokumen batch BC 3.0 ke CEISA
+    public function kirimDokumenBatch30($payload, $isFinal = 'false'){
+
+        $this->useUserCredential();
+        $this->setEnv('dev');
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
 
         $response = $this->requestWithRetry(
             'POST',
