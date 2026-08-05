@@ -417,10 +417,12 @@
 
     const PALETTE = {
         'BC 23': '#007bff',
-        'BC 30': '#16a34a',
+        'BC 27 In': '#0ea5e9',
         'BC 27 Out': '#fd7e14',
+        'BC 30': '#16a34a',
         'BC 41': '#6f42c1',
-        'BC 25 (Finish Goods)': '#dc3545'
+        'BC 25 FG': '#e11d48',
+        'BC 25 Scrap': '#f59e0b'
     };
 
     function formatIdr(v) {

@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\DB;
 class DashboardReportBcService
 {
     protected array $mapNilai = [
-        'BC 23'                => 'BC 2.3',
-        'BC 30'                 => 'BC 3.0',
-        'BC 27 Out'             => 'BC 2.7',
-        'BC 41'                 => ['BC 4.1 SEWA', 'BC 4.1 SUBKON', 'BC 4.1 LOKAL'],
-        'BC 25 (Finish Goods)'  => 'BC 2.5',
+        'BC 23'        => 'BC 2.3',
+        'BC 27 In'     => 'BC 2.7',
+        'BC 27 Out'    => 'BC 2.7 OUT',
+        'BC 30'        => 'BC 3.0',
+        'BC 41'        => ['BC 4.1 SEWA', 'BC 4.1 SUBKON', 'BC 4.1 LOKAL'],
+        'BC 25 FG'     => 'BC 2.5 FG',
+        'BC 25 Scrap'  => 'BC 2.5 SCRAP',
     ];
 
     protected array $dokumenSourceMap = [
@@ -21,7 +23,8 @@ class DashboardReportBcService
         'BC 33'     => ['pengeluaran' => 'BC 3.3'],
         'BC 40'     => ['pemasukan' => 'BC 4.0'],
         'BC 41'     => ['pemasukan' => 'BC 4.1', 'pengeluaran' => ['BC 4.1 SEWA', 'BC 4.1 SUBKON', 'BC 4.1 LOKAL']],
-        'BC 25'     => ['pemasukan' => 'BC 2.5'],
+        'BC 25 FG'    => ['pengeluaran' => 'BC 2.5 FG'],
+        'BC 25 Scrap' => ['pengeluaran' => 'BC 2.5 SCRAP'],
         'BC 261'    => ['pengeluaran' => ['BC 2.6.1 KELUAR', 'BC 2.6.1']],
         'BC 262'    => ['pemasukan' => 'BC 2.6.2'],
         'BC 27 In'  => ['pemasukan' => 'BC 2.7'],
@@ -185,8 +188,9 @@ class DashboardReportBcService
             CASE
                 WHEN a.jenis_dok = 'BC 3.0' THEN 'BC 3.0'
                 WHEN a.jenis_dok = 'BC 2.6.1' AND a.bcno != '-' THEN 'BC 2.6.1 KELUAR'
-                WHEN a.jenis_dok = 'BC 2.7' AND a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN') THEN 'BC 2.7'
-                WHEN a.jenis_dok = 'BC 2.5' THEN 'BC 2.5'
+                WHEN a.jenis_dok = 'BC 2.7' AND a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN') THEN 'BC 2.7 OUT'
+                WHEN a.jenis_dok = 'BC 2.5' AND SUBSTRING(a.bppbno, 4, 2) = 'FG' THEN 'BC 2.5 FG'
+                WHEN a.jenis_dok = 'BC 2.5' THEN 'BC 2.5 SCRAP'
                 WHEN a.jenis_dok = 'BC 3.3' THEN 'BC 3.3'
                 WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.remark) LIKE '%SEWA%' THEN 'BC 4.1 SEWA'
                 WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.1 SUBKON'
@@ -215,7 +219,7 @@ class DashboardReportBcService
         $queryBahanBaku = $mysql_sb->table('bppb as a')
             ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-            ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 2.5', 'BC 3.3', 'BC 4.1'])
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
             ->where(function ($query) {
                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
@@ -234,7 +238,7 @@ class DashboardReportBcService
         $queryBarangJadi = $mysql_sb->table('bppb as a')
             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-            ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1'])
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
             ->where(function ($query) {
                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
@@ -295,11 +299,13 @@ class DashboardReportBcService
         $pengeluaranGroup = collect($raw['pengeluaran'])->groupBy('jenis_dokumen');
 
         $nilaiSourceByLabel = [
-            'BC 23'                 => $pemasukanGroup,
-            'BC 30'                 => $pengeluaranGroup,
-            'BC 27 Out'             => $pengeluaranGroup,
-            'BC 41'                 => $pengeluaranGroup,
-            'BC 25 (Finish Goods)'  => $pengeluaranGroup,
+            'BC 23'       => $pemasukanGroup,
+            'BC 27 In'    => $pemasukanGroup,
+            'BC 27 Out'   => $pengeluaranGroup,
+            'BC 30'       => $pengeluaranGroup,
+            'BC 41'       => $pengeluaranGroup,
+            'BC 25 FG'    => $pengeluaranGroup,
+            'BC 25 Scrap' => $pengeluaranGroup,
         ];
 
         $result = [];
