@@ -1127,7 +1127,7 @@ class PackingCentralSwitchingController extends Controller
                         AND packing_packing_in.id_so_det = combined.so_det_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
                     LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
-                    WHERE YEAR(ppic_master_so.tgl_shipment) >= 2026
+                    WHERE YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                     GROUP BY
                         combined.id_ppic_master_so,
                         combined.so_det_id,
