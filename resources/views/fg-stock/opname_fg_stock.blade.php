@@ -5,6 +5,11 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <!-- Tempusdominus Datetimepicker -->
+    <link rel="stylesheet" href="{{ asset('plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
 
     <style>
         .badge-status-open {
@@ -18,105 +23,47 @@
             color: #c0392b;
             border: 1px solid #f5c6c6;
         }
-
-        .detail-info-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
-            background: #eef4ff;
-            border: 1px solid #d7e3ff;
-            color: var(--sb-color);
-            font-weight: 600;
-            font-size: .85rem;
-            padding: .4rem .85rem;
-            border-radius: 30px;
-        }
-
-        .detail-total-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            background: #e7f6ec;
-            color: #1f8f4d;
-            font-weight: 700;
-            font-size: .85rem;
-            padding: .4rem .85rem;
-            border-radius: 30px;
-        }
-
-        #detail_item_table thead th {
-            background: #f4f6fb;
-            border-bottom: 2px solid #e3e7f1;
-            font-size: .78rem;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            color: #5a5f73;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
-        .detail-table-scroll {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .qty-pill {
-            display: inline-block;
-            min-width: 2.2rem;
-            padding: .2rem .55rem;
-            border-radius: 20px;
-            background: #e7f6ec;
-            color: #1f8f4d;
-            font-weight: 700;
-            font-size: .8rem;
-        }
     </style>
 @endsection
 
 @section('content')
-    <!-- Modal Detail Item -->
-    <div class="modal fade" id="modalDetailItem" tabindex="-1" role="dialog" aria-labelledby="modalDetailItemLabel"
-        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-xl" role="document">
+    <!-- Modal New Opname -->
+    <div class="modal fade" id="modalNewOpname" tabindex="-1" role="dialog" aria-labelledby="modalNewOpnameLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
             <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
                 <div class="modal-header bg-sb text-light">
-                    <h3 class="modal-title fs-5 mb-0"><i class="fas fa-list"></i> Detail Item Opname</h3>
+                    <h3 class="modal-title fs-5 mb-0"><i class="fas fa-clipboard-list"></i> New Opname</h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                        <span class="detail-info-chip" id="detail_item_header"></span>
-                        <span class="detail-total-badge">
-                            <i class="fas fa-cubes"></i> Total Qty: <span id="detail_total_qty">0</span>
-                        </span>
+                    <div class="form-group">
+                        <label class="form-label"><small><b>Periode</b></small></label>
+                        <div class="input-group input-group-sm date" id="new_periode_picker" data-target-input="nearest">
+                            <input type="text" class="form-control form-control-sm datetimepicker-input"
+                                id="new_inp_periode" data-target="#new_periode_picker" readonly
+                                title="Periode (bulan opname)">
+                            <div class="input-group-append" data-target="#new_periode_picker" data-toggle="datetimepicker">
+                                <div class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group mb-2">
-                        <input type="text" class="form-control form-control-sm" id="inp_search_detail_item"
-                            placeholder="Cari Buyer / WS / Style / Dest / Color / Size / Grade..." autocomplete="off">
+                    <div class="form-group mb-0">
+                        <label class="form-label"><small><b>Tgl. Opname</b></small></label>
+                        <input type="date" class="form-control form-control-sm" id="new_inp_tgl_opname">
                     </div>
-                    <div class="table-responsive detail-table-scroll">
-                        <table class="table table-borderless table-sm table-hover align-middle" id="detail_item_table">
-                            <thead>
-                                <tr style="text-align:center; vertical-align:middle">
-                                    <th style="width: 5%;">No</th>
-                                    <th>Buyer</th>
-                                    <th>WS</th>
-                                    <th>Style</th>
-                                    <th>Dest</th>
-                                    <th>Color</th>
-                                    <th>Size</th>
-                                    <th>Grade</th>
-                                    <th>Qty</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detail_item_body">
-                            </tbody>
-                        </table>
+                    <div class="form-group mb-0">
+                        <label class="form-label"><small><b>Keterangan</b></small></label>
+                        <textarea class="form-control form-control-sm" id="new_inp_ket" rows="2" placeholder="Keterangan (opsional)"
+                            autocomplete="off"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn_lanjutkan_new_opname"
+                        onclick="lanjutkanNewOpname()">
+                        <i class="fas fa-arrow-right fa-sm"></i> Lanjutkan
+                    </button>
                 </div>
             </div>
         </div>
@@ -128,10 +75,16 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-12 mb-3">
-                    <a href="{{ route('create-opname-fg-stock') }}" class="btn btn-primary btn-sm">
+                <div class="col-12 mb-3 d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalNewOpname">
                         <i class="fas fa-plus fa-sm"></i>
                         New
+                    </button>
+                    <a href="{{ route('dashboard-analytics-opname-fg-stock') }}" target="_blank"
+                        class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chart-pie fa-sm"></i>
+                        Dashboard Analytics
                     </a>
                 </div>
             </div>
@@ -161,10 +114,10 @@
                             <th>No. Opname</th>
                             <th>Tgl. Opname</th>
                             <th>Periode</th>
-                            <th>No. Carton</th>
-                            <th>No. Pallet</th>
-                            <th>Status</th>
+                            <th>Keterangan</th>
+                            <th>Total Carton</th>
                             <th>Total Qty</th>
+                            <th>Status</th>
                             <th style="width: 8%;">Aksi</th>
                         </tr>
                     </thead>
@@ -180,11 +133,104 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/moment/moment.min.js') }}"></script>
+    <script src="{{ asset('plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
 
     <script>
         $(document).ready(function() {
             dataTableReload();
         })
+
+        // Modal New Opname
+        $('#new_periode_picker').datetimepicker({
+            format: 'YYYY-MM',
+            viewMode: 'months',
+        });
+
+        $('#modalNewOpname').on('show.bs.modal', function() {
+            let today = new Date().toISOString().slice(0, 10);
+            $('#new_inp_periode').val(today.slice(0, 7));
+            $('#new_inp_tgl_opname').val(today);
+            $('#new_inp_ket').val('');
+            updateNewTglOpnameRange();
+        });
+
+        $('#new_periode_picker').on('change.datetimepicker', function() {
+            updateNewTglOpnameRange();
+        });
+
+        function updateNewTglOpnameRange() {
+            let periode = $('#new_inp_periode').val();
+
+            if (!periode) {
+                return;
+            }
+
+            let periodeStart = periode + '-01';
+            let periodeEnd = new Date(periode + '-01T00:00:00');
+            periodeEnd.setMonth(periodeEnd.getMonth() + 1);
+            periodeEnd.setDate(0);
+            let periodeEndStr = periodeEnd.toISOString().slice(0, 10);
+
+            let $inpTgl = $('#new_inp_tgl_opname');
+            $inpTgl.attr('min', periodeStart).attr('max', periodeEndStr);
+
+            if (!$inpTgl.val() || $inpTgl.val() < periodeStart || $inpTgl.val() > periodeEndStr) {
+                let todayStr = new Date().toISOString().slice(0, 10);
+                $inpTgl.val((todayStr >= periodeStart && todayStr <= periodeEndStr) ? todayStr :
+                    periodeStart);
+            }
+        }
+
+        function lanjutkanNewOpname() {
+            let periode = $('#new_inp_periode').val();
+            let tglOpname = $('#new_inp_tgl_opname').val();
+            let ket = $('#new_inp_ket').val();
+
+            if (!periode || !tglOpname) {
+                Swal.fire({
+                    title: 'Lengkapi Periode dan Tgl. Opname!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            let $btn = $('#btn_lanjutkan_new_opname').prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store-opname-header-fg-stock') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    periode: periode,
+                    tgl_opname: tglOpname,
+                    ket: ket,
+                },
+                success: function(response) {
+                    Swal.fire({
+                        title: response.message,
+                        icon: 'success',
+                        showConfirmButton: true,
+                    }).then(() => {
+                        window.location.href = '{{ route('create-opname-fg-stock') }}?no_opname=' +
+                            encodeURIComponent(response.no_opname);
+                    });
+                },
+                error: function(xhr) {
+                    let message = xhr.responseJSON && xhr.responseJSON.message ?
+                        xhr.responseJSON.message : 'Gagal membuat data opname!';
+                    Swal.fire({
+                        title: message,
+                        icon: 'warning',
+                        showConfirmButton: true,
+                    });
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                },
+            });
+        }
 
         function dataTableReload() {
             $("#datatable").DataTable({
@@ -212,11 +258,14 @@
                         data: 'periode_fix'
                     },
                     {
-                        data: 'no_carton'
+                        data: 'ket',
+                        render: (data) => data || '-'
                     },
                     {
-                        data: 'no_pallet',
-                        render: (data) => data || '-'
+                        data: 'total_carton'
+                    },
+                    {
+                        data: 'total_qty'
                     },
                     {
                         data: 'status',
@@ -230,43 +279,14 @@
                         }
                     },
                     {
-                        data: 'total_qty'
-                    },
-                    {
                         data: null,
                         render: (data, type, row) => {
-                            let isOpen = row.status === 'OPEN';
-                            let printBtn = isOpen ?
-                                `<a class="btn btn-outline-primary btn-sm" href="javascript:void(0)"
-                                    onclick="notifBelumClosed()" title="Cetak QR">
-                                    <i class="fas fa-qrcode fa-sm"></i>
-                                </a>` :
-                                `<a class="btn btn-outline-primary btn-sm" target="_blank"
-                                    href="{{ route('print-qr-opname-fg-stock') }}?no_carton=${encodeURIComponent(row.no_carton)}&periode=${encodeURIComponent(row.periode)}&no_opname=${encodeURIComponent(row.no_opname)}"
-                                    title="Cetak QR">
-                                    <i class="fas fa-qrcode fa-sm"></i>
-                                </a>`;
-
-                            let editBtn = isOpen ?
-                                `<a class="btn btn-outline-warning btn-sm"
-                                    href="{{ route('create-opname-fg-stock') }}?no_carton=${encodeURIComponent(row.no_carton)}&periode=${encodeURIComponent(row.periode)}"
-                                    title="Edit">
-                                    <i class="fas fa-edit fa-sm"></i>
-                                </a>` :
-                                `<a class="btn btn-outline-warning btn-sm" href="javascript:void(0)"
-                                    onclick="notifSudahClosed()" title="Edit">
-                                    <i class="fas fa-edit fa-sm"></i>
-                                </a>`;
-
                             return `
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a class="btn btn-outline-secondary btn-sm" href="javascript:void(0)"
-                                        onclick='viewDetailItem(${JSON.stringify(row)})' title="View">
-                                        <i class="fas fa-eye fa-sm"></i>
-                                    </a>
-                                    ${editBtn}
-                                    ${printBtn}
-                                </div>`;
+                                <a class="btn btn-outline-primary btn-sm"
+                                    href="{{ route('create-opname-fg-stock') }}?no_opname=${encodeURIComponent(row.no_opname)}"
+                                    title="Buka">
+                                    <i class="fas fa-folder-open fa-sm"></i> Buka
+                                </a>`;
                         }
                     },
                 ],
@@ -275,10 +295,6 @@
                     "targets": "_all"
                 }, ]
             });
-        }
-
-        function notif() {
-            alert("Maaf, Fitur belum tersedia!");
         }
 
         function exportExcel() {
@@ -329,96 +345,5 @@
             });
         }
 
-        function notifBelumClosed() {
-            Swal.fire({
-                title: 'Opname masih OPEN!',
-                text: 'Selesaikan (Finish) opname terlebih dahulu sebelum bisa cetak QR.',
-                icon: 'warning',
-                showConfirmButton: true,
-            });
-        }
-
-        function notifSudahClosed() {
-            Swal.fire({
-                title: 'Opname sudah CLOSED!',
-                text: 'Data ini tidak bisa diedit lagi. Gunakan tombol View untuk melihat detailnya.',
-                icon: 'warning',
-                showConfirmButton: true,
-            });
-        }
-
-        function viewDetailItem(row) {
-            $('#inp_search_detail_item').val('');
-            $('#detail_total_qty').text(0);
-            $('#detail_item_body').html(
-                '<tr><td colspan="9" class="text-center">Memuat data...</td></tr>');
-            let statusCls = row.status === 'CLOSED' ? 'badge-status-closed' : 'badge-status-open';
-            let statusBadge = row.status ?
-                `<span class="badge ${statusCls}">${row.status}</span>` : '-';
-
-            $('#detail_item_header').html(
-                `<i class="fas fa-box-open"></i> No. Opname: <b>${row.no_opname}</b> &nbsp;|&nbsp; No. Carton: <b>${row.no_carton}</b> &nbsp;|&nbsp; No. Pallet: <b>${row.no_pallet || '-'}</b> &nbsp;|&nbsp; Status: ${statusBadge}`
-            );
-
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDetailItem')).show();
-
-            $.get('{{ route('get-opname-items-fg-stock') }}', {
-                no_carton: row.no_carton,
-                periode: row.periode
-            }, function(response) {
-                $('#detail_item_body').empty();
-
-                if (!response.items || response.items.length === 0) {
-                    $('#detail_item_body').html(
-                        '<tr><td colspan="9" class="text-center">Belum ada item</td></tr>');
-                    updateDetailTotalQty();
-                    return;
-                }
-
-                response.items.forEach(function(item, i) {
-                    let destLabel = item.dest ? item.dest : '-';
-                    let searchText =
-                        `${item.buyer} ${item.ws} ${item.styleno} ${item.dest} ${item.color} ${item.size} ${item.grade}`
-                        .toLowerCase();
-                    $('#detail_item_body').append(`
-                        <tr data-qty="${item.qty}" data-search="${searchText}">
-                            <td class="text-center">${i + 1}</td>
-                            <td class="text-center">${item.buyer}</td>
-                            <td class="text-center">${item.ws}</td>
-                            <td class="text-center">${item.styleno}</td>
-                            <td class="text-center">${destLabel}</td>
-                            <td class="text-center">${item.color}</td>
-                            <td class="text-center">${item.size}</td>
-                            <td class="text-center">${item.grade}</td>
-                            <td class="text-center"><span class="qty-pill">${item.qty}</span></td>
-                        </tr>`);
-                });
-
-                updateDetailTotalQty();
-            }).fail(function() {
-                $('#detail_item_body').html(
-                    '<tr><td colspan="9" class="text-center text-danger">Gagal memuat data</td></tr>');
-                updateDetailTotalQty();
-            });
-        }
-
-        function updateDetailTotalQty() {
-            let total = 0;
-            $('#detail_item_body tr[data-qty]:visible').each(function() {
-                total += parseFloat($(this).data('qty')) || 0;
-            });
-            $('#detail_total_qty').text(total);
-        }
-
-        $('#inp_search_detail_item').on('keyup', function() {
-            let keyword = $(this).val().toLowerCase().trim();
-
-            $('#detail_item_body tr[data-search]').each(function() {
-                let match = $(this).data('search').toString().includes(keyword);
-                $(this).toggle(match);
-            });
-
-            updateDetailTotalQty();
-        });
     </script>
 @endsection

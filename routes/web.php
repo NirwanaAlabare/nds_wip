@@ -708,20 +708,38 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-qr', 'printQr')->name('print-qr-opname-fg-stock');
         Route::get('/get-master-carton', 'getMasterCarton')->name('get-master-carton-opname-fg-stock');
         Route::post('/store-master-carton', 'storeMasterCarton')->name('store-master-carton-opname-fg-stock');
+        Route::get('/get-master-pallet', 'getMasterPallet')->name('get-master-pallet-opname-fg-stock');
+        Route::post('/store-master-pallet', 'storeMasterPallet')->name('store-master-pallet-opname-fg-stock');
         Route::get('/get-buyer', 'getBuyer')->name('get-buyer-opname-fg-stock');
         Route::get('/get-ws', 'getWs')->name('get-ws-opname-fg-stock');
         Route::get('/get-buyer-by-ws', 'getBuyerByWs')->name('get-buyer-by-ws-opname-fg-stock');
+        Route::get('/get-buyer-ws', 'getBuyerWs')->name('get-buyer-ws-opname-fg-stock');
         Route::get('/get-style', 'getStyle')->name('get-style-opname-fg-stock');
         Route::get('/get-dest', 'getDest')->name('get-dest-opname-fg-stock');
         Route::get('/get-color', 'getColor')->name('get-color-opname-fg-stock');
         Route::get('/get-size', 'getSize')->name('get-size-opname-fg-stock');
         Route::get('/get-grade', 'getGrade')->name('get-grade-opname-fg-stock');
+        Route::post('/store-header', 'storeOpnameHeader')->name('store-opname-header-fg-stock');
+        Route::get('/get-header', 'getOpnameHeader')->name('get-opname-header-fg-stock');
         Route::post('/store', 'storeOpname')->name('store-opname-fg-stock');
         Route::post('/cancel-item', 'cancelOpnameItem')->name('cancel-opname-item-fg-stock');
         Route::post('/update-item', 'updateOpnameItem')->name('update-opname-item-fg-stock');
+        Route::post('/update-carton-pallet', 'updateCartonPallet')->name('update-carton-pallet-opname-fg-stock');
         Route::get('/get-opname-items', 'getOpnameItems')->name('get-opname-items-fg-stock');
         Route::post('/finish', 'finishOpname')->name('finish-opname-fg-stock');
+        Route::post('/finish-carton', 'finishOpnameCarton')->name('finish-carton-opname-fg-stock');
+        Route::post('/change-carton-status', 'changeCartonStatus')->name('change-carton-status-opname-fg-stock');
+        Route::post('/reopen-carton', 'reopenCarton')->name('reopen-carton-opname-fg-stock');
         Route::get('/export-excel', 'exportExcel')->name('export-excel-opname-fg-stock');
+        Route::get('/dashboard', 'dashboardAnalytics')->name('dashboard-analytics-opname-fg-stock');
+        Route::get('/dashboard/opname-list', 'getOpnameList')->name('get-opname-list-opname-fg-stock');
+        Route::get('/dashboard/summary', 'getSummary')->name('get-summary-opname-fg-stock');
+        Route::get('/dashboard/chart-grade', 'getChartGrade')->name('get-chart-grade-opname-fg-stock');
+        Route::get('/dashboard/chart-buyer', 'getChartBuyer')->name('get-chart-buyer-opname-fg-stock');
+        Route::get('/dashboard/master-data', 'getMasterData')->name('get-master-data-opname-fg-stock');
+        Route::get('/dashboard/warehouse-map', 'getWarehouseMap')->name('get-warehouse-map-opname-fg-stock');
+        Route::get('/dashboard/warehouse-filter-options', 'getWarehouseFilterOptions')->name('get-warehouse-filter-options-opname-fg-stock');
+        Route::get('/dashboard/pallet-detail', 'getPalletDetail')->name('get-pallet-detail-opname-fg-stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
