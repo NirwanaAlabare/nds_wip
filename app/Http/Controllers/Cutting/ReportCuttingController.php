@@ -3188,7 +3188,7 @@ SELECT
 		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+		WHERE jd.cancel = 'N'
 		GROUP BY jd.id_jo
 ) k on sf.ws = k.kpno
 order by  ws asc, color asc
@@ -4124,7 +4124,7 @@ SELECT
 		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+		WHERE jd.cancel = 'N'
 		GROUP BY jd.id_jo
 ) k on sf.ws = k.kpno
 order by  ws asc, color asc
@@ -4682,18 +4682,20 @@ order by  ws asc, color asc
                             $groupBy
                     ) mut
                     LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
+                    LEFT JOIN (select tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll 
                     LEFT JOIN (
                         SELECT
                             ac.kpno,
                             supplier as buyer,
-                            styleno
+                            styleno,
+                            ac.status
                         FROM signalbit_erp.jo_det jd
                         INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+                        WHERE jd.cancel = 'N'
                         GROUP BY jd.id_jo
-                    ) k ON mut.ws = k.kpno
+                    ) k ON mut.ws = k.kpno and (CASE WHEN whs.tgl_bppb >= '2026-07-01' THEN (k.status != 'CANCEL' OR k.status IS NULL) ELSE k.kpno IS NOT NULL END)
                     GROUP BY $groupBy
                     HAVING
                         ROUND(
@@ -5261,18 +5263,20 @@ order by  ws asc, color asc
                     $groupBy
             ) mut
             LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
+            LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs 
             LEFT JOIN (
                 SELECT
                     ac.kpno,
                     supplier as buyer,
-                    styleno
+                    styleno,
+                    ac.status
                 FROM signalbit_erp.jo_det jd
                 INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
                 INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+                WHERE jd.cancel = 'N'
                 GROUP BY jd.id_jo
-            ) k ON mut.ws = k.kpno
+            ) k ON mut.ws = k.kpno and (CASE WHEN whs.tgl_bppb >= '2026-07-01' THEN (k.status != 'CANCEL' OR k.status IS NULL) ELSE k.kpno IS NOT NULL END)
             GROUP BY $groupBy
             HAVING
                 ROUND(
@@ -5520,7 +5524,7 @@ LEFT JOIN (SELECT
 				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+				WHERE jd.cancel = 'N'
 				GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
 where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
 
@@ -5593,7 +5597,7 @@ where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Produc
                             INNER JOIN signalbit_erp.so ON jd.id_so = so.id
                             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                            WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+                            WHERE jd.cancel = 'N'
                             GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
             where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
 
@@ -5905,7 +5909,7 @@ LEFT JOIN (SELECT
 				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+				WHERE jd.cancel = 'N'
 				GROUP BY jd.id_jo
 ) k on a.ws = k.kpno
 LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
@@ -5971,7 +5975,7 @@ order by a.tgl_trans asc
                         INNER JOIN signalbit_erp.so ON jd.id_so = so.id
                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
+                        WHERE jd.cancel = 'N'
                         GROUP BY jd.id_jo
         ) k on a.ws = k.kpno
         LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
