@@ -631,24 +631,25 @@ m.size,
 sum(qty_trf) qty_trf,
 sum(qty_packing_in) qty_packing_in,
 sum(qty_packing_out) qty_packing_out,
+sum(qty_packing_list) qty_packing_list,
 m.ws,
 a.created_by,
 a.created_at,
 pl.id id_pl
 from (
-select id id_ppic_master_so, qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out from ppic_master_so a
+select id id_ppic_master_so, qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out, '0' qty_packing_list from ppic_master_so a
 where po = '$po'
 group by id, po
 union
-select id_ppic_master_so, '0' qty_po , sum(qty) qty_trf, '0' qty_packing_in, '0' qty_packing_out from packing_trf_garment
+select id_ppic_master_so, '0' qty_po , sum(qty) qty_trf, '0' qty_packing_in, '0' qty_packing_out, '0' qty_packing_list from packing_trf_garment
 where po = '$po'
 group by id_ppic_master_so, po
 union
-select id_ppic_master_so, '0' qty_po , '0' qty_trf, sum(qty) qty_packing_in, '0' qty_packing_out from packing_packing_in
+select id_ppic_master_so, '0' qty_po , '0' qty_trf, sum(qty) qty_packing_in, '0' qty_packing_out, '0' qty_packing_list from packing_packing_in
 where po = '$po'
 group by id_ppic_master_so, po
 union
-select p.id id_ppic_master_so, '0' qty_po , '0' qty_trf, '0' qty_packing_in, qty_packing_out from
+select p.id id_ppic_master_so, '0' qty_po , '0' qty_trf, '0' qty_packing_in, qty_packing_out, '0' qty_packing_list from
 (
 select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
 where po = '$po'
@@ -656,6 +657,10 @@ group by barcode, po, dest
 ) a
 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
 group by p.id
+union
+select id_ppic_master_so, '0' qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out, sum(qty) qty_packing_list from packing_master_packing_list
+where po = '$po'
+group by id_ppic_master_so, po
 ) mut
 inner join ppic_master_so a on mut.id_ppic_master_so = a.id
 inner join master_sb_ws m on a.id_so_det = m.id_so_det

@@ -402,6 +402,154 @@ group by a.po, a.dest
     }
 
 
+    // DEPRECATED
+    // public function store(Request $request)
+    // {
+    //     $timestamp  = Carbon::now();
+    //     $user       = Auth::user()->name;
+    //     $barcode    = $request->barcode;
+    //     $cbopo    = $request->cbopo;
+    //     $no_carton    = $request->cbono_carton;
+    //     $dest    = $request->txtdest;
+    //     // $no_carton_cek    = $request->cbono_carton;
+    //     // $cekArray = explode('_', $no_carton_cek);
+    //     // $no_carton = $cekArray[0];
+    //     // $notes = $cekArray[1];
+
+
+
+    //     $cek_po_by_ppic = DB::select("
+    //             select * from ppic_master_so where id = '$cbopo'
+    //         ");
+    //     $cek_dest_po = $cek_po_by_ppic[0]->po;
+
+    //     $tgl_trans = date('Y-m-d');
+
+    //     $cek_po = DB::select("
+    //             select * from ppic_master_so where barcode = '$barcode' and  dest = '$dest' and po = '$cek_dest_po'
+    //         ");
+
+    //     if(!$cek_po){
+    //             return array(
+    //             'icon' => 'salah',
+    //             'msg' => 'Data tidak ada di Master PPIC',
+    //         );
+    //     }
+
+
+    //     $id_so_det =  $cek_po[0]->id_so_det;
+    //     $id_ppic =  $cek_po[0]->id;
+
+
+    //     $cek_data = DB::select("
+    //     select count(barcode) cek from ppic_master_so p
+    //     where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
+    //     ");
+
+
+    //     $cek_data_fix = $cek_data[0]->cek;
+    //     // dd("select count(barcode) cek from ppic_master_so p
+    //     // where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'");
+
+    //     if ($cek_data_fix >= '1') {
+
+    //         $cek_stok = DB::select("
+    //         select coalesce(pack_in.tot_in,0) - coalesce(pack_out.tot_out,0) - coalesce(pack_switch.qty_switch,0) tot_s
+    //         from ppic_master_so p
+    //         left join
+    //         (
+    //             SELECT sum( packing_packing_in.qty ) tot_in, packing_packing_in.id_ppic_master_so FROM packing_packing_in inner join ppic_master_so on ppic_master_so.id = packing_packing_in.id_ppic_master_so WHERE packing_packing_in.barcode = '$barcode' AND ppic_master_so.po = '$cek_dest_po' AND ppic_master_so.dest = '$dest' GROUP BY id_ppic_master_so
+    //         ) pack_in on p.id = pack_in.id_ppic_master_so
+    //         left join
+    //         (
+    //             select count(p.barcode) tot_out, p.id
+    //             from packing_packing_out_scan a
+    //             inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+    //             where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$dest'
+    //             group by a.barcode, a.po
+    //         ) pack_out on p.id = pack_out.id
+    //         LEFT JOIN
+    //         (
+    //             SELECT
+    //                 asal_ppic_master_so_id,
+    //                 SUM(qty_switch) AS qty_switch
+    //             FROM packing_central_switching
+    //             GROUP BY asal_ppic_master_so_id
+    //         ) pack_switch
+    //             ON p.id = pack_switch.asal_ppic_master_so_id
+    //         where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
+    //         ");
+
+    //         $cek_stok_fix = $cek_stok[0]->tot_s;
+
+    //         $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from
+    //         (select po, no_carton, barcode, dest ,qty from packing_master_packing_list
+    //         where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+    //         )a
+    //         left join
+    //         (
+    //         select po, no_carton, barcode, dest,count(barcode) tot_input
+    //         from packing_packing_out_scan
+    //         where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+    //         ) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
+
+    //         if ($cek_qty_isi_karton) {
+    //             $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
+    //             $tot_out = $cek_qty_isi_karton[0]->tot_input;
+    //             if ($cek_stok_fix >= '1') {
+
+    //                 if ($cek_qty_isi > $tot_out) {
+    //                     $insert = DB::insert("
+    //                         insert into packing_packing_out_scan
+    //                         (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at, id_so_det, id_ppic)
+    //                         values
+    //                         (
+    //                             '$tgl_trans',
+    //                             '$barcode',
+    //                             '$cek_dest_po',
+    //                             '$dest',
+    //                             '$no_carton',
+    //                             '-',
+    //                             '$user',
+    //                             '$timestamp',
+    //                             '$timestamp',
+    //                             '$id_so_det',
+    //                             '$id_ppic'
+    //                         )
+    //                     ");
+    //                     return array(
+    //                         'icon' => 'benar',
+    //                         'msg' => 'Data berhasil Disimpan',
+    //                     );
+    //                 } else if ($cek_qty_isi == $tot_out) {
+    //                     return array(
+    //                         'icon' => 'lebih',
+    //                         'msg' => 'Data sudah melebihi qty karton',
+    //                     );
+    //                 } else {
+    //                     return array(
+    //                         'icon' => 'salah',
+    //                         'msg' => 'Tidak Ada Data 1',
+    //                     );
+    //                 }
+    //             } else
+    //                 return array(
+    //                     'icon' => 'salah',
+    //                     'msg' => 'Tidak Ada Stok',
+    //                 );
+    //         } else
+    //             return array(
+    //                 'icon' => 'salah',
+    //                 'msg' => 'Tidak Ada Data 2',
+    //             );
+    //     } else {
+    //         return array(
+    //             'icon' => 'salah',
+    //             'msg' => 'Data tidak ada di packing list',
+    //         );
+    //     }
+    // }
+
     public function store(Request $request)
     {
         $timestamp  = Carbon::now();
@@ -410,143 +558,376 @@ group by a.po, a.dest
         $cbopo    = $request->cbopo;
         $no_carton    = $request->cbono_carton;
         $dest    = $request->txtdest;
-        // $no_carton_cek    = $request->cbono_carton;
-        // $cekArray = explode('_', $no_carton_cek);
-        // $no_carton = $cekArray[0];
-        // $notes = $cekArray[1];
 
+        return DB::transaction(function () use (
+            $cbopo,
+            $barcode,
+            $dest,
+            $no_carton,
+            $user,
+            $timestamp
+        ) {
 
-
-        $cek_po_by_ppic = DB::select("
-                select * from ppic_master_so where id = '$cbopo'
+            // =========================================================
+            // CEK PO PPIC
+            // =========================================================
+            $cek_po_by_ppic = DB::select("
+                SELECT *
+                FROM ppic_master_so
+                WHERE id = '$cbopo'
+                FOR UPDATE
             ");
-        $cek_dest_po = $cek_po_by_ppic[0]->po;
 
-        $tgl_trans = date('Y-m-d');
+            if (!$cek_po_by_ppic) {
+                return [
+                    'icon' => 'salah',
+                    'msg' => 'Data PO PPIC tidak ditemukan',
+                ];
+            }
 
-        $cek_po = DB::select("
-                select * from ppic_master_so where barcode = '$barcode' and  dest = '$dest' and po = '$cek_dest_po'
+            $cek_dest_po = $cek_po_by_ppic[0]->po;
+
+            $tgl_trans = date('Y-m-d');
+
+
+            // =========================================================
+            // CEK BARCODE DI MASTER PPIC
+            // =========================================================
+            $cek_po = DB::select("
+                SELECT *
+                FROM ppic_master_so
+                WHERE barcode = '$barcode'
+                AND dest = '$dest'
+                AND po = '$cek_dest_po'
             ");
 
-        if(!$cek_po){
-                return array(
-                'icon' => 'salah',
-                'msg' => 'Data tidak ada di Master PPIC',
-            );
-        }
+            if (!$cek_po) {
+                return [
+                    'icon' => 'salah',
+                    'msg' => 'Data tidak ada di Master PPIC',
+                ];
+            }
+
+            $id_so_det = $cek_po[0]->id_so_det;
+            $id_ppic   = $cek_po[0]->id;
 
 
-        $id_so_det =  $cek_po[0]->id_so_det;
-        $id_ppic =  $cek_po[0]->id;
+            // =========================================================
+            // CEK DATA BARCODE
+            // =========================================================
+            $cek_data = DB::select("
+                SELECT COUNT(barcode) AS cek
+                FROM ppic_master_so p
+                WHERE barcode = '$barcode'
+                AND po = '$cek_dest_po'
+                AND dest = '$dest'
+            ");
+
+            $cek_data_fix = $cek_data[0]->cek;
+
+            if ($cek_data_fix < 1) {
+                return [
+                    'icon' => 'salah',
+                    'msg' => 'Data tidak ada di packing list',
+                ];
+            }
 
 
-        $cek_data = DB::select("
-        select count(barcode) cek from ppic_master_so p
-        where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
-        ");
+            // =========================================================
+            // LOCK PACKING LIST
+            // =========================================================
+            // INI BAGIAN PALING PENTING
+            //
+            // Request pertama akan mendapatkan lock.
+            // Request kedua dengan barcode + PO + dest + carton yang sama
+            // akan menunggu sampai request pertama selesai.
+            // =========================================================
+
+            $packing_list = DB::table('packing_master_packing_list')
+                ->where('po', $cek_dest_po)
+                ->where('no_carton', $no_carton)
+                ->where('barcode', $barcode)
+                ->where('dest', $dest)
+                ->lockForUpdate()
+                ->first();
 
 
-        $cek_data_fix = $cek_data[0]->cek;
-        // dd("select count(barcode) cek from ppic_master_so p
-        // where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'");
+            // =========================================================
+            // CEK PACKING LIST
+            // =========================================================
+            if (!$packing_list) {
+                return [
+                    'icon' => 'salah',
+                    'msg' => 'Data tidak ada di packing list',
+                ];
+            }
 
-        if ($cek_data_fix >= '1') {
+            $cek_qty_isi = $packing_list->qty;
+
+
+            // =========================================================
+            // CEK STOK
+            // =========================================================
+            //
+            // Query ini dilakukan SETELAH lock.
+            // Jadi kalau ada request lain yang sudah insert,
+            // hasil tot_out akan ikut ter-update.
+            // =========================================================
 
             $cek_stok = DB::select("
-            select coalesce(pack_in.tot_in,0) - coalesce(pack_out.tot_out,0) - coalesce(pack_switch.qty_switch,0) tot_s
-            from ppic_master_so p
-            left join
-            (
-                SELECT sum( packing_packing_in.qty ) tot_in, packing_packing_in.id_ppic_master_so FROM packing_packing_in inner join ppic_master_so on ppic_master_so.id = packing_packing_in.id_ppic_master_so WHERE packing_packing_in.barcode = '$barcode' AND ppic_master_so.po = '$cek_dest_po' AND ppic_master_so.dest = '$dest' GROUP BY id_ppic_master_so
-            ) pack_in on p.id = pack_in.id_ppic_master_so
-            left join
-            (
-                select count(p.barcode) tot_out, p.id
-                from packing_packing_out_scan a
-                inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-                where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$dest'
-                group by a.barcode, a.po
-            ) pack_out on p.id = pack_out.id
-            LEFT JOIN
-            (
                 SELECT
-                    asal_ppic_master_so_id,
-                    SUM(qty_switch) AS qty_switch
-                FROM packing_central_switching
-                GROUP BY asal_ppic_master_so_id
-            ) pack_switch
-                ON p.id = pack_switch.asal_ppic_master_so_id
-            where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
+                    COALESCE(pack_in.tot_in, 0)
+                    + COALESCE(pack_switch_in.qty_switch_masuk, 0)
+                    - COALESCE(pack_out.tot_out, 0)
+                    - COALESCE(pack_switch.qty_switch, 0) AS tot_s
+
+                FROM ppic_master_so p
+
+                LEFT JOIN
+                (
+                    SELECT
+                        SUM(packing_packing_in.qty) AS tot_in,
+                        packing_packing_in.id_ppic_master_so,
+                        packing_packing_in.id_so_det
+
+                    FROM packing_packing_in
+
+                    INNER JOIN ppic_master_so
+                        ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+
+                    WHERE packing_packing_in.barcode = '$barcode'
+                    AND ppic_master_so.po = '$cek_dest_po'
+                    AND ppic_master_so.dest = '$dest'
+
+                    GROUP BY
+                        packing_packing_in.id_ppic_master_so,
+                        packing_packing_in.id_so_det
+                ) pack_in
+                    ON p.id = pack_in.id_ppic_master_so
+
+                LEFT JOIN
+                (
+                    SELECT
+                        COUNT(*) AS tot_out,
+                        a.id_ppic,
+                        a.id_so_det
+
+                    FROM packing_packing_out_scan a
+
+                    INNER JOIN ppic_master_so p
+                        ON a.barcode = p.barcode
+                        AND a.po = p.po
+                        AND a.dest = p.dest
+
+                    WHERE p.barcode = '$barcode'
+                    AND p.po = '$cek_dest_po'
+                    AND p.dest = '$dest'
+
+                    GROUP BY
+                        a.id_ppic,
+                        a.id_so_det
+                ) pack_out
+                    ON p.id = pack_out.id_ppic
+                    AND pack_in.id_so_det = pack_out.id_so_det
+
+                LEFT JOIN
+                (
+                    SELECT
+                        asal_ppic_master_so_id,
+                        asal_so_det_id,
+                        SUM(qty_switch) AS qty_switch
+
+                    FROM packing_central_switching
+
+                    GROUP BY
+                        asal_ppic_master_so_id,
+                        asal_so_det_id
+                ) pack_switch
+                    ON p.id = pack_switch.asal_ppic_master_so_id
+                    AND pack_in.id_so_det = pack_switch.asal_so_det_id
+
+                LEFT JOIN
+                (
+                    SELECT
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id,
+                        SUM(qty_switch) AS qty_switch_masuk
+
+                    FROM packing_central_switching
+
+                    GROUP BY
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id
+                ) pack_switch_in
+                    ON p.id = pack_switch_in.tujuan_ppic_master_so_id
+                    AND pack_in.id_so_det = pack_switch_in.tujuan_so_det_id
+
+                WHERE p.barcode = '$barcode'
+                AND p.po = '$cek_dest_po'
+                AND p.dest = '$dest'
             ");
 
-            $cek_stok_fix = $cek_stok[0]->tot_s;
+            $cek_stok_fix = $cek_stok[0]->tot_s ?? 0;
 
-            $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from
-            (select po, no_carton, barcode, dest ,qty from packing_master_packing_list
-            where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
-            )a
-            left join
-            (
-            select po, no_carton, barcode, dest,count(barcode) tot_input
-            from packing_packing_out_scan
-            where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
-            ) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
+            // =========================================================
+            // CEK STOK
+            // =========================================================
 
-            if ($cek_qty_isi_karton) {
-                $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
-                $tot_out = $cek_qty_isi_karton[0]->tot_input;
-                if ($cek_stok_fix >= '1') {
+            if ($cek_stok_fix < 1) {
+                return [
+                    'icon' => 'salah',
+                    'msg' => 'Tidak Ada Stok',
+                ];
+            }
 
-                    if ($cek_qty_isi > $tot_out) {
-                        $insert = DB::insert("
-                            insert into packing_packing_out_scan
-                            (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at, id_so_det, id_ppic)
-                            values
-                            (
-                                '$tgl_trans',
-                                '$barcode',
-                                '$cek_dest_po',
-                                '$dest',
-                                '$no_carton',
-                                '-',
-                                '$user',
-                                '$timestamp',
-                                '$timestamp',
-                                '$id_so_det',
-                                '$id_ppic'
-                            )
-                        ");
-                        return array(
-                            'icon' => 'benar',
-                            'msg' => 'Data berhasil Disimpan',
-                        );
-                    } else if ($cek_qty_isi == $tot_out) {
-                        return array(
-                            'icon' => 'lebih',
-                            'msg' => 'Data sudah melebihi qty karton',
-                        );
-                    } else {
-                        return array(
-                            'icon' => 'salah',
-                            'msg' => 'Tidak Ada Data 1',
-                        );
-                    }
-                } else
-                    return array(
-                        'icon' => 'salah',
-                        'msg' => 'Tidak Ada Stok',
-                    );
-            } else
-                return array(
+
+            // =========================================================
+            // HITUNG TOTAL SUDAH OUT
+            // =========================================================
+            //
+            // Karena packing_master_packing_list sudah di-lock,
+            // request yang sama akan masuk secara bergantian.
+            // =========================================================
+
+            $cek_qty_isi_karton = DB::select("
+                SELECT
+                    qty,
+                    COALESCE(tot_input, 0) AS tot_input
+
+                FROM
+                (
+                    SELECT
+                        po,
+                        no_carton,
+                        barcode,
+                        dest,
+                        qty
+
+                    FROM packing_master_packing_list
+
+                    WHERE po = '$cek_dest_po'
+                    AND no_carton = '$no_carton'
+                    AND barcode = '$barcode'
+                    AND dest = '$dest'
+                ) a
+
+                LEFT JOIN
+                (
+                    SELECT
+                        po,
+                        no_carton,
+                        barcode,
+                        dest,
+                        COUNT(barcode) AS tot_input
+
+                    FROM packing_packing_out_scan
+
+                    WHERE po = '$cek_dest_po'
+                    AND no_carton = '$no_carton'
+                    AND barcode = '$barcode'
+                    AND dest = '$dest'
+
+                    GROUP BY
+                        po,
+                        no_carton,
+                        barcode,
+                        dest
+
+                ) b
+                    ON a.po = b.po
+                    AND a.dest = b.dest
+                    AND a.no_carton = b.no_carton
+                    AND a.barcode = b.barcode
+            ");
+
+
+            // =========================================================
+            // CEK DATA KARTON
+            // =========================================================
+
+            if (!$cek_qty_isi_karton) {
+                return [
                     'icon' => 'salah',
                     'msg' => 'Tidak Ada Data 2',
-                );
-        } else {
-            return array(
+                ];
+            }
+
+
+            $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
+            $tot_out      = $cek_qty_isi_karton[0]->tot_input;
+
+
+            // =========================================================
+            // CEK QTY KARTON
+            // =========================================================
+
+            if ($cek_qty_isi > $tot_out) {
+
+                // =====================================================
+                // INSERT
+                // =====================================================
+
+                DB::insert("
+                    INSERT INTO packing_packing_out_scan
+                    (
+                        tgl_trans,
+                        barcode,
+                        po,
+                        dest,
+                        no_carton,
+                        notes,
+                        created_by,
+                        created_at,
+                        updated_at,
+                        id_so_det,
+                        id_ppic
+                    )
+                    VALUES
+                    (
+                        '$tgl_trans',
+                        '$barcode',
+                        '$cek_dest_po',
+                        '$dest',
+                        '$no_carton',
+                        '-',
+                        '$user',
+                        '$timestamp',
+                        '$timestamp',
+                        '$id_so_det',
+                        '$id_ppic'
+                    )
+                ");
+
+
+                return [
+                    'icon' => 'benar',
+                    'msg' => 'Data berhasil Disimpan',
+                ];
+            }
+
+
+            // =========================================================
+            // QTY SUDAH PENUH
+            // =========================================================
+
+            if ($cek_qty_isi == $tot_out) {
+                return [
+                    'icon' => 'lebih',
+                    'msg' => 'Data sudah melebihi qty karton',
+                ];
+            }
+
+
+            // =========================================================
+            // KONDISI LAIN
+            // =========================================================
+
+            return [
                 'icon' => 'salah',
-                'msg' => 'Data tidak ada di packing list',
-            );
-        }
+                'msg' => 'Tidak Ada Data 1',
+            ];
+
+        });
     }
 
     public function packing_out_show_tot_input(Request $request)

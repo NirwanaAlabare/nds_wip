@@ -172,6 +172,7 @@
                             <th class="text-center align-middle">Dest</th>
                             <th class="text-center align-middle">Qty PO</th>
                             <th class="text-center align-middle">Terima Packing Central</th>
+                            <th class="text-center align-middle">Retur</th>
                             <th class="text-center align-middle">Switching Out</th>
                             <th class="text-center align-middle">Switching In</th>
                             <th class="text-center align-middle">Scan</th>
@@ -337,6 +338,9 @@
                     },
                     {
                         data: 'qty_pck_in'
+                    },
+                    {
+                        data: 'qty_retur'
                     },
                     {
                         data: 'qty_switch_out'

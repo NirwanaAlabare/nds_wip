@@ -191,7 +191,7 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-
+                        let isAdmin =  "{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
                         let btnEdit = `
                             <a href="{{ url('lap_pemakaian/edit_alokasi_fabric_gr_panel') }}/${row.id}">
                                 <button type="button" class="btn btn-sm btn-primary">
@@ -209,8 +209,11 @@
 
                         return `
                             <div class="d-flex gap-1 justify-content-center">
-                                ${btnEdit}
-                                ${btnDelete}
+                                `+(
+                                    isAdmin > 0 ?
+                                    btnEdit + btnDelete : 
+                                    ''
+                                )+`
                             </div>
                         `;
                     }

@@ -199,11 +199,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6">
+                    <div class="col-3 col-md-3">
                         <div class="mb-1">
                             <label class="form-label">Operator</label>
                             <input type="text" class="form-control" id="edit_operator" name="edit_operator" value="{{ $piping->operator }}">
                             <input type="hidden" id="initial_edit_operator" name="initial_edit_operator" value="{{ $piping->operator }}">
+                        </div>
+                    </div>
+                    <div class="col-3 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label">Group</label>
+                            <input type="text" class="form-control" id="edit_group" name="edit_group" value="{{ $piping->group }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-6">

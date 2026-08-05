@@ -43,6 +43,7 @@
                 <table class="table table-bordered table-sm w-100" id="datatable-undo-packing-po">
                     <thead>
                         <tr>
+                            <th class="text-nowrap">Action</th>
                             <th class="text-nowrap">Tanggal</th>
                             <th class="text-nowrap">Kode Numbering</th>
                             <th class="text-nowrap">Type</th>
@@ -98,6 +99,22 @@
                     }
                 },
                 columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return `
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-success btn-restore"
+                                    data-id="${data}">
+                                    <i class="fas fa-undo"></i> Restore
+                                </button>
+                            `;
+                        }
+                    },
                     { data: 'updated_at' },
                     { data: 'kode_numbering' },
                     { data: 'output_type' },
@@ -119,7 +136,7 @@
                 columnDefs: [
                     { targets: '_all', className: 'text-nowrap', defaultContent: '-' },
                     {
-                        targets: [0, 13, 14, 15, 16],
+                        targets: [1, 14, 15, 16, 17],
                         render: function(data, type, row) {
                             return data ? formatDateTime(data) : '-';
                         }
@@ -129,7 +146,13 @@
                     var api = this.api();
                     $('#datatable-undo-packing-po thead tr:first').clone(true).appendTo('#datatable-undo-packing-po thead');
                     $('#datatable-undo-packing-po thead tr:eq(1) th').each(function(i) {
+                        if (i === 0) {
+                            $(this).html('');
+                            return;
+                        }
+
                         $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+
                         $('input', this).on('keyup change', function() {
                             if (api.column(i).search() !== this.value) {
                                 api.column(i).search(this.value).draw();
@@ -139,6 +162,51 @@
                 },
             });
         }
+
+         $(document).on('click', '.btn-restore', function () {
+            let id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Restore Data?',
+                text: 'Data yang sudah di-undo akan dikembalikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Restore',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        url: "{{ route('restore-undo-packing-po-list') }}",
+                        type: "POST",
+                        data: {
+                            id: id,
+                            department : $('#type').val(),
+                            _token: "{{ csrf_token() }}"
+                        },
+                        beforeSend: function () {
+                            Swal.showLoading();
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message ?? 'Data berhasil direstore.'
+                            });
+
+                            table.ajax.reload(null, false);
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.'
+                            });
+                        }
+                    });
+                }
+            });
+        });
 
         $(document).ready(function() {
             tableReload();

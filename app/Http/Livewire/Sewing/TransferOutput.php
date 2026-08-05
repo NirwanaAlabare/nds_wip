@@ -394,6 +394,7 @@ class TransferOutput extends Component
                     Log::channel('transferOutput')->info([
                         "Moving Output Data by QR Number",
                         $this->outputType,
+                        "QR : ". $newKodeNumbering,
                         "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                         "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."'",
                         "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",

@@ -36,7 +36,8 @@ class PipingController extends Controller
                 form_cut_piping.qty_sisa,
                 COALESCE(form_cut_piping.short_roll, 0) AS short_roll,
                 form_cut_piping.unit,
-                operator
+                operator,
+                form_cut_piping.group
             ")->
             leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_piping.id_roll");
 
@@ -116,7 +117,8 @@ class PipingController extends Controller
                 "qty_sisa" => $validatedRequest['qty_sisa'],
                 "short_roll" => $validatedRequest['short_roll'],
                 "unit" => $validatedRequest['unit'],
-                "operator" => $validatedRequest['operator']
+                "operator" => $validatedRequest['operator'],
+                "group" => $request->group
             ]);
 
             if ($storePiping) {
@@ -284,6 +286,7 @@ class PipingController extends Controller
             $piping->unit = $validatedRequest["edit_unit"];
             $piping->operator = $validatedRequest["edit_operator"];
             $piping->tanggal_piping = $validatedRequest["edit_tanggal"];
+            $piping->group = $request->edit_group;
             $piping->save();
 
             return array(

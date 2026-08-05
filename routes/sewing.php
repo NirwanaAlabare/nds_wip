@@ -174,16 +174,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
         Route::get('/restore-undo', 'restoreUndo')->name("restore-undo");
         Route::post('/restore-undo-submit', 'restoreUndoSubmit')->name("restore-undo-submit");
-
+        
         // Undo Output List
         Route::get('/undo-output-list', 'undoOutputList')->name("undo-output-list");
         Route::get('/get-undo-output-list', 'getUndoOutputList')->name("get-undo-output-list");
         Route::get('/export-undo-output-list', 'exportUndoOutputList')->name("export-undo-output-list");
+        Route::post('/restore-undo-output-list-submit', 'restoreUndoOutputListSubmit')->name("restore-undo-output-list-submit");
 
         // Undo Packing PO List
         Route::get('/undo-packing-po-list', 'undoPackingPoList')->name("undo-packing-po-list");
         Route::get('/get-undo-packing-po-list', 'getUndoPackingPoList')->name("get-undo-packing-po-list");
         Route::get('/export-undo-packing-po-list', 'exportUndoPackingPoList')->name("export-undo-packing-po-list");
+        Route::post('/restore-undo-packing-po-list', 'restoreUndoPackingPoList')->name("restore-undo-packing-po-list");
 
         // Reject IN OUT
         Route::get('/undo-reject', 'undoReject')->name("undo-reject");

@@ -34,6 +34,12 @@ use PDF;
 
 class StockerService
 {
+    public function getStockerForm($formCutId) {
+        $stockerForm = DB::table("stocker_input")->where("form_cut_id", $formCutId)->get();
+
+        return $stockerForm;
+    }
+
     public function getStockerForPrint(array $filters = [])
     {
         $formCutId = $filters['formCutId'] ?? null;

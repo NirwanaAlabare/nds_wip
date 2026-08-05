@@ -21,11 +21,12 @@ use App\Models\SignalBit\RejectInDetailPosition;
 use App\Models\SignalBit\RejectOut;
 use App\Models\SignalBit\RejectOutDetail;
 use App\Models\SignalBit\RejectPacking;
+use App\Models\SignalBit\RejectPackingPo; // Added for packing_po
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\RftPacking;
-use App\Models\SignalBit\RftPackingPo;
+use App\Models\SignalBit\RftPackingPo; // Added for packing_po
 use App\Models\SignalBit\SewingSecondaryIn;
 use App\Models\SignalBit\SewingSecondaryMaster;
 use App\Models\SignalBit\SoDet;
@@ -768,6 +769,189 @@ class SewingToolsController extends Controller
         $response = $sewingService->missPackingPo();
 
         return $response;
+    }
+
+    // DEPRECATED
+    // public function restoreUndoPackingPoList(Request $request)
+    // {
+    //     try {
+    //         $kodeNumbering = $request->input('kode_numbering');
+    //         $currentUserId = Auth::user() ? Auth::user()->id : null;
+    //         $currentUsername = Auth::user() ? Auth::user()->username : "System";
+    //         dd($kodeNumbering);
+
+    //         DB::connection('mysql_sb')->beginTransaction();
+
+    //         $message = [];
+    //         $undoPackingPos = UndoPackingPo::where('kode_numbering', $kodeNumbering)->get();
+
+    //         if ($undoPackingPos->isEmpty()) {
+    //             return response()->json([
+    //                 'status' => 404,
+    //                 'message' => 'No records found to restore for kode numbering: '.$kodeNumbering,
+    //             ]);
+    //         }
+
+    //         foreach ($undoPackingPos as $undo) {
+    //             switch ($undo->keterangan) {
+    //                 case 'rft':
+    //                     $rft = RftPackingPo::create([
+    //                         'id'                    => $undo->output_rft_id,
+    //                         'master_plan_id'        => $undo->master_plan_id,
+    //                         'so_det_id'             => $undo->so_det_id,
+    //                         'po_id'                 => $undo->po_id,
+    //                         'kode_numbering'        => $undo->kode_numbering,
+    //                         'alokasi'               => $undo->alokasi,
+    //                         'created_by'            => $undo->created_by,
+    //                         'created_by_username'   => $undo->created_by_username,
+    //                         'created_by_line'       => $undo->created_by_line,
+    //                         'created_at'            => $undo->created_at,
+    //                         'updated_at'            => $undo->updated_at,
+    //                     ]);
+    //                     if ($undo->alokasi == "gudang stok") {
+    //                         OutputGudangStok::create([
+    //                             'packing_po_id' => $undo->output_rft_id,
+    //                             'so_det_id' => $undo->so_det_id,
+    //                             'kode_numbering' => $undo->kode_numbering,
+    //                             'status' => 'in',
+    //                         ]);
+    //                     }
+    //                     $message[] = "RFT Packing PO ".$kodeNumbering." (ID: ".$undo->output_rft_id.") restored.";
+    //                     break;
+    //                 case 'reject':
+    //                     RftPackingPo::create([
+    //                         'id'                => $undo->output_reject_id,
+    //                         'master_plan_id'    => $undo->master_plan_id,
+    //                         'so_det_id'         => $undo->so_det_id,
+    //                         'kode_numbering'    => $undo->kode_numbering,
+    //                         'reject_type_id'    => $undo->reject_type_id,
+    //                         'reject_area_id'    => $undo->reject_area_id,
+    //                         'reject_area_x'     => $undo->reject_area_x,
+    //                         'reject_area_y'     => $undo->reject_area_y,
+    //                         'created_by'        => $undo->created_by,
+    //                         'created_at'        => $undo->created_at,
+    //                         'updated_at'        => $undo->updated_at,
+    //                     ]);
+    //                     $message[] = "Reject Packing PO ".$kodeNumbering." (ID: ".$undo->output_reject_id.") restored.";
+    //                     break;
+    //             }
+    //             $undo->delete();
+    //         }
+
+    //         DB::connection('mysql_sb')->commit();
+
+    //         Log::channel('restorePackingPo')->info("Restore Packing PO request successfully processed for kode_numbering: ".$kodeNumbering." by user: ".$currentUsername.". Details: ".implode(", ", $message));
+
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Restore request for '.$kodeNumbering.' processed successfully. '.(count($message) > 0 ? implode(". ", $message) : "No records found to restore."),
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::connection('mysql_sb')->rollBack();
+    //         Log::channel('restorePackingPo')->error("Error processing restore Packing PO request: ".$e->getMessage()." for kode_numbering: ".$request->input('kode_numbering')." by user: ".(Auth::user() ? Auth::user()->username : "System"));
+    //         return response()->json([
+    //             'status' => 500,
+    //             'message' => 'Failed to process restore request: '.$e->getMessage(),
+    //         ]);
+    //     }
+    // }
+
+    public function restoreUndoPackingPoList(Request $request)
+    {
+        $ids = addQuotesAround($request->id);
+        $department = 'packing_po';
+
+        if ($ids) {
+            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+
+            $rft = [];
+            $rftNds = [];
+            $defect = [];
+            $rework = [];
+            $reject = [];
+            $gudangStok = [];
+            $deleteUndoIds = [];
+
+            foreach ($restoreData as $restore) {
+                // RFT
+                if ($restore->output_rft_id && $restore->keterangan == "rft") {
+                    array_push($rft, [
+                        "id" => $restore->output_rft_id,
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        "po_id" => $restore->po_id,
+                        'status' => 'NORMAL',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "alokasi" => $restore->alokasi,
+                        "created_by" => $restore->created_by,
+                        "created_by_username" => $restore->created_by_username,
+                        "created_by_line" => $restore->created_by_line,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+
+                    if ($restore->alokasi == "gudang stok") {
+                        array_push($gudangStok, [
+                            "kode_numbering" => $restore->kode_numbering,
+                            "so_det_id" => $restore->so_det_id,
+                            "packing_po_id" => $restore->output_rft_id,
+                            "created_by" => $restore->created_by,
+                            "created_by_username" => $restore->created_by_username,
+                            "created_by_line" => $restore->created_by_line,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+                    }
+                }
+
+                // REJECT
+                if ($restore->output_reject_id) {
+
+                    // With REJECT
+                    $currentDefect = null;
+
+                    // Create REJECT
+                    array_push($reject, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : null,
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        'status' => "NORMAL",
+                        'reject_status' => $currentDefect ? 'defect' : 'mati',
+                        "reject_type_id" => $restore->defect_type_id,
+                        "reject_area_id" => $restore->defect_area_id,
+                        "reject_area_x" => $restore->defect_area_x,
+                        "reject_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                array_push($deleteUndoIds, $restore->undo_id);
+            }
+
+            if (count($rft) > 0) {
+                RftPackingPo::insert($rft);
+
+                if (count($gudangStok) > 0) {
+                    OutputGudangStok::insert($gudangStok);
+                }
+            }
+
+            if (count($reject) > 0) {
+                DB::connection('mysql_sb')->table('output_rejects_packing_po')->insert($reject);
+            }
+
+            if (count($deleteUndoIds) > 0) {
+                UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+            }
+
+            return array("rft" => $rft, "defect" => $defect, "reject" => $reject, "rework" => $rework);
+        }
     }
 
     public function checkOutputDetail() {
@@ -4515,6 +4699,7 @@ class SewingToolsController extends Controller
 
         if ($type === 'packing') {
             $data = UndoPacking::selectRaw("
+                    output_undo_packing.id,
                     output_undo_packing.kode_numbering,
                     CASE
                         WHEN output_undo_packing.output_rft_id    IS NOT NULL THEN 'RFT'
@@ -4550,6 +4735,7 @@ class SewingToolsController extends Controller
                 ->get();
         } else {
             $data = Undo::selectRaw("
+                    output_undo.id,
                     output_undo.kode_numbering,
                     CASE
                         WHEN output_undo.output_rft_id    IS NOT NULL THEN 'RFT'
@@ -4702,6 +4888,345 @@ class SewingToolsController extends Controller
         return $excel->download($filename);
     }
 
+    public function restoreUndoOutputListSubmit(Request $request)
+    {
+        $ids = addQuotesAround($request->id);
+        $department = $request->department;
+
+        if ($ids) {
+            if ($department == "packing_po") {
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+            } else if ($department == "packing") {
+                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.id in (".$ids.")")->get();
+            } else {
+                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.id in (".$ids.")")->get();
+            }
+
+            $rft = [];
+            $rftNds = [];
+            $defect = [];
+            $rework = [];
+            $reject = [];
+            $gudangStok = [];
+            $deleteUndoIds = [];
+
+            foreach ($restoreData as $restore) {
+                // RFT
+                if ($restore->output_rft_id && $restore->keterangan == "rft") {
+                    if ($department == "packing_po") {
+                        array_push($rft, [
+                            "id" => $restore->output_rft_id,
+                            "master_plan_id" => $restore->master_plan_id,
+                            "so_det_id" => $restore->so_det_id,
+                            "po_id" => $restore->po_id,
+                            'status' => 'NORMAL',
+                            "kode_numbering" => $restore->kode_numbering,
+                            "no_cut_size" => $restore->kode_numbering,
+                            "alokasi" => $restore->alokasi,
+                            "created_by" => $restore->created_by,
+                            "created_by_username" => $restore->created_by_username,
+                            "created_by_line" => $restore->created_by_line,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+
+                        if ($restore->alokasi == "gudang stok") {
+                            array_push($gudangStok, [
+                                "kode_numbering" => $restore->kode_numbering,
+                                "so_det_id" => $restore->so_det_id,
+                                "packing_po_id" => $restore->output_rft_id,
+                                "created_by" => $restore->created_by,
+                                "created_by_username" => $restore->created_by_username,
+                                "created_by_line" => $restore->created_by_line,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        }
+                    } else {
+                        array_push($rft, [
+                            "master_plan_id" => $restore->master_plan_id,
+                            "so_det_id" => $restore->so_det_id,
+                            'status' => 'NORMAL',
+                            "kode_numbering" => $restore->kode_numbering,
+                            "no_cut_size" => $restore->kode_numbering,
+                            "created_by" => $restore->created_by,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+
+                        if ($department == "packing") {
+                            array_push($rftNds, [
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                'status' => 'NORMAL',
+                                "sewing_line" => Auth::user()->username,
+                                "created_by" => Auth::user()->username,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        }
+                    }
+                }
+
+                // DEFECT
+                if ($restore->output_defect_id) {
+                    array_push($defect, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'status' => 'NORMAL',
+                        'defect_status' => 'defect',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "defect_type_id" => $restore->defect_type_id,
+                        "defect_area_id" => $restore->defect_area_id,
+                        "defect_area_x" => $restore->defect_area_x,
+                        "defect_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                // REWORK
+                if ($restore->output_rework_id) {
+
+                    // With Defect
+                    $currentDefect = null;
+                    if ($restore->output_defect_id) {
+                        // Update Defect
+                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect->timestamps = false;
+                        $currentDefect->defect_status = 'reworked';
+                        $currentDefect->save();
+                    }
+
+                    // No Defect
+                    if (!$currentDefect) {
+                        // Create Defect
+                        if ($department == "packing") {
+                            $createDefect = DefectPacking::create([
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                "kode_numbering" => $restore->kode_numbering,
+                                "no_cut_size" => $restore->kode_numbering,
+                                "defect_type_id" => $restore->defect_type_id,
+                                "defect_area_id" => $restore->defect_area_id,
+                                "defect_area_x" => $restore->defect_area_x,
+                                "defect_area_y" => $restore->defect_area_y,
+                                'status' => 'NORMAL',
+                                'defect_status' => 'reworked',
+                                "created_by" => $restore->created_by,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        } else {
+                            $createDefect = Defect::create([
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                "kode_numbering" => $restore->kode_numbering,
+                                "no_cut_size" => $restore->kode_numbering,
+                                "defect_type_id" => $restore->defect_type_id,
+                                "defect_area_id" => $restore->defect_area_id,
+                                "defect_area_x" => $restore->defect_area_x,
+                                "defect_area_y" => $restore->defect_area_y,
+                                'status' => 'NORMAL',
+                                'defect_status' => 'reworked',
+                                "created_by" => $restore->created_by,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        }
+
+                        $currentDefect = $createDefect;
+                    }
+
+                    // Create Rework
+                    if ($department == "packing") {
+                        $createRework = ReworkPacking::create([
+                            "defect_id" => $currentDefect ? $currentDefect->id : '',
+                            "status" => "NORMAL",
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+                    } else {
+                        $createRework = Rework::create([
+                            "defect_id" => $currentDefect ? $currentDefect->id : '',
+                            "status" => "NORMAL",
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+                    }
+
+                    if ($createRework) {
+                        // Create RFT
+                        if ($department == "packing") {
+                            $createRft = RftPacking::create([
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                'status' => 'REWORK',
+                                'rework_id' => $createRework ? $createRework->id : '',
+                                "kode_numbering" => $restore->kode_numbering,
+                                "no_cut_size" => $restore->kode_numbering,
+                                "created_by" => $restore->created_by,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        } else {
+                            $createRft = Rft::create([
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                'status' => 'REWORK',
+                                'rework_id' => $createRework ? $createRework->id : '',
+                                "kode_numbering" => $restore->kode_numbering,
+                                "no_cut_size" => $restore->kode_numbering,
+                                "created_by" => $restore->created_by,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        }
+                    }
+
+                    // Log
+                    array_push($rework, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : '',
+                        'rework_id' => $createRework ? $createRework->id : '',
+                        'rft_id' => $createRft ? $createRft->id : '',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                // REJECT
+                if ($restore->output_reject_id) {
+
+                    // With REJECT
+                    $currentDefect = null;
+                    if ($restore->output_defect_id) {
+                        // Update REJECT
+                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+
+                        // No REJECT
+                        if (!$currentDefect) {
+                            // Create REJECT
+                            if ($department == "packing") {
+                                $createDefect = DefectPacking::create([
+                                    "master_plan_id" => $restore->master_plan_id,
+                                    "so_det_id" => $restore->so_det_id,
+                                    "kode_numbering" => $restore->kode_numbering,
+                                    "no_cut_size" => $restore->kode_numbering,
+                                    "defect_type_id" => $restore->defect_type_id,
+                                    "defect_area_id" => $restore->defect_area_id,
+                                    "defect_area_x" => $restore->defect_area_x,
+                                    "defect_area_y" => $restore->defect_area_y,
+                                    'status' => 'NORMAL',
+                                    'defect_status' => 'rejected',
+                                    "created_by" => $restore->created_by,
+                                    "created_at" => $restore->created_at,
+                                    "updated_at" => $restore->updated_at,
+                                ]);
+                            } else {
+                                $createDefect = Defect::create([
+                                    "master_plan_id" => $restore->master_plan_id,
+                                    "so_det_id" => $restore->so_det_id,
+                                    "kode_numbering" => $restore->kode_numbering,
+                                    "no_cut_size" => $restore->kode_numbering,
+                                    "defect_type_id" => $restore->defect_type_id,
+                                    "defect_area_id" => $restore->defect_area_id,
+                                    "defect_area_x" => $restore->defect_area_x,
+                                    "defect_area_y" => $restore->defect_area_y,
+                                    'status' => 'NORMAL',
+                                    'defect_status' => 'rejected',
+                                    "created_by" => $restore->created_by,
+                                    "created_at" => $restore->created_at,
+                                    "updated_at" => $restore->updated_at,
+                                ]);
+                            }
+
+                            $currentDefect = $createDefect;
+                        } else {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'rejected';
+                            $currentDefect->save();
+                        }
+                    }
+
+                    // Create REJECT
+                    array_push($reject, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : null,
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        'status' => "NORMAL",
+                        'reject_status' => $currentDefect ? 'defect' : 'mati',
+                        "reject_type_id" => $restore->defect_type_id,
+                        "reject_area_id" => $restore->defect_area_id,
+                        "reject_area_x" => $restore->defect_area_x,
+                        "reject_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                array_push($deleteUndoIds, $restore->undo_id);
+            }
+
+            if (count($rft) > 0) {
+                if ($department == "packing_po") {
+                    RftPackingPo::insert($rft);
+
+                    if (count($gudangStok) > 0) {
+                        OutputGudangStok::insert($gudangStok);
+                    }
+                } else if ($department == "packing") {
+                    RftPacking::insert($rft);
+
+                    if (count($rftNds) > 0) {
+                        OutputPackingNds::insert($rftNds);
+                    }
+                } else {
+                    Rft::insert($rft);
+                }
+            }
+
+            if (count($defect) > 0) {
+                if ($department == "packing") {
+                    DefectPacking::insert($defect);
+                } else {
+                    Defect::insert($defect);
+                }
+            }
+
+            if (count($reject) > 0) {
+                if ($department == "packing") {
+                    RejectPacking::insert($reject);
+                } else {
+                    Reject::insert($reject);
+                }
+            }
+
+            // if (count($rework) > 0) {
+            //     Rework::insert($rework);
+            // }
+
+            if (count($deleteUndoIds) > 0) {
+                if ($department == "packing") {
+                    UndoPacking::whereIn("id", $deleteUndoIds)->delete();
+                } else {
+                    Undo::whereIn("id", $deleteUndoIds)->delete();
+                }
+            }
+
+            return array("rft" => $rft, "defect" => $defect, "reject" => $reject, "rework" => $rework);
+        }
+    }
+
     public function undoPackingPoList(Request $request)
     {
         return view("sewing.tools.undo-packing-po-list", ["page" => "dashboard-sewing-eff"]);
@@ -4714,6 +5239,7 @@ class SewingToolsController extends Controller
         $kode     = $request->kode_numbering;
 
         $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.id,
                 output_undo_packing_po.kode_numbering,
                 CASE
                     WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
