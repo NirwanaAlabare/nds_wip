@@ -3188,7 +3188,7 @@ SELECT
 		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N'
+		WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
 		GROUP BY jd.id_jo
 ) k on sf.ws = k.kpno
 order by  ws asc, color asc
@@ -4124,7 +4124,7 @@ SELECT
 		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N'
+		WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
 		GROUP BY jd.id_jo
 ) k on sf.ws = k.kpno
 order by  ws asc, color asc
@@ -4691,7 +4691,7 @@ order by  ws asc, color asc
                         INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N'
+                        WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
                         GROUP BY jd.id_jo
                     ) k ON mut.ws = k.kpno
                     GROUP BY $groupBy
@@ -5270,7 +5270,7 @@ order by  ws asc, color asc
                 INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
                 INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                WHERE jd.cancel = 'N'
+                WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
                 GROUP BY jd.id_jo
             ) k ON mut.ws = k.kpno
             GROUP BY $groupBy
@@ -5520,7 +5520,7 @@ LEFT JOIN (SELECT
 				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
+				WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
 				GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
 where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
 
@@ -5593,7 +5593,7 @@ where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Produc
                             INNER JOIN signalbit_erp.so ON jd.id_so = so.id
                             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                            WHERE jd.cancel = 'N'
+                            WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
                             GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
             where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
 
@@ -5905,7 +5905,7 @@ LEFT JOIN (SELECT
 				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
 				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
+				WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
 				GROUP BY jd.id_jo
 ) k on a.ws = k.kpno
 LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
@@ -5971,7 +5971,7 @@ order by a.tgl_trans asc
                         INNER JOIN signalbit_erp.so ON jd.id_so = so.id
                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N'
+                        WHERE jd.cancel = 'N' and (ac.status != 'cancel' or ac.status is null)
                         GROUP BY jd.id_jo
         ) k on a.ws = k.kpno
         LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
