@@ -252,6 +252,13 @@
                             i++;
                         }
                     };
+
+                    // Error Alert
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
                 }
             });
         }
