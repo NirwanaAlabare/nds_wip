@@ -178,10 +178,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6">
+                    <div class="col-3 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Operator</small></label>
                             <input type="text" class="form-control" id="operator" name="operator">
+                        </div>
+                    </div>
+                    <div class="col-3 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Group</small></label>
+                            <input type="text" class="form-control" id="group" name="group">
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
