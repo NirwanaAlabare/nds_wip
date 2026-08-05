@@ -111,7 +111,7 @@ class DashboardReportBcService
             'a.unit',
             'a.qty',
             'a.curr',
-            DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
+            DB::raw("IF(a.price_bc != '' AND a.price_bc IS NOT NULL, a.price_bc, a.price) as nilai_barang"),
             'a.berat_bersih',
             'a.berat_kotor',
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
@@ -211,7 +211,7 @@ class DashboardReportBcService
             'a.unit',
             DB::raw("SUM(a.qty) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(a.qty * IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price)), 2) as nilai_barang"),
+            DB::raw("IF(a.price_bc != '' AND a.price_bc IS NOT NULL, a.price_bc, a.price) as nilai_barang"),
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
         ];
