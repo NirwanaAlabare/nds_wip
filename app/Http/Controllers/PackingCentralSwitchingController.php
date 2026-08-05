@@ -40,7 +40,7 @@ class PackingCentralSwitchingController extends Controller
                 FROM laravel_nds.packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p
                     ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                     AND a.id_ppic_master_so = ?
                 GROUP BY 
                     a.id_ppic_master_so,
@@ -81,6 +81,18 @@ class PackingCentralSwitchingController extends Controller
                     tujuan_so_det_id
             ),
 
+            r AS (
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det,
+                    qty
+                FROM fg_fg_out 
+                WHERE status = 'RETUR'
+                GROUP BY
+                    id_ppic_master_so,
+                    id_so_det
+            ),
+
             combined AS (
 
                 SELECT
@@ -88,7 +100,8 @@ class PackingCentralSwitchingController extends Controller
                     so_det_id,
                     qty_trf_gmt AS qty,
                     0 AS qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM a
 
                 UNION ALL
@@ -98,7 +111,8 @@ class PackingCentralSwitchingController extends Controller
                     id_so_det AS so_det_id,
                     0 AS qty,
                     qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM p
 
                 UNION ALL
@@ -108,7 +122,8 @@ class PackingCentralSwitchingController extends Controller
                     asal_so_det_id AS so_det_id,
                     0 AS qty,
                     0 AS qty_scan,
-                    qty_switch
+                    qty_switch,
+                    0 AS qty_retur
                 FROM s
 
                 UNION ALL
@@ -118,8 +133,20 @@ class PackingCentralSwitchingController extends Controller
                     so_det_id,
                     qty_switch_masuk AS qty,
                     0 AS qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM t
+
+                UNION ALL
+
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det AS so_det_id,
+                    0 AS qty,
+                    0 AS qty_scan,
+                    0 AS qty_switch,
+                    qty AS qty_retur
+                FROM r
             )
 
             SELECT
@@ -135,7 +162,9 @@ class PackingCentralSwitchingController extends Controller
                 SUM(combined.qty) AS qty_trf_gmt,
                 SUM(combined.qty_scan) AS qty_scan,
                 SUM(combined.qty_switch) AS qty_switch,
+                SUM(combined.qty_retur) AS qty_retur,
                 SUM(combined.qty)
+                    + SUM(combined.qty_retur)
                     - SUM(combined.qty_scan)
                     - SUM(combined.qty_switch) AS qty_sisa
             FROM combined
@@ -423,7 +452,7 @@ class PackingCentralSwitchingController extends Controller
                 FROM laravel_nds.packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p
                     ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                 GROUP BY
                     a.id_ppic_master_so,
                     a.id_so_det
@@ -462,13 +491,26 @@ class PackingCentralSwitchingController extends Controller
                     tujuan_so_det_id
             ),
 
+            r AS (
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det,
+                    qty
+                FROM fg_fg_out 
+                WHERE status = 'RETUR'
+                GROUP BY
+                    id_ppic_master_so,
+                    id_so_det
+            ),
+
             combined AS (
                 SELECT
                     id_ppic_master_so,
                     so_det_id,
                     qty_trf_gmt AS qty,
                     0 AS qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM a
 
                 UNION ALL
@@ -478,7 +520,8 @@ class PackingCentralSwitchingController extends Controller
                     id_so_det AS so_det_id,
                     0 AS qty,
                     qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM p
 
                 UNION ALL
@@ -488,7 +531,8 @@ class PackingCentralSwitchingController extends Controller
                     asal_so_det_id AS so_det_id,
                     0 AS qty,
                     0 AS qty_scan,
-                    qty_switch
+                    qty_switch,
+                    0 AS qty_retur
                 FROM s
 
                 UNION ALL
@@ -498,8 +542,20 @@ class PackingCentralSwitchingController extends Controller
                     so_det_id,
                     qty_switch_masuk AS qty,
                     0 AS qty_scan,
-                    0 AS qty_switch
+                    0 AS qty_switch,
+                    0 AS qty_retur
                 FROM t
+
+                UNION ALL
+
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det AS so_det_id,
+                    0 AS qty,
+                    0 AS qty_scan,
+                    0 AS qty_switch,
+                    qty AS qty_retur
+                FROM r
             )
 
             SELECT
@@ -514,7 +570,9 @@ class PackingCentralSwitchingController extends Controller
                 SUM(combined.qty) AS qty_trf_gmt,
                 SUM(combined.qty_scan) AS qty_scan,
                 SUM(combined.qty_switch) AS qty_switch,
+                SUM(combined.qty_retur) AS qty_retur,
                 SUM(combined.qty)
+                    + SUM(combined.qty_retur)
                     - SUM(combined.qty_scan)
                     - SUM(combined.qty_switch) AS qty_sisa
             FROM combined
@@ -903,7 +961,7 @@ class PackingCentralSwitchingController extends Controller
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
                     INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE YEAR(p.tgl_shipment) >= 2026
+                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                 group by id_ppic_master_so,a.id_so_det
                 ),
                 
@@ -940,6 +998,18 @@ class PackingCentralSwitchingController extends Controller
                         tujuan_so_det_id
                 ),
 
+                r AS (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        qty
+                    FROM fg_fg_out 
+                    WHERE status = 'RETUR'
+                    GROUP BY
+                        id_ppic_master_so,
+                        id_so_det
+                ),
+
                 combined AS (
                     SELECT
                         id_ppic_master_so,
@@ -947,7 +1017,8 @@ class PackingCentralSwitchingController extends Controller
                         qty_pck_in AS qty,
                         0 AS qty_scan,
                         0 AS qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM a
 
                     UNION ALL
@@ -958,7 +1029,8 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         qty_scan,
                         0 AS qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM p
 
                     UNION ALL
@@ -969,7 +1041,8 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         0 AS qty_scan,
                         qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM s
 
                     UNION ALL
@@ -980,8 +1053,21 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         0 AS qty_scan,
                         0 AS qty_switch,
-                        qty_switch_masuk
+                        qty_switch_masuk,
+                        0 AS qty_retur
                     FROM t
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        qty AS qty_retur
+                    FROM r
                 ),
 
                 result AS (
@@ -998,7 +1084,9 @@ class PackingCentralSwitchingController extends Controller
                         SUM(combined.qty_switch_masuk) AS qty_switch_in,
                         SUM(combined.qty_switch) AS qty_switch_out,
                         SUM(combined.qty_scan) AS qty_scan,
+                        SUM(combined.qty_retur) AS qty_retur,
                         SUM(combined.qty)
+                            + SUM(combined.qty_retur)
                             + SUM(combined.qty_switch_masuk)
                             - SUM(combined.qty_scan)
                             - SUM(combined.qty_switch) AS qty_sisa
@@ -1075,7 +1163,7 @@ class PackingCentralSwitchingController extends Controller
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
                     INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE YEAR(p.tgl_shipment) >= 2026
+                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                     group by id_ppic_master_so,a.id_so_det
                 ),
                 
@@ -1112,6 +1200,18 @@ class PackingCentralSwitchingController extends Controller
                         tujuan_so_det_id
                 ),
 
+                r AS (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        qty
+                    FROM fg_fg_out 
+                    WHERE status = 'RETUR'
+                    GROUP BY
+                        id_ppic_master_so,
+                        id_so_det
+                ),
+
                 combined AS (
                     SELECT
                         id_ppic_master_so,
@@ -1119,7 +1219,8 @@ class PackingCentralSwitchingController extends Controller
                         qty_pck_in AS qty,
                         0 AS qty_scan,
                         0 AS qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM a
 
                     UNION ALL
@@ -1130,7 +1231,8 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         qty_scan,
                         0 AS qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM p
 
                     UNION ALL
@@ -1141,7 +1243,8 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         0 AS qty_scan,
                         qty_switch,
-                        0 AS qty_switch_masuk
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur
                     FROM s
 
                     UNION ALL
@@ -1152,8 +1255,21 @@ class PackingCentralSwitchingController extends Controller
                         0 AS qty,
                         0 AS qty_scan,
                         0 AS qty_switch,
-                        qty_switch_masuk
+                        qty_switch_masuk,
+                        0 AS qty_retur
                     FROM t
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        qty AS qty_retur
+                    FROM r
                 ),
 
                 result AS (
@@ -1173,19 +1289,23 @@ class PackingCentralSwitchingController extends Controller
                         SUM(combined.qty_switch_masuk) AS qty_switch_in,
                         SUM(combined.qty_switch) AS qty_switch_out,
                         SUM(combined.qty_scan) AS qty_scan,
+                        SUM(combined.qty_retur) AS qty_retur,
                         SUM(combined.qty)
+                            + SUM(combined.qty_retur)
                             + SUM(combined.qty_switch_masuk)
                             - SUM(combined.qty_scan)
                             - SUM(combined.qty_switch) AS qty_sisa,
                         CASE
                             WHEN (
                                 SUM(combined.qty)
+                                + SUM(combined.qty_retur)
                                 + SUM(combined.qty_switch_masuk)
                                 - SUM(combined.qty_scan)
                                 - SUM(combined.qty_switch)
                             ) = 0 THEN 'Kosong'
                             WHEN (
                                 SUM(combined.qty)
+                                + SUM(combined.qty_retur)
                                 + SUM(combined.qty_switch_masuk)
                                 - SUM(combined.qty_scan)
                                 - SUM(combined.qty_switch)
@@ -1277,7 +1397,7 @@ class PackingCentralSwitchingController extends Controller
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                 group by id_ppic_master_so,a.id_so_det
             ),
             
@@ -1314,6 +1434,18 @@ class PackingCentralSwitchingController extends Controller
                     tujuan_so_det_id
             ),
 
+            r AS (
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det,
+                    qty
+                FROM fg_fg_out 
+                WHERE status = 'RETUR'
+                GROUP BY
+                    id_ppic_master_so,
+                    id_so_det
+            ),
+
             combined AS (
                 SELECT
                     id_ppic_master_so,
@@ -1321,7 +1453,8 @@ class PackingCentralSwitchingController extends Controller
                     qty_pck_in AS qty,
                     0 AS qty_scan,
                     0 AS qty_switch,
-                    0 AS qty_switch_masuk
+                    0 AS qty_switch_masuk,
+                    0 AS qty_retur
                 FROM a
 
                 UNION ALL
@@ -1332,7 +1465,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     qty_scan,
                     0 AS qty_switch,
-                    0 AS qty_switch_masuk
+                    0 AS qty_switch_masuk,
+                    0 AS qty_retur
                 FROM p
 
                 UNION ALL
@@ -1343,7 +1477,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     0 AS qty_scan,
                     qty_switch,
-                    0 AS qty_switch_masuk
+                    0 AS qty_switch_masuk,
+                    0 AS qty_retur
                 FROM s
 
                 UNION ALL
@@ -1354,8 +1489,21 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     0 AS qty_scan,
                     0 AS qty_switch,
-                    qty_switch_masuk
+                    qty_switch_masuk,
+                    0 AS qty_retur
                 FROM t
+
+                UNION ALL
+
+                SELECT
+                    id_ppic_master_so,
+                    id_so_det AS so_det_id,
+                    0 AS qty,
+                    0 AS qty_scan,
+                    0 AS qty_switch,
+                    0 AS qty_switch_masuk,
+                    qty AS qty_retur
+                FROM r
             ),
 
             result AS (
@@ -1375,19 +1523,23 @@ class PackingCentralSwitchingController extends Controller
                     SUM(combined.qty_switch_masuk) AS qty_switch_in,
                     SUM(combined.qty_switch) AS qty_switch_out,
                     SUM(combined.qty_scan) AS qty_scan,
+                    SUM(combined.qty_retur) AS qty_retur,
                     SUM(combined.qty)
+                        + SUM(combined.qty_retur)
                         + SUM(combined.qty_switch_masuk)
                         - SUM(combined.qty_scan)
                         - SUM(combined.qty_switch) AS qty_sisa,
                     CASE
                         WHEN (
                             SUM(combined.qty)
+                            + SUM(combined.qty_retur)
                             + SUM(combined.qty_switch_masuk)
                             - SUM(combined.qty_scan)
                             - SUM(combined.qty_switch)
                         ) = 0 THEN 'Kosong'
                         WHEN (
                             SUM(combined.qty)
+                            + SUM(combined.qty_retur)
                             + SUM(combined.qty_switch_masuk)
                             - SUM(combined.qty_scan)
                             - SUM(combined.qty_switch)
@@ -1483,6 +1635,7 @@ class PackingCentralSwitchingController extends Controller
             'Dest',
             'Qty PO',
             'Terima Packing Central',
+            'Retur',
             'Switching Out',
             'Switching In',
             'Scan',
@@ -1510,6 +1663,7 @@ class PackingCentralSwitchingController extends Controller
                 $row->dest ?: '',
                 (float) $row->qty_po,
                 (float) $row->qty_pck_in,
+                (float) $row->qty_retur,
                 (float) $row->qty_switch_out,
                 (float) $row->qty_switch_in,
                 (float) $row->qty_scan,
