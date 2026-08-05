@@ -1714,7 +1714,8 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        if (row.qty_trf == '0') {
+                        console.log(row.qty_trf, row.qty_packing_list);
+                        if (row.qty_trf == '0' && row.qty_packing_list == '0') {
                             return `
                     <div
                         class="form-check checkbox-xl" style="text-align:center">
