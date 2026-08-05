@@ -1354,7 +1354,7 @@ class PackingCentralSwitchingController extends Controller
                     WHERE 1=1
                         $dateCondition
                         $poCondition
-                        AND YEAR(ppic_master_so.tgl_shipment) >= 2026
+                        AND YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                     GROUP BY
                         combined.id_ppic_master_so,
                         combined.so_det_id,
@@ -1588,7 +1588,7 @@ class PackingCentralSwitchingController extends Controller
                 WHERE 1=1
                     $dateCondition
                     $poCondition
-                    AND YEAR(ppic_master_so.tgl_shipment) >= 2026
+                    AND YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                 GROUP BY
                     combined.id_ppic_master_so,
                     combined.so_det_id,
@@ -1677,13 +1677,13 @@ class PackingCentralSwitchingController extends Controller
         foreach ($data as $row) {
 
             $rows = [
-                $row->tgl_shipment ?: '',
-                $row->po ?: '',
-                $row->ws ?: '',
-                $row->styleno ?: '',
-                $row->color ?: '',
-                $row->size ?: '',
-                $row->dest ?: '',
+                $row->tgl_shipment ?? '',
+                $row->po ?? '',
+                $row->ws ?? '',
+                $row->styleno ?? '',
+                $row->color ?? '',
+                $row->size ?? '',
+                $row->dest ?? '',
                 (float) $row->qty_po,
                 (float) $row->qty_pck_in,
                 (float) $row->qty_retur,
