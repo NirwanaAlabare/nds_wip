@@ -59,6 +59,7 @@
                             <th>Short Roll</th>
                             <th>Unit</th>
                             <th>Operator</th>
+                            <th>Group</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -191,6 +192,9 @@
                 },
                 {
                     data: 'operator'
+                },
+                {
+                    data: 'group'
                 }
             ],
             columnDefs: [

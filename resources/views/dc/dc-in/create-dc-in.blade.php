@@ -869,11 +869,6 @@
             let txtqtyreplace = document.getElementById('txtqtyreplace').value;
             let result = parseFloat(txtqtyply) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
             let result_fix = Math.ceil(result)
-            if (!isNaN(result_fix)) {
-                if (document.getElementById("txtqtyin")) {
-                    document.getElementById("txtqtyin").value = result_fix;
-                }
-            }
 
             if (result > txtqtyply) {
                 iziToast.warning({
@@ -883,6 +878,27 @@
                 });
 
                 document.getElementById('txtqtyreplace').value = txtqtyreject;
+
+                return;
+            }
+
+            if (result < 0) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak boleh kurang dari 0.',
+                    position: 'bottomCenter'
+                });
+                
+                document.getElementById('txtqtyreject').value = txtqtyply;
+                document.getElementById('txtqtyreplace').value = txtqtyreject;
+
+                return;
+            }
+
+            if (!isNaN(result_fix)) {
+                if (document.getElementById("txtqtyin")) {
+                    document.getElementById("txtqtyin").value = result_fix;
+                }
             }
         }
 
