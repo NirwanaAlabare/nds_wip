@@ -86,7 +86,8 @@ class RackController extends Controller
     {
         if ($request->type == "single") {
             $validatedRequest = $request->validate([
-                "nama_rak" => "required|unique:rack,nama_rak,except,id",
+                // "nama_rak" => "required|unique:rack,nama_rak,except,id",
+                "nama_rak" => "required",
                 "jumlah_baris" => "required|numeric|min:1",
                 "jumlah_ruang" => "required|numeric|min:1",
             ]);
@@ -148,7 +149,8 @@ class RackController extends Controller
             );
         } else {
             $validatedRequest = $request->validate([
-                "nama_rak" => "required|unique:rack,nama_rak,except,id",
+                // "nama_rak" => "required|unique:rack,nama_rak,except,id",
+                "nama_rak" => "required",
                 "jumlah_baris" => "required|numeric|min:1",
                 "jumlah_ruang" => "required|numeric|min:1",
             ]);

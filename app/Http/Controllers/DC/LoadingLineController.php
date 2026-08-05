@@ -899,7 +899,7 @@ class LoadingLineController extends Controller
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
                 stocker_input.so_det_id,
-                COALESCE(stocker_input.size, master_sb_ws.size) size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 master_sb_ws.dest,
                 stocker_input.shade,
                 stocker_input.group_stocker,
@@ -1153,7 +1153,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            COALESCE(stocker_input.size, master_sb_ws.size) size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             master_size_new.urutan
                         FROM
                             loading_line
@@ -1270,7 +1270,7 @@ class LoadingLineController extends Controller
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        COALESCE(stocker_input.size, master_sb_ws.size) size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         master_size_new.urutan
                     FROM
                         loading_line
@@ -1437,7 +1437,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            COALESCE(stocker_input.size, master_sb_ws.size) size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             master_size_new.urutan
                         FROM
                             loading_line
@@ -1559,7 +1559,7 @@ class LoadingLineController extends Controller
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        COALESCE(stocker_input.size, master_sb_ws.size) size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         master_size_new.urutan
                     FROM
                         loading_line
