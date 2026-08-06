@@ -2938,7 +2938,9 @@
                                                             <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
                                                                 <option value="">Pilih Kode Satuan</option>
                                                                 @foreach($listSatuanBarang as $k => $v)
-                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit ?? 'PCE') == $k ? 'selected' : '' }}>
+                                                                        {{ $k }} - {{ $v }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
