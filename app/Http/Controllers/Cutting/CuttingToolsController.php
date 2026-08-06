@@ -170,7 +170,7 @@ class CuttingToolsController extends Controller
 
     public function updateFormRatio(Request $request) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_ratio_form_id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -316,7 +316,7 @@ class CuttingToolsController extends Controller
 
     public function updateFormMarker(Request $request, StockerService $stockerService) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->modify_marker_form_id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -896,7 +896,7 @@ class CuttingToolsController extends Controller
     public function updateFormGroup(Request $request) {
         ini_set('max_execution_time', 3600);
 
-        // Check Closing 
+        // Check Closing
         if($request->form_type == 'reject'){
             $dataCheckClosing = DB::table("form_cut_reject")
             ->selectRaw("tanggal")

@@ -17,6 +17,7 @@ use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingStockController;
+use App\Http\Controllers\Cutting\CuttingStockOpnameController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 
 Route::middleware('auth')->group(function () {
@@ -43,6 +44,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(SpreadingController::class)->prefix("spreading")->middleware('role:superadmin')->group(function () {
         Route::put('/update-status', 'updateStatus')->name('update-status');
         Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
+    });
+
+    // Cutting Stock Opname
+    Route::controller(CuttingStockOpnameController::class)->prefix("stock-opname-cutting")->middleware('role:cutting')->group(function () {
+        Route::get('/', 'index')->name('stock-opname-cutting');
+        Route::post('/export', 'exportExcel')->name('export-stock-opname-cutting');
     });
 
     // Penerimaan Cutting

@@ -160,6 +160,16 @@
                         </div>
                     </a>
                 </div>
+                {{-- New Card for Stock Opname Cutting --}}
+                <div class="col-md-4">
+                    <a href="{{ route('stock-opname-cutting') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-boxes-stacked"></i> Stock Opname Cutting</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
 
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Mismatch</h5>

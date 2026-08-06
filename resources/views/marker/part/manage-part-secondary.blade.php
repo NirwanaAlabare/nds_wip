@@ -8,6 +8,11 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>
+        .list-group-item {
+            padding: 5px !important;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -78,7 +83,7 @@
                         <div class="mb-3">
                             <label><small><b>Parts</b></small></label>
                             @php
-                                $partDetails = explode(",", $part->part_details);
+                                $partDetails = explode(", ", $part->part_details);
                             @endphp
                             <ul class="list-group">
                                 @if ($partDetails)
@@ -598,6 +603,163 @@
         </div>
     </form>
 
+    @role("superadmin")
+        {{-- Custom  --}}
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="card collapsed-card card-sb h-100">
+                    <div class="card-header">
+                        <h5 class="card-title fw-bold">
+                            <i class="fa fa-cog"></i> Custom Part 
+                        </h5>
+                        <div class='card-tools'>
+                            <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form action={{ route("store-part-custom") }} method="POST" class="mb-3" onsubmit="submitForm(this, event)">
+                            <input type="hidden" class="form-control" name="part_custom_id" id="part_custom_id" value="{{ $part->id }}">
+                            <div class="row">
+                                <div class="col-12 col-md-4 mb-3">
+                                    <label class="form-label"><small><b>Colors</b></small></label>
+                                    @php
+                                        $colors = explode(", ", $part->color);
+                                    @endphp
+                                    <select class="form-select select2bs4" name="part_custom_color" id="part_custom_color">
+                                        <option selected="selected" value="">Pilih Color</option>
+                                        @if ($colors) 
+                                            @for ($i = 0; $i < count($colors); $i++)
+                                                <option value="{{ $colors[$i] }}">{{ $colors[$i] }}</li>
+                                            @endfor
+                                        @endif
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-4 mb-3">
+                                    <label class="form-label"><small><b>Part</b></small></label>
+                                    <select class="form-select select2bs4" name="part_custom_part_detail_id" id="part_custom_part_detail_id">
+                                        <option selected="selected" value="">Pilih Part</option>
+                                        @foreach ($currentPartDetails as $partDetail)
+                                            <option value="{{ $partDetail->id }}">
+                                                {{ $partDetail->nama_part . ' - ' . $partDetail->bag . ' - ' . $partDetail->part_status }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-4 mb-3">
+                                    <label class="form-label"><small><b>Part Status</b></small></label>
+                                    <select class="form-select select2bs4" id="part_custom_status" name="part_custom_status">
+                                        <option value="">Pilih Status</option>
+                                        <option value="main">MAIN</option>
+                                        <option value="regular">REGULAR</option>
+                                        <option value="complement">COMPLEMENT</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-12 mb-3">
+                                    <label class="form-label"><small><b>Notes</b></small></label>
+                                    <textarea class="form-control" id="part_custom_notes" name="part_custom_notes" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-block btn-sb-secondary btn-sm" name="part_custom_submit" id="part_custom_submit">SIMPAN <i class="fa fa-save"></i></button>
+                        </form>
+                        <div class="table-responsive">
+                            <table id="datatable-part-custom" class="table table-bordered table w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Action</th>
+                                        <th>Part Detail</th>
+                                        <th>Color</th>
+                                        <th>Original Status</th>
+                                        <th>Custom Status</th>
+                                        <th>Notes</th>
+                                        <th>Created By</th>
+                                        <th>Last Update</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form action="{{ route('update-part-custom') }}" method="post" onsubmit="submitForm(this, event)" id="form-part-custom">
+            @method("PUT")
+            <div class="modal fade" id="editPartCustomModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartCustomModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-sb">
+                            <h1 class="modal-title fs-5" id="editPartCustomModalLabel"><i class="fa fa-edit"></i> Edit Part Custom</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <input type="hidden" class="form-control" readonly id="edit_part_custom_id" name="edit_part_custom_id">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Color</label>
+                                <select class="form-select select2bs4editpartcustom" name="edit_part_custom_color" id="edit_part_custom_color">
+                                    <option selected="selected" value="">Pilih Color</option>
+                                    @if ($colors)
+                                        @for ($i = 0; $i < count($colors); $i++)
+                                            <option value="{{ $colors[$i] }}">{{ $colors[$i] }}</li>
+                                        @endfor    
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Part</label>
+                                <select class="form-select select2bs4editpartcustom" name="edit_part_custom_part_detail_id" id="edit_part_custom_part_detail_id">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    @foreach ($currentPartDetails as $partDetail)
+                                        <option value="{{ $partDetail->id }}">
+                                            {{ $partDetail->nama_part . ' - ' . $partDetail->bag }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <div class="input-group">
+                                    <select class="form-select select2bs4" id="edit_part_custom_status" name="edit_part_custom_status">
+                                        <option value="main">MAIN</option>
+                                        <option value="regular">REGULAR</option>
+                                        <option value="complement">COMPLEMENT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <input class="form-control" id="edit_part_custom_notes" name="edit_part_custom_notes"></input>
+                            </div>
+                            {{-- <div class="mb-3">
+                                <label class="form-label">Tujuan</label>
+                                <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
+                                    @foreach ($data_tujuan as $datatujuan)
+                                        <option value="{{ $datatujuan->isi }}">
+                                            {{ $datatujuan->tampil }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Proses</label>
+                                <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
+                            </div> --}}
+                        </div>
+                        <div class="modal-footer">
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-sb">Simpan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    @endrole
+
     {{-- FORM --}}
     <div class="row mb-3">
         <div class="col-12 mb-3">
@@ -743,6 +905,11 @@
         $('.select2bs4editcom').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#editPartSecondaryComplementModal')
+        })
+
+        $('.select2bs4editpartcustom').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#editPartCustomModal')
         })
 
         cleardata();
@@ -1852,6 +2019,68 @@
                 editPartStatusContainer.classList.add("d-none");
             } else {
                 editPartStatusContainer.classList.remove("d-none");
+            }
+        });
+
+        //Form Part Datatable
+        let datatablePartCustom = $("#datatable-part-custom").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            ajax: {
+                url: '{{ route('get-part-custom') }}/'+id,
+                data: function(d) {
+                    d.part_id =  $('#id').val();
+                },
+            },
+            columns: [
+                {data: "part_custom_id"},
+                {data: "nama_part"},
+                {data: "part_custom_color"},
+                {data: "part_status"},
+                {data: "part_custom_status"},
+                {data: "part_custom_notes"},
+                {data: "created_by_username"},
+                {data: "updated_at"},
+            ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartCustomModal")'>
+                                <i class='fa fa-edit'></i>
+                            </button>
+                            <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-message='Hapus custom part `+row.nama_part+`' data-url='{{ route('destroy-part-custom') }}/`+row['part_custom_id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}} id='delete-part-custom'>
+                                <i class='fa fa-trash'></i>
+                            </button>
+                        `;
+                    }
+                },
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
+        });
+
+        $('#datatable-part-custom thead tr').clone(true).appendTo('#datatable-part-custom thead');
+        $('#datatable-part-custom thead tr:eq(1) th').each(function(i) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatablePartCustom.column(i).search() !== this.value) {
+                        datatablePartCustom
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
             }
         });
     </script>
