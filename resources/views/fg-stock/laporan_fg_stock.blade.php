@@ -138,7 +138,7 @@
                                 <th class="text-center" rowspan="2" style="background-color: lightblue;">Color</th>
                                 <th class="text-center" rowspan="2" style="background-color: lightblue;">Size</th>
                                 <th class="text-center" colspan="7" style="background-color: lightgreen;">Transit Terima Gudang Stok</th>
-                                <th class="text-center" colspan="6" style="background-color: lightyellow;"> Gudang Stok</th>
+                                <th class="text-center" colspan="7" style="background-color: lightyellow;"> Gudang Stok</th>
                             </tr>
                             <tr style='text-align:center; vertical-align:middle'>
                                 <th class="text-center" style="background-color: lightgreen;">Saldo Awal</th>
@@ -153,6 +153,7 @@
                                 <th class="text-center" style="background-color: lightyellow;">Terima Ekspedisi</th>
                                 <th class="text-center" style="background-color: lightyellow;">Keluar Sewing</th>
                                 <th class="text-center" style="background-color: lightyellow;">Keluar QA</th>
+                                <th class="text-center" style="background-color: lightyellow;">Keluar Ekspedisi</th>
                                 <th class="text-center" style="background-color: lightyellow;">Saldo Akhir</th>
                             </tr>
                         </thead>
@@ -513,6 +514,9 @@
                         },
                         {
                             data: 'qty_keluar_qa'
+                        },
+                        {
+                            data: 'qty_keluar_ekspedisi'
                         },
                         {
                             data: 'saldo_akhir_gudang_stok'
