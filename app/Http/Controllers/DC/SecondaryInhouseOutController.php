@@ -998,6 +998,7 @@ class SecondaryInhouseOutController extends Controller
                                                 left join part p on p.id = pd.part_id
                                                 left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                 left join part p_com on p_com.id = pd_com.part_id
+                                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                                 left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                 left join master_part mp on pd.master_part_id = mp.id
                                                 left join master_secondary ms on pds.master_secondary_id = ms.id
@@ -1062,6 +1063,7 @@ class SecondaryInhouseOutController extends Controller
                                             left join part p on p.id = pd.part_id
                                             left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                             left join part p_com on p_com.id = pd_com.part_id
+                                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                             left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                             left join master_part mp on pd.master_part_id = mp.id
                                             left join master_secondary ms on pds.master_secondary_id = ms.id
@@ -1107,6 +1109,7 @@ class SecondaryInhouseOutController extends Controller
                                         left join part p on p.id = pd.part_id
                                         left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                         left join part p_com on p_com.id = pd_com.part_id
+                                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                         left join master_part mp on pd.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
                                         left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
@@ -1181,6 +1184,7 @@ class SecondaryInhouseOutController extends Controller
                             left join part p on p.id = pd.part_id
                             left join part_detail pd_com on pd_com.id = pd.from_part_detail
                             left join part p_com on p_com.id = pd_com.part_id
+                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                             left join master_part mp on pd.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
                             left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
