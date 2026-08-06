@@ -1034,8 +1034,8 @@ class FGStokLaporanController extends Controller
                         SELECT
                             buyer,
                             no_ws ws,
-                            style styleno,
                             color,
+                            style styleno,
                             size,
                             0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
@@ -1695,8 +1695,8 @@ class FGStokLaporanController extends Controller
                         SELECT
                             buyer,
                             no_ws ws,
-                            style styleno,
                             color,
+                            style styleno,
                             size,
                             0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
