@@ -550,6 +550,7 @@
                         <th data-priority="6">No. Pallet</th>
                         <th data-priority="4">Total Qty</th>
                         <th data-priority="3">Status</th>
+                        <th data-priority="9">User</th>
                         <th data-priority="7">Tgl Ditambahkan</th>
                         <th data-priority="8">Last Update</th>
                         <th style="width: 18%;" data-priority="2">Aksi</th>
@@ -975,6 +976,7 @@
                         qty: 0,
                         status: item.status || 'OPEN',
                         itemIds: [],
+                        createdBy: null,
                         createdAt: null,
                         updatedAt: null,
                     };
@@ -985,6 +987,7 @@
 
                 if (item.created_at && (!map[key].createdAt || item.created_at < map[key].createdAt)) {
                     map[key].createdAt = item.created_at;
+                    map[key].createdBy = item.created_by;
                 }
 
                 if (item.updated_at && (!map[key].updatedAt || item.updated_at > map[key].updatedAt)) {
@@ -1001,6 +1004,7 @@
                         no_pallet: row.no_pallet,
                         qty: 0,
                         status: 'OPEN',
+                        createdBy: null,
                         itemIds: [],
                         createdAt: null,
                         updatedAt: null,
@@ -1047,6 +1051,7 @@
                     row.no_pallet,
                     `<span class="qty-pill">${row.qty}</span>`,
                     `<span class="badge ${statusCls}">${row.status}</span>`,
+                    row.createdBy || '-',
                     formatDateTime(row.createdAt),
                     formatDateTime(row.updatedAt),
                     `<div class="d-flex flex-wrap gap-1 justify-content-center">
