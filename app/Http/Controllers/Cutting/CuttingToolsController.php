@@ -1847,4 +1847,63 @@ class CuttingToolsController extends Controller
 
         return $excel->download();
     }
+
+    public function getLogsMethod(Request $request)
+    {
+        $data = DB::select("
+            SELECT
+                form_cut_select_method.*,
+                COALESCE(form_cut_input.no_form, form_cut_piece.no_form) AS no_form
+            FROM form_cut_select_method
+            LEFT JOIN form_cut_input
+                ON form_cut_input.id = form_cut_select_method.form_cut_id
+            LEFT JOIN form_cut_piece
+                ON form_cut_piece.id = form_cut_select_method.form_piece_id
+            WHERE DATE(form_cut_select_method.created_at) BETWEEN ? AND ?
+        ", [
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportLogsMethod(Request $request)
+    {
+        $data = DB::select("
+            SELECT
+                form_cut_select_method.*,
+                COALESCE(form_cut_input.no_form, form_cut_piece.no_form) AS no_form
+            FROM form_cut_select_method
+            LEFT JOIN form_cut_input
+                ON form_cut_input.id = form_cut_select_method.form_cut_id
+            LEFT JOIN form_cut_piece
+                ON form_cut_piece.id = form_cut_select_method.form_piece_id
+            WHERE DATE(form_cut_select_method.created_at) BETWEEN ? AND ?
+        ", [
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        $filename = 'Logs_Method_' . $request->tanggal_awal . '_' . $request->tanggal_akhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow(['Tanggal', 'No Form', 'Roll', 'Notes', 'User'], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->created_at   ?? '',
+                    $row->no_form   ?? '',
+                    $row->roll_count     ?? '',
+                    $row->notes ?? '',
+                    $row->username_app    ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download();
+    }
 }
