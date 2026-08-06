@@ -494,7 +494,7 @@ class FGStokOpnameController extends Controller
         ]);
 
         $data = DB::select("
-            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
+            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_at, d.updated_at, d.created_by, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
             FROM fg_stok_opname_detail d
             JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
             WHERE d.no_opname = ?
