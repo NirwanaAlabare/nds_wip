@@ -283,7 +283,11 @@ $page = '';
                         autoWidth: false,
                         // scrollY: "300px",
                         paging: false
-                    })
+                    }).columns.adjust().draw();
+
+                    $('#modal_tblroll').on('shown.bs.modal', function (e) {
+                        $("#tableshow").DataTable().columns.adjust().draw();
+                    });
                 }
             }
         });
