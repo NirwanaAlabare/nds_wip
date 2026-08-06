@@ -68,10 +68,10 @@ class SecondaryInController extends Controller
                 $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
             }
             if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
-                $additionalQuery .= " and COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+                $additionalQuery .= " and CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
             }
             if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-                $additionalQuery .= " and CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+                $additionalQuery .= " and CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
             }
             if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
@@ -102,7 +102,7 @@ class SecondaryInController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
-                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
                     COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
                     COALESCE(s.lokasi, '-') lokasi_rak,
@@ -110,7 +110,7 @@ class SecondaryInController extends Controller
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     COALESCE(a.qty_in) qty_in,
-                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                     a.created_at,
                     CONCAT(s.range_awal, ' - ', s.range_akhir,
                         (
@@ -156,7 +156,8 @@ class SecondaryInController extends Controller
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join master_secondary ms on ms.id = pd.master_secondary_id
@@ -201,7 +202,7 @@ class SecondaryInController extends Controller
                 s.color,
                 p.buyer,
                 p.style,
-                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
                 COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
                 COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
                 COALESCE(s.lokasi, '-') lokasi_rak,
@@ -227,7 +228,7 @@ class SecondaryInController extends Controller
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 a.user,
-                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                 (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan
             from secondary_in_input a
             LEFT JOIN (
@@ -254,7 +255,7 @@ class SecondaryInController extends Controller
             left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail
             left join part p_com on p_com.id = pd_com.part_id
             left join master_secondary ms on ms.id = pd.master_secondary_id
             left join master_part mp on mp.id = pd.master_part_id
@@ -303,8 +304,8 @@ class SecondaryInController extends Controller
     public function total_secondary_in(Request $request)
     {
         $tipeCase = "(CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END)";
-        $panelExpr = "COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END)))";
-        $namaPartExpr = "CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END))";
+        $panelExpr = "CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END))";
+        $namaPartExpr = "CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END))";
         $sizeExpr = "COALESCE(msb.size, s.size)";
         $noCutExpr = "COALESCE(f.no_cut, fp.no_cut, '-')";
         $stockerRangeExpr = "CONCAT(s.range_awal, ' - ', s.range_akhir)";
@@ -423,10 +424,10 @@ class SecondaryInController extends Controller
             $keywordQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
         }
         if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
-            $keywordQuery .= " and COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
+            $keywordQuery .= " and CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
         }
         if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-            $keywordQuery .= " and CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+            $keywordQuery .= " and CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
         }
         if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
             $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
@@ -463,7 +464,7 @@ class SecondaryInController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
-                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
                     COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
                     COALESCE(s.lokasi, '-') lokasi_rak,
@@ -471,7 +472,7 @@ class SecondaryInController extends Controller
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     COALESCE(a.qty_in) qty_in,
-                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                     a.created_at,
                     CONCAT(s.range_awal, ' - ', s.range_akhir,
                         (
@@ -516,7 +517,8 @@ class SecondaryInController extends Controller
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_secondary ms on ms.id = pd.master_secondary_id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -635,6 +637,7 @@ class SecondaryInController extends Controller
                         left join form_cut_piece fp on fp.id = s.form_piece_id
                         left join part_detail pd on s.part_detail_id = pd.id
                         left join part p on pd.part_id = p.id
+                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                         left join master_secondary ms on ms.id = pd.master_secondary_id
                         left join master_part mp on mp.id = pd.master_part_id
                         left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -737,6 +740,7 @@ class SecondaryInController extends Controller
                         left join form_cut_piece fp on fp.id = s.form_piece_id
                         left join part_detail pd on s.part_detail_id = pd.id
                         left join part p on pd.part_id = p.id
+                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                         left join master_secondary ms on ms.id = pd.master_secondary_id
                         left join master_part mp on mp.id = pd.master_part_id
                         left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -850,8 +854,8 @@ class SecondaryInController extends Controller
                                 COALESCE(msb.size, s.size) size,
                                 dc.tujuan,
                                 dc.lokasi,
-                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                 COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                 if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                 s.lokasi lokasi_tujuan,
@@ -880,7 +884,8 @@ class SecondaryInController extends Controller
                                 left join form_cut_piece c on s.form_piece_id = c.id
                                 left join part_detail pd on s.part_detail_id = pd.id
                                 left join part p on p.id = pd.part_id
-                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                                left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                 left join part p_com on p_com.id = pd_com.part_id
                                 left join (
                                     select
@@ -971,8 +976,8 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                     COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
@@ -987,7 +992,7 @@ class SecondaryInController extends Controller
                                                     left join form_cut_piece c on s.form_piece_id = c.id
                                                     left join part_detail pd on s.part_detail_id = pd.id
                                                     left join part p on p.id = pd.part_id
-                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                     left join part p_com on p_com.id = pd_com.part_id
                                                     left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                     left join master_part mp on pd.master_part_id = mp.id
@@ -1031,8 +1036,8 @@ class SecondaryInController extends Controller
                                                 COALESCE(msb.size, s.size) size,
                                                 ms.tujuan,
                                                 ms.proses lokasi,
-                                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                 COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                 ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                 s.lokasi lokasi_tujuan,
@@ -1047,7 +1052,7 @@ class SecondaryInController extends Controller
                                                 left join form_cut_piece c on s.form_piece_id = c.id
                                                 left join part_detail pd on s.part_detail_id = pd.id
                                                 left join part p on p.id = pd.part_id
-                                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                 left join part p_com on p_com.id = pd_com.part_id
                                                 left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                 left join master_part mp on pd.master_part_id = mp.id
@@ -1126,8 +1131,8 @@ class SecondaryInController extends Controller
                                                         COALESCE(msb.size, s.size) size,
                                                         ms.tujuan,
                                                         ms.proses lokasi,
-                                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                        CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                        CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                         COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                         ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
@@ -1142,7 +1147,7 @@ class SecondaryInController extends Controller
                                                         left join form_cut_piece c on s.form_piece_id = c.id
                                                         left join part_detail pd on s.part_detail_id = pd.id
                                                         left join part p on p.id = pd.part_id
-                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                         left join part p_com on p_com.id = pd_com.part_id
                                                         left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                         left join master_part mp on pd.master_part_id = mp.id
@@ -1183,8 +1188,8 @@ class SecondaryInController extends Controller
                                                         COALESCE(msb.size, s.size) size,
                                                         ms.tujuan,
                                                         ms.proses lokasi,
-                                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                        CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                        CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                         COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                         ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
@@ -1199,7 +1204,7 @@ class SecondaryInController extends Controller
                                                         left join form_cut_piece c on s.form_piece_id = c.id
                                                         left join part_detail pd on s.part_detail_id = pd.id
                                                         left join part p on p.id = pd.part_id
-                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                         left join part p_com on p_com.id = pd_com.part_id
                                                         left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                         left join master_part mp on pd.master_part_id = mp.id
@@ -1251,8 +1256,8 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                     COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
@@ -1267,7 +1272,7 @@ class SecondaryInController extends Controller
                                                     left join form_cut_piece c on s.form_piece_id = c.id
                                                     left join part_detail pd on s.part_detail_id = pd.id
                                                     left join part p on p.id = pd.part_id
-                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                     left join part p_com on p_com.id = pd_com.part_id
                                                     left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                     left join master_part mp on pd.master_part_id = mp.id
@@ -1309,8 +1314,8 @@ class SecondaryInController extends Controller
                                             COALESCE(msb.size, s.size) size,
                                             dc.tujuan,
                                             dc.lokasi,
-                                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                            CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                            CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                             COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                             if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                             s.lokasi lokasi_tujuan,
@@ -1339,7 +1344,7 @@ class SecondaryInController extends Controller
                                             left join form_cut_piece c on s.form_piece_id = c.id
                                             left join part_detail pd on s.part_detail_id = pd.id
                                             left join part p on p.id = pd.part_id
-                                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                            left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                             left join part p_com on p_com.id = pd_com.part_id
                                             left join (
                                                 select
@@ -1402,8 +1407,8 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                                     COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                                     ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
@@ -1419,7 +1424,7 @@ class SecondaryInController extends Controller
                                                     left join form_cut_piece c on s.form_piece_id = c.id
                                                     left join part_detail pd on s.part_detail_id = pd.id
                                                     left join part p on p.id = pd.part_id
-                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                                     left join part p_com on p_com.id = pd_com.part_id
                                                     left join part_detail_secondary pds on pds.part_detail_id = pd.id
                                                     left join master_part mp on pd.master_part_id = mp.id
@@ -1472,8 +1477,8 @@ class SecondaryInController extends Controller
                                         COALESCE(msb.size, s.size) size,
                                         dc.tujuan,
                                         dc.lokasi,
-                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                                        CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                                        CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                                         COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                                         if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                         s.lokasi lokasi_tujuan,
@@ -1502,7 +1507,8 @@ class SecondaryInController extends Controller
                                         left join form_cut_piece c on s.form_piece_id = c.id
                                         left join part_detail pd on s.part_detail_id = pd.id
                                         left join part p on p.id = pd.part_id
-                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail
                                         left join part p_com on p_com.id = pd_com.part_id
                                         left join (
                                             select
@@ -1540,8 +1546,8 @@ class SecondaryInController extends Controller
                             COALESCE(msb.size, s.size) size,
                             dc.tujuan,
                             dc.lokasi,
-                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                            CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                            CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                             COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                             if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                             s.lokasi lokasi_tujuan,
@@ -1567,7 +1573,7 @@ class SecondaryInController extends Controller
                             left join form_cut_piece c on s.form_piece_id = c.id
                             left join part_detail pd on s.part_detail_id = pd.id
                             left join part p on p.id = pd.part_id
-                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                            left join part_detail pd_com on pd_com.id = pd.from_part_detail
                             left join part p_com on p_com.id = pd_com.part_id
                             left join master_part mp on pd.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
@@ -1599,8 +1605,8 @@ class SecondaryInController extends Controller
                 COALESCE(msb.size, s.size) size,
                 dc.tujuan,
                 dc.lokasi,
-                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
-                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
                 COALESCE(s.qty_ply_mod, s.qty_ply) qty_stocker,
                 COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
                 sii.qty_reject,
@@ -1633,7 +1639,7 @@ class SecondaryInController extends Controller
             left join form_cut_piece c on s.form_piece_id = c.id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on pd.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
@@ -2079,8 +2085,8 @@ class SecondaryInController extends Controller
                     -- COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     a.qty_replace,
                     COALESCE(a.qty_in) qty_in,
-                    mp.nama_part nama_part,
-                    pd.part_status part_status,
+                    mp.nama_part,
+                    UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
                     a.created_at,
                     CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
@@ -2113,7 +2119,8 @@ class SecondaryInController extends Controller
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_secondary ms on ms.id = pd.master_secondary_id
                 left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
