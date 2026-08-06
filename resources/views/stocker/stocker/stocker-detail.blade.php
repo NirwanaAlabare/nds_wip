@@ -795,7 +795,7 @@
                                                 <td>{{ $ratio->size_dest}}</td>
                                                 <td>{{ $ratio->ratio }}</td>
                                                 <td>
-                                                    <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" onchange="modifyQty(this, {{ $index }});">
+                                                    <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $ratio->ratio * (count($groupStockerList) > 0 && count($groupStockerList) && $groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * (count($groupStockerList) > 0 && count($groupStockerList) && $groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" onchange="modifyQty(this, {{ $index }});">
                                                 </td>
                                                 <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
                                                 <td id="mod_range_akhir_view_{{ $index }}">{{ ($rangeAkhir >= $rangeAwal ? $rangeAkhir : $rangeAwal) }}</td>
@@ -815,7 +815,7 @@
                                                 </td>
                                             </tr>
 
-                                            <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" data-original-value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}">
+                                            <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" data-original-value="{{ $ratio->ratio * (count($groupStockerList) && $groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * (count($groupStockerList) && $groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * (count($groupStockerList) && $groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}">
                                             <input type="hidden" name="mod_difference_qty[{{ $index }}]" id="mod_difference_qty_{{ $index }}" value="{{ 0 }}">
                                             <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
                                             <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
