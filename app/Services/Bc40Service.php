@@ -623,7 +623,25 @@ class Bc40Service
 
             if ($responseCeisa['successful']) {
 
+
+
+
                 foreach ($bpbs as $no_bpb) {
+
+                    $updated = $db->table('bpb')
+                        ->where(function($q) use ($no_bpb) {
+                            $q->where('bpbno', $no_bpb)->orWhere('bpbno_int', $no_bpb);
+                        })
+                        ->update([
+                            'nomor_aju'   => $nomorAju,
+                            'tanggal_aju' => date('Y-m-d'),
+                            'bcdate'      => date('Y-m-d'),
+                        ]);
+
+                    if ($updated === 0) {
+                        Log::warning("BC 4.0: bpbno {$no_bpb} tidak ditemukan di tabel bpb saat update nomor_aju.");
+                    }
+
                     $db->table('bpb_ceisa')->where('bpbno', $no_bpb)->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => date('Y-m-d'),
