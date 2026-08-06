@@ -123,6 +123,7 @@
                             <th>Blc Packing Scan</th>
                             <th>Shipment</th>
                             <th>Blc Shipment</th>
+                            <th>Finishing Proses Trigger</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -145,6 +146,7 @@
                             <th id="total_blc_scan"></th>
                             <th id="total_final_out"></th>
                             <th id="total_blc_out"></th>
+                            <th id="total_final_output_fns_proses_trigger"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -478,6 +480,10 @@
                     {
                         data: 'blc_qty_fg'
                     },
+                    {
+                        data: 'final_output_fns_proses_trigger',
+                        visible: false
+                    },
                 ],
                 columnDefs: [{
                         targets: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -514,7 +520,7 @@
                     var blcScanCell = $(row).find('td').eq(20);
                     var finalFGOutCell = $(row).find('td').eq(21);
                     var blcFGOutCell = $(row).find('td').eq(22);
-
+                    var finalOutputFnsProsesCell = $(row).find('td').eq(23);
 
                     if (parseFloat(data.blc_cut) < parseFloat(data.qty_po) &&
                         parseFloat(data.blc_cut) < '0') {
@@ -592,12 +598,12 @@
                 initComplete: function () {
                     var api = this.api();
 
-                    var totalFinalOutputFnsProses = api.column(13).data().reduce(function(a, b) {
+                    var totalFinalOutputFnsProsesTrigger = api.column(23).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0);
 
-                    api.column(13).visible(totalFinalOutputFnsProses > 0);
-                    api.column(14).visible(totalFinalOutputFnsProses > 0);
+                    api.column(13).visible(totalFinalOutputFnsProsesTrigger > 0);
+                    api.column(14).visible(totalFinalOutputFnsProsesTrigger > 0);
                 },
                 drawCallback: function(settings) {
                     // Calculate totals
@@ -711,6 +717,12 @@
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
+                    var totalFinalOutputFnsProsesTrigger = api.column(23, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
                     // Update footer with totals
 
                     $('#total_qty_po').text(totalQtyPo);
@@ -736,6 +748,7 @@
                         'black');
                     $('#total_final_out').text(totalFGOut);
                     $('#total_blc_out').text(totalblcFGOut).css('color', totalblcFGOut < 0 ? 'red' : 'black');
+                    $('#total_final_output_fns_proses_trigger').text(totalFinalOutputFnsProsesTrigger);
                     // Call the update_chart function with new data and totalQtyPo
                     const newData = [{
                             category: 'Cutting',
@@ -755,7 +768,7 @@
                             expected: totalQtyPo,
                             color: '#FFF574'
                         },
-                        ...(totalFinalOutputFnsProses > 0 ? [{
+                        ...(totalFinalOutputFnsProsesTrigger > 0 ? [{
                             category: 'Finishing Proses',
                             actual: totalFinalOutputFnsProses,
                             expected: totalQtyPo,
@@ -836,7 +849,7 @@
                     const worksheet = workbook.addWorksheet("Mutasi Output Production");
 
                     // Cek apakah ada data Finishing Proses
-                    const showFnsProses = data.some(row => Number(row.final_output_fns_proses) > 0);
+                    const showFnsProses = data.some(row => Number(row.final_output_fns_proses_trigger) > 0);
 
                     // Header
                     const headers = [
