@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>QR No. Carton</title>
     <style>
         @page {
             margin: 0;
-            size: 180pt 210pt;
+            size: 74mm 105mm;
         }
 
         * {
@@ -23,52 +24,124 @@
         }
 
         .wrap-table {
-            width: 180pt;
-            height: 210pt;
+            width: 74mm;
+            height: 105mm;
             border-collapse: collapse;
         }
 
         .wrap-table td {
             text-align: center;
             vertical-align: middle;
-            padding-top: 20pt;
+            padding: 2mm;
+        }
+
+        .card {
+            width: 68mm;
+            text-align: left;
+            padding: 3mm;
+        }
+
+        .header {
+            border-left: 1.2mm solid #222;
+            padding-left: 2mm;
+            margin-bottom: 2mm;
+            padding-top: 2mm;
+            padding-bottom: 4mm;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #222;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #666;
+            line-height: 1.1;
+        }
+
+        .qr-wrap {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 2mm;
         }
 
         img {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 8px;
-        }
-
-        .no-pallet {
-            margin: 0 0 8px;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: .5px;
-            color: #333;
-            word-wrap: break-word;
-        }
-
-        .no-carton {
+            display: block;
+            width: 60mm;
+            height: 60mm;
             margin: 0;
-            font-size: 17px;
+            margin-left: 2mm;
+            /* ubah angka di atas untuk geser QR: 0mm = mepet kiri, makin besar makin ke kanan */
+        }
+
+        .info-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 0;
+            font-size: 21px;
             font-weight: bold;
-            letter-spacing: .5px;
-            word-wrap: break-word;
+            line-height: 1.3;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .info-table td.label {
+            text-align: left;
+            padding-right: 1mm;
+        }
+
+        .info-table td.colon {
+            text-align: center;
+            padding: 0 0.5mm;
+        }
+
+        .info-table td.value {
+            text-align: left;
+            font-weight: normal;
         }
     </style>
 </head>
+
 <body>
     <table class="wrap-table">
         <tr>
             <td>
-                @if ($no_pallet)
-                    <div class="no-pallet">No. Pallet: {{ $no_pallet }}</div>
-                @endif
-                <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(300)->generate($no_carton)) !!}">
-                <div class="no-carton">{{ $no_carton }}</div>
+                <div class="card">
+                    <div class="header">
+                        <div class="title">QR Carton</div>
+                        <div class="subtitle">Scan untuk cek stok</div>
+                    </div>
+                    <div class="qr-wrap">
+                        <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(300)->generate($no_carton)) !!}">
+                    </div>
+                    <table class="info-table">
+                        @if ($no_pallet)
+                            <tr>
+                                <td class="label">No. Pallet</td>
+                                <td class="colon">:</td>
+                                <td class="value">{{ $no_pallet }}</td>
+                            </tr>
+                        @endif
+                        <tr>
+                            <td class="label">No. Carton</td>
+                            <td class="colon">:</td>
+                            <td class="value">{{ $no_carton }}</td>
+                        </tr>
+                    </table>
+                </div>
             </td>
         </tr>
     </table>
 </body>
+
 </html>

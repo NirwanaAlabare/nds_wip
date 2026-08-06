@@ -35,16 +35,16 @@ class FGStokOpnameController extends Controller
                     ) AS tgl_opname_fix,
                     h.periode,
                     DATE_FORMAT(STR_TO_DATE(CONCAT(h.periode, '-01'), '%Y-%m-%d'), '%M %Y') AS periode_fix,
-                    h.no_carton,
-                    h.no_pallet,
+                    h.ket,
                     h.status,
+                    COUNT(DISTINCT d.no_carton) total_carton,
                     IFNULL(SUM(d.qty), 0) total_qty
                 FROM fg_stok_opname_header h
                 LEFT JOIN fg_stok_opname_detail d
-                    ON d.no_opname = h.no_opname AND (d.cancel = 'N' OR d.cancel IS NULL)
+                    ON d.no_opname = h.no_opname AND d.cancel = 'N'
                 WHERE h.tgl_opname BETWEEN ? AND ?
-                    AND (h.cancel = 'N' OR h.cancel IS NULL)
-                GROUP BY h.no_opname, h.tgl_opname, h.periode, h.no_carton, h.no_pallet, h.status
+                    AND h.cancel = 'N'
+                GROUP BY h.no_opname, h.tgl_opname, h.periode, h.ket, h.status
                 ORDER BY h.tgl_opname DESC, h.no_opname DESC
             ", [$tgl_awal, $tgl_akhir]);
 
@@ -64,23 +64,25 @@ class FGStokOpnameController extends Controller
                 h.no_opname,
                 h.tgl_opname,
                 h.periode,
-                h.no_carton,
-                h.no_pallet,
-                h.status,
+                h.ket,
+                d.no_carton,
+                d.no_pallet,
+                d.status,
                 m.buyer,
                 m.ws,
                 m.styleno,
                 m.dest,
                 m.color,
                 m.size,
+                m.product_item,
                 d.grade,
                 d.qty
             FROM fg_stok_opname_header h
-            JOIN fg_stok_opname_detail d ON d.no_opname = h.no_opname AND (d.cancel = 'N' OR d.cancel IS NULL)
+            JOIN fg_stok_opname_detail d ON d.no_opname = h.no_opname AND d.cancel = 'N'
             JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
             LEFT JOIN master_size_new ms ON ms.size = m.size
             WHERE h.tgl_opname BETWEEN ? AND ?
-                AND (h.cancel = 'N' OR h.cancel IS NULL)
+                AND h.cancel = 'N'
             ORDER BY h.tgl_opname DESC, h.no_opname DESC, ms.urutan ASC, d.id ASC
         ", [$tgl_awal, $tgl_akhir]);
 
@@ -111,6 +113,7 @@ class FGStokOpnameController extends Controller
             'No. Opname',
             'Tgl. Opname',
             'Periode',
+            'Keterangan',
             'No. Carton',
             'No. Pallet',
             'Status',
@@ -120,6 +123,7 @@ class FGStokOpnameController extends Controller
             'Dest',
             'Color',
             'Size',
+            'Product Item',
             'Grade',
             'Qty',
         ], [
@@ -134,6 +138,7 @@ class FGStokOpnameController extends Controller
                 $row->no_opname ?? '',
                 $row->tgl_opname ?? '',
                 $row->periode ?? '',
+                $row->ket ?? '',
                 $row->no_carton ?? '',
                 $row->no_pallet ?? '',
                 $row->status ?? '',
@@ -143,6 +148,7 @@ class FGStokOpnameController extends Controller
                 $row->dest ?? '',
                 $row->color ?? '',
                 $row->size ?? '',
+                $row->product_item ?? '',
                 $row->grade ?? '',
                 (float) ($row->qty ?? 0),
             ], [
@@ -150,11 +156,289 @@ class FGStokOpnameController extends Controller
             ]);
         }
 
-        foreach (range('A', 'N') as $col) {
+        foreach (range('A', 'P') as $col) {
             $sheet->setColWidth($col, 18);
         }
 
         return $excel->download();
+    }
+
+    public function dashboardAnalytics(Request $request)
+    {
+        return view('fg-stock.dashboard_opname_fg_stock', [
+            'page' => 'dashboard-fg-stock',
+            'subPageGroup' => 'fgstock-opname',
+            'subPage' => 'opname-fg-stock',
+        ]);
+    }
+
+    public function getOpnameList(Request $request)
+    {
+        $data = DB::select("
+            SELECT
+                no_opname,
+                ket,
+                status,
+                CONCAT(
+                    DATE_FORMAT(tgl_opname, '%d'), '-',
+                    LEFT(DATE_FORMAT(tgl_opname, '%M'), 3), '-',
+                    DATE_FORMAT(tgl_opname, '%Y')
+                ) AS tgl_opname_fix
+            FROM fg_stok_opname_header
+            WHERE cancel = 'N'
+            ORDER BY tgl_opname DESC, no_opname DESC
+        ");
+
+        return response()->json($data);
+    }
+
+    public function getSummary(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $no_opname = $request->no_opname;
+
+        $summary = DB::select("
+            SELECT
+                IFNULL(SUM(d.qty), 0) total_qty,
+                COUNT(DISTINCT d.no_pallet) total_pallet,
+                COUNT(DISTINCT d.no_carton) total_karton,
+                IFNULL(SUM(CASE WHEN d.grade = 'A' THEN d.qty ELSE 0 END), 0) grade_a_qty
+            FROM fg_stok_opname_header h
+            LEFT JOIN fg_stok_opname_detail d
+                ON d.no_opname = h.no_opname AND d.cancel = 'N'
+            WHERE h.no_opname = ? AND h.cancel = 'N'
+        ", [$no_opname]);
+
+        $topBuyer = DB::select("
+            SELECT m.buyer, SUM(d.qty) qty
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+            GROUP BY m.buyer
+            ORDER BY qty DESC
+            LIMIT 1
+        ", [$no_opname]);
+
+        $totalQty = $summary[0]->total_qty ?? 0;
+        $gradeAQty = $summary[0]->grade_a_qty ?? 0;
+
+        return response()->json([
+            'total_qty' => (float) $totalQty,
+            'total_pallet' => (int) ($summary[0]->total_pallet ?? 0),
+            'total_karton' => (int) ($summary[0]->total_karton ?? 0),
+            'grade_a_qty' => (float) $gradeAQty,
+            'grade_a_pct' => $totalQty > 0 ? round(($gradeAQty / $totalQty) * 100) : 0,
+            'top_buyer' => count($topBuyer) > 0 ? $topBuyer[0]->buyer : null,
+            'top_buyer_qty' => count($topBuyer) > 0 ? (float) $topBuyer[0]->qty : 0,
+        ]);
+    }
+
+    public function getChartGrade(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $data = DB::select("
+            SELECT d.grade, SUM(d.qty) qty
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+            GROUP BY d.grade
+            ORDER BY d.grade
+        ", [$request->no_opname]);
+
+        return response()->json($data);
+    }
+
+    public function getChartBuyer(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $data = DB::select("
+            SELECT m.buyer, SUM(d.qty) qty
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+            GROUP BY m.buyer
+            ORDER BY qty DESC
+            LIMIT 10
+        ", [$request->no_opname]);
+
+        return response()->json($data);
+    }
+
+    public function getMasterData(Request $request)
+    {
+        $no_opname = $request->no_opname;
+
+        $data = DB::select("
+            SELECT
+                h.no_opname,
+                d.no_pallet,
+                d.no_carton,
+                h.ket,
+                m.buyer,
+                m.styleno,
+                m.product_item,
+                d.grade,
+                d.qty
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+            ORDER BY h.tgl_opname DESC, h.no_opname DESC, d.id ASC
+        ", [$no_opname]);
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function getWarehouseMap(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $data = DB::select("
+            SELECT
+                d.no_pallet,
+                COUNT(DISTINCT d.no_carton) total_karton,
+                IFNULL(SUM(d.qty), 0) total_qty,
+                GROUP_CONCAT(DISTINCT d.no_carton SEPARATOR ', ') no_carton_list,
+                GROUP_CONCAT(DISTINCT m.buyer SEPARATOR ', ') buyer_list,
+                GROUP_CONCAT(DISTINCT m.ws SEPARATOR ', ') ws_list,
+                GROUP_CONCAT(DISTINCT m.styleno SEPARATOR ', ') styleno_list,
+                GROUP_CONCAT(DISTINCT m.color SEPARATOR ', ') color_list,
+                GROUP_CONCAT(DISTINCT m.product_item SEPARATOR ', ') product_item_list
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            LEFT JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+                AND d.no_pallet IS NOT NULL AND d.no_pallet != ''
+            GROUP BY d.no_pallet
+        ", [$request->no_opname]);
+
+        $zones = [];
+
+        foreach ($data as $row) {
+            $parts = explode('.', $row->no_pallet);
+            $zona = strtoupper(trim($parts[0]));
+
+            if ($zona === '') {
+                continue;
+            }
+
+            $baris = isset($parts[1]) ? (int) $parts[1] : 1;
+            $kolom = isset($parts[2]) ? (int) $parts[2] : 1;
+            $baris = $baris > 0 ? $baris : 1;
+            $kolom = $kolom > 0 ? $kolom : 1;
+
+            if (!isset($zones[$zona])) {
+                $zones[$zona] = [
+                    'zona' => $zona,
+                    'max_baris' => 1,
+                    'max_kolom' => 1,
+                    'cells' => [],
+                ];
+            }
+
+            $zones[$zona]['max_baris'] = max($zones[$zona]['max_baris'], $baris);
+            $zones[$zona]['max_kolom'] = max($zones[$zona]['max_kolom'], $kolom);
+
+            $zones[$zona]['cells'][] = [
+                'no_pallet' => $row->no_pallet,
+                'baris' => $baris,
+                'kolom' => $kolom,
+                'total_karton' => (int) $row->total_karton,
+                'total_qty' => (float) $row->total_qty,
+                'no_carton_list' => $row->no_carton_list ?? '',
+                'buyer_list' => $row->buyer_list ?? '',
+                'ws_list' => $row->ws_list ?? '',
+                'styleno_list' => $row->styleno_list ?? '',
+                'color_list' => $row->color_list ?? '',
+                'product_item_list' => $row->product_item_list ?? '',
+            ];
+        }
+
+        ksort($zones);
+
+        return response()->json(array_values($zones));
+    }
+
+    public function getWarehouseFilterOptions(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $data = DB::select("
+            SELECT DISTINCT m.buyer, m.ws, m.styleno, m.color, m.product_item
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND h.cancel = 'N' AND d.cancel = 'N'
+                AND d.no_pallet IS NOT NULL AND d.no_pallet != ''
+        ", [$request->no_opname]);
+
+        $pluck = function ($field) use ($data) {
+            $values = [];
+
+            foreach ($data as $row) {
+                $val = $row->$field;
+
+                if ($val !== null && $val !== '' && !in_array($val, $values)) {
+                    $values[] = $val;
+                }
+            }
+
+            sort($values);
+
+            return $values;
+        };
+
+        return response()->json([
+            'buyer' => $pluck('buyer'),
+            'ws' => $pluck('ws'),
+            'styleno' => $pluck('styleno'),
+            'color' => $pluck('color'),
+            'product_item' => $pluck('product_item'),
+        ]);
+    }
+
+    public function getPalletDetail(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $data = DB::select("
+            SELECT
+                h.no_opname,
+                d.no_carton,
+                d.status,
+                m.buyer,
+                m.ws,
+                m.styleno,
+                m.product_item,
+                d.grade,
+                d.qty
+            FROM fg_stok_opname_detail d
+            JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE h.no_opname = ? AND d.no_pallet = ?
+                AND h.cancel = 'N' AND d.cancel = 'N'
+            ORDER BY d.no_carton, d.id
+        ", [$request->no_opname, $request->no_pallet]);
+
+        return response()->json($data);
     }
 
     public function create(Request $request)
@@ -172,24 +456,24 @@ class FGStokOpnameController extends Controller
     public function printQr(Request $request)
     {
         $no_carton = $request->no_carton;
-        $periode = $request->periode;
+        $no_opname = $request->no_opname;
 
-        if (!$no_carton) {
+        if (!$no_carton || !$no_opname) {
             abort(404);
         }
 
-        $header = DB::select("
-            SELECT no_pallet FROM fg_stok_opname_header
-            WHERE no_carton = ? AND periode = ? AND (cancel = 'N' OR cancel IS NULL)
+        $detail = DB::select("
+            SELECT no_pallet FROM fg_stok_opname_detail
+            WHERE no_carton = ? AND no_opname = ? AND cancel = 'N'
             LIMIT 1
-        ", [$no_carton, $periode]);
+        ", [$no_carton, $no_opname]);
 
-        $no_pallet = count($header) > 0 ? $header[0]->no_pallet : null;
+        $no_pallet = count($detail) > 0 ? $detail[0]->no_pallet : null;
 
         $pdf = PDF::loadView('fg-stock.print_qr_opname_fg_stock', [
             'no_carton' => $no_carton,
             'no_pallet' => $no_pallet,
-        ])->setPaper([0, 0, 180, 210]);
+        ])->setPaper([0, 0, 209.76, 297.64]);
 
         return $pdf->stream('QR-' . $no_carton . '.pdf');
     }
@@ -206,34 +490,19 @@ class FGStokOpnameController extends Controller
     public function getOpnameItems(Request $request)
     {
         $request->validate([
-            'no_carton' => 'required|string',
-            'periode' => 'required|string',
+            'no_opname' => 'required|string',
         ]);
 
-        $header = DB::select("
-            SELECT no_opname, status, tgl_opname, no_pallet FROM fg_stok_opname_header
-            WHERE periode = ? AND no_carton = ? AND (cancel = 'N' OR cancel IS NULL)
-            LIMIT 1
-        ", [$request->periode, $request->no_carton]);
-
-        $data = [];
-
-        if (count($header) > 0) {
-            $data = DB::select("
-                SELECT d.id id_detail, d.qty, d.grade, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
-                FROM fg_stok_opname_detail d
-                JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
-                WHERE d.no_opname = ?
-                AND (d.cancel = 'N' OR d.cancel IS NULL)
-                ORDER BY d.id
-            ", [$header[0]->no_opname]);
-        }
+        $data = DB::select("
+            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
+            FROM fg_stok_opname_detail d
+            JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
+            WHERE d.no_opname = ?
+            AND d.cancel = 'N'
+            ORDER BY d.id
+        ", [$request->no_opname]);
 
         return response()->json([
-            'no_opname' => count($header) > 0 ? $header[0]->no_opname : null,
-            'status' => count($header) > 0 ? $header[0]->status : null,
-            'tgl_opname' => count($header) > 0 ? $header[0]->tgl_opname : null,
-            'no_pallet' => count($header) > 0 ? $header[0]->no_pallet : null,
             'items' => $data,
         ]);
     }
@@ -264,6 +533,47 @@ class FGStokOpnameController extends Controller
         ", [$no_carton, 'N', Auth::user()->name, Carbon::now(), Carbon::now()]);
 
         return response()->json(['message' => 'No. Carton berhasil ditambahkan.']);
+    }
+
+    public function getMasterPallet(Request $request)
+    {
+        $data = DB::select("
+            SELECT no_pallet FROM fg_stok_master_pallet WHERE cancel = 'N' ORDER BY no_pallet
+        ");
+
+        return response()->json($data);
+    }
+
+    public function storeMasterPallet(Request $request)
+    {
+        $request->validate([
+            'zone' => 'required|string|max:3',
+            'baris' => 'required|numeric',
+            'kolom' => 'required|numeric',
+        ]);
+
+        $zone = strtoupper(preg_replace('/\s+/', '', $request->zone));
+        $baris = $request->baris;
+        $kolom = $request->kolom;
+        $no_pallet = $zone . '.' . $baris . '.' . $kolom;
+
+        $exists = DB::select("
+            SELECT 1 FROM fg_stok_master_pallet WHERE no_pallet = ? AND cancel = 'N'
+        ", [$no_pallet]);
+
+        if (count($exists) > 0) {
+            return response()->json(['message' => 'No. Pallet sudah ada'], 422);
+        }
+
+        DB::insert("
+            INSERT INTO fg_stok_master_pallet (no_pallet, zone, baris, kolom, cancel, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'N', ?, ?, ?)
+        ", [$no_pallet, $zone, $baris, $kolom, Auth::user()->name, Carbon::now(), Carbon::now()]);
+
+        return response()->json([
+            'message' => 'No. Pallet berhasil ditambahkan.',
+            'no_pallet' => $no_pallet,
+        ]);
     }
 
     public function getBuyer(Request $request)
@@ -307,6 +617,42 @@ class FGStokOpnameController extends Controller
         return response()->json([
             'buyer' => count($data) > 0 ? $data[0]->buyer : null,
         ]);
+    }
+
+    public function getBuyerWs(Request $request)
+    {
+        $request->validate([
+            'q' => 'nullable|string',
+        ]);
+
+        $q = trim((string) $request->q);
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $words = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+
+        $whereParts = [];
+        $bindings = [];
+
+        foreach ($words as $word) {
+            $whereParts[] = '(buyer LIKE ? OR ws LIKE ? OR styleno LIKE ? OR product_item LIKE ?)';
+            $like = '%' . $word . '%';
+            array_push($bindings, $like, $like, $like, $like);
+        }
+
+        $whereSql = implode(' AND ', $whereParts);
+
+        $data = DB::select("
+            SELECT product_item, buyer, ws, styleno FROM master_sb_ws
+            WHERE buyer IS NOT NULL AND ws IS NOT NULL
+            AND ({$whereSql})
+            GROUP BY buyer, ws, styleno, product_item
+            ORDER BY buyer, ws
+        ", $bindings);
+
+        return response()->json($data);
     }
 
     public function getStyle(Request $request)
@@ -390,82 +736,127 @@ class FGStokOpnameController extends Controller
         return response()->json($data);
     }
 
+    public function storeOpnameHeader(Request $request)
+    {
+        $request->validate([
+            'periode' => 'required|string',
+            'tgl_opname' => 'required|date',
+            'ket' => 'nullable|string',
+        ]);
+
+        if (date('Y-m', strtotime($request->tgl_opname)) !== $request->periode) {
+            return response()->json(['message' => 'Tgl. Opname harus dalam bulan periode yang dipilih!'], 422);
+        }
+
+        $user = Auth::user()->name;
+        $now = Carbon::now();
+
+        $counter = DB::select("
+            SELECT IF(MAX(no_opname) IS NULL, 1, MAX(RIGHT(no_opname, 5)) + 1) nomor
+            FROM fg_stok_opname_header
+            WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
+            AND LEFT(no_opname, 3) = 'OPN'
+        ");
+
+        $no_opname = 'OPN' . date('ym') . str_pad($counter[0]->nomor, 5, '0', STR_PAD_LEFT);
+
+        DB::insert("
+            INSERT INTO fg_stok_opname_header (no_opname, tgl_opname, periode, ket, cancel, status, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'N', 'OPEN', ?, ?, ?)
+        ", [$no_opname, $request->tgl_opname, $request->periode, $request->ket, $user, $now, $now]);
+
+        return response()->json([
+            'message' => 'Data opname ' . $no_opname . ' berhasil dibuat.',
+            'no_opname' => $no_opname,
+        ]);
+    }
+
+    public function getOpnameHeader(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $header = DB::select("
+            SELECT no_opname, tgl_opname, periode, ket, status FROM fg_stok_opname_header
+            WHERE no_opname = ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname]);
+
+        if (count($header) === 0) {
+            return response()->json(['message' => 'Data opname tidak ditemukan!'], 404);
+        }
+
+        return response()->json($header[0]);
+    }
+
     public function storeOpname(Request $request)
     {
         $request->validate([
+            'no_opname' => 'required|string',
             'no_carton' => 'required|string',
-            'periode' => 'required|string',
+            'no_pallet' => 'required|string',
             'id_so_det' => 'required',
             'qty' => 'required|numeric|min:1',
             'grade' => 'required|string',
         ]);
 
-        $no_carton = $request->no_carton;
-        $periode = $request->periode;
         $user = Auth::user()->name;
         $now = Carbon::now();
 
         $header = DB::select("
-            SELECT no_opname, status FROM fg_stok_opname_header
-            WHERE periode = ? AND no_carton = ? AND (cancel = 'N' OR cancel IS NULL)
+            SELECT status FROM fg_stok_opname_header
+            WHERE no_opname = ? AND cancel = 'N'
             LIMIT 1
-        ", [$periode, $no_carton]);
+        ", [$request->no_opname]);
 
-        if (count($header) > 0) {
-            if ($header[0]->status === 'CLOSED') {
-                return response()->json(['message' => 'Opname untuk carton ini sudah CLOSED, tidak bisa menambah item!'], 422);
-            }
+        if (count($header) === 0) {
+            return response()->json(['message' => 'Data opname tidak ditemukan!'], 422);
+        }
 
-            $no_opname = $header[0]->no_opname;
-            $status = $header[0]->status;
-        } else {
-            $request->validate([
-                'tgl_opname' => 'required|date',
-                'no_pallet' => 'required|string',
-            ]);
+        if ($header[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Opname ini sudah CLOSED, tidak bisa menambah item!'], 422);
+        }
 
-            if (date('Y-m', strtotime($request->tgl_opname)) !== $periode) {
-                return response()->json(['message' => 'Tgl. Opname harus dalam bulan periode yang dipilih!'], 422);
-            }
+        $cartonStatus = DB::select("
+            SELECT status FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
 
-            $counter = DB::select("
-                SELECT IF(MAX(no_opname) IS NULL, 1, MAX(RIGHT(no_opname, 5)) + 1) nomor
-                FROM fg_stok_opname_header
-                WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-                AND LEFT(no_opname, 3) = 'OPN'
-            ");
+        if (count($cartonStatus) > 0 && $cartonStatus[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Carton ini sudah CLOSED, tidak bisa menambah item!'], 422);
+        }
 
-            $no_opname = 'OPN' . date('ym') . str_pad($counter[0]->nomor, 5, '0', STR_PAD_LEFT);
+        $cartonOnOtherPallet = DB::select("
+            SELECT DISTINCT no_pallet FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet != ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
 
-            DB::insert("
-                INSERT INTO fg_stok_opname_header (no_opname, tgl_opname, periode, no_carton, no_pallet, cancel, status, created_by, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, 'N', 'OPEN', ?, ?, ?)
-            ", [$no_opname, $request->tgl_opname, $periode, $no_carton, $request->no_pallet, $user, $now, $now]);
-
-            $status = 'OPEN';
+        if (count($cartonOnOtherPallet) > 0) {
+            return response()->json(['message' => 'No. Carton ' . $request->no_carton . ' sudah terdaftar di Pallet ' . $cartonOnOtherPallet[0]->no_pallet . ' pada opname ini!'], 422);
         }
 
         $exists = DB::select("
             SELECT id FROM fg_stok_opname_detail
-            WHERE no_opname = ? AND id_so_det = ? AND grade = ? AND (cancel = 'N' OR cancel IS NULL)
+            WHERE no_opname = ? AND no_carton = ? AND id_so_det = ? AND grade = ? AND cancel = 'N'
             LIMIT 1
-        ", [$no_opname, $request->id_so_det, $request->grade]);
+        ", [$request->no_opname, $request->no_carton, $request->id_so_det, $request->grade]);
 
         if (count($exists) > 0) {
             return response()->json(['message' => 'Item dengan Grade ini sudah ada di carton, gunakan tombol Update untuk mengubah qty-nya!'], 422);
         }
 
         DB::insert("
-            INSERT INTO fg_stok_opname_detail (no_opname, id_so_det, qty, grade, cancel, created_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, 'N', ?, ?, ?)
-        ", [$no_opname, $request->id_so_det, $request->qty, $request->grade, $user, $now, $now]);
+            INSERT INTO fg_stok_opname_detail (no_opname, id_so_det, qty, grade, no_pallet, no_carton, cancel, status, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'N', 'OPEN', ?, ?, ?)
+        ", [$request->no_opname, $request->id_so_det, $request->qty, $request->grade, $request->no_pallet, $request->no_carton, $user, $now, $now]);
 
         $id_detail = DB::getPdo()->lastInsertId();
 
         return response()->json([
             'message' => 'Item berhasil disimpan.',
-            'no_opname' => $no_opname,
-            'status' => $status,
             'id_detail' => $id_detail,
         ]);
     }
@@ -479,7 +870,7 @@ class FGStokOpnameController extends Controller
         ]);
 
         $header = DB::select("
-            SELECT h.status, d.no_opname, d.id_so_det FROM fg_stok_opname_detail d
+            SELECT h.status header_status, d.status item_status, d.no_opname, d.no_carton, d.id_so_det FROM fg_stok_opname_detail d
             JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
             WHERE d.id = ?
             LIMIT 1
@@ -489,15 +880,19 @@ class FGStokOpnameController extends Controller
             return response()->json(['message' => 'Item tidak ditemukan!'], 422);
         }
 
-        if ($header[0]->status === 'CLOSED') {
-            return response()->json(['message' => 'Opname untuk carton ini sudah CLOSED, tidak bisa mengubah item!'], 422);
+        if ($header[0]->header_status === 'CLOSED') {
+            return response()->json(['message' => 'Opname ini sudah CLOSED, tidak bisa mengubah item!'], 422);
+        }
+
+        if ($header[0]->item_status === 'CLOSED') {
+            return response()->json(['message' => 'Carton ini sudah CLOSED, tidak bisa mengubah item!'], 422);
         }
 
         $exists = DB::select("
             SELECT id FROM fg_stok_opname_detail
-            WHERE no_opname = ? AND id_so_det = ? AND grade = ? AND id != ? AND (cancel = 'N' OR cancel IS NULL)
+            WHERE no_opname = ? AND no_carton = ? AND id_so_det = ? AND grade = ? AND id != ? AND cancel = 'N'
             LIMIT 1
-        ", [$header[0]->no_opname, $header[0]->id_so_det, $request->grade, $request->id_detail]);
+        ", [$header[0]->no_opname, $header[0]->no_carton, $header[0]->id_so_det, $request->grade, $request->id_detail]);
 
         if (count($exists) > 0) {
             return response()->json(['message' => 'Item dengan Grade ini sudah ada di carton!'], 422);
@@ -517,14 +912,14 @@ class FGStokOpnameController extends Controller
         ]);
 
         $header = DB::select("
-            SELECT h.status FROM fg_stok_opname_detail d
+            SELECT h.status header_status, d.status item_status FROM fg_stok_opname_detail d
             JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
             WHERE d.id = ?
             LIMIT 1
         ", [$request->id_detail]);
 
-        if (count($header) > 0 && $header[0]->status === 'CLOSED') {
-            return response()->json(['message' => 'Opname untuk carton ini sudah CLOSED, tidak bisa menghapus item!'], 422);
+        if (count($header) > 0 && ($header[0]->header_status === 'CLOSED' || $header[0]->item_status === 'CLOSED')) {
+            return response()->json(['message' => 'Opname / carton ini sudah CLOSED, tidak bisa menghapus item!'], 422);
         }
 
         DB::update("
@@ -534,34 +929,217 @@ class FGStokOpnameController extends Controller
         return response()->json(['message' => 'Item berhasil dibatalkan.']);
     }
 
-    public function finishOpname(Request $request)
+    public function updateCartonPallet(Request $request)
     {
         $request->validate([
-            'no_carton' => 'required|string',
-            'periode' => 'required|string',
+            'no_opname' => 'required|string',
+            'id_details' => 'required|array|min:1',
+            'id_details.*' => 'integer',
+            'no_pallet_baru' => 'required|string',
         ]);
 
         $header = DB::select("
-            SELECT no_opname, status FROM fg_stok_opname_header
-            WHERE periode = ? AND no_carton = ? AND (cancel = 'N' OR cancel IS NULL)
+            SELECT status FROM fg_stok_opname_header
+            WHERE no_opname = ? AND cancel = 'N'
             LIMIT 1
-        ", [$request->periode, $request->no_carton]);
+        ", [$request->no_opname]);
 
         if (count($header) === 0) {
             return response()->json(['message' => 'Data opname tidak ditemukan!'], 422);
         }
 
         if ($header[0]->status === 'CLOSED') {
-            return response()->json(['message' => 'Opname untuk carton ini sudah CLOSED!'], 422);
+            return response()->json(['message' => 'Opname ini sudah CLOSED, tidak bisa mengubah pallet!'], 422);
+        }
+
+        $placeholders = implode(',', array_fill(0, count($request->id_details), '?'));
+
+        $items = DB::select("
+            SELECT id, no_carton, status FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND id IN ({$placeholders}) AND cancel = 'N'
+        ", array_merge([$request->no_opname], $request->id_details));
+
+        if (count($items) === 0) {
+            return response()->json(['message' => 'Carton tidak ditemukan!'], 422);
+        }
+
+        if (collect($items)->contains(fn ($item) => $item->status === 'CLOSED')) {
+            return response()->json(['message' => 'Carton ini sudah CLOSED, tidak bisa mengubah pallet!'], 422);
+        }
+
+        $noCarton = $items[0]->no_carton;
+
+        DB::update("
+            UPDATE fg_stok_opname_detail SET no_pallet = ?, updated_at = ?
+            WHERE no_opname = ? AND id IN ({$placeholders})
+        ", array_merge([$request->no_pallet_baru, Carbon::now(), $request->no_opname], $request->id_details));
+
+        return response()->json([
+            'message' => 'No. Pallet carton ' . $noCarton . ' berhasil diubah.',
+            'no_pallet' => $request->no_pallet_baru,
+        ]);
+    }
+
+    public function finishOpname(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+        ]);
+
+        $header = DB::select("
+            SELECT status FROM fg_stok_opname_header
+            WHERE no_opname = ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname]);
+
+        if (count($header) === 0) {
+            return response()->json(['message' => 'Data opname tidak ditemukan!'], 422);
+        }
+
+        if ($header[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Opname ini sudah CLOSED!'], 422);
+        }
+
+        $cartonBelumClosed = DB::select("
+            SELECT no_carton, no_pallet
+            FROM fg_stok_opname_detail
+            WHERE no_opname = ?
+                AND cancel = 'N'
+                AND (status IS NULL OR status != 'CLOSED')
+            GROUP BY no_carton, no_pallet
+        ", [$request->no_opname]);
+
+        if (count($cartonBelumClosed) > 0) {
+            return response()->json([
+                'message' => 'Masih ada ' . count($cartonBelumClosed) . ' carton yang belum CLOSED. Selesaikan semua carton terlebih dahulu!',
+            ], 422);
         }
 
         DB::update("
-            UPDATE fg_stok_opname_header SET status = 'CLOSED', updated_at = ? WHERE no_opname = ?
-        ", [Carbon::now(), $header[0]->no_opname]);
+            UPDATE fg_stok_opname_header
+            SET status = 'CLOSED', updated_at = ?
+            WHERE no_opname = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname]);
 
         return response()->json([
             'message' => 'Opname berhasil diselesaikan.',
-            'no_opname' => $header[0]->no_opname,
+            'no_opname' => $request->no_opname,
         ]);
+    }
+
+    public function finishOpnameCarton(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_carton' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $header = DB::select("
+            SELECT status FROM fg_stok_opname_header
+            WHERE no_opname = ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname]);
+
+        if (count($header) === 0) {
+            return response()->json(['message' => 'Data opname tidak ditemukan!'], 422);
+        }
+
+        if ($header[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Opname ini sudah CLOSED!'], 422);
+        }
+
+        $items = DB::select("
+            SELECT id, status FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($items) === 0) {
+            return response()->json(['message' => 'Belum ada item pada carton ini!'], 422);
+        }
+
+        if ($items[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Carton ini sudah CLOSED!'], 422);
+        }
+
+        DB::update("
+            UPDATE fg_stok_opname_detail SET status = 'CLOSED', updated_at = ?
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        return response()->json(['message' => 'Carton berhasil diselesaikan.']);
+    }
+
+    public function changeCartonStatus(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_carton' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if (!$user->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists()) {
+            return response()->json(['message' => 'Anda tidak memiliki izin untuk mengubah status carton!'], 403);
+        }
+
+        $items = DB::select("
+            SELECT id, status FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($items) === 0) {
+            return response()->json(['message' => 'Carton tidak ditemukan!'], 422);
+        }
+
+        if ($items[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Carton ini sudah CLOSED!'], 422);
+        }
+
+        DB::update("
+            UPDATE fg_stok_opname_detail SET status = 'CLOSED', updated_at = ?
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        return response()->json(['message' => 'Status carton berhasil diubah menjadi CLOSED.']);
+    }
+
+    public function reopenCarton(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_carton' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if (!$user->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists()) {
+            return response()->json(['message' => 'Anda tidak memiliki izin untuk mengubah status carton!'], 403);
+        }
+
+        $items = DB::select("
+            SELECT id, status FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($items) === 0) {
+            return response()->json(['message' => 'Carton tidak ditemukan!'], 422);
+        }
+
+        if ($items[0]->status !== 'CLOSED') {
+            return response()->json(['message' => 'Carton ini belum CLOSED!'], 422);
+        }
+
+        DB::update("
+            UPDATE fg_stok_opname_detail SET status = 'OPEN', updated_at = ?
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        DB::update("
+            UPDATE fg_stok_opname_header SET status = 'OPEN', updated_at = ?
+            WHERE no_opname = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname]);
+
+        return response()->json(['message' => 'Status carton dan opname berhasil diubah menjadi OPEN.']);
     }
 }

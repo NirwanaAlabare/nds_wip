@@ -486,6 +486,7 @@
 @endsection
 
 @section('content')
+    @if (in_array(auth()->user()->username, ['reza', 'admin_01', 'nirwana_it']))
     <div class="dash-wrap" id="dashWrap">
 
         {{-- Header --}}
@@ -657,9 +658,11 @@
             <div style="font-size:0.78rem;color:#6c757d;">Mohon tunggu, proses ini bisa memakan waktu beberapa saat.</div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('custom-script')
+    @if (in_array(auth()->user()->username, ['reza', 'admin_01', 'nirwana_it']))
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
@@ -1617,4 +1620,5 @@
             loadProductCostingComparison();
         });
     </script>
+    @endif
 @endsection
