@@ -56,6 +56,11 @@
             border: 1px solid #d7e6ff;
         }
 
+        .oppa-hero-card2.out {
+            background: linear-gradient(160deg, #fff6e6 0%, #ffffff 65%);
+            border: 1px solid #ffe6b3;
+        }
+
         .oppa-hero-pill2 {
             display: inline-flex;
             align-items: center;
@@ -73,6 +78,10 @@
             background: #3d7ce0;
         }
 
+        .oppa-hero-pill2.out {
+            background: #e0a13d;
+        }
+
         .oppa-hero-number2 {
             font-size: 2.4rem;
             font-weight: 800;
@@ -85,6 +94,10 @@
 
         .oppa-hero-number2.eff {
             color: #2f6fe0;
+        }
+
+        .oppa-hero-number2.out {
+            color: #d9820b;
         }
 
         .oppa-hero-unit {
@@ -109,6 +122,10 @@
             color: #2f6fe0;
         }
 
+        .oppa-hero-line2.out {
+            color: #d9820b;
+        }
+
         .oppa-hero-divider {
             border: none;
             border-top: 2px solid;
@@ -123,6 +140,10 @@
 
         .oppa-hero-divider.eff {
             border-color: #3d7ce0;
+        }
+
+        .oppa-hero-divider.out {
+            border-color: #e0a13d;
         }
 
         .oppa-hero-caption2 {
@@ -170,6 +191,11 @@
             color: #2f6fe0;
         }
 
+        .oppa-hero-row2 .icon.out {
+            background: #ffe6b3;
+            color: #d9820b;
+        }
+
         .oppa-hero-row2 .value2 {
             font-weight: 700;
         }
@@ -180,6 +206,10 @@
 
         .oppa-hero-row2 .value2.eff {
             color: #2f6fe0;
+        }
+
+        .oppa-hero-row2 .value2.out {
+            color: #d9820b;
         }
 
         .oppa-hero-footer {
@@ -197,12 +227,16 @@
 
 @section('content')
     @php
-        // Cari baris top_rfts & top_eff dari $data
+        // Cari baris top_rfts, top_output & top_eff dari $data
         $topRftRow = null;
+        $topOutputRow = null;
         $topEffRow = null;
         foreach ($data as $row) {
             if ($row->top_rfts === 'Y') {
                 $topRftRow = $row;
+            }
+            if ($row->top_output === 'Y') {
+                $topOutputRow = $row;
             }
             if ($row->top_eff === 'Y') {
                 $topEffRow = $row;
@@ -212,6 +246,13 @@
         $bestLine = $first->sewing_line ?? '-';
         $bestOutput = $first->tot_rfts ?? 0;
         $smv = $first->smv ?? 0;
+
+        $outputRow = $topOutputRow ?? $first;
+        $bestTotOutput = $outputRow->tot_output ?? 0;
+        $outputManPower = $outputRow->man_power ?? 0;
+        $outputOutputPerPerson = $outputManPower > 0 ? round($bestTotOutput / $outputManPower, 1) : 0;
+        $outputJamKerjaAct = $outputRow->jam_kerja_act ?? 0;
+        $outputJamKerjaActMenit = round($outputJamKerjaAct * 60, 1);
 
         $effRow = $topEffRow ?? $first;
         $bestEfficiency = $effRow->eff ?? 0;
@@ -241,21 +282,34 @@
             ];
         };
 
-        // Susun data chart Top RFT (kiri) vs Top Efficiency (kanan) dari $data
+        // Susun data chart Top RFT vs Top Output vs Top Efficiency dari $data
 
         $chartLines = [];
         if ($topRftRow) {
             $chartLines[] = [
-                'label' => $topRftRow->sewing_line,
+                'name' => 'Top RFT',
+                'label' => $topRftRow->sewing_line . ' (Top RFT)',
                 'output' => (int) $topRftRow->tot_rfts,
                 'efficiency' => (float) $topRftRow->eff,
+                'color' => '#37b06a',
+            ];
+        }
+        if ($topOutputRow) {
+            $chartLines[] = [
+                'name' => 'Top Output',
+                'label' => $topOutputRow->sewing_line . ' (Top Output)',
+                'output' => (int) $topOutputRow->tot_rfts,
+                'efficiency' => (float) $topOutputRow->eff,
+                'color' => '#e0a13d',
             ];
         }
         if ($topEffRow) {
             $chartLines[] = [
-                'label' => $topEffRow->sewing_line,
+                'name' => 'Top Efficiency',
+                'label' => $topEffRow->sewing_line . ' (Top Efficiency)',
                 'output' => (int) $topEffRow->tot_rfts,
                 'efficiency' => (float) $topEffRow->eff,
+                'color' => '#3d7ce0',
             ];
         }
     @endphp
@@ -286,7 +340,7 @@
             </form>
 
             <div class="row mb-2">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <div class="oppa-hero-card2 rft">
                         @php($d = $fmtLineDate($first))
                         <div class="d-flex justify-content-between align-items-start">
@@ -327,7 +381,49 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
+                    <div class="oppa-hero-card2 out">
+                        @php($d = $fmtLineDate($outputRow))
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="oppa-hero-pill2 out"><i class="fas fa-arrow-trend-up"></i> Top
+                                Output</span>
+                            <div class="text-right">
+                                <div class="oppa-hero-number2 out">{{ number_format($bestTotOutput) }}</div>
+                                <div class="oppa-hero-unit">pcs</div>
+                            </div>
+                        </div>
+                        <div class="oppa-hero-line2 out">{{ $d['line'] }}</div>
+                        <hr class="oppa-hero-divider out">
+                        <div class="oppa-hero-caption2">Total Output</div>
+
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon out"><i
+                                        class="fas fa-calendar-alt"></i></span>Tanggal</span>
+                            <span class="value2">{{ $d['date_short'] }}</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon out"><i class="fas fa-users"></i></span>Operator</span>
+                            <span class="value2 out">{{ $outputManPower }} Orang</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon out"><i class="fas fa-bolt"></i></span>Efficiency
+                                (%)</span>
+                            <span class="value2 out">{{ $outputRow->eff ?? 0 }} %</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon out"><i class="fas fa-user"></i></span>Output /
+                                Operator</span>
+                            <span class="value2 out">{{ $outputOutputPerPerson }} pcs/orang</span>
+                        </div>
+                        <div class="oppa-hero-row2">
+                            <span class="left"><span class="icon out"><i class="fas fa-clock"></i></span>Jam Kerja
+                                Act</span>
+                            <span class="value2 out">{{ $outputJamKerjaAct }} jam ({{ $outputJamKerjaActMenit }}
+                                menit)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
                     <div class="oppa-hero-card2 eff">
                         @php($d = $fmtLineDate($effRow))
                         <div class="d-flex justify-content-between align-items-start">
@@ -377,14 +473,16 @@
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h6 class="fw-bold mb-0">Top RFT vs Top Efficiency Line</h6>
+                <div class="card-header py-2">
+                    <h6 class="fw-bold mb-0" style="font-size:.85rem;">Top RFT vs Top Output vs Top Efficiency Line
+                    </h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body py-2">
                     @if (count($chartLines) > 0)
                         <div id="oppaChart"></div>
-                        <small class="text-muted">Kiri: total RFT (tot rft) | Kanan: efficiency (%). Semua bar
-                            ditampilkan apa adanya, termasuk jika line top RFT dan top efficiency sama.</small>
+                        <small class="text-muted">Bar: total RFT (tot rft) | Line: efficiency (%). Urutan kategori:
+                            Top RFT, Top Output, Top Efficiency. Semua bar ditampilkan apa adanya, termasuk jika
+                            line top RFT, top output, dan top efficiency sama.</small>
                     @else
                         <div class="text-center text-muted py-5">
                             <i class="fas fa-chart-bar fa-2x mb-2"></i>
@@ -465,51 +563,74 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // Chart: Tot RFT (bar, kiri) vs Efficiency (line, kanan) - top_rft & top_eff line
+        // Chart: Tot RFT (bar) vs Efficiency (line) - top_rft, top_output & top_eff line
         if (document.querySelector('#oppaChart')) {
-            var oppaCategories = @json(array_column($chartLines, 'label'));
-            var oppaOutput = @json(array_column($chartLines, 'output'));
-            var oppaEfficiency = @json(array_column($chartLines, 'efficiency'));
+            var oppaLines = @json($chartLines);
+            var oppaCategories = oppaLines.map(function(l) {
+                return l.label;
+            });
+
+            // Setiap kategori (RFT/Output/Efficiency) dibuat jadi series bar tersendiri
+            // (bukan 1 series "distributed") supaya warnanya pasti sesuai per bar.
+            var oppaBarSeries = oppaLines.map(function(l, idx) {
+                return {
+                    name: l.name,
+                    type: 'column',
+                    data: oppaCategories.map(function(_, i) {
+                        return i === idx ? l.output : null;
+                    })
+                };
+            });
+
+            var oppaSeries = oppaBarSeries.concat([{
+                name: 'eff (%)',
+                type: 'line',
+                data: oppaLines.map(function(l) {
+                    return l.efficiency;
+                })
+            }]);
+
+            var oppaColors = oppaLines.map(function(l) {
+                return l.color;
+            }).concat(['#3d7ce0']);
+
+            var oppaStrokeWidth = oppaLines.map(function() {
+                return 0;
+            }).concat([3]);
 
             var oppaChartOptions = {
                 chart: {
-                    height: 350,
+                    height: 240,
                     type: 'line',
                     toolbar: {
                         show: false
                     }
                 },
-                series: [{
-                        name: 'tot rft',
-                        type: 'column',
-                        data: oppaOutput
-                    },
-                    {
-                        name: 'eff (%)',
-                        type: 'line',
-                        data: oppaEfficiency
-                    }
-                ],
+                series: oppaSeries,
                 stroke: {
-                    width: [0, 3]
+                    width: oppaStrokeWidth
                 },
-                colors: [
-                    function({
-                        dataPointIndex
-                    }) {
-                        // chartLines[0] selalu baris top_rfts (kalau ada)
-                        return dataPointIndex === 0 ? '#37b06a' : '#3d7ce0';
-                    },
-                    '#3d7ce0'
-                ],
+                colors: oppaColors,
+                legend: {
+                    show: true,
+                    fontSize: '11px',
+                    itemMargin: {
+                        horizontal: 8,
+                        vertical: 0
+                    }
+                },
                 plotOptions: {
                     bar: {
-                        columnWidth: '45%',
-                        distributed: true
+                        columnWidth: '35%'
                     }
                 },
                 xaxis: {
-                    categories: oppaCategories
+                    categories: oppaCategories,
+                    labels: {
+                        style: {
+                            fontSize: '11px'
+                        }
+                    }
                 },
                 yaxis: [{
                         title: {

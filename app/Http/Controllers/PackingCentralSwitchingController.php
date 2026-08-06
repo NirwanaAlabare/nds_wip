@@ -1141,7 +1141,7 @@ class PackingCentralSwitchingController extends Controller
                 )
 
                 SELECT
-                    COUNT(DISTINCT po) AS total_po,
+                    COUNT(DISTINCT CASE WHEN qty_sisa > 0 THEN po END) AS total_po,
                     SUM(qty_sisa) AS total_qty_sisa
                 FROM result
         ");

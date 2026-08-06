@@ -4,8 +4,9 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <!-- Tempusdominus Datetimepicker -->
-    <link rel="stylesheet" href="{{ asset('plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <style>
         .opname-hero {
             background: var(--sb-color);
@@ -32,6 +33,15 @@
             padding: 1.1rem 1.25rem;
             margin-bottom: 1.25rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+        }
+
+        .opname-panel-compact {
+            padding: .75rem 1rem;
+            margin-bottom: .75rem;
+        }
+
+        .opname-panel-compact .opname-panel-title {
+            margin-bottom: .5rem;
         }
 
         .opname-panel-title {
@@ -64,6 +74,11 @@
             background: #f4f5f7;
             border-color: #e3e5ea;
             color: #8a8f9a;
+        }
+
+        .carton-chip.chip-edit-pallet {
+            border-radius: .5rem;
+            padding: .3rem .5rem .3rem .9rem;
         }
 
         .carton-chip i {
@@ -125,7 +140,7 @@
         }
 
         .table-scroll {
-            max-height: 420px;
+            max-height: 280px;
             overflow-y: auto;
         }
 
@@ -172,12 +187,25 @@
             padding: .4rem .9rem;
             border-radius: 30px;
         }
+
+        .badge-status-open {
+            background-color: #e7f6ec;
+            color: #1f8f4d;
+            border: 1px solid #c7ecd3;
+        }
+
+        .badge-status-closed {
+            background-color: #fdeaea;
+            color: #c0392b;
+            border: 1px solid #f5c6c6;
+        }
     </style>
 @endsection
 
 @section('content')
     <!-- Modal Tambah No. Carton -->
-    <div class="modal fade" id="modalCarton" tabindex="-1" role="dialog" aria-labelledby="modalCartonLabel" aria-hidden="true">
+    <div class="modal fade" id="modalCarton" tabindex="-1" role="dialog" aria-labelledby="modalCartonLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
                 <div class="modal-header bg-sb text-light">
@@ -197,6 +225,207 @@
                     <button type="button" class="btn btn-primary btn-sm" onclick="simpanCarton()">
                         <i class="fas fa-check fa-sm"></i> Simpan
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah No. Pallet -->
+    <div class="modal fade" id="modalPallet" tabindex="-1" role="dialog" aria-labelledby="modalPalletLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
+                <div class="modal-header bg-sb text-light">
+                    <h3 class="modal-title fs-5 mb-0"><i class="fas fa-pallet"></i> Tambah No. Pallet</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-4 form-group">
+                            <label class="form-label"><small><b>Zone</b></small></label>
+                            <input type="text" class="form-control form-control-sm" id="modal_pallet_zone"
+                                placeholder="A" autocomplete="off" style="text-transform: uppercase;"
+                                oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '')">
+                        </div>
+                        <div class="col-4 form-group">
+                            <label class="form-label"><small><b>Baris</b></small></label>
+                            <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                id="modal_pallet_baris" placeholder="1" autocomplete="off"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="col-4 form-group mb-0">
+                            <label class="form-label"><small><b>Kolom</b></small></label>
+                            <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                id="modal_pallet_kolom" placeholder="1" autocomplete="off"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                    </div>
+                    <div class="form-group mb-0 mt-2">
+                        <small class="text-muted">No. Pallet: <b id="modal_pallet_preview">-</b></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="simpanPallet()">
+                        <i class="fas fa-check fa-sm"></i> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Isi Item Carton -->
+    <div class="modal fade" id="modalIsiItem" tabindex="-1" role="dialog" aria-labelledby="modalIsiItemLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
+                <div class="modal-header bg-sb text-light py-2">
+                    <div>
+                        <h3 class="modal-title fs-5 mb-0"><i class="fas fa-box-open"></i> Isi Item Carton</h3>
+                        <small>Kelola item hasil opname untuk carton ini</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-2">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                        <span class="carton-chip">
+                            <i class="fas fa-box"></i>
+                            <span>No. Carton: <b id="modal_isi_item_carton">-</b></span>
+                        </span>
+                        <span class="carton-chip" id="modal_isi_item_pallet_view">
+                            <i class="fas fa-pallet"></i>
+                            <span>No. Pallet: <b id="modal_isi_item_pallet">-</b></span>
+                            <a href="javascript:void(0)" id="btn_edit_pallet" title="Ubah No. Pallet"
+                                class="text-decoration-none">
+                                <i class="fas fa-pen fa-xs"></i>
+                            </a>
+                        </span>
+                        <span class="carton-chip chip-edit-pallet d-none" id="modal_isi_item_pallet_edit">
+                            <i class="fas fa-pallet"></i>
+                            <select class="form-control form-control-sm select2bs4" id="cbo_edit_pallet"
+                                style="width: 140px;"></select>
+                            <a href="javascript:void(0)" id="btn_save_pallet" title="Simpan"
+                                class="text-success text-decoration-none">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a href="javascript:void(0)" id="btn_cancel_edit_pallet" title="Batal"
+                                class="text-danger text-decoration-none">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </span>
+                    </div>
+
+                    <div class="opname-panel opname-panel-compact">
+                        <div class="opname-panel-title"><i class="fas fa-plus-circle"></i> Tambah Item ke Carton Ini
+                        </div>
+                        <div class="row align-items-end gy-2">
+                            <div class="col-md-8 form-group">
+                                <label class="form-label"><small><b>Buyer / WS</b></small></label>
+                                <select class="form-control form-control-sm select2bs4-ajax" id="inp_buyer_ws"
+                                    style="width: 100%;">
+                                </select>
+                                <input type="hidden" id="inp_buyer">
+                                <input type="hidden" id="inp_ws">
+                            </div>
+                            <input type="hidden" id="inp_style">
+                            <div class="col-md-4 form-group">
+                                <label class="form-label"><small><b>Dest</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="inp_dest"
+                                    style="width: 100%;" disabled>
+                                    <option value="" selected disabled>- Pilih Dest -</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label class="form-label"><small><b>Color</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="inp_color"
+                                    style="width: 100%;" disabled>
+                                    <option value="" selected disabled>- Pilih Color -</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label class="form-label"><small><b>Size</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="inp_size"
+                                    style="width: 100%;" disabled>
+                                    <option value="" selected disabled>- Pilih Size -</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label class="form-label"><small><b>Grade</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="inp_grade"
+                                    style="width: 100%;">
+                                    <option value="" selected disabled>- Pilih Grade -</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label class="form-label"><small><b>Qty</b></small></label>
+                                <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                    id="inp_qty" autocomplete="off"
+                                    oninput="this.value = this.value.replace(/[^0-9,]/g, '')">
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <button type="button" onclick="tambahItem()"
+                                    class="btn btn-primary btn-sm btn-add-item">
+                                    <i class="fas fa-plus fa-sm"></i> Tambah Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="opname-panel opname-panel-compact mb-0">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <div class="opname-panel-title mb-0"><i class="fas fa-list"></i> Detail Item Terdaftar
+                            </div>
+                            <span class="total-qty-badge" id="total_qty_badge">
+                                <i class="fas fa-cubes"></i> Total Qty: <span id="total_qty_value">0</span>
+                            </span>
+                        </div>
+                        <div class="form-group mb-2">
+                            <input type="text" class="form-control form-control-sm" id="inp_search_item"
+                                placeholder="Cari Buyer / WS / Style / Dest / Color / Size / Grade..." autocomplete="off">
+                        </div>
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-borderless table-sm table-hover align-middle"
+                                id="tabel_item_carton">
+                                <thead>
+                                    <tr style="text-align:center; vertical-align:middle">
+                                        <th style="width: 5%;">No</th>
+                                        <th>Buyer</th>
+                                        <th>WS</th>
+                                        <th>Style</th>
+                                        <th>Dest</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Grade</th>
+                                        <th>Qty</th>
+                                        <th style="width: 12%;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel_item_carton_body">
+                                    <tr id="row_empty">
+                                        <td colspan="10">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                Belum ada item ditambahkan
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+                    <span class="status-chip status-open" id="modal_isi_item_status">
+                        <i class="fas fa-circle"></i>
+                        <span id="modal_isi_item_status_text">OPEN</span>
+                    </span>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Tutup</button>
+                        <button type="button" class="btn btn-success btn-sm" id="btn_finish_carton"
+                            onclick="finishCarton()">
+                            <i class="fas fa-qrcode fa-sm"></i> Finish &amp; Cetak QR
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -247,100 +476,61 @@
         </a>
     </div>
 
-    <div class="opname-panel">
-        <div class="opname-panel-title"><i class="fas fa-box"></i> No. Carton</div>
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            <div class="input-group input-group-sm date flex-shrink-0" id="periode_picker"
-                data-target-input="nearest" style="min-width: 160px; max-width: 200px;">
-                <input type="text" class="form-control form-control-sm datetimepicker-input" id="inp_periode"
-                    data-target="#periode_picker" value="{{ request('periode', date('Y-m')) }}"
-                    title="Periode (bulan opname)" readonly>
-                <div class="input-group-append" data-target="#periode_picker" data-toggle="datetimepicker">
-                    <div class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></div>
-                </div>
-            </div>
-            <div style="min-width: 220px; max-width: 320px;" class="flex-shrink-0">
-                <select class="form-control form-control-sm select2bs4" id="cbo_no_carton" style="width: 100%;">
-                    <option value="" selected disabled>- Pilih No. Carton -</option>
-                </select>
-            </div>
-            <button type="button" class="btn btn-primary btn-sm flex-shrink-0" id="btn-add-carton" data-bs-toggle="modal"
-                data-bs-target="#modalCarton" title="Tambah No. Carton Baru">
-                <i class="fas fa-plus"></i>
-            </button>
-            <div style="min-width: 160px; max-width: 200px;" class="flex-shrink-0">
-                <input type="date" class="form-control form-control-sm" id="inp_tgl_opname" disabled
-                    title="Tgl. Opname" placeholder="Tgl. Opname">
-            </div>
-            <div style="min-width: 150px; max-width: 200px;" class="flex-shrink-0">
-                <input type="text" class="form-control form-control-sm" id="inp_no_pallet" disabled
-                    title="No. Pallet" placeholder="No. Pallet" autocomplete="off" style="text-transform: uppercase;"
-                    oninput="this.value = this.value.toUpperCase()">
-            </div>
-            <span class="carton-chip is-empty flex-shrink-0 ms-auto" id="ket_carton">
-                <i class="fas fa-info-circle"></i>
-                <span>Belum ada carton dipilih</span>
-            </span>
-            <span class="status-chip flex-shrink-0 d-none" id="ket_status">
-                <i class="fas fa-circle"></i>
-                <span id="ket_status_text"></span>
-            </span>
-        </div>
+    <div class="opname-panel d-flex align-items-center flex-wrap gap-3" id="opname_header_bar"
+        style="display:none !important;">
+        <span class="carton-chip">
+            <i class="fas fa-hashtag"></i>
+            <span>No. Opname: <b id="hdr_no_opname">-</b></span>
+        </span>
+        <span class="carton-chip">
+            <i class="fas fa-calendar-day"></i>
+            <span>Tgl. Opname: <b id="hdr_tgl_opname">-</b></span>
+        </span>
+        <span class="carton-chip">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Periode: <b id="hdr_periode">-</b></span>
+        </span>
+        <span class="status-chip status-open" id="hdr_status">
+            <i class="fas fa-circle"></i>
+            <span id="hdr_status_text">OPEN</span>
+        </span>
     </div>
 
     <div class="opname-panel">
-        <div class="opname-panel-title"><i class="fas fa-plus-circle"></i> Tambah Item</div>
-        <div class="row align-items-end gy-2">
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Buyer</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_buyer" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Buyer -</option>
-                </select>
+        <div class="opname-panel-title"><i class="fas fa-box"></i> No. Carton</div>
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-sm-6 col-lg-4">
+                <label class="form-label mb-1"><small><b>No. Carton</b></small></label>
+                <div class="d-flex gap-2">
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <select class="form-control form-control-sm select2bs4" id="cbo_no_carton" style="width: 100%;">
+                            <option value="" selected disabled>- Pilih No. Carton -</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm flex-shrink-0" id="btn-add-carton"
+                        data-bs-toggle="modal" data-bs-target="#modalCarton" title="Tambah No. Carton Baru">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
             </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>WS</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_ws" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih WS -</option>
-                </select>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <label class="form-label mb-1"><small><b>No. Pallet</b></small></label>
+                <div class="d-flex gap-2">
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <select class="form-control form-control-sm select2bs4" id="cbo_no_pallet" style="width: 100%;">
+                            <option value="" selected disabled>- Pilih No. Pallet -</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm flex-shrink-0" id="btn-add-pallet"
+                        data-bs-toggle="modal" data-bs-target="#modalPallet" title="Tambah No. Pallet Baru">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
             </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Style</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_style" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Style -</option>
-                </select>
-            </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Dest</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_dest" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Dest -</option>
-                </select>
-            </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Color</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_color" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Color -</option>
-                </select>
-            </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Size</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_size" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Size -</option>
-                </select>
-            </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Grade</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="inp_grade" style="width: 100%;" disabled>
-                    <option value="" selected disabled>- Pilih Grade -</option>
-                </select>
-            </div>
-            <div class="col-md-4 form-group">
-                <label class="form-label"><small><b>Qty</b></small></label>
-                <input type="text" inputmode="numeric" class="form-control form-control-sm" id="inp_qty" disabled
-                    autocomplete="off" oninput="this.value = this.value.replace(/[^0-9,]/g, '')">
-            </div>
-            <div class="col-md-4 form-group">
-                <button type="button" onclick="tambahItem()" class="btn btn-primary btn-sm btn-add-item">
-                    <i class="fas fa-plus fa-sm"></i> Tambah Item
+            <div class="col-12 col-lg-4">
+                <button type="button" class="btn btn-success btn-sm w-100" id="btn_tambah_ke_list"
+                    onclick="tambahKeList()">
+                    <i class="fas fa-list fa-sm"></i> Tambah ke List
                 </button>
             </div>
         </div>
@@ -348,46 +538,29 @@
 
     <div class="opname-panel">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div class="opname-panel-title mb-0"><i class="fas fa-list"></i> List Item Carton</div>
-            <span class="total-qty-badge" id="total_qty_badge">
-                <i class="fas fa-cubes"></i> Total Qty: <span id="total_qty_value">0</span>
-            </span>
+            <div class="opname-panel-title mb-0"><i class="fas fa-list-ol"></i> List No Carton</div>
         </div>
-        <div class="form-group mb-2">
-            <input type="text" class="form-control form-control-sm" id="inp_search_item"
-                placeholder="Cari Buyer / WS / Style / Dest / Color / Size / Grade..." autocomplete="off">
-        </div>
-        <div class="table-responsive table-scroll">
-            <table class="table table-borderless table-sm table-hover align-middle" id="tabel_item_carton">
-                <thead>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm table-hover align-middle" id="tabel_carton_list"
+                style="width: 100%;">
+                <thead class="table-primary">
                     <tr style="text-align:center; vertical-align:middle">
-                        <th style="width: 5%;">No</th>
-                        <th>Buyer</th>
-                        <th>WS</th>
-                        <th>Style</th>
-                        <th>Dest</th>
-                        <th>Color</th>
-                        <th>Size</th>
-                        <th>Grade</th>
-                        <th>Qty</th>
-                        <th style="width: 12%;">Aksi</th>
+                        <th style="width: 5%;" data-priority="5">No</th>
+                        <th data-priority="1">No. Carton</th>
+                        <th data-priority="6">No. Pallet</th>
+                        <th data-priority="4">Total Qty</th>
+                        <th data-priority="3">Status</th>
+                        <th data-priority="7">Tgl Ditambahkan</th>
+                        <th data-priority="8">Last Update</th>
+                        <th style="width: 18%;" data-priority="2">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="tabel_item_carton_body">
-                    <tr id="row_empty">
-                        <td colspan="10">
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                Belum ada item ditambahkan
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
         <div class="d-flex justify-content-end mt-3">
             <button type="button" onclick="finishOpname()" class="btn btn-success btn-sm" id="btn_finish_opname">
-                <i class="fas fa-qrcode fa-sm"></i> Finish &amp; Cetak QR
+                <i class="fas fa-flag-checkered fa-sm"></i> Finish Opname
             </button>
         </div>
     </div>
@@ -395,40 +568,171 @@
 
 @section('custom-script')
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="{{ asset('plugins/moment/moment.min.js') }}"></script>
-    <script src="{{ asset('plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+    <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
+            document.querySelector('.select2-container--open .select2-search__field').focus();
         });
 
         // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
+        // Elemen di dalam modal butuh dropdownParent supaya dropdown-nya nempel
+        // ke modal (bukan ke body), kalau tidak search box-nya kerebut fokus
+        // oleh focus-trap Bootstrap modal dan jadi tidak bisa diketik.
+        $('#modalIsiItem .select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            dropdownParent: $('#modalIsiItem'),
+        });
+
+        $('#inp_buyer_ws').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            dropdownParent: $('#modalIsiItem'),
+            placeholder: '- Ketik min. 2 huruf Product Item / Buyer / WS / Style -',
+            allowClear: true,
+            minimumInputLength: 2,
+            ajax: {
+                url: '{{ route('get-buyer-ws-opname-fg-stock') }}',
+                dataType: 'json',
+                delay: 300,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(function(row) {
+                            return {
+                                id: row.buyer + '||' + row.ws + '||' + row.styleno,
+                                text: row.product_item + ' - ' + row.buyer + ' - ' + row.ws + ' - ' +
+                                    row.styleno,
+                                buyer: row.buyer,
+                                ws: row.ws,
+                                styleno: row.styleno,
+                            };
+                        }),
+                    };
+                },
+            },
+            language: {
+                inputTooShort: function() {
+                    return 'Ketik minimal 2 huruf...';
+                },
+                searching: function() {
+                    return 'Mencari...';
+                },
+                noResults: function() {
+                    return 'Tidak ditemukan';
+                },
+            },
+        });
+
+        $('#inp_buyer_ws').on('select2:select', function(e) {
+            let data = e.params.data;
+            $('#inp_buyer').val(data.buyer);
+            $('#inp_ws').val(data.ws);
+            $('#inp_style').val(data.styleno).trigger('change');
+        });
+
+        $('#inp_buyer_ws').on('select2:clear', function() {
+            $('#inp_buyer').val('');
+            $('#inp_ws').val('');
+            $('#inp_style').val('').trigger('change');
+        });
+
+        $('#modalUpdateItem .select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            dropdownParent: $('#modalUpdateItem'),
+        });
+
+        $('.select2bs4').not('#modalIsiItem .select2bs4, #modalUpdateItem .select2bs4').select2({
             theme: 'bootstrap4',
             containerCssClass: 'form-control-sm',
         });
 
-        // Periode (bulan-tahun) datepicker
-        $('#periode_picker').datetimepicker({
-            format: 'YYYY-MM',
-            viewMode: 'months',
-        });
+        const canChangeCartonStatus = {{ (Auth::user()->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists()) ? 'true' : 'false' }};
 
         let itemCounter = 0;
         let sizeIdSoDetMap = {};
-        let currentNoOpname = null;
+        let currentNoOpname = {!! json_encode(request('no_opname', '')) !!};
         let currentStatus = null;
-        let currentTglOpname = null;
-        let currentNoPallet = null;
-        let suppressWsReset = false;
+        let allItems = [];
+        let stagedCartons = [];
+        let activeCarton = null;
+        let activeCartonStatus = null;
+        let activeCartonHasItems = false;
+
+        let cartonListTable = $('#tabel_carton_list').DataTable({
+            data: [],
+            ordering: false,
+            paging: false,
+            searching: true,
+            info: false,
+            responsive: true,
+            language: {
+                emptyTable: 'Belum ada No. Carton ditambahkan',
+                zeroRecords: 'Tidak ditemukan',
+                searchPlaceholder: 'Cari No. Carton / No. Pallet...',
+                search: '',
+            },
+            columnDefs: [{
+                className: 'text-center',
+                targets: '_all',
+            }],
+        });
 
         $(document).ready(function() {
-            loadMasterCarton({!! json_encode(request('no_carton', '')) !!});
-            loadBuyer();
-            loadWs();
+            loadMasterCarton();
+            loadMasterPallet();
             loadGrade();
+
+            if (!currentNoOpname) {
+                Swal.fire({
+                    title: 'Data opname tidak ditemukan!',
+                    text: 'Silakan mulai dari tombol New di halaman List Opname.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                applyStatusLock();
+                return;
+            }
+
+            loadOpnameHeader();
+            loadOpnameItems();
         });
+
+        function loadOpnameHeader() {
+            $.get('{{ route('get-opname-header-fg-stock') }}', {
+                no_opname: currentNoOpname
+            }, function(response) {
+                currentStatus = response.status;
+
+                $('#hdr_no_opname').text(response.no_opname);
+                $('#hdr_tgl_opname').text(response.tgl_opname);
+                $('#hdr_periode').text(response.periode);
+
+                let isClosed = currentStatus === 'CLOSED';
+                $('#hdr_status').removeClass('status-open status-closed')
+                    .addClass(isClosed ? 'status-closed' : 'status-open');
+                $('#hdr_status_text').text(currentStatus);
+
+                $('#opname_header_bar').css('display', 'flex');
+                applyStatusLock();
+            }).fail(function() {
+                Swal.fire({
+                    title: 'Data opname tidak ditemukan!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+            });
+        }
 
         function loadGrade() {
             $.get('{{ route('get-grade-opname-fg-stock') }}', function(data) {
@@ -448,152 +752,50 @@
             });
         }
 
-        $('#periode_picker').on('change.datetimepicker', function() {
-            loadMasterCarton();
-        });
+        let masterCartonList = [];
 
         function loadMasterCarton(selected = null) {
-            let periode = $('#inp_periode').val();
+            $.get('{{ route('get-master-carton-opname-fg-stock') }}', function(data) {
+                masterCartonList = data;
+                renderCartonDropdown(selected);
+            });
+        }
 
-            $.get('{{ route('get-master-carton-opname-fg-stock') }}', {
-                periode: periode
-            }, function(data) {
-                let $cbo = $('#cbo_no_carton');
-                $cbo.empty().append('<option value="" disabled>- Pilih No. Carton -</option>');
+        function getUsedCartons() {
+            let used = new Set();
+            allItems.forEach(item => used.add(item.no_carton));
+            stagedCartons.forEach(row => used.add(row.no_carton));
+            return used;
+        }
+
+        function renderCartonDropdown(selected = null) {
+            let used = getUsedCartons();
+            let $cbo = $('#cbo_no_carton');
+            let current = selected !== null ? selected : $cbo.val();
+
+            $cbo.empty().append('<option value="" disabled>- Pilih No. Carton -</option>');
+
+            masterCartonList.forEach(function(row) {
+                if (!used.has(row.no_carton) || row.no_carton === current) {
+                    $cbo.append(new Option(row.no_carton, row.no_carton));
+                }
+            });
+
+            $cbo.val(current).trigger('change');
+        }
+
+        function loadMasterPallet(selected = null) {
+            $.get('{{ route('get-master-pallet-opname-fg-stock') }}', function(data) {
+                let $cbo = $('#cbo_no_pallet');
+                $cbo.empty().append('<option value="" disabled>- Pilih No. Pallet -</option>');
 
                 data.forEach(function(row) {
-                    $cbo.append(new Option(row.no_carton, row.no_carton));
+                    $cbo.append(new Option(row.no_pallet, row.no_pallet));
                 });
 
                 $cbo.val(selected).trigger('change');
             });
         }
-
-        function loadBuyer() {
-            $.get('{{ route('get-buyer-opname-fg-stock') }}', function(data) {
-                let $cbo = $('#inp_buyer');
-                $cbo.empty().append('<option value="" selected disabled>- Pilih Buyer -</option>');
-
-                data.forEach(function(row) {
-                    $cbo.append(new Option(row.buyer, row.buyer));
-                });
-
-                $cbo.trigger('change');
-            });
-        }
-
-        function loadWs() {
-            $.get('{{ route('get-ws-opname-fg-stock') }}', function(data) {
-                let $cbo = $('#inp_ws');
-                $cbo.empty().append('<option value="" selected disabled>- Pilih WS -</option>');
-
-                data.forEach(function(row) {
-                    $cbo.append(new Option(row.ws, row.ws));
-                });
-
-                $cbo.trigger('change');
-            });
-        }
-
-        function loadWsForBuyer(buyer, preselectWs) {
-            $.get('{{ route('get-ws-opname-fg-stock') }}', {
-                buyer: buyer
-            }, function(data) {
-                let $cbo = $('#inp_ws');
-                $cbo.empty().append('<option value="" selected disabled>- Pilih WS -</option>');
-
-                data.forEach(function(row) {
-                    $cbo.append(new Option(row.ws, row.ws));
-                });
-
-                if (preselectWs) {
-                    $cbo.val(preselectWs);
-                } else if (data.length === 1) {
-                    $cbo.val(data[0].ws);
-                }
-
-                $cbo.trigger('change');
-            });
-        }
-
-        $('#inp_buyer').on('change', function() {
-            let buyer = $(this).val();
-
-            $('#inp_style').empty().append('<option value="" selected disabled>- Pilih Style -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_dest').empty().append('<option value="" selected disabled>- Pilih Dest -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_color').empty().append('<option value="" selected disabled>- Pilih Color -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_size').empty().append('<option value="" selected disabled>- Pilih Size -</option>')
-                .trigger('change').prop('disabled', true);
-
-            if (suppressWsReset) {
-                // Buyer diisi otomatis dari pilihan WS (WS dipilih duluan) - jangan reset WS-nya
-                loadWsForBuyer(buyer, $('#inp_ws').val());
-                return;
-            }
-
-            $('#inp_ws').val('').trigger('change');
-
-            if (!buyer) {
-                return;
-            }
-
-            loadWsForBuyer(buyer, null);
-        });
-
-        $('#inp_ws').on('change', function() {
-            let buyer = $('#inp_buyer').val();
-            let ws = $(this).val();
-
-            $('#inp_style').empty().append('<option value="" selected disabled>- Pilih Style -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_dest').empty().append('<option value="" selected disabled>- Pilih Dest -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_color').empty().append('<option value="" selected disabled>- Pilih Color -</option>')
-                .trigger('change').prop('disabled', true);
-            $('#inp_size').empty().append('<option value="" selected disabled>- Pilih Size -</option>')
-                .trigger('change').prop('disabled', true);
-
-            if (!ws) {
-                return;
-            }
-
-            if (!buyer) {
-                // WS dipilih duluan tanpa Buyer - cari tahu Buyer-nya otomatis
-                $.get('{{ route('get-buyer-by-ws-opname-fg-stock') }}', {
-                    ws: ws
-                }, function(data) {
-                    if (data && data.buyer) {
-                        suppressWsReset = true;
-                        $('#inp_buyer').val(data.buyer).trigger('change');
-                        suppressWsReset = false;
-                    }
-                });
-                return;
-            }
-
-            $.get('{{ route('get-style-opname-fg-stock') }}', {
-                buyer: buyer,
-                ws: ws
-            }, function(data) {
-                let $cbo = $('#inp_style');
-                $cbo.empty().append('<option value="" selected disabled>- Pilih Style -</option>');
-
-                data.forEach(function(row) {
-                    $cbo.append(new Option(row.styleno, row.styleno));
-                });
-
-                $cbo.prop('disabled', false);
-
-                if (data.length === 1) {
-                    $cbo.val(data[0].styleno);
-                }
-
-                $cbo.trigger('change');
-            });
-        });
 
         $('#inp_style').on('change', function() {
             let buyer = $('#inp_buyer').val();
@@ -705,163 +907,458 @@
             });
         });
 
-        $('#cbo_no_carton').on('change', function() {
-            updateKeterangan();
-            loadOpnameItems();
-        });
-
-        function updateKeterangan() {
-            let noCarton = $('#cbo_no_carton').val();
-            let $chip = $('#ket_carton');
-
-            if (noCarton) {
-                let opnameText = currentNoOpname ?
-                    ` &nbsp;|&nbsp; No. Opname: <b>${currentNoOpname}</b>` : '';
-                $chip.removeClass('is-empty').html(
-                    `<i class="fas fa-box-open"></i> <span>No. Carton: <b>${noCarton}</b>${opnameText}</span>`
-                );
-            } else {
-                $chip.addClass('is-empty').html(
-                    `<i class="fas fa-info-circle"></i> <span>Belum ada carton dipilih</span>`);
-            }
-
-            applyStatusLock();
-            updateTglOpnameField();
-            updateNoPalletField();
-        }
-
-        function updateNoPalletField() {
-            let noCarton = $('#cbo_no_carton').val();
-            let $inpPallet = $('#inp_no_pallet');
-
-            if (currentNoOpname) {
-                // Carton sudah punya opname di periode ini, no_pallet ambil dari data yang tersimpan
-                $inpPallet.val(currentNoPallet || '').prop('disabled', true);
-            } else if (noCarton) {
-                // Carton baru untuk periode ini, no_pallet boleh diisi manual (opsional)
-                $inpPallet.prop('disabled', false);
-            } else {
-                $inpPallet.val('').prop('disabled', true);
-            }
-        }
-
-        function updateTglOpnameField() {
-            let noCarton = $('#cbo_no_carton').val();
-            let $inpTgl = $('#inp_tgl_opname');
-            let periode = $('#inp_periode').val();
-
-            if (currentNoOpname) {
-                // Carton sudah punya opname di periode ini, tgl_opname ambil dari data yang tersimpan
-                $inpTgl.removeAttr('min').removeAttr('max');
-                $inpTgl.val(currentTglOpname).prop('disabled', true);
-            } else if (noCarton && periode) {
-                // Carton baru untuk periode ini, wajib isi tgl_opname manual
-                // dibatasi cuma boleh tanggal dalam bulan periode yang dipilih
-                let periodeStart = periode + '-01';
-                let periodeEnd = new Date(periode + '-01T00:00:00');
-                periodeEnd.setMonth(periodeEnd.getMonth() + 1);
-                periodeEnd.setDate(0);
-                let periodeEndStr = periodeEnd.toISOString().slice(0, 10);
-
-                $inpTgl.attr('min', periodeStart).attr('max', periodeEndStr).prop('disabled', false);
-
-                let todayStr = new Date().toISOString().slice(0, 10);
-                let defaultDate = (todayStr >= periodeStart && todayStr <= periodeEndStr) ?
-                    todayStr : periodeStart;
-
-                if (!$inpTgl.val() || $inpTgl.val() < periodeStart || $inpTgl.val() > periodeEndStr) {
-                    $inpTgl.val(defaultDate);
-                }
-            } else {
-                $inpTgl.removeAttr('min').removeAttr('max');
-                $inpTgl.val('').prop('disabled', true);
-            }
-        }
-
         function applyStatusLock() {
-            let $status = $('#ket_status');
-            let $statusText = $('#ket_status_text');
-            let noCarton = !$('#cbo_no_carton').val();
             let isClosed = currentStatus === 'CLOSED';
-            let isLocked = noCarton || isClosed;
+            let isLocked = !currentNoOpname || isClosed;
 
-            if (currentStatus) {
-                $status.removeClass('d-none status-open status-closed')
-                    .addClass(isClosed ? 'status-closed' : 'status-open');
-                $statusText.text('Status: ' + currentStatus);
-            } else {
-                $status.addClass('d-none');
-            }
+            $('#cbo_no_carton, #cbo_no_pallet, #btn-add-carton, #btn-add-pallet, #btn_tambah_ke_list')
+                .prop('disabled', isLocked);
 
-            if (isLocked) {
-                $('#inp_buyer, #inp_ws, #inp_style, #inp_dest, #inp_color, #inp_size, #inp_grade, #inp_qty')
+            if (isClosed) {
+                $('#inp_buyer_ws, #inp_style, #inp_dest, #inp_color, #inp_size, #inp_grade, #inp_qty, .btn-add-item')
                     .prop('disabled', true);
             } else {
-                $('#inp_buyer, #inp_ws, #inp_grade, #inp_qty').prop('disabled', false);
+                $('#inp_buyer_ws, #inp_grade, #inp_qty, .btn-add-item').prop('disabled', false);
             }
 
-            $('.btn-add-item').prop('disabled', isLocked);
             $('#tabel_item_carton_body .btn-outline-danger, #tabel_item_carton_body .btn-outline-primary')
                 .prop('disabled', isClosed).toggle(!isClosed);
 
-            let $btnFinish = $('#btn_finish_opname');
-            if (isClosed) {
-                $btnFinish.html('<i class="fas fa-qrcode fa-sm"></i> Cetak QR');
-            } else {
-                $btnFinish.html('<i class="fas fa-qrcode fa-sm"></i> Finish &amp; Cetak QR');
-            }
+            $('#btn_finish_opname').toggle(!isClosed);
         }
 
         function loadOpnameItems() {
-            let noCarton = $('#cbo_no_carton').val();
-            let periode = $('#inp_periode').val();
-
-            $('#tabel_item_carton_body').empty();
-            itemCounter = 0;
-            currentNoOpname = null;
-            currentStatus = null;
-            currentTglOpname = null;
-            currentNoPallet = null;
-            $('#inp_tgl_opname').val('');
-            $('#inp_no_pallet').val('');
-            $('#inp_search_item').val('');
-            updateTotalQty();
-
-            if (!noCarton) {
-                showEmptyRow();
-                applyStatusLock();
-                updateTglOpnameField();
-                updateNoPalletField();
+            if (!currentNoOpname) {
+                allItems = [];
+                renderCartonList();
                 return;
             }
 
             $.get('{{ route('get-opname-items-fg-stock') }}', {
-                no_carton: noCarton,
-                periode: periode
+                no_opname: currentNoOpname
             }, function(response) {
-                currentNoOpname = response.no_opname;
-                currentStatus = response.status;
-                currentTglOpname = response.tgl_opname;
-                currentNoPallet = response.no_pallet;
-                updateKeterangan();
+                allItems = response.items;
+                renderCartonList();
 
-                if (response.items.length === 0) {
-                    showEmptyRow();
+                if (activeCarton) {
+                    renderModalItems();
+                }
+            });
+        }
+
+        function formatDateTime(value) {
+            if (!value) {
+                return '-';
+            }
+
+            let d = new Date(value.replace(' ', 'T'));
+
+            if (isNaN(d.getTime())) {
+                return '-';
+            }
+
+            let pad = (n) => String(n).padStart(2, '0');
+
+            return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function renderCartonList() {
+            let map = {};
+
+            allItems.forEach(function(item) {
+                let key = item.no_carton + '|' + item.no_pallet;
+
+                if (!map[key]) {
+                    map[key] = {
+                        no_carton: item.no_carton,
+                        no_pallet: item.no_pallet,
+                        qty: 0,
+                        status: item.status || 'OPEN',
+                        itemIds: [],
+                        createdAt: null,
+                        updatedAt: null,
+                    };
+                }
+
+                map[key].qty += parseFloat(item.qty) || 0;
+                map[key].itemIds.push(item.id_detail);
+
+                if (item.created_at && (!map[key].createdAt || item.created_at < map[key].createdAt)) {
+                    map[key].createdAt = item.created_at;
+                }
+
+                if (item.updated_at && (!map[key].updatedAt || item.updated_at > map[key].updatedAt)) {
+                    map[key].updatedAt = item.updated_at;
+                }
+            });
+
+            stagedCartons.forEach(function(row) {
+                let key = row.no_carton + '|' + row.no_pallet;
+
+                if (!map[key]) {
+                    map[key] = {
+                        no_carton: row.no_carton,
+                        no_pallet: row.no_pallet,
+                        qty: 0,
+                        status: 'OPEN',
+                        itemIds: [],
+                        createdAt: null,
+                        updatedAt: null,
+                    };
+                }
+            });
+
+            let rows = Object.values(map);
+            let sessionClosed = currentStatus === 'CLOSED';
+
+            renderCartonDropdown();
+
+            let tableData = rows.map(function(row, i) {
+                let hasItems = row.itemIds.length > 0;
+                let rowClosed = sessionClosed || row.status === 'CLOSED';
+                let isiBtnClass = rowClosed ? 'btn-outline-secondary' : (hasItems ? 'btn-outline-primary' :
+                    'btn-primary');
+                let isiIcon = rowClosed ? 'fa-eye' : (hasItems ? 'fa-edit' : 'fa-plus');
+                let isiLabel = rowClosed ? 'View' : 'Isi Item';
+                let statusCls = row.status === 'CLOSED' ? 'badge-status-closed' : 'badge-status-open';
+                let qrBtn = row.status === 'CLOSED' ?
+                    `<button type="button" class="btn btn-outline-success btn-sm" onclick="printQr('${row.no_carton}')" title="Cetak QR">
+                        <i class="fas fa-qrcode fa-sm"></i>
+                    </button>` : '';
+
+                let statusBtn = '';
+                if (canChangeCartonStatus && hasItems) {
+                    if (row.status === 'CLOSED') {
+                        statusBtn =
+                            `<button type="button" class="btn btn-outline-info btn-sm" onclick="reopenCartonModal('${row.no_carton}', '${row.no_pallet}')" title="Buka Kembali">
+                                <i class="fas fa-lock-open fa-sm"></i> Buka
+                            </button>`;
+                    } else if (!sessionClosed) {
+                        statusBtn =
+                            `<button type="button" class="btn btn-outline-warning btn-sm" onclick="closeCartonModal('${row.no_carton}', '${row.no_pallet}')" title="Tutup Carton">
+                                <i class="fas fa-lock fa-sm"></i> Tutup
+                            </button>`;
+                    }
+                }
+
+                return [
+                    i + 1,
+                    row.no_carton,
+                    row.no_pallet,
+                    `<span class="qty-pill">${row.qty}</span>`,
+                    `<span class="badge ${statusCls}">${row.status}</span>`,
+                    formatDateTime(row.createdAt),
+                    formatDateTime(row.updatedAt),
+                    `<div class="d-flex flex-wrap gap-1 justify-content-center">
+                        <button type="button" class="btn ${isiBtnClass} btn-sm"
+                            onclick="bukaIsiItem('${row.no_carton}', '${row.no_pallet}')">
+                            <i class="fas ${isiIcon} fa-sm"></i> ${isiLabel}
+                        </button>
+                        ${statusBtn}
+                        ${qrBtn}
+                        <button type="button" class="btn btn-outline-danger btn-sm" ${rowClosed ? 'style="display:none;"' : ''}
+                            onclick="hapusCartonRow('${row.no_carton}', '${row.no_pallet}')">
+                            <i class="fas fa-trash fa-sm"></i>
+                        </button>
+                    </div>`,
+                ];
+            });
+
+            cartonListTable.clear();
+            cartonListTable.rows.add(tableData);
+            cartonListTable.draw();
+        }
+
+        function tambahKeList() {
+            let noCarton = $('#cbo_no_carton').val();
+            let noPallet = $('#cbo_no_pallet').val();
+
+            if (!currentNoOpname || currentStatus === 'CLOSED') {
+                Swal.fire({
+                    title: 'Opname sudah CLOSED atau tidak ditemukan!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            if (!noCarton) {
+                Swal.fire({
+                    title: 'Pilih No. Carton terlebih dahulu!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            if (!noPallet) {
+                Swal.fire({
+                    title: 'Pilih No. Pallet terlebih dahulu!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            let exists = allItems.some(i => i.no_carton === noCarton && i.no_pallet === noPallet) ||
+                stagedCartons.some(r => r.no_carton === noCarton && r.no_pallet === noPallet);
+
+            if (exists) {
+                Swal.fire({
+                    title: 'No. Carton & No. Pallet ini sudah ada di list!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            let usedElsewhere = allItems.some(i => i.no_carton === noCarton && i.no_pallet !== noPallet) ||
+                stagedCartons.some(r => r.no_carton === noCarton && r.no_pallet !== noPallet);
+
+            if (usedElsewhere) {
+                Swal.fire({
+                    title: 'No. Carton ini sudah terdaftar di Pallet lain pada opname ini!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            stagedCartons.push({
+                no_carton: noCarton,
+                no_pallet: noPallet
+            });
+
+            $('#cbo_no_carton').val('').trigger('change');
+            $('#cbo_no_pallet').val('').trigger('change');
+
+            renderCartonList();
+        }
+
+        function hapusCartonRow(noCarton, noPallet) {
+            if (currentStatus === 'CLOSED') {
+                Swal.fire({
+                    title: 'Opname sudah CLOSED, tidak bisa menghapus!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            let items = allItems.filter(i => i.no_carton === noCarton && i.no_pallet === noPallet);
+
+            if (items.length === 0) {
+                stagedCartons = stagedCartons.filter(r => !(r.no_carton === noCarton && r.no_pallet ===
+                    noPallet));
+                renderCartonList();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Hapus No. Carton ini?',
+                text: `Semua item (${items.length}) pada carton ${noCarton} / pallet ${noPallet} akan dihapus.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (!result.isConfirmed) {
                     return;
                 }
 
-                response.items.forEach(function(item) {
-                    appendItemRow(item.id_detail, item.buyer, item.ws, item.styleno, item.dest, item
-                        .color, item.size, item.grade, item.qty);
+                let requests = items.map(item => $.ajax({
+                    type: 'POST',
+                    url: '{{ route('cancel-opname-item-fg-stock') }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id_detail: item.id_detail,
+                    },
+                }));
+
+                $.when.apply($, requests).always(function() {
+                    loadOpnameItems();
                 });
             });
+        }
+
+        function bukaIsiItem(noCarton, noPallet) {
+            activeCarton = {
+                no_carton: noCarton,
+                no_pallet: noPallet
+            };
+
+            $('#modal_isi_item_carton').text(noCarton);
+            $('#modal_isi_item_pallet').text(noPallet);
+            cancelEditPallet();
+
+            resetTambahItemForm();
+            renderModalItems();
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalIsiItem')).show();
+        }
+
+        function startEditPallet() {
+            let isClosed = currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED';
+
+            if (isClosed || !activeCarton || !activeCartonHasItems) {
+                return;
+            }
+
+            $.get('{{ route('get-master-pallet-opname-fg-stock') }}', function(data) {
+                let $cbo = $('#cbo_edit_pallet');
+                $cbo.empty();
+
+                data.forEach(function(row) {
+                    $cbo.append(new Option(row.no_pallet, row.no_pallet));
+                });
+
+                $cbo.val(activeCarton.no_pallet).trigger('change');
+
+                $('#modal_isi_item_pallet_view').addClass('d-none');
+                $('#modal_isi_item_pallet_edit').removeClass('d-none');
+            });
+        }
+
+        function cancelEditPallet() {
+            $('#modal_isi_item_pallet_edit').addClass('d-none');
+            $('#modal_isi_item_pallet_view').removeClass('d-none');
+        }
+
+        function savePallet() {
+            let noPalletBaru = $('#cbo_edit_pallet').val();
+
+            if (!noPalletBaru) {
+                ToastNotif.fire({
+                    icon: 'warning',
+                    title: 'Pilih No. Pallet terlebih dahulu!',
+                });
+                return;
+            }
+
+            if (noPalletBaru === activeCarton.no_pallet) {
+                cancelEditPallet();
+                return;
+            }
+
+            let idDetails = allItems.filter(i => i.no_carton === activeCarton.no_carton && i.no_pallet ===
+                activeCarton.no_pallet).map(i => i.id_detail);
+
+            if (idDetails.length === 0) {
+                ToastNotif.fire({
+                    icon: 'error',
+                    title: 'Item pada carton ini tidak ditemukan!',
+                });
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route('update-carton-pallet-opname-fg-stock') }}',
+                type: 'POST',
+                data: {
+                    no_opname: currentNoOpname,
+                    id_details: idDetails,
+                    no_pallet_baru: noPalletBaru,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    ToastNotif.fire({
+                        icon: 'success',
+                        title: response.message,
+                    });
+
+                    activeCarton.no_pallet = response.no_pallet;
+                    $('#modal_isi_item_pallet').text(response.no_pallet);
+                    cancelEditPallet();
+
+                    loadOpnameItems();
+                },
+                error: function(xhr) {
+                    let message = 'Terjadi kesalahan!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    ToastNotif.fire({
+                        icon: 'error',
+                        title: message,
+                    });
+                }
+            });
+        }
+
+        $('#btn_edit_pallet').on('click', startEditPallet);
+        $('#btn_cancel_edit_pallet').on('click', cancelEditPallet);
+        $('#btn_save_pallet').on('click', savePallet);
+
+        $('#modalIsiItem').on('hidden.bs.modal', function() {
+            activeCarton = null;
+            activeCartonStatus = null;
+            loadOpnameItems();
+        });
+
+        function resetTambahItemForm() {
+            $('#inp_buyer_ws').val(null).trigger('change');
+            $('#inp_buyer').val('');
+            $('#inp_ws').val('');
+            $('#inp_style').val('').trigger('change');
+            $('#inp_grade').val('').trigger('change');
+            $('#inp_qty').val('');
+            $('#inp_search_item').val('');
+        }
+
+        function renderModalItems() {
+            $('#tabel_item_carton_body').empty();
+            itemCounter = 0;
+            updateTotalQty();
+
+            let items = allItems.filter(i => i.no_carton === activeCarton.no_carton && i.no_pallet ===
+                activeCarton.no_pallet);
+
+            activeCartonStatus = items.length > 0 ? items[0].status : 'OPEN';
+            activeCartonHasItems = items.length > 0;
+            applyCartonLock();
+
+            if (items.length === 0) {
+                showEmptyRow();
+                return;
+            }
+
+            items.forEach(function(item) {
+                appendItemRow(item.id_detail, item.buyer, item.ws, item.styleno, item.dest, item.color,
+                    item.size, item.grade, item.qty);
+            });
+        }
+
+        function applyCartonLock() {
+            let isClosed = currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED';
+
+            if (isClosed) {
+                $('#inp_buyer_ws, #inp_style, #inp_dest, #inp_color, #inp_size, #inp_grade, #inp_qty, .btn-add-item')
+                    .prop('disabled', true);
+            } else {
+                $('#inp_buyer_ws, #inp_grade, #inp_qty, .btn-add-item').prop('disabled', false);
+            }
+
+            $('#tabel_item_carton_body .btn-outline-danger, #tabel_item_carton_body .btn-outline-primary')
+                .prop('disabled', isClosed).toggle(!isClosed);
+
+            $('#btn_finish_carton').toggle(!isClosed);
+            $('#btn_edit_pallet').toggle(!isClosed && activeCartonHasItems);
+
+            if (isClosed || !activeCartonHasItems) {
+                cancelEditPallet();
+            }
+
+            let $status = $('#modal_isi_item_status');
+            $status.removeClass('status-open status-closed').addClass(isClosed ? 'status-closed' :
+                'status-open');
+            $('#modal_isi_item_status_text').text(activeCartonStatus || 'OPEN');
         }
 
         function appendItemRow(idDetail, buyer, ws, styleno, dest, color, size, grade, qty) {
             $('#row_empty').remove();
 
             itemCounter++;
-            let isClosed = currentStatus === 'CLOSED';
+            let isClosed = currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED';
             let destLabel = dest ? dest : '-';
             let searchText = `${buyer} ${ws} ${styleno} ${dest} ${color} ${size} ${grade}`.toLowerCase();
             let row = `
@@ -894,7 +1391,7 @@
 
         function updateTotalQty() {
             let total = 0;
-            $('#tabel_item_carton_body tr[data-qty]').each(function() {
+            $('#tabel_item_carton_body tr[data-qty]').not('.d-none').each(function() {
                 total += parseFloat($(this).data('qty')) || 0;
             });
             $('#total_qty_value').text(total);
@@ -905,8 +1402,10 @@
 
             $('#tabel_item_carton_body tr[data-search]').each(function() {
                 let match = $(this).data('search').toString().includes(keyword);
-                $(this).toggle(match);
+                $(this).toggleClass('d-none', !match);
             });
+
+            updateTotalQty();
         });
 
 
@@ -928,7 +1427,6 @@
                 data: {
                     _token: '{{ csrf_token() }}',
                     no_carton: noCarton,
-                    periode: $('#inp_periode').val(),
                 },
                 success: function() {
                     $('#modal_no_carton').val('');
@@ -947,8 +1445,66 @@
             });
         }
 
+        $('#modal_pallet_zone, #modal_pallet_baris, #modal_pallet_kolom').on('input', function() {
+            updatePalletPreview();
+        });
+
+        $('#modalPallet').on('show.bs.modal', function() {
+            $('#modal_pallet_zone').val('');
+            $('#modal_pallet_baris').val('');
+            $('#modal_pallet_kolom').val('');
+            updatePalletPreview();
+        });
+
+        function updatePalletPreview() {
+            let zone = $('#modal_pallet_zone').val();
+            let baris = $('#modal_pallet_baris').val();
+            let kolom = $('#modal_pallet_kolom').val();
+
+            $('#modal_pallet_preview').text((zone && baris && kolom) ? `${zone}.${baris}.${kolom}` :
+                '-');
+        }
+
+        function simpanPallet() {
+            let zone = $('#modal_pallet_zone').val();
+            let baris = $('#modal_pallet_baris').val();
+            let kolom = $('#modal_pallet_kolom').val();
+
+            if (!zone || !baris || !kolom) {
+                Swal.fire({
+                    title: 'Lengkapi Zone, Baris, dan Kolom!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store-master-pallet-opname-fg-stock') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    zone: zone,
+                    baris: baris,
+                    kolom: kolom,
+                },
+                success: function(response) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalPallet')).hide();
+                    loadMasterPallet(response.no_pallet);
+                },
+                error: function(xhr) {
+                    let message = xhr.responseJSON && xhr.responseJSON.message ?
+                        xhr.responseJSON.message : 'Gagal menyimpan No. Pallet!';
+                    Swal.fire({
+                        title: message,
+                        icon: 'warning',
+                        showConfirmButton: true,
+                    });
+                },
+            });
+        }
+
         function tambahItem() {
-            let noCarton = $('#cbo_no_carton').val();
             let buyer = $('#inp_buyer').val();
             let ws = $('#inp_ws').val();
             let styleno = $('#inp_style').val();
@@ -960,18 +1516,18 @@
             let idSoDet = sizeIdSoDetMap[size];
             let destValue = dest === '__EMPTY__' ? '' : dest;
 
-            if (!noCarton) {
+            if (!currentNoOpname || !activeCarton) {
                 Swal.fire({
-                    title: 'Pilih No. Carton terlebih dahulu!',
+                    title: 'Data opname / carton tidak ditemukan!',
                     icon: 'warning',
                     showConfirmButton: true,
                 });
                 return;
             }
 
-            if (currentStatus === 'CLOSED') {
+            if (currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED') {
                 Swal.fire({
-                    title: 'Opname sudah CLOSED, tidak bisa menambah item!',
+                    title: 'Opname / carton sudah CLOSED, tidak bisa menambah item!',
                     icon: 'warning',
                     showConfirmButton: true,
                 });
@@ -997,28 +1553,8 @@
                 return;
             }
 
-            let tglOpname = $('#inp_tgl_opname').val();
-            let noPallet = $('#inp_no_pallet').val();
-
-            if (!currentNoOpname && !tglOpname) {
-                Swal.fire({
-                    title: 'Isi Tgl. Opname terlebih dahulu!',
-                    icon: 'warning',
-                    showConfirmButton: true,
-                });
-                return;
-            }
-
-            if (!currentNoOpname && !noPallet) {
-                Swal.fire({
-                    title: 'Isi No. Pallet terlebih dahulu!',
-                    icon: 'warning',
-                    showConfirmButton: true,
-                });
-                return;
-            }
-
-            let periode = $('#inp_periode').val();
+            let noCarton = activeCarton.no_carton;
+            let noPallet = activeCarton.no_pallet;
             let $btnTambah = $('.btn-add-item').prop('disabled', true);
 
             $.ajax({
@@ -1026,22 +1562,32 @@
                 url: '{{ route('store-opname-fg-stock') }}',
                 data: {
                     _token: '{{ csrf_token() }}',
+                    no_opname: currentNoOpname,
                     no_carton: noCarton,
-                    periode: periode,
-                    tgl_opname: tglOpname,
                     no_pallet: noPallet,
                     id_so_det: idSoDet,
                     qty: qty,
                     grade: grade,
                 },
                 success: function(response) {
-                    currentNoOpname = response.no_opname;
-                    currentStatus = response.status;
-                    currentTglOpname = currentTglOpname || tglOpname;
-                    currentNoPallet = currentNoPallet || noPallet;
-                    updateKeterangan();
+                    allItems.push({
+                        id_detail: response.id_detail,
+                        no_carton: noCarton,
+                        no_pallet: noPallet,
+                        status: 'OPEN',
+                        buyer: buyer,
+                        ws: ws,
+                        styleno: styleno,
+                        dest: destValue,
+                        color: color,
+                        size: size,
+                        grade: grade,
+                        qty: qty,
+                    });
+
                     appendItemRow(response.id_detail, buyer, ws, styleno, destValue, color, size,
                         grade, qty);
+                    renderCartonList();
 
                     $('#inp_size').val('').trigger('change');
                     $('#inp_qty').val('').focus();
@@ -1062,9 +1608,9 @@
         }
 
         function hapusItem(id, idDetail) {
-            if (currentStatus === 'CLOSED') {
+            if (currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED') {
                 Swal.fire({
-                    title: 'Opname sudah CLOSED, tidak bisa menghapus item!',
+                    title: 'Opname / carton sudah CLOSED, tidak bisa menghapus item!',
                     icon: 'warning',
                     showConfirmButton: true,
                 });
@@ -1079,11 +1625,13 @@
                     id_detail: idDetail,
                 },
                 success: function() {
+                    allItems = allItems.filter(i => i.id_detail != idDetail);
                     $(`tr[data-id="${id}"]`).remove();
                     if ($('#tabel_item_carton_body tr').length === 0) {
                         showEmptyRow();
                     }
                     updateTotalQty();
+                    renderCartonList();
                 },
                 error: function() {
                     Swal.fire({
@@ -1096,9 +1644,9 @@
         }
 
         function editItem(id, idDetail) {
-            if (currentStatus === 'CLOSED') {
+            if (currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED') {
                 Swal.fire({
-                    title: 'Opname sudah CLOSED, tidak bisa mengubah item!',
+                    title: 'Opname / carton sudah CLOSED, tidak bisa mengubah item!',
                     icon: 'warning',
                     showConfirmButton: true,
                 });
@@ -1156,7 +1704,14 @@
                         `${buyer} ${ws} ${styleno} ${dest} ${color} ${size} ${grade}`.toLowerCase();
                     $row.attr('data-search', newSearchText).data('search', newSearchText);
 
+                    let item = allItems.find(i => i.id_detail == idDetail);
+                    if (item) {
+                        item.qty = qty;
+                        item.grade = grade;
+                    }
+
                     updateTotalQty();
+                    renderCartonList();
                     bootstrap.Modal.getInstance(document.getElementById('modalUpdateItem')).hide();
                 },
                 error: function(xhr) {
@@ -1184,23 +1739,11 @@
         }
 
         function finishOpname() {
-            let noCarton = $('#cbo_no_carton').val();
-
-            if (!noCarton) {
-                Swal.fire({
-                    title: 'Pilih No. Carton terlebih dahulu!',
-                    icon: 'warning',
-                    showConfirmButton: true,
-                });
+            if (!currentNoOpname || currentStatus === 'CLOSED') {
                 return;
             }
 
-            if (currentStatus === 'CLOSED') {
-                printQr(noCarton, $('#inp_periode').val());
-                return;
-            }
-
-            if (itemCounter === 0) {
+            if (allItems.length === 0) {
                 Swal.fire({
                     title: 'Tambahkan minimal 1 item sebelum finish!',
                     icon: 'warning',
@@ -1211,7 +1754,7 @@
 
             Swal.fire({
                 title: 'Selesaikan Opname?',
-                text: 'No. Carton ' + noCarton + ' akan diselesaikan dan QR akan dicetak.',
+                text: 'Opname ' + currentNoOpname + ' akan diselesaikan.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Finish',
@@ -1221,37 +1764,23 @@
                     return;
                 }
 
-                let periode = $('#inp_periode').val();
-
-                // Buka tab kosong dulu selagi masih dalam konteks klik user,
-                // supaya tidak ke-block popup blocker browser (window.open yang
-                // dipanggil setelah ajax selesai dianggap bukan aksi user langsung).
-                let printWindow = window.open('', '_blank');
-
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('finish-opname-fg-stock') }}',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        no_carton: noCarton,
-                        periode: periode,
+                        no_opname: currentNoOpname,
                     },
                     success: function() {
-                        if (printWindow) {
-                            printWindow.location.href = buildPrintQrUrl(noCarton, periode);
-                        } else {
-                            printQr(noCarton, periode);
-                        }
-
-                        // Jangan reset form, tetap tampilkan carton yang sama
-                        // (periode & carton tetap kepilih), cuma status-nya jadi CLOSED
+                        loadOpnameHeader();
                         loadOpnameItems();
+                        Swal.fire({
+                            title: 'Opname berhasil diselesaikan.',
+                            icon: 'success',
+                            showConfirmButton: true,
+                        });
                     },
                     error: function(xhr) {
-                        if (printWindow) {
-                            printWindow.close();
-                        }
-
                         let message = xhr.responseJSON && xhr.responseJSON.message ?
                             xhr.responseJSON.message : 'Gagal menyelesaikan opname!';
                         Swal.fire({
@@ -1264,22 +1793,181 @@
             });
         }
 
-        function buildPrintQrUrl(noCarton, periode) {
+        function buildPrintQrUrl(noCarton) {
             return '{{ route('print-qr-opname-fg-stock') }}?no_carton=' + encodeURIComponent(noCarton) +
-                '&periode=' + encodeURIComponent(periode) +
                 '&no_opname=' + encodeURIComponent(currentNoOpname);
         }
 
-        function printQr(noCarton, periode) {
-            window.open(buildPrintQrUrl(noCarton, periode), '_blank');
+        const ToastNotif = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+        });
+
+        function closeCartonModal(noCarton, noPallet) {
+            if (!canChangeCartonStatus) {
+                ToastNotif.fire({
+                    icon: 'error',
+                    title: 'Anda tidak memiliki izin untuk mengubah status carton.',
+                });
+                return;
+            }
+
+            closeCarton(noCarton, noPallet);
         }
 
-        function resetForm() {
-            $('#cbo_no_carton').val('').trigger('change');
-            $('#inp_buyer').val('').trigger('change');
-            $('#inp_grade').val('').trigger('change');
-            $('#inp_qty').val('');
-            $('#inp_search_item').val('');
+        function closeCarton(noCarton, noPallet) {
+            $.ajax({
+                url: '{{ route('change-carton-status-opname-fg-stock') }}',
+                type: 'POST',
+                data: {
+                    no_opname: currentNoOpname,
+                    no_carton: noCarton,
+                    no_pallet: noPallet,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    ToastNotif.fire({
+                        icon: 'success',
+                        title: response.message,
+                    });
+                    loadOpnameHeader();
+                    loadOpnameItems();
+                },
+                error: function(xhr) {
+                    let message = 'Terjadi kesalahan!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    ToastNotif.fire({
+                        icon: 'error',
+                        title: message,
+                    });
+                }
+            });
+        }
+
+        function reopenCartonModal(noCarton, noPallet) {
+            if (!canChangeCartonStatus) {
+                ToastNotif.fire({
+                    icon: 'error',
+                    title: 'Anda tidak memiliki izin untuk mengubah status carton.',
+                });
+                return;
+            }
+
+            reopenCarton(noCarton, noPallet);
+        }
+
+        function reopenCarton(noCarton, noPallet) {
+            $.ajax({
+                url: '{{ route('reopen-carton-opname-fg-stock') }}',
+                type: 'POST',
+                data: {
+                    no_opname: currentNoOpname,
+                    no_carton: noCarton,
+                    no_pallet: noPallet,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    ToastNotif.fire({
+                        icon: 'success',
+                        title: response.message,
+                    });
+                    loadOpnameHeader();
+                    loadOpnameItems();
+                },
+                error: function(xhr) {
+                    let message = 'Terjadi kesalahan!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    ToastNotif.fire({
+                        icon: 'error',
+                        title: message,
+                    });
+                }
+            });
+        }
+
+        function printQr(noCarton) {
+            window.open(buildPrintQrUrl(noCarton), '_blank');
+        }
+
+        function finishCarton() {
+            if (!currentNoOpname || !activeCarton) {
+                return;
+            }
+
+            if (currentStatus === 'CLOSED' || activeCartonStatus === 'CLOSED') {
+                return;
+            }
+
+            let items = allItems.filter(i => i.no_carton === activeCarton.no_carton && i.no_pallet ===
+                activeCarton.no_pallet);
+
+            if (items.length === 0) {
+                Swal.fire({
+                    title: 'Tambahkan minimal 1 item sebelum finish!',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            let noCarton = activeCarton.no_carton;
+            let noPallet = activeCarton.no_pallet;
+
+            Swal.fire({
+                title: 'Selesaikan Carton Ini?',
+                text: 'No. Carton ' + noCarton + ' akan diselesaikan dan QR akan dicetak.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Finish',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                // Buka tab kosong dulu selagi masih dalam konteks klik user,
+                // supaya tidak ke-block popup blocker browser (window.open yang
+                // dipanggil setelah ajax selesai dianggap bukan aksi user langsung).
+                let printWindow = window.open('', '_blank');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('finish-carton-opname-fg-stock') }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        no_opname: currentNoOpname,
+                        no_carton: noCarton,
+                        no_pallet: noPallet,
+                    },
+                    success: function() {
+                        if (printWindow) {
+                            printWindow.location.href = buildPrintQrUrl(noCarton);
+                        }
+
+                        loadOpnameItems();
+                    },
+                    error: function(xhr) {
+                        if (printWindow) {
+                            printWindow.close();
+                        }
+
+                        let message = xhr.responseJSON && xhr.responseJSON.message ?
+                            xhr.responseJSON.message : 'Gagal menyelesaikan carton!';
+                        Swal.fire({
+                            title: message,
+                            icon: 'warning',
+                            showConfirmButton: true,
+                        });
+                    },
+                });
+            });
         }
     </script>
 @endsection
