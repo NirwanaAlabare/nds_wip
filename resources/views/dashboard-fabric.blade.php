@@ -281,7 +281,7 @@ $page = '';
                     $("#tableshow").DataTable({
                         responsive: true,
                         autoWidth: false,
-                        scrollY: "300px",
+                        // scrollY: "300px",
                         paging: false
                     })
                 }
