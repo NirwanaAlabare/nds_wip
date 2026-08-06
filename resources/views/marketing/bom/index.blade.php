@@ -246,6 +246,7 @@
                 <thead>
                     <tr class="text-center">
                         <th>No</th>
+                        <th>Tanggal</th>
                         <th>No Katalog BOM</th>
                         <th>No Costing</th>
                         <th>Buyer</th>
@@ -349,6 +350,19 @@
                         className: "text-center align-middle",
                         width: "5%",
                         render: (data, type, row, meta) => meta.row + 1
+                    },
+                    {
+                        data: 'created_at',
+                        className: "align-middle text-right",
+                        render: function (data) {
+                            // pakai format dd-mmm-yyyy
+                            if (data) {
+                                let date = new Date(data);
+                                let options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                                return date.toLocaleDateString('id-ID', options).replace(/ /g, '-');
+                            }
+                            return '-';
+                        }
                     },
                     { data: 'no_katalog_bom', className: "align-middle" },
                     { data: 'no_costing', className: "align-middle" },
