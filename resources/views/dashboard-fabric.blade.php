@@ -278,12 +278,16 @@ $page = '';
                     $('#modal_tblroll').modal('show');
                     $('#modal_title1').html('DETAIL ' + data + ' FABRIC WAREHOUSE RACK');
                     document.getElementById('table_modal').innerHTML = res;
-                    $("#tableshow").DataTable({
-                        responsive: true,
-                        autoWidth: false,
-                        scrollY: "300px",
-                        paging: false
-                    })
+                    
+                    $('#modal_tblroll').on('shown.bs.modal', function (e) {
+                        $("#tableshow").DataTable({
+                            responsive: true,
+                            autoWidth: false,
+                            scrollX: "300px",
+                            scrollY: "300px",
+                            paging: false
+                        }).columns.adjust();
+                    });
                 }
             }
         });
