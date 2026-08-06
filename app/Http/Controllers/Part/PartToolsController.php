@@ -59,6 +59,13 @@ class PartToolsController extends Controller
 
         $partDetail = PartDetail::find($request->part_custom_part_detail_id);
 
+        if (!$partDetail) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Part tidak ditemukan.",
+            ]);
+        }
+
         $exists = PartCustom::where("part_detail_id", $partDetail->id)
             ->where("color", $request->color)
             ->exists();
@@ -68,6 +75,25 @@ class PartToolsController extends Controller
                 "status" => 400,
                 "message" => "Custom Part untuk warna ini sudah ada.",
             ]);
+        }
+
+        // Check Closing
+        $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
+            ->leftJoin("part", "part.id", "=", "part_form.part_id")
+            ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
+            ->where("part_detail.id", $partDetail->id)
+            ->groupBy("form_cut_input.id")
+            ->get();
+
+        foreach($dataCheckClosing as $data){
+            if (checkClosingDate($data->waktu_selesai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                );
+            }
         }
 
         $partCustom = PartCustom::create([
