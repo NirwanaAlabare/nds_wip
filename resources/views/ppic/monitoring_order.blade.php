@@ -113,6 +113,8 @@
                             <th>Blc Loading</th>
                             <th>Sewing</th>
                             <th>Blc Sewing</th>
+                            <th>Finishing Proses</th>
+                            <th>Blc Finishing Proses</th>
                             <th>QC Finishing</th>
                             <th>Blc QC Finishing</th>
                             <th>Packing</th>
@@ -133,6 +135,8 @@
                             <th id="total_blc_loading"></th>
                             <th id="total_final_output_rfts"></th>
                             <th id="total_blc_output_rfts"></th>
+                            <th id="total_final_output_fns_proses"></th>
+                            <th id="total_blc_output_fns_proses"></th>
                             <th id="total_final_output_rfts_packing"></th>
                             <th id="total_blc_output_rfts_packing"></th>
                             <th id="total_final_output_rfts_packing_po"></th>
@@ -445,6 +449,12 @@
                         data: 'blc_output_rfts'
                     },
                     {
+                        data: 'final_output_fns_proses'
+                    },
+                    {
+                        data: 'blc_output_fns_proses'
+                    },
+                    {
                         data: 'final_output_finishing'
                     },
                     {
@@ -471,14 +481,17 @@
                 ],
                 columnDefs: [{
                         targets: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                            18, 19, 20
+                            18, 19, 20, 21, 22
                         ], // Indices of columns to align right
                         className: 'text-right' // Apply right alignment
                     },
                     {
                         "className": "align-middle",
-                        "targets": "_all"
-                    }
+                        "targets": "_all",
+                        createdCell: function(td) {
+                            $(td).css("font-weight", "bold");
+                        }
+                    },
                 ],
                 createdRow: function(row, data, dataIndex) {
                     // Set the font weight to bold for all cells
@@ -491,14 +504,16 @@
                     var blcLoadingCell = $(row).find('td').eq(10);
                     var finalOutputRftsCell = $(row).find('td').eq(11);
                     var blcOutputRftsCell = $(row).find('td').eq(12);
-                    var finalOutputRftsPackingCell = $(row).find('td').eq(13);
-                    var blcOutputRftsPackingCell = $(row).find('td').eq(14);
-                    var finalOutputRftsPackingPoCell = $(row).find('td').eq(15);
-                    var blcOutputRftsPackingPoCell = $(row).find('td').eq(16);
-                    var finalScanCell = $(row).find('td').eq(17);
-                    var blcScanCell = $(row).find('td').eq(18);
-                    var finalFGOutCell = $(row).find('td').eq(19);
-                    var blcFGOutCell = $(row).find('td').eq(20);
+                    var finalOutputFnsProsesCell = $(row).find('td').eq(13);
+                    var blcOutputFnsProsesCell = $(row).find('td').eq(14);
+                    var finalOutputRftsPackingCell = $(row).find('td').eq(15);
+                    var blcOutputRftsPackingCell = $(row).find('td').eq(16);
+                    var finalOutputRftsPackingPoCell = $(row).find('td').eq(17);
+                    var blcOutputRftsPackingPoCell = $(row).find('td').eq(18);
+                    var finalScanCell = $(row).find('td').eq(19);
+                    var blcScanCell = $(row).find('td').eq(20);
+                    var finalFGOutCell = $(row).find('td').eq(21);
+                    var blcFGOutCell = $(row).find('td').eq(22);
 
 
                     if (parseFloat(data.blc_cut) < parseFloat(data.qty_po) &&
@@ -525,6 +540,15 @@
                     } else {
                         // Otherwise, set text color to black for final_cut
                         blcOutputRftsCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.blc_output_fns_proses) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_fns_proses) < '0') {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        blcOutputFnsProsesCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        blcOutputFnsProsesCell.css('color', 'black');
                     }
 
                     if (parseFloat(data.blc_output_finishing) < parseFloat(data.qty_po) &&
@@ -564,6 +588,16 @@
                     }
 
 
+                },
+                initComplete: function () {
+                    var api = this.api();
+
+                    var totalFinalOutputFnsProses = api.column(13).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0);
+
+                    api.column(13).visible(totalFinalOutputFnsProses > 0);
+                    api.column(14).visible(totalFinalOutputFnsProses > 0);
                 },
                 drawCallback: function(settings) {
                     // Calculate totals
@@ -614,49 +648,64 @@
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFinalOutputRftsPacking = api.column(13, {
+                    var totalFinalOutputFnsProses = api.column(13, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcOutputRftsPacking = api.column(14, {
+                    var totalblcOutputFnsProses = api.column(14, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFinalOutputRftsPackingPo = api.column(15, {
+                    // api.column(13).visible(totalFinalOutputFnsProses > 0);
+                    // api.column(14).visible(totalFinalOutputFnsProses > 0);
+
+                    var totalFinalOutputRftsPacking = api.column(15, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcOutputRftsPackingPo = api.column(16, {
+                    var totalblcOutputRftsPacking = api.column(16, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalTotScan = api.column(17, {
+                    var totalFinalOutputRftsPackingPo = api.column(17, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcTotScan = api.column(18, {
+                    var totalblcOutputRftsPackingPo = api.column(18, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFGOut = api.column(19, {
+                    var totalTotScan = api.column(19, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcFGOut = api.column(20, {
+                    var totalblcTotScan = api.column(20, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalFGOut = api.column(21, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalblcFGOut = api.column(22, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
@@ -672,6 +721,9 @@
                         'black');
                     $('#total_final_output_rfts').text(totalFinalOutputRfts);
                     $('#total_blc_output_rfts').text(totalblcOutputRfts).css('color', totalblcOutputRfts < 0 ?
+                        'red' : 'black');
+                    $('#total_final_output_fns_proses').text(totalFinalOutputFnsProses);
+                    $('#total_blc_output_fns_proses').text(totalblcOutputFnsProses).css('color', totalblcOutputFnsProses < 0 ?
                         'red' : 'black');
                     $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
                     $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color',
@@ -703,6 +755,12 @@
                             expected: totalQtyPo,
                             color: '#FFF574'
                         },
+                        ...(totalFinalOutputFnsProses > 0 ? [{
+                            category: 'Finishing Proses',
+                            actual: totalFinalOutputFnsProses,
+                            expected: totalQtyPo,
+                            color: '#FFB4A2'
+                        }] : []),
                         {
                             category: 'QC Finishing',
                             actual: totalFinalOutputRftsPacking,
@@ -732,7 +790,7 @@
                     // Call the function with new data and the total quantity for x-axis max
                     update_chart(newData, totalQtyPo);
 
-                }
+                },
             });
         }
 
@@ -775,18 +833,30 @@
                 success: function(data) {
                     // Create a new workbook and a worksheet
                     const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet("Mutasi Output Production ");
+                    const worksheet = workbook.addWorksheet("Mutasi Output Production");
 
+                    // Cek apakah ada data Finishing Proses
+                    const showFnsProses = data.some(row => Number(row.final_output_fns_proses) > 0);
+
+                    // Header
                     const headers = [
                         "Buyer", "WS", "Reff", "Color", "Size", "Tgl. Shipment",
                         "Qty PO", "Cutting", "Blc Cutting",
                         "Loading", "Blc Loading",
-                        "Sewing", "Blc Sewing",
+                        "Sewing", "Blc Sewing"
+                    ];
+
+                    if (showFnsProses) {
+                        headers.push("Finishing Proses", "Blc Finishing Proses");
+                    }
+
+                    headers.push(
                         "QC Finishing", "Blc QC Finishing",
                         "Packing", "Blc Packing",
                         "Packing Scan", "Blc Packing Scan",
-                        "Shipment", "Blc Shipment",
-                    ];
+                        "Shipment", "Blc Shipment"
+                    );
+
                     const headerRow = worksheet.addRow(headers);
 
                     // Make header bold
@@ -795,7 +865,7 @@
                     }, function(cell) {
                         cell.font = {
                             bold: true
-                        }; // Set font to bold
+                        };
                     });
 
                     // Define border style
@@ -816,13 +886,14 @@
 
                     // Function to apply styles based on value
                     function applyCellStyles(cell) {
-                        cell.border = borderStyle; // Apply border style
+                        cell.border = borderStyle;
+
                         if (typeof cell.value === 'number' && cell.value < 0) {
                             cell.font = {
                                 color: {
                                     argb: 'FF0000'
                                 }
-                            }; // Red color for negative values
+                            };
                         }
                     }
 
@@ -834,6 +905,8 @@
                     let sumBlcLoading = 0;
                     let sumSewing = 0;
                     let sumBlcSewing = 0;
+                    let sumFnsProses = 0;
+                    let sumBlcFnsProses = 0;
                     let sumPackingLine = 0;
                     let sumBlcPackingLine = 0;
                     let sumPackingPo = 0;
@@ -845,6 +918,7 @@
 
                     // Add data rows and calculate sums
                     data.forEach(function(row) {
+
                         const qtyPO = Number(row.qty_po);
                         const cutting = Number(row.final_cut);
                         const blcCutting = Number(row.blc_cut);
@@ -852,6 +926,8 @@
                         const blcLoading = Number(row.blc_loading);
                         const sewing = Number(row.final_output_rfts);
                         const blcSewing = Number(row.blc_output_rfts);
+                        const fnsProses = Number(row.final_output_fns_proses);
+                        const blcFnsProses = Number(row.blc_output_fns_proses);
                         const packingLine = Number(row.final_output_finishing);
                         const blcPackingLine = Number(row.blc_output_finishing);
                         const packingPo = Number(row.final_output_rfts_packing);
@@ -869,6 +945,8 @@
                         sumBlcLoading += blcLoading;
                         sumSewing += sewing;
                         sumBlcSewing += blcSewing;
+                        sumFnsProses += fnsProses;
+                        sumBlcFnsProses += blcFnsProses;
                         sumPackingLine += packingLine;
                         sumBlcPackingLine += blcPackingLine;
                         sumPackingPo += packingPo;
@@ -878,8 +956,8 @@
                         sumShipment += shipment;
                         sumBlcShipment += blcShipment;
 
-                        // Add the row to the worksheet
-                        const newRow = worksheet.addRow([
+                        // Data Row
+                        const rowData = [
                             row.buyer,
                             row.ws,
                             row.reff_no,
@@ -892,7 +970,17 @@
                             loading,
                             blcLoading,
                             sewing,
-                            blcSewing,
+                            blcSewing
+                        ];
+
+                        if (showFnsProses) {
+                            rowData.push(
+                                fnsProses,
+                                blcFnsProses
+                            );
+                        }
+
+                        rowData.push(
                             packingLine,
                             blcPackingLine,
                             packingPo,
@@ -901,9 +989,10 @@
                             blcPackingScan,
                             shipment,
                             blcShipment
-                        ]);
+                        );
 
-                        // Apply styles to each cell in the new row
+                        const newRow = worksheet.addRow(rowData);
+
                         newRow.eachCell({
                             includeEmpty: true
                         }, applyCellStyles);
@@ -919,6 +1008,7 @@
                     // Auto-adjust column widths
                     worksheet.columns.forEach(column => {
                         let maxLength = 0;
+
                         column.eachCell({
                             includeEmpty: true
                         }, cell => {
@@ -926,28 +1016,41 @@
                                 maxLength = Math.max(maxLength, cell.value.toString().length);
                             }
                         });
-                        column.width = maxLength + 2; // Adding 2 for padding
+
+                        column.width = maxLength + 2;
                     });
 
-                    // Create a footer row for sums
-                    const footerRow = worksheet.addRow([
-                        "", "", "", "", "", "", // Empty cells for columns A to F
-                        sumQtyPO, // Sum for Qty PO
-                        sumCutting, // Sum for Cutting
-                        sumBlcCutting, // Sum for Blc Cutting
-                        sumLoading, // Sum for Loading
-                        sumBlcLoading, // Sum for Blc Loading
-                        sumSewing, // Sum for Sewing
-                        sumBlcSewing, // Sum for Blc Sewing
-                        sumPackingLine, // Sum for Packing Line
-                        sumBlcPackingLine, // Sum for Blc Packing Line
-                        sumPackingPo, // Sum for Packing Po
-                        sumBlcPackingPo, // Sum for Blc Packing Po
-                        sumPackingScan, // Sum for Packing Scan
-                        sumBlcPackingScan, // Sum for Blc Packing Scan
-                        sumShipment, // Sum for Shipment
-                        sumBlcShipment // Sum for Blc Shipment
-                    ]);
+                    // Footer
+                    const footerData = [
+                        "", "", "", "", "", "",
+                        sumQtyPO,
+                        sumCutting,
+                        sumBlcCutting,
+                        sumLoading,
+                        sumBlcLoading,
+                        sumSewing,
+                        sumBlcSewing
+                    ];
+
+                    if (showFnsProses) {
+                        footerData.push(
+                            sumFnsProses,
+                            sumBlcFnsProses
+                        );
+                    }
+
+                    footerData.push(
+                        sumPackingLine,
+                        sumBlcPackingLine,
+                        sumPackingPo,
+                        sumBlcPackingPo,
+                        sumPackingScan,
+                        sumBlcPackingScan,
+                        sumShipment,
+                        sumBlcShipment
+                    );
+
+                    const footerRow = worksheet.addRow(footerData);
 
                     // Make footer bold and apply styles
                     footerRow.eachCell({
@@ -955,10 +1058,10 @@
                     }, function(cell) {
                         cell.font = {
                             bold: true
-                        }; // Set font to bold
-                        applyCellStyles(cell); // Apply styles based on value
-                    });
+                        };
 
+                        applyCellStyles(cell);
+                    });
                     // Export the workbook
                     workbook.xlsx.writeBuffer().then(function(buffer) {
                         const sanitizedBuyerFilter = buyer_filter.replace(/[^a-zA-Z0-9]/g, '_');

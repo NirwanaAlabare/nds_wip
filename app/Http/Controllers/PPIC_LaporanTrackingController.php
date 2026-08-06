@@ -540,6 +540,17 @@ pck_now as (
 								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
 								GROUP BY so_det_id
 ),
+finishing_proses_now as (
+    SELECT
+        so_det_id id_so_det,
+        COUNT(*) qty_fns_proses
+    FROM
+        signalbit_erp.output_secondary_in
+    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
+    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
+    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
+    GROUP BY so_det_id
+),
 cutt as (
     -- 	CUTTING
 	SELECT
@@ -938,7 +949,8 @@ ws, color, size,styleno_prod, reff_no,
 SUM(qty_loading) qty_loading,
 SUM(qty_sewing) qty_sewing,
 SUM(qty_finishing) qty_finishing,
-SUM(qty_rft_packing) qty_rft_packing
+SUM(qty_rft_packing) qty_rft_packing,
+SUM(qty_fns_proses) qty_fns_proses
 FROM
 	(
 		SELECT
@@ -946,7 +958,8 @@ FROM
 		SUM(qty_loading) qty_loading,
 		SUM(qty_sewing) qty_sewing,
 		SUM(qty_finishing) qty_finishing,
-		SUM(qty_rft_packing) qty_rft_packing
+		SUM(qty_rft_packing) qty_rft_packing,
+        SUM(total_in_sp) qty_fns_proses
 		FROM signalbit_erp.mut_wip_tmp tmp
 		where tgl_trans < '$prevdate'
 		group by id_so_det
@@ -956,7 +969,8 @@ FROM
 		qty_loading,
 		0 qty_sewing,
 		0 qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM sl_now
 		UNION ALL
 		SELECT
@@ -964,7 +978,8 @@ FROM
 		0 qty_loading,
 		qty_sewing,
 		0 qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM sew_now
 		UNION ALL
 		SELECT
@@ -972,7 +987,8 @@ FROM
 		0 qty_loading,
 		0 qty_sewing,
 		qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM fin_now
 		UNION ALL
 		SELECT
@@ -980,8 +996,18 @@ FROM
 		0 qty_loading,
 		0 qty_sewing,
 		0 qty_finishing,
-		qty_rft_packing
+		qty_rft_packing,
+        0 qty_fns_proses
 		FROM pck_now
+        UNION ALL
+        SELECT
+		id_so_det,
+		0 qty_loading,
+		0 qty_sewing,
+		0 qty_finishing,
+		0 qty_rft_packing,
+        qty_fns_proses
+		FROM finishing_proses_now
 	) mut
 LEFT JOIN laravel_nds.master_sb_ws m on mut.id_so_det = m.id_so_det
 where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
@@ -1004,6 +1030,7 @@ qty_loading,
 qty_sewing output_rfts,
 qty_finishing output_finishing,
 qty_rft_packing output_rfts_packing,
+qty_fns_proses output_fns_proses,
 qty_scan,
 qty_fg,
 ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
@@ -1013,6 +1040,7 @@ qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a
 qty_sewing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
 qty_finishing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_finishing,
 qty_rft_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
+qty_fns_proses - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses,
 qty_scan - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_scan,
 qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_fg
 from master_data a
@@ -1135,6 +1163,25 @@ when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER B
 then '0'
 end,0) - qty_po blc_output_rfts_packing,
 
+coalesce(output_fns_proses,0) output_fns_proses,
+coalesce(case
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+then '0'
+end,0) as final_output_fns_proses,
+coalesce(case
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+then '0'
+end,0) - qty_po blc_output_fns_proses,
 
 coalesce(qty_scan,0) qty_scan,
 coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
@@ -2124,6 +2171,17 @@ pck_now as (
 								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
 								GROUP BY so_det_id
 ),
+finishing_proses_now as (
+    SELECT
+        so_det_id id_so_det,
+        COUNT(*) qty_fns_proses
+    FROM
+        signalbit_erp.output_secondary_in
+    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
+    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
+    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
+    GROUP BY so_det_id
+),
 cutt as (
     -- 	CUTTING
 	SELECT
@@ -2522,7 +2580,8 @@ ws, color, size,styleno_prod, reff_no,
 SUM(qty_loading) qty_loading,
 SUM(qty_sewing) qty_sewing,
 SUM(qty_finishing) qty_finishing,
-SUM(qty_rft_packing) qty_rft_packing
+SUM(qty_rft_packing) qty_rft_packing,
+SUM(qty_fns_proses) qty_fns_proses
 FROM
 	(
 		SELECT
@@ -2530,7 +2589,8 @@ FROM
 		SUM(qty_loading) qty_loading,
 		SUM(qty_sewing) qty_sewing,
 		SUM(qty_finishing) qty_finishing,
-		SUM(qty_rft_packing) qty_rft_packing
+		SUM(qty_rft_packing) qty_rft_packing,
+        SUM(total_in_sp) qty_fns_proses
 		FROM signalbit_erp.mut_wip_tmp tmp
 		where tgl_trans < '$prevdate'
 		group by id_so_det
@@ -2540,7 +2600,8 @@ FROM
 		qty_loading,
 		0 qty_sewing,
 		0 qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM sl_now
 		UNION ALL
 		SELECT
@@ -2548,7 +2609,8 @@ FROM
 		0 qty_loading,
 		qty_sewing,
 		0 qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM sew_now
 		UNION ALL
 		SELECT
@@ -2556,7 +2618,8 @@ FROM
 		0 qty_loading,
 		0 qty_sewing,
 		qty_finishing,
-		0 qty_rft_packing
+		0 qty_rft_packing,
+        0 qty_fns_proses
 		FROM fin_now
 		UNION ALL
 		SELECT
@@ -2564,8 +2627,18 @@ FROM
 		0 qty_loading,
 		0 qty_sewing,
 		0 qty_finishing,
-		qty_rft_packing
+		qty_rft_packing,
+        0 qty_fns_proses
 		FROM pck_now
+        UNION ALL
+        SELECT
+		id_so_det,
+		0 qty_loading,
+		0 qty_sewing,
+		0 qty_finishing,
+		0 qty_rft_packing,
+        qty_fns_proses
+		FROM finishing_proses_now
 	) mut
 LEFT JOIN laravel_nds.master_sb_ws m on mut.id_so_det = m.id_so_det
 where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
@@ -2588,6 +2661,7 @@ qty_loading,
 qty_sewing output_rfts,
 qty_finishing output_finishing,
 qty_rft_packing output_rfts_packing,
+qty_fns_proses output_fns_proses,
 qty_scan,
 qty_fg,
 ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
@@ -2597,6 +2671,7 @@ qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a
 qty_sewing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
 qty_finishing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_finishing,
 qty_rft_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
+qty_fns_proses - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses,
 qty_scan - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_scan,
 qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_fg
 from master_data a
@@ -2719,6 +2794,25 @@ when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER B
 then '0'
 end,0) - qty_po blc_output_rfts_packing,
 
+coalesce(output_fns_proses,0) output_fns_proses,
+coalesce(case
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+then '0'
+end,0) as final_output_fns_proses,
+coalesce(case
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+then '0'
+end,0) - qty_po blc_output_fns_proses,
 
 coalesce(qty_scan,0) qty_scan,
 coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
