@@ -3,6 +3,7 @@
 use App\Http\Controllers\Part\MasterPartController;
 use App\Http\Controllers\Part\MasterSecondaryController;
 use App\Http\Controllers\Part\PartController;
+use App\Http\Controllers\Part\PartToolsController;
 
 Route::middleware('auth')->group(function () {
     // Master Part
@@ -74,5 +75,13 @@ Route::middleware('auth')->group(function () {
 
         // get part detail items
         Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
+    });
+
+    // part custom
+    Route::controller(PartToolsController::class)->prefix("part")->middleware('role:marker,cutting,stocker')->group(function () {
+        Route::get('/part-custom/{id?}', 'getPartCustom')->name('get-part-custom');
+        Route::post('/store-part-custom', 'storePartCustom')->name('store-part-custom');
+        Route::put('/update-part-custom', 'updatePartCustom')->name('update-part-custom');
+        Route::delete('/destroy-part-custom/{id?}', 'destroyPartCustom')->name('destroy-part-custom');
     });
 });

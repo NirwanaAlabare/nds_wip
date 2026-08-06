@@ -384,7 +384,7 @@ function submitForm(e, evt) {
                 }
             }
 
-            // Swal with reload
+            // Swal with reload with reset form
             else if (res.status == 900) {
                 Swal.fire({
                     icon: 'success',
@@ -416,7 +416,7 @@ function submitForm(e, evt) {
                 }
             }
 
-            // Swal with conditional reload
+            // Swal with conditional reload without reset form
             else if (res.status == 201) {
                 // $('.modal').modal('hide');
 
@@ -452,7 +452,7 @@ function submitForm(e, evt) {
                 }
             }
 
-            // Swal with conditional reload
+            // Swal with conditional reload without reset form
             else if (res.status == 202) {
                 // $('.modal').modal('hide');
 
@@ -633,7 +633,7 @@ function submitForm(e, evt) {
 // Edit data modal
 async function editData(e, modal, addons = []) {
     let data = e;
-
+    
     for (let key in data) {
         if (document.getElementById('edit_' + key)) {
             console.log("img", isImage(document.getElementById('edit_' + key)));

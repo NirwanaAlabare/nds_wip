@@ -525,13 +525,13 @@ class PartController extends Controller
         // Transaction
         try {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->where("part_form.part_id", $id)
                 ->groupBy("form_cut_input.id")
                 ->get();
-            
+
             foreach($dataCheckClosing as $data){
                 if (checkClosingDate($data->waktu_selesai)) {
                     return array(
@@ -621,7 +621,7 @@ class PartController extends Controller
         // Check Part Form
         $countPartForm = PartForm::where("part_id", $id)->count();
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $id)
@@ -898,6 +898,16 @@ class PartController extends Controller
             groupBy("part.id")->
             first();
 
+        $currentPartDetails = PartDetail::select(
+                "part_detail.id",
+                "master_part.nama_part",
+                "master_part.bag",
+                "part_detail.part_status"
+            )->
+            leftJoin("master_part","master_part.id", "=", "part_detail.master_part_id")->
+            where("part_detail.part_id", $id)->
+            get();
+
         // $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd
         // inner join master_part mp on pd.master_part_id = mp.id
         // where part_id = '$id'");
@@ -918,7 +928,7 @@ class PartController extends Controller
                 group by bom_jo_item.id_item
             ");
 
-        return view("marker.part.manage-part-secondary", ["part" => $part, "partItemList" => $partItemList, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_secondary" => $data_secondary, "complementPanels" => $complementPanels, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.manage-part-secondary", ["part" => $part, "currentPartDetails" => $currentPartDetails, "partItemList" => $partItemList, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_secondary" => $data_secondary, "complementPanels" => $complementPanels, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function get_proses(Request $request)
@@ -945,7 +955,7 @@ class PartController extends Controller
             //     where id = '$request->txtpart'");
         // End Deprecated
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->where("part_form.part_id", $request->id)
@@ -1220,7 +1230,7 @@ class PartController extends Controller
 
     public function updatePartSecondary(Request $request, PartService $partService)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->leftJoin("part", "part.id", "=", "part_form.part_id")
@@ -1412,7 +1422,7 @@ class PartController extends Controller
 
     public function updatePartSecondaryComplement(Request $request) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->leftJoin("part", "part.id", "=", "part_form.part_id")
@@ -1629,7 +1639,7 @@ class PartController extends Controller
         $fail = [];
         $exist = [];
 
-        // Check Closing 
+        // Check Closing
         foreach ($request->partForms as $partForm) {
             $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
@@ -1709,7 +1719,7 @@ class PartController extends Controller
         $fail = [];
         $exist = [];
 
-        // Check Closing 
+        // Check Closing
         foreach ($request->partForms as $partForm) {
             $currentForm = DB::table("form_cut_input")->where("id", $partForm['form_id'])->first();
 
@@ -1996,7 +2006,7 @@ class PartController extends Controller
 
         if ($partDetail) {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
@@ -2058,7 +2068,7 @@ class PartController extends Controller
 
         if ($partDetail) {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
@@ -2122,7 +2132,7 @@ class PartController extends Controller
 
         if ($partDetail) {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
                 ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
                 ->leftJoin("part", "part.id", "=", "part_form.part_id")
