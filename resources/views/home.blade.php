@@ -382,6 +382,34 @@
     {{-- Menu Grid --}}
     <div class="menu-grid" id="menu-grid">
 
+        @role('admin')
+        <a href="{{ route('dashboard-marketing') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/marketing.png') }}" alt="marketing"></div>
+            <span class="menu-label">Marketing</span>
+        </a>
+        @endrole
+
+        @role('purchasing')
+        <a href="{{ route('dashboard-purchasing') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/purchasing_img.png') }}" alt="purchasing"></div>
+            <span class="menu-label">Purchasing</span>
+        </a>
+        @endrole
+
+        @role('warehouse')
+        <a href="#" class="menu-card" onclick="getmodalwarehouse()">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/warehouse.png') }}" alt="warehouse"></div>
+            <span class="menu-label">Warehouse</span>
+        </a>
+        @endrole
+
+        @role('warehouse')
+        <a href="{{ route('dashboard-qc-inspect') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/inspect.png') }}" alt="inspect"></div>
+            <span class="menu-label">Fabric Inspection</span>
+        </a>
+        @endrole
+
         @role('marker')
         <a href="{{ route('dashboard-marker') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/marker.png') }}" alt="marker"></div>
@@ -417,42 +445,6 @@
         </a>
         @endrole
 
-        @role('machine')
-        <a href="{{ route('dashboard-mut-mesin') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/mut_mesin.png') }}" alt="machine"></div>
-            <span class="menu-label">Mutasi Mesin</span>
-        </a>
-        @endrole
-
-        @role('warehouse')
-        <a href="#" class="menu-card" onclick="getmodalwarehouse()">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/warehouse.png') }}" alt="warehouse"></div>
-            <span class="menu-label">Warehouse</span>
-        </a>
-        <a href="{{ route('stock_opname') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/stock_opname.png') }}" alt="stock opname"></div>
-            <span class="menu-label">Stock Opname</span>
-        </a>
-        <a href="{{ route('dashboard-qc-inspect') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/inspect.png') }}" alt="inspect"></div>
-            <span class="menu-label">Fabric Inspection</span>
-        </a>
-        @endwarehouse
-
-        @php if(auth()->user()->username == 'acc'): @endphp
-        <a href="{{ route('stock_opname') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/stock_opname.png') }}" alt="stock opname"></div>
-            <span class="menu-label">Stock Opname</span>
-        </a>
-        @php endif; @endphp
-
-        @role('ppic')
-        <a href="{{ route('dashboard-ppic') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/ppic.png') }}" alt="ppic"></div>
-            <span class="menu-label">PPIC</span>
-        </a>
-        @endrole
-
         @role('packing')
         <a href="{{ route('dashboard-packing') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/packing.png') }}" alt="packing"></div>
@@ -464,24 +456,24 @@
         </a>
         @endrole
 
-        @role('admin')
-        <a href="{{ route('dashboard-report-doc') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/doc_report.png') }}" alt="doc report"></div>
-            <span class="menu-label">Document Report</span>
+        @role('export_import')
+        <a href="{{ route('dashboard-export-import') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.png') }}" alt="export import"></div>
+            <span class="menu-label">Export Import</span>
         </a>
         @endrole
 
-        @role('ga')
-        <a href="{{ route('dashboard-ga') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/general_affair.png') }}" alt="ga"></div>
-            <span class="menu-label">G.A.I.S</span>
+        @role('ppic')
+        <a href="{{ route('dashboard-ppic') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/ppic.png') }}" alt="ppic"></div>
+            <span class="menu-label">PPIC</span>
         </a>
         @endrole
 
-        @role('admin')
-        <a href="{{ route('dashboard-marketing') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/marketing.png') }}" alt="marketing"></div>
-            <span class="menu-label">Marketing</span>
+        @role('management')
+        <a href="{{ route('dashboard-IE') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/IE.png') }}" alt="IE"></div>
+            <span class="menu-label">Industrial Engineering</span>
         </a>
         @endrole
 
@@ -492,17 +484,17 @@
         </a>
         @endrole
 
-        @role('purchasing')
-        <a href="{{ route('dashboard-purchasing') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/purchasing_img.png') }}" alt="purchasing"></div>
-            <span class="menu-label">Purchasing</span>
+        @role('ga')
+        <a href="{{ route('dashboard-ga') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/general_affair.png') }}" alt="ga"></div>
+            <span class="menu-label">G.A.I.S</span>
         </a>
         @endrole
 
-        @role('export_import')
-        <a href="{{ route('dashboard-export-import') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.png') }}" alt="export import"></div>
-            <span class="menu-label">Export Import</span>
+        @role('machine')
+        <a href="{{ route('dashboard-mut-mesin') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/mut_mesin.png') }}" alt="machine"></div>
+            <span class="menu-label">Mutasi Mesin</span>
         </a>
         @endrole
 
@@ -510,10 +502,6 @@
         <a href="{{ route('dashboard-mgt-report') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/management_report.png') }}" alt="mgt report"></div>
             <span class="menu-label">Management Report</span>
-        </a>
-        <a href="{{ route('dashboard-IE') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/IE.png') }}" alt="IE"></div>
-            <span class="menu-label">Industrial Engineering</span>
         </a>
         @endrole
 
@@ -524,11 +512,35 @@
         </a>
         @endrole
 
-
         <a href="{{ route('dashboard-helpdesk') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/ticketing.png') }}" alt="asset"></div>
             <span class="menu-label">Helpdesk</span>
         </a>
+
+        @if(auth()->user()->username == 'acc')
+            <a href="{{ route('stock_opname') }}" class="menu-card">
+                <div class="menu-img-wrap">
+                    <img src="{{ asset('dist/img/stock_opname.png') }}" alt="stock opname">
+                </div>
+                <span class="menu-label">Stock Opname</span>
+            </a>
+        @else
+            @role('warehouse')
+                <a href="{{ route('stock_opname') }}" class="menu-card">
+                    <div class="menu-img-wrap">
+                        <img src="{{ asset('dist/img/stock_opname.png') }}" alt="stock opname">
+                    </div>
+                    <span class="menu-label">Stock Opname</span>
+                </a>
+            @endrole
+        @endif
+
+        @role('admin')
+        <a href="{{ route('dashboard-report-doc') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/doc_report.png') }}" alt="doc report"></div>
+            <span class="menu-label">Document Report</span>
+        </a>
+        @endrole
 
         @role(['export_import', 'accounting'])
             <a href="{{ route('dashboard-report-bc') }}" class="menu-card">
@@ -538,13 +550,16 @@
         @endrole
 
         @role('superadmin')
-        <a href="{{ route('manage-user') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/manage-users.png') }}" alt="manage users"></div>
-            <span class="menu-label">Manage User</span>
-        </a>
         <a href="{{ route('general-tools') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/tools.png') }}" alt="tools"></div>
             <span class="menu-label">General Tools</span>
+        </a>
+        @endrole
+
+        @role('superadmin')
+        <a href="{{ route('manage-user') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/manage-users.png') }}" alt="manage users"></div>
+            <span class="menu-label">Manage User</span>
         </a>
         @endrole
 

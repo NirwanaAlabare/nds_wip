@@ -24,6 +24,7 @@ class IE_Output_perfomance_Controller extends Controller
         styleno,
         SUM(jam_kerja_act) AS jam_kerja_act,
         SUM(tot_rfts) AS tot_rfts,
+        SUM(tot_output) AS tot_output,
         SUM(mins_avail) AS mins_avail,
         SUM(mins_prod) AS mins_prod,
         ROUND((SUM(mins_prod)/SUM(mins_avail))*100,2) AS eff
@@ -46,6 +47,7 @@ SELECT
     styleno,
     jam_kerja_act,
     tot_rfts,
+		tot_output,
     eff,
 
     CASE
@@ -53,7 +55,11 @@ SELECT
         THEN 'Y'
         ELSE NULL
     END AS top_rfts,
-
+    CASE
+        WHEN ROW_NUMBER() OVER (ORDER BY tot_output DESC, eff DESC) = 1
+        THEN 'Y'
+        ELSE NULL
+    END AS top_output,
     CASE
         WHEN ROW_NUMBER() OVER (ORDER BY eff DESC, tot_rfts DESC) = 1
         THEN 'Y'

@@ -225,6 +225,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openLogsMethod()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Logs Method</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -994,6 +1003,60 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logsMethod" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <form id="formLogsMethod" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title">
+                            Logs Method
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Tanggal Awal</label>
+                                <input type="date" class="form-control" name="logs_method_tanggal_awal" id="logs_method_tanggal_awal" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" class="form-control" name="logs_method_tanggal_akhir" id="logs_method_tanggal_akhir" value="{{ date('Y-m-d') }}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <a onclick="exportExcelLogsMethod()" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-file-excel fa-sm"></i> Export Excel
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-logs-method">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>No Form</th>
+                                            <th>Roll</th>
+                                            <th>Notes</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -2625,6 +2688,40 @@
             });
         }
 
+        function exportExcelLogsMethod() {
+            let url = "{{ route('export-logs-method') }}";
+
+            let params = new URLSearchParams({
+                tanggal_awal: $('#logs_method_tanggal_awal').val(),
+                tanggal_akhir: $('#logs_method_tanggal_akhir').val()
+            });
+
+            fetch(url + '?' + params.toString())
+                .then(response => response.blob())
+                .then(blob => {
+
+                    let downloadUrl = window.URL.createObjectURL(blob);
+
+                    let a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = 'Logs_Method_' + $('#logs_method_tanggal_awal').val() + '_' + $('#logs_method_tanggal_akhir').val() + '.xlsx';
+
+                    document.body.appendChild(a);
+                    a.click();
+
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                })
+                .catch(error => {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Export gagal'
+                    });
+                });
+        }
+
         // Log Scanned Item
         $(document).on('click', '.btn-toggle-properties-scanned-item', function (e) {
             e.preventDefault();
@@ -2806,6 +2903,71 @@
                         }
                     });
                 }
+            });
+        }
+
+        function openLogsMethod() {
+            $('#logsMethod').modal('show');
+            logsMethodReload();
+        }
+
+        let logsMethodTable = null;
+
+        function logsMethodReload() {
+            console.log('meee')
+            if ($.fn.DataTable.isDataTable('#datatable-logs-method')) {
+                $('#datatable-logs-method').DataTable().ajax.reload();
+                return;
+            }
+
+            logsMethodTable = $('#datatable-logs-method').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                order: [[0, 'desc']],
+                ajax: {
+                    url: "{{ route('get-logs-method') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.tanggal_awal = $('#logs_method_tanggal_awal').val();
+                        d.tanggal_akhir = $('#logs_method_tanggal_akhir').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'no_form'
+                    },
+                    {
+                        data: 'roll_count'
+                    },
+                    {
+                        data: 'note'
+                    },
+                    {
+                        data: 'username_app'
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
+                initComplete: function() {
+                    var api = this.api();
+                    $('#datatable-logs-method thead tr:first').clone(true).appendTo('#datatable-logs-method thead');
+                    $('#datatable-logs-method thead tr:eq(1) th').each(function(i) {
+                        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+                        $('input', this).on('keyup change', function() {
+                            if (api.column(i).search() !== this.value) {
+                                api.column(i).search(this.value).draw();
+                            }
+                        });
+                    });
+                },
             });
         }
     </script>

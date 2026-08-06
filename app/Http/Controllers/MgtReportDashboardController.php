@@ -8,7 +8,12 @@ use Illuminate\Support\Facades\DB;
 
 class MgtReportDashboardController extends Controller
 {
-    private const SYNC_ALLOWED_USERNAMES = ['admin_01', 'reza'];
+    private const ALLOWED_USERNAMES = ['reza', 'admin_01', 'nirwana_it'];
+
+    private function isAllowedUser(): bool
+    {
+        return in_array(Auth::user()->username, self::ALLOWED_USERNAMES);
+    }
 
     public function dashboard_mgt_report(Request $request)
     {
@@ -20,7 +25,7 @@ class MgtReportDashboardController extends Controller
 
     public function syncData(Request $request)
     {
-        if (!in_array(Auth::user()->username, self::SYNC_ALLOWED_USERNAMES)) {
+        if (!$this->isAllowedUser()) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
@@ -40,6 +45,12 @@ class MgtReportDashboardController extends Controller
 
     public function getRawData(Request $request)
     {
+        if (!$this->isAllowedUser()) {
+            return response()->json([
+                'rows' => [],
+            ]);
+        }
+
         return response()->json([
             'rows' => $this->fetchRawData($request),
         ]);
@@ -47,6 +58,12 @@ class MgtReportDashboardController extends Controller
 
     public function getProductCostingComparison(Request $request)
     {
+        if (!$this->isAllowedUser()) {
+            return response()->json([
+                'data' => [],
+            ]);
+        }
+
         return response()->json([
             'data' => $this->fetchProductCostingComparison(),
         ]);

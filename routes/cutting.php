@@ -513,5 +513,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/get-logs-cutting-piece', 'getLogsCuttingPiece')->name('get-logs-cutting-piece');
             Route::get('/get-logs-cutting-piece-activity', 'getLogsCuttingPieceActivity')->name('get-logs-cutting-piece-activity');
             Route::get('/export-logs-cutting-piece', 'exportLogsCuttingPiece')->name('export-logs-cutting-piece');
+
+            // Logs method
+            Route::get('/get-logs-method', 'getLogsMethod')->name('get-logs-method');
+            Route::get('/export-logs-method', 'exportLogsMethod')->name('export-logs-method');
         });
 });

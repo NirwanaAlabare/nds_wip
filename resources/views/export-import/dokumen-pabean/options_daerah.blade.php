@@ -159,7 +159,7 @@
 <option {{ ($selected ?? '') == '3201' ? 'selected' : '' }} value="3201">3201 - Kab. Bogor</option>
 <option {{ ($selected ?? '') == '3202' ? 'selected' : '' }} value="3202">3202 - Kab. Sukabumi</option>
 <option {{ ($selected ?? '') == '3203' ? 'selected' : '' }} value="3203">3203 - Kab. Cianjur</option>
-<option {{ ($selected ?? '') == '3204' ? 'selected' : '' }} value="3204">3204 - Kab. Bandung</option>
+<option {{ ($selected ?? '') == '3204' ? 'selected' : 'selected' }} value="3204">3204 - Kab. Bandung</option>
 <option {{ ($selected ?? '') == '3205' ? 'selected' : '' }} value="3205">3205 - Kab. Garut</option>
 <option {{ ($selected ?? '') == '3206' ? 'selected' : '' }} value="3206">3206 - Kab. Tasikmalaya</option>
 <option {{ ($selected ?? '') == '3207' ? 'selected' : '' }} value="3207">3207 - Kab. Ciamis</option>

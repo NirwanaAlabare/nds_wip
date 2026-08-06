@@ -1689,6 +1689,20 @@ class Bc27Service
 
             if ($responseCeisa['successful']) {
                 foreach ($bpbs as $no_bpb) {
+                    $updated = $db->table('bppb')
+                        ->where(function($q) use ($no_bpb) {
+                            $q->where('bppbno', $no_bpb)->orWhere('bppbno_int', $no_bpb);
+                        })
+                        ->update([
+                            'nomor_aju'   => $nomorAju,
+                            'tanggal_aju' => date('Y-m-d'),
+                            'bcdate'      => date('Y-m-d'),
+                        ]);
+
+                    if ($updated === 0) {
+                        Log::warning("BC 2.7: bppbno {$no_bpb} tidak ter-update, cek apakah datanya ada di tabel bpb.");
+                    }
+
                     $db->table('bpb_ceisa')->where('bpbno', $no_bpb)->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $tanggalAju,

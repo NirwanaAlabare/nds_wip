@@ -2935,10 +2935,12 @@
                                                             <input type="number" step="any" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}">
                                                         </div>
                                                         <div class="col-sm-4 pl-1">
-                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
+                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4 kode-satuan-barang">
                                                                 <option value="">Pilih Kode Satuan</option>
                                                                 @foreach($listSatuanBarang as $k => $v)
-                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $k ? 'selected' : '' }}>{{ $k }} - {{ $v }}</option>
+                                                                    <option value="{{ $k }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit ?? 'PCE') == $k ? 'selected' : '' }}>
+                                                                        {{ $k }} - {{ $v }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -3193,6 +3195,8 @@
             e.preventDefault();
             $(this).tab('show');
         });
+
+        $('.kode-satuan-barang').val('PCE').trigger('change');
 
         // ================= DOKUMEN HANDLER =================
         const optDokumenHtml = `
