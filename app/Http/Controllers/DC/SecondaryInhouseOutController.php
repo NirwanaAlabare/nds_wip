@@ -1287,7 +1287,7 @@ class SecondaryInhouseOutController extends Controller
                     UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
                     CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
                     COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                    (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe
+                    (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
                     ifnull( si.id_qr_stocker, 'x' )
                 FROM
                     dc_in_input dc
@@ -1296,10 +1296,12 @@ class SecondaryInhouseOutController extends Controller
                     LEFT JOIN form_cut_input a ON s.form_cut_id = a.id
                     LEFT JOIN form_cut_reject b ON s.form_reject_id = b.id
                     LEFT JOIN form_cut_piece c ON s.form_piece_id = c.id
-                    LEFT JOIN part_detail p ON s.part_detail_id = p.id
+                    LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+                    LEFT JOIN part p ON p.id = pd.part_id
                     LEFT JOIN master_part mp ON pd.master_part_id = mp.id
                     LEFT JOIN marker_input mi ON a.id_marker = mi.kode
                     LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
+                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                 WHERE
                     s.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     s.color = '".$thisStocker->color."' AND
@@ -1422,6 +1424,7 @@ class SecondaryInhouseOutController extends Controller
             left join part p on p.id = pd.part_id
             left join part_detail pd_com on pd_com.id = pd.from_part_detail
             left join part p_com on p_com.id = pd_com.part_id
+            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
             left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
             left join master_secondary mms on mms.id = pds.master_secondary_id
@@ -1703,6 +1706,7 @@ class SecondaryInhouseOutController extends Controller
             LEFT JOIN part p ON pd.part_id = p.id
             LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
             WHERE a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
             ".$additionalQuery."
