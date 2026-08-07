@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Support\Facades\DB;
+
 use Illuminate\Http\Request;
 
 class MasterCeisaCredentialController extends Controller
@@ -23,6 +23,7 @@ class MasterCeisaCredentialController extends Controller
 
         $users = [];
         if ($isAdmin) {
+
             $users = $mysql_sb->table('userpassword')
                 ->whereNotIn('username', function ($query) {
                     $query->select('username')->from('master_ceisa_credentials');
@@ -45,30 +46,25 @@ class MasterCeisaCredentialController extends Controller
     {
         try {
             $username = $request->username ?? auth()->user()->username;
+
             $request->merge(['username' => $username]);
 
             $request->validate([
-                'username'            => 'required',
-                'ceisa_username'      => 'required',
-                'ceisa_password'      => 'required',
-                'ceisa_api_key'       => 'required',
-                'ceisa_username_dev'  => 'nullable',
-                'ceisa_password_dev'  => 'nullable',
-                'ceisa_api_key_dev'   => 'nullable',
+                'username' => 'required',
+                'ceisa_username' => 'required',
+                'ceisa_password' => 'required',
+                'ceisa_api_key' => 'required',
             ]);
 
             $mysql_sb = DB::connection('mysql_sb');
 
             $mysql_sb->table('master_ceisa_credentials')->insert([
-                'username'            => $username,
-                'ceisa_username'      => $request->ceisa_username,
-                'ceisa_password'      => $request->ceisa_password,
-                'ceisa_api_key'       => $request->ceisa_api_key,
-                'ceisa_username_dev'  => $request->ceisa_username_dev,
-                'ceisa_password_dev'  => $request->ceisa_password_dev,
-                'ceisa_api_key_dev'   => $request->ceisa_api_key_dev,
-                'created_at'          => now(),
-                'updated_at'          => now(),
+                'username'       => $username,
+                'ceisa_username' => $request->ceisa_username,
+                'ceisa_password' => $request->ceisa_password,
+                'ceisa_api_key'  => $request->ceisa_api_key,
+                'created_at'     => now(),
+                'updated_at'     => now(),
             ]);
 
             return response()->json([
@@ -92,12 +88,9 @@ class MasterCeisaCredentialController extends Controller
     {
         try {
             $request->validate([
-                'ceisa_username'      => 'required',
-                'ceisa_password'      => 'required',
-                'ceisa_api_key'       => 'required',
-                'ceisa_username_dev'  => 'nullable',
-                'ceisa_password_dev'  => 'nullable',
-                'ceisa_api_key_dev'   => 'nullable',
+                'ceisa_username' => 'required',
+                'ceisa_password' => 'required',
+                'ceisa_api_key' => 'required',
             ]);
 
             $mysql_sb = DB::connection('mysql_sb');
@@ -105,13 +98,10 @@ class MasterCeisaCredentialController extends Controller
             $mysql_sb->table('master_ceisa_credentials')
                 ->where('id', $id)
                 ->update([
-                    'ceisa_username'      => $request->ceisa_username,
-                    'ceisa_password'      => $request->ceisa_password,
-                    'ceisa_api_key'       => $request->ceisa_api_key,
-                    'ceisa_username_dev'  => $request->ceisa_username_dev,
-                    'ceisa_password_dev'  => $request->ceisa_password_dev,
-                    'ceisa_api_key_dev'   => $request->ceisa_api_key_dev,
-                    'updated_at'          => now(),
+                    'ceisa_username' => $request->ceisa_username,
+                    'ceisa_password' => $request->ceisa_password,
+                    'ceisa_api_key'  => $request->ceisa_api_key,
+                    'updated_at'     => now(),
                 ]);
 
             return response()->json([
