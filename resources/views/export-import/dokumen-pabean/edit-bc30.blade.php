@@ -2185,15 +2185,17 @@
                                         </div>
                                         <div class="form-group row mb-2">
                                             <label class="col-sm-4 col-form-label text-sm">Alamat Barang</label>
-                                            <div class="col-sm-8"><textarea class="form-control form-control-sm " name="kesiapanBarang[0][alamat]" rows="2">{{ $dataDetail['kesiapanBarang'][0]['alamat'] ?? '' }}</textarea></div>
+                                            <div class="col-sm-8">
+                                                <textarea class="form-control form-control-sm " name="kesiapanBarang[0][alamat]" rows="2">{{ $dataDetail['kesiapanBarang'][0]['alamat'] ?? 'JL RAYA RANCAEKEK MAJALAYA NO 289 SOLOKAN JERUK  BANDUNG' }}</textarea>
+                                            </div>
                                         </div>
                                         <div class="form-group row mb-2">
                                             <label class="col-sm-4 col-form-label text-sm">Contact Person (PIC)</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][namaPic]" value="{{ $dataDetail['kesiapanBarang'][0]['namaPic'] ?? '' }}"></div>
+                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][namaPic]" value="{{ $dataDetail['kesiapanBarang'][0]['namaPic'] ?? 'NENG K' }}"></div>
                                         </div>
                                         <div class="form-group row mb-2">
                                             <label class="col-sm-4 col-form-label text-sm">No. Telp PIC</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][nomorTelpPic]" value="{{ $dataDetail['kesiapanBarang'][0]['nomorTelpPic'] ?? '' }}"></div>
+                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][nomorTelpPic]" value="{{ $dataDetail['kesiapanBarang'][0]['nomorTelpPic'] ?? '02275568956' }}"></div>
                                         </div>
                                     </fieldset>
                                 </div>
@@ -2206,14 +2208,14 @@
                                         </div>
                                         <div class="form-group row mb-2">
                                             <label class="col-sm-4 col-form-label text-sm">Lokasi Siap Periksa</label>
-                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][lokasiSiapPeriksa]" value="{{ $dataDetail['kesiapanBarang'][0]['lokasiSiapPeriksa'] ?? '' }}"></div>
+                                            <div class="col-sm-8"><input type="text" class="form-control form-control-sm " name="kesiapanBarang[0][lokasiSiapPeriksa]" value="{{ $dataDetail['kesiapanBarang'][0]['lokasiSiapPeriksa'] ?? 'Factory' }}"></div>
                                         </div>
                                         <div class="form-group row mb-2">
                                             <label class="col-sm-4 col-form-label text-sm">Jenis Gudang Simpan</label>
                                             <div class="col-sm-8">
                                                 <select class="form-control form-control-sm select2bs4" name="kesiapanBarang[0][kodeJenisGudang]">
                                                     <option value="">Pilih Tempat Simpan</option>
-                                                    <option value="2" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '2' ? 'selected' : '' }}>2 - GUDANG PABRIK</option>
+                                                    <option value="2" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '2') == '2' ? 'selected' : '' }}>2 - GUDANG PABRIK</option>
                                                     <option value="1" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '1' ? 'selected' : '' }}>1 - GUDANG VEEM</option>
                                                     <option value="3" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '3' ? 'selected' : '' }}>3 - GUDANG KONSOLIDASI</option>
                                                     <option value="4" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisGudang'] ?? '') == '4' ? 'selected' : '' }}>4 - LAINNYA</option>
@@ -2225,7 +2227,7 @@
                                             <div class="col-sm-8">
                                                 <select class="form-control form-control-sm select2bs4" name="kesiapanBarang[0][kodeJenisBarang]">
                                                     <option value="">Pilih Jenis Barang</option>
-                                                    <option value="1" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisBarang'] ?? '') == '1' ? 'selected' : '' }}>1 - BARANG EKSPOR GABUNGAN</option>
+                                                    <option value="1" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisBarang'] ?? '1') == '1' ? 'selected' : '' }}>1 - BARANG EKSPOR GABUNGAN</option>
                                                     <option value="2" {{ ($dataDetail['kesiapanBarang'][0]['kodeJenisBarang'] ?? '') == '2' ? 'selected' : '' }}>2 - BAHAN/BARANG ASAL IMP FASILITAS</option>
                                                 </select>
                                             </div>
@@ -2555,7 +2557,7 @@
                                                 <option value="3" {{ (old('kodeLokasi') == '3' || ($dataDetail['kodeLokasi'] ?? '') == '3') ? 'selected' : '' }}>3 - TEMPAT LAIN YANG DIIZINKAN</option>
                                                 <option value="4" {{ (old('kodeLokasi') == '4' || ($dataDetail['kodeLokasi'] ?? '') == '4') ? 'selected' : '' }}>4 - TEMPAT PENIMBUNAN SEMENTARA</option>
                                                 <option value="5" {{ (old('kodeLokasi') == '5' || ($dataDetail['kodeLokasi'] ?? '') == '5') ? 'selected' : '' }}>5 - TEMPAT PENIMBUNAN PABEAN</option>
-                                                <option value="6" {{ (old('kodeLokasi') == '6' || ($dataDetail['kodeLokasi'] ?? '') == '6') ? 'selected' : '' }}>6 - TEMPAT PENIMBUNAN BERIKAT</option>
+                                                <option value="6" {{ (old('kodeLokasi') == '6' || ($dataDetail['kodeLokasi'] ?? '') == '6') ? 'selected' : 'selected' }}>6 - TEMPAT PENIMBUNAN BERIKAT</option>
                                                 <option value="7" {{ (old('kodeLokasi') == '7' || ($dataDetail['kodeLokasi'] ?? '') == '7') ? 'selected' : '' }}>7 - TEMPAT PENIMBUTAN LAINNYA</option>
                                                 <option value="8" {{ (old('kodeLokasi') == '8' || ($dataDetail['kodeLokasi'] ?? '') == '8') ? 'selected' : '' }}>8 - GUDANG KONSOLIDATOR</option>
                                             </select>

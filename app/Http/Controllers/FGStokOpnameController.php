@@ -494,7 +494,7 @@ class FGStokOpnameController extends Controller
         ]);
 
         $data = DB::select("
-            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_by, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
+            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
             FROM fg_stok_opname_detail d
             JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
             WHERE d.no_opname = ?
@@ -547,9 +547,9 @@ class FGStokOpnameController extends Controller
 
         return DataTables::of($data)
             ->addIndexColumn()
-            ->editColumn('created_at', fn ($row) => $row->created_at ? Carbon::parse($row->created_at)->format('d-m-Y H:i') : '-')
-            ->editColumn('updated_at', fn ($row) => $row->updated_at ? Carbon::parse($row->updated_at)->format('d-m-Y H:i') : '-')
-            ->editColumn('qty', fn ($row) => '<span class="qty-pill">' . (float) $row->qty . '</span>')
+            ->editColumn('created_at', fn($row) => $row->created_at ? Carbon::parse($row->created_at)->format('d-m-Y H:i') : '-')
+            ->editColumn('updated_at', fn($row) => $row->updated_at ? Carbon::parse($row->updated_at)->format('d-m-Y H:i') : '-')
+            ->editColumn('qty', fn($row) => '<span class="qty-pill">' . (float) $row->qty . '</span>')
             ->addColumn('status_badge', function ($row) {
                 $cls = $row->status === 'CLOSED' ? 'badge-status-closed' : 'badge-status-open';
                 return '<span class="badge ' . $cls . '">' . $row->status . '</span>';
@@ -1129,7 +1129,7 @@ class FGStokOpnameController extends Controller
             return response()->json(['message' => 'Carton tidak ditemukan!'], 422);
         }
 
-        if (collect($items)->contains(fn ($item) => $item->status === 'CLOSED')) {
+        if (collect($items)->contains(fn($item) => $item->status === 'CLOSED')) {
             return response()->json(['message' => 'Carton ini sudah CLOSED, tidak bisa mengubah pallet!'], 422);
         }
 

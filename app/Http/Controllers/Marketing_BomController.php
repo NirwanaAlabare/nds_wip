@@ -19,27 +19,35 @@ class Marketing_BomController extends Controller
         if ($request->ajax()) {
             $mysql_sb = DB::connection('mysql_sb');
 
-            $dateFrom = $request->get('date_from', date('Y-m-d'));
-            $dateTo = $request->get('date_to', date('Y-m-d'));
+            $style = $request->get('style');
 
-            $data = $mysql_sb->table('bom_marketing as h')
+            $query = $mysql_sb->table('bom_marketing as h')
                 ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
                 ->leftJoin('act_costing_new as c', 'h.id_costing', '=', 'c.id')
                 ->leftJoin('so', 'h.id', '=', 'so.id_bom')
                 ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
-                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id AND cancel = \'N\') as total_cons') , 'act.kpno')
-                ->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
-                ->where('h.created_at', '<=', $dateTo . ' 23:59:59')
+                ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id AND cancel = \'N\') as total_cons'), 'act.kpno')
                 ->where(function($q) {
                     $q->whereNull('h.cancel')
-                      ->orWhere('h.cancel', '!=', 'Y');
-                })
+                    ->orWhere('h.cancel', '!=', 'Y');
+                });
+
+            if (!empty($style)) {
+                $query->where('h.style', 'like', '%' . $style . '%');
+            } else {
+                $dateFrom = $request->get('date_from', date('Y-m-d'));
+                $dateTo = $request->get('date_to', date('Y-m-d'));
+                $query->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
+                    ->where('h.created_at', '<=', $dateTo . ' 23:59:59');
+            }
+
+            $data = $query
                 ->groupBy('h.no_katalog_bom')
                 ->orderBy('h.created_at', 'desc')
                 ->get();
 
-            foreach ($data as $idx => $data_bom) {
-                $data[$idx]->cancelable = true;
+            foreach ($data as $data_bom) {
+                $data_bom->cancelable = true;
 
                 $so = $mysql_sb->table('so')
                     ->where('id_bom', $data_bom->id)
@@ -59,7 +67,7 @@ class Marketing_BomController extends Controller
                     ->exists();
 
                 if ($po_item) {
-                    $data[$idx]->cancelable = false;
+                    $data_bom->cancelable = false;
                     continue;
                 }
 
@@ -75,7 +83,7 @@ class Marketing_BomController extends Controller
                     ->exists();
 
                 if ($has_marker) {
-                    $data[$idx]->cancelable = false;
+                    $data_bom->cancelable = false;
                 }
             }
 

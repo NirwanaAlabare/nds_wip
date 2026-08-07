@@ -114,9 +114,9 @@ class DCInController extends Controller
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
                     mp.nama_part,
-                    UPPER(COALESCE(pd.part_status, '-')) part_status,
-                    COALESCE(p_com.panel, p.panel) as panel,
-                    COALESCE(p_com.panel_status, p.panel_status) as panel_status
+                    UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
                 from
                     dc_in_input a
                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -129,6 +129,7 @@ class DCInController extends Controller
                     left join part_detail pd_com on pd_com.id = pd.from_part_detail
                     left join part p_com on p_com.id = pd_com.part_id
                     left join master_part mp on mp.id = pd.master_part_id
+                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                 where
                     a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     " . $additionalQuery . "
@@ -209,9 +210,9 @@ class DCInController extends Controller
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part,
-                pd.part_status,
-                COALESCE(p_com.panel, p.panel) as panel,
-                COALESCE(p_com.panel_status, p.panel_status) as panel_status
+                COALESCE(pcust.set_part_status, pd.part_status) part_status,
+                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
+                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
             from
                 dc_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -224,6 +225,7 @@ class DCInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
             where
                 a.tgl_trans is not null
                 " . $additionalQuery . "
@@ -512,9 +514,9 @@ class DCInController extends Controller
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part,
                 s.notes,
-                UPPER(COALESCE(pd.part_status, '-')) part_status,
-                COALESCE(p_com.panel, p.panel) as panel,
-                COALESCE(p_com.panel_status, p.panel_status) as panel_status
+                UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
+                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
+                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
             from
                 dc_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -527,6 +529,7 @@ class DCInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 " . $additionalQuery . "

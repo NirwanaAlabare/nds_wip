@@ -658,7 +658,8 @@
             containerCssClass: 'form-control-sm',
         });
 
-        const canChangeCartonStatus = {{ (Auth::user()->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists()) ? 'true' : 'false' }};
+        const canChangeCartonStatus =
+            {{ Auth::user()->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists()? 'true': 'false' }};
 
         let itemCounter = 0;
         let sizeIdSoDetMap = {};
