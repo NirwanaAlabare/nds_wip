@@ -223,9 +223,18 @@
                     <label class="small fw-bold">Tgl Akhir</label>
                     <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <label class="small fw-bold">Style</label>
+                    <input type="text" id="filter_style" class="form-control form-control-sm" placeholder="Cari style...">
+                </div>
+                <div class="col-md-1">
                     <button class="btn btn-primary btn-sm w-100" onclick="refreshTable()">
                         <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="resetFilter()">
+                        <i class="fas fa-undo"></i> Reset
                     </button>
                 </div>
             </div>
@@ -237,6 +246,7 @@
                 <thead>
                     <tr class="text-center">
                         <th>No</th>
+                        <th>Tanggal</th>
                         <th>No Katalog BOM</th>
                         <th>No Costing</th>
                         <th>Buyer</th>
@@ -324,8 +334,14 @@
                     url: window.location.pathname,
                     type: "GET",
                     data: function (d) {
-                        d.date_from = $('#date_from').val();
-                        d.date_to = $('#date_to').val();
+                        let style = $('#filter_style').val().trim();
+
+                        if (style) {
+                            d.style = style;
+                        } else {
+                            d.date_from = $('#date_from').val();
+                            d.date_to = $('#date_to').val();
+                        }
                     }
                 },
                 columns: [
@@ -334,6 +350,19 @@
                         className: "text-center align-middle",
                         width: "5%",
                         render: (data, type, row, meta) => meta.row + 1
+                    },
+                    {
+                        data: 'created_at',
+                        className: "align-middle text-right",
+                        render: function (data) {
+                            // pakai format dd-mmm-yyyy
+                            if (data) {
+                                let date = new Date(data);
+                                let options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                                return date.toLocaleDateString('id-ID', options).replace(/ /g, '-');
+                            }
+                            return '-';
+                        }
                     },
                     { data: 'no_katalog_bom', className: "align-middle" },
                     { data: 'no_costing', className: "align-middle" },
@@ -403,6 +432,13 @@
 
         function refreshTable() {
             tableBom.ajax.reload(null, false);
+        }
+
+        function resetFilter() {
+            $('#filter_style').val('');
+            $('#date_from').val("{{ date('Y-m-d') }}");
+            $('#date_to').val("{{ date('Y-m-d') }}");
+            refreshTable();
         }
 
         function viewDetail(id) {
