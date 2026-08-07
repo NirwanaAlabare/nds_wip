@@ -3,13 +3,188 @@
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        :root {
+            --sb-navy: #0f172a;
+            --sb-blue: #3085d6;
+            --sb-blue-dark: #1e3a8a;
+            --sb-border: #e2e8f0;
+        }
+
+        /* ============ CARD UTAMA ============ */
+        .card-sb {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        }
+
+        .card-sb > .card-header,
+        .card-sb > .card-header.bg-sb {
+            background: var(--sb-navy) !important;
+            border: none;
+            padding: 1.4rem 2rem;
+            position: relative;
+        }
+
+        .card-sb > .card-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 5px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card-sb > .card-header .card-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #5aa9f0;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card-sb > .card-header .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc !important;
+            margin: 0;
+        }
+
+        .card-sb > .card-header .btn-primary {
+            border-radius: 8px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--sb-blue), var(--sb-blue-dark));
+            border: none;
+        }
+
+        .card-sb > .card-body {
+            background: #fbfcff;
+            padding: 1.75rem 2rem 2rem;
+        }
+
+        /* ============ TEXT / BG HELPER (dipakai di banyak tempat file ini) ============ */
+        .text-sb { color: var(--sb-navy) !important; }
+        .bg-sb { background: var(--sb-navy) !important; }
+
+        /* ============ SECTION CARD (pengelompokan form header) ============ */
+        .form-section {
+            background: #fff;
+            border: 1px solid #eef1f5;
+            border-radius: 14px;
+            padding: 1.3rem 1.5rem 1rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--sb-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid #eef1f5;
+        }
+
+        .form-section-title i { color: var(--sb-blue); font-size: 13px; }
+
+        .form-section.form-section-figures {
+            background: #f4f8fd;
+            border-color: #dbe7f7;
+        }
+
+        .upload-preview-box {
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1rem;
+            background: #fbfcff;
+            text-align: center;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-control,
+        .select2-container--bootstrap4 .select2-selection {
+            border-radius: 8px;
+            border: 1.5px solid var(--sb-border);
+        }
+        .form-control:focus,
+        .select2-container--bootstrap4.select2-container--focus .select2-selection {
+            border-color: var(--sb-blue) !important;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+        }
+
+        /* ============ SECTION HEADINGS DI LUAR FORM HEADER (Input Costing Table, Summary, Other Cost) ============ */
+        h6.text-sb, h5.text-sb {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ============ TABEL COSTING & SUMMARY ============ */
+        .table thead.bg-sb th {
+            color: #f8fafc !important;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-color: #1e293b;
+            vertical-align: middle;
+        }
+        .table-bordered {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        h6.bg-sb {
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* ============ MODAL DETAIL ============ */
+        .modal-content {
+            border: none;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .modal-header {
+            border-bottom: 1px solid #eef1f5;
+        }
+        .modal-footer {
+            border-top: 1px solid #eef1f5;
+        }
+
+        .btn-success {
+            border-radius: 8px;
+            font-weight: 700;
+        }
+    </style>
 @endsection
 
 @section('content')
 <div class="card card-sb">
     <div class="card-header bg-sb">
         <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title fw-bold">Costing {{ $costing->no_costing }}</h5>
+            <div>
+                <span class="card-eyebrow">Marketing &middot; Costing</span>
+                <h5 class="card-title">Costing {{ $costing->no_costing }}</h5>
+            </div>
             <a href="{{ route('master-costing') }}" class="btn btn-sm btn-primary">
                 <i class="fa fa-reply"></i> Kembali ke List
             </a>
@@ -21,6 +196,8 @@
         <form action="{{ route('update-costing-header', $costing->id) }}" method="POST" id="form-header" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-info-circle"></i> Buyer</div>
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Buyer Name</label>
@@ -50,6 +227,16 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
+                    <label>Style</label>
+                    <input type="text" name="style" class="form-control" value="{{ $costing->style }}" required>
+                </div>
+            </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-tshirt"></i> Produk & Tipe</div>
+            <div class="row">
+                <div class="col-md-3 form-group">
                     <label>Product Group</label>
                     <select name="product_group" id="product_group" class="form-control select2bs4" required>
                         <option value="">Pilih Product Group</option>
@@ -60,18 +247,11 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Product Item</label>
                     <select name="product_item" id="product_item" class="form-control select2bs4" required>
                         <option value="{{ $costing->product_item }}" selected>{{ $costing->product_item }}</option>
                     </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Style</label>
-                    <input type="text" name="style" class="form-control" value="{{ $costing->style }}" required>
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Ship Mode</label>
@@ -134,7 +314,10 @@
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal text-right" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
                 </div>
             </div>
+            </div>
 
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-ship"></i> Pengiriman & Tujuan</div>
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Marketing Order</label>
@@ -200,8 +383,11 @@
                     <textarea id="notes" name="notes" rows="1" class="form-control">{{ $costing->notes }}</textarea>
                 </div>
             </div>
+            </div>
 
-            <div class="row bg-light pt-3 pb-1 mt-2 mb-3 rounded border mx-0">
+            <div class="form-section form-section-figures">
+                <div class="form-section-title"><i class="fas fa-calculator"></i> Qty, SMV & Rate</div>
+                <div class="row">
                 <div class="col-md-2 form-group">
                     <label>QTY (PCS)</label>
                     <input type="text" name="qty" id="qty" class="form-control input-decimal text-right" value="{{ number_format($costing->qty, 0, '', '') }}" required>
@@ -222,21 +408,26 @@
                     <label>Rate from IDR</label>
                     <input type="text" name="rate_from_idr" id="rate_from_idr" class="form-control input-decimal text-right" value="{{ number_format($costing->rate_from_idr, 2, '.', '') }}" required>
                 </div>
+                </div>
             </div>
 
-            <div class="row mb-3 bg-light pt-3 pb-2 rounded border mx-0">
-                <div class="col-md-5 form-group">
-                    <label class="fw-bold"><i class="fas fa-image"></i> Upload Gambar Costing</label>
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-image"></i> Upload Gambar Costing</div>
+                <div class="row align-items-center">
+                <div class="col-md-5 form-group mb-md-0">
+                    <label>Pilih File Gambar</label>
                     <input type="file" name="upload_foto" id="upload_foto" class="form-control p-1" accept="image/*">
                 </div>
-                <div class="col-md-7 form-group text-center">
-                    <label class="fw-bold d-block ">Preview Gambar</label>
+                <div class="col-md-7 text-center">
+                    <div class="upload-preview-box">
                     @if(isset($costing->foto) && $costing->foto != '')
-                        <img id="img_preview" src="/nds_wip/public/uploads/costing/{{ $costing->foto }}" alt="Preview Gambar" class="img-thumbnail shadow-sm" style="max-height: 180px; object-fit: contain;">
+                        <img id="img_preview" src="/nds_wip/public/uploads/costing/{{ $costing->foto }}" alt="Preview Gambar" class="img-thumbnail shadow-sm" style="max-height: 150px; object-fit: contain;">
                     @else
-                        <img id="img_preview" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm" style="max-height: 180px; object-fit: contain; display: none;">
+                        <img id="img_preview" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm" style="max-height: 150px; object-fit: contain; display: none;">
                         <span id="no_img_text" class="text-muted font-italic">Belum ada gambar terpilih</span>
                     @endif
+                    </div>
+                </div>
                 </div>
             </div>
 
