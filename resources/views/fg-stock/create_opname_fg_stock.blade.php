@@ -550,6 +550,7 @@
                         <th data-priority="6">No. Pallet</th>
                         <th data-priority="4">Total Qty</th>
                         <th data-priority="3">Status</th>
+                        <th data-priority="9">User</th>
                         <th data-priority="7">Tgl Ditambahkan</th>
                         <th data-priority="8">Last Update</th>
                         <th style="width: 18%;" data-priority="2">Aksi</th>
@@ -664,29 +665,81 @@
         let currentNoOpname = {!! json_encode(request('no_opname', '')) !!};
         let currentStatus = null;
         let allItems = [];
-        let stagedCartons = [];
+        let allCartons = [];
         let activeCarton = null;
         let activeCartonStatus = null;
         let activeCartonHasItems = false;
 
         let cartonListTable = $('#tabel_carton_list').DataTable({
-            data: [],
+            processing: true,
+            serverSide: true,
             ordering: false,
             paging: false,
             searching: true,
             info: false,
             responsive: true,
+            ajax: {
+                url: '{{ route('get-carton-list-opname-fg-stock') }}',
+                data: function(d) {
+                    d.no_opname = currentNoOpname;
+                },
+            },
             language: {
                 emptyTable: 'Belum ada No. Carton ditambahkan',
                 zeroRecords: 'Tidak ditemukan',
                 searchPlaceholder: 'Cari No. Carton / No. Pallet...',
                 search: '',
             },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'no_carton',
+                    name: 'no_carton',
+                },
+                {
+                    data: 'no_pallet',
+                    name: 'no_pallet',
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                },
+                {
+                    data: 'status_badge',
+                    name: 'status_badge',
+                },
+                {
+                    data: 'created_by',
+                    name: 'created_by',
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at',
+                },
+                {
+                    data: 'aksi',
+                    name: 'aksi',
+                    orderable: false,
+                    searchable: false,
+                },
+            ],
             columnDefs: [{
                 className: 'text-center',
                 targets: '_all',
             }],
         });
+
+        function refreshCartonTable() {
+            cartonListTable.ajax.reload(null, false);
+        }
 
         $(document).ready(function() {
             loadMasterCarton();
@@ -763,8 +816,7 @@
 
         function getUsedCartons() {
             let used = new Set();
-            allItems.forEach(item => used.add(item.no_carton));
-            stagedCartons.forEach(row => used.add(row.no_carton));
+            allCartons.forEach(row => used.add(row.no_carton));
             return used;
         }
 
@@ -930,7 +982,8 @@
         function loadOpnameItems() {
             if (!currentNoOpname) {
                 allItems = [];
-                renderCartonList();
+                allCartons = [];
+                renderCartonDropdown();
                 return;
             }
 
@@ -938,135 +991,14 @@
                 no_opname: currentNoOpname
             }, function(response) {
                 allItems = response.items;
-                renderCartonList();
+                allCartons = response.cartons;
+                renderCartonDropdown();
+                refreshCartonTable();
 
                 if (activeCarton) {
                     renderModalItems();
                 }
             });
-        }
-
-        function formatDateTime(value) {
-            if (!value) {
-                return '-';
-            }
-
-            let d = new Date(value.replace(' ', 'T'));
-
-            if (isNaN(d.getTime())) {
-                return '-';
-            }
-
-            let pad = (n) => String(n).padStart(2, '0');
-
-            return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        }
-
-        function renderCartonList() {
-            let map = {};
-
-            allItems.forEach(function(item) {
-                let key = item.no_carton + '|' + item.no_pallet;
-
-                if (!map[key]) {
-                    map[key] = {
-                        no_carton: item.no_carton,
-                        no_pallet: item.no_pallet,
-                        qty: 0,
-                        status: item.status || 'OPEN',
-                        itemIds: [],
-                        createdAt: null,
-                        updatedAt: null,
-                    };
-                }
-
-                map[key].qty += parseFloat(item.qty) || 0;
-                map[key].itemIds.push(item.id_detail);
-
-                if (item.created_at && (!map[key].createdAt || item.created_at < map[key].createdAt)) {
-                    map[key].createdAt = item.created_at;
-                }
-
-                if (item.updated_at && (!map[key].updatedAt || item.updated_at > map[key].updatedAt)) {
-                    map[key].updatedAt = item.updated_at;
-                }
-            });
-
-            stagedCartons.forEach(function(row) {
-                let key = row.no_carton + '|' + row.no_pallet;
-
-                if (!map[key]) {
-                    map[key] = {
-                        no_carton: row.no_carton,
-                        no_pallet: row.no_pallet,
-                        qty: 0,
-                        status: 'OPEN',
-                        itemIds: [],
-                        createdAt: null,
-                        updatedAt: null,
-                    };
-                }
-            });
-
-            let rows = Object.values(map);
-            let sessionClosed = currentStatus === 'CLOSED';
-
-            renderCartonDropdown();
-
-            let tableData = rows.map(function(row, i) {
-                let hasItems = row.itemIds.length > 0;
-                let rowClosed = sessionClosed || row.status === 'CLOSED';
-                let isiBtnClass = rowClosed ? 'btn-outline-secondary' : (hasItems ? 'btn-outline-primary' :
-                    'btn-primary');
-                let isiIcon = rowClosed ? 'fa-eye' : (hasItems ? 'fa-edit' : 'fa-plus');
-                let isiLabel = rowClosed ? 'View' : 'Isi Item';
-                let statusCls = row.status === 'CLOSED' ? 'badge-status-closed' : 'badge-status-open';
-                let qrBtn = row.status === 'CLOSED' ?
-                    `<button type="button" class="btn btn-outline-success btn-sm" onclick="printQr('${row.no_carton}')" title="Cetak QR">
-                        <i class="fas fa-qrcode fa-sm"></i>
-                    </button>` : '';
-
-                let statusBtn = '';
-                if (canChangeCartonStatus && hasItems) {
-                    if (row.status === 'CLOSED') {
-                        statusBtn =
-                            `<button type="button" class="btn btn-outline-info btn-sm" onclick="reopenCartonModal('${row.no_carton}', '${row.no_pallet}')" title="Buka Kembali">
-                                <i class="fas fa-lock-open fa-sm"></i> Buka
-                            </button>`;
-                    } else if (!sessionClosed) {
-                        statusBtn =
-                            `<button type="button" class="btn btn-outline-warning btn-sm" onclick="closeCartonModal('${row.no_carton}', '${row.no_pallet}')" title="Tutup Carton">
-                                <i class="fas fa-lock fa-sm"></i> Tutup
-                            </button>`;
-                    }
-                }
-
-                return [
-                    i + 1,
-                    row.no_carton,
-                    row.no_pallet,
-                    `<span class="qty-pill">${row.qty}</span>`,
-                    `<span class="badge ${statusCls}">${row.status}</span>`,
-                    formatDateTime(row.createdAt),
-                    formatDateTime(row.updatedAt),
-                    `<div class="d-flex flex-wrap gap-1 justify-content-center">
-                        <button type="button" class="btn ${isiBtnClass} btn-sm"
-                            onclick="bukaIsiItem('${row.no_carton}', '${row.no_pallet}')">
-                            <i class="fas ${isiIcon} fa-sm"></i> ${isiLabel}
-                        </button>
-                        ${statusBtn}
-                        ${qrBtn}
-                        <button type="button" class="btn btn-outline-danger btn-sm" ${rowClosed ? 'style="display:none;"' : ''}
-                            onclick="hapusCartonRow('${row.no_carton}', '${row.no_pallet}')">
-                            <i class="fas fa-trash fa-sm"></i>
-                        </button>
-                    </div>`,
-                ];
-            });
-
-            cartonListTable.clear();
-            cartonListTable.rows.add(tableData);
-            cartonListTable.draw();
         }
 
         function tambahKeList() {
@@ -1100,8 +1032,7 @@
                 return;
             }
 
-            let exists = allItems.some(i => i.no_carton === noCarton && i.no_pallet === noPallet) ||
-                stagedCartons.some(r => r.no_carton === noCarton && r.no_pallet === noPallet);
+            let exists = allCartons.some(r => r.no_carton === noCarton && r.no_pallet === noPallet);
 
             if (exists) {
                 Swal.fire({
@@ -1112,8 +1043,7 @@
                 return;
             }
 
-            let usedElsewhere = allItems.some(i => i.no_carton === noCarton && i.no_pallet !== noPallet) ||
-                stagedCartons.some(r => r.no_carton === noCarton && r.no_pallet !== noPallet);
+            let usedElsewhere = allCartons.some(r => r.no_carton === noCarton && r.no_pallet !== noPallet);
 
             if (usedElsewhere) {
                 Swal.fire({
@@ -1124,15 +1054,30 @@
                 return;
             }
 
-            stagedCartons.push({
-                no_carton: noCarton,
-                no_pallet: noPallet
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store-carton-header-opname-fg-stock') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    no_opname: currentNoOpname,
+                    no_carton: noCarton,
+                    no_pallet: noPallet,
+                },
+                success: function() {
+                    $('#cbo_no_carton').val('').trigger('change');
+                    $('#cbo_no_pallet').val('').trigger('change');
+                    loadOpnameItems();
+                },
+                error: function(xhr) {
+                    let message = xhr.responseJSON && xhr.responseJSON.message ?
+                        xhr.responseJSON.message : 'Gagal menambahkan No. Carton ke list!';
+                    Swal.fire({
+                        title: message,
+                        icon: 'warning',
+                        showConfirmButton: true,
+                    });
+                },
             });
-
-            $('#cbo_no_carton').val('').trigger('change');
-            $('#cbo_no_pallet').val('').trigger('change');
-
-            renderCartonList();
         }
 
         function hapusCartonRow(noCarton, noPallet) {
@@ -1145,18 +1090,16 @@
                 return;
             }
 
-            let items = allItems.filter(i => i.no_carton === noCarton && i.no_pallet === noPallet);
+            let itemCount = allItems.filter(i => i.no_carton === noCarton && i.no_pallet === noPallet)
+                .length;
 
-            if (items.length === 0) {
-                stagedCartons = stagedCartons.filter(r => !(r.no_carton === noCarton && r.no_pallet ===
-                    noPallet));
-                renderCartonList();
-                return;
-            }
+            let text = itemCount > 0 ?
+                `Semua item (${itemCount}) pada carton ${noCarton} / pallet ${noPallet} akan dihapus.` :
+                `Carton ${noCarton} / pallet ${noPallet} akan dihapus dari list.`;
 
             Swal.fire({
                 title: 'Hapus No. Carton ini?',
-                text: `Semua item (${items.length}) pada carton ${noCarton} / pallet ${noPallet} akan dihapus.`,
+                text: text,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Hapus',
@@ -1166,17 +1109,27 @@
                     return;
                 }
 
-                let requests = items.map(item => $.ajax({
+                $.ajax({
                     type: 'POST',
-                    url: '{{ route('cancel-opname-item-fg-stock') }}',
+                    url: '{{ route('hapus-carton-opname-fg-stock') }}',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        id_detail: item.id_detail,
+                        no_opname: currentNoOpname,
+                        no_carton: noCarton,
+                        no_pallet: noPallet,
                     },
-                }));
-
-                $.when.apply($, requests).always(function() {
-                    loadOpnameItems();
+                    success: function() {
+                        loadOpnameItems();
+                    },
+                    error: function(xhr) {
+                        let message = xhr.responseJSON && xhr.responseJSON.message ?
+                            xhr.responseJSON.message : 'Gagal menghapus No. Carton!';
+                        Swal.fire({
+                            title: message,
+                            icon: 'warning',
+                            showConfirmButton: true,
+                        });
+                    },
                 });
             });
         }
@@ -1587,7 +1540,7 @@
 
                     appendItemRow(response.id_detail, buyer, ws, styleno, destValue, color, size,
                         grade, qty);
-                    renderCartonList();
+                    refreshCartonTable();
 
                     $('#inp_size').val('').trigger('change');
                     $('#inp_qty').val('').focus();
@@ -1631,7 +1584,7 @@
                         showEmptyRow();
                     }
                     updateTotalQty();
-                    renderCartonList();
+                    refreshCartonTable();
                 },
                 error: function() {
                     Swal.fire({
@@ -1711,7 +1664,7 @@
                     }
 
                     updateTotalQty();
-                    renderCartonList();
+                    refreshCartonTable();
                     bootstrap.Modal.getInstance(document.getElementById('modalUpdateItem')).hide();
                 },
                 error: function(xhr) {

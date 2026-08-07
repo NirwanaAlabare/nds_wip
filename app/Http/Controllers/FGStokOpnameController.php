@@ -494,7 +494,7 @@ class FGStokOpnameController extends Controller
         ]);
 
         $data = DB::select("
-            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
+            SELECT d.id id_detail, d.no_carton, d.no_pallet, d.status, d.qty, d.grade, d.created_by, d.created_at, d.updated_at, m.buyer, m.ws, m.styleno, m.dest, m.color, m.size
             FROM fg_stok_opname_detail d
             JOIN master_sb_ws m ON m.id_so_det = d.id_so_det
             WHERE d.no_opname = ?
@@ -502,9 +502,175 @@ class FGStokOpnameController extends Controller
             ORDER BY d.id
         ", [$request->no_opname]);
 
+        $cartons = DB::select("
+            SELECT DISTINCT no_carton, no_pallet
+            FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND cancel = 'N'
+        ", [$request->no_opname]);
+
         return response()->json([
             'items' => $data,
+            'cartons' => $cartons,
         ]);
+    }
+
+    public function getCartonList(Request $request)
+    {
+        $no_opname = $request->no_opname;
+
+        if (!$no_opname) {
+            return DataTables::of([])->toJson();
+        }
+
+        $header = DB::select("
+            SELECT status FROM fg_stok_opname_header WHERE no_opname = ? AND cancel = 'N' LIMIT 1
+        ", [$no_opname]);
+
+        $sessionClosed = count($header) > 0 && $header[0]->status === 'CLOSED';
+        $canChangeCartonStatus = Auth::user()->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->exists();
+
+        $data = DB::select("
+            SELECT
+                d.no_carton,
+                d.no_pallet,
+                MAX(d.status) status,
+                SUM(IFNULL(d.qty, 0)) qty,
+                SUM(CASE WHEN d.id_so_det IS NOT NULL THEN 1 ELSE 0 END) item_count,
+                MIN(d.created_at) created_at,
+                MAX(d.updated_at) updated_at,
+                SUBSTRING_INDEX(GROUP_CONCAT(d.created_by ORDER BY d.created_at ASC SEPARATOR '||'), '||', 1) created_by
+            FROM fg_stok_opname_detail d
+            WHERE d.no_opname = ? AND d.cancel = 'N'
+            GROUP BY d.no_carton, d.no_pallet
+            ORDER BY MIN(d.id) ASC
+        ", [$no_opname]);
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn('created_at', fn ($row) => $row->created_at ? Carbon::parse($row->created_at)->format('d-m-Y H:i') : '-')
+            ->editColumn('updated_at', fn ($row) => $row->updated_at ? Carbon::parse($row->updated_at)->format('d-m-Y H:i') : '-')
+            ->editColumn('qty', fn ($row) => '<span class="qty-pill">' . (float) $row->qty . '</span>')
+            ->addColumn('status_badge', function ($row) {
+                $cls = $row->status === 'CLOSED' ? 'badge-status-closed' : 'badge-status-open';
+                return '<span class="badge ' . $cls . '">' . $row->status . '</span>';
+            })
+            ->addColumn('aksi', function ($row) use ($sessionClosed, $canChangeCartonStatus) {
+                $hasItems = $row->item_count > 0;
+                $rowClosed = $sessionClosed || $row->status === 'CLOSED';
+                $isiBtnClass = $rowClosed ? 'btn-outline-secondary' : ($hasItems ? 'btn-outline-primary' : 'btn-primary');
+                $isiIcon = $rowClosed ? 'fa-eye' : ($hasItems ? 'fa-edit' : 'fa-plus');
+                $isiLabel = $rowClosed ? 'View' : 'Isi Item';
+
+                $qrBtn = $row->status === 'CLOSED'
+                    ? '<button type="button" class="btn btn-outline-success btn-sm" onclick="printQr(\'' . e($row->no_carton) . '\')" title="Cetak QR"><i class="fas fa-qrcode fa-sm"></i></button>'
+                    : '';
+
+                $statusBtn = '';
+                if ($canChangeCartonStatus && $hasItems) {
+                    if ($row->status === 'CLOSED') {
+                        $statusBtn = '<button type="button" class="btn btn-outline-info btn-sm" onclick="reopenCartonModal(\'' . e($row->no_carton) . '\', \'' . e($row->no_pallet) . '\')" title="Buka Kembali"><i class="fas fa-lock-open fa-sm"></i> Buka</button>';
+                    } elseif (!$sessionClosed) {
+                        $statusBtn = '<button type="button" class="btn btn-outline-warning btn-sm" onclick="closeCartonModal(\'' . e($row->no_carton) . '\', \'' . e($row->no_pallet) . '\')" title="Tutup Carton"><i class="fas fa-lock fa-sm"></i> Tutup</button>';
+                    }
+                }
+
+                $hapusStyle = $rowClosed ? 'style="display:none;"' : '';
+
+                return '<div class="d-flex flex-wrap gap-1 justify-content-center">
+                    <button type="button" class="btn ' . $isiBtnClass . ' btn-sm" onclick="bukaIsiItem(\'' . e($row->no_carton) . '\', \'' . e($row->no_pallet) . '\')">
+                        <i class="fas ' . $isiIcon . ' fa-sm"></i> ' . $isiLabel . '
+                    </button>
+                    ' . $statusBtn . '
+                    ' . $qrBtn . '
+                    <button type="button" class="btn btn-outline-danger btn-sm" ' . $hapusStyle . ' onclick="hapusCartonRow(\'' . e($row->no_carton) . '\', \'' . e($row->no_pallet) . '\')">
+                        <i class="fas fa-trash fa-sm"></i>
+                    </button>
+                </div>';
+            })
+            ->rawColumns(['qty', 'status_badge', 'aksi'])
+            ->toJson();
+    }
+
+    public function storeCartonHeader(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_carton' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $header = DB::select("
+            SELECT status FROM fg_stok_opname_header WHERE no_opname = ? AND cancel = 'N' LIMIT 1
+        ", [$request->no_opname]);
+
+        if (count($header) === 0) {
+            return response()->json(['message' => 'Data opname tidak ditemukan!'], 422);
+        }
+
+        if ($header[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Opname ini sudah CLOSED!'], 422);
+        }
+
+        $exists = DB::select("
+            SELECT id FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($exists) > 0) {
+            return response()->json(['message' => 'No. Carton & No. Pallet ini sudah ada di list!'], 422);
+        }
+
+        $usedElsewhere = DB::select("
+            SELECT id FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet != ? AND cancel = 'N'
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($usedElsewhere) > 0) {
+            return response()->json(['message' => 'No. Carton ini sudah terdaftar di Pallet lain pada opname ini!'], 422);
+        }
+
+        DB::insert("
+            INSERT INTO fg_stok_opname_detail (no_opname, no_carton, no_pallet, cancel, status, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, 'N', 'OPEN', ?, ?, ?)
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet, Auth::user()->name, Carbon::now(), Carbon::now()]);
+
+        return response()->json(['message' => 'No. Carton berhasil ditambahkan ke list.']);
+    }
+
+    public function hapusCarton(Request $request)
+    {
+        $request->validate([
+            'no_opname' => 'required|string',
+            'no_carton' => 'required|string',
+            'no_pallet' => 'required|string',
+        ]);
+
+        $header = DB::select("
+            SELECT status FROM fg_stok_opname_header WHERE no_opname = ? AND cancel = 'N' LIMIT 1
+        ", [$request->no_opname]);
+
+        if (count($header) > 0 && $header[0]->status === 'CLOSED') {
+            return response()->json(['message' => 'Opname sudah CLOSED, tidak bisa menghapus!'], 422);
+        }
+
+        $rowClosed = DB::select("
+            SELECT id FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N' AND status = 'CLOSED'
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        if (count($rowClosed) > 0) {
+            return response()->json(['message' => 'Carton ini sudah CLOSED, tidak bisa menghapus!'], 422);
+        }
+
+        DB::update("
+            UPDATE fg_stok_opname_detail SET cancel = 'Y', updated_at = ?
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+        ", [Carbon::now(), $request->no_opname, $request->no_carton, $request->no_pallet]);
+
+        return response()->json(['message' => 'No. Carton berhasil dihapus.']);
     }
 
     public function storeMasterCarton(Request $request)
@@ -1051,7 +1217,7 @@ class FGStokOpnameController extends Controller
 
         $items = DB::select("
             SELECT id, status FROM fg_stok_opname_detail
-            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N'
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N' AND id_so_det IS NOT NULL
         ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
 
         if (count($items) === 0) {
