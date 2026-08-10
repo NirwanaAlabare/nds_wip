@@ -157,7 +157,7 @@ class CuttingToolsController extends Controller
                     "style" => $form->marker->style,
                     "color" => $form->marker->color,
                     "panel" => $form->marker->panel,
-                    "qty_ply" => $form->total_lembar,
+                    "qty_ply" => $form->total_lembar ? ($form->qty_ply ? $form->qty_ply : 0) : 0,
                     "ratio" => $form->marker->markerDetails()->with("masterSbWs")->get()
                 );
             }
