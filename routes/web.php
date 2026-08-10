@@ -726,6 +726,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-item', 'updateOpnameItem')->name('update-opname-item-fg-stock');
         Route::post('/update-carton-pallet', 'updateCartonPallet')->name('update-carton-pallet-opname-fg-stock');
         Route::get('/get-opname-items', 'getOpnameItems')->name('get-opname-items-fg-stock');
+        Route::get('/get-carton-list', 'getCartonList')->name('get-carton-list-opname-fg-stock');
+        Route::post('/store-carton-header', 'storeCartonHeader')->name('store-carton-header-opname-fg-stock');
+        Route::post('/hapus-carton', 'hapusCarton')->name('hapus-carton-opname-fg-stock');
         Route::post('/finish', 'finishOpname')->name('finish-opname-fg-stock');
         Route::post('/finish-carton', 'finishOpnameCarton')->name('finish-carton-opname-fg-stock');
         Route::post('/change-carton-status', 'changeCartonStatus')->name('change-carton-status-opname-fg-stock');

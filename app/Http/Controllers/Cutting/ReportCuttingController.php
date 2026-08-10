@@ -4642,7 +4642,7 @@ order by  ws asc, color asc
                             ), 0) qty_retur_adjustment,
                             0 saldo,
                             wip_adjustment_fabric.satuan,
-                            SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment_before,
+                            ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before,
                             SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                             COALESCE(
                             (
@@ -4682,7 +4682,7 @@ order by  ws asc, color asc
                             $groupBy
                     ) mut
                     LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
-                    LEFT JOIN (select tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll 
+                    LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs 
                     LEFT JOIN (
                         SELECT
                             ac.kpno,
