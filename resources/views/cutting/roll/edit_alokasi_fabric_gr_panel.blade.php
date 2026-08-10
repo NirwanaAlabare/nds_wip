@@ -278,7 +278,7 @@
                         <span class="input-group-text unit-text border-primary"> {{ $data->unit }} </span>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+                <div class="col-12 col-sm-6 col-lg-4">
                     <label for="cbows_act" class="form-label mb-1">
                         <small><strong>WS</strong></small>
                     </label>
@@ -293,12 +293,18 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3 ms-auto">
-                    <label for="btnAddBarcode" class="form-label mb-1">
-                        <small><strong>&nbsp;</strong></small>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <label for="cbopanel" class="form-label mb-1">
+                        <small><strong>Panel</strong></small>
                     </label>
-                    <a id="btnAddBarcode" onclick="handleStart()" class="btn btn-sm btn-primary w-100">
-                        Simpan
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbopanel" name="cbopanel" style="width: 100%;">
+                        <option value="">Pilih Panel</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-end">
+                    <a id="btnAddBarcode" onclick="handleStart()" class="btn btn-sm btn-primary w-100 py-2">
+                        <i class="fas fa-save me-1"></i> Update
                     </a>
                 </div>
             </div>
@@ -325,6 +331,40 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+        });
+
+        // Panel Select Option Based on WS Aktual
+        function updatePanelList(selectedPanel = null) {
+            return $.ajax({
+                url: '{{ route('get_panel_list_alokasi_fabric_gr_panel') }}',
+                type: 'get',
+                data: {
+                    ws_act: $('#cbows_act').val(),
+                },
+                success: function(res) {
+                    if (res) {
+                        document.getElementById('cbopanel').innerHTML = res;
+                        if (selectedPanel) {
+                            $('#cbopanel').val(selectedPanel).trigger('change');
+                        }
+                    }
+                },
+            });
+        }
+
+        $('#cbows_act').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+            } else {
+                $('#cbopanel').html('<option value="">Pilih Panel</option>').val(null).trigger('change');
+            }
+        });
+
+        $(document).ready(function() {
+            // Load panel on edit
+            if ($('#cbows_act').val()) {
+                updatePanelList("{{ $data->panel }}");
+            }
         });
 
         function notif() {
@@ -535,6 +575,7 @@
         function handleStart() {
             const barcode = document.getElementById('txtbarcode').value.trim();
             const ws_act = document.getElementById('cbows_act').value.trim();
+            const panel = document.getElementById('cbopanel').value.trim();
 
             if (!barcode) {
                 Swal.fire({
@@ -554,6 +595,15 @@
                 return;
             }
 
+            // if (!panel) {
+            //     Swal.fire({
+            //         icon: 'warning',
+            //         title: 'Panel kosong',
+            //         text: 'Silahkan pilih panel terlebih dahulu.',
+            //     });
+            //     return;
+            // }
+
             update_barcode();
         }
 
@@ -562,6 +612,7 @@
 
             const barcode = document.getElementById('txtbarcode').value.trim();
             const ws_act = document.getElementById('cbows_act').value.trim();
+            const panel = document.getElementById('cbopanel').value.trim();
             const qty_roll = parseFloat(document.getElementById('txtqty_roll').value) || 0;
             const qty_sisa = parseFloat(document.getElementById('txtqty_sisa').value) || 0;
             const qty_pakai = parseFloat(document.getElementById('txtqty_pakai').value) || 0;
@@ -572,6 +623,7 @@
                 html: `
                     <p><b>Barcode :</b> ${barcode}</p>
                     <p><b>WS Actual :</b> ${ws_act}</p>
+                    <p><b>Panel :</b> ${panel}</p>
                     <hr>
                     <p>Lanjutkan memperbarui data ini?</p>
                 `,
@@ -600,6 +652,7 @@
                             _token: "{{ csrf_token() }}",
                             barcode: barcode,
                             ws_act: ws_act,
+                            panel: panel,
                             qty_roll: qty_roll,
                             qty_sisa: qty_sisa,
                             qty_pakai: qty_pakai,
