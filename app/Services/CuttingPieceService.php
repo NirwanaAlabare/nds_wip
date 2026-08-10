@@ -53,6 +53,7 @@ class CuttingPieceService
         // Get Similar Form Detail
         $similarDetails = FormCutPieceDetail::where("id_roll", $formDetail->id_roll)
             ->where("created_at", ">", $formDetail->created_at)
+            ->orderBy("created_at", "asc")
             ->lockForUpdate()
             ->get();
 

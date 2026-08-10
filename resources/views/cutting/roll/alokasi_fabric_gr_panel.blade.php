@@ -79,6 +79,7 @@
                             <th scope="col" class="text-center align-middle">ID Item</th>
                             <th scope="col" class="text-center align-middle">Buyer</th>
                             <th scope="col" class="text-center align-middle">WS</th>
+                            <th scope="col" class="text-center align-middle">Panel</th>
                             <th scope="col" class="text-center align-middle">Style</th>
                             <th scope="col" class="text-center align-middle">Color</th>
                             <th scope="col" class="text-center align-middle">Qty</th>
@@ -166,6 +167,9 @@
                     data: 'ws'
                 },
                 {
+                    data: 'panel'
+                },
+                {
                     data: 'styleno'
                 },
                 {
@@ -211,8 +215,8 @@
                             <div class="d-flex gap-1 justify-content-center">
                                 `+(
                                     isAdmin > 0 ?
-                                    btnEdit + btnDelete : 
-                                    ''
+                                    btnEdit + btnDelete :
+                                    '-'
                                 )+`
                             </div>
                         `;
@@ -376,7 +380,7 @@
             link.download = 'fabric_relaxation_export.xlsx';
             link.click();
         }
-        
+
         $(document).on('click', '.btn-delete', function () {
             let id = $(this).data('id');
             let url = "{{ url('lap_pemakaian/delete_alokasi_fabric_gr_panel') }}/" + id;

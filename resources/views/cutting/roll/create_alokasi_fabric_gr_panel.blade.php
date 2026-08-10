@@ -185,13 +185,13 @@
             </div>
 
 
-            <div class="row g-2 mb-3">
+            <div class="row g-3 mb-3">
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtbarcode" class="form-label mb-1">
                         <small><strong>Barcode</strong></small>
                     </label>
                     <input type="text" id="txtbarcode" name="txtbarcode"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
 
                 <div class="col-12 col-sm-6 col-lg-3">
@@ -199,7 +199,7 @@
                         <small><strong>No. Roll</strong></small>
                     </label>
                     <input type="text" id="txtno_roll" name="txtno_roll"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
 
                 <div class="col-12 col-sm-6 col-lg-3">
@@ -207,7 +207,7 @@
                         <small><strong>No. Lot</strong></small>
                     </label>
                     <input type="text" id="txtno_lot" name="txtno_lot"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
 
                 <div class="col-12 col-sm-6 col-lg-3">
@@ -215,70 +215,76 @@
                         <small><strong>ID Item</strong></small>
                     </label>
                     <input type="text" id="txtid_item" name="txtid_item"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
 
-                <div class="col-12 col-sm-12 col-lg-3">
+                <div class="col-12 col-sm-12 col-lg-6">
                     <label for="txtitem_name" class="form-label mb-1">
                         <small><strong>Item Name</strong></small>
                     </label>
                     <input type="text" id="txtitem_name" name="txtitem_name"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
 
-                <div class="col-12 col-sm-4 col-lg-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtqty_awal" class="form-label mb-1">
                         <small><strong>Qty Awal</strong></small>
                     </label>
                     <div class="input-group input-group-sm">
-                        <input type="text" id="txtqty_awal" name="txtqty_awal" class="form-control form-control-sm border-primary" readonly>
-                        <input type="text" id="txtunit_awal" name="txtunit_awal" class="form-control form-control-sm border-primary" readonly>
+                        <input type="text" id="txtqty_awal" name="txtqty_awal" class="form-control form-control-sm border-primary bg-light" readonly>
+                        <input type="text" id="txtunit_awal" name="txtunit_awal" class="form-control form-control-sm border-primary bg-light" readonly>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtqty_roll" class="form-label mb-1">
                         <small><strong>Qty Roll</strong></small>
                     </label>
                     <div class="input-group input-group-sm">
-                        <input type="number" id="txtqty_roll" name="txtqty_roll" class="form-control form-control-sm border-primary" readonly>
-                        <span class="input-group-text unit-text border-primary"></span>
+                        <input type="number" id="txtqty_roll" name="txtqty_roll" class="form-control form-control-sm border-primary bg-light" readonly>
+                        <span class="input-group-text unit-text border-primary bg-light"></span>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtunit" class="form-label mb-1">
                         <small><strong>Unit</strong></small>
                     </label>
                     <input type="text" id="txtunit" name="txtunit"
-                        class="form-control form-control-sm border-primary" readonly>
+                        class="form-control form-control-sm border-primary bg-light" readonly>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtqty_pakai" class="form-label mb-1">
                         <small><strong>Qty Pakai</strong></small>
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="number" id="txtqty_pakai" name="txtqty_pakai" class="form-control form-control-sm border-primary">
-                        <span class="input-group-text unit-text border-primary"></span>
+                        <span class="input-group-text unit-text border-primary bg-light"></span>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtqty_sisa" class="form-label mb-1">
                         <small><strong>Sisa Kain</strong></small>
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="number" id="txtqty_sisa" name="txtqty_sisa" class="form-control form-control-sm border-primary">
-                        <span class="input-group-text unit-text border-primary"></span>
+                        <span class="input-group-text unit-text border-primary bg-light"></span>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txtshort_roll" class="form-label mb-1">
                         <small><strong>Short Roll</strong></small>
                     </label>
                     <div class="input-group input-group-sm">
-                        <input type="number" id="txtshort_roll" name="txtshort_roll" class="form-control form-control-sm border-primary" readonly>
-                        <span class="input-group-text unit-text border-primary"></span>
+                        <input type="number" id="txtshort_roll" name="txtshort_roll" class="form-control form-control-sm border-primary bg-light" readonly>
+                        <span class="input-group-text unit-text border-primary bg-light"></span>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3">
+
+                <div class="col-12 col-sm-6 col-lg-4">
                     <label for="cbows_act" class="form-label mb-1">
                         <small><strong>WS</strong></small>
                     </label>
@@ -292,12 +298,20 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-12 col-sm-4 col-lg-3 ms-auto">
-                    <label for="btnAddBarcode" class="form-label mb-1">
-                        <small><strong>&nbsp;</strong></small>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <label for="cbopanel" class="form-label mb-1">
+                        <small><strong>Panel</strong></small>
                     </label>
-                    <a id="btnAddBarcode" onclick="handleStart()" class="btn btn-sm btn-primary w-100">
-                        Add
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbopanel" name="cbopanel" style="width: 100%;" disabled>
+                        <option value="">Pilih Panel</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-end">
+                    <a id="btnAddBarcode" onclick="handleStart()" class="btn btn-sm btn-primary w-100 py-2">
+                        <i class="fas fa-save me-1"></i> Add
                     </a>
                 </div>
             </div>
@@ -329,6 +343,37 @@
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
+
+        // Panel Select Option Based on WS Aktual
+        function updatePanelList() {
+            $('#cbopanel').val(null).trigger('change');
+
+            return $.ajax({
+                url: '{{ route('get_panel_list_alokasi_fabric_gr_panel') }}',
+                type: 'get',
+                data: {
+                    ws_act: $('#cbows_act').val(),
+                },
+                success: function(res) {
+                    if (res) {
+                        // Update panel options
+                        document.getElementById('cbopanel').innerHTML = res;
+
+                        // Enable panel select
+                        $('#cbopanel').prop('disabled', false).trigger('change');
+                    }
+                },
+            });
+        }
+
+        $('#cbows_act').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+            } else {
+                $('#cbopanel').html('<option value="">Pilih Panel</option>').val(null).trigger('change');
+                $('#cbopanel').prop('disabled', true);
+            }
+        });
     </script>
     <script>
         $(document).ready(function() {
@@ -534,6 +579,7 @@
         function handleStart() {
             const barcode = document.getElementById('txtbarcode').value.trim();
             const ws_act = document.getElementById('cbows_act').value.trim();
+            const panel = document.getElementById('cbopanel').value.trim();
 
             if (!barcode) {
                 Swal.fire({
@@ -553,6 +599,15 @@
                 return;
             }
 
+            // if (!panel) {
+            //     Swal.fire({
+            //         icon: 'warning',
+            //         title: 'Panel kosong',
+            //         text: 'Silahkan pilih panel terlebih dahulu.',
+            //     });
+            //     return;
+            // }
+
             add_barcode();
 
         }
@@ -560,6 +615,7 @@
         function add_barcode() {
             const barcode = document.getElementById('txtbarcode').value.trim();
             const ws_act = document.getElementById('cbows_act').value.trim();
+            const panel = document.getElementById('cbopanel').value.trim();
             const qty_roll = parseFloat(document.getElementById('txtqty_roll').value) || 0;
             const qty_sisa = parseFloat(document.getElementById('txtqty_sisa').value) || 0;
             const qty_pakai = parseFloat(document.getElementById('txtqty_pakai').value) || 0;
@@ -570,6 +626,7 @@
                 title: 'Konfirmasi Detail Fabric dengan Barcode',
                 html: `
             <p><b>Barcode        :</b> ${barcode}</p>
+            <p><b>Panel          :</b> ${panel}</p>
             <hr>
             Lanjutkan simpan data ini?
         `,
@@ -587,6 +644,7 @@
                             _token: '{{ csrf_token() }}',
                             barcode: barcode,
                             ws_act: ws_act,
+                            panel: panel,
                             qty_roll: qty_roll,
                             qty_sisa: qty_sisa,
                             qty_pakai: qty_pakai,

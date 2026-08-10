@@ -167,7 +167,7 @@ order by ws asc");
             tmp.buyer,
             tmp.barcode,
             tmp.po,
-            tmp.dest,
+            COALESCE(tmp.dest, '') dest,
             tmp.qty_po,
             tmp.tgl_shipment,
             tmp.created_at,
@@ -207,7 +207,7 @@ order by ws asc");
             and tmp.color = m.color
             and tmp.size = m.size
             and tmp.style = m.styleno
-            and tmp.dest = m.dest
+            and TRIM(COALESCE(tmp.dest, '')) = TRIM(COALESCE(m.dest, ''))
             left join ppic_master_so p on m.id_so_det = p.id_so_det
                 and tmp.po = p.po
 								and tmp.barcode = p.barcode
