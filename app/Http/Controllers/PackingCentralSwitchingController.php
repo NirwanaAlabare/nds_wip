@@ -154,7 +154,7 @@ class PackingCentralSwitchingController extends Controller
                 combined.so_det_id,
                 packing_packing_in.line,
                 packing_packing_in.barcode,
-                packing_packing_in.po,
+                ppic_master_so.po,
                 master_sb_ws.ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
@@ -185,13 +185,14 @@ class PackingCentralSwitchingController extends Controller
                 AND packing_packing_in.id_so_det = combined.so_det_id
             LEFT JOIN master_sb_ws 
                 ON master_sb_ws.id_so_det = combined.so_det_id
+            LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
             WHERE combined.id_ppic_master_so = ?
             GROUP BY
                 combined.id_ppic_master_so,
                 combined.so_det_id,
                 packing_packing_in.line,
                 packing_packing_in.barcode,
-                packing_packing_in.po,
+                ppic_master_so.po,
                 master_sb_ws.ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
@@ -445,19 +446,17 @@ class PackingCentralSwitchingController extends Controller
 
         $data = DB::select("
             WITH a AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    a.id_so_det AS so_det_id,
-                    SUM(a.qty) AS qty_trf_gmt
-                FROM laravel_nds.packing_packing_in a
-                INNER JOIN laravel_nds.ppic_master_so p
-                    ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
-                GROUP BY
-                    a.id_ppic_master_so,
-                    a.id_so_det
-            ),
 
+            SELECT
+                a.id_ppic_master_so,
+                a.id_so_det AS so_det_id,
+                SUM(a.qty) AS qty_pck_in
+            from packing_packing_in a
+                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                group by id_ppic_master_so,a.id_so_det
+            ),
+            
             p AS (
                 SELECT
                     id_ppic,
@@ -507,9 +506,10 @@ class PackingCentralSwitchingController extends Controller
                 SELECT
                     id_ppic_master_so,
                     so_det_id,
-                    qty_trf_gmt AS qty,
+                    qty_pck_in AS qty,
                     0 AS qty_scan,
                     0 AS qty_switch,
+                    0 AS qty_switch_masuk,
                     0 AS qty_retur
                 FROM a
 
@@ -521,6 +521,7 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     qty_scan,
                     0 AS qty_switch,
+                    0 AS qty_switch_masuk,
                     0 AS qty_retur
                 FROM p
 
@@ -532,6 +533,7 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     0 AS qty_scan,
                     qty_switch,
+                    0 AS qty_switch_masuk,
                     0 AS qty_retur
                 FROM s
 
@@ -540,9 +542,10 @@ class PackingCentralSwitchingController extends Controller
                 SELECT
                     id_ppic_master_so,
                     so_det_id,
-                    qty_switch_masuk AS qty,
+                    0 AS qty,
                     0 AS qty_scan,
                     0 AS qty_switch,
+                    qty_switch_masuk,
                     0 AS qty_retur
                 FROM t
 
@@ -554,29 +557,51 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty,
                     0 AS qty_scan,
                     0 AS qty_switch,
+                    0 AS qty_switch_masuk,
                     qty AS qty_retur
                 FROM r
             )
 
             SELECT
+                DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
                 combined.id_ppic_master_so,
                 packing_packing_in.id AS packing_packing_in_id,
-                packing_packing_in.po,
+                ppic_master_so.po,
                 master_sb_ws.ws,
+                master_sb_ws.styleno,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
                 combined.so_det_id,
-                SUM(combined.qty) AS qty_trf_gmt,
+                ppic_master_so.qty_po,
+                SUM(combined.qty) AS qty_pck_in,
+                SUM(combined.qty_switch_masuk) AS qty_switch_in,
+                SUM(combined.qty_switch) AS qty_switch_out,
                 SUM(combined.qty_scan) AS qty_scan,
-                SUM(combined.qty_switch) AS qty_switch,
                 SUM(combined.qty_retur) AS qty_retur,
                 SUM(combined.qty)
                     + SUM(combined.qty_retur)
+                    + SUM(combined.qty_switch_masuk)
                     - SUM(combined.qty_scan)
-                    - SUM(combined.qty_switch) AS qty_sisa
+                    - SUM(combined.qty_switch) AS qty_sisa,
+                CASE
+                    WHEN (
+                        SUM(combined.qty)
+                        + SUM(combined.qty_retur)
+                        + SUM(combined.qty_switch_masuk)
+                        - SUM(combined.qty_scan)
+                        - SUM(combined.qty_switch)
+                    ) = 0 THEN 'Kosong'
+                    WHEN (
+                        SUM(combined.qty)
+                        + SUM(combined.qty_retur)
+                        + SUM(combined.qty_switch_masuk)
+                        - SUM(combined.qty_scan)
+                        - SUM(combined.qty_switch)
+                    ) > 0 THEN 'Tersedia'
+                    ELSE 'Kosong'
+                END AS status
             FROM combined
-
             LEFT JOIN (
                 SELECT
                     id_ppic_master_so,
@@ -590,23 +615,25 @@ class PackingCentralSwitchingController extends Controller
             ) packing_packing_in
                 ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
                 AND packing_packing_in.id_so_det = combined.so_det_id
-
-            LEFT JOIN master_sb_ws
-                ON master_sb_ws.id_so_det = combined.so_det_id
-
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
+            LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
+            WHERE
+                YEAR(ppic_master_so.tgl_shipment) >= 2026
+                OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
             GROUP BY
                 combined.id_ppic_master_so,
                 combined.so_det_id,
                 packing_packing_in.id,
-                packing_packing_in.po,
+                ppic_master_so.po,
                 master_sb_ws.ws,
+                master_sb_ws.styleno,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest
 
             HAVING
                 qty_sisa > 0
-                AND packing_packing_in.po LIKE ?
+                AND ppic_master_so.po LIKE ?
         ", ["%{$search}%"]);
 
         return response()->json($data);
@@ -1076,7 +1103,7 @@ class PackingCentralSwitchingController extends Controller
                         DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
                         combined.id_ppic_master_so,
                         packing_packing_in.id AS packing_packing_in_id,
-                        packing_packing_in.po,
+                        ppic_master_so.po,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1126,13 +1153,13 @@ class PackingCentralSwitchingController extends Controller
                         ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
                         AND packing_packing_in.id_so_det = combined.so_det_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
-                    LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+                    LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
                     WHERE YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                     GROUP BY
                         combined.id_ppic_master_so,
                         combined.so_det_id,
                         packing_packing_in.id,
-                        packing_packing_in.po,
+                        ppic_master_so.po,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1173,7 +1200,7 @@ class PackingCentralSwitchingController extends Controller
             }
 
             $poList = "'" . implode("','", $po) . "'";
-            $poCondition = "AND packing_packing_in.po IN ($poList)";
+            $poCondition = "AND ppic_master_so.po IN ($poList)";
         }
 
         if ($request->ajax()) {
@@ -1300,7 +1327,7 @@ class PackingCentralSwitchingController extends Controller
                         DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
                         combined.id_ppic_master_so,
                         packing_packing_in.id AS packing_packing_in_id,
-                        packing_packing_in.po,
+                        ppic_master_so.po,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1350,7 +1377,7 @@ class PackingCentralSwitchingController extends Controller
                         ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
                         AND packing_packing_in.id_so_det = combined.so_det_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
-                    LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+                    LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
                     WHERE 1=1
                         $dateCondition
                         $poCondition
@@ -1362,7 +1389,7 @@ class PackingCentralSwitchingController extends Controller
                         combined.id_ppic_master_so,
                         combined.so_det_id,
                         packing_packing_in.id,
-                        packing_packing_in.po,
+                        ppic_master_so.po,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1411,7 +1438,7 @@ class PackingCentralSwitchingController extends Controller
             }
 
             $poList = "'" . implode("','", $po) . "'";
-            $poCondition = "AND packing_packing_in.po IN ($poList)";
+            $poCondition = "AND ppic_master_so.po IN ($poList)";
         }
 
         $data = DB::select("
@@ -1537,7 +1564,7 @@ class PackingCentralSwitchingController extends Controller
                     DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
                     combined.id_ppic_master_so,
                     packing_packing_in.id AS packing_packing_in_id,
-                    packing_packing_in.po,
+                    ppic_master_so.po,
                     master_sb_ws.ws,
                     master_sb_ws.styleno,
                     master_sb_ws.color,
@@ -1587,7 +1614,7 @@ class PackingCentralSwitchingController extends Controller
                     ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
                     AND packing_packing_in.id_so_det = combined.so_det_id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
-                LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
+                LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
                 WHERE 1=1
                     $dateCondition
                     $poCondition
@@ -1599,7 +1626,7 @@ class PackingCentralSwitchingController extends Controller
                     combined.id_ppic_master_so,
                     combined.so_det_id,
                     packing_packing_in.id,
-                    packing_packing_in.po,
+                    ppic_master_so.po,
                     master_sb_ws.ws,
                     master_sb_ws.styleno,
                     master_sb_ws.color,
