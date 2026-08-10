@@ -1106,7 +1106,7 @@ class SpreadingController extends Controller
                 cutting.panel,
                 part.panel_status,
                 master_part.nama_part,
-                part_detail.part_status,
+                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                 cutting.max_group,
                 cutting.group_stocker,
                 SUM(cutting.qty_awal) qty_awal,
@@ -1332,8 +1332,9 @@ class SpreadingController extends Controller
             LEFT JOIN part on part.act_costing_ws = cutting.worksheet and part.panel = cutting.panel
             LEFT JOIN part_detail on part_detail.part_id = part.id
             LEFT JOIN master_part on master_part.id = part_detail.master_part_id
+            LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color
             WHERE
-                (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
             GROUP BY
                 tanggal,
                 meja,
