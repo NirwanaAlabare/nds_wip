@@ -132,6 +132,9 @@
                     <label class="form-label"><small>Tgl Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterDcIn(); updateFilterDetailDcIn();">
                 </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary btn-sm" onclick="datatableReload(); updateFilterDcIn(); updateFilterDetailDcIn();"><i class="fa fa-search"></i></button>
+                </div>
             </div>
             <h5 class="card-title fw-bold mb-3" id="dc-in-title">List Transaksi DC IN</h5>
             <br>
