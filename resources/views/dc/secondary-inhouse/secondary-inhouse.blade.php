@@ -222,6 +222,9 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterSec(); updateFilterDetailSec();">
                 </div>
                 <div class="mb-3">
+                    <button class="btn btn-primary btn-sm" onclick="datatableReload(); updateFilterSec(); updateFilterDetailSec();"><i class="fa fa-search"></i></button>
+                </div>
+                <div class="mb-3">
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>

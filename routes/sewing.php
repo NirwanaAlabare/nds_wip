@@ -78,9 +78,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(SewingSecondaryMasterController::class)->prefix("sewing-secondary-master")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-secondary-master');
 
-        Route::put('update-secondary-master', 'updateSecondaryMaster')->name('update-sewing-secondary-master');
+        Route::put('update-secondary-master', 'updateSecondaryMaster')->name('update-sewing-secondary-master')->middleware('role:superadmin');
         Route::post('store-secondary-master', 'storeSecondaryMaster')->name('store-sewing-secondary-master');
-        Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master');
+        Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master')->middleware('role:superadmin');
     });
 
     // Report Daily Sewing
@@ -174,7 +174,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
         Route::get('/restore-undo', 'restoreUndo')->name("restore-undo");
         Route::post('/restore-undo-submit', 'restoreUndoSubmit')->name("restore-undo-submit");
-        
+
         // Undo Output List
         Route::get('/undo-output-list', 'undoOutputList')->name("undo-output-list");
         Route::get('/get-undo-output-list', 'getUndoOutputList')->name("get-undo-output-list");

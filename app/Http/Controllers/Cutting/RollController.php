@@ -1418,7 +1418,7 @@ class RollController extends Controller
                 MAX( qty_roll ) qty,
                 scanned_item.unit,
                 SUM( form_cut_alokasi_gr_panel_barcode.qty_pakai ) total_pemakaian_roll,
-                SUM( form_cut_alokasi_gr_panel_barcode.qty_roll - (form_cut_alokasi_gr_panel_barcode.qty_pakai + form_cut_alokasi_gr_panel_barcode.sisa_kain) ) short_roll,
+                SUM( ROUND(form_cut_alokasi_gr_panel_barcode.qty_roll - (form_cut_alokasi_gr_panel_barcode.qty_pakai + form_cut_alokasi_gr_panel_barcode.sisa_kain), 2) ) short_roll,
                 form_cut_alokasi_gr_panel_barcode.sisa_kain sisa_kain,
                 '-' status_form,
                 '-' status,
@@ -1651,6 +1651,7 @@ class RollController extends Controller
                 id_item,
                 buyer,
                 a.ws,
+                a.panel,
                 c.styleno,
                 color,
                 a.qty_pakai,
@@ -1711,6 +1712,31 @@ class RollController extends Controller
     }
 
 
+    public function getPanelListAlokasiFabricGrPanel(Request $request)
+    {
+        $panels = DB::connection('mysql_sb')->select("
+                select mp.id as id_panel, nama_panel panel from
+                    (select id_panel from bom_jo_item k
+                        inner join so_det sd on k.id_so_det = sd.id
+                        inner join so on sd.id_so = so.id
+                        inner join act_costing ac on so.id_cost = ac.id
+                        inner join masteritem mi on k.id_item = mi.id_gen
+                        where ac.kpno = '" . $request->ws_act . "' and k.status = 'M'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
+                        group by id_panel
+                    ) a
+                inner join masterpanel mp on a.id_panel = mp.id
+            ");
+
+        $html = "<option value=''>Pilih Panel</option>";
+
+        foreach ($panels as $panel) {
+            $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
+        }
+
+        return $html;
+    }
+
     public function save_alokasi_fabric_gr_panel(Request $request)
     {
         $user = Auth::user()->name;
@@ -1718,6 +1744,7 @@ class RollController extends Controller
 
         $barcode = $request->barcode;
         $ws_act = $request->ws_act;
+        $panel = $request->panel;
         $qty_roll = $request->qty_roll;
         $qty_sisa = $request->qty_sisa;
         $qty_pakai = $request->qty_pakai;
@@ -1737,6 +1764,7 @@ class RollController extends Controller
             'tgl_trans'             => $today,
             'barcode'               => $barcode,
             'ws'                    => $ws_act,
+            'panel'                 => $panel,
             'qty_roll'              => $qty_roll,
             'qty_pakai'             => $qty_pakai,
             'sisa_kain'             => $qty_sisa,
@@ -1842,7 +1870,8 @@ class RollController extends Controller
                 scanned_item.detail_item,
                 scanned_item.qty,
                 scanned_item.qty_in,
-                scanned_item.unit as unit_awal
+                scanned_item.unit as unit_awal,
+                form_cut_alokasi_gr_panel_barcode.panel
             ')
             ->leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_alokasi_gr_panel_barcode.barcode')
             ->where('form_cut_alokasi_gr_panel_barcode.id', $id)
@@ -1865,7 +1894,7 @@ class RollController extends Controller
         );
     }
 
-    public function update_alokasi_fabric_gr_panel(Request $request, $id, CuttingService $cuttingService) 
+    public function update_alokasi_fabric_gr_panel(Request $request, $id, CuttingService $cuttingService)
     {
         $timestamp = Carbon::now();
 
@@ -1877,6 +1906,22 @@ class RollController extends Controller
             'qty_pakai' => 'required|numeric',
             'unit' => 'required',
         ]);
+
+        $dataCheckClosing = DB::table('form_cut_alokasi_gr_panel_barcode')
+            ->where('id', $id)
+            ->first();
+
+        if (!$dataCheckClosing) {
+            abort(404, 'Data alokasi fabric tidak ditemukan.');
+        }
+
+        if (checkClosingDate($dataCheckClosing->tgl_trans)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak dapat disimpan karena periode sudah ditutup.',
+                'additional' => 'Closing'
+            ], 400);
+        }
 
         DB::transaction(function () use ($request, $id, $timestamp, $cuttingService) {
 
@@ -1902,6 +1947,7 @@ class RollController extends Controller
                 ->where('id', $id)
                 ->update([
                     'ws'         => $request->ws_act,
+                    'panel'      => $request->panel,
                     'qty_roll'   => $request->qty_roll,
                     'qty_pakai'  => $request->qty_pakai,
                     'sisa_kain'  => $request->qty_sisa,
@@ -1918,7 +1964,7 @@ class RollController extends Controller
         ]);
     }
 
-    public function delete_alokasi_fabric_gr_panel($id, CuttingService $cuttingService) 
+    public function delete_alokasi_fabric_gr_panel($id, CuttingService $cuttingService)
     {
         $data = DB::table('form_cut_alokasi_gr_panel_barcode')
             ->where('id', $id)
@@ -1929,6 +1975,14 @@ class RollController extends Controller
                 'status' => 'error',
                 'message' => 'Data tidak ditemukan'
             ], 404);
+        }
+
+        if (checkClosingDate($data->tgl_trans)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak dapat dihapus karena periode sudah ditutup.',
+                'additional' => 'Closing'
+            ], 400);
         }
 
         $barcode = $data->barcode;
