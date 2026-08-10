@@ -1032,9 +1032,14 @@
                     let detail_id = item.id;
 
                     let isCanceled = (item.cancel === 'Y');
+                    let isLocked = (item.is_locked === true || item.is_locked === 1);
 
                     let readonly = isCanceled ? 'readonly' : '';
                     let bgClass = isCanceled ? 'bg-light text-muted' : '';
+
+                    let destReadonly = isLocked ? 'readonly' : '';
+                    let destClass = isLocked ? 'bg-light text-muted' : '';
+                    let destTitle = isLocked ? 'title="Sudah ada di PPIC Master SO, tidak bisa diedit"' : '';
 
                     let actionBtn = isCanceled
                         ? `<button type="button" class="btn btn-sm btn-info" onclick="toggleCancelRestoreSO(${detail_id}, 'restore')"><i class="fas fa-undo"></i> Restore</button>`
@@ -1042,7 +1047,14 @@
 
                     rows += `<tr class="${bgClass}">
                         <td class="align-middle">${item.color || '-'}</td>
-                        <td class="align-middle">${item.dest || '-'}</td>
+                        <td class="align-middle">
+                            <input type="text"
+                                class="form-control form-control-sm input_dest ${destClass}"
+                                data-id="${detail_id}"
+                                data-locked="${isLocked ? 1 : 0}"
+                                value="${item.dest || '-'}"
+                                ${destReadonly} ${destTitle}>
+                        </td>
                         <td class="text-center align-middle">${item.size || '-'}</td>
                         <td>
                             <input type="number" id="qty_input_${detail_id}" data-id="${detail_id}" class="form-control form-control-sm text-right qty-input" value="${item.qty}" ${readonly}>
@@ -1186,15 +1198,20 @@
             $('.qty-input').each(function() {
                 let id = $(this).data('id');
                 let qty = $(this).val();
+                let $destInput = $(`.input_dest[data-id="${id}"]`);
+                let isLocked = $destInput.data('locked') == 1;
 
                 if (qty === '' || qty <= 0) {
                     isValid = false;
                 }
 
-                dataToSave.push({
-                    id: id,
-                    qty: qty
-                });
+                let payload = { id: id, qty: qty };
+
+                if (!isLocked) {
+                    payload.dest = $destInput.val();
+                }
+
+                dataToSave.push(payload);
             });
 
             if (!isValid) {
