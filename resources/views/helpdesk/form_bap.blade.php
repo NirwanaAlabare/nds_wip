@@ -530,6 +530,48 @@
             });
         }
 
+        function restoreCancelFormBap(id) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Kembalikan status Cancel?',
+                text: 'Kasus ini akan dikembalikan menjadi Proses.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Kembalikan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '{{ route('restore-cancel-form-bap') }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: id
+                    },
+                    success: function(response) {
+                        dataTableReload();
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengembalikan status.',
+                        });
+                    }
+                });
+            });
+        }
+
         function toggleStatusFormBap(id, currentStatus) {
             Swal.fire({
                 icon: 'question',
@@ -703,11 +745,18 @@
                         let btnPrint =
                             `<button type="button" class="btn btn-sm btn-secondary mr-1" title="Print PDF" onclick="printFormBap(${row.id})"><i class="fas fa-print"></i></button>`;
 
+                        let currentUserName = @json(auth()->user()->name);
+                        let isPrivilegedUser = @json(in_array(auth()->user()->username, ['admin_01', 'nirwana_it']));
+
                         if (row.is_cancel) {
-                            return `<div class="d-flex justify-content-center">${btnEdit}${btnPrint}</div>`;
+                            let canRestoreCancel = isPrivilegedUser || row.created_by === currentUserName;
+                            let btnRestore = canRestoreCancel ?
+                                `<button type="button" class="btn btn-sm btn-warning mr-1" title="Kembalikan Status" onclick="restoreCancelFormBap(${row.id})"><i class="fas fa-undo"></i></button>` :
+                                '';
+                            return `<div class="d-flex justify-content-center">${btnRestore}${btnEdit}${btnPrint}</div>`;
                         }
 
-                        let canMarkSelesai = @json(in_array(auth()->user()->username, ['admin_01', 'nirwana_it']));
+                        let canMarkSelesai = isPrivilegedUser;
                         let btnToggle = '';
                         if (canMarkSelesai) {
                             btnToggle = row.is_selesai ?
