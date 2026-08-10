@@ -29,6 +29,131 @@ class PPICLineMapController extends Controller
         ));
     }
 
+    public function update_urutan_line_map(Request $request)
+    {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'line' => 'required|array|min:1',
+            'line.*.line' => 'required|string',
+            'line.*.line_act' => 'required|string',
+        ]);
+
+        $lineActCounts = collect($validated['line'])->countBy('line_act');
+        $duplicates = $lineActCounts->filter(fn($count) => $count > 1)->keys();
+        if ($duplicates->isNotEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Line Actual berikut dipilih lebih dari sekali: ' . $duplicates->implode(', '),
+            ], 422);
+        }
+
+        $previousLineAct = DB::table('urutan_line_map')->pluck('line_act', 'line');
+
+        $lineActMoves = collect($validated['line'])
+            ->map(fn($row) => [
+                'line' => $row['line'],
+                'from' => $previousLineAct[$row['line']] ?? $row['line'],
+                'to' => $row['line_act'],
+            ])
+            ->filter(fn($move) => $move['from'] !== $move['to'])
+            ->values();
+
+        $movedPlanCount = 0;
+
+        foreach ($lineActMoves as $move) {
+            $rowsToMove = DB::table('ppic_line_map')
+                ->where('line', $move['from'])
+                ->where(function ($q) {
+                    $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+                })
+                ->get();
+
+            foreach ($rowsToMove as $row) {
+                $totalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
+                $overlap = $this->findLineMapOverlap($move['to'], $row->tgl_start, $totalDays);
+
+                if ($overlap) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Gagal memindahkan plan dari {$move['from']} ke {$move['to']}: bentrok dengan style {$overlap->style} di line {$move['to']}.",
+                    ], 422);
+                }
+            }
+
+            $movedPlanCount += $rowsToMove->count();
+        }
+
+        $username = auth()->user()->username ?? null;
+        $now = now();
+
+        DB::transaction(function () use ($validated, $lineActMoves, $username, $now) {
+            foreach ($lineActMoves as $move) {
+                DB::table('ppic_line_map')
+                    ->where('line', $move['from'])
+                    ->update(['line' => $move['to'], 'updated_at' => $now]);
+            }
+
+            DB::table('urutan_line_map')->delete();
+
+            foreach ($validated['line'] as $row) {
+                DB::table('urutan_line_map')->insert([
+                    'line' => $row['line'],
+                    'line_act' => $row['line_act'],
+                    'tgl_trans' => $now,
+                    'created_by' => $username,
+                ]);
+            }
+
+            foreach ($lineActMoves as $move) {
+                DB::table('urutan_line_map_history')->insert([
+                    'line' => $move['line'],
+                    'line_act' => $move['to'],
+                    'tgl_trans' => $now,
+                    'created_by' => $username,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        });
+
+        $message = 'Urutan line berhasil disimpan';
+        if ($movedPlanCount > 0) {
+            $message .= ", {$movedPlanCount} data line map ikut dipindahkan mengikuti Line Actual baru";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
+    public function get_urutan_line_map_history(Request $request)
+    {
+        $history = DB::table('urutan_line_map_history')
+            ->orderByDesc('tgl_trans')
+            ->orderByDesc('id')
+            ->limit(200)
+            ->get();
+
+        $fullNameByUsername = collect(DB::connection('mysql_sb')->select("
+select username, FullName from userpassword where username like '%line%'"))
+            ->pluck('FullName', 'username');
+
+        $history = $history->map(function ($row) use ($fullNameByUsername) {
+            $row->line_name = $fullNameByUsername[$row->line] ?? $row->line;
+            $row->line_act_name = $fullNameByUsername[$row->line_act] ?? $row->line_act;
+            return $row;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $history,
+        ]);
+    }
+
     public function ppic_line_map_live(Request $request)
     {
         return view('ppic.line_map_live', array_merge(
@@ -45,6 +170,17 @@ class PPICLineMapController extends Controller
     {
         $line = DB::connection('mysql_sb')->select("
 select * from userpassword where username like '%line%' order by username asc");
+
+        $allUsers = DB::connection('mysql_sb')->select("
+select username, FullName from userpassword where username like '%line%' order by username asc");
+
+        $urutanLineMap = DB::table('urutan_line_map')->orderBy('id')->get();
+        $urutanIndex = array_flip($urutanLineMap->pluck('line')->all());
+        $lineActByLine = $urutanLineMap->pluck('line_act', 'line');
+        $line = collect($line)
+            ->sortBy(fn($row) => $urutanIndex[$row->username] ?? count($urutanIndex))
+            ->values()
+            ->all();
 
         $filterStart = $request->input('tgl_dari') ?: date('Y-m-01');
         $filterEnd = $request->input('tgl_sampai') ?: date('Y-m-t');
@@ -174,9 +310,11 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
 
         return [
             'line' => $line,
+            'allUsers' => $allUsers,
             'lineMap' => $lineMapList,
             'lineMapByLine' => $lineMapByLine,
             'lineNameByUsername' => $lineNameByUsername,
+            'lineActByLine' => $lineActByLine,
             'productGroupByLine' => $productGroupByLine,
             'productGroupList' => $productGroupList,
             'calendarDates' => $calendarDates,

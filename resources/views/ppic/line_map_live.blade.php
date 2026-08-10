@@ -283,7 +283,8 @@
                     <tr>
                         <td class="line-map-line-col">
                             <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
-                            @foreach ($productGroupByLine[$ln->username] ?? collect() as $pg)
+                            @php $lnHistoryKey = $lineActByLine[$ln->username] ?? $ln->username; @endphp
+                            @foreach ($productGroupByLine[$lnHistoryKey] ?? collect() as $pg)
                                 <div class="line-map-history-product-group">{{ $pg->product_group }}
                                     <span class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
                                 </div>

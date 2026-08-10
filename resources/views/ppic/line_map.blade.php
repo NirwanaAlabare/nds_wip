@@ -269,6 +269,7 @@
             color: #b85c00;
             background-color: rgba(253, 126, 20, .15);
         }
+
     </style>
 @endsection
 
@@ -338,7 +339,8 @@
                                 <div class="form-group">
                                     <label class="form-label">Buyer :</label>
                                     <input type="text" class="form-control form-control-sm" id="txtbuyer"
-                                        name="txtbuyer" value="" autocomplete="off" style="text-transform: uppercase;"
+                                        name="txtbuyer" value="" autocomplete="off"
+                                        style="text-transform: uppercase;"
                                         oninput="this.value = this.value.toUpperCase();">
                                 </div>
                                 <div class="form-group">
@@ -405,8 +407,8 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label class="form-label">Tgl Finish :</label>
-                                    <input type="text" class="form-control form-control-sm bg-light"
-                                        id="txttglfinish" readonly tabindex="-1">
+                                    <input type="text" class="form-control form-control-sm bg-light" id="txttglfinish"
+                                        readonly tabindex="-1">
                                 </div>
                             </div>
                         </div>
@@ -438,6 +440,93 @@
         </form>
     </div>
 
+    @if ($canEditLineMap)
+        <div class="modal fade" id="urutanLineMapModal" tabindex="-1" role="dialog"
+            aria-labelledby="urutanLineMapModalLabel" data-bs-backdrop="static" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h3 class="modal-title fs-5" id="urutanLineMapModalLabel">Urutan Line</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex align-items-center gap-2 px-2 pb-2 mb-1 border-bottom small text-uppercase fw-bold text-muted">
+                            <span style="width: 24px;">#</span>
+                            <span style="width: 18px;"></span>
+                            <span class="flex-grow-1">Line System</span>
+                            <span style="width: 220px;">Line Actual</span>
+                        </div>
+                        <ul id="urutanLineList" class="list-group border rounded overflow-auto" style="max-height: 55vh;">
+                            @foreach ($line as $ln)
+                                <li class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                                    data-line="{{ $ln->username }}">
+                                    <span class="badge bg-secondary rounded-pill urutan-line-index"
+                                        style="width: 24px;">{{ $loop->iteration }}</span>
+                                    <i class="fas fa-grip-vertical text-muted urutan-drag-handle"
+                                        style="cursor: grab; width: 18px;"></i>
+                                    <span class="flex-grow-1">{{ $ln->FullName ?? $ln->username }}</span>
+                                    <select class="form-control form-control-sm urutan-line-act"
+                                        style="width: 220px;">
+                                        @foreach ($allUsers as $opt)
+                                            <option value="{{ $opt->username }}"
+                                                {{ ($lineActByLine[$ln->username] ?? $ln->username) === $opt->username ? 'selected' : '' }}>
+                                                {{ $opt->FullName ?? $opt->username }}</option>
+                                        @endforeach
+                                    </select>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-info" onclick="openUrutanLineMapHistory()"><i
+                                class="fas fa-history"></i> History</button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i
+                                class="fas fa-times-circle"></i> Tutup</button>
+                        <button type="button" class="btn btn-outline-success" onclick="saveUrutanLineMap()"><i
+                                class="fas fa-check"></i> Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="urutanLineMapHistoryModal" tabindex="-1" role="dialog"
+            aria-labelledby="urutanLineMapHistoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h3 class="modal-title fs-5" id="urutanLineMapHistoryModalLabel">History Perubahan Urutan Line</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="urutanLineMapHistoryLoading" class="text-center text-muted py-4">
+                            <i class="fas fa-spinner fa-spin"></i> Memuat history...
+                        </div>
+                        <div class="table-responsive" style="max-height: 60vh;">
+                            <table class="table table-sm table-hover" id="urutanLineMapHistoryTable" style="display:none;">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Line System</th>
+                                        <th>Line Actual Baru</th>
+                                        <th>Oleh</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="urutanLineMapHistoryEmpty" class="text-center text-muted py-4" style="display:none;">
+                            Belum ada history perubahan.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i
+                                class="fas fa-times-circle"></i> Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="card card-sb">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt"></i> PPIC Line Map</h5>
@@ -449,10 +538,16 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
                 @if ($canEditLineMap)
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                        data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
-                        <i class="fas fa-plus"></i> New
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#newLineMapModal" onclick="openNewLineMap()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                            data-bs-target="#urutanLineMapModal">
+                            <i class="fas fa-arrows-alt-v"></i> Urutan Line
+                        </button>
+                    </div>
                 @else
                     <div></div>
                 @endif
@@ -503,9 +598,11 @@
                             <tr>
                                 <td class="line-map-line-col">
                                     <div class="fw-bold">{{ $ln->FullName ?? $ln->username }}</div>
-                                    @foreach (($productGroupByLine[$ln->username] ?? collect()) as $pg)
+                                    @php $lnHistoryKey = $lineActByLine[$ln->username] ?? $ln->username; @endphp
+                                    @foreach ($productGroupByLine[$lnHistoryKey] ?? collect() as $pg)
                                         <div class="line-map-history-product-group">{{ $pg->product_group }}
-                                            <span class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
+                                            <span
+                                                class="text-muted">({{ number_format($pg->tot_qty, 0, ',', '.') }})</span>
                                         </div>
                                     @endforeach
                                 </td>
@@ -560,10 +657,8 @@
                                                         data-style="{{ $activeEntry->style }}"
                                                         data-product-group="{{ $activeEntry->product_group }}"
                                                         title="{{ $planTitle }}"
-                                                        @if ($canEditLineMap)
-                                                            data-bs-toggle="modal" data-bs-target="#newLineMapModal"
-                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))'
-                                                        @endif>
+                                                        @if ($canEditLineMap) data-bs-toggle="modal" data-bs-target="#newLineMapModal"
+                                                            onclick='openEditLineMap(@json($activeEntry->edit_payload))' @endif>
                                                         <div class="line-map-box-header">
                                                             <span
                                                                 class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
@@ -792,6 +887,149 @@
             searching: true,
             responsive: true
         });
+
+        $('#urutanLineMapModal').on('shown.bs.modal', function() {
+            const $list = $('#urutanLineList');
+            if ($list.data('ui-sortable')) {
+                $list.sortable('refresh');
+                return;
+            }
+            $list.sortable({
+                axis: 'y',
+                cursor: 'grabbing',
+                handle: '.urutan-drag-handle',
+                placeholder: 'list-group-item bg-light',
+                update: renumberUrutanLineList
+            });
+        });
+
+        function openUrutanLineMapHistory() {
+            const $modal = $('#urutanLineMapHistoryModal');
+            const $loading = $('#urutanLineMapHistoryLoading');
+            const $table = $('#urutanLineMapHistoryTable');
+            const $empty = $('#urutanLineMapHistoryEmpty');
+
+            $modal.modal('show');
+            $loading.show();
+            $table.hide();
+            $empty.hide();
+            $table.find('tbody').empty();
+
+            fetch(@json(route('get_urutan_line_map_history')), {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $loading.hide();
+
+                    if (!data.success || !data.data.length) {
+                        $empty.show();
+                        return;
+                    }
+
+                    const $tbody = $table.find('tbody');
+                    data.data.forEach(function(row) {
+                        const tgl = row.tgl_trans ? new Date(row.tgl_trans.replace(' ', 'T'))
+                            .toLocaleString('id-ID', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '-';
+                        $tbody.append(`
+                            <tr>
+                                <td>${tgl}</td>
+                                <td>${row.line_name ?? row.line}</td>
+                                <td>${row.line_act_name ?? row.line_act}</td>
+                                <td>${row.created_by ?? '-'}</td>
+                            </tr>
+                        `);
+                    });
+                    $table.show();
+                })
+                .catch(error => {
+                    console.error('Ambil History Urutan Line error:', error);
+                    $loading.hide();
+                    $empty.text('Terjadi kesalahan saat memuat history.').show();
+                });
+        }
+
+        function renumberUrutanLineList() {
+            $('#urutanLineList > li').each(function(index) {
+                $(this).find('.urutan-line-index').text(index + 1);
+            });
+        }
+
+        function saveUrutanLineMap() {
+            const line = $('#urutanLineList li').map(function() {
+                return {
+                    line: $(this).data('line'),
+                    line_act: $(this).find('.urutan-line-act').val()
+                };
+            }).get();
+
+            const lineActCounts = {};
+            line.forEach(function(row) {
+                lineActCounts[row.line_act] = (lineActCounts[row.line_act] || 0) + 1;
+            });
+            const duplicates = Object.keys(lineActCounts).filter(function(key) {
+                return lineActCounts[key] > 1;
+            });
+
+            if (duplicates.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Line Actual Ganda',
+                    html: 'Line Actual berikut dipilih lebih dari sekali:<br><strong>' +
+                        duplicates.join(', ') + '</strong>',
+                    confirmButtonText: 'Tutup'
+                });
+                return;
+            }
+
+            fetch(@json(route('update_urutan_line_map')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({
+                        line
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: data.message,
+                            timer: 1200,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message ?? 'Urutan gagal disimpan',
+                            confirmButtonText: 'Tutup'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Simpan Urutan Line error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat menyimpan urutan',
+                        confirmButtonText: 'Tutup'
+                    });
+                });
+        }
 
         let draggedLineMap = null;
 

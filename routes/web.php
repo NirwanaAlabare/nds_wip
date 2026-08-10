@@ -1143,6 +1143,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/ppic_line_map/move', 'move_ppic_line_map')->name('move_ppic_line_map');
         Route::post('/ppic_line_map/preview-move', 'preview_move_ppic_line_map')->name('preview_move_ppic_line_map');
         Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
+        Route::post('/ppic_line_map/update-urutan', 'update_urutan_line_map')->name('update_urutan_line_map');
+        Route::get('/ppic_line_map/urutan-history', 'get_urutan_line_map_history')->name('get_urutan_line_map_history');
     });
 
     // Tools Adjustment PPIC
