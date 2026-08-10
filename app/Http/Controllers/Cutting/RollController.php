@@ -1418,7 +1418,7 @@ class RollController extends Controller
                 MAX( qty_roll ) qty,
                 scanned_item.unit,
                 SUM( form_cut_alokasi_gr_panel_barcode.qty_pakai ) total_pemakaian_roll,
-                SUM( form_cut_alokasi_gr_panel_barcode.qty_roll - (form_cut_alokasi_gr_panel_barcode.qty_pakai + form_cut_alokasi_gr_panel_barcode.sisa_kain) ) short_roll,
+                SUM( ROUND(form_cut_alokasi_gr_panel_barcode.qty_roll - (form_cut_alokasi_gr_panel_barcode.qty_pakai + form_cut_alokasi_gr_panel_barcode.sisa_kain), 2) ) short_roll,
                 form_cut_alokasi_gr_panel_barcode.sisa_kain sisa_kain,
                 '-' status_form,
                 '-' status,
