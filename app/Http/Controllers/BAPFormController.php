@@ -11,6 +11,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class BAPFormController extends Controller
 {
+    private const RESTORE_CANCEL_ALLOWED_USERNAMES = ['admin_01', 'nirwana_it'];
+
     public function getDepartments()
     {
         $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_id, sub_dept_name FROM department_all
@@ -301,6 +303,37 @@ class BAPFormController extends Controller
 
         return response()->json([
             'message' => 'Form BAP dibatalkan',
+        ]);
+    }
+
+    public function restoreCancel(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+        ]);
+
+        $row = DB::table('bap_form')->where('id', $request->id)->first();
+
+        if (!$row) {
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+
+        $isOwner = $row->created_by === Auth::user()->name;
+        $isPrivileged = in_array(Auth::user()->username, self::RESTORE_CANCEL_ALLOWED_USERNAMES);
+
+        if (!$isOwner && !$isPrivileged) {
+            return response()->json(['message' => 'Anda tidak memiliki akses untuk mengembalikan status ini'], 403);
+        }
+
+        DB::table('bap_form')
+            ->where('id', $request->id)
+            ->update([
+                'is_cancel' => false,
+                'updated_at' => Carbon::now(),
+            ]);
+
+        return response()->json([
+            'message' => 'Status cancel berhasil dikembalikan',
         ]);
     }
 
