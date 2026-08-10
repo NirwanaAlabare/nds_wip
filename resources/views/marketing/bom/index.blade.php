@@ -353,7 +353,7 @@
                     },
                     {
                         data: 'created_at',
-                        className: "align-middle text-right",
+                        className: "align-middle text-center",
                         render: function (data) {
                             // pakai format dd-mmm-yyyy
                             if (data) {

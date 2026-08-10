@@ -877,11 +877,23 @@ class CuttingService
                 $firstFormCutDetail = $formCutDetail->first();
             }
 
+            $currentPenerimaan = [];
             $currentQty = $firstFormCutDetail->qty;
             foreach ($formCutDetail as $index => $detail) {
+                
+                // Check Penerimaan
+                $penerimaan = DB::table("penerimaan_cutting")->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+                
+                $qtyPenerimaan = 0;
+                foreach ($penerimaan as $p) {
+                    $qtyPenerimaan += $p->qty_konv;
+
+                    array_push($currentPenerimaan, $p->id);
+                }
+
                 $formCut = $detail->formCutInput;
 
-                $detail->qty = $currentQty;
+                $detail->qty = $currentQty + $qtyPenerimaan;
 
                 // Recalculate :
                     // Sambungan Roll
@@ -923,6 +935,9 @@ class CuttingService
                         $currentIdRoll = $detail->id_roll;
                     // Sambungan
                     } else {
+                        // Sambungan
+                        $sambungan = $detail->sambungan;
+
                         // Est. Ampar
                         $estAmpar = $qty / $pAct;
 
@@ -955,9 +970,6 @@ class CuttingService
                     \Log::info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
                     $detail->save();
                 // End of Recalculate
-
-                // Set Current Qty
-                $currentQty = $detail->sisa_kain;
             }
 
             // Fix Scanned Item

@@ -152,6 +152,10 @@
                     targets: [0],
                     className: 'align-middle',
                     render: (data, type, row, meta) => {
+                        let isSuperadmin = {{ auth()->user()->roles->where('nama_role', 'superadmin')->count() > 0 ? 'true' : 'false' }};
+                        if (!isSuperadmin) {
+                            return '-';
+                        }
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                                 <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editSecondaryMasterModal" onclick='editData(` + JSON.stringify(row) + `, "editSecondaryMasterModal", [{"function" : "dataTableSecondaryMasterReload()"}]);'>

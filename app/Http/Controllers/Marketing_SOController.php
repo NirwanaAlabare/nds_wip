@@ -1477,7 +1477,7 @@ class Marketing_SOController extends Controller
                     'id_smode'    => $act_costing_new ? $act_costing_new->ship_mode : null,
                     'status'      => ($act_costing_new && $act_costing_new->status) ? $act_costing_new->status : 'CONFIRM',
                     'unit'        => ($act_costing_new && $act_costing_new->unit) ? $act_costing_new->unit : 'PCS',
-                    'main_dest'   => $act_costing_new ? $act_costing_new->main_dest : null,
+                    'main_dest'   => $act_costing_new ? $act_costing_new->main_dest : '-',
                 ]);
 
                 $curr_name_so = '';
@@ -1603,7 +1603,7 @@ class Marketing_SOController extends Controller
                         'id_color'     => $color->id ?? null,
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
-                        'dest'    => $d->market ?? null,
+                        'dest'    => $d->market ?? '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
                     ];
@@ -1725,6 +1725,16 @@ class Marketing_SOController extends Controller
             ->select('so_det.*', 'master_size_new.urutan as size_urutan')
             ->where('so_det.id_so', $id)
             ->get();
+
+        $lockedIds = DB::table('ppic_master_so')
+            ->whereIn('id_so_det', $details->pluck('id'))
+            ->pluck('id_so_det')
+            ->flip();
+        // dd($lockedIds, $details->pluck('id'));
+        $details = $details->map(function ($item) use ($lockedIds) {
+            $item->is_locked = isset($lockedIds[$item->id]);
+            return $item;
+        });
 
         return response()->json([
             'header' => $header,
@@ -2208,10 +2218,22 @@ class Marketing_SOController extends Controller
             $detailData = DB::connection('mysql_sb')->table('so_det')->where('id', $firstDetailId)->first();
             $so_id = $detailData->id_so;
 
+            $allIds = collect($data)->pluck('id');
+            $lockedIds = DB::table('ppic_master_so')
+                ->whereIn('id_so_det', $allIds)
+                ->pluck('id_so_det')
+                ->flip();
+
             foreach ($data as $item) {
+                $updateFields = ['qty' => $item['qty']];
+
+                if (array_key_exists('dest', $item) && !isset($lockedIds[$item['id']])) {
+                    $updateFields['dest'] = $item['dest'];
+                }
+
                 DB::connection('mysql_sb')->table('so_det')
                     ->where('id', $item['id'])
-                    ->update(['qty' => $item['qty']]);
+                    ->update($updateFields);
 
                 $this->logSoDet($item['id']);
             }

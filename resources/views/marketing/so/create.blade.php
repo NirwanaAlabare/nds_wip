@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
+        :root {
+            --sb-navy: #0f172a;
+            --sb-blue: #3085d6;
+            --sb-blue-dark: #1e3a8a;
+            --sb-border: #e2e8f0;
+        }
+
         #card-preview .card-body {
             max-height: 500px;
             overflow-y: auto;
@@ -20,204 +27,367 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background-color: var(--sb-color) !important;
+            background-color: var(--sb-navy) !important;
         }
+
+        /* ============ CARD UTAMA ============ */
+        .card-sb {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        }
+
+        .card-sb > .card-header {
+            background: var(--sb-navy) !important;
+            border: none;
+            padding: 1.4rem 2rem;
+            position: relative;
+        }
+
+        .card-sb > .card-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 5px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card-sb > .card-header .card-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #5aa9f0;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card-sb > .card-header .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc !important;
+            margin: 0;
+        }
+
+        /* Preview card pakai header kuning (khas "perlu perhatian") — tetap dibuat konsisten radius/eyebrow */
+        .card-sb > .card-header.bg-warning {
+            background: linear-gradient(135deg, #f0ad4e, #d9822b) !important;
+        }
+        .card-sb > .card-header.bg-warning::before {
+            background: repeating-linear-gradient(180deg, #fff3cd 0px, #fff3cd 10px, transparent 10px, transparent 20px);
+        }
+        .card-sb > .card-header.bg-warning .card-title {
+            color: white; !important;
+        }
+
+        .card-sb > .card-body {
+            background: #fbfcff;
+            padding: 1.75rem 2rem 2rem;
+        }
+
+        /* ============ SECTION CARD (pengelompokan form) ============ */
+        .form-section {
+            background: #fff;
+            border: 1px solid #eef1f5;
+            border-radius: 14px;
+            padding: 1.3rem 1.5rem 1rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--sb-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid #eef1f5;
+        }
+
+        .form-section-title i { color: var(--sb-blue); font-size: 13px; }
+
+        .form-group label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-control,
+        .select2-container--bootstrap4 .select2-selection {
+            border-radius: 8px;
+            border: 1.5px solid var(--sb-border);
+        }
+        .form-control:focus,
+        .select2-container--bootstrap4.select2-container--focus .select2-selection {
+            border-color: var(--sb-blue) !important;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+        }
+
+        /* Section khusus upload (dibedakan warna agar terlihat sebagai area aksi) */
+        .form-section.form-section-upload {
+            background: #f4f8fd;
+            border-color: #dbe7f7;
+        }
+
+        .upload-preview-box {
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #ffffff;
+            min-height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* ============ TABLE PREVIEW ============ */
+        #table-preview-so thead th,
+        #table-preview-so tfoot th {
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============ FOOTER ============ */
+        .card-footer.text-right {
+            border-top: 1px solid #eef1f5;
+            background: #fff;
+            padding: 1rem 2rem;
+        }
+        .card-footer .btn {
+            border-radius: 8px;
+            font-weight: 700;
+        }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #15803d); border: none; }
     </style>
 @endsection
 
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h3 class="card-title fw-bold">Create Sales Order</h3>
+        <span class="card-eyebrow">Marketing &middot; Sales Order</span>
+        <h3 class="card-title" style="font-size: 1.1rem;">Create Sales Order</h3>
     </div>
     <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="card-body">
-            <div class="row mb-3 pb-3 border-bottom">
-                <div class="col-md-6 form-group mb-0">
-                    <div class="d-flex align-items-center" style="gap: 5px;">
-                        <select name="id_bom" id="id_bom" class="form-control select2bs4">
-                            <option value="">Pilih No Katalog BOM</option>
-                            @foreach($bom_catalog as $bom)
-                                <option value="{{ $bom->id }}">
-                                    {{ "{$bom->no_katalog_bom} - {$bom->style}" }}
+
+            {{-- ============ SECTION: KATALOG BOM ============ --}}
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-book"></i>BOM</div>
+                <div class="row">
+                    <div class="col-md-6 form-group mb-0">
+                        <div class="d-flex align-items-center" style="gap: 5px;">
+                            <select name="id_bom" id="id_bom" class="form-control select2bs4">
+                                <option value="">Pilih BOM</option>
+                                @foreach($bom_catalog as $bom)
+                                    <option value="{{ $bom->id }}">
+                                        {{ "{$bom->no_katalog_bom} - {$bom->style}" }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="redirect_to_edit_bom()">
+                                <i class="fas fa-edit"></i> Edit BOM
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ============ SECTION: INFORMASI DASAR ============ --}}
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-info-circle"></i> Info</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Buyer <span class="text-danger">*</span></label>
+                        <select name="id_buyer" id="id_buyer" class="form-control select2bs4" >
+                            <option value="">Pilih Buyer</option>
+                            @foreach ($buyers as $buyer)
+                                <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Style <span class="text-danger">*</span></label>
+                        <input type="text" name="style" id="style" class="form-control" >
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Market <span class="text-danger">*</span></label>
+                        <input type="text" name="market" id="market" class="form-control" >
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Brand <span class="text-danger">*</span></label>
+                        <input type="text" name="brand" id="brand" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ============ SECTION: PRODUK & MARKETING ============ --}}
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-tshirt"></i> Produk & Marketing</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Product Group <span class="text-danger">*</span></label>
+                        <select name="product_group" id="product_group" class="form-control select2bs4">
+                            <option value="">Pilih Product Group</option>
+                            @foreach($product_groups as $group)
+                                <option value="{{ $group->product_group }}">{{ $group->product_group }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Product Item <span class="text-danger">*</span></label>
+                        <select name="id_product_item" id="id_product_item" class="form-control select2bs4">
+                            <option value="">Pilih Product Item</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Marketing Order <span class="text-danger">*</span></label>
+                        <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
+                            <option value="">Pilih Marketing Order</option>
+                            @foreach ($marketing_orders as $mo)
+                                <option value="{{ $mo->id }}">
+                                    {{ $mo->mkt_order }}
                                 </option>
                             @endforeach
                         </select>
-                        <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="redirect_to_edit_bom()">
-                            <i class="fas fa-edit"></i> Edit BOM
-                        </button>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>SMV <span class="text-danger">*</span></label>
+                        <input type="text" name="smv" id="smv" class="form-control input-decimal">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Type</label>
+                         <select name="type" id="type" class="form-control select2bs4" required disabled>
+                            <option value="single">SINGLE</option>
+                            <option value="multiple">MULTIPLE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Product Type</label>
+                        <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
+                            @isset($master_set)
+                                @foreach ($master_set as $m_set)
+                                    <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
+                                @endforeach
+                            @endisset
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-2">
-                <div class="col-md-3 form-group">
-                    <label>Buyer <span class="text-danger">*</span></label>
-                    <select name="id_buyer" id="id_buyer" class="form-control select2bs4" >
-                        <option value="">Pilih Buyer</option>
-                        @foreach ($buyers as $buyer)
-                            <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Style <span class="text-danger">*</span></label>
-                    <input type="text" name="style" id="style" class="form-control" >
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Market <span class="text-danger">*</span></label>
-                    <input type="text" name="market" id="market" class="form-control" >
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Brand <span class="text-danger">*</span></label>
-                    <input type="text" name="brand" id="brand" class="form-control">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>Product Group <span class="text-danger">*</span></label>
-                    <select name="product_group" id="product_group" class="form-control select2bs4">
-                        <option value="">Pilih Product Group</option>
-                        @foreach($product_groups as $group)
-                            <option value="{{ $group->product_group }}">{{ $group->product_group }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Product Item <span class="text-danger">*</span></label>
-                    <select name="id_product_item" id="id_product_item" class="form-control select2bs4">
-                        <option value="">Pilih Product Item</option>
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Marketing Order <span class="text-danger">*</span></label>
-                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
-                        <option value="">Pilih Marketing Order</option>
-                        @foreach ($marketing_orders as $mo)
-                            <option value="{{ $mo->id }}">
-                                {{ $mo->mkt_order }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>SMV <span class="text-danger">*</span></label>
-                    <input type="text" name="smv" id="smv" class="form-control input-decimal">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>Currency <span class="text-danger">*</span></label>
-                   <select name="id_currency" id="id_currency" class="form-control select2bs4">
-                        <option value="">Pilih Currency</option>
-                        @foreach($currency as $curr)
-                            <option value="{{ $curr->id }}">{{ $curr->nama_pilihan }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 form-group hidden">
-                    <label>Confirm Price <span class="text-danger">*</span></label>
-                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Jenis SO <span class="text-danger">*</span></label>
-                    <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
-                        <option value="">Pilih Jenis SO</option>
-                        <option value="FOB">FOB</option>
-                        <option value="CMT">CMT</option>
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Notes <span class="text-danger"></span></label>
-                    <input type="text" name="notes" id="notes" class="form-control">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Type</label>
-                     <select name="type" id="type" class="form-control select2bs4" required disabled>
-                        <option value="single">SINGLE</option>
-                        <option value="multiple">MULTIPLE</option>
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Product Type</label>
-                    <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
-                        @isset($master_set)
-                            @foreach ($master_set as $m_set)
-                                <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
+            {{-- ============ SECTION: HARGA & JENIS SO ============ --}}
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-money-bill-wave"></i> Harga & Jenis SO</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Currency <span class="text-danger">*</span></label>
+                       <select name="id_currency" id="id_currency" class="form-control select2bs4">
+                            <option value="">Pilih Currency</option>
+                            @foreach($currency as $curr)
+                                <option value="{{ $curr->id }}">{{ $curr->nama_pilihan }}</option>
                             @endforeach
-                        @endisset
-                    </select>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>FOB</label>
-                    <input type="text" name="fob" id="fob" class="form-control input-decimal">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>Total Qty</label>
-                    <input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" readonly>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Jumlah PO</label>
-                    <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Sistem PO <span class="text-danger">*</span></label>
-                    <select name="po_type" id="po_type" class="form-control select2bs4" required>
-                        <option value="single">1 WS 1 PO</option>
-                        <option value="multiple">1 WS Beberapa PO</option>
-                    </select>
-                </div>
-            </div>
-
-            {{-- <div class="row">
-                <
-                 <div class="col-md-3 form-group hidden">
-                    <label>Price Costing</label>
-                    <input type="text" name="price_costing" id="price_costing" class="form-control input-decimal">
-                </div>
-            </div> --}}
-            <hr>
-
-            <div class="row mb-3 bg-light pt-3 pb-2 rounded border mx-0 mt-3">
-                <div class="col-md-5">
-                    <div class="form-group mb-3">
-                        <label class="fw-bold"><i class="fas fa-image"></i> Gambar SO</label>
-                        <br>
-                        <span class="badge badge-info px-2 py-1"><i class="fas fa-magic"></i></span>
-                        <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
+                        </select>
                     </div>
+                    <div class="col-md-3 form-group hidden">
+                        <label>Confirm Price <span class="text-danger">*</span></label>
+                        <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Jenis SO <span class="text-danger">*</span></label>
+                        <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
+                            <option value="">Pilih Jenis SO</option>
+                            <option value="FOB">FOB</option>
+                            <option value="CMT">CMT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Notes <span class="text-danger"></span></label>
+                        <input type="text" name="notes" id="notes" class="form-control">
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>FOB</label>
+                        <input type="text" name="fob" id="fob" class="form-control input-decimal">
+                    </div>
+                </div>
 
-                    <div class="form-group mb-0 mt-4 pt-2 border-top border-secondary">
-                        <label class="fw-bold"><i class="fas fa-file-excel text-success"></i> Upload File (Excel) <span class="text-danger">*</span></label>
-                        <div class="d-flex mb-2 mt-1">
-                            <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-download"></i> Download Template Excel
-                            </a>
+                {{-- <div class="row">
+                    <
+                     <div class="col-md-3 form-group hidden">
+                        <label>Price Costing</label>
+                        <input type="text" name="price_costing" id="price_costing" class="form-control input-decimal">
+                    </div>
+                </div> --}}
+            </div>
+
+            {{-- ============ SECTION: QTY & PO ============ --}}
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-calculator"></i> Qty & PO</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Total Qty</label>
+                        <input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" readonly>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Jumlah PO</label>
+                        <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Sistem PO <span class="text-danger">*</span></label>
+                        <select name="po_type" id="po_type" class="form-control select2bs4" required>
+                            <option value="single">1 WS 1 PO</option>
+                            <option value="multiple">1 WS Beberapa PO</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ============ SECTION: GAMBAR & UPLOAD EXCEL ============ --}}
+            <div class="form-section form-section-upload">
+                <div class="form-section-title"><i class="fas fa-file-excel"></i> Gambar & Upload Data SO</div>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group mb-3">
+                            <label class="fw-bold"><i class="fas fa-image"></i> Gambar SO</label>
+                            <br>
+                            <span class="badge badge-info px-2 py-1"><i class="fas fa-magic"></i></span>
+                            <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
                         </div>
-                        <input type="file" name="file_so" id="file_so" class="form-control p-1" accept=".xls,.xlsx">
-                    </div>
-                </div>
 
-                <div class="col-md-7 form-group text-center d-flex flex-column mb-0">
-                    <label class="fw-bold text-secondary text-left mb-2">Preview Gambar Costing</label>
-                    <div class="border border-secondary border-dashed rounded d-flex justify-content-center align-items-center bg-white flex-grow-1" style="min-height: 180px; overflow: hidden;">
-                        <img id="preview_images" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm border-0" style="max-height: 180px; object-fit: contain; display: none;">
-                        <span id="text_preview" class="text-muted font-italic">Pilih No Katalog BOM terlebih dahulu</span>
+                        <div class="form-group mb-0 mt-4 pt-2 border-top border-secondary">
+                            <label class="fw-bold"><i class="fas fa-file-excel text-success"></i> Upload File (Excel) <span class="text-danger">*</span></label>
+                            <div class="d-flex mb-2 mt-1">
+                                <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-download"></i> Download Template Excel
+                                </a>
+                            </div>
+                            <input type="file" name="file_so" id="file_so" class="form-control p-1" accept=".xls,.xlsx">
+                        </div>
+                    </div>
+
+                    <div class="col-md-7 form-group text-center d-flex flex-column mb-0">
+                        <label class="fw-bold text-secondary text-left mb-2">Preview Gambar Costing</label>
+                        <div class="upload-preview-box flex-grow-1">
+                            <img id="preview_images" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm border-0" style="max-height: 180px; object-fit: contain; display: none;">
+                            <span id="text_preview" class="text-muted font-italic">Pilih No Katalog BOM terlebih dahulu</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <hr>
-
         <div class="card card-sb" id="card-preview">
             <div class="card-header bg-warning">
-                <h3 class="card-title fw-bold"><i class="fas fa-table"></i> Preview Data Upload</h3>
+                <h3 class="card-title" style="font-size: 1.1rem;"><i class="fas fa-table"></i> Preview Data Upload</h3>
             </div>
             <div class="card-body">
                 {{-- <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button> --}}
