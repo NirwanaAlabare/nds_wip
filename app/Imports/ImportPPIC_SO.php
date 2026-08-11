@@ -29,7 +29,7 @@ class ImportPPIC_SO implements ToModel, WithStartRow
             'po' => $row[3],
             'color' => $row[4],
             'size' => $row[5],
-            'dest' => (($row[6] != '' && $row[6] != '-') ? $row[6] : null),
+            'dest' => $row[6],
             'barcode' => $row[7],
             'qty_po' => $row[8],
             'buyer' => $row[9],
