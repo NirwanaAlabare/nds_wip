@@ -245,9 +245,8 @@
                         name: 'a.confirm_price',
                         className: 'text-center align-middle',
                         render: function (data, type, row) {
-                            if (data) {
-                                let formattedValue = parseFloat(data).toFixed(6);
-                                return parseFloat(formattedValue);
+                            if (data !== null && data !== '') {
+                                return parseFloat(data).toFixed(6);
                             }
                             return '0';
                         }
