@@ -413,8 +413,8 @@ class SpreadingController extends Controller
     }
 
     public function updateStatus(Request $request, StockerService $stockerService) {
-        
-        // Check Closing 
+
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -571,7 +571,7 @@ class SpreadingController extends Controller
      */
     public function destroy(FormCutInput $formCutInput, $id, CuttingService $cuttingService, StockerService $stockerService)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -884,9 +884,9 @@ class SpreadingController extends Controller
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
+                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
                             form_cut_id,
@@ -1252,9 +1252,9 @@ class SpreadingController extends Controller
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
+                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
                             form_cut_id,

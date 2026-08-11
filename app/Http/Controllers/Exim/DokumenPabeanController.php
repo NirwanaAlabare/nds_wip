@@ -61,7 +61,7 @@ class DokumenPabeanController extends Controller
                     "{$tbl}.{$fldno} as trx_no_par",
                     'bc.status as ceisa_status',
                     'bc.is_batch',
-                    $selectBatchMerge,
+                    'bc.no_dokumen_merge',
                     'bc.nomor_aju as nomor_aju_ceisa',
                     'bc.tanggal_aju as tanggal_aju_ceisa'
                 )
