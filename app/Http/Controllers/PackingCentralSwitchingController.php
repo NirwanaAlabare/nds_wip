@@ -40,7 +40,7 @@ class PackingCentralSwitchingController extends Controller
                 FROM laravel_nds.packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p
                     ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                     AND a.id_ppic_master_so = ?
                 GROUP BY 
                     a.id_ppic_master_so,
@@ -453,7 +453,7 @@ class PackingCentralSwitchingController extends Controller
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                 group by id_ppic_master_so,a.id_so_det
             ),
             
@@ -620,6 +620,8 @@ class PackingCentralSwitchingController extends Controller
             WHERE
                 YEAR(ppic_master_so.tgl_shipment) >= 2026
                 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                OR ppic_master_so.po = '61297671'
+                OR ppic_master_so.po = '61297673'
             GROUP BY
                 combined.id_ppic_master_so,
                 combined.so_det_id,
@@ -989,7 +991,7 @@ class PackingCentralSwitchingController extends Controller
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
                     INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                     group by id_ppic_master_so,a.id_so_det
                 ),
                 
@@ -1154,7 +1156,7 @@ class PackingCentralSwitchingController extends Controller
                         AND packing_packing_in.id_so_det = combined.so_det_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
                     LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
-                    WHERE YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                    WHERE YEAR(ppic_master_so.tgl_shipment) >= 2026 OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR ppic_master_so.po = '61297671' OR ppic_master_so.po = '61297673'
                     GROUP BY
                         combined.id_ppic_master_so,
                         combined.so_det_id,
@@ -1213,7 +1215,7 @@ class PackingCentralSwitchingController extends Controller
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
                     INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                    WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                     group by id_ppic_master_so,a.id_so_det
                 ),
                 
@@ -1384,6 +1386,8 @@ class PackingCentralSwitchingController extends Controller
                         AND (
                             YEAR(ppic_master_so.tgl_shipment) >= 2026
                             OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                            OR ppic_master_so.po = '61297671'
+                            OR ppic_master_so.po = '61297673'
                         )
                     GROUP BY
                         combined.id_ppic_master_so,
@@ -1450,7 +1454,7 @@ class PackingCentralSwitchingController extends Controller
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                WHERE YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                 group by id_ppic_master_so,a.id_so_det
             ),
             
@@ -1621,6 +1625,8 @@ class PackingCentralSwitchingController extends Controller
                     AND (
                         YEAR(ppic_master_so.tgl_shipment) >= 2026
                         OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                        OR ppic_master_so.po = '61297671'
+                        OR ppic_master_so.po = '61297673'
                     )
                 GROUP BY
                     combined.id_ppic_master_so,

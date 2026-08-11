@@ -493,7 +493,7 @@ class StockerToolsController extends Controller
 
     function recalculateStockerTransaction(Request $request, StockerService $stockerService)
     {
-        return logHistory($request->formCutId, $stockerService->recalculateStockerTransaction($request->formCutId));
+        return $stockerService->recalculateStockerTransaction($request->formCutId);
     }
 
     function restoreStockerLog(Request $request)

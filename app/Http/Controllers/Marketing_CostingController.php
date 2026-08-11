@@ -583,7 +583,7 @@ class Marketing_CostingController extends Controller
             }
 
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
-            $this->updateStyle($id, $request->style);
+            $this->updateStyle($id, $request->style, $request->product_item);
             $this->triggerAutoSyncSO($id);
 
             if ($request->ajax()) {
@@ -606,7 +606,7 @@ class Marketing_CostingController extends Controller
         }
     }
 
-    function updateStyle($id, $style)
+    function updateStyle($id, $style, $product_item)
     {
         $db = DB::connection('mysql_sb');
 
@@ -620,7 +620,7 @@ class Marketing_CostingController extends Controller
         if (!$so) {
             return;
         }
-        $db->table('so')->where('id_bom', $bom->id)->update(['style' => $style]);
+        $db->table('so')->where('id_bom', $bom->id)->update(['style' => $style, 'id_product' => $product_item]);
 
         $actCosting = $db->table('act_costing')->where('id', $so->id_cost)->first();
         if (!$actCosting) {

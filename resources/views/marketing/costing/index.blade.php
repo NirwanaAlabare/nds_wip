@@ -240,7 +240,17 @@
                     { data: 'style', name: 'a.style', className: 'align-middle' },
                     { data: 'market', name: 'a.market', className: 'align-middle' },
                     { data: 'qty', name: 'a.qty', className: 'text-center align-middle' },
-                    { data: 'confirm_price', name: 'a.confirm_price', className: 'text-center align-middle' },
+                    {
+                        data: 'confirm_price',
+                        name: 'a.confirm_price',
+                        className: 'text-center align-middle',
+                        render: function (data, type, row) {
+                            if (data !== null && data !== '') {
+                                return parseFloat(data).toFixed(6);
+                            }
+                            return '0';
+                        }
+                    },
                     { data: 'product_group_text', name: 'p.product_group', className: 'text-center align-middle' },
                     { data: 'product_item_text', name: 'p.product_item', className: 'text-center align-middle' },
                     {
