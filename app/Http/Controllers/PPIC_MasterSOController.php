@@ -76,6 +76,21 @@ class PPIC_MasterSOController extends Controller
                 select id_ppic_master_so, sum(qty) qty_pck_in from packing_packing_in
                 group by id_ppic_master_so
                 ),
+                switching_in AS (
+                    SELECT
+                        tujuan_ppic_master_so_id AS id_ppic_master_so,
+                        SUM(qty_switch) AS qty_switch_in
+                    FROM packing_central_switching
+                    GROUP BY tujuan_ppic_master_so_id
+                ),
+                switching_out AS (
+                    SELECT
+                        asal_ppic_master_so_id AS id_ppic_master_so,
+                        SUM(qty_switch) AS qty_switch_out
+                    FROM packing_central_switching
+                    GROUP BY
+                        asal_ppic_master_so_id
+                ),
                 pck_out as (
                 select id_ppic, count(*) qty_pck_out from packing_packing_out_scan
                 group by id_ppic
@@ -98,7 +113,7 @@ class PPIC_MasterSOController extends Controller
                 gmt.size,
                 p.qty_po,
                 coalesce(pck_trf_gmt.qty_trf,0) qty_trf,
-                coalesce(pck_in.qty_pck_in,0) qty_packing_in,
+                COALESCE(pck_in.qty_pck_in, 0) + COALESCE(switching_in.qty_switch_in, 0) - COALESCE(switching_out.qty_switch_out, 0) AS qty_packing_in,
                 coalesce(pck_out.qty_pck_out,0) qty_packing_out,
                 p.created_by,
                 p.created_at
@@ -107,6 +122,8 @@ class PPIC_MasterSOController extends Controller
                 left join pck_trf_gmt on p.id = pck_trf_gmt.id_ppic_master_so
                 left join pck_in on p.id = pck_in.id_ppic_master_so
                 left join pck_out on p.id = pck_out.id_ppic
+                LEFT JOIN switching_in ON p.id = switching_in.id_ppic_master_so
+                LEFT JOIN switching_out ON p.id = switching_out.id_ppic_master_so
                 LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
                 $condition
                 ORDER BY
