@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
+        :root {
+            --sb-navy: #0f172a;
+            --sb-blue: #3085d6;
+            --sb-blue-dark: #1e3a8a;
+            --sb-border: #e2e8f0;
+        }
+
         #itemTable { table-layout: fixed; width: 100%; }
         #itemTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .select2-container { width: 100% !important; }
@@ -17,6 +24,152 @@
         }
         .select2-results__option { white-space: normal !important; word-wrap: break-word !important; }
         .select2-container .select2-selection--single { height: auto !important; }
+
+        /* ============ CARD UTAMA ============ */
+        .card-sb,
+        .card.card-primary,
+        .card.card-success,
+        .card.card-outline.card-info {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        }
+
+        .card.card-primary > .card-header,
+        .card.card-success > .card-header,
+        .card.card-outline.card-info > .card-header,
+        .card-header.bg-sb {
+            background: var(--sb-navy) !important;
+            border: none !important;
+            padding: 1.4rem 2rem;
+            position: relative;
+        }
+
+        .card.card-primary > .card-header::before,
+        .card.card-success > .card-header::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 5px;
+            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card.card-primary > .card-header .card-title,
+        .card.card-success > .card-header .card-title,
+        .card-header.bg-sb .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #f8fafc !important;
+            margin: 0;
+        }
+
+        .card.card-primary > .card-header .card-eyebrow,
+        .card.card-success > .card-header .card-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #5aa9f0;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card.card-primary > .card-header .btn-primary,
+        .card.card-success > .card-header .btn-primary {
+            border-radius: 8px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--sb-blue), var(--sb-blue-dark));
+            border: none;
+        }
+
+        .card.card-outline.card-info {
+            border-top: 3px solid var(--sb-blue) !important;
+        }
+        .card.card-outline.card-info > .card-header {
+            background: #f4f8fd !important;
+            border-bottom: 1px solid #e7ecf3;
+        }
+        .card.card-outline.card-info .card-title {
+            color: var(--sb-blue-dark) !important;
+        }
+
+        .card-body {
+            background: #fbfcff;
+        }
+
+        /* ============ FORM CONTROLS ============ */
+        .form-label,
+        .form-group label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .form-control,
+        .select2-container--bootstrap4 .select2-selection {
+            border-radius: 8px;
+            border: 1.5px solid var(--sb-border);
+        }
+        .form-control:focus,
+        .select2-container--bootstrap4.select2-container--focus .select2-selection {
+            border-color: var(--sb-blue) !important;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+        }
+
+        /* ============ SECTION CARD (pengelompokan) ============ */
+        .form-section {
+            background: #fff;
+            border: 1px solid #eef1f5;
+            border-radius: 14px;
+            padding: 1.2rem 1.4rem 0.9rem;
+            margin-bottom: 1.3rem;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        }
+        .form-section-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--sb-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid #eef1f5;
+        }
+        .form-section-title i { color: var(--sb-blue); font-size: 12.5px; }
+
+        /* ============ TABLE ITEM ============ */
+        #itemTable thead th,
+        #table-added-items thead th {
+            background: var(--sb-navy) !important;
+            color: #f8fafc !important;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-color: #1e293b;
+            vertical-align: middle;
+        }
+        #table-added-items thead tr.filter-row th {
+            background: #f8fafc !important;
+        }
+
+        /* ============ MODAL TAMBAH WARNA/SIZE ============ */
+        .modal-content {
+            border: none;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .modal-header.bg-sb {
+            background: var(--sb-navy) !important;
+        }
+
+        .btn-success {
+            border-radius: 8px;
+            font-weight: 700;
+        }
     </style>
 @endsection
 
@@ -27,15 +180,20 @@
     <div class="card card-primary ">
         <div class="card-header bg-sb">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold">
-                    Katalog BOM
-                </h5>
+                <div>
+                    <span class="card-eyebrow">Marketing &middot; BOM</span>
+                    <h5 class="card-title">
+                        Katalog BOM
+                    </h5>
+                </div>
                 <a href="{{ route('master-bom') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke BOM
                 </a>
             </div>
         </div>
         <div class="card-body">
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-info-circle"></i> Informasi Katalog</div>
             <div class="row">
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">No Costing <span class="text-danger">*</span></small></label>
@@ -72,8 +230,11 @@
                     <input type="text" class="form-control" name="market" id="market">
                 </div>
             </div>
+            </div>
 
-            <div class="row mt-3">
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-palette"></i> Master Warna & Size</div>
+            <div class="row">
                 <div class="col-md-6">
                     <div class="form-label d-flex justify-content-between">
                         <small class="fw-bold">Master Color <span class="text-danger">*</span></small>
@@ -102,7 +263,8 @@
                     </select>
                 </div>
             </div>
-            <div class="row mt-4">
+            </div>
+            <div class="row mt-1">
                 <div class="col-12 text-right">
                     <button type="button" class="btn btn-primary btn-sm" onclick="confirmCatalog()" id="btn-confirmation"><i class="fas fa-check-circle"></i> Konfirmasi Katalog</button>
                 </div>
@@ -112,9 +274,12 @@
 
     <div class="card mt-3 card-success" id="section-list-item" style="display: none;">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Item</h5>
+            <span class="card-eyebrow">Marketing &middot; BOM</span>
+            <h5 class="card-title mb-0"><i class="fas fa-list"></i> List Item</h5>
         </div>
         <div class="card-body">
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-box-open"></i> Detail Item</div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -177,10 +342,11 @@
                     </div>
                 </div>
             </div>
+            </div>
 
             <div class="table-responsive mt-3">
                 <table class="table table-bordered table-sm w-100" id="itemTable">
-                    <thead class="bg-light text-center">
+                    <thead class="text-center">
                         <tr>
                             <th width="25%">Color | Size</th>
                             <th>Item</th>
@@ -202,13 +368,13 @@
 
     <div class="card card-outline card-info mt-3" id="section_table_list_item" style="display: none;">
         <div class="card-header">
-            <h5 class="card-title fw-bold text-info"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
+            <h5 class="card-title fw-bold"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-sm table-striped table-bordered mb-0 w-100" id="table-added-items">
                     <thead>
-                        <tr class="text-center bg-light">
+                        <tr class="text-center">
                             <th width="5%">No</th>
                             <th width="20%">Content</th>
                             <th>Item Description</th>
@@ -218,7 +384,7 @@
                             <th width="10%">Price</th>
                             <th width="10%">Unit</th>
                         </tr>
-                        <tr class="bg-light filter-row">
+                        <tr class="filter-row">
                             <th></th>
                             <th><input type="text" class="form-control form-control-sm column-search" data-column="1" placeholder="Filter Content..."></th>
                             <th><input type="text" class="form-control form-control-sm column-search" data-column="2" placeholder="Filter Item..."></th>
@@ -667,10 +833,10 @@
                         render: function(data) {
                             let nilai = parseFloat(data);
                             if (isNaN(nilai)) return '0.0000000000';
-                            
+
                             let stringNilai = nilai.toString();
                             if (stringNilai.indexOf('.') === -1) return nilai.toFixed(10);
-                            
+
                             let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,10})?/)[0];
                             return parseFloat(hasilPotong).toFixed(10);
                         }
