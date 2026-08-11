@@ -188,9 +188,9 @@ ORDER BY
         }
 
         $units = DB::select("
-            SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe
+            SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe, kepemilikan
             FROM (
-                SELECT a.id, a.serial_number, a.lokasi, a.status, a.bpbno_int, k.nm_merk, m.tipe
+                SELECT a.id, a.serial_number, a.lokasi, a.status, a.bpbno_int, k.nm_merk, m.tipe, 'PEMBELIAN' AS kepemilikan
                 FROM asset_penerimaan_mesin a
                 INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
                 INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
@@ -199,7 +199,7 @@ ORDER BY
 
                 UNION ALL
 
-                SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe
+                SELECT id, serial_number, lokasi, status, bpbno_int, nm_merk, tipe, 'SEWA' AS kepemilikan
                 FROM asset_penerimaan_mesin_sewa
                 WHERE $whereSewa
             ) AS units
