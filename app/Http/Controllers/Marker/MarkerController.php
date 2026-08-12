@@ -51,7 +51,17 @@ class MarkerController extends Controller
                 COALESCE(b.status_selesai, 'BELUM') status_selesai,
                 COALESCE(notes, '-') notes,
                 cancel,
-                created_by_username
+                COALESCE(
+                    created_by_username,
+                    (
+                        SELECT u.username
+                        FROM activity_log al
+                        LEFT JOIN users u ON u.id = al.causer_id
+                        WHERE al.subject_id = marker_input.id
+                        ORDER BY al.id DESC
+                        LIMIT 1
+                    )
+                ) AS created_by_username
             ")->
             leftJoin(
                 DB::raw("
@@ -102,7 +112,21 @@ class MarkerController extends Controller
                 })->filterColumn('po_marker', function ($query, $keyword) {
                     $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('created_by_username', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(created_by_username) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("
+                        LOWER(
+                            COALESCE(
+                                marker_input.created_by_username,
+                                (
+                                    SELECT u.username
+                                    FROM activity_log al
+                                    LEFT JOIN users u ON u.id = al.causer_id
+                                    WHERE al.subject_id = marker_input.id
+                                    ORDER BY al.id DESC
+                                    LIMIT 1
+                                )
+                            )
+                        ) LIKE LOWER(?)
+                    ", ["%{$keyword}%"]);
                 })->order(function ($query) {
                     $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
                 })->toJson();
