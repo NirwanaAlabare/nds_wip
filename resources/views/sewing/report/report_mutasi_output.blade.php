@@ -69,14 +69,15 @@
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="15" style="background-color: lightyellow; text-align:center;">Sewing</th>
                             <th colspan="12" style="background-color: pink; text-align:center;">QC Finishing</th>
-                            <th colspan="8" style="background-color: lightsteelblue; text-align:center;">Finishing
-                            </th>
-                            <th colspan="5" style="background-color: #FFE5B4; text-align:center;">Defect Sewing
-                            </th>
-                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
-                            </th>
-                            <th colspan="5" style="background-color: lightyellow; text-align:center;">Defect Mending
-                            </th>
+                            <th colspan="8" style="background-color: #90EE90; text-align:center;">Finishing - Pasang Kancing</th>
+                            <th colspan="8" style="background-color: #87CEEB; text-align:center;">Finishing - Bartack</th>
+                            <th colspan="8" style="background-color: #D8BFD8; text-align:center;">Finishing - Heatseal</th>
+                            <th colspan="8" style="background-color: #5DADE2; text-align:center;">Finishing - Snap</th>
+                            <th colspan="8" style="background-color: #C8E6C9; text-align:center;">Finishing - Embro</th>
+                            <th colspan="5" style="background-color: #FFE5B4; text-align:center;">Defect Sewing</th>
+                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning</th>
+                            <th colspan="5" style="background-color: lightyellow; text-align:center;">Defect Mending</th>
+                            <th colspan="8" style="background-color: #FFA94D; text-align:center;">Transit Terima QC Reject</th>
                             <th colspan="6" style="background-color: pink; text-align:center;">QC Reject</th>
                         </tr>
                         <tr>
@@ -119,16 +120,55 @@
                             <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
 
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Output</th>
-                            {{-- <th class="text-center align-middle" style="background-color: lightsteelblue;">Switching OUT</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Switching IN</th> --}}
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Akhir</th>
+                            <!-- Finishing - Pasang Kancing -->
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Output</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #90EE90;">Saldo Akhir</th>
+
+                            <!-- Finishing - Bartack -->
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Output</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #87CEEB;">Saldo Akhir</th>
+
+                            <!-- Finishing - Heatseal -->
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Output</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Saldo Akhir</th>
+
+                            <!-- Finishing - Snap -->
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Output</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #5DADE2;">Saldo Akhir</th>
+
+                            <!-- Finishing - Embro -->
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Output</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Terima</th>
@@ -154,6 +194,15 @@
                             <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
 
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Terima Sewing</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Terima QC Finishing</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Terima Finishing</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Keluar QC Reject</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Keluar Packing</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Adjustment</th>
+                            <th class="text-center align-middle" style="background-color: #FFA94D;">Saldo Akhir</th>
+                            
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: pink;">Terima</th>
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Sewing</th>
@@ -168,7 +217,7 @@
                     <tfoot>
                         <tr>
                             <th class="text-center" colspan="5">Total</th>
-                            @for ($i = 1; $i <= 56; $i++)
+                            @for ($i = 1; $i <= 96; $i++)
                                 <th></th>
                             @endfor
                         </tr>
@@ -386,34 +435,128 @@
 
 
                     {
-                        data: 'saldo_awal_secondary_proses'
+                        data: 'saldo_awal_finishing_pasang_kancing'
                     },
                     {
-                        data: 'total_in_sp'
+                        data: 'total_in_sp_pasang_kancing'
                     },
                     {
-                        data: 'rework_sp'
+                        data: 'rework_sp_pasang_kancing'
                     },
                     {
-                        data: 'defect_sp'
+                        data: 'defect_sp_pasang_kancing'
                     },
                     {
-                        data: 'reject_sp'
+                        data: 'reject_sp_pasang_kancing'
                     },
                     {
-                        data: 'rft_sp'
-                    },
-                    // {
-                    //     data: 'finishing_switching_out'
-                    // },
-                    // {
-                    //     data: 'finishing_switching_in'
-                    // },
-                    {
-                        data: 'finishing_adjust'
+                        data: 'rft_sp_pasang_kancing'
                     },
                     {
-                        data: 'saldo_akhir_secondary_proses'
+                        data: 'finishing_adjust_pasang_kancing'
+                    },
+                    {
+                        data: 'saldo_akhir_finishing_pasang_kancing'
+                    },
+
+                    {
+                        data: 'saldo_awal_finishing_bartack'
+                    },
+                    {
+                        data: 'total_in_sp_bartack'
+                    },
+                    {
+                        data: 'rework_sp_bartack'
+                    },
+                    {
+                        data: 'defect_sp_bartack'
+                    },
+                    {
+                        data: 'reject_sp_bartack'
+                    },
+                    {
+                        data: 'rft_sp_bartack'
+                    },
+                    {
+                        data: 'finishing_adjust_bartack'
+                    },
+                    {
+                        data: 'saldo_akhir_finishing_bartack'
+                    },
+
+                    {
+                        data: 'saldo_awal_finishing_heatseal'
+                    },
+                    {
+                        data: 'total_in_sp_heatseal'
+                    },
+                    {
+                        data: 'rework_sp_heatseal'
+                    },
+                    {
+                        data: 'defect_sp_heatseal'
+                    },
+                    {
+                        data: 'reject_sp_heatseal'
+                    },
+                    {
+                        data: 'rft_sp_heatseal'
+                    },
+                    {
+                        data: 'finishing_adjust_heatseal'
+                    },
+                    {
+                        data: 'saldo_akhir_finishing_heatseal'
+                    },
+
+                    {
+                        data: 'saldo_awal_finishing_snap'
+                    },
+                    {
+                        data: 'total_in_sp_snap'
+                    },
+                    {
+                        data: 'rework_sp_snap'
+                    },
+                    {
+                        data: 'defect_sp_snap'
+                    },
+                    {
+                        data: 'reject_sp_snap'
+                    },
+                    {
+                        data: 'rft_sp_snap'
+                    },
+                    {
+                        data: 'finishing_adjust_snap'
+                    },
+                    {
+                        data: 'saldo_akhir_finishing_snap'
+                    },
+
+                    {
+                        data: 'saldo_awal_finishing_embro'
+                    },
+                    {
+                        data: 'total_in_sp_embro'
+                    },
+                    {
+                        data: 'rework_sp_embro'
+                    },
+                    {
+                        data: 'defect_sp_embro'
+                    },
+                    {
+                        data: 'reject_sp_embro'
+                    },
+                    {
+                        data: 'rft_sp_embro'
+                    },
+                    {
+                        data: 'finishing_adjust_embro'
+                    },
+                    {
+                        data: 'saldo_akhir_finishing_embro'
                     },
 
 
@@ -487,6 +630,31 @@
 
 
                     {
+                        data: 'qty_transit_saldo_awal'
+                    },
+                    {
+                        data: 'qty_transit_terima_sewing'
+                    },
+                    {
+                        data: 'qty_transit_terima_qc_finishing'
+                    },
+                    {
+                        data: 'qty_transit_terima_finishing'
+                    },
+                    {
+                        data: 'qty_transit_keluar_qc_reject'
+                    },
+                    {
+                        data: 'qty_transit_keluar_packing'
+                    },
+                    {
+                        data: 'qty_transit_adjustment'
+                    },
+                    {
+                        data: 'qty_transit_keluar_saldo_akhir'
+                    },
+
+                    {
                         data: 'saldo_awal_reject'
                     },
                     {
@@ -523,7 +691,7 @@
                     };
 
                     // mulai kolom ke-5
-                    for (let col = 5; col <= 60; col++) {
+                    for (let col = 5; col <= 100; col++) {
                         let total = api
                             .column(col, {
                                 search: 'applied'

@@ -326,7 +326,7 @@ class ReportMutasiOutputController extends Controller
                                             LEFT JOIN output_rfts r ON r.id = osi.rft_id
                                             WHERE
                                             osod.created_at >= '$start_date 00:00:00' and osod.created_at <= '$end_date 23:59:59'
-                                            GROUP BY r.so_det_id,date(osod.created_at)
+                                            GROUP BY r.so_det_id, date(osod.created_at)
 
                                             UNION ALL
 
@@ -348,6 +348,94 @@ class ReportMutasiOutputController extends Controller
                                             GROUP BY r.so_det_id, date(osor.updated_at)
                                     ) os
                                     GROUP BY os.so_det_id, tgl_proses
+            ),
+            secondary_proses_per_proses AS (
+                SELECT
+                    os.so_det_id,
+                    os.secondary_id,
+                    tgl_proses,
+                    SUM(COALESCE(os.total_in, 0)) AS total_in,
+                    SUM(COALESCE(os.rft, 0)) AS rft,
+                    SUM(COALESCE(os.defect, 0)) AS defect,
+                    SUM(COALESCE(os.rework, 0)) AS rework,
+                    SUM(COALESCE(os.reject, 0)) AS reject,
+                    SUM(COALESCE(os.reject_defect, 0)) AS reject_defect
+                FROM (
+                    /* TOTAL IN */
+                    SELECT
+                        r.so_det_id,
+                        osi.secondary_id,
+                        DATE(osi.updated_at) AS tgl_proses,
+                        SUM(CASE WHEN DATE(osi.updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS total_in,
+                        0 AS rft, 0 AS defect,
+                        0 AS rework, 0 AS reject,
+                        0 AS reject_defect
+                    FROM output_secondary_in osi
+                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                    WHERE osi.updated_at <= '$end_date 23:59:59'
+                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osi.updated_at)
+
+                    UNION ALL
+
+                    /* RFT & REWORK */
+                    SELECT
+                        r.so_det_id,
+                        osi.secondary_id,
+                        DATE(oso.updated_at) AS tgl_proses,
+                        0 AS total_in,
+                        SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft,
+                        0 AS defect,
+                        SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework,
+                        0 AS reject,
+                        0 AS reject_defect
+                    FROM output_secondary_out oso
+                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                    WHERE oso.status NOT IN ('defect', 'reject')
+                        AND oso.updated_at <= '$end_date 23:59:59'
+                    GROUP BY r.so_det_id, osi.secondary_id, DATE(oso.updated_at)
+
+                    UNION ALL
+
+                    /* DEFECT */
+                    SELECT
+                        r.so_det_id,
+                        osi.secondary_id,
+                        DATE(osod.created_at) AS tgl_proses,
+                        0 AS total_in,
+                        0 AS rft,
+                        SUM(CASE WHEN DATE(osod.created_at) >= '$start_date' THEN 1 ELSE 0 END) AS defect,
+                        0 AS rework,
+                        0 AS reject,
+                        0 AS reject_defect
+                    FROM output_secondary_out_defect osod
+                    LEFT JOIN output_secondary_out oso ON oso.id = osod.secondary_out_id
+                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                    WHERE osod.created_at <= '$end_date 23:59:59'
+                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osod.created_at)
+
+                    UNION ALL
+
+                    /* REJECT */
+                    SELECT
+                        r.so_det_id,
+                        osi.secondary_id,
+                        DATE(osor.updated_at) AS tgl_proses,
+                        0 AS total_in,
+                        0 AS rft,
+                        0 AS defect,
+                        0 AS rework,
+                        SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject,
+                        SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect
+                    FROM output_secondary_out_reject osor
+                    LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
+                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                    WHERE osor.updated_at <= '$end_date 23:59:59'
+                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osor.updated_at)
+                ) os
+                GROUP BY os.so_det_id, os.secondary_id, tgl_proses
             ),
             qc_reject as (
                                             SELECT
@@ -371,6 +459,49 @@ class ReportMutasiOutputController extends Controller
                                             where a.created_at >= '$start_date 00:00:00' and a.created_at <= '$end_date 23:59:59' and mp.cancel = 'N'
                                             group by so_det_id, date(a.created_at)
             ),
+            qty_transit_terima_sewing_before AS (
+                SELECT
+                    so_det_id,
+                    date(updated_at) tgl_reject,
+                    COUNT(*) AS qty_transit_terima_sewing_before
+                FROM signalbit_erp.output_rejects a
+                INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                WHERE updated_at >= '2026-07-01 00:00:00' AND updated_at < '$start_date 00:00:00' AND mp.cancel = 'N'
+                GROUP BY so_det_id, date(updated_at)
+            ),
+            qty_transit_terima_qc_finishing_before AS (
+                SELECT
+                    so_det_id,
+                    DATE(updated_at) AS tgl_fin_reject,
+                    COUNT(*) AS qty_transit_terima_qc_finishing_before
+                FROM signalbit_erp.output_rejects_packing a
+                INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                WHERE updated_at >= '2026-07-01 00:00:00' AND updated_at < '$start_date 00:00:00' AND mp.cancel = 'N'
+                GROUP BY so_det_id, DATE(updated_at)
+            ),
+            qty_transit_terima_finishing_before AS (
+                SELECT
+                    r.so_det_id,
+                    DATE(osor.updated_at) AS tgl_proses,
+                    COUNT(*) AS qty_transit_terima_finishing_before
+                FROM output_secondary_out_reject osor
+                LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
+                LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                WHERE osor.updated_at >= '2026-07-01 00:00:00' AND osor.updated_at < '$start_date 00:00:00' AND osor.status = 'mati'
+                GROUP BY r.so_det_id, DATE(osor.updated_at)
+            ),
+            qty_transit_keluar_qc_reject_before AS (
+                SELECT
+                    so_det_id,
+                    DATE(a.created_at) AS tgl_reject,
+                    COUNT(*) AS qty_transit_keluar_qc_reject_before
+                FROM signalbit_erp.output_reject_in a
+                INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                WHERE a.created_at >= '2026-07-01 00:00:00' AND a.created_at < '$start_date 00:00:00' AND mp.cancel = 'N'
+                GROUP BY so_det_id, DATE(a.created_at)
+            ),
+            
             saldo_sew as(
                 SELECT
                     mut_sew.id_so_det,
@@ -399,7 +530,37 @@ class ReportMutasiOutputController extends Controller
                     SUM(reject_defect_sp) AS reject_defect_sp,
                     SUM(qty_reject_in) AS qty_reject_in,
                     SUM(qty_rejected) AS qty_rejected,
-                    SUM(qty_reworked) AS qty_reworked
+                    SUM(qty_reworked) AS qty_reworked,
+                    SUM(qty_transit_terima_sewing_before) AS qty_transit_terima_sewing_before,
+                    SUM(qty_transit_terima_qc_finishing_before) AS qty_transit_terima_qc_finishing_before,
+                    SUM(qty_transit_terima_finishing_before) AS qty_transit_terima_finishing_before,
+                    SUM(qty_transit_keluar_qc_reject_before) AS qty_transit_keluar_qc_reject_before,
+
+                    SUM(total_in_sp_pasang_kancing) AS total_in_sp_pasang_kancing,
+                    SUM(rft_sp_pasang_kancing) AS rft_sp_pasang_kancing,
+                    SUM(defect_sp_pasang_kancing) AS defect_sp_pasang_kancing,
+                    SUM(rework_sp_pasang_kancing) AS rework_sp_pasang_kancing,
+                    SUM(reject_sp_pasang_kancing) AS reject_sp_pasang_kancing,
+                    SUM(total_in_sp_bartack) AS total_in_sp_bartack,
+                    SUM(rft_sp_bartack) AS rft_sp_bartack,
+                    SUM(defect_sp_bartack) AS defect_sp_bartack,
+                    SUM(rework_sp_bartack) AS rework_sp_bartack,
+                    SUM(reject_sp_bartack) AS reject_sp_bartack,
+                    SUM(total_in_sp_heatseal) AS total_in_sp_heatseal,
+                    SUM(rft_sp_heatseal) AS rft_sp_heatseal,
+                    SUM(defect_sp_heatseal) AS defect_sp_heatseal,
+                    SUM(rework_sp_heatseal) AS rework_sp_heatseal,
+                    SUM(reject_sp_heatseal) AS reject_sp_heatseal,
+                    SUM(total_in_sp_snap) AS total_in_sp_snap,
+                    SUM(rft_sp_snap) AS rft_sp_snap,
+                    SUM(defect_sp_snap) AS defect_sp_snap,
+                    SUM(rework_sp_snap) AS rework_sp_snap,
+                    SUM(reject_sp_snap) AS reject_sp_snap,
+                    SUM(total_in_sp_embro) AS total_in_sp_embro,
+                    SUM(rft_sp_embro) AS rft_sp_embro,
+                    SUM(defect_sp_embro) AS defect_sp_embro,
+                    SUM(rework_sp_embro) AS rework_sp_embro,
+                    SUM(reject_sp_embro) AS reject_sp_embro
                 FROM
                 (
                     SELECT
@@ -409,7 +570,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_loading
                     UNION ALL
                     SELECT
@@ -419,7 +586,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_sewing
                     UNION ALL
                     SELECT
@@ -429,7 +602,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_sewing_defect
                     UNION ALL
                     SELECT
@@ -439,7 +618,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_sewing_reject
                     UNION ALL
                     SELECT
@@ -449,7 +634,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS qty_fin_reject,
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_finishing
                     UNION ALL
                     SELECT
@@ -459,7 +650,13 @@ class ReportMutasiOutputController extends Controller
                     defect_sewing AS defect_sewing_f, defect_spotcleaning AS defect_spotcleaning_f, defect_mending AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_finishing_defect
                     UNION ALL
                     SELECT
@@ -469,7 +666,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     qty_fin_reject AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM saldo_finishing_reject
                     UNION ALL
                     SELECT
@@ -479,7 +682,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     total_in AS total_in_sp, rft AS rft_sp, defect AS defect_sp, rework AS rework_sp, reject AS reject_sp, reject_defect AS reject_defect_sp,
-                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM secondary_proses
                     UNION ALL
                     SELECT
@@ -489,7 +698,13 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    qty_reject_in AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked
+                    qty_reject_in AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM qc_reject
                     UNION ALL
                     SELECT
@@ -499,15 +714,145 @@ class ReportMutasiOutputController extends Controller
                     0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                     0 AS qty_fin_reject,
                     0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
-                    0 AS qty_reject_in, qty_rejected AS qty_rejected, qty_reworked AS qty_reworked
+                    0 AS qty_reject_in, qty_rejected AS qty_rejected, qty_reworked AS qty_reworked,
+                    0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                     FROM qc_reject_out
+                    UNION ALL
+                    SELECT
+                    tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                    0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 qty_sew_reject, 0 AS qty_finishing,
+                    0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                    0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
+                    0 AS qty_fin_reject,
+                    0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
+                    FROM qty_transit_terima_sewing_before
+                    UNION ALL
+                    SELECT
+                    tgl_fin_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                    0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 qty_sew_reject, 0 AS qty_finishing,
+                    0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                    0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
+                    0 AS qty_fin_reject,
+                    0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 AS qty_transit_terima_sewing_before, qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
+                    FROM qty_transit_terima_qc_finishing_before
+                    UNION ALL
+                    SELECT
+                    tgl_proses, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                    0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 qty_sew_reject, 0 AS qty_finishing,
+                    0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                    0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
+                    0 AS qty_fin_reject,
+                    0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 AS qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
+                    FROM qty_transit_terima_finishing_before
+                    UNION ALL
+                    SELECT
+                    tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                    0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 qty_sew_reject, 0 AS qty_finishing,
+                    0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                    0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
+                    0 AS qty_fin_reject,
+                    0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 AS qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, qty_transit_keluar_qc_reject_before,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
+                    FROM qty_transit_keluar_qc_reject_before
+                    UNION ALL
+                    SELECT
+                    tgl_proses, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                    0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 qty_sew_reject, 0 AS qty_finishing,
+                    0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                    0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
+                    0 AS qty_fin_reject,
+                    0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
+                    0 AS qty_reject_in, 0 AS qty_rejected, 0 AS qty_reworked,
+                    0 AS qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
 
+                    CASE WHEN output_secondary_master.secondary = 'Pasang Kancing' THEN total_in ELSE 0 END AS total_in_sp_pasang_kancing,
+                    CASE WHEN output_secondary_master.secondary = 'Pasang Kancing' THEN rft ELSE 0 END AS rft_sp_pasang_kancing,
+                    CASE WHEN output_secondary_master.secondary = 'Pasang Kancing' THEN defect ELSE 0 END AS defect_sp_pasang_kancing,
+                    CASE WHEN output_secondary_master.secondary = 'Pasang Kancing' THEN rework ELSE 0 END AS rework_sp_pasang_kancing,
+                    CASE WHEN output_secondary_master.secondary = 'Pasang Kancing' THEN reject ELSE 0 END AS reject_sp_pasang_kancing,
+                    CASE WHEN output_secondary_master.secondary = 'Bartack' THEN total_in ELSE 0 END AS total_in_sp_bartack,
+                    CASE WHEN output_secondary_master.secondary = 'Bartack' THEN rft ELSE 0 END AS rft_sp_bartack,
+                    CASE WHEN output_secondary_master.secondary = 'Bartack' THEN defect ELSE 0 END AS defect_sp_bartack,
+                    CASE WHEN output_secondary_master.secondary = 'Bartack' THEN rework ELSE 0 END AS rework_sp_bartack,
+                    CASE WHEN output_secondary_master.secondary = 'Bartack' THEN reject ELSE 0 END AS reject_sp_bartack,
+                    CASE WHEN output_secondary_master.secondary = 'Heatseal' THEN total_in ELSE 0 END AS total_in_sp_heatseal,
+                    CASE WHEN output_secondary_master.secondary = 'Heatseal' THEN rft ELSE 0 END AS rft_sp_heatseal,
+                    CASE WHEN output_secondary_master.secondary = 'Heatseal' THEN defect ELSE 0 END AS defect_sp_heatseal,
+                    CASE WHEN output_secondary_master.secondary = 'Heatseal' THEN rework ELSE 0 END AS rework_sp_heatseal,
+                    CASE WHEN output_secondary_master.secondary = 'Heatseal' THEN reject ELSE 0 END AS reject_sp_heatseal,
+                    CASE WHEN output_secondary_master.secondary = 'Snap' THEN total_in ELSE 0 END AS total_in_sp_snap,
+                    CASE WHEN output_secondary_master.secondary = 'Snap' THEN rft ELSE 0 END AS rft_sp_snap,
+                    CASE WHEN output_secondary_master.secondary = 'Snap' THEN defect ELSE 0 END AS defect_sp_snap,
+                    CASE WHEN output_secondary_master.secondary = 'Snap' THEN rework ELSE 0 END AS rework_sp_snap,
+                    CASE WHEN output_secondary_master.secondary = 'Snap' THEN reject ELSE 0 END AS reject_sp_snap,
+                    CASE WHEN output_secondary_master.secondary = 'Embro' THEN total_in ELSE 0 END AS total_in_sp_embro,
+                    CASE WHEN output_secondary_master.secondary = 'Embro' THEN rft ELSE 0 END AS rft_sp_embro,
+                    CASE WHEN output_secondary_master.secondary = 'Embro' THEN defect ELSE 0 END AS defect_sp_embro,
+                    CASE WHEN output_secondary_master.secondary = 'Embro' THEN rework ELSE 0 END AS rework_sp_embro,
+                    CASE WHEN output_secondary_master.secondary = 'Embro' THEN reject ELSE 0 END AS reject_sp_embro
+                    FROM secondary_proses_per_proses
+                    LEFT JOIN output_secondary_master ON output_secondary_master.id = secondary_proses_per_proses.secondary_id
                 ) mut_sew
                 GROUP BY id_so_det
             ),
+            secondary_process_mapping_awal AS (
+                SELECT
+                    r.so_det_id AS id_so_det,
+                    CASE
+                        WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
+                            THEN 'Pasang Kancing'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
+                            THEN 'Bartack'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
+                            THEN 'Heatseal'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
+                            THEN 'Snap'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
+                            THEN 'Embro'
+                        ELSE 'TIDAK ADA MAPPING'
+                    END AS secondary_process
+                FROM output_rfts r
+                INNER JOIN output_secondary_in osi
+                    ON osi.rft_id = r.id
+                INNER JOIN output_secondary_master osm
+                    ON osm.id = osi.secondary_id
+                GROUP BY r.so_det_id
+            ),
             saldo_awal as (
                 SELECT
-                id_so_det,
+                mut_wip_tmp.id_so_det,
                 SUM(qty_loading) qty_loading_awal,
                 SUM(qty_sewing) qty_sewing_awal,
                 SUM(input_rework_sewing) input_rework_sewing_awal,
@@ -535,14 +880,57 @@ class ReportMutasiOutputController extends Controller
                 SUM(reject_defect_sp) reject_defect_sp_awal,
                 SUM(qty_reject_in) qty_reject_in_awal,
                 SUM(qty_rejected) qty_rejected_awal,
-                SUM(qty_reworked) qty_reworked_awal
+                SUM(qty_reworked) qty_reworked_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN total_in_sp ELSE 0 END) AS total_in_sp_pasang_kancing_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN rft_sp ELSE 0 END) AS rft_sp_pasang_kancing_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN defect_sp ELSE 0 END) AS defect_sp_pasang_kancing_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN rework_sp ELSE 0 END) AS rework_sp_pasang_kancing_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN reject_sp ELSE 0 END) AS reject_sp_pasang_kancing_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_pasang_kancing_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN total_in_sp ELSE 0 END) AS total_in_sp_bartack_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN rft_sp ELSE 0 END) AS rft_sp_bartack_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN defect_sp ELSE 0 END) AS defect_sp_bartack_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN rework_sp ELSE 0 END) AS rework_sp_bartack_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN reject_sp ELSE 0 END) AS reject_sp_bartack_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_bartack_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN total_in_sp ELSE 0 END) AS total_in_sp_heatseal_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN rft_sp ELSE 0 END) AS rft_sp_heatseal_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN defect_sp ELSE 0 END) AS defect_sp_heatseal_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN rework_sp ELSE 0 END) AS rework_sp_heatseal_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN reject_sp ELSE 0 END) AS reject_sp_heatseal_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_heatseal_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN total_in_sp ELSE 0 END) AS total_in_sp_snap_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN rft_sp ELSE 0 END) AS rft_sp_snap_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN defect_sp ELSE 0 END) AS defect_sp_snap_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN rework_sp ELSE 0 END) AS rework_sp_snap_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN reject_sp ELSE 0 END) AS reject_sp_snap_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_snap_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN total_in_sp ELSE 0 END) AS total_in_sp_embro_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN rft_sp ELSE 0 END) AS rft_sp_embro_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN defect_sp ELSE 0 END) AS defect_sp_embro_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN rework_sp ELSE 0 END) AS rework_sp_embro_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN reject_sp ELSE 0 END) AS reject_sp_embro_awal,
+                SUM(CASE WHEN spm.secondary_process = 'Embro' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_embro_awal,
+
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN total_in_sp ELSE 0 END) AS total_in_sp_other_awal,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN rft_sp ELSE 0 END) AS rft_sp_other_awal,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN defect_sp ELSE 0 END) AS defect_sp_other_awal,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN rework_sp ELSE 0 END) AS rework_sp_other_awal,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN reject_sp ELSE 0 END) AS reject_sp_other_awal,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_other_awal
                 FROM mut_wip_tmp
+                LEFT JOIN secondary_process_mapping_awal spm ON spm.id_so_det = mut_wip_tmp.id_so_det
                 where tgl_trans >= '$tgl_saldo' AND tgl_trans <= '$prev_date'
-                group by id_so_det
+                group by mut_wip_tmp.id_so_det
             ),
             saldo_awal_upload as(
                 SELECT
-                so_det_id,
+                sa_report_output.so_det_id,
                 sum(loading) loading,
                 sum(sewing) sewing,
                 sum(finishing) finishing,
@@ -554,10 +942,23 @@ class ReportMutasiOutputController extends Controller
                 sum(out_sew) out_sew,
                 sum(packing_line) packing_line,
                 sum(trf_gmt) trf_gmt,
-                sum(packing_central) packing_central
+                sum(packing_central) packing_central,
+                SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_pasang_kancing,
+                SUM(CASE WHEN spm.secondary_process = 'Bartack'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_bartack,
+                SUM(CASE WHEN spm.secondary_process = 'Heatseal'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_heatseal,
+                SUM(CASE WHEN spm.secondary_process = 'Snap'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_snap,
+                SUM(CASE WHEN spm.secondary_process = 'Embro'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_embro,
+                SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING'
+                    THEN secondary_proses ELSE 0 END) AS secondary_proses_other
                 from laravel_nds.sa_report_output
+                LEFT JOIN secondary_process_mapping_awal spm ON spm.id_so_det = sa_report_output.so_det_id
                 where tgl_saldo = '$tgl_saldo'
-                group by so_det_id
+                group by sa_report_output.so_det_id
             ),
             m as (
                 SELECT id_so_det FROM saldo_awal
@@ -742,7 +1143,117 @@ class ReportMutasiOutputController extends Controller
                     )
                     + COALESCE(ss.qty_reject_in, 0)
                     - COALESCE(ss.qty_rejected, 0)
-                    - COALESCE(ss.qty_reworked, 0) AS saldo_akhir_qc_reject
+                    - COALESCE(ss.qty_reworked, 0) AS saldo_akhir_qc_reject,
+                    COALESCE(ss.qty_transit_terima_sewing_before, 0) AS qty_transit_terima_sewing_before,
+                    COALESCE(ss.qty_transit_terima_qc_finishing_before, 0) AS qty_transit_terima_qc_finishing_before,
+                    COALESCE(ss.qty_transit_terima_finishing_before, 0) AS qty_transit_terima_finishing_before,
+                    COALESCE(ss.qty_transit_keluar_qc_reject_before, 0) AS qty_transit_keluar_qc_reject_before,
+
+                    (
+                        COALESCE(su.secondary_proses_pasang_kancing, 0)
+                        + COALESCE(sa.total_in_sp_pasang_kancing_awal, 0)
+                        + COALESCE(sa.rework_sp_pasang_kancing_awal, 0)
+                        + COALESCE(sa.reject_defect_sp_pasang_kancing_awal, 0)
+                        - COALESCE(sa.defect_sp_pasang_kancing_awal, 0)
+                        - (
+                            COALESCE(sa.reject_sp_pasang_kancing_awal, 0)
+                            + COALESCE(sa.reject_defect_sp_pasang_kancing_awal, 0)
+                        )
+                        - (
+                            COALESCE(sa.rft_sp_pasang_kancing_awal, 0)
+                            + COALESCE(sa.rework_sp_pasang_kancing_awal, 0)
+                        )
+                    ) AS saldo_awal_sp_pasang_kancing,
+
+                    (
+                        COALESCE(su.secondary_proses_bartack, 0)
+                        + COALESCE(sa.total_in_sp_bartack_awal, 0)
+                        + COALESCE(sa.rework_sp_bartack_awal, 0)
+                        + COALESCE(sa.reject_defect_sp_bartack_awal, 0)
+                        - COALESCE(sa.defect_sp_bartack_awal, 0)
+                        - (
+                            COALESCE(sa.reject_sp_bartack_awal, 0)
+                            + COALESCE(sa.reject_defect_sp_bartack_awal, 0)
+                        )
+                        - (
+                            COALESCE(sa.rft_sp_bartack_awal, 0)
+                            + COALESCE(sa.rework_sp_bartack_awal, 0)
+                        )
+                    ) AS saldo_awal_sp_bartack,
+
+                    (
+                        COALESCE(su.secondary_proses_heatseal, 0)
+                        + COALESCE(sa.total_in_sp_heatseal_awal, 0)
+                        + COALESCE(sa.rework_sp_heatseal_awal, 0)
+                        + COALESCE(sa.reject_defect_sp_heatseal_awal, 0)
+                        - COALESCE(sa.defect_sp_heatseal_awal, 0)
+                        - (
+                            COALESCE(sa.reject_sp_heatseal_awal, 0)
+                            + COALESCE(sa.reject_defect_sp_heatseal_awal, 0)
+                        )
+                        - (
+                            COALESCE(sa.rft_sp_heatseal_awal, 0)
+                            + COALESCE(sa.rework_sp_heatseal_awal, 0)
+                        )
+                    ) AS saldo_awal_sp_heatseal,
+
+                    (
+                        COALESCE(su.secondary_proses_snap, 0)
+                        + COALESCE(sa.total_in_sp_snap_awal, 0)
+                        + COALESCE(sa.rework_sp_snap_awal, 0)
+                        + COALESCE(sa.reject_defect_sp_snap_awal, 0)
+                        - COALESCE(sa.defect_sp_snap_awal, 0)
+                        - (
+                            COALESCE(sa.reject_sp_snap_awal, 0)
+                            + COALESCE(sa.reject_defect_sp_snap_awal, 0)
+                        )
+                        - (
+                            COALESCE(sa.rft_sp_snap_awal, 0)
+                            + COALESCE(sa.rework_sp_snap_awal, 0)
+                        )
+                    ) AS saldo_awal_sp_snap,
+
+                    (
+                        COALESCE(su.secondary_proses_embro, 0)
+                        + COALESCE(sa.total_in_sp_embro_awal, 0)
+                        + COALESCE(sa.rework_sp_embro_awal, 0)
+                        + COALESCE(sa.reject_defect_sp_embro_awal, 0)
+                        - COALESCE(sa.defect_sp_embro_awal, 0)
+                        - (
+                            COALESCE(sa.reject_sp_embro_awal, 0)
+                            + COALESCE(sa.reject_defect_sp_embro_awal, 0)
+                        )
+                        - (
+                            COALESCE(sa.rft_sp_embro_awal, 0)
+                            + COALESCE(sa.rework_sp_embro_awal, 0)
+                        )
+                    ) AS saldo_awal_sp_embro,
+
+                    COALESCE(ss.total_in_sp_pasang_kancing, 0) AS total_in_sp_pasang_kancing,
+                    COALESCE(ss.rft_sp_pasang_kancing, 0) AS rft_sp_pasang_kancing,
+                    COALESCE(ss.defect_sp_pasang_kancing, 0) AS defect_sp_pasang_kancing,
+                    COALESCE(ss.rework_sp_pasang_kancing, 0) AS rework_sp_pasang_kancing,
+                    COALESCE(ss.reject_sp_pasang_kancing, 0) AS reject_sp_pasang_kancing,
+                    COALESCE(ss.total_in_sp_bartack, 0) AS total_in_sp_bartack,
+                    COALESCE(ss.rft_sp_bartack, 0) AS rft_sp_bartack,
+                    COALESCE(ss.defect_sp_bartack, 0) AS defect_sp_bartack,
+                    COALESCE(ss.rework_sp_bartack, 0) AS rework_sp_bartack,
+                    COALESCE(ss.reject_sp_bartack, 0) AS reject_sp_bartack,
+                    COALESCE(ss.total_in_sp_heatseal, 0) AS total_in_sp_heatseal,
+                    COALESCE(ss.rft_sp_heatseal, 0) AS rft_sp_heatseal,
+                    COALESCE(ss.defect_sp_heatseal, 0) AS defect_sp_heatseal,
+                    COALESCE(ss.rework_sp_heatseal, 0) AS rework_sp_heatseal,
+                    COALESCE(ss.reject_sp_heatseal, 0) AS reject_sp_heatseal,
+                    COALESCE(ss.total_in_sp_snap, 0) AS total_in_sp_snap,
+                    COALESCE(ss.rft_sp_snap, 0) AS rft_sp_snap,
+                    COALESCE(ss.defect_sp_snap, 0) AS defect_sp_snap,
+                    COALESCE(ss.rework_sp_snap, 0) AS rework_sp_snap,
+                    COALESCE(ss.reject_sp_snap, 0) AS reject_sp_snap,
+                    COALESCE(ss.total_in_sp_embro, 0) AS total_in_sp_embro,
+                    COALESCE(ss.rft_sp_embro, 0) AS rft_sp_embro,
+                    COALESCE(ss.defect_sp_embro, 0) AS defect_sp_embro,
+                    COALESCE(ss.rework_sp_embro, 0) AS rework_sp_embro,
+                    COALESCE(ss.reject_sp_embro, 0) AS reject_sp_embro
                 FROM m
                     LEFT JOIN saldo_awal sa on m.id_so_det = sa.id_so_det
                     LEFT JOIN saldo_sew ss on m.id_so_det = ss.id_so_det
@@ -809,16 +1320,84 @@ class ReportMutasiOutputController extends Controller
                     qty_reject_in = 0 AND
                     qty_rejected = 0 AND
                     qty_reworked = 0 AND
-                    saldo_akhir_qc_reject = 0
+                    saldo_akhir_qc_reject = 0 AND
+                    qty_transit_terima_sewing_before = 0 AND
+                    qty_transit_terima_qc_finishing_before = 0 AND
+                    qty_transit_terima_finishing_before = 0 AND
+                    qty_transit_keluar_qc_reject_before = 0 AND
+                    saldo_awal_sp_pasang_kancing = 0 AND
+                    saldo_awal_sp_bartack = 0 AND
+                    saldo_awal_sp_heatseal = 0 AND
+                    saldo_awal_sp_snap = 0 AND
+                    saldo_awal_sp_embro = 0 AND
+                    total_in_sp_pasang_kancing = 0 AND
+                    rft_sp_pasang_kancing = 0 AND
+                    defect_sp_pasang_kancing = 0 AND
+                    rework_sp_pasang_kancing = 0 AND
+                    reject_sp_pasang_kancing = 0 AND
+                    total_in_sp_bartack = 0 AND
+                    rft_sp_bartack = 0 AND
+                    defect_sp_bartack = 0 AND
+                    rework_sp_bartack = 0 AND
+                    reject_sp_bartack = 0 AND
+                    total_in_sp_heatseal = 0 AND
+                    rft_sp_heatseal = 0 AND
+                    defect_sp_heatseal = 0 AND
+                    rework_sp_heatseal = 0 AND
+                    reject_sp_heatseal = 0 AND
+                    total_in_sp_snap = 0 AND
+                    rft_sp_snap = 0 AND
+                    defect_sp_snap = 0 AND
+                    rework_sp_snap = 0 AND
+                    reject_sp_snap = 0 AND
+                    total_in_sp_embro = 0 AND
+                    rft_sp_embro = 0 AND
+                    defect_sp_embro = 0 AND
+                    rework_sp_embro = 0 AND
+                    reject_sp_embro = 0
                 )
+            ),
+            secondary_process_mapping AS (
+                SELECT
+                    msw.buyer,
+                    msw.ws,
+                    msw.styleno,
+                    msw.color,
+                    msw.size,
+                    CASE
+                        WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
+                            THEN 'Pasang Kancing'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
+                            THEN 'Bartack'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
+                            THEN 'Heatseal'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
+                            THEN 'Snap'
+                        WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
+                            THEN 'Embro'
+                        ELSE 'TIDAK ADA MAPPING'
+                    END AS secondary_process
+                FROM laravel_nds.master_sb_ws msw
+                INNER JOIN output_rfts r
+                    ON r.so_det_id = msw.id_so_det
+                INNER JOIN output_secondary_in osi
+                    ON osi.rft_id = r.id
+                INNER JOIN output_secondary_master osm
+                    ON osm.id = osi.secondary_id
+                GROUP BY
+                    msw.buyer,
+                    msw.ws,
+                    msw.styleno,
+                    msw.color,
+                    msw.size
             ),
             saldo_awal_inject as (
                 SELECT
-                    buyer,
-                    ws,
-                    styleno,
-                    color,
-                    size,
+                    inject_mutasi_sewing.buyer,
+                    inject_mutasi_sewing.ws,
+                    inject_mutasi_sewing.styleno,
+                    inject_mutasi_sewing.color,
+                    inject_mutasi_sewing.size,
                     -- SEWING AKHIR
                     SUM(COALESCE(saldo_awal_sewing, 0) +
                     COALESCE(qty_loading, 0) +
@@ -901,13 +1480,77 @@ class ReportMutasiOutputController extends Controller
                     0 qty_reject_in,
                     0 qty_reworked,
                     0 qty_rejected,
-                    0 saldo_akhir_qc_reject
+                    0 saldo_akhir_qc_reject,
+                    COALESCE(SUM(CASE WHEN tgl_saldo >= '2026-07-01' THEN qty_sew_reject ELSE 0 END), 0) AS qty_transit_terima_sewing_before,
+                    COALESCE(SUM(CASE WHEN tgl_saldo >= '2026-07-01' THEN qty_fin_reject ELSE 0 END), 0) AS qty_transit_terima_qc_finishing_before,
+                    COALESCE(SUM(CASE WHEN tgl_saldo >= '2026-07-01' THEN rft_sp ELSE 0 END), 0) AS qty_transit_terima_finishing_before,
+                    COALESCE(SUM(CASE WHEN tgl_saldo >= '2026-07-01' THEN qty_rejected ELSE 0 END), 0) AS qty_transit_keluar_qc_reject_before,
+                    SUM(
+                        CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN
+                            COALESCE(total_in_sp, 0)
+                            + COALESCE(rework_sp, 0)
+                            - COALESCE(defect_sp, 0)
+                            - COALESCE(reject_sp, 0)
+                            - COALESCE(rft_sp, 0)
+                        ELSE 0 END
+                    ) AS saldo_awal_sp_pasang_kancing,
+
+                    SUM(
+                        CASE WHEN spm.secondary_process = 'Bartack' THEN
+                            COALESCE(total_in_sp, 0)
+                            + COALESCE(rework_sp, 0)
+                            - COALESCE(defect_sp, 0)
+                            - COALESCE(reject_sp, 0)
+                            - COALESCE(rft_sp, 0)
+                        ELSE 0 END
+                    ) AS saldo_awal_sp_bartack,
+
+                    SUM(
+                        CASE WHEN spm.secondary_process = 'Heatseal' THEN
+                            COALESCE(total_in_sp, 0)
+                            + COALESCE(rework_sp, 0)
+                            - COALESCE(defect_sp, 0)
+                            - COALESCE(reject_sp, 0)
+                            - COALESCE(rft_sp, 0)
+                        ELSE 0 END
+                    ) AS saldo_awal_sp_heatseal,
+
+                    SUM(
+                        CASE WHEN spm.secondary_process = 'Snap' THEN
+                            COALESCE(total_in_sp, 0)
+                            + COALESCE(rework_sp, 0)
+                            - COALESCE(defect_sp, 0)
+                            - COALESCE(reject_sp, 0)
+                            - COALESCE(rft_sp, 0)
+                        ELSE 0 END
+                    ) AS saldo_awal_sp_snap,
+
+                    SUM(
+                        CASE WHEN spm.secondary_process = 'Embro' THEN
+                            COALESCE(total_in_sp, 0)
+                            + COALESCE(rework_sp, 0)
+                            - COALESCE(defect_sp, 0)
+                            - COALESCE(reject_sp, 0)
+                            - COALESCE(rft_sp, 0)
+                        ELSE 0 END
+                    ) AS saldo_awal_sp_embro,
+                    0 AS total_in_sp_pasang_kancing, 0 AS rft_sp_pasang_kancing, 0 AS defect_sp_pasang_kancing, 0 AS rework_sp_pasang_kancing, 0 AS reject_sp_pasang_kancing, 
+                    0 AS total_in_sp_bartack, 0 AS rft_sp_bartack, 0 AS defect_sp_bartack, 0 AS rework_sp_bartack, 0 AS reject_sp_bartack, 
+                    0 AS total_in_sp_heatseal, 0 AS rft_sp_heatseal, 0 AS defect_sp_heatseal, 0 AS rework_sp_heatseal, 0 AS reject_sp_heatseal, 
+                    0 AS total_in_sp_snap, 0 AS rft_sp_snap, 0 AS defect_sp_snap, 0 AS rework_sp_snap, 0 AS reject_sp_snap, 
+                    0 AS total_in_sp_embro, 0 AS rft_sp_embro, 0 AS defect_sp_embro, 0 AS rework_sp_embro, 0 AS reject_sp_embro
                 FROM
                     inject_mutasi_sewing
+                LEFT JOIN secondary_process_mapping spm
+                ON spm.buyer = inject_mutasi_sewing.buyer
+                AND spm.ws = inject_mutasi_sewing.ws
+                AND spm.styleno = inject_mutasi_sewing.styleno
+                AND spm.color = inject_mutasi_sewing.color
+                AND spm.size = inject_mutasi_sewing.size
                 WHERE
                     tgl_saldo < '$start_date'
                 GROUP BY
-                    buyer, ws, styleno, color, size
+                    inject_mutasi_sewing.buyer, inject_mutasi_sewing.ws, inject_mutasi_sewing.styleno, inject_mutasi_sewing.color, inject_mutasi_sewing.size
                 HAVING NOT (
                     saldo_awal_sewing = 0 AND
                     qty_loading = 0 AND
@@ -953,16 +1596,50 @@ class ReportMutasiOutputController extends Controller
                     qty_reject_in = 0 AND
                     qty_rejected = 0 AND
                     qty_reworked = 0 AND
-                    saldo_akhir_qc_reject = 0
+                    saldo_akhir_qc_reject = 0 AND
+                    qty_transit_terima_sewing_before = 0 AND
+                    qty_transit_terima_qc_finishing_before = 0 AND
+                    qty_transit_terima_finishing_before = 0 AND
+                    qty_transit_keluar_qc_reject_before = 0 AND
+                    saldo_awal_sp_pasang_kancing = 0 AND
+                    saldo_awal_sp_bartack = 0 AND
+                    saldo_awal_sp_heatseal = 0 AND
+                    saldo_awal_sp_snap = 0 AND
+                    saldo_awal_sp_embro = 0 AND
+                    total_in_sp_pasang_kancing = 0 AND
+                    rft_sp_pasang_kancing = 0 AND
+                    defect_sp_pasang_kancing = 0 AND
+                    rework_sp_pasang_kancing = 0 AND
+                    reject_sp_pasang_kancing = 0 AND
+                    total_in_sp_bartack = 0 AND
+                    rft_sp_bartack = 0 AND
+                    defect_sp_bartack = 0 AND
+                    rework_sp_bartack = 0 AND
+                    reject_sp_bartack = 0 AND
+                    total_in_sp_heatseal = 0 AND
+                    rft_sp_heatseal = 0 AND
+                    defect_sp_heatseal = 0 AND
+                    rework_sp_heatseal = 0 AND
+                    reject_sp_heatseal = 0 AND
+                    total_in_sp_snap = 0 AND
+                    rft_sp_snap = 0 AND
+                    defect_sp_snap = 0 AND
+                    rework_sp_snap = 0 AND
+                    reject_sp_snap = 0 AND
+                    total_in_sp_embro = 0 AND
+                    rft_sp_embro = 0 AND
+                    defect_sp_embro = 0 AND
+                    rework_sp_embro = 0 AND
+                    reject_sp_embro = 0
                 )
             ),
             current_inject as (
                 SELECT
-                    buyer,
-                    ws,
-                    styleno,
-                    color,
-                    size,
+                    inject_mutasi_sewing.buyer,
+                    inject_mutasi_sewing.ws,
+                    inject_mutasi_sewing.styleno,
+                    inject_mutasi_sewing.color,
+                    inject_mutasi_sewing.size,
                     SUM(COALESCE(saldo_awal_sewing, 0)) as saldo_awal_sewing,
                     SUM(COALESCE(qty_loading, 0)) as qty_loading,
                     SUM(COALESCE(input_rework_sewing, 0)) as input_rework_sewing,
@@ -1049,13 +1726,56 @@ class ReportMutasiOutputController extends Controller
                     SUM(COALESCE(saldo_awal_reject, 0)
                     + COALESCE(qty_reject_in, 0)
                     - COALESCE(qty_rejected, 0)
-                    - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
+                    - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject, 
+                    0 AS qty_transit_terima_sewing_before,
+                    0 AS qty_transit_terima_qc_finishing_before,
+                    0 AS qty_transit_terima_finishing_before,
+                    0 AS qty_transit_keluar_qc_reject_before,
+
+                    0 AS saldo_awal_sp_pasang_kancing,
+                    0 AS saldo_awal_sp_bartack,
+                    0 AS saldo_awal_sp_heatseal,
+                    0 AS saldo_awal_sp_snap,
+                    0 AS saldo_awal_sp_embro,
+                    
+                    SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN COALESCE(total_in_sp, 0) ELSE 0 END) AS total_in_sp_pasang_kancing,
+                    SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN COALESCE(rft_sp, 0) ELSE 0 END) AS rft_sp_pasang_kancing,
+                    SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN COALESCE(defect_sp, 0) ELSE 0 END) AS defect_sp_pasang_kancing,
+                    SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN COALESCE(rework_sp, 0) ELSE 0 END) AS rework_sp_pasang_kancing,
+                    SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN COALESCE(reject_sp, 0) ELSE 0 END) AS reject_sp_pasang_kancing,
+                    SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN COALESCE(total_in_sp, 0) ELSE 0 END) AS total_in_sp_bartack,
+                    SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN COALESCE(rft_sp, 0) ELSE 0 END) AS rft_sp_bartack,
+                    SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN COALESCE(defect_sp, 0) ELSE 0 END) AS defect_sp_bartack,
+                    SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN COALESCE(rework_sp, 0) ELSE 0 END) AS rework_sp_bartack,
+                    SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN COALESCE(reject_sp, 0) ELSE 0 END) AS reject_sp_bartack,
+                    SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN COALESCE(total_in_sp, 0) ELSE 0 END) AS total_in_sp_heatseal,
+                    SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN COALESCE(rft_sp, 0) ELSE 0 END) AS rft_sp_heatseal,
+                    SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN COALESCE(defect_sp, 0) ELSE 0 END) AS defect_sp_heatseal,
+                    SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN COALESCE(rework_sp, 0) ELSE 0 END) AS rework_sp_heatseal,
+                    SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN COALESCE(reject_sp, 0) ELSE 0 END) AS reject_sp_heatseal,
+                    SUM(CASE WHEN spm.secondary_process = 'Snap' THEN COALESCE(total_in_sp, 0) ELSE 0 END) AS total_in_sp_snap,
+                    SUM(CASE WHEN spm.secondary_process = 'Snap' THEN COALESCE(rft_sp, 0) ELSE 0 END) AS rft_sp_snap,
+                    SUM(CASE WHEN spm.secondary_process = 'Snap' THEN COALESCE(defect_sp, 0) ELSE 0 END) AS defect_sp_snap,
+                    SUM(CASE WHEN spm.secondary_process = 'Snap' THEN COALESCE(rework_sp, 0) ELSE 0 END) AS rework_sp_snap,
+                    SUM(CASE WHEN spm.secondary_process = 'Snap' THEN COALESCE(reject_sp, 0) ELSE 0 END) AS reject_sp_snap,
+                    SUM(CASE WHEN spm.secondary_process = 'Embro' THEN COALESCE(total_in_sp, 0) ELSE 0 END) AS total_in_sp_embro,
+                    SUM(CASE WHEN spm.secondary_process = 'Embro' THEN COALESCE(rft_sp, 0) ELSE 0 END) AS rft_sp_embro,
+                    SUM(CASE WHEN spm.secondary_process = 'Embro' THEN COALESCE(defect_sp, 0) ELSE 0 END) AS defect_sp_embro,
+                    SUM(CASE WHEN spm.secondary_process = 'Embro' THEN COALESCE(rework_sp, 0) ELSE 0 END) AS rework_sp_embro,
+                    SUM(CASE WHEN spm.secondary_process = 'Embro' THEN COALESCE(reject_sp, 0) ELSE 0 END) AS reject_sp_embro
+
                 FROM
                     inject_mutasi_sewing
+                LEFT JOIN secondary_process_mapping spm
+                ON spm.buyer = inject_mutasi_sewing.buyer
+                AND spm.ws = inject_mutasi_sewing.ws
+                AND spm.styleno = inject_mutasi_sewing.styleno
+                AND spm.color = inject_mutasi_sewing.color
+                AND spm.size = inject_mutasi_sewing.size
                 WHERE
                     tgl_saldo >= '$start_date' AND tgl_saldo <= '$end_date'
                 GROUP BY
-                    buyer, ws, styleno, color, size
+                    inject_mutasi_sewing.buyer, inject_mutasi_sewing.ws, inject_mutasi_sewing.styleno, inject_mutasi_sewing.color, inject_mutasi_sewing.size
                 HAVING NOT (
                     saldo_awal_sewing = 0 AND
                     qty_loading = 0 AND
@@ -1101,7 +1821,41 @@ class ReportMutasiOutputController extends Controller
                     qty_reject_in = 0 AND
                     qty_rejected = 0 AND
                     qty_reworked = 0 AND
-                    saldo_akhir_qc_reject = 0
+                    saldo_akhir_qc_reject = 0 AND
+                    qty_transit_terima_sewing_before = 0 AND
+                    qty_transit_terima_qc_finishing_before = 0 AND
+                    qty_transit_terima_finishing_before = 0 AND
+                    qty_transit_keluar_qc_reject_before = 0 AND
+                    saldo_awal_sp_pasang_kancing = 0 AND
+                    saldo_awal_sp_bartack = 0 AND
+                    saldo_awal_sp_heatseal = 0 AND
+                    saldo_awal_sp_snap = 0 AND
+                    saldo_awal_sp_embro = 0 AND
+                    total_in_sp_pasang_kancing = 0 AND
+                    rft_sp_pasang_kancing = 0 AND
+                    defect_sp_pasang_kancing = 0 AND
+                    rework_sp_pasang_kancing = 0 AND
+                    reject_sp_pasang_kancing = 0 AND
+                    total_in_sp_bartack = 0 AND
+                    rft_sp_bartack = 0 AND
+                    defect_sp_bartack = 0 AND
+                    rework_sp_bartack = 0 AND
+                    reject_sp_bartack = 0 AND
+                    total_in_sp_heatseal = 0 AND
+                    rft_sp_heatseal = 0 AND
+                    defect_sp_heatseal = 0 AND
+                    rework_sp_heatseal = 0 AND
+                    reject_sp_heatseal = 0 AND
+                    total_in_sp_snap = 0 AND
+                    rft_sp_snap = 0 AND
+                    defect_sp_snap = 0 AND
+                    rework_sp_snap = 0 AND
+                    reject_sp_snap = 0 AND
+                    total_in_sp_embro = 0 AND
+                    rft_sp_embro = 0 AND
+                    defect_sp_embro = 0 AND
+                    rework_sp_embro = 0 AND
+                    reject_sp_embro = 0
                 )
             ),
 
@@ -1163,7 +1917,43 @@ class ReportMutasiOutputController extends Controller
                     SUM(qty_rejected) as qty_rejected,
                     SUM(saldo_akhir_qc_reject) as saldo_akhir_qc_reject,
                     0 loading_inject_bef,
-                    0 loading_inject
+                    0 loading_inject,
+                    SUM(qty_transit_terima_sewing_before) AS qty_transit_terima_sewing_before,
+                    SUM(qty_transit_terima_qc_finishing_before) AS qty_transit_terima_qc_finishing_before,
+                    SUM(qty_transit_terima_finishing_before) AS qty_transit_terima_finishing_before,
+                    SUM(qty_transit_keluar_qc_reject_before) AS qty_transit_keluar_qc_reject_before,
+
+                    SUM(saldo_awal_sp_pasang_kancing) AS saldo_awal_sp_pasang_kancing,
+                    SUM(saldo_awal_sp_bartack) AS saldo_awal_sp_bartack,
+                    SUM(saldo_awal_sp_heatseal) AS saldo_awal_sp_heatseal,
+                    SUM(saldo_awal_sp_snap) AS saldo_awal_sp_snap,
+                    SUM(saldo_awal_sp_embro) AS saldo_awal_sp_embro,
+                    
+                    SUM(total_in_sp_pasang_kancing) AS total_in_sp_pasang_kancing,
+                    SUM(rft_sp_pasang_kancing) AS rft_sp_pasang_kancing,
+                    SUM(defect_sp_pasang_kancing) AS defect_sp_pasang_kancing,
+                    SUM(rework_sp_pasang_kancing) AS rework_sp_pasang_kancing,
+                    SUM(reject_sp_pasang_kancing) AS reject_sp_pasang_kancing,
+                    SUM(total_in_sp_bartack) AS total_in_sp_bartack,
+                    SUM(rft_sp_bartack) AS rft_sp_bartack,
+                    SUM(defect_sp_bartack) AS defect_sp_bartack,
+                    SUM(rework_sp_bartack) AS rework_sp_bartack,
+                    SUM(reject_sp_bartack) AS reject_sp_bartack,
+                    SUM(total_in_sp_heatseal) AS total_in_sp_heatseal,
+                    SUM(rft_sp_heatseal) AS rft_sp_heatseal,
+                    SUM(defect_sp_heatseal) AS defect_sp_heatseal,
+                    SUM(rework_sp_heatseal) AS rework_sp_heatseal,
+                    SUM(reject_sp_heatseal) AS reject_sp_heatseal,
+                    SUM(total_in_sp_snap) AS total_in_sp_snap,
+                    SUM(rft_sp_snap) AS rft_sp_snap,
+                    SUM(defect_sp_snap) AS defect_sp_snap,
+                    SUM(rework_sp_snap) AS rework_sp_snap,
+                    SUM(reject_sp_snap) AS reject_sp_snap,
+                    SUM(total_in_sp_embro) AS total_in_sp_embro,
+                    SUM(rft_sp_embro) AS rft_sp_embro,
+                    SUM(defect_sp_embro) AS defect_sp_embro,
+                    SUM(rework_sp_embro) AS rework_sp_embro,
+                    SUM(reject_sp_embro) AS reject_sp_embro
                 FROM (
 
                     select
@@ -1216,7 +2006,43 @@ class ReportMutasiOutputController extends Controller
                         SUM(qty_reject_in) AS qty_reject_in,
                         SUM(qty_reworked) AS qty_reworked,
                         SUM(qty_rejected) AS qty_rejected,
-                        SUM(saldo_akhir_qc_reject) AS saldo_akhir_qc_reject
+                        SUM(saldo_akhir_qc_reject) AS saldo_akhir_qc_reject,
+                        SUM(qty_transit_terima_sewing_before) AS qty_transit_terima_sewing_before,
+                        SUM(qty_transit_terima_qc_finishing_before) AS qty_transit_terima_qc_finishing_before,
+                        SUM(qty_transit_terima_finishing_before) AS qty_transit_terima_finishing_before,
+                        SUM(qty_transit_keluar_qc_reject_before) AS qty_transit_keluar_qc_reject_before,
+
+                        SUM(saldo_awal_sp_pasang_kancing) AS saldo_awal_sp_pasang_kancing,
+                        SUM(saldo_awal_sp_bartack) AS saldo_awal_sp_bartack,
+                        SUM(saldo_awal_sp_heatseal) AS saldo_awal_sp_heatseal,
+                        SUM(saldo_awal_sp_snap) AS saldo_awal_sp_snap,
+                        SUM(saldo_awal_sp_embro) AS saldo_awal_sp_embro,
+                        
+                        SUM(total_in_sp_pasang_kancing) AS total_in_sp_pasang_kancing,
+                        SUM(rft_sp_pasang_kancing) AS rft_sp_pasang_kancing,
+                        SUM(defect_sp_pasang_kancing) AS defect_sp_pasang_kancing,
+                        SUM(rework_sp_pasang_kancing) AS rework_sp_pasang_kancing,
+                        SUM(reject_sp_pasang_kancing) AS reject_sp_pasang_kancing,
+                        SUM(total_in_sp_bartack) AS total_in_sp_bartack,
+                        SUM(rft_sp_bartack) AS rft_sp_bartack,
+                        SUM(defect_sp_bartack) AS defect_sp_bartack,
+                        SUM(rework_sp_bartack) AS rework_sp_bartack,
+                        SUM(reject_sp_bartack) AS reject_sp_bartack,
+                        SUM(total_in_sp_heatseal) AS total_in_sp_heatseal,
+                        SUM(rft_sp_heatseal) AS rft_sp_heatseal,
+                        SUM(defect_sp_heatseal) AS defect_sp_heatseal,
+                        SUM(rework_sp_heatseal) AS rework_sp_heatseal,
+                        SUM(reject_sp_heatseal) AS reject_sp_heatseal,
+                        SUM(total_in_sp_snap) AS total_in_sp_snap,
+                        SUM(rft_sp_snap) AS rft_sp_snap,
+                        SUM(defect_sp_snap) AS defect_sp_snap,
+                        SUM(rework_sp_snap) AS rework_sp_snap,
+                        SUM(reject_sp_snap) AS reject_sp_snap,
+                        SUM(total_in_sp_embro) AS total_in_sp_embro,
+                        SUM(rft_sp_embro) AS rft_sp_embro,
+                        SUM(defect_sp_embro) AS defect_sp_embro,
+                        SUM(rework_sp_embro) AS rework_sp_embro,
+                        SUM(reject_sp_embro) AS reject_sp_embro
                     FROM mut
                     LEFT JOIN signalbit_erp.master_size_new msn on mut.size = msn.size
                     GROUP BY buyer, ws, styleno, color, size
@@ -1315,7 +2141,43 @@ class ReportMutasiOutputController extends Controller
                         SUM(COALESCE(saldo_awal_reject, 0)
                         + COALESCE(qty_reject_in, 0)
                         - COALESCE(qty_rejected, 0)
-                        - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
+                        - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject,
+                        SUM(COALESCE(qty_transit_terima_sewing_before, 0)) AS qty_transit_terima_sewing_before,
+                        SUM(COALESCE(qty_transit_terima_qc_finishing_before, 0)) AS qty_transit_terima_qc_finishing_before,
+                        SUM(COALESCE(qty_transit_terima_finishing_before, 0)) AS qty_transit_terima_finishing_before,
+                        SUM(COALESCE(qty_transit_keluar_qc_reject_before, 0)) AS qty_transit_keluar_qc_reject_before,
+                        
+                        SUM(COALESCE(saldo_awal_sp_pasang_kancing, 0)) AS saldo_awal_sp_pasang_kancing,
+                        SUM(COALESCE(saldo_awal_sp_bartack, 0)) AS saldo_awal_sp_bartack,
+                        SUM(COALESCE(saldo_awal_sp_heatseal, 0)) AS saldo_awal_sp_heatseal,
+                        SUM(COALESCE(saldo_awal_sp_snap, 0)) AS saldo_awal_sp_snap,
+                        SUM(COALESCE(saldo_awal_sp_embro, 0)) AS saldo_awal_sp_embro,
+
+                        SUM(COALESCE(total_in_sp_pasang_kancing, 0)) AS total_in_sp_pasang_kancing,
+                        SUM(COALESCE(rft_sp_pasang_kancing, 0)) AS rft_sp_pasang_kancing,
+                        SUM(COALESCE(defect_sp_pasang_kancing, 0)) AS defect_sp_pasang_kancing,
+                        SUM(COALESCE(rework_sp_pasang_kancing, 0)) AS rework_sp_pasang_kancing,
+                        SUM(COALESCE(reject_sp_pasang_kancing, 0)) AS reject_sp_pasang_kancing,
+                        SUM(COALESCE(total_in_sp_bartack, 0)) AS total_in_sp_bartack,
+                        SUM(COALESCE(rft_sp_bartack, 0)) AS rft_sp_bartack,
+                        SUM(COALESCE(defect_sp_bartack, 0)) AS defect_sp_bartack,
+                        SUM(COALESCE(rework_sp_bartack, 0)) AS rework_sp_bartack,
+                        SUM(COALESCE(reject_sp_bartack, 0)) AS reject_sp_bartack,
+                        SUM(COALESCE(total_in_sp_heatseal, 0)) AS total_in_sp_heatseal,
+                        SUM(COALESCE(rft_sp_heatseal, 0)) AS rft_sp_heatseal,
+                        SUM(COALESCE(defect_sp_heatseal, 0)) AS defect_sp_heatseal,
+                        SUM(COALESCE(rework_sp_heatseal, 0)) AS rework_sp_heatseal,
+                        SUM(COALESCE(reject_sp_heatseal, 0)) AS reject_sp_heatseal,
+                        SUM(COALESCE(total_in_sp_snap, 0)) AS total_in_sp_snap,
+                        SUM(COALESCE(rft_sp_snap, 0)) AS rft_sp_snap,
+                        SUM(COALESCE(defect_sp_snap, 0)) AS defect_sp_snap,
+                        SUM(COALESCE(rework_sp_snap, 0)) AS rework_sp_snap,
+                        SUM(COALESCE(reject_sp_snap, 0)) AS reject_sp_snap,
+                        SUM(COALESCE(total_in_sp_embro, 0)) AS total_in_sp_embro,
+                        SUM(COALESCE(rft_sp_embro, 0)) AS rft_sp_embro,
+                        SUM(COALESCE(defect_sp_embro, 0)) AS defect_sp_embro,
+                        SUM(COALESCE(rework_sp_embro, 0)) AS rework_sp_embro,
+                        SUM(COALESCE(reject_sp_embro, 0)) AS reject_sp_embro
                     from
                     (
                         SELECT
@@ -1561,7 +2423,43 @@ class ReportMutasiOutputController extends Controller
                         0 qty_rejected,
                         0 saldo_akhir_qc_reject,
                         0 loading_inject_bef,
-                        0 loading_inject
+                        0 loading_inject,
+                        0 qty_transit_terima_sewing_before,
+                        0 qty_transit_terima_qc_finishing_before,
+                        0 qty_transit_terima_finishing_before,
+                        0 qty_transit_keluar_qc_reject_before,
+
+                        0 saldo_awal_sp_pasang_kancing,
+                        0 saldo_awal_sp_bartack,
+                        0 saldo_awal_sp_heatseal,
+                        0 saldo_awal_sp_snap,
+                        0 saldo_awal_sp_embro,
+
+                        0 total_in_sp_pasang_kancing,
+                        0 rft_sp_pasang_kancing,
+                        0 defect_sp_pasang_kancing,
+                        0 rework_sp_pasang_kancing,
+                        0 reject_sp_pasang_kancing,
+                        0 total_in_sp_bartack,
+                        0 rft_sp_bartack,
+                        0 defect_sp_bartack,
+                        0 rework_sp_bartack,
+                        0 reject_sp_bartack,
+                        0 total_in_sp_heatseal,
+                        0 rft_sp_heatseal,
+                        0 defect_sp_heatseal,
+                        0 rework_sp_heatseal,
+                        0 reject_sp_heatseal,
+                        0 total_in_sp_snap,
+                        0 rft_sp_snap,
+                        0 defect_sp_snap,
+                        0 rework_sp_snap,
+                        0 reject_sp_snap,
+                        0 total_in_sp_embro,
+                        0 rft_sp_embro,
+                        0 defect_sp_embro,
+                        0 rework_sp_embro,
+                        0 reject_sp_embro
                 from
                         (
                         select
@@ -1728,7 +2626,43 @@ class ReportMutasiOutputController extends Controller
                             0 qty_rejected,
                             0 saldo_akhir_qc_reject,
                             0 loading_inject_bef,
-                            0 loading_inject
+                            0 loading_inject,
+                            0 qty_transit_terima_sewing_before,
+                            0 qty_transit_terima_qc_finishing_before,
+                            0 qty_transit_terima_finishing_before,
+                            0 qty_transit_keluar_qc_reject_before,
+
+                            0 saldo_awal_sp_pasang_kancing,
+                            0 saldo_awal_sp_bartack,
+                            0 saldo_awal_sp_heatseal,
+                            0 saldo_awal_sp_snap,
+                            0 saldo_awal_sp_embro,
+
+                            0 total_in_sp_pasang_kancing,
+                            0 rft_sp_pasang_kancing,
+                            0 defect_sp_pasang_kancing,
+                            0 rework_sp_pasang_kancing,
+                            0 reject_sp_pasang_kancing,
+                            0 total_in_sp_bartack,
+                            0 rft_sp_bartack,
+                            0 defect_sp_bartack,
+                            0 rework_sp_bartack,
+                            0 reject_sp_bartack,
+                            0 total_in_sp_heatseal,
+                            0 rft_sp_heatseal,
+                            0 defect_sp_heatseal,
+                            0 rework_sp_heatseal,
+                            0 reject_sp_heatseal,
+                            0 total_in_sp_snap,
+                            0 rft_sp_snap,
+                            0 defect_sp_snap,
+                            0 rework_sp_snap,
+                            0 reject_sp_snap,
+                            0 total_in_sp_embro,
+                            0 rft_sp_embro,
+                            0 defect_sp_embro,
+                            0 rework_sp_embro,
+                            0 reject_sp_embro
                     from
                             (
                                     select * from terima_gudang_before
@@ -1814,7 +2748,43 @@ class ReportMutasiOutputController extends Controller
                     0 qty_rejected,
                     0 saldo_akhir_qc_reject,
                     loading_inject.loading_inject_bef,
-                    loading_inject.loading_inject
+                    loading_inject.loading_inject,
+                    0 qty_transit_terima_sewing_before,
+                    0 qty_transit_terima_qc_finishing_before,
+                    0 qty_transit_terima_finishing_before,
+                    0 qty_transit_keluar_qc_reject_before,
+
+                    0 saldo_awal_sp_pasang_kancing,
+                    0 saldo_awal_sp_bartack,
+                    0 saldo_awal_sp_heatseal,
+                    0 saldo_awal_sp_snap,
+                    0 saldo_awal_sp_embro,
+
+                    0 total_in_sp_pasang_kancing,
+                    0 rft_sp_pasang_kancing,
+                    0 defect_sp_pasang_kancing,
+                    0 rework_sp_pasang_kancing,
+                    0 reject_sp_pasang_kancing,
+                    0 total_in_sp_bartack,
+                    0 rft_sp_bartack,
+                    0 defect_sp_bartack,
+                    0 rework_sp_bartack,
+                    0 reject_sp_bartack,
+                    0 total_in_sp_heatseal,
+                    0 rft_sp_heatseal,
+                    0 defect_sp_heatseal,
+                    0 rework_sp_heatseal,
+                    0 reject_sp_heatseal,
+                    0 total_in_sp_snap,
+                    0 rft_sp_snap,
+                    0 defect_sp_snap,
+                    0 rework_sp_snap,
+                    0 reject_sp_snap,
+                    0 total_in_sp_embro,
+                    0 rft_sp_embro,
+                    0 defect_sp_embro,
+                    0 rework_sp_embro,
+                    0 reject_sp_embro
                 FROM
                     loading_inject
                 GROUP BY
@@ -1875,7 +2845,43 @@ class ReportMutasiOutputController extends Controller
                             SUM( qty_reject_in ) qty_reject_in,
                             SUM( qty_reworked ) qty_reworked,
                             SUM( qty_rejected ) qty_rejected,
-                            SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject
+                            SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject,
+                            SUM( qty_transit_terima_sewing_before ) qty_transit_terima_sewing_before,
+                            SUM( qty_transit_terima_qc_finishing_before ) qty_transit_terima_qc_finishing_before,
+                            SUM( qty_transit_terima_finishing_before ) qty_transit_terima_finishing_before,
+                            SUM( qty_transit_keluar_qc_reject_before ) qty_transit_keluar_qc_reject_before,
+                            
+                            SUM(saldo_awal_sp_pasang_kancing) AS saldo_awal_sp_pasang_kancing,
+                            SUM(saldo_awal_sp_bartack) AS saldo_awal_sp_bartack,
+                            SUM(saldo_awal_sp_heatseal) AS saldo_awal_sp_heatseal,
+                            SUM(saldo_awal_sp_snap) AS saldo_awal_sp_snap,
+                            SUM(saldo_awal_sp_embro) AS saldo_awal_sp_embro,
+
+                            SUM(total_in_sp_pasang_kancing) total_in_sp_pasang_kancing,
+                            SUM(rft_sp_pasang_kancing) rft_sp_pasang_kancing,
+                            SUM(defect_sp_pasang_kancing) defect_sp_pasang_kancing,
+                            SUM(rework_sp_pasang_kancing) rework_sp_pasang_kancing,
+                            SUM(reject_sp_pasang_kancing) reject_sp_pasang_kancing,
+                            SUM(total_in_sp_bartack) total_in_sp_bartack,
+                            SUM(rft_sp_bartack) rft_sp_bartack,
+                            SUM(defect_sp_bartack) defect_sp_bartack,
+                            SUM(rework_sp_bartack) rework_sp_bartack,
+                            SUM(reject_sp_bartack) reject_sp_bartack,
+                            SUM(total_in_sp_heatseal) total_in_sp_heatseal,
+                            SUM(rft_sp_heatseal) rft_sp_heatseal,
+                            SUM(defect_sp_heatseal) defect_sp_heatseal,
+                            SUM(rework_sp_heatseal) rework_sp_heatseal,
+                            SUM(reject_sp_heatseal) reject_sp_heatseal,
+                            SUM(total_in_sp_snap) total_in_sp_snap,
+                            SUM(rft_sp_snap) rft_sp_snap,
+                            SUM(defect_sp_snap) defect_sp_snap,
+                            SUM(rework_sp_snap) rework_sp_snap,
+                            SUM(reject_sp_snap) reject_sp_snap,
+                            SUM(total_in_sp_embro) total_in_sp_embro,
+                            SUM(rft_sp_embro) rft_sp_embro,
+                            SUM(defect_sp_embro) defect_sp_embro,
+                            SUM(rework_sp_embro) rework_sp_embro,
+                            SUM(reject_sp_embro) reject_sp_embro
                     from
                             (
                             select
@@ -1936,7 +2942,43 @@ class ReportMutasiOutputController extends Controller
                                     qty_rejected,
                                     saldo_akhir_qc_reject,
                                     loading_inject_bef,
-                                    loading_inject
+                                    loading_inject,
+                                    qty_transit_terima_sewing_before,
+                                    qty_transit_terima_qc_finishing_before,
+                                    qty_transit_terima_finishing_before,
+                                    qty_transit_keluar_qc_reject_before,
+
+                                    saldo_awal_sp_pasang_kancing,
+                                    saldo_awal_sp_bartack,
+                                    saldo_awal_sp_heatseal,
+                                    saldo_awal_sp_snap,
+                                    saldo_awal_sp_embro,
+
+                                    total_in_sp_pasang_kancing,
+                                    rft_sp_pasang_kancing,
+                                    defect_sp_pasang_kancing,
+                                    rework_sp_pasang_kancing,
+                                    reject_sp_pasang_kancing,
+                                    total_in_sp_bartack,
+                                    rft_sp_bartack,
+                                    defect_sp_bartack,
+                                    rework_sp_bartack,
+                                    reject_sp_bartack,
+                                    total_in_sp_heatseal,
+                                    rft_sp_heatseal,
+                                    defect_sp_heatseal,
+                                    rework_sp_heatseal,
+                                    reject_sp_heatseal,
+                                    total_in_sp_snap,
+                                    rft_sp_snap,
+                                    defect_sp_snap,
+                                    rework_sp_snap,
+                                    reject_sp_snap,
+                                    total_in_sp_embro,
+                                    rft_sp_embro,
+                                    defect_sp_embro,
+                                    rework_sp_embro,
+                                    reject_sp_embro
                             from
                                     query_fix UNION ALL
                             select
@@ -1966,11 +3008,11 @@ class ReportMutasiOutputController extends Controller
             ),
 
             query_adjust as (SELECT
-                    buyer,
-                    no_ws,
-                    style,
-                    color,
-                    size,
+                    wip_adjustment.buyer,
+                    wip_adjustment.no_ws,
+                    wip_adjustment.style,
+                    wip_adjustment.color,
+                    wip_adjustment.size,
 
                     -- SEWING
                     SUM(
@@ -2007,21 +3049,75 @@ class ReportMutasiOutputController extends Controller
                     ) AS qc_finishing_adjust,
 
                     -- FINISHING
-                    SUM(
-                        CASE
-                            WHEN type_report = 'FINISHING'
-                                AND tgl_saldo < '$start_date'
-                            THEN qty ELSE 0
-                        END
-                    ) AS finishing_adjust_before,
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Pasang Kancing'
+                        AND tgl_saldo < '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_pasang_kancing_before,
 
-                    SUM(
-                        CASE
-                            WHEN type_report = 'FINISHING'
-                                AND tgl_saldo >= '$start_date'
-                            THEN qty ELSE 0
-                        END
-                    ) AS finishing_adjust,
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Pasang Kancing'
+                        AND tgl_saldo >= '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_pasang_kancing,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Bartack'
+                        AND tgl_saldo < '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_bartack_before,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Bartack'
+                        AND tgl_saldo >= '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_bartack,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Heatseal'
+                        AND tgl_saldo < '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_heatseal_before,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Heatseal'
+                        AND tgl_saldo >= '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_heatseal,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Snap'
+                        AND tgl_saldo < '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_snap_before,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Snap'
+                        AND tgl_saldo >= '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_snap,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Embro'
+                        AND tgl_saldo < '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_embro_before,
+
+                    SUM(CASE
+                        WHEN type_report = 'FINISHING'
+                        AND spm.secondary_process = 'Embro'
+                        AND tgl_saldo >= '2026-07-01'
+                        THEN qty ELSE 0
+                    END) AS finishing_adjust_embro,
 
                     -- DEFECT SEWING
                     SUM(
@@ -2089,9 +3185,33 @@ class ReportMutasiOutputController extends Controller
                                 AND tgl_saldo >= '$start_date'
                             THEN qty ELSE 0
                         END
-                    ) AS qc_reject_adjust
+                    ) AS qc_reject_adjust,
+
+                    -- QC REJECT
+                    SUM(
+                        CASE
+                            WHEN type_report = 'TRANSIT TERIMA QC REJECT'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS qc_transit_terima_qc_reject_adjust_before,
+
+                    SUM(
+                        CASE
+                            WHEN type_report = 'TRANSIT TERIMA QC REJECT'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS qc_transit_terima_qc_reject_adjust
 
                 FROM wip_adjustment
+                LEFT JOIN secondary_process_mapping spm
+                ON spm.buyer = wip_adjustment.buyer
+                AND spm.ws = wip_adjustment.no_ws
+                AND spm.styleno = wip_adjustment.style
+                AND spm.color = wip_adjustment.color
+                AND spm.size = wip_adjustment.size
+                AND wip_adjustment.type_report = 'FINISHING'
                 WHERE tgl_saldo <= '$end_date'
                 AND type_report IN (
                     'SEWING',
@@ -2100,16 +3220,17 @@ class ReportMutasiOutputController extends Controller
                     'DEFECT SEWING',
                     'DEFECT SPOTCLEANING',
                     'DEFECT MENDING',
-                    'QC REJECT'
+                    'QC REJECT',
+                    'TRANSIT TERIMA QC REJECT'
                 )
                 AND status = 'Y'
 
                 GROUP BY
-                    buyer,
-                    no_ws,
-                    style,
-                    color,
-                    size
+                    wip_adjustment.buyer,
+                    wip_adjustment.no_ws,
+                    wip_adjustment.style,
+                    wip_adjustment.color,
+                    wip_adjustment.size
             ),
 
             query_switching as (
@@ -2410,6 +3531,28 @@ class ReportMutasiOutputController extends Controller
                     )
                 GROUP BY
                     from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
+            ),
+
+            query_keluar_packing AS (
+                SELECT
+                    buyer,
+                    ws,
+                    styleno,
+                    color,
+                    size,
+                    SUM(CASE WHEN DATE(updated_at) >= '2026-07-01 ' AND DATE(updated_at) < '$start_date' THEN 1 ELSE 0 END) AS qty_transit_keluar_packing_before,
+                    SUM(CASE WHEN DATE(updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS qty_transit_keluar_packing
+                FROM signalbit_erp.output_rfts_packing_po
+                LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = output_rfts_packing_po.so_det_id
+                WHERE so_det_id IS NOT NULL
+                    AND type = 'REJECT'
+                    AND DATE(updated_at) <= '$end_date'
+                GROUP BY
+                    buyer,
+                    ws,
+                    styleno,
+                    color,
+                    size
             )
 
             select
@@ -2451,16 +3594,68 @@ class ReportMutasiOutputController extends Controller
             SUM(COALESCE(qc_finishing_switching_out,0)) qc_finishing_switching_out,
             SUM(saldo_akhir_finishing + COALESCE(qc_finishing_adjust_before,0) + COALESCE(qc_finishing_switching_in_before,0) - COALESCE(qc_finishing_switching_out_before,0) + COALESCE(qc_finishing_adjust,0) + COALESCE(qc_finishing_switching_in,0) - COALESCE(qc_finishing_switching_out,0)) saldo_akhir_finishing,
 
-            SUM(saldo_awal_secondary_proses + COALESCE(finishing_adjust_before,0) + COALESCE(finishing_switching_in_before,0) - COALESCE(finishing_switching_out_before,0)) saldo_awal_secondary_proses,
-            SUM(total_in_sp) total_in_sp,
-            SUM(rework_sp) rework_sp,
-            SUM(defect_sp) defect_sp,
-            SUM(reject_sp) reject_sp,
-            SUM(rft_sp) rft_sp,
-            SUM(COALESCE(finishing_adjust,0)) finishing_adjust,
-            SUM(COALESCE(finishing_switching_in,0)) finishing_switching_in,
-            SUM(COALESCE(finishing_switching_out,0)) finishing_switching_out,
-            SUM(saldo_akhir_secondary_proses + COALESCE(finishing_adjust_before,0) + COALESCE(finishing_switching_in_before,0) - COALESCE(finishing_switching_out_before,0) + COALESCE(finishing_adjust,0) + COALESCE(finishing_switching_in,0) - COALESCE(finishing_switching_out,0)) saldo_akhir_secondary_proses,
+            -- DEPRECATED FINISHING FOR ALL PROSES
+            -- SUM(saldo_awal_secondary_proses + COALESCE(finishing_adjust_before,0) + COALESCE(finishing_switching_in_before,0) - COALESCE(finishing_switching_out_before,0)) saldo_awal_secondary_proses,
+            -- SUM(total_in_sp) total_in_sp,
+            -- SUM(rework_sp) rework_sp,
+            -- SUM(defect_sp) defect_sp,
+            -- SUM(reject_sp) reject_sp,
+            -- SUM(rft_sp) rft_sp,
+            -- SUM(COALESCE(finishing_adjust,0)) finishing_adjust,
+            -- SUM(COALESCE(finishing_switching_in,0)) finishing_switching_in,
+            -- SUM(COALESCE(finishing_switching_out,0)) finishing_switching_out,
+            -- SUM(saldo_akhir_secondary_proses + COALESCE(finishing_adjust_before,0) + COALESCE(finishing_switching_in_before,0) - COALESCE(finishing_switching_out_before,0) + COALESCE(finishing_adjust,0) + COALESCE(finishing_switching_in,0) - COALESCE(finishing_switching_out,0)) saldo_akhir_secondary_proses,
+
+            -- FINISHING PER PROSES
+            -- PASANG KANCING
+            SUM(saldo_awal_sp_pasang_kancing) + SUM(COALESCE(finishing_adjust_pasang_kancing_before, 0)) AS saldo_awal_finishing_pasang_kancing,
+            SUM(total_in_sp_pasang_kancing) total_in_sp_pasang_kancing,
+            SUM(rework_sp_pasang_kancing) rework_sp_pasang_kancing,
+            SUM(defect_sp_pasang_kancing) defect_sp_pasang_kancing,
+            SUM(reject_sp_pasang_kancing) reject_sp_pasang_kancing,
+            SUM(rft_sp_pasang_kancing) rft_sp_pasang_kancing,
+            SUM(COALESCE(finishing_adjust_pasang_kancing, 0)) finishing_adjust_pasang_kancing,
+            (SUM(saldo_awal_sp_pasang_kancing) + SUM(COALESCE(finishing_adjust_pasang_kancing_before, 0)) + SUM(total_in_sp_pasang_kancing) + SUM(rework_sp_pasang_kancing) - SUM(defect_sp_pasang_kancing) - SUM(reject_sp_pasang_kancing) - SUM(rft_sp_pasang_kancing) + SUM(COALESCE(finishing_adjust_pasang_kancing, 0))) AS saldo_akhir_finishing_pasang_kancing,
+
+            -- BARTACK
+            SUM(saldo_awal_sp_bartack) + SUM(COALESCE(finishing_adjust_bartack_before, 0)) AS saldo_awal_finishing_bartack,
+            SUM(total_in_sp_bartack) total_in_sp_bartack,
+            SUM(rework_sp_bartack) rework_sp_bartack,
+            SUM(defect_sp_bartack) defect_sp_bartack,
+            SUM(reject_sp_bartack) reject_sp_bartack,
+            SUM(rft_sp_bartack) rft_sp_bartack,
+            SUM(COALESCE(finishing_adjust_bartack, 0)) finishing_adjust_bartack,
+            (SUM(saldo_awal_sp_bartack) + SUM(COALESCE(finishing_adjust_bartack_before, 0)) + SUM(total_in_sp_bartack) + SUM(rework_sp_bartack) - SUM(defect_sp_bartack) - SUM(reject_sp_bartack) - SUM(rft_sp_bartack) + SUM(COALESCE(finishing_adjust_bartack, 0))) AS saldo_akhir_finishing_bartack,
+
+            -- HEATSEAL
+            SUM(saldo_awal_sp_heatseal) + SUM(COALESCE(finishing_adjust_heatseal_before, 0)) AS saldo_awal_finishing_heatseal,
+            SUM(total_in_sp_heatseal) total_in_sp_heatseal,
+            SUM(rework_sp_heatseal) rework_sp_heatseal,
+            SUM(defect_sp_heatseal) defect_sp_heatseal,
+            SUM(reject_sp_heatseal) reject_sp_heatseal,
+            SUM(rft_sp_heatseal) rft_sp_heatseal,
+            SUM(COALESCE(finishing_adjust_heatseal, 0)) finishing_adjust_heatseal,
+            (SUM(saldo_awal_sp_heatseal) + SUM(COALESCE(finishing_adjust_heatseal_before, 0)) + SUM(total_in_sp_heatseal) + SUM(rework_sp_heatseal) - SUM(defect_sp_heatseal) - SUM(reject_sp_heatseal) - SUM(rft_sp_heatseal) + SUM(COALESCE(finishing_adjust_heatseal, 0))) AS saldo_akhir_finishing_heatseal,
+
+            -- SNAP
+            SUM(saldo_awal_sp_snap) + SUM(COALESCE(finishing_adjust_snap_before, 0)) AS saldo_awal_finishing_snap,
+            SUM(total_in_sp_snap) total_in_sp_snap,
+            SUM(rework_sp_snap) rework_sp_snap,
+            SUM(defect_sp_snap) defect_sp_snap,
+            SUM(reject_sp_snap) reject_sp_snap,
+            SUM(rft_sp_snap) rft_sp_snap,
+            SUM(COALESCE(finishing_adjust_snap, 0)) finishing_adjust_snap,
+            (SUM(saldo_awal_sp_snap) + SUM(COALESCE(finishing_adjust_snap_before, 0)) + SUM(total_in_sp_snap) + SUM(rework_sp_snap) - SUM(defect_sp_snap) - SUM(reject_sp_snap) - SUM(rft_sp_snap) + SUM(COALESCE(finishing_adjust_snap, 0))) AS saldo_akhir_finishing_snap,
+
+            -- EMBRO
+            SUM(saldo_awal_sp_embro) + SUM(COALESCE(finishing_adjust_embro_before, 0)) AS saldo_awal_finishing_embro,
+            SUM(total_in_sp_embro) total_in_sp_embro,
+            SUM(rework_sp_embro) rework_sp_embro,
+            SUM(defect_sp_embro) defect_sp_embro,
+            SUM(reject_sp_embro) reject_sp_embro,
+            SUM(rft_sp_embro) rft_sp_embro,
+            SUM(COALESCE(finishing_adjust_embro, 0)) finishing_adjust_embro,
+            (SUM(saldo_awal_sp_embro) + SUM(COALESCE(finishing_adjust_embro_before, 0)) + SUM(total_in_sp_embro) + SUM(rework_sp_embro) - SUM(defect_sp_embro) - SUM(reject_sp_embro) - SUM(rft_sp_embro) + SUM(COALESCE(finishing_adjust_embro, 0))) AS saldo_akhir_finishing_embro,
 
             SUM(saldo_awal_defect_sewing + COALESCE(defect_sewing_adjust_before,0) + COALESCE(defect_sewing_switching_in_before,0) - COALESCE(defect_sewing_switching_out_before,0)) saldo_awal_defect_sewing,
             SUM(total_defect_sewing) total_defect_sewing,
@@ -2486,6 +3681,18 @@ class ReportMutasiOutputController extends Controller
             SUM(COALESCE(defect_mending_switching_out,0)) defect_mending_switching_out,
             SUM(saldo_akhir_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0) + COALESCE(defect_mending_adjust,0) + COALESCE(defect_mending_switching_in,0) - COALESCE(defect_mending_switching_out,0)) saldo_akhir_mending,
 
+            SUM(qty_transit_terima_sewing_before) + SUM(qty_transit_terima_qc_finishing_before) + SUM(qty_transit_terima_finishing_before) - SUM(qty_transit_keluar_qc_reject_before) - SUM(qty_transit_keluar_packing_before) + SUM(qc_transit_terima_qc_reject_adjust_before) AS qty_transit_saldo_awal,
+            SUM(qty_sew_reject) AS qty_transit_terima_sewing,
+            SUM(qty_fin_reject) AS qty_transit_terima_qc_finishing,
+            SUM(reject_sp) AS qty_transit_terima_finishing,
+            SUM(qty_reject_in) AS qty_transit_keluar_qc_reject,
+            SUM(qty_transit_keluar_packing) AS qty_transit_keluar_packing,
+            SUM(qc_transit_terima_qc_reject_adjust) AS qty_transit_adjustment,
+            (
+                SUM(qty_transit_terima_sewing_before) + SUM(qty_transit_terima_qc_finishing_before) + SUM(qty_transit_terima_finishing_before) - SUM(qty_transit_keluar_qc_reject_before) - SUM(qty_transit_keluar_packing_before) + SUM(qc_transit_terima_qc_reject_adjust_before)
+                + SUM(qty_sew_reject) + SUM(qty_fin_reject) + SUM(reject_sp) - SUM(qty_reject_in) - SUM(qty_transit_keluar_packing) + SUM(qc_transit_terima_qc_reject_adjust)
+            ) AS qty_transit_keluar_saldo_akhir,
+
             SUM(saldo_awal_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0)) saldo_awal_reject,
             SUM(qty_reject_in) qty_reject_in,
             SUM(qty_reworked) qty_reworked,
@@ -2494,22 +3701,42 @@ class ReportMutasiOutputController extends Controller
             SUM(COALESCE(qc_reject_switching_in,0)) qc_reject_switching_in,
             SUM(COALESCE(qc_reject_switching_out,0)) qc_reject_switching_out,
             SUM(saldo_akhir_qc_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0) + COALESCE(qc_reject_adjust,0) + COALESCE(qc_reject_switching_in,0) - COALESCE(qc_reject_switching_out,0)) saldo_akhir_qc_reject
-            FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+            FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust, 0 qc_transit_terima_qc_reject_adjust_before, 0 qc_transit_terima_qc_reject_adjust,
+            0 finishing_adjust_pasang_kancing_before, 0 finishing_adjust_pasang_kancing, 0 finishing_adjust_bartack_before, 0 finishing_adjust_bartack, 0 finishing_adjust_heatseal_before, 0 finishing_adjust_heatseal, 0 finishing_adjust_snap_before, 0 finishing_adjust_snap, 0 finishing_adjust_embro_before, 0 finishing_adjust_embro,
             0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
-            0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+            0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out,
+            0 qty_transit_keluar_packing_before, 0 qty_transit_keluar_packing
             from query_final
             UNION ALL
-            select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 terima_gudang, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
-            sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_mending_adjust_before, defect_mending_adjust, qc_reject_adjust_before, qc_reject_adjust,
+            select buyer, no_ws as ws, style as styleno, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 terima_gudang, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject, 0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+            0 saldo_awal_sp_pasang_kancing, 0 saldo_awal_sp_bartack, 0 saldo_awal_sp_heatseal, 0 saldo_awal_sp_snap, 0 saldo_awal_sp_embro,
+            0 total_in_sp_pasang_kancing, 0 rft_sp_pasang_kancing, 0 defect_sp_pasang_kancing, 0 rework_sp_pasang_kancing, 0 reject_sp_pasang_kancing, 0 total_in_sp_bartack, 0 rft_sp_bartack, 0 defect_sp_bartack, 0 rework_sp_bartack, 0 reject_sp_bartack, 0 total_in_sp_heatseal, 0 rft_sp_heatseal, 0 defect_sp_heatseal, 0 rework_sp_heatseal, 0 reject_sp_heatseal, 0 total_in_sp_snap, 0 rft_sp_snap, 0 defect_sp_snap, 0 rework_sp_snap, 0 reject_sp_snap, 0 total_in_sp_embro, 0 rft_sp_embro, 0 defect_sp_embro, 0 rework_sp_embro, 0 reject_sp_embro,
+            sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_mending_adjust_before, defect_mending_adjust, qc_reject_adjust_before, qc_reject_adjust, qc_transit_terima_qc_reject_adjust_before, qc_transit_terima_qc_reject_adjust,
+            finishing_adjust_pasang_kancing_before, finishing_adjust_pasang_kancing, finishing_adjust_bartack_before, finishing_adjust_bartack, finishing_adjust_heatseal_before, finishing_adjust_heatseal, finishing_adjust_snap_before, finishing_adjust_snap, finishing_adjust_embro_before, finishing_adjust_embro,
             0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
-            0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+            0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out,
+            0 qty_transit_keluar_packing_before, 0 qty_transit_keluar_packing
             from query_adjust
             UNION ALL
-            select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 terima_gudang, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
-            0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+            select buyer, no_ws as ws, style as styleno, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 terima_gudang, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject, 0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+            0 saldo_awal_sp_pasang_kancing, 0 saldo_awal_sp_bartack, 0 saldo_awal_sp_heatseal, 0 saldo_awal_sp_snap, 0 saldo_awal_sp_embro,
+            0 total_in_sp_pasang_kancing, 0 rft_sp_pasang_kancing, 0 defect_sp_pasang_kancing, 0 rework_sp_pasang_kancing, 0 reject_sp_pasang_kancing, 0 total_in_sp_bartack, 0 rft_sp_bartack, 0 defect_sp_bartack, 0 rework_sp_bartack, 0 reject_sp_bartack, 0 total_in_sp_heatseal, 0 rft_sp_heatseal, 0 defect_sp_heatseal, 0 rework_sp_heatseal, 0 reject_sp_heatseal, 0 total_in_sp_snap, 0 rft_sp_snap, 0 defect_sp_snap, 0 rework_sp_snap, 0 reject_sp_snap, 0 total_in_sp_embro, 0 rft_sp_embro, 0 defect_sp_embro, 0 rework_sp_embro, 0 reject_sp_embro,
+            0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust, 0 qc_transit_terima_qc_reject_adjust_before, 0 qc_transit_terima_qc_reject_adjust,
+            0 finishing_adjust_pasang_kancing_before, 0 finishing_adjust_pasang_kancing, 0 finishing_adjust_bartack_before, 0 finishing_adjust_bartack, 0 finishing_adjust_heatseal_before, 0 finishing_adjust_heatseal, 0 finishing_adjust_snap_before, 0 finishing_adjust_snap, 0 finishing_adjust_embro_before, 0 finishing_adjust_embro,
             sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_mending_switching_in_before, defect_mending_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
-            sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_mending_switching_out_before, defect_mending_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
+            sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_mending_switching_out_before, defect_mending_switching_out, qc_reject_switching_out_before, qc_reject_switching_out,
+            0 qty_transit_keluar_packing_before, 0 qty_transit_keluar_packing
             from query_switching
+            UNION ALL
+            select buyer, ws, styleno, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 terima_gudang, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject, 0 qty_transit_terima_sewing_before, 0 qty_transit_terima_qc_finishing_before, 0 qty_transit_terima_finishing_before, 0 qty_transit_keluar_qc_reject_before,
+            0 saldo_awal_sp_pasang_kancing, 0 saldo_awal_sp_bartack, 0 saldo_awal_sp_heatseal, 0 saldo_awal_sp_snap, 0 saldo_awal_sp_embro,
+            0 total_in_sp_pasang_kancing, 0 rft_sp_pasang_kancing, 0 defect_sp_pasang_kancing, 0 rework_sp_pasang_kancing, 0 reject_sp_pasang_kancing, 0 total_in_sp_bartack, 0 rft_sp_bartack, 0 defect_sp_bartack, 0 rework_sp_bartack, 0 reject_sp_bartack, 0 total_in_sp_heatseal, 0 rft_sp_heatseal, 0 defect_sp_heatseal, 0 rework_sp_heatseal, 0 reject_sp_heatseal, 0 total_in_sp_snap, 0 rft_sp_snap, 0 defect_sp_snap, 0 rework_sp_snap, 0 reject_sp_snap, 0 total_in_sp_embro, 0 rft_sp_embro, 0 defect_sp_embro, 0 rework_sp_embro, 0 reject_sp_embro,
+            0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust, 0 qc_transit_terima_qc_reject_adjust_before, 0 qc_transit_terima_qc_reject_adjust,
+            0 finishing_adjust_pasang_kancing_before, 0 finishing_adjust_pasang_kancing, 0 finishing_adjust_bartack_before, 0 finishing_adjust_bartack, 0 finishing_adjust_heatseal_before, 0 finishing_adjust_heatseal, 0 finishing_adjust_snap_before, 0 finishing_adjust_snap, 0 finishing_adjust_embro_before, 0 finishing_adjust_embro,
+            0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
+            0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out,
+            qty_transit_keluar_packing_before, qty_transit_keluar_packing
+            from query_keluar_packing
             ) a GROUP BY buyer, ws, styleno, color, size
         ";
 
@@ -2587,29 +3814,39 @@ class ReportMutasiOutputController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Report Mutasi WIP Sewing ' . Carbon::parse($start_date)->format('d-m-Y') . ' - ' . Carbon::parse($end_date)->format('d-m-Y'), ['font-size' => 12]);
-        $sheet->mergeCells('A1:BI1');
+        $sheet->mergeCells('A1:CW1');
 
         // Headers
         // Merge cell
         $sheet->mergeCells('A2:E2');
         $sheet->mergeCells('F2:T2');
         $sheet->mergeCells('U2:AF2');
-        $sheet->mergeCells('AG2:AN2');
-        $sheet->mergeCells('AO2:AS2');
-        $sheet->mergeCells('AT2:AX2');
-        $sheet->mergeCells('AY2:BC2');
-        $sheet->mergeCells('BD2:BI2');
+        $sheet->mergeCells('AG2:AN2'); 
+        $sheet->mergeCells('AO2:AV2'); 
+        $sheet->mergeCells('AW2:BD2'); 
+        $sheet->mergeCells('BE2:BL2'); 
+        $sheet->mergeCells('BM2:BT2'); 
+        $sheet->mergeCells('BU2:BY2'); 
+        $sheet->mergeCells('BZ2:CD2'); 
+        $sheet->mergeCells('CE2:CI2'); 
+        $sheet->mergeCells('CJ2:CQ2'); 
+        $sheet->mergeCells('CR2:CW2');
 
         // Isi value + apply bold + border
         $headers = [
-            'A2:E2'   => ['text' => 'Jenis Produk', 'color' => '#ADD8E6'], // Light Blue
-            'F2:T2'   => ['text' => 'Sewing', 'color' => '#FFF2CC'], // Light Yellow
-            'U2:AF2'  => ['text' => 'QC Finishing', 'color' => '#F4CCCC'], // Pink
-            'AG2:AN2' => ['text' => 'Finishing', 'color' => '#B0C4DE'], // LightSteelBlue
-            'AO2:AS2' => ['text' => 'Defect Sewing', 'color' => '#FFE5B4'], // Peach
-            'AT2:AX2' => ['text' => 'Defect Spotcleaning', 'color' => '#E6E6FA'], // Lavender
-            'AY2:BC2' => ['text' => 'Defect Mending', 'color' => '#FFF2CC'], // Light Yellow
-            'BD2:BI2' => ['text' => 'QC Reject', 'color' => '#F4CCCC'], // Pink
+            'A2:E2'   => ['text' => 'Jenis Produk', 'color' => '#ADD8E6'],
+            'F2:T2'   => ['text' => 'Sewing', 'color' => '#FFF2CC'],
+            'U2:AF2'  => ['text' => 'QC Finishing', 'color' => '#F4CCCC'],
+            'AG2:AN2' => ['text' => 'Finishing - Pasang Kancing', 'color' => '#90EE90'],
+            'AO2:AV2' => ['text' => 'Finishing - Bartack', 'color' => '#87CEEB'],
+            'AW2:BD2' => ['text' => 'Finishing - Heatseal', 'color' => '#D8BFD8'],
+            'BE2:BL2' => ['text' => 'Finishing - Snap', 'color' => '#5DADE2'],
+            'BM2:BT2' => ['text' => 'Finishing - Embro', 'color' => '#C8E6C9'],
+            'BU2:BY2' => ['text' => 'Defect Sewing', 'color' => '#FFE5B4'],
+            'BZ2:CD2' => ['text' => 'Defect Spotcleaning', 'color' => '#E6E6FA'],
+            'CE2:CI2' => ['text' => 'Defect Mending', 'color' => '#FFF2CC'],
+            'CJ2:CQ2' => ['text' => 'Transit Terima QC Reject', 'color' => '#FFA94D'],
+            'CR2:CW2' => ['text' => 'QC Reject', 'color' => '#F4CCCC'],
         ];
 
         foreach ($headers as $range => $value) {
@@ -2740,25 +3977,102 @@ class ReportMutasiOutputController extends Controller
         $sheet->writeTo('AE3', 'Adjustment', $stylePink);
         $sheet->writeTo('AF3', 'Saldo Akhir', $stylePink);
 
-        // FINISHING (AG:AN = 8 kolom)
-        $styleLightSteelBlue = [
+        // FINISHING - PASANG KANCING (AG:AN = 8 kolom)
+        $styleLightGreen = [
             'font-style'     => 'bold',
             'border'         => 'thin',
-            'fill-color'     => '#B0C4DE',
+            'fill-color'     => '#90EE90',
             'text-align'     => 'center',
             'vertical-align' => 'center',
         ];
 
-        $sheet->writeTo('AG3', 'Saldo Awal', $styleLightSteelBlue);
-        $sheet->writeTo('AH3', 'Terima', $styleLightSteelBlue);
-        $sheet->writeTo('AI3', 'Rework', $styleLightSteelBlue);
-        $sheet->writeTo('AJ3', 'Defect', $styleLightSteelBlue);
-        $sheet->writeTo('AK3', 'Reject', $styleLightSteelBlue);
-        $sheet->writeTo('AL3', 'Output', $styleLightSteelBlue);
-        $sheet->writeTo('AM3', 'Adjustment', $styleLightSteelBlue);
-        $sheet->writeTo('AN3', 'Saldo Akhir', $styleLightSteelBlue);
+        $sheet->writeTo('AG3', 'Saldo Awal', $styleLightGreen);
+        $sheet->writeTo('AH3', 'Terima', $styleLightGreen);
+        $sheet->writeTo('AI3', 'Rework', $styleLightGreen);
+        $sheet->writeTo('AJ3', 'Defect', $styleLightGreen);
+        $sheet->writeTo('AK3', 'Reject', $styleLightGreen);
+        $sheet->writeTo('AL3', 'Output', $styleLightGreen);
+        $sheet->writeTo('AM3', 'Adjustment', $styleLightGreen);
+        $sheet->writeTo('AN3', 'Saldo Akhir', $styleLightGreen);
 
-        // DEFECT SEWING (AO:AS = 5 kolom)
+
+        // FINISHING - BARTACK (AO:AV = 8 kolom)
+        $styleLightBlue = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#87CEEB',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('AO3', 'Saldo Awal', $styleLightBlue);
+        $sheet->writeTo('AP3', 'Terima', $styleLightBlue);
+        $sheet->writeTo('AQ3', 'Rework', $styleLightBlue);
+        $sheet->writeTo('AR3', 'Defect', $styleLightBlue);
+        $sheet->writeTo('AS3', 'Reject', $styleLightBlue);
+        $sheet->writeTo('AT3', 'Output', $styleLightBlue);
+        $sheet->writeTo('AU3', 'Adjustment', $styleLightBlue);
+        $sheet->writeTo('AV3', 'Saldo Akhir', $styleLightBlue);
+
+
+        // FINISHING - HEATSEAL (AW:BD = 8 kolom)
+        $stylePurple = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#D8BFD8',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('AW3', 'Saldo Awal', $stylePurple);
+        $sheet->writeTo('AX3', 'Terima', $stylePurple);
+        $sheet->writeTo('AY3', 'Rework', $stylePurple);
+        $sheet->writeTo('AZ3', 'Defect', $stylePurple);
+        $sheet->writeTo('BA3', 'Reject', $stylePurple);
+        $sheet->writeTo('BB3', 'Output', $stylePurple);
+        $sheet->writeTo('BC3', 'Adjustment', $stylePurple);
+        $sheet->writeTo('BD3', 'Saldo Akhir', $stylePurple);
+
+
+        // FINISHING - SNAP (BE:BL = 8 kolom)
+        $styleSnap = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#5DADE2',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('BE3', 'Saldo Awal', $styleSnap);
+        $sheet->writeTo('BF3', 'Terima', $styleSnap);
+        $sheet->writeTo('BG3', 'Rework', $styleSnap);
+        $sheet->writeTo('BH3', 'Defect', $styleSnap);
+        $sheet->writeTo('BI3', 'Reject', $styleSnap);
+        $sheet->writeTo('BJ3', 'Output', $styleSnap);
+        $sheet->writeTo('BK3', 'Adjustment', $styleSnap);
+        $sheet->writeTo('BL3', 'Saldo Akhir', $styleSnap);
+
+
+        // FINISHING - EMBRO (BM:BT = 8 kolom)
+        $styleEmbro = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#C8E6C9',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('BM3', 'Saldo Awal', $styleEmbro);
+        $sheet->writeTo('BN3', 'Terima', $styleEmbro);
+        $sheet->writeTo('BO3', 'Rework', $styleEmbro);
+        $sheet->writeTo('BP3', 'Defect', $styleEmbro);
+        $sheet->writeTo('BQ3', 'Reject', $styleEmbro);
+        $sheet->writeTo('BR3', 'Output', $styleEmbro);
+        $sheet->writeTo('BS3', 'Adjustment', $styleEmbro);
+        $sheet->writeTo('BT3', 'Saldo Akhir', $styleEmbro);
+
+
+        // DEFECT SEWING (BU:BY = 5 kolom)
         $stylePeach = [
             'font-style'     => 'bold',
             'border'         => 'thin',
@@ -2767,13 +4081,14 @@ class ReportMutasiOutputController extends Controller
             'vertical-align' => 'center',
         ];
 
-        $sheet->writeTo('AO3', 'Saldo Awal', $stylePeach);
-        $sheet->writeTo('AP3', 'Terima', $stylePeach);
-        $sheet->writeTo('AQ3', 'Keluar', $stylePeach);
-        $sheet->writeTo('AR3', 'Adjustment', $stylePeach);
-        $sheet->writeTo('AS3', 'Saldo Akhir', $stylePeach);
+        $sheet->writeTo('BU3', 'Saldo Awal', $stylePeach);
+        $sheet->writeTo('BV3', 'Terima', $stylePeach);
+        $sheet->writeTo('BW3', 'Keluar', $stylePeach);
+        $sheet->writeTo('BX3', 'Adjustment', $stylePeach);
+        $sheet->writeTo('BY3', 'Saldo Akhir', $stylePeach);
 
-        // DEFECT SPOTCLEANING (AT:AX = 5 kolom)
+
+        // DEFECT SPOTCLEANING (BZ:CD = 5 kolom)
         $styleLavender = [
             'font-style'     => 'bold',
             'border'         => 'thin',
@@ -2782,26 +4097,46 @@ class ReportMutasiOutputController extends Controller
             'vertical-align' => 'center',
         ];
 
-        $sheet->writeTo('AT3', 'Saldo Awal', $styleLavender);
-        $sheet->writeTo('AU3', 'Terima', $styleLavender);
-        $sheet->writeTo('AV3', 'Keluar', $styleLavender);
-        $sheet->writeTo('AW3', 'Adjustment', $styleLavender);
-        $sheet->writeTo('AX3', 'Saldo Akhir', $styleLavender);
+        $sheet->writeTo('BZ3', 'Saldo Awal', $styleLavender);
+        $sheet->writeTo('CA3', 'Terima', $styleLavender);
+        $sheet->writeTo('CB3', 'Keluar', $styleLavender);
+        $sheet->writeTo('CC3', 'Adjustment', $styleLavender);
+        $sheet->writeTo('CD3', 'Saldo Akhir', $styleLavender);
 
-        // DEFECT MENDING (AY:BC = 5 kolom)
-        $sheet->writeTo('AY3', 'Saldo Awal', $styleLightYellow);
-        $sheet->writeTo('AZ3', 'Terima', $styleLightYellow);
-        $sheet->writeTo('BA3', 'Keluar', $styleLightYellow);
-        $sheet->writeTo('BB3', 'Adjustment', $styleLightYellow);
-        $sheet->writeTo('BC3', 'Saldo Akhir', $styleLightYellow);
 
-        // QC REJECT (BD:BI = 6 kolom)
-        $sheet->writeTo('BD3', 'Saldo Awal', $stylePink);
-        $sheet->writeTo('BE3', 'Terima', $stylePink);
-        $sheet->writeTo('BF3', 'Keluar Sewing', $stylePink);
-        $sheet->writeTo('BG3', 'Keluar Gudang Stok', $stylePink);
-        $sheet->writeTo('BH3', 'Adjustment', $stylePink);
-        $sheet->writeTo('BI3', 'Saldo Akhir', $stylePink);
+        // DEFECT MENDING (CE:CI = 5 kolom)
+        $sheet->writeTo('CE3', 'Saldo Awal', $styleLightYellow);
+        $sheet->writeTo('CF3', 'Terima', $styleLightYellow);
+        $sheet->writeTo('CG3', 'Keluar', $styleLightYellow);
+        $sheet->writeTo('CH3', 'Adjustment', $styleLightYellow);
+        $sheet->writeTo('CI3', 'Saldo Akhir', $styleLightYellow);
+
+
+        // TRANSIT TERIMA QC REJECT (CJ:CQ = 8 kolom)
+        $styleOrange = [
+            'font-style'     => 'bold',
+            'border'         => 'thin',
+            'fill-color'     => '#FFA94D',
+            'text-align'     => 'center',
+            'vertical-align' => 'center',
+        ];
+
+        $sheet->writeTo('CJ3', 'Saldo Awal', $styleOrange);
+        $sheet->writeTo('CK3', 'Terima Sewing', $styleOrange);
+        $sheet->writeTo('CL3', 'Terima QC Finishing', $styleOrange);
+        $sheet->writeTo('CM3', 'Terima Finishing', $styleOrange);
+        $sheet->writeTo('CN3', 'Keluar QC Reject', $styleOrange);
+        $sheet->writeTo('CO3', 'Keluar Packing', $styleOrange);
+        $sheet->writeTo('CP3', 'Adjustment', $styleOrange);
+        $sheet->writeTo('CQ3', 'Saldo Akhir', $styleOrange);
+
+        // QC REJECT (CR:CW = 6 kolom)
+        $sheet->writeTo('CR3', 'Saldo Awal', $stylePink);
+        $sheet->writeTo('CS3', 'Terima', $stylePink);
+        $sheet->writeTo('CT3', 'Keluar Sewing', $stylePink);
+        $sheet->writeTo('CU3', 'Keluar Gudang Stok', $stylePink);
+        $sheet->writeTo('CV3', 'Adjustment', $stylePink);
+        $sheet->writeTo('CW3', 'Saldo Akhir', $stylePink);
 
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
@@ -2846,15 +4181,55 @@ class ReportMutasiOutputController extends Controller
                     $row->qc_finishing_adjust ?? 0,
                     $row->saldo_akhir_finishing ?? 0,
 
-                    // FINISHING (8 kolom)
-                    $row->saldo_awal_secondary_proses ?? 0,
-                    $row->total_in_sp ?? 0,
-                    $row->rework_sp ?? 0,
-                    $row->defect_sp ?? 0,
-                    $row->reject_sp ?? 0,
-                    $row->rft_sp ?? 0,
-                    $row->finishing_adjust ?? 0,
-                    $row->saldo_akhir_secondary_proses ?? 0,
+                    // FINISHING - PASANG KANCING (8 kolom)
+                    $row->saldo_awal_finishing_pasang_kancing ?? 0,
+                    $row->total_in_sp_pasang_kancing ?? 0,
+                    $row->rework_sp_pasang_kancing ?? 0,
+                    $row->defect_sp_pasang_kancing ?? 0,
+                    $row->reject_sp_pasang_kancing ?? 0,
+                    $row->rft_sp_pasang_kancing ?? 0,
+                    $row->finishing_adjust_pasang_kancing ?? 0,
+                    $row->saldo_akhir_finishing_pasang_kancing ?? 0,
+
+                    // FINISHING - BARTACK (8 kolom)
+                    $row->saldo_awal_finishing_bartack ?? 0,
+                    $row->total_in_sp_bartack ?? 0,
+                    $row->rework_sp_bartack ?? 0,
+                    $row->defect_sp_bartack ?? 0,
+                    $row->reject_sp_bartack ?? 0,
+                    $row->rft_sp_bartack ?? 0,
+                    $row->finishing_adjust_bartack ?? 0,
+                    $row->saldo_akhir_finishing_bartack ?? 0,
+
+                    // FINISHING - HEATSEAL (8 kolom)
+                    $row->saldo_awal_finishing_heatseal ?? 0,
+                    $row->total_in_sp_heatseal ?? 0,
+                    $row->rework_sp_heatseal ?? 0,
+                    $row->defect_sp_heatseal ?? 0,
+                    $row->reject_sp_heatseal ?? 0,
+                    $row->rft_sp_heatseal ?? 0,
+                    $row->finishing_adjust_heatseal ?? 0,
+                    $row->saldo_akhir_finishing_heatseal ?? 0,
+
+                    // FINISHING - SNAP (8 kolom)
+                    $row->saldo_awal_finishing_snap ?? 0,
+                    $row->total_in_sp_snap ?? 0,
+                    $row->rework_sp_snap ?? 0,
+                    $row->defect_sp_snap ?? 0,
+                    $row->reject_sp_snap ?? 0,
+                    $row->rft_sp_snap ?? 0,
+                    $row->finishing_adjust_snap ?? 0,
+                    $row->saldo_akhir_finishing_snap ?? 0,
+
+                    // FINISHING - EMBRO (8 kolom)
+                    $row->saldo_awal_finishing_embro ?? 0,
+                    $row->total_in_sp_embro ?? 0,
+                    $row->rework_sp_embro ?? 0,
+                    $row->defect_sp_embro ?? 0,
+                    $row->reject_sp_embro ?? 0,
+                    $row->rft_sp_embro ?? 0,
+                    $row->finishing_adjust_embro ?? 0,
+                    $row->saldo_akhir_finishing_embro ?? 0,
 
                     // DEFECT SEWING (5 kolom)
                     $row->saldo_awal_defect_sewing ?? 0,
@@ -2876,6 +4251,16 @@ class ReportMutasiOutputController extends Controller
                     $row->total_input_rework_mending ?? 0,
                     $row->defect_mending_adjust ?? 0,
                     $row->saldo_akhir_mending ?? 0,
+
+                    // TRANSIT TERIMA QC REJECT (8 kolom)
+                    $row->qty_transit_saldo_awal ?? 0,
+                    $row->qty_transit_terima_sewing ?? 0,
+                    $row->qty_transit_terima_qc_finishing ?? 0,
+                    $row->qty_transit_terima_finishing ?? 0,
+                    $row->qty_transit_keluar_qc_reject ?? 0,
+                    $row->qty_transit_keluar_packing ?? 0,
+                    $row->qty_transit_adjustment ?? 0,
+                    $row->qty_transit_keluar_saldo_akhir ?? 0,
 
                     // QC REJECT (6 kolom)
                     $row->saldo_awal_reject ?? 0,
