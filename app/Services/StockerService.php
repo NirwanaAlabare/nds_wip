@@ -1042,10 +1042,10 @@ class StockerService
                 array_push($log, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
 
                 \Log::info("Recalculate Stocker ".$s->id_qr_stocker);
-
-                logHistory($s->id, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
             }
         }
+
+        logHistory($s->id, $log);
 
         return $log;
     }
