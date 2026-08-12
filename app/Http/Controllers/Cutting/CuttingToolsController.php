@@ -446,6 +446,8 @@ class CuttingToolsController extends Controller
                     'cons_piping' => $oldMarker->cons_piping,
                     'unit_cons_piping' => $oldMarker->unit_cons_piping,
                     'cancel' => 'N',
+                    'created_by' => Auth::user()->id,
+                    'created_by_username' => Auth::user()->username
                 ]);
 
                 Log::channel("Modify Form Marker")->info($currentForm->no_form." / ".$validatedRequest["modify_marker_form_id"]." Create New Marker : ".($markerStore->id));
