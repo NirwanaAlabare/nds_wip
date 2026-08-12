@@ -32,8 +32,21 @@
                         <option value="OUTPUT">OUTPUT</option>
                     </select>
                 </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">
+                        <small>Proses</small>
+                    </label>
+                    <select class="form-select form-select-sm select2bs4base" id="proses" name="proses">
+                        <option value="">Semua Proses</option>
+                        @foreach ($proses as $row)
+                            <option value="{{ $row->secondary }}">
+                                {{ $row->secondary }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="form-label">
                         <small>Buyer</small>
                     </label>
@@ -61,7 +74,7 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
 
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-primary btn-sm" onclick="dataTableReload()">
                             <i class="fas fa-search"></i>
@@ -79,6 +92,7 @@
                 <table id="datatable" class="table table-bordered table-striped table-hover table w-100">
                     <thead class="bg-sb">
                         <tr>
+                            <th class="text-center align-middle">Proses</th>
                             <th class="text-center align-middle">Buyer</th>
                             <th class="text-center align-middle">WS</th>
                             <th class="text-center align-middle">Style</th>
@@ -155,9 +169,13 @@
                         d.dateTo = $('#tgl-akhir').val();
                         d.kategori = $("#kategori").val();
                         d.buyer = $("#buyer").val();
+                        d.proses = $("#proses").val();
                     }
                 },
                 columns: [
+                    {
+                        data: 'proses'
+                    },
                     {
                         data: 'buyer'
                     },
@@ -219,7 +237,8 @@
                     from : $("#tgl-awal").val(),
                     to : $("#tgl-akhir").val(),
                     kategori : $("#kategori").val(),
-                    buyer : $("#buyer").val()
+                    buyer : $("#buyer").val(),
+                    proses : $("#proses").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function (res) {
