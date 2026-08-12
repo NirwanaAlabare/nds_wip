@@ -3052,70 +3052,70 @@ class ReportMutasiOutputController extends Controller
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo < '2026-07-01'
+                        AND tgl_saldo < '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_pasang_kancing_before,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo >= '2026-07-01'
+                        AND tgl_saldo >= '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_pasang_kancing,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo < '2026-07-01'
+                        AND tgl_saldo < '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_bartack_before,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo >= '2026-07-01'
+                        AND tgl_saldo >= '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_bartack,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo < '2026-07-01'
+                        AND tgl_saldo < '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_heatseal_before,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo >= '2026-07-01'
+                        AND tgl_saldo >= '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_heatseal,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo < '2026-07-01'
+                        AND tgl_saldo < '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_snap_before,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo >= '2026-07-01'
+                        AND tgl_saldo >= '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_snap,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo < '2026-07-01'
+                        AND tgl_saldo < '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_embro_before,
 
                     SUM(CASE
                         WHEN type_report = 'FINISHING'
                         AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo >= '2026-07-01'
+                        AND tgl_saldo >= '$start_date'
                         THEN qty ELSE 0
                     END) AS finishing_adjust_embro,
 
