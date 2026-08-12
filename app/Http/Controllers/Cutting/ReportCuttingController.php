@@ -4682,7 +4682,7 @@ order by  ws asc, color asc
                             $groupBy
                     ) mut
                     LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
-                    LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs 
+                    LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs
                     LEFT JOIN (
                         SELECT
                             ac.kpno,
@@ -5263,7 +5263,7 @@ order by  ws asc, color asc
                     $groupBy
             ) mut
             LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
-            LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs 
+            LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs
             LEFT JOIN (
                 SELECT
                     ac.kpno,
@@ -13351,79 +13351,6 @@ order by a.tgl_trans asc
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-                // Deprecated
-                    // $rawData = DB::select("
-                    //     select
-                    //         id_so_det,
-                    //         no_form,
-                    //         no_cut,
-                    //         created_at,
-                    //         buyer,
-                    //         ws,
-                    //         styleno,
-                    //         color,
-                    //         size,
-                    //         dest,
-                    //         panel,
-                    //         panel_status,
-                    //         part_detail_id,
-                    //         nama_part,
-                    //         part_status,
-                    //         SUM(qty_out) qty_dc,
-                    //         cancel,
-                    //         cancel_h,
-                    //         status
-                    //     from (
-                    //         select
-                    //         msb.id_so_det,
-                    //         COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-                    //         COALESCE(f.no_cut, fp.no_cut, 'REJECT') no_cut,
-                    //         DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-                    //         msb.buyer,
-                    //         msb.ws,
-                    //         msb.styleno,
-                    //         msb.color,
-                    //         s.so_det_id,
-                    //         k.size,
-                    //         msb.dest,
-                    //         (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                    //         (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-                    //         pd.id part_detail_id,
-                    //         mp.nama_part,
-                    //         pd.part_status,
-                    //         (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-                    //         k.cancel,
-                    //         k.cancel_h,
-                    //         k.status
-                    //     FROM
-                    //         stocker_input s
-                    //         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                    //         left join form_cut_input f on f.id = s.form_cut_id
-                    //         left join form_cut_reject fr on fr.id = s.form_reject_id
-                    //         left join form_cut_piece fp on fp.id = s.form_piece_id
-                    //         left join part_detail pd on s.part_detail_id = pd.id
-                    //         left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                    //         left join part p on p.id = pd.part_id
-                    //         left join part p_com on p_com.id = pd_com.part_id
-                    //         left join master_part mp on mp.id = pd.master_part_id
-                    //         LEFT JOIN (
-                    //             SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-                    //             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                    //             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                    //             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                    //         ) k on msb.id_so_det = k.id_so_det
-                    //         where
-                    //         (s.cancel IS NULL OR s.cancel != 'Y') and
-                    //         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                    //         s.created_at between '$start_date 00:00:00' and '$end_date 23:59:59'
-                    //     ) cutting
-                    //     group by
-                    //         no_form,
-                    //         size,
-                    //         part_detail_id
-                    // ");
-
-
                 if ($start_date < '2026-05-01') {
                     $rawData = DB::select("
                         WITH stocker as (
@@ -13461,8 +13388,8 @@ order by a.tgl_trans asc
                                         s.so_det_id,
                                         k.size,
                                         msb.dest,
-                                        (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                                        (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
+                                        (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel ELSE p.panel END) panel,
+                                        (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
                                         pd.id part_detail_id,
                                         mp.nama_part,
                                         pd.part_status,
@@ -13470,7 +13397,7 @@ order by a.tgl_trans asc
                                         k.cancel,
                                         k.cancel_h,
                                         k.status,
-                                        (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
+                                        (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.id ELSE p.id END) part_id
                                 FROM
                                         stocker_input s
                                         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -13488,6 +13415,7 @@ order by a.tgl_trans asc
                                                 INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                                                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
                                         ) k on msb.id_so_det = k.id_so_det
+                                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                         where
                                         (s.cancel IS NULL OR s.cancel != 'Y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -13656,11 +13584,11 @@ order by a.tgl_trans asc
                                         a.tgl_trans,
                                         s.act_costing_ws,
                                         s.color,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
                                         s.so_det_id,
                                         s.ratio,
                                         a.qty_awal,
@@ -13693,6 +13621,7 @@ order by a.tgl_trans asc
                                         left join part_detail pdcom on pdcom.id = pd.from_part_detail
                                         left join part pcom on pcom.id = pdcom.part_id
                                         left join master_part mp on mp.id = pd.master_part_id
+                                        left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = s.color
                                 where
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
@@ -13738,77 +13667,6 @@ order by a.tgl_trans asc
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-                // $rawData = DB::select("
-                //     select
-                //         id_so_det,
-                //         no_form,
-                //         no_cut,
-                //         created_at,
-                //         buyer,
-                //         ws,
-                //         styleno,
-                //         color,
-                //         size,
-                //         dest,
-                //         panel,
-                //         panel_status,
-                //         part_detail_id,
-                //         nama_part,
-                //         part_status,
-                //         SUM(qty_out) qty_dc,
-                //         cancel,
-                //         cancel_h,
-                //         status
-                //     from (
-                //         select
-                //         msb.id_so_det,
-                //         COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-                //         COALESCE(f.no_cut, fp.no_cut, 'REJECT') no_cut,
-                //         DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-                //         msb.buyer,
-                //         msb.ws,
-                //         msb.styleno,
-                //         msb.color,
-                //         s.so_det_id,
-                //         k.size,
-                //         msb.dest,
-                //         (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                //         (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-                //         pd.id part_detail_id,
-                //         mp.nama_part,
-                //         pd.part_status,
-                //         (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-                //         k.cancel,
-                //         k.cancel_h,
-                //         k.status
-                //     FROM
-                //         stocker_input s
-                //         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                //         left join form_cut_input f on f.id = s.form_cut_id
-                //         left join form_cut_reject fr on fr.id = s.form_reject_id
-                //         left join form_cut_piece fp on fp.id = s.form_piece_id
-                //         left join part_detail pd on s.part_detail_id = pd.id
-                //         left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                //         left join part p on p.id = pd.part_id
-                //         left join part p_com on p_com.id = pd_com.part_id
-                //         left join master_part mp on mp.id = pd.master_part_id
-                //         LEFT JOIN (
-                //             SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-                //             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                //             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                //             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                //         ) k on msb.id_so_det = k.id_so_det
-                //         where
-                //         (s.cancel IS NULL OR s.cancel != 'Y') and
-                //         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                //         s.created_at between '$start_date 00:00:00' and '$end_date 23:59:59'
-                //     ) cutting
-                //     group by
-                //         no_form,
-                //         size,
-                //         part_detail_id
-                // ");
-
                 $rawData = DB::select("
                     WITH stocker as (
                             select
@@ -13845,8 +13703,8 @@ order by a.tgl_trans asc
                                     s.so_det_id,
                                     k.size,
                                     msb.dest,
-                                    (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                                    (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel ELSE p.panel END) panel,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
                                     pd.id part_detail_id,
                                     mp.nama_part,
                                     pd.part_status,
@@ -13854,7 +13712,7 @@ order by a.tgl_trans asc
                                     k.cancel,
                                     k.cancel_h,
                                     k.status,
-                                    (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.id ELSE p.id END) part_id
                             FROM
                                     stocker_input s
                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -13872,6 +13730,7 @@ order by a.tgl_trans asc
                                             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                                             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
                                     ) k on msb.id_so_det = k.id_so_det
+                                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                     where
                                     (s.cancel IS NULL OR s.cancel != 'Y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -13986,11 +13845,6 @@ order by a.tgl_trans asc
         );
     }
 
-    // public function export_excel_report_pengeluaran_cutting(Request $request)
-    // {
-    //     return Excel::download(new export_excel_report_pengeluaran_cutting($request->start_date, $request->end_date), 'Laporan Pengeluaran Cutting.xlsx');
-    // }
-
     public function export_excel_report_pengeluaran_cutting(Request $request)
     {
         $start_date = $request->start_date;
@@ -14034,8 +13888,8 @@ order by a.tgl_trans asc
                                 s.so_det_id,
                                 k.size,
                                 msb.dest,
-                                (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                                (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel ELSE p.panel END) panel,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
                                 pd.id part_detail_id,
                                 mp.nama_part,
                                 pd.part_status,
@@ -14043,7 +13897,7 @@ order by a.tgl_trans asc
                                 k.cancel,
                                 k.cancel_h,
                                 k.status,
-                                (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.id ELSE p.id END) part_id
                         FROM
                                 stocker_input s
                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -14061,6 +13915,7 @@ order by a.tgl_trans asc
                                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
                                 ) k on msb.id_so_det = k.id_so_det
+                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                 where
                                 (s.cancel IS NULL OR s.cancel != 'Y') and
                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -14229,11 +14084,11 @@ order by a.tgl_trans asc
                                 a.tgl_trans,
                                 s.act_costing_ws,
                                 s.color,
-                                CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
-                                CASE WHEN pd.part_status = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                CASE WHEN pd.part_status = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                CASE WHEN pd.part_status = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
                                 s.so_det_id,
                                 s.ratio,
                                 a.qty_awal,
@@ -14266,6 +14121,7 @@ order by a.tgl_trans asc
                                 left join part_detail pdcom on pdcom.id = pd.from_part_detail
                                 left join part pcom on pcom.id = pdcom.part_id
                                 left join master_part mp on mp.id = pd.master_part_id
+                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = s.color
                         where
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
@@ -14362,11 +14218,6 @@ order by a.tgl_trans asc
         return $excel->download();
     }
 
-    // public function export_excel_report_pengeluaran_cutting_panel(Request $request)
-    // {
-    //     return Excel::download(new export_excel_report_pengeluaran_cutting_panel($request->start_date, $request->end_date), 'Laporan Pengeluaran Cutting Panel.xlsx');
-    // }
-
     public function export_excel_report_pengeluaran_cutting_panel(Request $request)
     {
         $start_date = $request->start_date;
@@ -14409,8 +14260,8 @@ order by a.tgl_trans asc
                             s.so_det_id,
                             k.size,
                             msb.dest,
-                            (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-                            (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
+                            (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel ELSE p.panel END) panel,
+                            (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
                             pd.id part_detail_id,
                             mp.nama_part,
                             pd.part_status,
@@ -14418,7 +14269,7 @@ order by a.tgl_trans asc
                             k.cancel,
                             k.cancel_h,
                             k.status,
-                            (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
+                            (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN p_com.id ELSE p.id END) part_id
                     FROM
                             stocker_input s
                             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -14436,6 +14287,7 @@ order by a.tgl_trans asc
                                     INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
                             ) k on msb.id_so_det = k.id_so_det
+                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                             where
                             (s.cancel IS NULL OR s.cancel != 'Y') and
                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
