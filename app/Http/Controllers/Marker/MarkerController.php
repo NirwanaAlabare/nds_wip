@@ -50,7 +50,8 @@ class MarkerController extends Controller
                 CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
                 COALESCE(b.status_selesai, 'BELUM') status_selesai,
                 COALESCE(notes, '-') notes,
-                cancel
+                cancel,
+                created_by_username
             ")->
             leftJoin(
                 DB::raw("
@@ -100,6 +101,8 @@ class MarkerController extends Controller
                     $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('po_marker', function ($query, $keyword) {
                     $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('created_by_username', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(created_by_username) LIKE LOWER('%" . $keyword . "%')");
                 })->order(function ($query) {
                     $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
                 })->toJson();
