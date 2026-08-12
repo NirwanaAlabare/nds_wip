@@ -15,7 +15,7 @@
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
         <div class="d-flex justify-content-end gap-1">
             <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-reply"></i> Kembali ke Stok Trolley
+                <i class="fas fa-reply"></i> Kembali
             </a>
             <a href="{{ route('allocate-this-trolley')."/".$trolley->id }}" class="btn btn-sb-secondary btn-sm">
                 Alokasi Stok Trolley <i class="fas fa-share"></i>
