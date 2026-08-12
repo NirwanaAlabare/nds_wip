@@ -438,9 +438,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-2">
-                        <input type="text" id="areaJenisUnitSearch" class="form-control form-control-sm"
-                            placeholder="Cari Serial Number / Merk / Tipe / No BPB / Status...">
+                    <div class="mb-2 d-flex align-items-center gap-2 flex-wrap">
+                        <input type="text" id="areaJenisUnitSearch" class="form-control form-control-sm flex-grow-1"
+                            placeholder="Cari Serial Number / Merk / Tipe / No BPB / Status..." style="min-width: 220px;">
+                        <div class="btn-group btn-group-sm" role="group" id="areaJenisUnitKepemilikanFilter">
+                            <button type="button" class="btn btn-outline-secondary active" data-kepemilikan="ALL">Semua</button>
+                            <button type="button" class="btn btn-outline-secondary" data-kepemilikan="PEMBELIAN">Pembelian</button>
+                            <button type="button" class="btn btn-outline-secondary" data-kepemilikan="SEWA">Sewa</button>
+                        </div>
                     </div>
                     <div class="unit-modal-table-wrap">
                         <table class="table table-bordered table-sm align-middle mb-0">
@@ -452,6 +457,7 @@
                                     <th>Tipe</th>
                                     <th>No BPB</th>
                                     <th>Status</th>
+                                    <th>Kepemilikan</th>
                                 </tr>
                             </thead>
                             <tbody id="areaJenisUnitTableBody"></tbody>
@@ -471,6 +477,8 @@
         function openAreaJenisUnitModal(lokasi, nmJenis, status, titleText) {
             $('#areaJenisUnitModalLabel').text(titleText);
             $('#areaJenisUnitSearch').val('');
+            $('#areaJenisUnitKepemilikanFilter button').removeClass('active');
+            $('#areaJenisUnitKepemilikanFilter button[data-kepemilikan="ALL"]').addClass('active');
             let $body = $('#areaJenisUnitTableBody').empty();
 
             $.ajax({
@@ -484,17 +492,21 @@
                 success: function(units) {
                     if (!units.length) {
                         $body.append(
-                            '<tr><td colspan="6" class="text-center text-muted">Tidak ada data.</td></tr>');
+                            '<tr><td colspan="7" class="text-center text-muted">Tidak ada data.</td></tr>');
                     } else {
                         units.forEach(function(unit, i) {
+                            let isSewa = unit.kepemilikan === 'SEWA';
+                            let badgeClass = isSewa ? 'bg-warning text-dark' : 'bg-success';
+                            let badgeLabel = isSewa ? 'Sewa' : 'Pembelian';
                             $body.append(`
-                        <tr>
+                        <tr data-kepemilikan="${unit.kepemilikan ?? ''}">
                             <td class="text-center align-middle">${i + 1}</td>
                             <td class="align-middle">${unit.serial_number ?? '-'}</td>
                             <td class="align-middle">${unit.nm_merk ?? '-'}</td>
                             <td class="align-middle">${unit.tipe ?? '-'}</td>
                             <td class="align-middle">${unit.bpbno_int ?? '-'}</td>
                             <td class="align-middle">${unit.status ?? '-'}</td>
+                            <td class="align-middle"><span class="badge ${badgeClass}">${badgeLabel}</span></td>
                         </tr>`);
                         });
                     }
@@ -510,6 +522,26 @@
                 }
             });
         }
+
+        // Terapkan filter Semua/Milik/Sewa + kata kunci search sekaligus ke baris tabel modal
+        function applyAreaJenisUnitFilters() {
+            let keyword = $('#areaJenisUnitSearch').val().toLowerCase();
+            let kepemilikan = $('#areaJenisUnitKepemilikanFilter button.active').data('kepemilikan');
+
+            $('#areaJenisUnitTableBody tr').each(function() {
+                let $row = $(this);
+                let matchKeyword = $row.text().toLowerCase().indexOf(keyword) !== -1;
+                let matchKepemilikan = kepemilikan === 'ALL' || $row.data('kepemilikan') === kepemilikan;
+                $row.toggleClass('d-none', !(matchKeyword && matchKepemilikan));
+            });
+        }
+
+        // Klik tombol filter Semua/Milik/Sewa di dalam modal detail unit
+        $('#areaJenisUnitKepemilikanFilter').on('click', 'button', function() {
+            $('#areaJenisUnitKepemilikanFilter button').removeClass('active');
+            $(this).addClass('active');
+            applyAreaJenisUnitFilters();
+        });
 
         // Klik bar di "Report Qty per Area" -> detail semua jenis mesin di area tersebut
         $('.hbar-row[data-lokasi]').on('click', function() {
@@ -548,11 +580,7 @@
 
         // Search di dalam modal detail unit: filter baris yang sudah dimuat
         $('#areaJenisUnitSearch').on('keyup', function() {
-            let keyword = $(this).val().toLowerCase();
-            $('#areaJenisUnitTableBody tr').each(function() {
-                let text = $(this).text().toLowerCase();
-                $(this).toggleClass('d-none', text.indexOf(keyword) === -1);
-            });
+            applyAreaJenisUnitFilters();
         });
 
         // Search: filter baris matrix berdasarkan nama Area
