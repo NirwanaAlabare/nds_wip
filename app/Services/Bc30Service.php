@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Services\BcReferenceService;
 
 class Bc30Service
 {
@@ -224,19 +225,25 @@ class Bc30Service
 
             // --- 6. Entitas & Pemilik Barang ---
             $entitasInput = $request->input('entitas', []);
-            $entitasList  = [];
+            $entitasList = [];
+            $seri = 1;
+
             foreach ($entitasInput as $kodeEntitas => $e) {
-                $entitasList[] = [
-                    'seriEntitas'        => (int) ($e['seriEntitas'] ?? 0),
-                    'kodeEntitas'        => (string) $kodeEntitas,
-                    'kodeJenisIdentitas' => $e['kodeJenisIdentitas'] ?? '',
-                    'nomorIdentitas'     => $e['nomorIdentitas'] ?? '',
-                    'namaEntitas'        => $e['namaEntitas'] ?? '',
-                    'alamatEntitas'      => $e['alamatEntitas'] ?? '',
-                    'kodeNegara'         => $e['kodeNegara'] ?? '',
-                    'nibEntitas'         => $e['nibEntitas'] ?? '',
-                    'kodeStatus'        => $e['kodeStatus'] ?? '',
-                    'nitku'              => $e['nitku'] ?? '',
+                if (empty($e['namaEntitas']) && empty($e['nomorIdentitas'])) {
+                    continue;
+                }
+
+                $entitasList[$kodeEntitas] = [   // <-- key pakai kodeEntitas, bukan push([])
+                    'seriEntitas'              => $seri++,
+                    'kodeEntitas'              => (string) ($e['kodeEntitas'] ?? $kodeEntitas),
+                    'kodeJenisIdentitas'       => $e['kodeJenisIdentitas'] ?? '',
+                    'nomorIdentitas'           => $e['nomorIdentitas'] ?? '',
+                    'namaEntitas'              => $e['namaEntitas'] ?? '',
+                    'alamatEntitas'            => $e['alamatEntitas'] ?? '',
+                    'kodeNegara'               => $e['kodeNegara'] ?? '',
+                    'nibEntitas'               => $e['nibEntitas'] ?? '',
+                    'kodeStatus'               => $e['kodeStatus'] ?? '',
+                    'nitku'                    => $e['nitku'] ?? '',
                     'kodeKategoriKonsolidator' => $e['kodeKategoriKonsolidator'] ?? '',
                 ];
             }
@@ -935,6 +942,421 @@ class Bc30Service
         ];
     }
 
+    public function editBatch($ids, Request $request)
+    {
+        $db = DB::connection('mysql_sb');
+
+        $bppbs = explode(',', $ids);
+        $firstBpb = $bppbs[0];
+
+        $header = $db->table('bppb as a')
+            ->select(
+                'a.*',
+                'ms.supplier',
+                'ms.alamat as alamat_supplier',
+                'ms.npwp as npwp_supplier',
+                DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trx_no_par")
+            )
+            ->leftJoin('mastersupplier as ms', 'a.id_supplier', '=', 'ms.id_supplier')
+            ->where(function ($query) use ($firstBpb) {
+                $query->where('a.bppbno', $firstBpb)->orWhere('a.bppbno_int', $firstBpb);
+            })
+            ->first();
+
+
+        if (!$header) abort(404, 'Data Transaksi Tidak Ditemukan');
+
+        $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $firstBpb)->first();
+        $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
+
+
+        if(isset($dataDetail['barang']) && count($dataDetail['barang']) > 0){
+            $items = collect($dataDetail['barang'])->map(function($b) {
+                return (object)[
+                    'id_item'         => $b['idItem'] ?? '',
+                    'goods_code'      => $b['kodeBarang'] ?? '',
+                    'itemdesc'        => $b['uraian'] ?? '',
+                    'unit'            => $b['kodeSatuanBarang'] ?? '',
+                    'qty'             => $b['jumlahSatuan'] ?? 0,
+                    // 'price'           => $b['hargaPenyerahan'] / ($b['jumlahSatuan'] > 0 ? $b['jumlahSatuan'] : 1),
+                    'total_harga'     => $b['hargaPenyerahan'] ?? 0,
+                ];
+            });
+        }else{
+
+            $items = $db->table('bppb as a')
+                    ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+                    ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+                    ->select(
+                        'a.id_item',
+
+                        DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
+                        DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
+
+                        DB::raw("MAX(a.unit) as unit"),
+                        DB::raw('SUM(a.qty) as qty'),
+                        DB::raw('AVG(a.price) as price'),
+                        DB::raw('SUM(a.qty * a.price) as total_harga')
+                    )
+                    ->where(function($query) use ($bppbs) {
+                        $query->whereIn('a.bppbno', $bppbs)->orWhereIn('a.bppbno_int', $bppbs);
+                    })
+                    ->groupBy('a.id_item')
+                    ->get();
+
+        }
+
+
+        $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
+        $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
+            ['kode' => '', 'nomor' => '', 'tgl' => '']
+        ];
+
+
+        return view('export-import.dokumen-pabean.edit-batch-bc30', [
+            'page'          => 'dashboard-export-import',
+            'subPageGroup'  => 'export-import',
+            'subPage'       => 'dokumen-pabean-list',
+            'containerFluid'=> true,
+            'header'        => $header,
+            'ceisaInfo'     => $ceisaInfo,
+            'dataDetail'    => $dataDetail,
+            'items'         => $items,
+            'nomorAju'      => $nomorAju,
+            'dokumens'      => $dokumens,
+            "batch_id"       => $ids,
+            'kantorList'    => $this->getKantorList(),
+            'listIncoterm'       => BcReferenceService::getIncoterm(),
+            'listSatuanBarang'   => BcReferenceService::getSatuanBarang(),
+            'listJenisKemasan'   => BcReferenceService::getJenisKemasan(),
+            'referensiDokumen'   => BcReferenceService::getReferensiDokumen(),
+            'listValuta'         => BcReferenceService::getValuta(),
+            'listKategoriBarang' => BcReferenceService::getKategoriBarang(),
+            'listJenisKontainer' => BcReferenceService::getJenisKontainer(),
+            'listTipeKontainer'  => BcReferenceService::getTipeKontainer(),
+            'listUkuranKontainer'=> BcReferenceService::getUkuranKontainer(),
+            'listCaraAngkut' => BcReferenceService::getCaraAngkut(),
+            'listJenisKemasan'     => BcReferenceService::getJenisKemasan(),
+            'listSatuanBarang'     => BcReferenceService::getSatuanBarang(),
+            'referensiDokumen'     => BcReferenceService::getReferensiDokumen(),
+            'listValuta'           => BcReferenceService::getValuta(),
+            'listIncoterm'         => BcReferenceService::getIncoterm(),
+            'listCaraAngkut'       => BcReferenceService::getCaraAngkut(),
+            'listCaraDagang'       => BcReferenceService::getCaraDagang(),
+            'listCaraBayar'        => BcReferenceService::getCaraPembayaran(),
+            'listJenisKontainer'   => BcReferenceService::getJenisKontainer(),
+            'listTipeKontainer'    => BcReferenceService::getTipeKontainer(),
+            'listUkuranKontainer'  => BcReferenceService::getUkuranKontainer(),
+            'listNegara'           => BcReferenceService::getNegara(),
+            'listBank'             => BcReferenceService::getBank(),
+            'listDaerahAsal'       => BcReferenceService::getDaerahAsal(),
+            'listJenisIdentitas'   => BcReferenceService::getJenisIdentitas(),
+            'listJenisEkspor'      => BcReferenceService::getJenisEkspor(),
+            'listStatusPengusaha'  => BcReferenceService::getStatusPengusaha(),
+            'listJenisPengangkutan'=> BcReferenceService::getJenisPengangkutan(),
+            'listKategoriKonsolidator' => BcReferenceService::getKategoriKonsolidator(),
+            'kantorList'           => BcReferenceService::getKantorPelayanan(),
+        ]);
+    }
+
+    public function updateDraftBatchBc30($ids, Request $request)
+    {
+        $db = DB::connection('mysql_sb');
+        $db->beginTransaction();
+
+        try {
+
+            $bppbs   = explode(',', $ids);
+            $nomorAju = $request->input('nomorAju', '');
+
+            // --- 1. Dokumen ---
+            $dokumenInput = $request->input('dok', []);
+            $dokumenList  = [];
+            $seriDok      = 1;
+
+            foreach ($dokumenInput as $index => $d) {
+                if (!empty($d['kode']) || !empty($d['nomor'])) {
+                    $dokumenList[] = [
+                        'seriDokumen'    => $seriDok++,
+                        'kodeDokumen'    => $d['kode'] ?? '',
+                        'nomorDokumen'   => $d['nomor'] ?? '',
+                        'tanggalDokumen' => $d['tgl'] ?? date('Y-m-d'),
+                        'fileName'       => $d['fileName'] ?? null,
+                    ];
+                }
+            }
+
+            // --- 2. Kemasan ---
+            $kemasanInput = $request->input('kemasan', []);
+            $kemasanList  = [];
+            $seriKemasan  = 1;
+            foreach ($kemasanInput as $k) {
+                if (isset($k['jumlahKemasan']) && $k['jumlahKemasan'] !== '') {
+                    $kemasanList[] = [
+                        'seriKemasan'      => $seriKemasan++,
+                        'jumlahKemasan'    => (int) $k['jumlahKemasan'],
+                        'kodeJenisKemasan' => $k['kodeJenisKemasan'] ?? '',
+                        'merkKemasan'      => $k['merkKemasan'] ?? '-',
+                    ];
+                }
+            }
+
+            // --- 3. Kontainer / Peti Kemas ---
+            $kontainerInput = $request->input('kontainer', []);
+            $kontainerList  = [];
+            $seriKontainer  = 1;
+            foreach ($kontainerInput as $k) {
+                if (!empty($k['nomorKontainer'])) {
+                    $kontainerList[] = [
+                        'seriKontainer'       => $seriKontainer++,
+                        'nomorKontainer'      => $k['nomorKontainer'],
+                        'kodeJenisKontainer'  => $k['kodeJenisKontainer'] ?? '',
+                        'kodeTipeKontainer'   => $k['kodeTipeKontainer'] ?? '',
+                        'kodeUkuranKontainer' => $k['kodeUkuranKontainer'] ?? '',
+                    ];
+                }
+            }
+
+            // --- 4. Pengangkut ---
+            $pengangkutInput = $request->input('pengangkut', []);
+            $pengangkutList  = [];
+            $seriPengangkut  = 1;
+            foreach ($pengangkutInput as $p) {
+                if (!empty($p['namaPengangkut']) || !empty($p['nomorPengangkut'])) {
+                    $pengangkutList[] = [
+                        'seriPengangkut'  => $seriPengangkut++,
+                        'kodeBendera'     => $p['kodeBendera'] ?? '',
+                        'namaPengangkut'  => $p['namaPengangkut'] ?? '',
+                        'nomorPengangkut' => $p['nomorPengangkut'] ?? '',
+                        'kodeCaraAngkut'  => $p['kodeCaraAngkut'] ?? '',
+                    ];
+                }
+            }
+
+            // --- 5. Bank Devisa ---
+            $bankDevisaInput = $request->input('bankDevisa', []);
+            $bankDevisaList  = [];
+            $seriBank        = 1;
+            foreach ($bankDevisaInput as $b) {
+                if (!empty($b['kodeBank']) || !empty($b['namaBank'])) {
+                    $bankDevisaList[] = [
+                        'seriBank' => $seriBank++,
+                        'kodeBank' => $b['kodeBank'] ?? '',
+                        'namaBank' => $b['namaBank'] ?? '',
+                    ];
+                }
+            }
+
+            // --- 6. Entitas & Pemilik Barang ---
+            $entitasInput = $request->input('entitas', []);
+            $entitasList = [];
+            $seri = 1;
+
+            foreach ($entitasInput as $kodeEntitas => $e) {
+                if (empty($e['namaEntitas']) && empty($e['nomorIdentitas'])) {
+                    continue;
+                }
+
+                $entitasList[$kodeEntitas] = [   // <-- key pakai kodeEntitas, bukan push([])
+                    'seriEntitas'              => $seri++,
+                    'kodeEntitas'              => (string) ($e['kodeEntitas'] ?? $kodeEntitas),
+                    'kodeJenisIdentitas'       => $e['kodeJenisIdentitas'] ?? '',
+                    'nomorIdentitas'           => $e['nomorIdentitas'] ?? '',
+                    'namaEntitas'              => $e['namaEntitas'] ?? '',
+                    'alamatEntitas'            => $e['alamatEntitas'] ?? '',
+                    'kodeNegara'               => $e['kodeNegara'] ?? '',
+                    'nibEntitas'               => $e['nibEntitas'] ?? '',
+                    'kodeStatus'               => $e['kodeStatus'] ?? '',
+                    'nitku'                    => $e['nitku'] ?? '',
+                    'kodeKategoriKonsolidator' => $e['kodeKategoriKonsolidator'] ?? '',
+                ];
+            }
+
+            // Menggabungkan Pemilik Barang ke Entitas Utama (Kode: 7) untuk API CEISA
+            $pemilikInput      = $request->input('pemilik', []);
+            $seriPemilikMulai  = count($entitasList) + 1;
+            foreach ($pemilikInput as $pem) {
+                if (!empty($pem['noId']) || !empty($pem['nama'])) {
+                    $entitasList[] = [
+                        'seriEntitas'        => $seriPemilikMulai++,
+                        'kodeEntitas'        => '7',
+                        'kodeJenisIdentitas' => $pem['jenisId'] ?? '',
+                        'nomorIdentitas'     => $pem['noId'] ?? '',
+                        'namaEntitas'        => $pem['nama'] ?? '',
+                        'alamatEntitas'      => $pem['alamat'] ?? '',
+                    ];
+                }
+            }
+
+            // --- 7. Pungutan ---
+            $pungutan = $request->input('pungutan', []);
+            if (is_array($pungutan)) {
+                foreach ($pungutan as &$p) {
+                    if (isset($p['nilaiPungutan'])) {
+                        $p['nilaiPungutan'] = (float) $p['nilaiPungutan'];
+                    }
+                }
+                unset($p);
+            }
+
+            // --- 8. Kesiapan Barang (PKB) ---
+            $kesiapanBarangList = array_values($request->input('kesiapanBarang', []));
+
+            // --- 9. Barang ---
+            $barangList = array_map(function ($brg) {
+                $brg['fob']           = (float) ($brg['fob'] ?? 0);
+                $brg['hargaSatuan']   = (float) ($brg['hargaSatuan'] ?? 0);
+                $brg['hargaEkspor']   = (float) ($brg['hargaEkspor'] ?? 0);
+                $brg['hargaPatokan']  = (float) ($brg['hargaPatokan'] ?? 0);
+                $brg['netto']         = (float) ($brg['netto'] ?? 0);
+                $brg['jumlahSatuan']  = (float) ($brg['jumlahSatuan'] ?? 0);
+                $brg['jumlahKemasan'] = (float) ($brg['jumlahKemasan'] ?? 0);
+                $brg['seriBarang']    = (int) ($brg['seriBarang'] ?? 0);
+                $brg['kodeDokumen']   = '30';
+
+                // Format Tarif Barang (Jika Ada)
+                if (isset($brg['barangTarif']) && is_array($brg['barangTarif'])) {
+                    foreach ($brg['barangTarif'] as &$tarif) {
+                        $tarif['jumlahSatuan'] = (float) ($brg['jumlahSatuan'] ?? 0);
+                        $tarif['tarif']        = (float) ($tarif['tarif'] ?? 0);
+                    }
+                    unset($tarif);
+                }
+
+                // Bersihkan data array kosong
+                if (isset($brg['dokFasilitas'])) $brg['dokFasilitas'] = array_values($brg['dokFasilitas']);
+                if (isset($brg['barangPemilik'])) $brg['barangPemilik'] = array_values($brg['barangPemilik']);
+
+                return $brg;
+            }, array_values($request->input('barang', [])));
+
+            $payloadJson = [
+                'asalData'   => 'S',
+                'disclaimer' => '1',
+                'kodeDokumen' => '30',
+
+                // Header Dokumen
+                'nomorAju'          => $nomorAju,
+                'tanggalAju'        => $request->input('tanggalAju', date('Y-m-d')),
+                'kodeKantor'        => $request->input('kodeKantor', '050500'),
+                'kodeKantorEkspor'  => $request->input('kodeKantorEkspor', ''),
+                'kodeKantorMuat'    => $request->input('kodeKantorMuat', ''),
+                'kodeKantorPeriksa' => $request->input('kodeKantorPeriksa', ''),
+
+                // Pelabuhan & Pengangkutan
+                'kodePelEkspor'         => $request->input('kodePelEkspor', ''),
+                'kodePelMuat'           => $request->input('kodePelMuat', ''),
+                'kodePelTujuan'         => $request->input('kodePelTujuan', ''),
+                'kodeLokasi'            => $request->input('kodeLokasi', ''),
+                'kodeTps'               => $request->input('kodeTps', ''),
+                'kodeLokasiTps'         => $request->input('kodeLokasiTps', ''),
+                'kodeNegaraTujuan'      => $request->input('kodeNegaraTujuan', ''),
+                'kodeJenisPengangkutan' => $request->input('kodeJenisPengangkutan', ''),
+
+                // Nilai, Keuangan & Perdagangan
+                'kodeCaraDagang'     => $request->input('kodeCaraDagang', ''),
+                'kodeCaraBayar'      => $request->input('kodeCaraBayar', ''),
+                'kodeIncoterm'       => $request->input('kodeIncoterm', ''),
+                'kodeJenisEkspor'    => $request->input('kodeJenisEkspor', ''),
+                'kodeKategoriEkspor' => $request->input('kodeKategoriEkspor', ''),
+                'kodeValuta'         => $request->input('kodeValuta', 'IDR'),
+                'kodePembayar'       => $request->input('kodePembayar', ''),
+                'ndpbm'              => (float) $request->input('ndpbm', 0),
+                'cif'                => (float) $request->input('cif', 0),
+                'fob'                => (float) $request->input('fob', 0),
+                'asuransi'           => (float) $request->input('asuransi', 0),
+                'kodeAsuransi'       => $request->input('kodeAsuransi', 'LN'),
+                'freight'            => (float) $request->input('freight', 0),
+                'bruto'              => (float) $request->input('bruto', 0),
+                'netto'              => (float) $request->input('netto', 0),
+                'nilaiMaklon'        => (float) $request->input('nilaiMaklon', 0),
+                'nilaiPph'           => (float) $request->input('nilaiPph', 0),
+                'totalDanaSawit'     => (float) $request->input('totalDanaSawit', 0),
+                'jumlahKontainer'    => count($kontainerList),
+
+                // Flag Khusus Ekspor
+                'flagBarkir' => $request->input('flagBarkir', 'T'),
+                'flagCurah'  => $request->input('flagCurah', '2'),
+                'flagMigas'  => $request->input('flagMigas', '2'),
+
+                // Waktu
+                'tanggalEkspor'  => $request->input('tanggalEkspor', date('Y-m-d')),
+                'tanggalPeriksa' => $request->input('tanggalPeriksa', date('Y-m-d')),
+                'tanggalTtd'     => $request->input('tanggalTtd', date('Y-m-d')),
+
+                // Penandatangan
+                'namaTtd'    => $request->input('namaTtd', ''),
+                'jabatanTtd' => $request->input('jabatanTtd', ''),
+                'kotaTtd'    => $request->input('kotaTtd', ''),
+
+                'entitas'        => $entitasList,
+                'dokumen'        => $dokumenList,
+                'kemasan'        => $kemasanList,
+                'kontainer'      => $kontainerList,
+                'pengangkut'     => $pengangkutList,
+                'bankDevisa'     => $bankDevisaList,
+                'pungutan'       => $pungutan,
+                'kesiapanBarang' => $kesiapanBarangList,
+                'barang'         => $barangList,
+
+                'entitasUi' => $entitasInput,
+                'pemilik'   => array_values($pemilikInput),
+                'dok'       => $dokumenList,
+            ];
+
+
+            // --- Update / Insert Database ---
+            foreach ($bppbs as $id) {
+
+                $ceisaRow = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
+
+                $header = $db->table('bppb')
+                    ->select('bppbno_int')
+                    ->where(function ($q) use ($id) {
+                        $q->where('bppbno', $id)->orWhere('bppbno_int', $id);
+                    })
+                    ->first();
+
+                $bppbno_int = $header->bppbno_int ?? null;
+
+                if ($ceisaRow) {
+                    $db->table('bpb_ceisa')->where('bpbno', $id)->update([
+                        'nomor_aju'        => $nomorAju ?: $ceisaRow->nomor_aju,
+                        'bpbno_int'        => $bppbno_int,
+                        'payload_json'     => json_encode($payloadJson),
+                        'is_batch'         => 1,
+                        'no_dokumen_merge' => $request->input('no_dokumen_merge', ''),
+                        'updated_at'       => Carbon::now(),
+                    ]);
+                } else {
+                    $db->table('bpb_ceisa')->insert([
+                        'bpbno'            => $id,
+                        'bpbno_int'        => $bppbno_int,
+                        'nomor_aju'        => $nomorAju,
+                        'jenis_bc'         => '3.0',
+                        'payload_json'     => json_encode($payloadJson),
+                        'is_batch'         => 1,
+                        'created_at'       => Carbon::now(),
+                        'updated_at'       => Carbon::now(),
+                        'no_dokumen_merge' => $request->input('no_dokumen_merge', ''),
+                    ]);
+                }
+            }
+
+            $db->commit();
+
+            return back()->with('success', 'Data draft BC 3.0 berhasil disimpan!');
+
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            Log::error('Error Update Draft BC 3.0: ' . $e->getMessage() . ' di baris ' . $e->getLine());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan: ' . $e->getMessage());
+        }
+    }
+
     public function sendCeisaBatch30(array $bppbs, Request $request)
     {
         $db = DB::connection('mysql_sb');
@@ -954,37 +1376,6 @@ class Bc30Service
             }
 
             $draft = json_decode($ceisaInfo->payload_json, true);
-
-            $mergedBarang = [];
-
-            foreach ($bppbs as $no_bpb) {
-                $bppbData = $db->table('bpb_ceisa')->where('bpbno', $no_bpb)->first();
-                if ($bppbData) {
-                    $bppbPayload = json_decode($bppbData->payload_json ?? '{}', true);
-
-                    if (isset($bppbPayload['barang']) && is_array($bppbPayload['barang'])) {
-                        foreach ($bppbPayload['barang'] as $brg) {
-                            $id_item = $brg['kodeBarang'];
-
-                            if (isset($mergedBarang[$id_item])) {
-                                $mergedBarang[$id_item]['jumlahSatuan'] += (float)($brg['jumlahSatuan'] ?? 0);
-                                $mergedBarang[$id_item]['hargaPenyerahan'] += (float)($brg['hargaPenyerahan'] ?? 0);
-                                $mergedBarang[$id_item]['netto'] += (float)($brg['netto'] ?? 0);
-                            } else {
-                                $mergedBarang[$id_item] = $brg;
-                            }
-                        }
-                    }
-                }
-            }
-
-            $draft['barang'] = [];
-            $key = 1;
-            foreach ($mergedBarang as $brg) {
-                $brg['seriBarang'] = $key++;
-                $draft['barang'][] = $brg;
-            }
-
 
             if (empty($draft['barang'])) {
                 return response()->json(['message' => 'Tidak ada barang untuk dikirim.'], 400);
@@ -1338,6 +1729,7 @@ class Bc30Service
                 ];
             }
 
+
             $payloadPungutan = [];
             if (!empty($draft['pungutan']) && is_array($draft['pungutan'])) {
                 foreach ($draft['pungutan'] as $p) {
@@ -1420,16 +1812,23 @@ class Bc30Service
                 'barang'                => $payloadBarang,
             ];
 
-            $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
+            $responseCeisa = $this->ceisaService->kirimDokumenBatchBc30($finalPayload);
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {
-                    $db->table('bpb_ceisa')->where('bpbno', $no_bppb)->update([
+                    $db->table('bppb')
+                        ->where('bppbno', $no_bppb)->orWhere('bppbno_int', $no_bppb)
+                        ->update([
+                            'nomor_aju'   => $nomorAju,
+                            'tanggal_aju' => date('Y-m-d'),
+                            'bcdate' => date('Y-m-d'),
+                        ]);
+
+                    $db->table('bpb_ceisa')->where('bpbno', $no_bppb)->orWhere('bpbno_int', $no_bppb)->update([
                         'nomor_aju'   => $nomorAju,
-                        'tanggal_aju' => $ceisaInfo->tanggal_aju ?? $header->tanggal_aju ?? date('Y-m-d'),
+                        'tanggal_aju' => Carbon::now()->format('Y-m-d'),
                         'status'      => 1,
-                        'jenis_bc'    => '3.0',
-                        'updated_at'  => \Carbon\Carbon::now()
+                        'updated_at'  => Carbon::now()
                     ]);
                 }
 
@@ -1454,4 +1853,5 @@ class Bc30Service
             ], 500);
         }
     }
+
 }

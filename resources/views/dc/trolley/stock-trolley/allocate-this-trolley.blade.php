@@ -15,9 +15,9 @@
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
         <div class="d-flex justify-content-end align-items-center gap-1">
             <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-reply"></i> Kembali ke Stok Trolley
+                <i class="fas fa-reply"></i> Kembali
             </a>
-            <a href="{{ route('send-trolley-stock')."/".$trolley->id }}" class="text-sb-secondary">
+            <a href="{{ route('send-trolley-stock')."/".$trolley->id }}" class="btn btn-sb-secondary btn-sm">
                 Kirim Stok Trolley <i class="fas fa-share"></i>
             </a>
         </div>
@@ -258,7 +258,8 @@
                 {
                     targets: [9],
                     render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data + (row.diff_qty != null && row.diff_qty != 0 ? " (" + row.diff_qty + ")" : "")) +`</span>`;
+                        // return `<span class="text-nowrap">`+ (data + (row.diff_qty != null && row.diff_qty != 0 ? " (" + row.diff_qty + ")" : "")) +`</span>`;
+                        return `<span class="text-nowrap">`+ (data) +`</span>`;
                     }
                 },
                 {

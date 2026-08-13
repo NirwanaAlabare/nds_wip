@@ -1006,6 +1006,7 @@ class StockerService
 
             $dc = DcIn::where("id_qr_stocker", $s->id_qr_stocker)->first();
             if ($dc) {
+                // DC
                 $dc->qty_awal = $s->qty_ply_mod != null ? $s->qty_ply_mod : $s->qty_ply;
                 $dc->save();
 
@@ -1042,10 +1043,10 @@ class StockerService
                 array_push($log, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
 
                 \Log::info("Recalculate Stocker ".$s->id_qr_stocker);
-
-                logHistory($s->id, $s->id_qr_stocker." Recalculate Stocker - Qty Updated.");
             }
         }
+
+        logHistory($s->id, $log);
 
         return $log;
     }
@@ -1057,7 +1058,7 @@ class StockerService
      * @param  array  $incompleteModSizeQty  Entries where the mod qty exceeded the stocker's capacity
      * @param  array  &$storeItemArr         New stockers not yet persisted; modified in-place
      */
-    public function modifyIncompleteModSizeQty(array $incompleteModSizeQty, array &$storeItemArr): void
+    public function modifyIncompleteModSizeQty(array $incompleteModSizeQty, array &$storeItemArr, bool $additional = false): void
     {
         // **INFO** Incomplete modify size qty is when the modify size qty exceeding it's stocker (example : stocker is (10) but modify size qty is (-15), so it should consume the stocker before it, because there still be (-5) on (10 - 15))
         // This logic is to handle the incomplete modify size qty
@@ -1073,8 +1074,9 @@ class StockerService
                 group_stocker = '".$criteria['group_stocker']."' and
                 ratio < '".$criteria['ratio']."' AND
                 stocker_reject IS NULL AND
-                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
-            ")->first();
+                notes NOT LIKE '%CANCEL%' AND
+                ".($additional ? "(notes LIKE '%ADDITIONAL%')" : "(notes IS NULL OR notes NOT LIKE '%ADDITIONAL%')")."
+            ")->orderBy("ratio", "desc")->first();
 
             if (!$currentStocker) {
                 $currentStocker = Stocker::whereRaw("
@@ -1085,8 +1087,9 @@ class StockerService
                     group_stocker = '".$criteria['group_stocker']."' and
                     ratio > '".$criteria['ratio']."' AND
                     stocker_reject IS NULL AND
-                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
-                ")->first();
+                    notes NOT LIKE '%CANCEL%' AND
+                    ".($additional ? "(notes LIKE '%ADDITIONAL%')" : "(notes IS NULL OR notes NOT LIKE '%ADDITIONAL%')")."
+                ")->orderBy("ratio", "desc")->first();
             }
 
             if ($currentStocker) {
@@ -1103,7 +1106,7 @@ class StockerService
                         'shade'          => $currentStocker->shade,
                         "group_stocker"  => $currentStocker->group_stocker,
                         "ratio"          => $currentStocker->ratio,
-                        "qty"            => ($currentStocker->range_akhir - $currentStocker->range_awal),
+                        "qty"            => ($currentStocker->range_akhir - $currentStocker->range_awal) + 1,
                     ]);
                 } else {
                     $currentStocker->cancel = 'N';

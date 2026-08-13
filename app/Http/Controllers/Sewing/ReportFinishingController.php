@@ -19,22 +19,23 @@ class ReportFinishingController extends Controller
             $tglAwal = $request->dateFrom;
             $tglAkhir = $request->dateTo;
             $buyer = $request->buyer;
+            $proses = $request->proses;
 
             if ($kategori == 'TERIMA') {
                 $data = DB::table(DB::raw("
                     (
                         SELECT
-                            so_det_id,
+                            master.secondary AS proses,
                             mb.buyer,
                             mb.ws,
                             mb.styleno,
                             mb.color,
                             mb.size,
-                            DATE(a.created_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_secondary_in a
                         INNER JOIN signalbit_erp.output_rfts output ON output.id = a.rft_id
                         INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                        INNER JOIN signalbit_erp.output_secondary_master master ON master.id = a.secondary_id
                         LEFT JOIN (
                             SELECT
                             sd.id as id_so_det,
@@ -55,30 +56,39 @@ class ReportFinishingController extends Controller
                             a.created_at >= '{$tglAwal} 00:00:00'
                             AND a.created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
-                        GROUP BY so_det_id, DATE(a.created_at)
+                        GROUP BY
+                            master.secondary,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size
                     ) as results
                 "))
                 ->when($buyer, function ($query) use ($buyer) {
                     return $query->where('results.buyer', $buyer);
+                })
+                ->when($proses, function ($query) use ($proses) {
+                    return $query->where('results.proses', $proses);
                 });
 
             } else if ($kategori == 'DEFECT') {
                 $data = DB::table(DB::raw("
                     (
                         SELECT
-                            so_det_id,
+                            master.secondary AS proses,
                             mb.buyer,
                             mb.ws,
                             mb.styleno,
                             mb.color,
                             mb.size,
-                            DATE(a.created_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_secondary_out_defect a
                         INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                         INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                         INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                         INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                        INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                         LEFT JOIN (
                             SELECT
                             sd.id as id_so_det,
@@ -99,11 +109,20 @@ class ReportFinishingController extends Controller
                             a.created_at >= '{$tglAwal} 00:00:00'
                             AND a.created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
-                        GROUP BY so_det_id, DATE(a.created_at)
+                        GROUP BY
+                            master.secondary,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size
                     ) as results
                 "))
                 ->when($buyer, function ($query) use ($buyer) {
                     return $query->where('results.buyer', $buyer);
+                })
+                ->when($proses, function ($query) use ($proses) {
+                    return $query->where('results.proses', $proses);
                 });
 
             } else if ($kategori == 'REWORK') {
@@ -111,19 +130,19 @@ class ReportFinishingController extends Controller
                 $data = DB::table(DB::raw("
                     (
                         SELECT
-                            so_det_id,
+                            master.secondary AS proses,
                             mb.buyer,
                             mb.ws,
                             mb.styleno,
                             mb.color,
                             mb.size,
-                            DATE(a.reworked_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_secondary_out_defect a
                         INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                         INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                         INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                         INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                        INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                         LEFT JOIN (
                             SELECT
                             sd.id as id_so_det,
@@ -145,30 +164,39 @@ class ReportFinishingController extends Controller
                             AND a.reworked_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
                             AND (a.status = 'reworked' OR a.status = 'rejected')
-                        GROUP BY so_det_id, DATE(a.reworked_at)
+                        GROUP BY
+                            master.secondary,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size
                     ) as results
                 "))
                 ->when($buyer, function ($query) use ($buyer) {
                     return $query->where('results.buyer', $buyer);
+                })
+                ->when($proses, function ($query) use ($proses) {
+                    return $query->where('results.proses', $proses);
                 });
 
             } else if ($kategori == 'REJECT') {
                 $data = DB::table(DB::raw("
                     (
                         SELECT
-                            so_det_id,
+                            master.secondary AS proses,
                             mb.buyer,
                             mb.ws,
                             mb.styleno,
                             mb.color,
                             mb.size,
-                            DATE(a.created_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_secondary_out_reject a
                         INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                         INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                         INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                         INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                        INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                         LEFT JOIN (
                             SELECT
                             sd.id as id_so_det,
@@ -189,29 +217,38 @@ class ReportFinishingController extends Controller
                             a.created_at >= '{$tglAwal} 00:00:00'
                             AND a.created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
-                        GROUP BY so_det_id, DATE(a.created_at)
+                        GROUP BY
+                            master.secondary,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size
                     ) as results
                 "))
                 ->when($buyer, function ($query) use ($buyer) {
                     return $query->where('results.buyer', $buyer);
+                })
+                ->when($proses, function ($query) use ($proses) {
+                    return $query->where('results.proses', $proses);
                 });
 
             } else if ($kategori == 'OUTPUT') {
                 $data = DB::table(DB::raw("
                     (
                         SELECT
-                            so_det_id,
+                            master.secondary AS proses,
                             mb.buyer,
                             mb.ws,
                             mb.styleno,
                             mb.color,
                             mb.size,
-                            DATE(a.created_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_secondary_out a
                         INNER JOIN signalbit_erp.output_secondary_in b ON b.id = a.secondary_in_id
                         INNER JOIN signalbit_erp.output_rfts output ON output.id = b.rft_id
                         INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                        INNER JOIN signalbit_erp.output_secondary_master master ON master.id = b.secondary_id
                         LEFT JOIN (
                             SELECT
                             sd.id as id_so_det,
@@ -233,11 +270,20 @@ class ReportFinishingController extends Controller
                             AND a.created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
                             AND (a.status = 'rft' OR a.status = 'rework')
-                        GROUP BY so_det_id, DATE(a.created_at)
+                        GROUP BY
+                            master.secondary,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size
                     ) as results
                 "))
                 ->when($buyer, function ($query) use ($buyer) {
                     return $query->where('results.buyer', $buyer);
+                })
+                ->when($proses, function ($query) use ($proses) {
+                    return $query->where('results.proses', $proses);
                 });
 
             } else {
@@ -250,7 +296,15 @@ class ReportFinishingController extends Controller
         $buyer = DB::connection('mysql_sb')
             ->table('mastersupplier')
             ->select('supplier')
+            ->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
             ->orderBy('supplier', 'ASC')
+            ->get();
+
+        $proses = DB::connection('mysql_sb')
+            ->table('output_secondary_master')
+            ->select('secondary')
+            ->orderBy('id', 'ASC')
             ->get();
 
         return view("sewing.report.report_finishing", [
@@ -258,7 +312,8 @@ class ReportFinishingController extends Controller
             "subPageGroup" => "sewing-report",
             "subPage" => "report-finishing",
             'containerFluid' => true,
-            "buyer" => $buyer
+            "buyer" => $buyer,
+            "proses" => $proses,
         ]);
     }
 
@@ -267,7 +322,8 @@ class ReportFinishingController extends Controller
         $to = $request->to;
         $kategori = $request->kategori;
         $buyer = $request->buyer;
+        $proses = $request->proses;
 
-        return Excel::download(new ExportReportFinishing($from, $to, $kategori, $buyer), 'report-finishing.xlsx');
+        return Excel::download(new ExportReportFinishing($from, $to, $kategori, $buyer, $proses), 'report-finishing.xlsx');
     }
 }

@@ -1307,13 +1307,17 @@ class Bc27Service
             $payloadDokumen = [];
             $seriDok = 1;
             foreach (($draft['dok'] ?? []) as $d) {
-                if (!empty($d['kode']) && !empty($d['nomor'])) {
+                $kodeVal  = $d['kodeDokumen'] ?? $d['kode'] ?? '';
+                $nomorVal = $d['nomorDokumen'] ?? $d['nomor'] ?? '';
+                $tglVal   = $d['tanggalDokumen'] ?? $d['tgl'] ?? '';
+
+                if (!empty($kodeVal) && !empty($nomorVal)) {
                     $payloadDokumen[] = [
                         "idDokumen"      => !empty($d['idDokumen']) ? strval($d['idDokumen']) : "",
-                        "kodeDokumen"    => trim(explode(' - ', $d['kode'])[0]),
-                        "nomorDokumen"   => $d['nomor'],
+                        "kodeDokumen"    => trim(explode(' - ', $kodeVal)[0]),
+                        "nomorDokumen"   => $nomorVal,
                         "seriDokumen"    => $seriDok++,
-                        "tanggalDokumen" => !empty($d['tgl']) ? $d['tgl'] : date('Y-m-d')
+                        "tanggalDokumen" => !empty($tglVal) ? $tglVal : date('Y-m-d')
                     ];
                 }
             }

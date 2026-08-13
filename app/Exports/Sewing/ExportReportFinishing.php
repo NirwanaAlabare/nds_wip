@@ -16,14 +16,15 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
-    protected $tglAwal, $tglAkhir, $kategori, $buyer, $rowCount;
+    protected $tglAwal, $tglAkhir, $kategori, $buyer, $proses, $rowCount;
 
-    public function __construct($tglAwal, $tglAkhir, $kategori, $buyer)
+    public function __construct($tglAwal, $tglAkhir, $kategori, $buyer, $proses)
     {
         $this->tglAwal = $tglAwal;
         $this->tglAkhir = $tglAkhir;
         $this->kategori = $kategori;
         $this->buyer = $buyer;
+        $this->proses = $proses;
     }
 
     public function view(): View
@@ -32,22 +33,23 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
         $tglAkhir = $this->tglAkhir;
         $kategori = $this->kategori;
         $buyer = $this->buyer;
+        $proses = $this->proses;
 
-        if ($kategori == "TERIMA") {
+        if ($kategori == 'TERIMA') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
-                        so_det_id,
+                        master.secondary AS proses,
                         mb.buyer,
                         mb.ws,
                         mb.styleno,
                         mb.color,
                         mb.size,
-                        DATE(a.created_at) AS tgl,
                         COUNT(*) AS jumlah
                     FROM signalbit_erp.output_secondary_in a
                     INNER JOIN signalbit_erp.output_rfts output ON output.id = a.rft_id
                     INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                    INNER JOIN signalbit_erp.output_secondary_master master ON master.id = a.secondary_id
                     LEFT JOIN (
                         SELECT
                         sd.id as id_so_det,
@@ -68,30 +70,39 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         a.created_at >= '{$tglAwal} 00:00:00'
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
-                    GROUP BY so_det_id, DATE(a.created_at)
+                    GROUP BY
+                        master.secondary,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
+            })
+            ->when($proses, function ($query) use ($proses) {
+                return $query->where('results.proses', $proses);
             })->get();
 
-        }else if ($kategori == "DEFECT") {
+        } else if ($kategori == 'DEFECT') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
-                        so_det_id,
+                        master.secondary AS proses,
                         mb.buyer,
                         mb.ws,
                         mb.styleno,
                         mb.color,
                         mb.size,
-                        DATE(a.created_at) AS tgl,
                         COUNT(*) AS jumlah
                     FROM signalbit_erp.output_secondary_out_defect a
                     INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                     INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                     INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                     INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                    INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                     LEFT JOIN (
                         SELECT
                         sd.id as id_so_det,
@@ -112,30 +123,39 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         a.created_at >= '{$tglAwal} 00:00:00'
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
-                    GROUP BY so_det_id, DATE(a.created_at)
+                    GROUP BY
+                        master.secondary,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
+            })
+            ->when($proses, function ($query) use ($proses) {
+                return $query->where('results.proses', $proses);
             })->get();
 
-        }else if ($kategori == "REWORK") {
+        } else if ($kategori == 'REWORK') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
-                        so_det_id,
+                        master.secondary AS proses,
                         mb.buyer,
                         mb.ws,
                         mb.styleno,
                         mb.color,
                         mb.size,
-                        DATE(a.reworked_at) AS tgl,
                         COUNT(*) AS jumlah
                     FROM signalbit_erp.output_secondary_out_defect a
                     INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                     INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                     INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                     INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                    INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                     LEFT JOIN (
                         SELECT
                         sd.id as id_so_det,
@@ -157,30 +177,39 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         AND a.reworked_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
                         AND (a.status = 'reworked' OR a.status = 'rejected')
-                    GROUP BY so_det_id, DATE(a.reworked_at)
+                    GROUP BY
+                        master.secondary,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
+            })
+            ->when($proses, function ($query) use ($proses) {
+                return $query->where('results.proses', $proses);
             })->get();
 
-        }else if ($kategori == "REJECT") {
+        } else if ($kategori == 'REJECT') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
-                        so_det_id,
+                        master.secondary AS proses,
                         mb.buyer,
                         mb.ws,
                         mb.styleno,
                         mb.color,
                         mb.size,
-                        DATE(a.created_at) AS tgl,
                         COUNT(*) AS jumlah
                     FROM signalbit_erp.output_secondary_out_reject a
                     INNER JOIN signalbit_erp.output_secondary_out b ON b.id = a.secondary_out_id
                     INNER JOIN signalbit_erp.output_secondary_in c ON c.id = b.secondary_in_id
                     INNER JOIN signalbit_erp.output_rfts output ON output.id = c.rft_id
                     INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                    INNER JOIN signalbit_erp.output_secondary_master master ON master.id = c.secondary_id
                     LEFT JOIN (
                         SELECT
                         sd.id as id_so_det,
@@ -201,29 +230,38 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         a.created_at >= '{$tglAwal} 00:00:00'
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
-                    GROUP BY so_det_id, DATE(a.created_at)
+                    GROUP BY
+                        master.secondary,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
+            })
+            ->when($proses, function ($query) use ($proses) {
+                return $query->where('results.proses', $proses);
             })->get();
 
-        }else if ($kategori == "OUTPUT") {
+        } else if ($kategori == 'OUTPUT') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
-                        so_det_id,
+                        master.secondary AS proses,
                         mb.buyer,
                         mb.ws,
                         mb.styleno,
                         mb.color,
                         mb.size,
-                        DATE(a.created_at) AS tgl,
                         COUNT(*) AS jumlah
                     FROM signalbit_erp.output_secondary_out a
                     INNER JOIN signalbit_erp.output_secondary_in b ON b.id = a.secondary_in_id
                     INNER JOIN signalbit_erp.output_rfts output ON output.id = b.rft_id
                     INNER JOIN signalbit_erp.master_plan mp ON mp.id = output.master_plan_id
+                    INNER JOIN signalbit_erp.output_secondary_master master ON master.id = b.secondary_id
                     LEFT JOIN (
                         SELECT
                         sd.id as id_so_det,
@@ -245,11 +283,20 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
                         AND (a.status = 'rft' OR a.status = 'rework')
-                    GROUP BY so_det_id, DATE(a.created_at)
+                    GROUP BY
+                        master.secondary,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
+            })
+            ->when($proses, function ($query) use ($proses) {
+                return $query->where('results.proses', $proses);
             })->get();
         } else {
             $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
@@ -262,7 +309,8 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
             'startDate' => $tglAwal,
             'endDate' => $tglAkhir,
             'kategori' => $kategori,
-            'buyer' => $buyer
+            'buyer' => $buyer,
+            'proses' => $proses
         ]);
     }
 
@@ -287,7 +335,7 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                 for ($i = 1; $i <= $columnIndex; $i++) {
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
 
-                    foreach ([6] as $row) {
+                    foreach ([7] as $row) {
                         $cell = $colLetter . $row;
 
                         $sheet->getStyle($cell)->applyFromArray([
@@ -307,7 +355,7 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                     }
                 }
                 // ===== 3. Apply border to whole table =====
-                $range = 'A6:' . $highestColumn . $highestRow;
+                $range = 'A7:' . $highestColumn . $highestRow;
                 $sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [

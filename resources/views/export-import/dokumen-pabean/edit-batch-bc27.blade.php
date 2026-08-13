@@ -2514,22 +2514,37 @@
                                 </thead>
                                 <tbody id="tbody-dokumen">
                                     @foreach($dokumens as $index => $dok)
-                                    <tr>
-                                        <td>
-                                            <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
-                                                <option value="">-- Pilih Kode --</option>
-                                                @foreach($referensiDokumen as $val => $text)
-                                                    <option value="{{ $val }}" {{ ($dok['kode'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
-                                                @endforeach
-                                                @if(!empty($dok['kode']) && !array_key_exists($dok['kode'], $referensiDokumen))
-                                                    <option value="{{ $dok['kode'] }}" selected>{{ $dok['kode'] }} - Custom</option>
-                                                @endif
-                                            </select>
-                                        </td>
-                                        <td><input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $dok['nomor'] ?? '' }}"></td>
-                                        <td><input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $dok['tgl'] ?? '' }}"></td>
-                                        <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok" title="Hapus Baris"><i class="fas fa-trash-alt"></i></button></td>
-                                    </tr>
+                                        @php
+                                            $kodeVal  = $dok['kodeDokumen'] ?? $dok['kode'] ?? '';
+                                            $nomorVal = $dok['nomorDokumen'] ?? $dok['nomor'] ?? '';
+                                            $tglVal   = $dok['tanggalDokumen'] ?? $dok['tgl'] ?? '';
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
+                                                    <option value="">-- Pilih Kode --</option>
+                                                    @foreach($referensiDokumen as $val => $text)
+                                                        <option value="{{ $val }}" {{ $kodeVal == $val ? 'selected' : '' }}>
+                                                            {{ $val }} - {{ $text }}
+                                                        </option>
+                                                    @endforeach
+                                                    @if(!empty($kodeVal) && !array_key_exists($kodeVal, $referensiDokumen))
+                                                        <option value="{{ $kodeVal }}" selected>{{ $kodeVal }} - Custom</option>
+                                                    @endif
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $nomorVal }}">
+                                            </td>
+                                            <td>
+                                                <input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $tglVal }}">
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok" title="Hapus Baris">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
                                     @endforeach
                                 </tbody>
                             </table>
