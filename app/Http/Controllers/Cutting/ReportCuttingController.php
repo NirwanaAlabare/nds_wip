@@ -5880,42 +5880,43 @@ order by tanggal asc, no_form asc
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::select("SELECT
-a.tgl_trans,
-DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tanggal_fix,
-buyer,
-ws,
-styleno,
-mi.color,
-barcode,
-mi.id_item,
-mi.itemdesc,
-CASE
-    WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-    ELSE a.qty_pakai
-END AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-END as satuan
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item s on a.barcode = s.id_roll
-LEFT JOIN (SELECT
-				jd.id_jo,
-				ac.kpno,
-                supplier as buyer,
-                styleno
-				FROM signalbit_erp.jo_det jd
-				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
-				GROUP BY jd.id_jo
-) k on a.ws = k.kpno
-LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
-where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
-order by a.tgl_trans asc
-            ");
+                        a.tgl_trans,
+                        DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tanggal_fix,
+                        buyer,
+                        ws,
+                        styleno,
+                        mi.color,
+                        a.panel,
+                        barcode,
+                        mi.id_item,
+                        mi.itemdesc,
+                        CASE
+                            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                            ELSE a.qty_pakai
+                        END AS qty_pakai,
+                        CASE
+                            WHEN s.unit = 'YRD' THEN 'METER'
+                            WHEN s.unit = 'KGM' THEN 'KGM'
+                            ELSE s.unit
+                        END as satuan
+                    from form_cut_alokasi_gr_panel_barcode a
+                    left join scanned_item s on a.barcode = s.id_roll
+                    LEFT JOIN (SELECT
+                        jd.id_jo,
+                        ac.kpno,
+                        supplier as buyer,
+                        styleno
+                        FROM signalbit_erp.jo_det jd
+                        INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                        WHERE jd.cancel = 'N'
+                        GROUP BY jd.id_jo
+                    ) k on a.ws = k.kpno
+                    LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
+                    where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+                    order by a.tgl_trans asc
+                ");
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -5946,42 +5947,43 @@ order by a.tgl_trans asc
         $end_date = $request->end_date;
 
         $data = DB::select("SELECT
-        a.tgl_trans,
-        DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tanggal_fix,
-        buyer,
-        ws,
-        styleno,
-        mi.color,
-        barcode,
-        mi.id_item,
-        mi.itemdesc,
-        CASE
-            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-            ELSE a.qty_pakai
-        END AS qty_pakai,
-        CASE
-                WHEN s.unit = 'YRD' THEN 'METER'
-                WHEN s.unit = 'KGM' THEN 'KGM'
-                ELSE s.unit
-        END as satuan
-        from form_cut_alokasi_gr_panel_barcode a
-        left join scanned_item s on a.barcode = s.id_roll
-        LEFT JOIN (SELECT
-                        jd.id_jo,
-                        ac.kpno,
-                        supplier as buyer,
-                        styleno
-                        FROM signalbit_erp.jo_det jd
-                        INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N'
-                        GROUP BY jd.id_jo
-        ) k on a.ws = k.kpno
-        LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
-        where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
-        order by a.tgl_trans asc
-            ");
+                a.tgl_trans,
+                DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tanggal_fix,
+                buyer,
+                ws,
+                styleno,
+                mi.color,
+                a.panel,
+                barcode,
+                mi.id_item,
+                mi.itemdesc,
+                CASE
+                    WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                    ELSE a.qty_pakai
+                END AS qty_pakai,
+                CASE
+                    WHEN s.unit = 'YRD' THEN 'METER'
+                    WHEN s.unit = 'KGM' THEN 'KGM'
+                    ELSE s.unit
+                END as satuan
+            from form_cut_alokasi_gr_panel_barcode a
+            left join scanned_item s on a.barcode = s.id_roll
+            LEFT JOIN (SELECT
+                jd.id_jo,
+                ac.kpno,
+                supplier as buyer,
+                styleno
+                FROM signalbit_erp.jo_det jd
+                INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                WHERE jd.cancel = 'N'
+                GROUP BY jd.id_jo
+            ) k on a.ws = k.kpno
+            LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
+            where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+            order by a.tgl_trans asc
+        ");
 
         $fileName = 'report-gr-panel';
 
@@ -6012,6 +6014,7 @@ order by a.tgl_trans asc
             'WS',
             'Style',
             'Color',
+            'Panel',
             'Barcode',
             'ID Item',
             'Item',
@@ -6035,6 +6038,7 @@ order by a.tgl_trans asc
                 $row->ws ?: '',
                 $row->styleno ?: '',
                 $row->color ?: '',
+                $row->panel ?: '',
                 $row->barcode ?: '',
                 $row->id_item ?: '',
                 $row->itemdesc ?: '',

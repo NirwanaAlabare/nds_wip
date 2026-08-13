@@ -60,6 +60,7 @@
                             <th scope="col" class="text-center align-middle">WS</th>
                             <th scope="col" class="text-center align-middle">Style</th>
                             <th scope="col" class="text-center align-middle">Color</th>
+                            <th scope="col" class="text-center align-middle">Panel</th>
                             <th scope="col" class="text-center align-middle">Barcode</th>
                             <th scope="col" class="text-center align-middle">ID Item</th>
                             <th scope="col" class="text-center align-middle">Item</th>
@@ -150,6 +151,9 @@
                     },
                     {
                         data: 'color'
+                    },
+                    {
+                        data: 'panel'
                     },
                     {
                         data: 'barcode',
