@@ -1138,11 +1138,15 @@ Route::middleware('auth')->group(function () {
     // PPIC Line MAP
     Route::controller(PPICLineMapController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_line_map', 'ppic_line_map')->name('ppic_line_map');
+        Route::get('/ppic_line_map/refresh', 'ppic_line_map_refresh')->name('ppic_line_map_refresh');
         Route::get('/ppic_line_map/live', 'ppic_line_map_live')->name('ppic_line_map_live');
         Route::post('/ppic_line_map/store', 'store_ppic_line_map')->name('store_ppic_line_map');
         Route::post('/ppic_line_map/move', 'move_ppic_line_map')->name('move_ppic_line_map');
+        Route::post('/ppic_line_map/move-to-temp', 'move_to_temp_ppic_line_map')->name('move_to_temp_ppic_line_map');
+        Route::post('/ppic_line_map/undo', 'undo_ppic_line_map')->name('undo_ppic_line_map');
         Route::post('/ppic_line_map/preview-move', 'preview_move_ppic_line_map')->name('preview_move_ppic_line_map');
         Route::post('/ppic_line_map/cancel/{id}', 'cancel_ppic_line_map')->name('cancel_ppic_line_map');
+        Route::post('/ppic_line_map/set-color', 'set_ppic_line_map_color')->name('set_ppic_line_map_color');
     });
 
     // Tools Adjustment PPIC
