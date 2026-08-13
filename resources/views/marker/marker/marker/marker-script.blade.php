@@ -100,6 +100,9 @@
             {
                 data: 'notes',
             },
+            {
+                data: 'created_by_username',
+            },
         ],
         columnDefs: [
             {

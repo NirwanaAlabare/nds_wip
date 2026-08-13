@@ -81,7 +81,9 @@
                 <td colspan="2">Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
             </tr>
             <tr>
-                <td style="width: 50%;">Size : {{ $dataStocker->size }}</td>
+                <td style="width: 50%; {{ strlen($dataStocker->size) > 15 ? 'font-size: 8px;' : '' }}">
+                    Size : {{ $dataStocker->size }}
+                </td>
                 <td style="width: 50%;"> Country : {{ strtoupper(substr($dataStocker->dest, 0, 30)).(strlen($dataStocker->dest) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>

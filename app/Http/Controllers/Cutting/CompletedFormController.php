@@ -244,7 +244,7 @@ class CompletedFormController extends Controller
     public function checkStockerForm(Request $request) {
         if ($request->id) {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
             if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
                 return array(
@@ -805,7 +805,7 @@ class CompletedFormController extends Controller
 
     public function updateDetail(Request $request, CuttingService $cuttingService) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -872,7 +872,7 @@ class CompletedFormController extends Controller
 
     public function updateHeader(Request $request) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
@@ -992,28 +992,6 @@ class CompletedFormController extends Controller
 
                 // Update scanned item qty
                 if ($formCutDetail->id_roll) {
-                    
-                    // If the form only has part form (delete part form & reorder)
-                    $partForm = PartForm::where('form_id', $formCutDetail->id)->first();
-                    if ($partForm) {
-                        // Delete part form
-                        $deletePartForm = PartForm::where('form_id', $formCutDetail->id)->delete();
-
-                        if ($deletePartForm) {
-                            // Reorder part form group
-                            $stockerService->reorderStockerNumbering($partForm->part_id);
-                        }
-                    }
-
-                    $updateStatusForm = FormCutInput::where('id', $formCutDetail->id)->update([
-                        'status' => $validatedRequest['edit_status'],
-                        'edited' => 1,
-                        'edited_by' => Auth::user()->id,
-                        'edited_by_username' => Auth::user()->username,
-                        'edited_at' => Carbon::now(),
-                        'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
-                    ]);
-
                     // No need to update qty if it is redundant
                     $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutDetail->form_cut_id)->where("id_roll", $formCutDetail->id_roll)->where("qty", $formCutDetail->qty)->where("id", "!=", $formCutDetail->id)->first();
                     if (!$checkSimilarTimeRecord) {
@@ -1098,6 +1076,7 @@ class CompletedFormController extends Controller
                     $hasFormCutDetail = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->exists();
                     if (!$hasFormCutDetail) {
 
+                        // Update status
                         FormCutInput::where('id', $formCutDetail->form_cut_id)
                             ->update([
                                 'status' => 'PENGERJAAN FORM CUTTING SPREAD',
@@ -1121,6 +1100,18 @@ class CompletedFormController extends Controller
                             default :
                                 $redirect = null;
                                 break;
+                        }
+
+                        // If the form has part form (delete part form & reorder)
+                        $partForm = PartForm::where('form_id', $formCutDetail->id)->first();
+                        if ($partForm) {
+                            // Delete part form
+                            $deletePartForm = PartForm::where('form_id', $formCutDetail->id)->delete();
+
+                            if ($deletePartForm) {
+                                // Reorder part form group
+                                $stockerService->reorderStockerNumbering($partForm->part_id);
+                            }
                         }
 
                         DB::commit();

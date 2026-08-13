@@ -59,6 +59,7 @@
                             <th>Total Form</th>
                             <th>PO</th>
                             <th>Ket.</th>
+                            <th>Created By</th>
                         </tr>
                     </thead>
                 </table>
