@@ -57,7 +57,7 @@ class MarkerController extends Controller
                         SELECT u.username
                         FROM activity_log al
                         LEFT JOIN users u ON u.id = al.causer_id
-                        WHERE al.subject_id = marker_input.id
+                        WHERE al.subject_id = marker_input.id and al.subject_type = 'App\Models\Marker\Marker'
                         ORDER BY al.id DESC
                         LIMIT 1
                     )
@@ -120,7 +120,7 @@ class MarkerController extends Controller
                                     SELECT u.username
                                     FROM activity_log al
                                     LEFT JOIN users u ON u.id = al.causer_id
-                                    WHERE al.subject_id = marker_input.id
+                                    WHERE al.subject_id = marker_input.id and al.subject_type = 'App\Models\Marker\Marker'
                                     ORDER BY al.id DESC
                                     LIMIT 1
                                 )
