@@ -36,15 +36,15 @@
     </div>
     <div class="card-body">
 
-
         <div class="table-responsive">
             <table class="table table-bordered table-sm table-custom table-hover w-100" id="table-credentials">
                 <thead>
                     <tr>
                         <th>No</th>
                         <th>User (Login)</th>
-                        <th>CEISA Username</th>
-                        <th>Aksi</th>
+                        <th>Username Live</th>
+                        <th>Username Dev</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,7 +52,8 @@
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $cred->user_name ?? '-' }} ({{ $cred->username }})</td>
-                        <td>{{ $cred->ceisa_username }}</td>
+                        <td>{{ $cred->ceisa_username ?? '-' }}</td>
+                        <td>{{ $cred->ceisa_username_dev ?? '-' }}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modal-edit-{{ $cred->id }}">
                                 <i class="fas fa-edit"></i>
@@ -66,54 +67,6 @@
                             </form>
                         </td>
                     </tr>
-
-                    <!-- Edit Modal -->
-                    <div class="modal fade" id="modal-edit-{{ $cred->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <form action="{{ route('master-ceisa.update', $cred->id) }}" method="POST" class="form-ajax">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="modal-header bg-warning">
-                                        <h5 class="modal-title text-dark"><i class="fas fa-edit"></i> Edit Kredensial CEISA</h5>
-                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body text-left">
-                                        <div class="alert alert-info bg-light text-dark border-info p-2 mb-3">
-                                            <i class="fas fa-info-circle text-info"></i> <strong>Info API Key:</strong><br>
-                                            <small>Ambil dari <b>Portal Ceisa</b> &rarr; <b>Apps Manager</b> &rarr; <b>Webhook</b></small>
-                                            <div class="text-center mt-2">
-                                                <img src="{{ asset('images/guide-ceisa-apikey.png') }}" alt="Panduan API Key" class="img-fluid border rounded shadow-sm" style="max-height: 120px;" onerror="this.style.display='none'">
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label>User (Login)</label>
-                                            <input type="text" class="form-control" value="{{ $cred->user_name ?? '-' }} ({{ $cred->username }})" disabled>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label>CEISA Username <span class="text-danger">*</span></label>
-                                            <input type="text" name="ceisa_username" class="form-control" value="{{ $cred->ceisa_username }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label>CEISA Password <span class="text-danger">*</span></label>
-                                            <input type="password" name="ceisa_password" class="form-control" value="{{ $cred->ceisa_password }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label>CEISA API Key <span class="text-danger">*</span></label>
-                                            <textarea name="ceisa_api_key" class="form-control" rows="3" required>{{ $cred->ceisa_api_key }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     @endforeach
                 </tbody>
             </table>
@@ -121,9 +74,80 @@
     </div>
 </div>
 
+{{-- === SEMUA MODAL EDIT DITARUH DI SINI, DI LUAR <table> === --}}
+@foreach($credentials as $cred)
+<div class="modal fade" id="modal-edit-{{ $cred->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form action="{{ route('master-ceisa.update', $cred->id) }}" method="POST" class="form-ajax">
+                @csrf
+                @method('PUT')
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark"><i class="fas fa-edit"></i> Edit Kredensial CEISA</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-left">
+                    <div class="alert alert-info bg-light text-dark border-info p-2 mb-3">
+                        <i class="fas fa-info-circle text-info"></i> <strong>Info API Key:</strong><br>
+                        <small>Ambil dari <b>Portal Ceisa</b> &rarr; <b>Apps Manager</b> &rarr; <b>Webhook</b></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>User (Login)</label>
+                        <input type="text" class="form-control" value="{{ $cred->user_name ?? '-' }} ({{ $cred->username }})" disabled>
+                    </div>
+
+                    <div class="row">
+                        <!-- LIVE -->
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold text-success mb-3"><i class="fas fa-server"></i> Live</h6>
+                            <div class="mb-3">
+                                <label>CEISA Username (Live) <span class="text-danger">*</span></label>
+                                <input type="text" name="ceisa_username" class="form-control" value="{{ $cred->ceisa_username }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA Password (Live) <span class="text-danger">*</span></label>
+                                <input type="password" name="ceisa_password" class="form-control" value="{{ $cred->ceisa_password }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA API Key (Live) <span class="text-danger">*</span></label>
+                                <textarea name="ceisa_api_key" class="form-control" rows="3" required>{{ $cred->ceisa_api_key }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- DEV -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-flask"></i> Dev</h6>
+                            <div class="mb-3">
+                                <label>CEISA Username (Dev)</label>
+                                <input type="text" name="ceisa_username_dev" class="form-control" value="{{ $cred->ceisa_username_dev }}">
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA Password (Dev)</label>
+                                <input type="password" name="ceisa_password_dev" class="form-control" value="{{ $cred->ceisa_password_dev }}">
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA API Key (Dev)</label>
+                                <textarea name="ceisa_api_key_dev" class="form-control" rows="3">{{ $cred->ceisa_api_key_dev }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
+
 <!-- Create Modal -->
 <div class="modal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <form action="{{ route('master-ceisa.store') }}" method="POST" class="form-ajax">
                 @csrf
@@ -137,9 +161,6 @@
                     <div class="alert alert-info bg-light text-dark border-info p-2 mb-3">
                         <i class="fas fa-info-circle text-info"></i> <strong>Info API Key:</strong><br>
                         <small>Ambil dari <b>Portal Ceisa</b> &rarr; <b>Apps Manager</b> &rarr; <b>Webhook</b></small>
-                        <div class="text-center mt-2">
-                            <img src="{{ asset('images/guide-ceisa-apikey.png') }}" alt="Panduan API Key" class="img-fluid border rounded shadow-sm" style="max-height: 120px;" onerror="this.style.display='none'">
-                        </div>
                     </div>
 
                     @if($isAdmin)
@@ -158,17 +179,41 @@
                         <input type="text" class="form-control" value="{{ auth()->user()->nama ?? auth()->user()->name ?? '-' }} ({{ auth()->user()->username }})" disabled>
                     </div>
                     @endif
-                    <div class="mb-3">
-                        <label>CEISA Username <span class="text-danger">*</span></label>
-                        <input type="text" name="ceisa_username" class="form-control" placeholder="Masukkan Username CEISA" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>CEISA Password <span class="text-danger">*</span></label>
-                        <input type="password" name="ceisa_password" class="form-control" placeholder="Masukkan Password CEISA" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>CEISA API Key <span class="text-danger">*</span></label>
-                        <textarea name="ceisa_api_key" class="form-control" rows="3" placeholder="Masukkan API Key CEISA" required></textarea>
+
+                    <div class="row">
+                        <!-- LIVE -->
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold text-success mb-3"><i class="fas fa-server"></i> Live</h6>
+                            <div class="mb-3">
+                                <label>CEISA Username (Live) <span class="text-danger">*</span></label>
+                                <input type="text" name="ceisa_username" class="form-control" placeholder="Masukkan Username CEISA Live" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA Password (Live) <span class="text-danger">*</span></label>
+                                <input type="password" name="ceisa_password" class="form-control" placeholder="Masukkan Password CEISA Live" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA API Key (Live) <span class="text-danger">*</span></label>
+                                <textarea name="ceisa_api_key" class="form-control" rows="3" placeholder="Masukkan API Key CEISA Live" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- DEV -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-flask"></i> Dev</h6>
+                            <div class="mb-3">
+                                <label>CEISA Username (Dev)</label>
+                                <input type="text" name="ceisa_username_dev" class="form-control" placeholder="Masukkan Username CEISA Dev">
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA Password (Dev)</label>
+                                <input type="password" name="ceisa_password_dev" class="form-control" placeholder="Masukkan Password CEISA Dev">
+                            </div>
+                            <div class="mb-3">
+                                <label>CEISA API Key (Dev)</label>
+                                <textarea name="ceisa_api_key_dev" class="form-control" rows="3" placeholder="Masukkan API Key CEISA Dev"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -185,8 +230,7 @@
 <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 
 <script>
     $(document).ready(function() {
