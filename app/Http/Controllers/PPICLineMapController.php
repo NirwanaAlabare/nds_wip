@@ -888,14 +888,26 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
         $x = $c * (1 - abs(fmod($h / 60, 2) - 1));
         $m = $l - $c / 2;
 
-        [$r, $g, $b] = match (true) {
-            $h < 60 => [$c, $x, 0],
-            $h < 120 => [$x, $c, 0],
-            $h < 180 => [0, $c, $x],
-            $h < 240 => [0, $x, $c],
-            $h < 300 => [$x, 0, $c],
-            default => [$c, 0, $x],
-        };
+        switch (true) {
+            case $h < 60:
+                list($r, $g, $b) = [$c, $x, 0];
+                break;
+            case $h < 120:
+                list($r, $g, $b) = [$x, $c, 0];
+                break;
+            case $h < 180:
+                list($r, $g, $b) = [0, $c, $x];
+                break;
+            case $h < 240:
+                list($r, $g, $b) = [0, $x, $c];
+                break;
+            case $h < 300:
+                list($r, $g, $b) = [$x, 0, $c];
+                break;
+            default:
+                list($r, $g, $b) = [$c, 0, $x];
+                break;
+        }
 
         $toHex = fn($v) => str_pad(dechex((int) round(($v + $m) * 255)), 2, '0', STR_PAD_LEFT);
 
