@@ -1950,7 +1950,7 @@
                                 <div class="card-body">
                                     <div class="form-group mb-2">
                                         <label>Jenis Valuta</label>
-                                        <select name="valuta" class="form-control form-control-sm select2bs4">
+                                        <select name="valuta" class="form-control form-control-sm select2bs4" id="kode_valuta">
                                             <option value="">-- Pilih Valuta --</option>
                                             @foreach($listValuta as $kVal => $nVal)
                                                 <option value="{{ $kVal }}" {{ ($dataDetail['valuta'] ?? 'IDR') == $kVal ? 'selected' : '' }}>{{ $kVal }} - {{ $nVal }}</option>
@@ -1959,7 +1959,14 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label>NDPBM</label>
-                                        <input type="number" step="any" name="ndpbm" class="form-control form-control-sm" value="{{ $dataDetail['ndpbm'] ?? '0.00' }}">
+                                        <input type="number" step="any" name="ndpbm" class="form-control form-control-sm" value="{{ $dataDetail['ndpbm'] ?? '0.00' }}" id="ndpbm">
+                                        <div class="d-flex justify-content-end">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-get-kurs">
+                                                    <i class="fas fa-sync-alt"></i> Tarik Kurs CEISA
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group mb-2">
                                         <label>Nilai CIF</label>
@@ -2590,6 +2597,16 @@
 
         $('#form-edit-ceisa').on('submit', function(e) {
             e.preventDefault();
+
+            if ($('#ndpbm').val() === '' || $('#ndpbm').val() === '0') {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: 'NDPBM tidak boleh kosong.',
+                    icon: 'error'
+                });
+                return;
+            }
+
             let form = $(this);
             Swal.fire({
                 title: 'Simpan Perubahan?',
@@ -2653,6 +2670,55 @@
         window.removeRow = function(btn) {
             $(btn).closest('tr').remove();
         }
+    });
+
+    $('#btn-get-kurs').click(function() {
+        let valuta = $('#kode_valuta').val();
+        let $btn = $(this);
+        let originalText = $btn.html();
+
+        if (!valuta) {
+            alert('Silakan pilih valuta terlebih dahulu!');
+            return;
+        }
+
+
+
+        let baseUrl = '{{ url("/tes-ceisa-kurs") }}';
+
+        $.ajax({
+            url: baseUrl + '/' + valuta,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response && response.status === "true" && response.data && response.data.length > 0) {
+                    let nilaiKurs = response.data[0].nilaiKurs;
+
+                    $('#ndpbm').val(nilaiKurs);
+
+                    kalkulasiNilaiPabean();
+                } else {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: 'Terjadi kesalahan saat mengambil data.',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat mengambil data.',
+                    icon: 'error'
+                });
+                console.error(xhr);
+            },
+            complete: function() {
+
+                $btn.html(originalText);
+                $btn.prop('disabled', false);
+            }
+        });
     });
 </script>
 @endsection
