@@ -160,10 +160,42 @@ class CeisaService
      */
     public function cekKurs($kurs)
     {
-        $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/kurs/{$kurs}");
+        try {
+            $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/kurs/{$kurs}");
 
-        return $response->json();
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new \Exception('CEISA response not successful: ' . $response->status());
+
+        } catch (\Throwable $e) {
+            Log::warning("cekKurs API gagal untuk {$kurs}, fallback ke masterrate: " . $e->getMessage());
+
+            $db = DB::connection('mysql_sb');
+
+            $masterrate = $db->table('masterrate')
+                ->where('tanggal', date('Y-m-d'))
+                ->where('vcodecurr', 'PAJAK')
+                ->orderBy('tanggal', 'desc')
+                ->first();
+
+            if ($masterrate) {
+                return [
+                    'status' => 'true',
+                    'message' => 'success (fallback masterrate)',
+                    'data' => [
+                        [
+                            'nilaiKurs' => (string) $masterrate->rate,
+                        ]
+                    ],
+                ];
+            }
+
+            return null;
+        }
     }
+
 
     /**
      * Kirim dokumen ke CEISA.
