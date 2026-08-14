@@ -179,7 +179,7 @@ class CeisaService
 
             $masterrate = $db->table('masterrate')
                 ->where('tanggal', date('Y-m-d'))
-                ->where('vcodecurr', 'PAJAK')
+                ->where('v_codecurr', 'PAJAK')
                 ->orderBy('tanggal', 'desc')
                 ->first();
 
