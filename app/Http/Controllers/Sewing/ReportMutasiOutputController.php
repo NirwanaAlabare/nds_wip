@@ -63,6 +63,7 @@ class ReportMutasiOutputController extends Controller
                         s.id_qr_stocker,
                         pd.id AS part_detail_id,
                         s.so_det_id,
+                        s.size,
                         COALESCE(
                             MIN(ll.qty) OVER (
                                 PARTITION BY
@@ -71,6 +72,7 @@ class ReportMutasiOutputController extends Controller
                                     s.form_reject_id,
                                     s.form_piece_id,
                                     s.so_det_id,
+                                    s.size,
                                     s.group_stocker,
                                     s.ratio,
                                     s.stocker_reject

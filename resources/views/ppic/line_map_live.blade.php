@@ -218,14 +218,14 @@
 
         .line-map-box-plan {
             background-color: var(--dot-color, #6f42c1);
-            color: #fff;
+            color: var(--font-color, #fff);
             cursor: default;
             user-select: none;
             box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
         }
 
         .line-map-box-plan .row-qty {
-            color: #fff;
+            color: var(--font-color, #fff);
         }
 
         .line-map-box-actual {
@@ -324,11 +324,13 @@
                                 @if ($hasPlan || $actualEntries->isNotEmpty())
                                     @php
                                         $planColor = $activeEntry->style_color ?? '#6f42c1';
+                                        $planFontColor = $activeEntry->font_color ?? '#ffffff';
                                     @endphp
                                     <div class="line-map-cell-stack">
                                         @if ($hasPlan)
                                             <div class="line-map-box line-map-box-plan"
-                                                style="--dot-color: {{ $planColor }};" title="{{ $planTitle }}">
+                                                style="--dot-color: {{ $planColor }}; --font-color: {{ $planFontColor }};"
+                                                title="{{ $planTitle }}">
                                                 <div class="line-map-box-header">
                                                     <span class="box-buyer">{{ $activeEntry->buyer ?: '-' }}</span>
                                                     <span>Plan</span>
