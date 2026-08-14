@@ -3540,6 +3540,14 @@ $('#btn-get-kurs').click(function() {
             $btn.prop('disabled', false);
         }
     });
+
+    function kalkulasiNilaiPabean() {
+        let ndpbm = parseFloat($('#ndpbm').val()) || 0;
+        let totalCif = parseFloat($('#total_cif').val()) || 0;
+        let nilaiPabeanRupiah = ndpbm * totalCif;
+
+        $('#nilai_pabean').val(nilaiPabeanRupiah.toFixed(2));
+    }
 });
 </script>
 @endsection
