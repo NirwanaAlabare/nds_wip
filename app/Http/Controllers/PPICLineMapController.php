@@ -11,6 +11,23 @@ class PPICLineMapController extends Controller
 {
     private const EDIT_ALLOWED_USERNAMES = ['eka', 'admin_01', 'nirwana_it', 'reza'];
 
+    // Rows parked in the temporary holding area (line/tgl_start = null) are capped
+    // at this many so it stays a quick "staging" spot, not a second backlog list.
+    private const TEMP_HOLDING_CAPACITY = 3;
+
+    // Undo stack depth for move_ppic_line_map / move_to_temp_ppic_line_map. Only
+    // these two actions are snapshotted (see snapshotBeforeMutation) — not
+    // create/edit/cancel, which are out of scope for undo for now.
+    private const HISTORY_LIMIT = 3;
+
+    // dim_date.status_prod alone misses ad-hoc holidays managed separately in
+    // signalbit_erp.mgt_rep_hari_libur, so every KERJA/LIBUR check in this
+    // controller joins it in and treats a matching hari-libur row as authoritative
+    // (LIBUR) regardless of what dim_date itself says.
+    private const DIM_DATE_JOIN = "dim_date a
+        left join signalbit_erp.mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur";
+    private const DIM_DATE_STATUS_FINAL = "case when b.id is not null then 'LIBUR' else a.status_prod end";
+
     private function canEditLineMap(): bool
     {
         return in_array(auth()->user()->username ?? null, self::EDIT_ALLOWED_USERNAMES);
@@ -27,6 +44,56 @@ class PPICLineMapController extends Controller
                 'containerFluid' => true,
             ]
         ));
+    }
+
+    public function ppic_line_map_refresh(Request $request)
+    {
+        $data = $this->buildLineMapData($request);
+
+        return response()->json([
+            'success' => true,
+            'calendar' => view('ppic.partials.line_map_calendar', $data)->render(),
+            'listRows' => view('ppic.partials.line_map_list_rows', $data)->render(),
+            'tempHolding' => view('ppic.partials.line_map_temp_holding', $data)->render(),
+            'productGroupByLine' => $data['productGroupByLine'],
+            'colorGroups' => $data['colorGroups'],
+            'lineNextAvailableDate' => $data['lineNextAvailableDate'],
+            'occupiedDatesByLine' => $data['occupiedDatesByLine'],
+            'lastUpdated' => $data['lastUpdated'] ? date('d-m-Y H:i:s', strtotime($data['lastUpdated'])) : '-',
+            'undoCount' => $data['undoCount'],
+        ]);
+    }
+
+    public function set_ppic_line_map_color(Request $request)
+    {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'row_id' => 'required|integer|exists:ppic_line_map,id',
+            'color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'font_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+        ]);
+
+        $row = DB::table('ppic_line_map')->where('id', $validated['row_id'])->first();
+
+        $query = DB::table('ppic_line_map');
+        if ($row->id_line_map) {
+            $query->where('id_line_map', $row->id_line_map);
+        } else {
+            $query->where('id', $row->id);
+        }
+        $query->update([
+            'color' => $validated['color'],
+            'font_color' => $validated['font_color'],
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Warna berhasil disimpan',
+        ]);
     }
 
     public function ppic_line_map_live(Request $request)
@@ -79,7 +146,9 @@ group by product_group order by product_group"))->pluck('product_group');
             $totalDays = max($totalDays, 1);
             $row->tot_days_rounded = $totalDays;
 
-            $workingDates = $this->workingDatesFrom($row->tgl_start, $totalDays);
+            // A row parked in the temporary holding area has no line/date yet
+            // (see move_to_temp_ppic_line_map), so it has no working dates to compute.
+            $workingDates = $row->tgl_start !== null ? $this->workingDatesFrom($row->tgl_start, $totalDays) : [];
             $row->tgl_end = !empty($workingDates) ? end($workingDates) : $row->tgl_start;
             $row->output_per_day = $row->output_based_eff !== null ? (int) round($row->output_based_eff) : null;
             $row->ramp_up_efficiency = $row->ramp_up_efficiency ? json_decode($row->ramp_up_efficiency, true) : [];
@@ -92,43 +161,138 @@ group by product_group order by product_group"))->pluck('product_group');
                     $dailyEfficiency[$dateKey] = round($row->ramp_up_efficiency[$i] * 100, 1);
                 } else {
                     $dailyPlan[$dateKey] = $row->output_per_day;
-                    $dailyEfficiency[$dateKey] = $row->efficiency !== null ? round($row->efficiency * 100, 1) : null;
+                    $dailyEfficiency[$dateKey] = $row->efficiency !== null ? round($row->efficiency, 1) : null;
                 }
             }
             $row->daily_plan = $dailyPlan;
             $row->daily_efficiency = $dailyEfficiency;
             $row->ramp_up_dates = array_slice(array_keys($dailyPlan), 0, count($row->ramp_up_efficiency));
-            $row->style_color = $this->styleColorFromName($row->style);
+            $row->style_color = $row->color ?: $this->styleColorFromName($row->style);
+            $row->font_color = $row->font_color ?: '#ffffff';
 
+            return $row;
+        });
+
+        // Rows created together share id_line_map so they open/edit as one group;
+        // legacy rows without a group id are treated as a solo group of themselves.
+        $groupKey = fn($row) => $row->id_line_map ?: ('solo-' . $row->id);
+        $groupedForEdit = $lineMap->groupBy($groupKey);
+
+        $lineMap = $lineMap->map(function ($row) use ($groupedForEdit, $groupKey) {
+            $siblings = $groupedForEdit->get($groupKey($row), collect())->sortBy('tgl_start')->values();
+
+            // Style/buyer/product group/SMV/color are shared across a group's rows
+            // by construction, so any sibling's values (here, $row's own) represent
+            // the whole group. Man power/working minutes/efficiency/start date/ramp-up
+            // are per line, so they stay per entry.
             $row->edit_payload = [
-                'id' => $row->id,
-                'line' => $row->line,
+                'group_id' => $row->id_line_map,
                 'style' => $row->style,
+                'buyer' => $row->buyer,
                 'product_group' => $row->product_group,
                 'smv' => $row->smv,
-                'efficiency' => $row->efficiency,
-                'qty_order' => $row->qty_order,
-                'buyer' => $row->buyer,
-                'man_power' => $row->man_power,
-                'working_min' => $row->working_min,
-                'tgl_start' => $row->tgl_start,
-                'tgl_finish' => $row->tgl_end,
-                'ramp_up_efficiency' => $row->ramp_up_efficiency,
+                'color' => $row->style_color,
+                'font_color' => $row->font_color,
+                'has_custom_color' => (bool) $row->color,
+                'qty_order_total' => $siblings->sum('qty_order'),
+                'lines' => $siblings->map(fn($s) => [
+                    'id' => $s->id,
+                    'line' => $s->line,
+                    'qty_order' => $s->qty_order,
+                    'man_power' => $s->man_power,
+                    'working_min' => $s->working_min,
+                    'efficiency' => $s->efficiency,
+                    'tgl_start' => $s->tgl_start,
+                    'tgl_finish' => $s->tgl_end,
+                    'ramp_up_efficiency' => $s->ramp_up_efficiency,
+                ])->values()->all(),
             ];
 
             return $row;
         });
 
-        $lineMapByLine = $lineMap->groupBy('line');
+        // Rows with no line yet are sitting in the temporary holding area (see
+        // move_to_temp_ppic_line_map) and never belong on the calendar grid, its
+        // date-filtered list, or the per-line "next available date" calc below.
+        $tempHolding = $lineMap->filter(fn($row) => $row->line === null)->sortBy('id')->values();
+        $scheduledLineMap = $lineMap->filter(fn($row) => $row->line !== null)->values();
 
-        $lineMapList = $lineMap
+        $lineMapByLine = $scheduledLineMap->groupBy('line');
+
+        // Default "Start Day Calendar" suggestion per line: the working day right
+        // after that line's latest active plan ends, so a new order slots in right
+        // where the line actually goes free instead of defaulting to today (which
+        // would usually collide with whatever is already scheduled).
+        $lineNextAvailableDate = collect($line)->mapWithKeys(function ($ln) use ($lineMapByLine) {
+            $lastEnd = $lineMapByLine->get($ln->username, collect())->max('tgl_end');
+
+            return [$ln->username => $lastEnd ? $this->nextWorkingDay($lastEnd) : date('Y-m-d')];
+        });
+
+        $lineMapList = $scheduledLineMap
             ->filter(fn($row) => $row->tgl_start <= $filterEnd && $row->tgl_end >= $filterStart)
+            ->values();
+
+        // Powers the "Start Day Calendar" picker: for each line, which dates already
+        // have a plan sitting on them, so the picker can mark them instead of the
+        // user having to cross-check the calendar grid separately. Built from
+        // $scheduledLineMap (not the date-filtered $lineMapList) so it's not limited
+        // to the current tgl_dari/tgl_sampai filter.
+        $occupiedDatesByLine = $scheduledLineMap
+            ->groupBy('line')
+            ->map(function ($rows) {
+                $byDate = [];
+                foreach ($rows as $row) {
+                    foreach ($row->daily_plan as $date => $qty) {
+                        $byDate[$date][] = [
+                            'style' => $row->style,
+                            'buyer' => $row->buyer,
+                            'qty' => $qty,
+                        ];
+                    }
+                }
+                return $byDate;
+            });
+
+        // One color swatch per order group (same id_line_map), not per line, since
+        // all lines/dates belonging to one order share a single color on the calendar.
+        $colorGroups = $lineMapList
+            ->groupBy($groupKey)
+            ->map(function ($rows) use ($lineNameByUsername) {
+                $first = $rows->sortBy('tgl_start')->first();
+
+                return (object) [
+                    'row_id' => $first->id,
+                    'style' => $first->style,
+                    'buyer' => $first->buyer,
+                    'color' => $first->style_color,
+                    'font_color' => $first->font_color,
+                    'lines' => $rows->pluck('line')->unique()->map(fn($u) => $lineNameByUsername[$u] ?? $u)->values()->all(),
+                    'tgl_start' => $rows->min('tgl_start'),
+                    'tgl_end' => $rows->max('tgl_end'),
+                ];
+            })
+            ->sortBy('tgl_start')
             ->values();
 
         $calendarStart = $filterStart . ' 00:00:00';
         $calendarEnd = $filterEnd . ' 23:59:59';
 
-        $calendarDates = DB::select("select tanggal, nama_hari, status_prod from dim_date where tanggal between ? and ? order by tanggal asc", [$calendarStart, $calendarEnd]);
+        $calendarDates = DB::select("
+            select a.tanggal, a.nama_hari, " . self::DIM_DATE_STATUS_FINAL . " as status_prod
+            from " . self::DIM_DATE_JOIN . "
+            where a.tanggal between ? and ?
+            order by a.tanggal asc", [$calendarStart, $calendarEnd]);
+
+        // Non-working dates from the same table workingDatesFrom()/workingDatesInRange()
+        // use server-side, sent to the client so the "Tgl Finish" preview in the New/Edit
+        // Line Map modal can skip holidays too instead of just adding calendar days.
+        $holidayDates = collect(DB::select("
+            select a.tanggal
+            from " . self::DIM_DATE_JOIN . "
+            where " . self::DIM_DATE_STATUS_FINAL . " != 'KERJA'"))
+            ->map(fn($d) => date('Y-m-d', strtotime($d->tanggal)))
+            ->values();
 
         $actualRows = DB::connection('mysql_sb')->select("WITH a as (
 select created_by,date(updated_at) tgl_trans, count(*) tot_rfts, so_det_id from output_rfts
@@ -176,18 +340,32 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'line' => $line,
             'lineMap' => $lineMapList,
             'lineMapByLine' => $lineMapByLine,
+            'tempHolding' => $tempHolding,
+            'tempHoldingCapacity' => self::TEMP_HOLDING_CAPACITY,
+            'colorGroups' => $colorGroups,
+            'lineNextAvailableDate' => $lineNextAvailableDate,
             'lineNameByUsername' => $lineNameByUsername,
             'productGroupByLine' => $productGroupByLine,
             'productGroupList' => $productGroupList,
             'calendarDates' => $calendarDates,
+            'holidayDates' => $holidayDates,
             'actualByLineDate' => $actualByLineDate,
+            'occupiedDatesByLine' => $occupiedDatesByLine,
             'filterStart' => $filterStart,
             'filterEnd' => $filterEnd,
             'lastUpdated' => $lastUpdated,
             'canEditLineMap' => $this->canEditLineMap(),
+            'undoCount' => DB::table('ppic_line_map_history')->count(),
         ];
     }
 
+    /**
+     * One order (style/buyer/product group/SMV/color shared) can be split across
+     * several lines in a single submission. Man power/working minutes/efficiency/
+     * start date/qty/ramp-up all vary per line (each line has its own capacity and
+     * schedule), and the qty portions must sum exactly to txtorderqtytotal. All rows
+     * in the submission share id_line_map so they render/edit together as one group.
+     */
     public function store_ppic_line_map(Request $request)
     {
         if (!$this->canEditLineMap()) {
@@ -195,94 +373,171 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
         }
 
         $validated = $request->validate([
-            'editid' => 'nullable|integer|exists:ppic_line_map,id',
-            'cboline' => 'required|string',
-            'cboproductgroup' => 'nullable|string',
+            'group_id' => 'nullable|integer',
             'txtstyle' => 'nullable|string',
-            'txtsmv' => 'nullable|numeric',
-            'txtefficiency' => 'nullable|numeric',
-            'txtorderqty' => 'nullable|numeric',
             'txtbuyer' => 'nullable|string',
-            'txtmanpower' => 'nullable|numeric',
-            'txtworkingminutes' => 'nullable|numeric',
-            'cbodate' => 'nullable|date',
+            'cboproductgroup' => 'nullable|string',
+            'txtsmv' => 'nullable|numeric',
+            'txtorderqtytotal' => 'required|numeric|min:1',
+            'txtcolor' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'txtfontcolor' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'ramp_efficiency' => 'nullable|array',
-            'ramp_efficiency.*' => 'nullable|numeric|min:0|max:100',
+            'ramp_efficiency.*' => 'nullable|array',
+            'ramp_efficiency.*.*' => 'nullable|numeric|min:0|max:100',
+            'line_row_id' => 'nullable|array',
+            'line_row_id.*' => 'nullable|integer|exists:ppic_line_map,id',
+            'cboline' => 'required|array|min:1',
+            'cboline.*' => 'required|string',
+            'txtorderqtyline' => 'required|array',
+            'txtorderqtyline.*' => 'required|numeric|min:1',
+            'txtmanpower' => 'required|array',
+            'txtmanpower.*' => 'required|numeric|min:0',
+            'txtworkingminutes' => 'required|array',
+            'txtworkingminutes.*' => 'required|numeric|min:0',
+            'txtefficiency' => 'required|array',
+            'txtefficiency.*' => 'required|numeric|min:0',
+            'cbodate' => 'required|array',
+            'cbodate.*' => 'required|date',
         ]);
 
-        $efficiency = $validated['txtefficiency'] ?? null;
-        if ($efficiency !== null) {
-            $efficiency = $efficiency / 100;
+        $lineCount = count($validated['cboline']);
+        foreach (['txtorderqtyline', 'txtmanpower', 'txtworkingminutes', 'txtefficiency', 'cbodate'] as $field) {
+            if (count($validated[$field]) !== $lineCount) {
+                return response()->json(['success' => false, 'message' => 'Data line tidak lengkap.'], 422);
+            }
         }
 
-        $smv = $validated['txtsmv'] ?? null;
-        $manPower = $validated['txtmanpower'] ?? null;
-        $workingMinutes = $validated['txtworkingminutes'] ?? null;
-        $qtyOrder = $validated['txtorderqty'] ?? null;
-
-        $rampUpEfficiency = collect($validated['ramp_efficiency'] ?? [])
-            ->filter(fn($val) => $val !== null && $val !== '')
-            ->map(fn($val) => round($val / 100, 4))
-            ->values()
-            ->all();
-
-        $minsAvailable = ($manPower !== null && $workingMinutes !== null) ? $manPower * $workingMinutes : null;
-        $outputPerDay100 = ($minsAvailable !== null && $smv > 0) ? $minsAvailable / $smv : null;
-        $outputPerDayEfficiency = ($outputPerDay100 !== null && $efficiency !== null) ? $outputPerDay100 * $efficiency : null;
-
-        $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiency, $rampUpEfficiency);
-
-        $tglStart = $validated['cbodate'] ?? null;
-        $tglFinish = null;
-        if ($tglStart) {
-            $daysForFinish = $totalDays !== null ? max((int) round($totalDays), 1) : 1;
-            $workingDates = $this->workingDatesFrom($tglStart, $daysForFinish);
-            $tglFinish = !empty($workingDates) ? end($workingDates) : $tglStart;
-        }
-
-        $data = [
-            'line' => $validated['cboline'],
-            'tgl_start' => $tglStart,
-            'tgl_finish' => $tglFinish,
-            'style' => isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null,
-            'product_group' => $validated['cboproductgroup'] ?? null,
-            'smv' => $smv,
-            'efficiency' => $efficiency,
-            'qty_order' => $qtyOrder,
-            'buyer' => isset($validated['txtbuyer']) ? strtoupper($validated['txtbuyer']) : null,
-            'man_power' => $manPower,
-            'working_min' => $workingMinutes,
-            'mins_avail' => $minsAvailable,
-            'output_day_100' => $outputPerDay100,
-            'output_based_eff' => $outputPerDayEfficiency,
-            'tot_days' => $totalDays,
-            'ramp_up_days' => count($rampUpEfficiency) ?: null,
-            'ramp_up_efficiency' => count($rampUpEfficiency) ? json_encode($rampUpEfficiency) : null,
-            'updated_at' => now(),
-        ];
-
-        $overlap = $this->findLineMapOverlap($data['line'], $data['tgl_start'], $totalDays, $validated['editid'] ?? null);
-        if ($overlap) {
+        if (count(array_unique($validated['cboline'])) !== $lineCount) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . ' di line yang sama.',
+                'message' => 'Satu line tidak boleh dipilih lebih dari sekali dalam satu order.',
             ], 422);
         }
 
-        if (!empty($validated['editid'])) {
-            DB::table('ppic_line_map')->where('id', $validated['editid'])->update($data);
-            $message = 'Data Line Map berhasil diupdate';
-        } else {
-            $data['cancel'] = 'N';
-            $data['created_at'] = now();
-            $data['created_by'] = auth()->user()->username ?? null;
-            DB::table('ppic_line_map')->insert($data);
-            $message = 'Data Line Map berhasil disimpan';
+        $qtyTotal = (int) round($validated['txtorderqtytotal']);
+        $qtySum = (int) round(collect($validated['txtorderqtyline'])->sum());
+        if ($qtySum !== $qtyTotal) {
+            return response()->json([
+                'success' => false,
+                'message' => "Total qty per line ({$qtySum}) harus sama dengan Order Qty Total ({$qtyTotal}).",
+            ], 422);
         }
+
+        $style = isset($validated['txtstyle']) ? strtoupper($validated['txtstyle']) : null;
+        $buyer = isset($validated['txtbuyer']) ? strtoupper($validated['txtbuyer']) : null;
+        $productGroup = $validated['cboproductgroup'] ?? null;
+        $smv = $validated['txtsmv'] ?? null;
+
+        $lineRowIds = array_values(array_filter($validated['line_row_id'] ?? []));
+
+        $groupId = $validated['group_id'] ?? null;
+        if (!$groupId && !empty($lineRowIds)) {
+            $groupId = (int) $lineRowIds[0];
+        }
+
+        $rows = [];
+        foreach ($validated['cboline'] as $i => $line) {
+            $qtyOrder = $validated['txtorderqtyline'][$i];
+            $rowId = $validated['line_row_id'][$i] ?? null;
+
+            $manPower = $validated['txtmanpower'][$i];
+            $workingMinutes = $validated['txtworkingminutes'][$i];
+            $efficiencyPercent = (int) round($validated['txtefficiency'][$i]);
+            $efficiencyFraction = $efficiencyPercent / 100;
+            $tglStart = $validated['cbodate'][$i];
+
+            $minsAvailable = $manPower * $workingMinutes;
+            $outputPerDay100 = $smv > 0 ? $minsAvailable / $smv : null;
+            $outputPerDayEfficiency = $outputPerDay100 !== null ? $outputPerDay100 * $efficiencyFraction : null;
+
+            $rampUpEfficiency = collect($validated['ramp_efficiency'][$i] ?? [])
+                ->filter(fn($val) => $val !== null && $val !== '')
+                ->map(fn($val) => round($val / 100, 4))
+                ->values()
+                ->all();
+
+            $totalDays = $this->simulateTotalDays($outputPerDay100, $qtyOrder, $efficiencyFraction, $rampUpEfficiency);
+
+            $daysForFinish = $totalDays !== null ? max((int) round($totalDays), 1) : 1;
+            $workingDates = $this->workingDatesFrom($tglStart, $daysForFinish);
+            $tglFinish = !empty($workingDates) ? end($workingDates) : $tglStart;
+
+            $overlap = $this->findLineMapOverlap($line, $tglStart, $totalDays, $lineRowIds);
+            if ($overlap) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal tersebut sudah terisi style ' . ($overlap->style ?? '-') . " di line {$line}.",
+                ], 422);
+            }
+
+            $rows[] = [
+                'row_id' => $rowId,
+                'data' => [
+                    'line' => $line,
+                    'tgl_start' => $tglStart,
+                    'tgl_finish' => $tglFinish,
+                    'style' => $style,
+                    'product_group' => $productGroup,
+                    'smv' => $smv,
+                    'efficiency' => $efficiencyPercent,
+                    'qty_order' => $qtyOrder,
+                    'buyer' => $buyer,
+                    'color' => $validated['txtcolor'] ?? null,
+                    'font_color' => $validated['txtfontcolor'] ?? null,
+                    'man_power' => $manPower,
+                    'working_min' => $workingMinutes,
+                    'mins_avail' => $minsAvailable,
+                    'output_day_100' => $outputPerDay100,
+                    'output_based_eff' => $outputPerDayEfficiency,
+                    'tot_days' => $totalDays,
+                    'ramp_up_days' => count($rampUpEfficiency) ?: null,
+                    'ramp_up_efficiency' => count($rampUpEfficiency) ? json_encode($rampUpEfficiency) : null,
+                    'updated_at' => now(),
+                ],
+            ];
+        }
+
+        DB::transaction(function () use (&$groupId, $rows, $validated) {
+            $keptIds = [];
+
+            foreach ($rows as $row) {
+                if ($row['row_id']) {
+                    DB::table('ppic_line_map')->where('id', $row['row_id'])->update(
+                        $row['data'] + ['id_line_map' => $groupId]
+                    );
+                    $keptIds[] = $row['row_id'];
+                } else {
+                    $insertId = DB::table('ppic_line_map')->insertGetId($row['data'] + [
+                        'cancel' => 'N',
+                        'created_at' => now(),
+                        'created_by' => auth()->user()->username ?? null,
+                        'id_line_map' => $groupId,
+                    ]);
+
+                    if (!$groupId) {
+                        $groupId = $insertId;
+                        DB::table('ppic_line_map')->where('id', $insertId)->update(['id_line_map' => $groupId]);
+                    }
+
+                    $keptIds[] = $insertId;
+                }
+            }
+
+            if (!empty($validated['group_id'])) {
+                $existingGroupIds = DB::table('ppic_line_map')->where('id_line_map', $validated['group_id'])->pluck('id')->all();
+                $toCancel = array_diff($existingGroupIds, $keptIds);
+                if (!empty($toCancel)) {
+                    DB::table('ppic_line_map')->whereIn('id', $toCancel)->update([
+                        'cancel' => 'Y',
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        });
 
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'message' => 'Data Line Map berhasil disimpan',
         ]);
     }
 
@@ -351,6 +606,8 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             ], 404);
         }
 
+        $this->snapshotBeforeMutation(collect($moves)->pluck('id')->all(), 'move');
+
         DB::transaction(function () use ($moves, $validated) {
             foreach ($moves as $move) {
                 $update = [
@@ -374,6 +631,147 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
             'message' => $shiftedCount > 0
                 ? "Jadwal berhasil dipindahkan, {$shiftedCount} jadwal lain ikut digeser mundur"
                 : 'Jadwal Line Map berhasil dipindahkan',
+        ]);
+    }
+
+    /**
+     * Parks an already-scheduled plan in the temporary holding area by clearing
+     * its line/date, freeing up that slot on the calendar. Capped at
+     * TEMP_HOLDING_CAPACITY so the area stays a quick staging spot. The plan
+     * keeps its qty/man power/tot_days etc, so dropping it back onto a real
+     * line+date via move_ppic_line_map recomputes its schedule from there.
+     */
+    public function move_to_temp_ppic_line_map(Request $request)
+    {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:ppic_line_map,id',
+        ]);
+
+        $row = DB::table('ppic_line_map')
+            ->where('id', $validated['id'])
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->first();
+
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Data Line Map tidak ditemukan'], 404);
+        }
+
+        if ($row->line === null) {
+            return response()->json(['success' => false, 'message' => 'Plan ini sudah berada di area temporary.'], 422);
+        }
+
+        $tempCount = DB::table('ppic_line_map')
+            ->whereNull('line')
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->count();
+
+        if ($tempCount >= self::TEMP_HOLDING_CAPACITY) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Area temporary sudah penuh (maksimal ' . self::TEMP_HOLDING_CAPACITY . ' plan).',
+            ], 422);
+        }
+
+        $this->snapshotBeforeMutation([$row->id], 'move_to_temp');
+
+        DB::table('ppic_line_map')->where('id', $row->id)->update([
+            'line' => null,
+            'tgl_start' => null,
+            'tgl_finish' => null,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan dipindahkan ke area temporary',
+        ]);
+    }
+
+    /**
+     * Records a pre-mutation snapshot (line/tgl_start/tgl_finish) for every given
+     * row id, so undo_ppic_line_map can restore them exactly as they were. Trims
+     * the table down to the last HISTORY_LIMIT entries after inserting, so this
+     * behaves as a fixed-depth undo stack rather than an ever-growing log.
+     */
+    private function snapshotBeforeMutation(array $ids, string $action): void
+    {
+        $ids = collect($ids)->filter()->unique()->values()->all();
+        if (empty($ids)) {
+            return;
+        }
+
+        $snapshot = DB::table('ppic_line_map')
+            ->whereIn('id', $ids)
+            ->get(['id', 'line', 'tgl_start', 'tgl_finish'])
+            ->map(fn($row) => (array) $row)
+            ->values()
+            ->all();
+
+        DB::table('ppic_line_map_history')->insert([
+            'action' => $action,
+            'snapshot' => json_encode($snapshot),
+            'created_by' => auth()->user()->username ?? null,
+            'created_at' => now(),
+        ]);
+
+        $staleIds = DB::table('ppic_line_map_history')
+            ->orderByDesc('id')
+            ->skip(self::HISTORY_LIMIT)
+            ->take(PHP_INT_MAX)
+            ->pluck('id');
+
+        if ($staleIds->isNotEmpty()) {
+            DB::table('ppic_line_map_history')->whereIn('id', $staleIds)->delete();
+        }
+    }
+
+    /**
+     * Pops the most recent entry off the undo stack (see snapshotBeforeMutation)
+     * and restores every row in its snapshot to the line/tgl_start/tgl_finish it
+     * had right before that move — reversing a whole cascade in one step, not
+     * just the dragged row.
+     */
+    public function undo_ppic_line_map(Request $request)
+    {
+        if (!$this->canEditLineMap()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $entry = DB::table('ppic_line_map_history')->orderByDesc('id')->first();
+
+        if (!$entry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada histori perpindahan untuk di-undo.',
+            ], 404);
+        }
+
+        $snapshot = json_decode($entry->snapshot, true) ?: [];
+
+        DB::transaction(function () use ($snapshot, $entry) {
+            foreach ($snapshot as $row) {
+                DB::table('ppic_line_map')->where('id', $row['id'])->update([
+                    'line' => $row['line'],
+                    'tgl_start' => $row['tgl_start'],
+                    'tgl_finish' => $row['tgl_finish'],
+                    'updated_at' => now(),
+                ]);
+            }
+
+            DB::table('ppic_line_map_history')->where('id', $entry->id)->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perpindahan terakhir berhasil di-undo',
         ]);
     }
 
@@ -451,7 +849,9 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
     private function nextWorkingDay(string $date): string
     {
         $next = DB::selectOne(
-            "select min(tanggal) tanggal from dim_date where tanggal > ? and status_prod = 'KERJA'",
+            "select min(a.tanggal) tanggal
+            from " . self::DIM_DATE_JOIN . "
+            where a.tanggal > ? and " . self::DIM_DATE_STATUS_FINAL . " = 'KERJA'",
             [$date]
         );
 
@@ -471,14 +871,63 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
         $hash = hexdec(substr(md5($key), 0, 8));
         $hue = $hash % 360;
 
-        return "hsl({$hue}, 68%, 45%)";
+        return $this->hslToHex($hue, 68, 45);
     }
 
-    private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, ?int $ignoreId = null)
+    /**
+     * Hex output (not "hsl(...)") so this can double as the prefill value for a
+     * native <input type="color">, and so it's format-compatible with manually
+     * chosen colors stored in ppic_line_map.color.
+     */
+    private function hslToHex(float $h, float $s, float $l): string
+    {
+        $s /= 100;
+        $l /= 100;
+
+        $c = (1 - abs(2 * $l - 1)) * $s;
+        $x = $c * (1 - abs(fmod($h / 60, 2) - 1));
+        $m = $l - $c / 2;
+
+        switch (true) {
+            case $h < 60:
+                list($r, $g, $b) = [$c, $x, 0];
+                break;
+            case $h < 120:
+                list($r, $g, $b) = [$x, $c, 0];
+                break;
+            case $h < 180:
+                list($r, $g, $b) = [0, $c, $x];
+                break;
+            case $h < 240:
+                list($r, $g, $b) = [0, $x, $c];
+                break;
+            case $h < 300:
+                list($r, $g, $b) = [$x, 0, $c];
+                break;
+            default:
+                list($r, $g, $b) = [$c, 0, $x];
+                break;
+        }
+
+        $toHex = fn($v) => str_pad(dechex((int) round(($v + $m) * 255)), 2, '0', STR_PAD_LEFT);
+
+        return '#' . $toHex($r) . $toHex($g) . $toHex($b);
+    }
+
+    /**
+     * $ignoreIds accepts a single id or an array of ids. When editing a multi-line
+     * group, every sibling row in the submission is passed here (not just the row
+     * being checked) because all of them get replaced in the same transaction —
+     * a row still sitting on its old line/date in the DB shouldn't false-positive
+     * against a sibling block that is about to move off that same line.
+     */
+    private function findLineMapOverlap(?string $line, ?string $startDate, $totalDays, $ignoreIds = null)
     {
         if (!$line || !$startDate) {
             return null;
         }
+
+        $ignoreIds = collect(is_array($ignoreIds) ? $ignoreIds : [$ignoreIds])->filter()->values()->all();
 
         $totalDays = $totalDays !== null ? (int) round($totalDays) : 1;
         $totalDays = max($totalDays, 1);
@@ -491,8 +940,8 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
                 $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
             });
 
-        if ($ignoreId) {
-            $query->where('id', '!=', $ignoreId);
+        if (!empty($ignoreIds)) {
+            $query->whereNotIn('id', $ignoreIds);
         }
 
         return $query->get()->first(function ($row) use ($startDate, $endDate) {
@@ -500,13 +949,15 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
                 return false;
             }
 
-            $rowTotalDays = $row->tot_days !== null ? (int) round($row->tot_days) : 1;
-            $rowTotalDays = max($rowTotalDays, 1);
-            $rowStartDate = $row->tgl_start;
-            $rowWorkingDates = $this->workingDatesFrom($rowStartDate, $rowTotalDays);
-            $rowEndDate = !empty($rowWorkingDates) ? end($rowWorkingDates) : $rowStartDate;
+            // tgl_finish is already computed and stored on every row (see
+            // store_ppic_line_map/move_ppic_line_map), so reuse it here instead of
+            // recomputing via workingDatesFrom() — that would fire one extra
+            // dim_date query per existing row on the line, which made this check
+            // slow enough on busy lines to risk the request timing out client-side
+            // even though the save itself would still complete on the server.
+            $rowEndDate = $row->tgl_finish ?: $row->tgl_start;
 
-            return $rowStartDate <= $endDate && $rowEndDate >= $startDate;
+            return $row->tgl_start <= $endDate && $rowEndDate >= $startDate;
         });
     }
 
@@ -541,7 +992,10 @@ group by styleno, kpno, up.username, tgl_trans", [$calendarStart, $calendarEnd])
     private function workingDatesInRange(string $from, string $to): array
     {
         $dates = DB::select(
-            "select tanggal from dim_date where tanggal >= ? and tanggal <= ? and status_prod = 'KERJA' order by tanggal asc",
+            "select a.tanggal
+            from " . self::DIM_DATE_JOIN . "
+            where a.tanggal >= ? and a.tanggal <= ? and " . self::DIM_DATE_STATUS_FINAL . " = 'KERJA'
+            order by a.tanggal asc",
             [$from, $to]
         );
 

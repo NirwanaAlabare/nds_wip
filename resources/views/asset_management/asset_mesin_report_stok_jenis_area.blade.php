@@ -295,7 +295,7 @@
         <div class="col-lg-4">
             <div class="card card-sb h-100">
                 <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-layer-group"></i>Qty per Jenis Mesin</h5>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-layer-group"></i> Qty per Jenis Mesin</h5>
                 </div>
                 <div class="card-body">
                     @php
@@ -442,9 +442,12 @@
                         <input type="text" id="areaJenisUnitSearch" class="form-control form-control-sm flex-grow-1"
                             placeholder="Cari Serial Number / Merk / Tipe / No BPB / Status..." style="min-width: 220px;">
                         <div class="btn-group btn-group-sm" role="group" id="areaJenisUnitKepemilikanFilter">
-                            <button type="button" class="btn btn-outline-secondary active" data-kepemilikan="ALL">Semua</button>
-                            <button type="button" class="btn btn-outline-secondary" data-kepemilikan="PEMBELIAN">Pembelian</button>
-                            <button type="button" class="btn btn-outline-secondary" data-kepemilikan="SEWA">Sewa</button>
+                            <button type="button" class="btn btn-outline-secondary active"
+                                data-kepemilikan="ALL">Semua</button>
+                            <button type="button" class="btn btn-outline-secondary"
+                                data-kepemilikan="PEMBELIAN">Pembelian</button>
+                            <button type="button" class="btn btn-outline-secondary"
+                                data-kepemilikan="SEWA">Sewa</button>
                         </div>
                     </div>
                     <div class="unit-modal-table-wrap">

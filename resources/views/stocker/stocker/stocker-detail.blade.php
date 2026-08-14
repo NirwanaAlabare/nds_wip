@@ -1560,7 +1560,7 @@
                                                         @if ($currentModifySizeQtyAdditional > 0)
                                                             @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
                                                         @else
-                                                            @include('stocker.stocker.stoc-complementker-detail-part-additional')
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement')
                                                         @endif
                                                         @php
                                                             $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
@@ -1648,7 +1648,7 @@
                                                         @if ($currentModifySizeQtyAdditional > 0)
                                                             @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
                                                         @else
-                                                            @include('stocker.stocker.stoc-complementker-detail-part-additional')
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement')
                                                         @endif
                                                         @php
                                                             $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
