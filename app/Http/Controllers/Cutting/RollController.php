@@ -1774,6 +1774,9 @@ class RollController extends Controller
             'updated_at'            => $timestamp,
         ]);
 
+        $dataLog = DB::table('form_cut_alokasi_gr_panel_barcode')->where('id', $id)->first();
+        logHistory($id, (array) $dataLog);
+
         // Return detailed response
         return response()->json([
             'status' => 'success',
@@ -1957,6 +1960,9 @@ class RollController extends Controller
                 ]);
 
             $cuttingService->fixRollQty($barcode);
+
+            $dataLog = DB::table('form_cut_alokasi_gr_panel_barcode')->where('id', $id)->first();
+            logHistory($id, (array) $dataLog);
         });
 
         return response()->json([
@@ -1987,6 +1993,8 @@ class RollController extends Controller
         }
 
         $barcode = $data->barcode;
+
+        logHistory($id, (array) $data);
 
         $deleted = DB::table('form_cut_alokasi_gr_panel_barcode')
             ->where('id', $id)
