@@ -69,11 +69,12 @@
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="15" style="background-color: lightyellow; text-align:center;">Sewing</th>
                             <th colspan="12" style="background-color: pink; text-align:center;">QC Finishing</th>
-                            <th colspan="8" style="background-color: #90EE90; text-align:center;">Finishing - Pasang Kancing</th>
-                            <th colspan="8" style="background-color: #87CEEB; text-align:center;">Finishing - Bartack</th>
-                            <th colspan="8" style="background-color: #D8BFD8; text-align:center;">Finishing - Heatseal</th>
-                            <th colspan="8" style="background-color: #5DADE2; text-align:center;">Finishing - Snap</th>
-                            <th colspan="8" style="background-color: #C8E6C9; text-align:center;">Finishing - Embro</th>
+                            <th colspan="8" class="finishing-old" style="background-color: #5DADE2; text-align:center;">Finishing</th>
+                            <th colspan="8" class="finishing-process" style="background-color: #90EE90; text-align:center;">Finishing - Pasang Kancing</th>
+                            <th colspan="8" class="finishing-process" style="background-color: #87CEEB; text-align:center;">Finishing - Bartack</th>
+                            <th colspan="8" class="finishing-process" style="background-color: #D8BFD8; text-align:center;">Finishing - Heatseal</th>
+                            <th colspan="8" class="finishing-process" style="background-color: #5DADE2; text-align:center;">Finishing - Snap</th>
+                            <th colspan="8" class="finishing-process" style="background-color: #C8E6C9; text-align:center;">Finishing - Embro</th>
                             <th colspan="5" style="background-color: #FFE5B4; text-align:center;">Defect Sewing</th>
                             <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning</th>
                             <th colspan="5" style="background-color: lightyellow; text-align:center;">Defect Mending</th>
@@ -120,55 +121,64 @@
                             <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
 
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Terima</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Rework</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Defect</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Reject</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Output</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Adjustment</th>
+                            <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Saldo Akhir</th>
+                            
                             <!-- Finishing - Pasang Kancing -->
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Output</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: #90EE90;">Saldo Akhir</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Terima</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Rework</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Defect</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Reject</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Output</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Adjustment</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Saldo Akhir</th>
 
                             <!-- Finishing - Bartack -->
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Output</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: #87CEEB;">Saldo Akhir</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Terima</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Rework</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Defect</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Reject</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Output</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Adjustment</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #87CEEB;">Saldo Akhir</th>
 
                             <!-- Finishing - Heatseal -->
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Output</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: #D8BFD8;">Saldo Akhir</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Terima</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Rework</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Defect</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Reject</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Output</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Adjustment</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #D8BFD8;">Saldo Akhir</th>
 
                             <!-- Finishing - Snap -->
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Output</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: #5DADE2;">Saldo Akhir</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Terima</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Rework</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Defect</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Reject</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Output</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Adjustment</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #5DADE2;">Saldo Akhir</th>
 
                             <!-- Finishing - Embro -->
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Terima</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Rework</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Defect</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Reject</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Output</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: #C8E6C9;">Saldo Akhir</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Saldo Awal</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Terima</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Rework</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Defect</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Reject</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Output</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Adjustment</th>
+                            <th class="text-center align-middle finishing-process" style="background-color: #C8E6C9;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Terima</th>
@@ -217,7 +227,7 @@
                     <tfoot>
                         <tr>
                             <th class="text-center" colspan="5">Total</th>
-                            @for ($i = 1; $i <= 96; $i++)
+                            @for ($i = 1; $i <=104; $i++)
                                 <th></th>
                             @endfor
                         </tr>
@@ -259,6 +269,55 @@
         $(document).ready(function() {
             dataTableReload();
         })
+
+        function updateFinishingView() {
+            const endDate = $('#end_date').val();
+
+            if (!endDate) {
+                return;
+            }
+
+            const batasTanggal = '2026-07-01';
+
+            // Pastikan DataTable sudah ada
+            if (!$.fn.DataTable.isDataTable('#datatable')) {
+                return;
+            }
+
+            const table = $('#datatable').DataTable();
+
+            const finishingOld = endDate < batasTanggal;
+
+            // ==========================================
+            // FINISHING LAMA
+            // Kolom 32 - 39
+            // ==========================================
+            for (let col = 32; col <= 39; col++) {
+                table.column(col).visible(finishingOld, false);
+            }
+
+            // ==========================================
+            // FINISHING PER PROCESS
+            // Kolom 40 - 79
+            // ==========================================
+            for (let col = 40; col <= 79; col++) {
+                table.column(col).visible(!finishingOld, false);
+            }
+            // ==========================================
+            // TRANSIT TERIMA QC REJECT
+            // Kolom 95 - 102
+            // ==========================================
+            for (let col = 95; col <= 102; col++) {
+                table.column(col).visible(!finishingOld, false);
+            }
+
+            // Sesuaikan ukuran kolom
+            table.columns.adjust().draw(false);
+        }
+
+        $('#start_date, #end_date').on('change', function () {
+            updateFinishingView();
+        });
 
         function dataTableReload() {
             let start_date = $('#start_date').val();
@@ -433,6 +492,31 @@
                         data: 'saldo_akhir_finishing'
                     },
 
+
+                    {
+                        data: 'saldo_awal_secondary_proses'
+                    },
+                    {
+                        data: 'total_in_sp'
+                    },
+                    {
+                        data: 'rework_sp'
+                    },
+                    {
+                        data: 'defect_sp'
+                    },
+                    {
+                        data: 'reject_sp'
+                    },
+                    {
+                        data: 'rft_sp'
+                    },
+                    {
+                        data: 'finishing_adjust'
+                    },
+                    {
+                        data: 'saldo_akhir_secondary_proses'
+                    },
 
                     {
                         data: 'saldo_awal_finishing_pasang_kancing'
@@ -691,7 +775,7 @@
                     };
 
                     // mulai kolom ke-5
-                    for (let col = 5; col <= 100; col++) {
+                    for (let col = 5; col <= 108; col++) {
                         let total = api
                             .column(col, {
                                 search: 'applied'
@@ -706,6 +790,7 @@
                     }
                 }
             });
+            updateFinishingView();
         }
 
         function export_excel() {

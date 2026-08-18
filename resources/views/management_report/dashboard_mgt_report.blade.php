@@ -3,9 +3,42 @@
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
         .dash-wrap {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+        /* Non-blocking loading badge: does not cover/disable the page,
+           filters stay clickable while data is being fetched/rendered. */
+        #dashLoadOverlay {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            color: #343a40;
+            padding: 10px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
+            z-index: 10000;
+            font-size: 0.85rem;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        #dashLoadOverlay .dash-load-spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid #dee2e6;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: sync-spin .8s linear infinite;
+            flex-shrink: 0;
         }
 
         .dash-title {
@@ -489,6 +522,11 @@
     @if (in_array(auth()->user()->username, ['reza', 'admin_01', 'nirwana_it']))
     <div class="dash-wrap" id="dashWrap">
 
+        <div id="dashLoadOverlay">
+            <div class="dash-load-spinner"></div>
+            <span>Memuat data...</span>
+        </div>
+
         {{-- Header --}}
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
@@ -509,21 +547,24 @@
         {{-- Filter Bar --}}
         <div class="dash-filter mb-3">
             <label>Jenis Report:</label>
-            <select id="filterReportType" style="min-width:160px">
+            <select id="filterReportType" class="select2bs4" style="min-width:160px">
                 <option value="prod_earn">Production Earning</option>
+                <option value="full_earn">Full Earning</option>
             </select>
             <label class="ml-3">Periode:</label>
             <input type="date" id="startDate" value="{{ date('Y-m-01') }}">
             <span style="color:#adb5bd;font-size:0.8rem">s/d</span>
             <input type="date" id="endDate" value="{{ date('Y-m-d') }}">
-            <label class="ml-3">Buyer:</label>
-            <select id="filterBuyer" style="min-width:120px">
-                <option value="all">All Buyers</option>
-            </select>
-            <label class="ml-2">Line:</label>
-            <select id="filterLine" style="min-width:120px">
-                <option value="all">All Lines</option>
-            </select>
+            <span id="prodEarnFilters" class="d-flex flex-wrap align-items-center" style="gap:8px;">
+                <label class="ml-3">Buyer:</label>
+                <select id="filterBuyer" class="select2bs4" style="min-width:120px">
+                    <option value="all">All Buyers</option>
+                </select>
+                <label class="ml-2">Line:</label>
+                <select id="filterLine" class="select2bs4" style="min-width:120px">
+                    <option value="all">All Lines</option>
+                </select>
+            </span>
         </div>
 
         {{-- KPI Cards --}}
@@ -554,15 +595,15 @@
             </div>
             <div class="kpi-card c-output">
                 <i class="fas fa-boxes kpi-icon"></i>
-                <div class="kpi-label">Total Output</div>
+                <div class="kpi-label" id="kpiOutputLabel">Total Output</div>
                 <div class="kpi-value skel" id="kpiOutput">—</div>
-                <div class="kpi-sub">pcs produksi</div>
+                <div class="kpi-sub" id="kpiOutputSub">pcs produksi</div>
             </div>
             <div class="kpi-card c-active">
                 <i class="fas fa-users kpi-icon"></i>
-                <div class="kpi-label">Active</div>
+                <div class="kpi-label" id="kpiActiveLabel">Active</div>
                 <div class="kpi-value skel" id="kpiActive">—</div>
-                <div class="kpi-sub">Lines &amp; Buyers</div>
+                <div class="kpi-sub" id="kpiActiveSub">Lines &amp; Buyers</div>
             </div>
         </div>
 
@@ -576,14 +617,14 @@
 
             <div class="kpi-card c-pos" style="grid-column: span 2;">
                 <i class="fas fa-crown kpi-icon"></i>
-                <div class="kpi-label">Top Buyer</div>
+                <div class="kpi-label" id="kpiTopBuyerLabel">Top Buyer</div>
                 <div class="kpi-value skel" id="kpiTopBuyer">—</div>
-                <div class="kpi-sub">Highest Earning Produksi</div>
+                <div class="kpi-sub" id="kpiTopBuyerSub">Highest Earning Produksi</div>
             </div>
 
             <div class="kpi-card c-neg" style="grid-column: span 2;">
                 <i class="fas fa-triangle-exclamation kpi-icon"></i>
-                <div class="kpi-label">Risk Watch</div>
+                <div class="kpi-label" id="kpiRiskWatchLabel">Risk Watch</div>
                 <div class="kpi-value skel" id="kpiRiskWatch">—</div>
                 <div class="kpi-sub" id="kpiRiskWatchSub">Lowest Earning Produksi</div>
             </div>
@@ -595,26 +636,23 @@
                 <div class="card-heading">Daily Earning vs Estimated Cost</div>
                 <div id="chartDaily" style="height:300px;"></div>
             </div>
-            <div class="chart-card">
-                <div class="card-heading">Buyer Profitability (Top 10)</div>
+            <div class="chart-card" id="cardBuyerChart">
+                <div class="card-heading" id="headingBuyerChart">Buyer Profitability (Top 10)</div>
                 <div id="chartBuyer" style="height:300px;"></div>
             </div>
         </div>
 
         {{-- Profit Line / Daily Efficiency --}}
-        <div class="chart-grid mb-3" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="chart-card">
+        <div class="chart-grid mb-3" style="grid-template-columns: repeat(2, 1fr);" id="rowProfitLineEfficiency">
+            <div class="chart-card" id="cardProfitLine">
                 <div class="card-heading d-flex justify-content-between">
                     <span>Profit Line Ranking</span>
                     <span style="font-weight:400;text-transform:none;">from Profit Line sheet</span>
                 </div>
                 <div id="profitLineRanking" style="max-height:300px;overflow-y:auto;"></div>
             </div>
-            <div class="chart-card">
-                <div class="card-heading d-flex justify-content-between">
-                    <span>Daily Efficiency</span>
-                    <span style="font-weight:400;text-transform:none;">earning/min vs cost/min</span>
-                </div>
+            <div class="chart-card" id="cardEfficiency">
+                <div class="card-heading" id="headingEfficiency">Daily Efficiency</div>
                 <div id="chartEfficiency" style="height:300px;"></div>
             </div>
         </div>
@@ -636,7 +674,7 @@
         </div>
 
         {{-- Line Profit Heatmap --}}
-        <div class="chart-card mb-3">
+        <div class="chart-card mb-3" id="cardHeatmap">
             <div class="card-heading d-flex justify-content-between">
                 <span>Line Profit Heatmap</span>
                 <span style="font-weight:400;text-transform:none;">
@@ -668,6 +706,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
         let apexDaily = null;
@@ -677,6 +716,7 @@
         let dtDetail = null;
         let rawRows = [];
         let productCosting = [];
+        let reportType = 'prod_earn';
 
         const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -744,13 +784,59 @@
             });
         }
 
+        /* ---- Report type UI toggling ---- */
+        function applyReportTypeUI() {
+            const isFullEarn = reportType === 'full_earn';
+
+            $('#prodEarnFilters').toggle(!isFullEarn);
+            $('#cardProfitLine').toggle(!isFullEarn);
+            $('#cardHeatmap').toggle(!isFullEarn);
+            $('#cardEfficiency').css('grid-column', isFullEarn ? '1 / -1' : '');
+
+            $('#headingBuyerChart').text(isFullEarn ? 'Earning Breakdown by Type' : 'Buyer Profitability (Top 10)');
+            $('#headingEfficiency').text(isFullEarn ? 'Balance Trend by Earning Type' : 'Daily Efficiency');
+
+            $('#kpiOutputLabel').text(isFullEarn ? 'Prod Est. Balance' : 'Total Output');
+            $('#kpiOutputSub').text(isFullEarn ? 'Earning Produksi − Cost' : 'pcs produksi');
+            $('#kpiActiveLabel').text(isFullEarn ? 'Mkt Est. Balance' : 'Active');
+            $('#kpiActiveSub').text(isFullEarn ? 'Earning Market − Cost' : 'Lines & Buyers');
+
+            $('#kpiTopBuyerLabel').text(isFullEarn ? 'Full Earning Est' : 'Top Buyer');
+            $('#kpiTopBuyerSub').text(isFullEarn ? 'Estimated Full Earning (periode)' : 'Highest Earning Produksi');
+            $('#kpiRiskWatchLabel').text(isFullEarn ? 'Full Earn Balance' : 'Risk Watch');
+            $('#kpiRiskWatchSub').text(isFullEarn ? 'Full Earning − Cost (periode)' : 'Lowest Earning Produksi');
+        }
+
+        /* ---- Normalize full-earning rows onto the shared field names used by shared widgets ---- */
+        function normalizeFullEarnRow(r) {
+            return Object.assign({}, r, {
+                tot_earning_rupiah: r.sum_tot_earning_rupiah,
+                sewing_line: null,
+                buyer: null,
+            });
+        }
+
         /* ---- Fetch raw data, then render everything client-side ---- */
+        function showDashLoading() {
+            $('#dashLoadOverlay').css('display', 'flex');
+        }
+
+        function hideDashLoading() {
+            $('#dashLoadOverlay').css('display', 'none');
+        }
+
+        let rawDataXhr = null;
+        let rawDataReqId = 0;
+
         function loadRawData() {
             const p = getParams();
             if (!p.start_date || !p.end_date) {
                 alert('Pilih periode terlebih dahulu.');
                 return;
             }
+
+            reportType = $('#filterReportType').val() || 'prod_earn';
+            applyReportTypeUI();
 
             $('#periodBadge').addClass('active').text(p.start_date + '  s/d  ' + p.end_date);
 
@@ -759,15 +845,35 @@
             ]
             .forEach(id => $('#' + id).addClass('skel').text('...'));
 
-            $.get('{{ route('dashboard-mgt-report.raw-data') }}', p)
+            showDashLoading();
+
+            // Cancel any in-flight request so a slow/stale response can't
+            // overwrite newer data (was causing 0/empty values on quick filter changes).
+            if (rawDataXhr) {
+                rawDataXhr.abort();
+            }
+            const reqId = ++rawDataReqId;
+
+            const url = reportType === 'full_earn' ?
+                '{{ route('dashboard-mgt-report.raw-data-full-earn') }}' :
+                '{{ route('dashboard-mgt-report.raw-data') }}';
+
+            rawDataXhr = $.get(url, p)
                 .done(function(data) {
-                    rawRows = (data && data.rows) || [];
+                    if (reqId !== rawDataReqId) return; // stale response, ignore
+                    const rows = (data && data.rows) || [];
+                    rawRows = reportType === 'full_earn' ? rows.map(normalizeFullEarnRow) : rows;
                     loadFilterOptions();
                     renderDashboard();
                 })
-                .fail(function() {
+                .fail(function(jqXHR, textStatus) {
+                    if (textStatus === 'abort' || reqId !== rawDataReqId) return;
                     rawRows = [];
                     renderDashboard();
+                })
+                .always(function(jqXHRorData, textStatus) {
+                    if (textStatus === 'abort' || reqId !== rawDataReqId) return;
+                    hideDashLoading();
                 });
         }
 
@@ -788,27 +894,36 @@
         function renderDashboard() {
             const rows = getFilteredRows();
             renderKPI(rows);
-            renderHighlights(rows);
             renderDailyChart(rows);
-            renderBuyerChart();
             renderDetailTable(rows);
-            renderProfitLineRanking(rows);
-            renderLineHeatmap(rows);
-            renderDailyEfficiency(rows);
+
+            if (reportType === 'full_earn') {
+                renderFullEarnHighlights(rows);
+                renderEarnBreakdownChart(rows);
+                renderBalanceTrendChart(rows);
+            } else {
+                renderHighlights(rows);
+                renderBuyerChart();
+                renderProfitLineRanking(rows);
+                renderLineHeatmap(rows);
+                renderDailyEfficiency(rows);
+            }
         }
 
         /* ---- KPI ---- */
         function renderKPI(rows) {
+            const ids = ['kpiEarning', 'kpiCost', 'kpiBalance', 'kpiMargin', 'kpiOutput', 'kpiActive'];
             if (!rows.length) {
-                ['kpiEarning', 'kpiCost', 'kpiBalance', 'kpiMargin', 'kpiOutput', 'kpiActive']
-                .forEach(id => $('#' + id).removeClass('skel').text('—'));
+                ids.forEach(id => $('#' + id).removeClass('skel').text('—'));
                 return;
             }
 
             let totalEarning = 0,
                 totalCost = 0,
                 totalBalance = 0,
-                totalOutput = 0;
+                totalOutput = 0,
+                totalProdBalance = 0,
+                totalMktBalance = 0;
             const lines = new Set();
             const buyers = new Set();
 
@@ -817,6 +932,8 @@
                 totalCost += parseFloat(r.est_tot_cost) || 0;
                 totalBalance += parseFloat(r.blc) || 0;
                 totalOutput += parseFloat(r.tot_output) || 0;
+                totalProdBalance += parseFloat(r.blc_est_earn_cost_prod) || 0;
+                totalMktBalance += parseFloat(r.blc_est_earn_cost_mkt) || 0;
                 if (r.sewing_line) lines.add(r.sewing_line);
                 if (r.buyer) buyers.add(r.buyer);
             });
@@ -827,17 +944,52 @@
             $('#kpiCost').removeClass('skel').text(fmtRp(totalCost));
             $('#kpiBalance').removeClass('skel').text(fmtRp(totalBalance));
             $('#kpiMargin').removeClass('skel').text(margin.toFixed(1) + '%');
-            $('#kpiOutput').removeClass('skel').text(fmtNum(totalOutput) + ' pcs');
-            $('#kpiActive').removeClass('skel').text(lines.size + 'L / ' + buyers.size + 'B');
+
+            if (reportType === 'full_earn') {
+                $('#kpiOutput').removeClass('skel').text(fmtRp(totalProdBalance));
+                $('#kpiActive').removeClass('skel').text(fmtRp(totalMktBalance));
+            } else {
+                $('#kpiOutput').removeClass('skel').text(fmtNum(totalOutput) + ' pcs');
+                $('#kpiActive').removeClass('skel').text(lines.size + 'L / ' + buyers.size + 'B');
+            }
 
             $('#kpiBalCard').removeClass('c-pos c-neg').addClass(totalBalance >= 0 ? 'c-pos' : 'c-neg');
+        }
+
+        /* ---- Highlights for Full Earning (Best Day / Full Earning Est / Full Earn Balance) ---- */
+        function renderFullEarnHighlights(rows) {
+            const ids = ['kpiBestDay', 'kpiTopBuyer', 'kpiRiskWatch'];
+            if (!rows.length) {
+                ids.forEach(id => $('#' + id).removeClass('skel').text('—'));
+                return;
+            }
+
+            let bestDay = null;
+            let sumFullEarning = 0;
+            let sumFullBalance = 0;
+
+            rows.forEach(function(r) {
+                const earn = parseFloat(r.tot_earning_rupiah) || 0;
+                if (!bestDay || earn > bestDay.total) {
+                    bestDay = {
+                        label: r.tanggal_fix || r.tanggal,
+                        total: earn
+                    };
+                }
+                sumFullEarning += parseFloat(r.sum_est_full_earning) || 0;
+                sumFullBalance += parseFloat(r.blc_full_earning) || 0;
+            });
+
+            $('#kpiBestDay').removeClass('skel').text(bestDay ? (bestDay.label + ' · ' + fmtRp(bestDay.total)) : '—');
+            $('#kpiTopBuyer').removeClass('skel').text(fmtRp(sumFullEarning));
+            $('#kpiRiskWatch').removeClass('skel').text(fmtRp(sumFullBalance));
         }
 
         /* ---- Highlights (Best Day / Top Buyer / Risk Watch) ---- */
         function renderHighlights(rows) {
             const ids = ['kpiBestDay', 'kpiTopBuyer', 'kpiRiskWatch'];
 
-            if ($('#filterReportType').val() !== 'prod_earn' || !rows.length) {
+            if (!rows.length) {
                 ids.forEach(id => $('#' + id).removeClass('skel').text('—'));
                 return;
             }
@@ -1139,6 +1291,204 @@
             if (apexBuyer) apexBuyer.destroy();
             apexBuyer = new ApexCharts(document.querySelector('#chartBuyer'), opts);
             apexBuyer.render();
+        }
+
+        /* ---- Earning breakdown by type (Full Earning report) ---- */
+        function renderEarnBreakdownChart(rows) {
+            let actualEarn = 0,
+                actualCost = 0,
+                fullEarn = 0,
+                fullCost = 0,
+                prodEarn = 0,
+                prodCost = 0,
+                mktEarn = 0,
+                mktCost = 0;
+
+            rows.forEach(function(r) {
+                actualEarn += parseFloat(r.tot_earning_rupiah) || 0;
+                actualCost += parseFloat(r.est_tot_cost) || 0;
+                fullEarn += parseFloat(r.sum_est_full_earning) || 0;
+                fullCost += parseFloat(r.est_tot_cost) || 0;
+                prodEarn += parseFloat(r.sum_est_earning_prod) || 0;
+                prodCost += parseFloat(r.sum_est_cost_prod) || 0;
+                mktEarn += parseFloat(r.sum_est_earning_mkt) || 0;
+                mktCost += parseFloat(r.sum_est_cost_mkt) || 0;
+            });
+
+            const categories = ['Actual', 'Full Earning', 'Production Est', 'Market Est'];
+
+            const opts = {
+                series: [{
+                        name: 'Earning',
+                        data: [Math.round(actualEarn), Math.round(fullEarn), Math.round(prodEarn), Math.round(mktEarn)]
+                    },
+                    {
+                        name: 'Cost',
+                        data: [Math.round(actualCost), Math.round(fullCost), Math.round(prodCost), Math.round(mktCost)]
+                    },
+                ],
+                chart: {
+                    type: 'bar',
+                    height: 300,
+                    background: 'transparent',
+                    toolbar: {
+                        show: false
+                    },
+                    animations: {
+                        enabled: true,
+                        speed: 500
+                    },
+                    fontFamily: 'Segoe UI, sans-serif',
+                },
+                theme: {
+                    mode: 'light'
+                },
+                colors: ['#28a745', '#dc3545'],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight: '55%',
+                        borderRadius: 2
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                xaxis: {
+                    categories: categories,
+                    labels: {
+                        formatter: v => fmtCompact(v),
+                        style: {
+                            fontSize: '10px',
+                            colors: '#6c757d'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#6c757d',
+                            fontSize: '10px'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#f0f0f0'
+                },
+                legend: {
+                    labels: {
+                        colors: '#495057'
+                    },
+                    fontSize: '12px'
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: v => fmtRp(v)
+                    }
+                },
+            };
+
+            if (apexBuyer) apexBuyer.destroy();
+            apexBuyer = new ApexCharts(document.querySelector('#chartBuyer'), opts);
+            apexBuyer.render();
+        }
+
+        /* ---- Balance trend by earning type (Full Earning report) ---- */
+        function renderBalanceTrendChart(rows) {
+            const sorted = rows.slice().sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+            const labels = sorted.map(r => fmtDayLabel(r.tanggal));
+            const blc = sorted.map(r => Math.round(parseFloat(r.blc) || 0));
+            const blcFull = sorted.map(r => Math.round(parseFloat(r.blc_full_earning) || 0));
+            const blcProd = sorted.map(r => Math.round(parseFloat(r.blc_est_earn_cost_prod) || 0));
+            const blcMkt = sorted.map(r => Math.round(parseFloat(r.blc_est_earn_cost_mkt) || 0));
+
+            const opts = {
+                series: [{
+                        name: 'Balance',
+                        data: blc
+                    },
+                    {
+                        name: 'Full Earning Balance',
+                        data: blcFull
+                    },
+                    {
+                        name: 'Prod Est. Balance',
+                        data: blcProd
+                    },
+                    {
+                        name: 'Mkt Est. Balance',
+                        data: blcMkt
+                    },
+                ],
+                chart: {
+                    type: 'line',
+                    height: 300,
+                    background: 'transparent',
+                    toolbar: {
+                        show: false
+                    },
+                    animations: {
+                        enabled: true,
+                        speed: 500
+                    },
+                    fontFamily: 'Segoe UI, sans-serif',
+                },
+                theme: {
+                    mode: 'light'
+                },
+                colors: ['#007bff', '#28a745', '#fd7e14', '#6f42c1'],
+                stroke: {
+                    width: 2,
+                    curve: 'smooth'
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        style: {
+                            fontSize: '10px',
+                            colors: '#6c757d'
+                        }
+                    },
+                    axisBorder: {
+                        color: '#dee2e6'
+                    },
+                    axisTicks: {
+                        color: '#dee2e6'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: v => fmtCompact(v),
+                        style: {
+                            colors: '#6c757d',
+                            fontSize: '10px'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#f0f0f0'
+                },
+                legend: {
+                    labels: {
+                        colors: '#495057'
+                    },
+                    fontSize: '12px'
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: v => fmtRp(v)
+                    }
+                },
+            };
+
+            if (apexEfficiency) apexEfficiency.destroy();
+            apexEfficiency = new ApexCharts(document.querySelector('#chartEfficiency'), opts);
+            apexEfficiency.render();
         }
 
         /* ---- Profit line ranking ---- */
@@ -1557,6 +1907,7 @@
                 $select.append('<option value="' + v + '">' + v + '</option>');
             });
             if (prev) $select.val(prev);
+            $select.trigger('change.select2');
         }
 
         function loadFilterOptions() {
@@ -1592,10 +1943,29 @@
         }
 
         $(document).ready(function() {
-            $('#startDate, #endDate').on('change', loadRawData);
-            $('#filterReportType, #filterBuyer, #filterLine').on('change', renderDashboard);
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                width: 'resolve',
+                minimumResultsForSearch: Infinity,
+            });
+            $('.select2-container--bootstrap4 .select2-selection--single').css({
+                'height': '30px',
+                'font-size': '0.8rem',
+                'line-height': '30px',
+            });
+
+            $('#startDate, #endDate, #filterReportType').on('change', loadRawData);
+            $('#filterBuyer, #filterLine').on('change', function() {
+                showDashLoading();
+                setTimeout(function() {
+                    renderDashboard();
+                    hideDashLoading();
+                }, 30);
+            });
             $('#btnSync').on('click', syncData);
             $('#searchProductCosting').on('input', renderProductCosting);
+
+            applyReportTypeUI();
 
             const $tooltip = $('#heatmapTooltip');
             $('#lineHeatmap').on('mouseenter', '.heatmap-cell', function(e) {

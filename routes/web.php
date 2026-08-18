@@ -1460,6 +1460,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
         Route::get('/dashboard_mgt_report/raw-data', 'getRawData')->name('dashboard-mgt-report.raw-data');
+        Route::get('/dashboard_mgt_report/raw-data-full-earn', 'getFullEarnData')->name('dashboard-mgt-report.raw-data-full-earn');
         Route::get('/dashboard_mgt_report/product-costing-comparison', 'getProductCostingComparison')->name('dashboard-mgt-report.product-costing-comparison');
         Route::post('/dashboard_mgt_report/sync', 'syncData')->name('dashboard-mgt-report.sync');
     });
