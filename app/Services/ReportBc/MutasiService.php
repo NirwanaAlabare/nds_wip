@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Carbon\Carbon;
 
+
 class MutasiService
 {
     public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
@@ -354,6 +355,76 @@ class MutasiService
             $fromDate, $toDate,
             $fromDate, $toDate
         ]);
+    }
+
+    public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', 120);
+
+        $ch = curl_init();
+        $params = http_build_query([
+            "tgl_awal"  => $fromDate,
+            "tgl_akhir" => $toDate,
+        ]);
+        $apiUrl = "http://10.10.5.62:8123/api/laporan-fg-stock/show_fg_stok_mutasi?" . $params;
+
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+
+        $output    = curl_exec($ch);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr   = curl_error($ch);
+        $curlErrno = curl_errno($ch);
+        curl_close($ch);
+
+        if ($curlErrno) {
+            \Log::error('[MutasiService::getDataMutasiBarangJadiGudang] cURL error: ' . $curlErr);
+            return collect();
+        }
+
+        if ($httpCode != 200) {
+            \Log::error('[MutasiService::getDataMutasiBarangJadiGudang] HTTP ' . $httpCode);
+            return collect();
+        }
+
+        $decoded = json_decode($output, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            \Log::error('[MutasiService::getDataMutasiBarangJadiGudang] JSON decode error: ' . json_last_error_msg());
+            return collect();
+        }
+
+        $rows = $decoded['data'] ?? [];
+
+        if (strtolower($kategoriBarang) !== 'all') {
+            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+                return isset($row['product_group'])
+                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
+            });
+        }
+
+        return collect($rows)->map(function ($row) {
+            return (object) [
+                'ws'            => $row['ws'] ?? '-',
+                'styleno'       => $row['styleno'] ?? '-',
+                'id_so_det'     => $row['id_so_det'] ?? '-',
+                'product_group' => $row['product_group'] ?? '-',
+                'product_item'  => $row['product_item'] ?? '-',
+                'color'         => $row['color'] ?? '-',
+                'size'          => $row['size'] ?? '-',
+                'grade'         => $row['grade'] ?? '-',
+                'lokasi'        => $row['lokasi'] ?? '-',
+                'no_carton'     => $row['no_carton'] ?? '-',
+                'saldoawal'     => $row['qty_awal'] ?? 0,
+                'qtyterima'     => $row['qty_in'] ?? 0,
+                'qtykeluar'     => $row['qty_out'] ?? 0,
+                'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+            ];
+        });
     }
 
     function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
@@ -768,4 +839,111 @@ class MutasiService
         $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
         return $excel->download($filename);
     }
+
+    function exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+
+        $excel = FastExcel::create('Laporan');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+            'font' => ['size' => 14, 'style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A1:O1');
+
+        $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
+        $sheet->writeTo('A2', $judulLaporan, [
+            'font' => ['size' => 12, 'style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A2:O2');
+
+        $periode_date = Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+        if($fromDate == $toDate){
+            $periode_date = Carbon::parse($fromDate)->format('d/m/Y');
+        }
+
+        $periode = "PERIODE: " . $periode_date;
+        $sheet->writeTo('A3', $periode, [
+            'font' => ['style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A3:O3');
+
+        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+        $sheet->writeTo('A4', $filterText, [
+            'font' => ['style' => 'bold'],
+            'text-align' => 'center'
+        ]);
+        $sheet->mergeCells('A4:O4');
+
+        $headerKolom = [
+            'No',
+            'No WS',
+            'Style',
+            'Id So Det',
+            'Product Group',
+            'Product Item',
+            'Color',
+            'Size',
+            'Grade',
+            'Lokasi',
+            'No Carton',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pengeluaran',
+            'Saldo Akhir',
+        ];
+
+        $styleHeaderKolom = [
+            'font' => ['style' => 'bold'],
+            'border' => 'thin',
+            'background-color' => '#d9edf7',
+            'text-align' => 'center'
+        ];
+
+        $kolomHuruf = range('A', 'O');
+        foreach ($headerKolom as $i => $judul) {
+            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+        }
+
+        $no = 1;
+        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $no++,
+                    $row->ws ?? '-',
+                    $row->styleno ?? '-',
+                    $row->id_so_det ?? '-',
+                    $row->product_group ?? '-',
+                    $row->product_item ?? '-',
+                    $row->color ?? '-',
+                    $row->size ?? '-',
+                    $row->grade ?? '-',
+                    $row->lokasi ?? '-',
+                    $row->no_carton ?? '-',
+                    $row->saldoawal ?? '-',
+                    $row->qtyterima ?? '-',
+                    $row->qtykeluar ?? '-',
+                    $row->saldoakhir ?? '-',
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+        return $excel->download($filename);
+    }
+
+    
 }
