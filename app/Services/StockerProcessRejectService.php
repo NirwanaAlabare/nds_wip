@@ -158,6 +158,21 @@ class StockerProcessRejectService
                 // Get Created Stocker
                 $storedStocker = Stocker::where("stocker_reject", $createStockerReject->id)->get();
 
+                $partDetailIds = $request->input('part_detail_id', []);
+                $formCutIds    = $request->input('form_cut_id', []);
+                $soDetIds      = $request->input('so_det_id', []);
+                $stockerIds    = $request->input('stocker_id', []);
+
+                $findStocker = function ($targetPartDetail, $targetFormCut, $targetSoDet) use ($partDetailIds, $formCutIds, $soDetIds, $stockerIds) {
+                    $key = collect($partDetailIds)->search(function ($value, $index) use ($formCutIds, $soDetIds, $targetPartDetail, $targetFormCut, $targetSoDet) {
+                        return (string) $value === (string) $targetPartDetail
+                            && (string) ($formCutIds[$index] ?? null) === (string) $targetFormCut
+                            && (string) ($soDetIds[$index] ?? null) === (string) $targetSoDet;
+                    });
+
+                    return $key !== false ? ($stockerIds[$key] ?? null) : null;
+                };
+
                 if ($storedStocker->count() > 0) {
                     // Copy created Stocker's process
                     foreach ($storedStocker as $stocker) {
@@ -275,13 +290,35 @@ class StockerProcessRejectService
 
                             if ($currentSecondaryIn && ($currentSecondary && ($currentSecondary->tujuan == "SECONDARY DALAM" || $currentSecondary->tujuan == "SECONDARY LUAR"))) {
                                 // Copy Inhouse & DC
-                                $copyInhouse = $this->copySecondaryInhouseTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
-                                if (!$copyInhouse) {
-                                    // Copy DC (if there is no inhouse)
-                                    $copyDc = $this->copyDcInTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
+                                if ($currentSecondary->tujuan == "SECONDARY DALAM") {
+
+                                    // Similar Stocker
+                                    $currentSimilar = $findStocker($stocker->part_detail_id, $stocker->form_cut_id, $stocker->so_det_id);
+                                    $currentSimilarStocker = Stocker::where("id", $currentSimilar)->first();
+                                    $currentSimilarIdQrStocker = $currentSimilarStocker ? $currentSimilarStocker->id_qr_stocker : null;
+
+                                    $copyInhouse = $this->copySecondaryInhouseTransaction($currentSimilarIdQrStocker, $stocker->id_qr_stocker);
+                                    if (!$copyInhouse) {
+                                        // Copy DC (if there is no inhouse)
+                                        $copyDc = $this->copyDcInTransaction($currentSimilarIdQrStocker, $stocker->id_qr_stocker);
+                                    }
+                                }
+                                // Copy WIP OUT
+                                else if ($currentSecondary->tujuan == "SECONDARY LUAR") {
+
+                                    // Similar Stocker
+                                    $currentSimilar = $findStocker($stocker->part_detail_id, $stocker->form_cut_id, $stocker->so_det_id);
+                                    $currentSimilarStocker = Stocker::where("id", $currentSimilar)->first();
+                                    $currentSimilarIdQrStocker = $currentSimilarStocker ? $currentSimilarStocker->id_qr_stocker : null;
+
+                                    $copyLoadingOut = $this->copyLoadingOutTransaction($currentSimilarIdQrStocker, $stocker->id_qr_stocker, $stocker->qty_ply);
+                                    if (!$copyLoadingOut) {
+                                        // Copy DC (if there is no inhouse)
+                                        $copyDc = $this->copyDcInTransaction($currentSimilarIdQrStocker, $stocker->id_qr_stocker);
+                                    }
                                 }
 
-                                // Current Secondary Inhouse
+                                // Current Secondary In
                                 $createSecondaryIn = SecondaryIn::updateOrCreate([
                                     "id_qr_stocker" => $stocker->id_qr_stocker,
                                     "urutan" => $currentSecondaryIn->urutan,
@@ -390,39 +427,60 @@ class StockerProcessRejectService
         return null;
     }
 
-    protected function copySecondaryInTransaction ($idQrStockerSource, $idQrStocker)
+    protected function copyLoadingOutTransaction ($idQrStockerSource, $idQrStocker, $qty = 0)
     {
-        // When Secondary Inhouse
-        $currentSecondaryIn = SecondaryIn::where("id_qr_stocker", $idQrStockerSource)->first();
+        // Search Source's Loading Out (wip_out_det)
+        $currentWipOutDet = DB::table('wip_out_det')->where("id_qr_stocker", $idQrStockerSource)->first();
+        if (!$currentWipOutDet) {
+            return null;
+        }
+        $currentWipOut = DB::table('wip_out')->where("id", $currentWipOutDet->id_wip_out)->first();
 
-        if ($currentSecondaryIn) {
-            // Copy Inhouse & DC
-            $copyInhouse = $this->copySecondaryInhouseTransaction($idQrStockerSource, $idQrStocker);
-            if (!$copyInhouse) {
-                // Copy DC (if there is no inhouse)
-                $copyDc = $this->copyDcInTransaction($idQrStockerSource, $idQrStocker);
-            }
+        // Generate No. Form
+        $date = Carbon::parse(date("Y-m-d"));
+        $datePrefix = $date->format('my');
+        $month = $date->format('m');
+        $year = $date->format('Y');
+        $getLastNumber = DB::select("
+            SELECT MAX(CAST(SUBSTRING_INDEX(no_form, '/', -1) AS UNSIGNED)) AS last_number
+            FROM wip_out
+            WHERE MONTH(tgl_form) = ? AND YEAR(tgl_form) = ?
+        ", [$month, $year]);
+        $lastNumber = $getLastNumber[0]->last_number ?? 0;
+        $formCounter = $lastNumber + 1;
+        $noForm = 'SCP/OUT/' . $datePrefix . '/' . $formCounter++;
 
-            foreach ($currentSecondaryIn as $secIn) {
-                // Current Secondary Inhouse
-                $createSecondaryIn = SecondaryIn::updateOrCreate([
-                    "id_qr_stocker" => $idQrStocker,
-                    "urutan" => $secIn->urutan,
-                ],[
-                    "tgl_trans" => $secIn->tgl_trans,
-                    "no_form" => $secIn->no_form,
-                    "tujuan" => $secIn->tujuan,
-                    "alokasi" => $secIn->alokasi,
-                    "qty_awal" => 0,
-                    "qty_reject" => 0,
-                    "qty_replace" => 0,
-                    "qty_in" => 0,
-                    "ket" => $secIn->ket,
-                    "user" => Auth::user()->username,
-                ]);
-            }
+        // Create WIP Out
+        $createWipOutId = DB::table('wip_out')->insertGetId([
+            'no_form'         => $noForm,
+            'tgl_form'        => $date,
+            'id_po'           => ($currentWipOut ? $currentWipOut->id_po : null),
+            'id_supplier'     => ($currentWipOut ? $currentWipOut->id_supplier : null),
+            'jns_dok'         => ($currentWipOut ? $currentWipOut->jns_dok : null),
+            'jns_pengeluaran' => ($currentWipOut ? $currentWipOut->jns_pengeluaran : null),
+            'ket'             => ($currentWipOut ? $currentWipOut->ket : null),
+            'berat_panel'     => ($currentWipOut ? $currentWipOut->berat_panel : null),
+            'berat_karung'    => ($currentWipOut ? $currentWipOut->berat_karung : null),
+            'created_by'      => Auth::user()->name,
+            'created_at'      => Carbon::now(),
+            'updated_at'      => Carbon::now(),
+        ]);
 
-            return $currentSecondaryIn;
+        if ($createWipOutId) {
+
+            $createWipOutDet = DB::table('wip_out_det')->updateOrInsert([
+                "id_qr_stocker" => $idQrStocker,
+            ],[
+                "id_wip_out" => $createWipOutId,
+                "no_karung" => ($currentWipOutDet ? $currentWipOutDet->no_karung : null),
+                "id_item" => ($currentWipOutDet ? $currentWipOutDet->id_item : null),
+                "id_jo" => ($currentWipOutDet ? $currentWipOutDet->id_jo : null),
+                "qty" => $qty,
+                "created_by" => Auth::user()->name,
+                "updated_at" => Carbon::now(),
+            ]);
+
+            return $createWipOutDet;
         }
 
         return null;

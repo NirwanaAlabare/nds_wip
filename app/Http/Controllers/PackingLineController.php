@@ -66,7 +66,7 @@ class PackingLineController extends Controller
         $line        = $request->line;
         $today       = date('Y-m-d');
         $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 5; // ganti angka ini untuk filter bulan lain
+        $filterMonth = 6; // ganti angka ini untuk filter bulan lain
 
         $po_esc   = addslashes($po);
         $line_esc = addslashes($line);
@@ -149,7 +149,7 @@ class PackingLineController extends Controller
     {
         $today       = date('Y-m-d');
         $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 5; // ganti angka ini untuk filter bulan lain
+        $filterMonth = 6; // ganti angka ini untuk filter bulan lain
 
         $raw = Cache::remember('wip_packing_line_' . $today, 60, function () use ($today, $todayEnd, $filterMonth) {
             return DB::connection('mysql_sb')->select("
@@ -252,7 +252,7 @@ class PackingLineController extends Controller
     {
         $today       = date('Y-m-d');
         $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 5; // ganti angka ini untuk export bulan lain
+        $filterMonth = 6; // ganti angka ini untuk export bulan lain
 
         $data = DB::connection('mysql_sb')->select("
             WITH m AS (

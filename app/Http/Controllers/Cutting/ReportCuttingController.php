@@ -4419,12 +4419,13 @@ order by  ws asc, color asc
                             whs_lokasi_inmaterial.satuan
                         FROM
                             signalbit_erp.whs_lokasi_inmaterial
-                        LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                            LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                            LEFT JOIN mut_cut_fab_saldo_tmp on mut_cut_fab_saldo_tmp.id_roll = whs_lokasi_inmaterial.no_barcode and mut_cut_fab_saldo_tmp.qty_retur > 0
                         WHERE
                             whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
                             AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
-                            AND DATE(whs_inmaterial_fabric.tgl_dok)
-                            BETWEEN '" . $start_date. "' AND '" . $end_date. "'
+                            AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '" . $start_date. "' AND '" . $end_date. "'
+                            AND mut_cut_fab_saldo_tmp.id is null
                     )
 
                     SELECT
@@ -4818,6 +4819,9 @@ order by  ws asc, color asc
 
     public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
     {
+        ini_set("max_execution_time", 3600);
+        ini_set("memory_limit", '4024M');
+
         $start_date = $request->start_date;
         $end_date   = $request->end_date;
         $tipe       = $request->cbotipe;
@@ -5000,12 +5004,13 @@ order by  ws asc, color asc
                     whs_lokasi_inmaterial.satuan
                 FROM
                     signalbit_erp.whs_lokasi_inmaterial
-                LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                    LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                    LEFT JOIN mut_cut_fab_saldo_tmp on mut_cut_fab_saldo_tmp.id_roll = whs_lokasi_inmaterial.no_barcode and mut_cut_fab_saldo_tmp.qty_retur > 0
                 WHERE
                     whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
                     AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
-                    AND DATE(whs_inmaterial_fabric.tgl_dok)
-                    BETWEEN '" . $start_date. "' AND '" . $end_date. "'
+                    AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '" . $start_date. "' AND '" . $end_date. "'
+                    AND mut_cut_fab_saldo_tmp.id is null
             )
 
             SELECT

@@ -10,6 +10,7 @@ use App\Services\ReportBc\PengeluaranService;
 use App\Services\ReportBc\MutasiService;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class ReportBcController extends Controller
 {
@@ -46,6 +47,9 @@ class ReportBcController extends Controller
             $cleanKategori = 'bahanbaku';
         } elseif ($jenis === 'mutasi_barang_jadi') {
             $dataLaporan = $this->mutasiService->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang);
+            $cleanKategori = 'barangjadi';
+        } elseif ($jenis === 'mutasi_barang_jadi_gudang') {
+            $dataLaporan = $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
             $cleanKategori = 'barangjadi';
         } elseif ($jenis === 'mutasi_wip') {
             $dataLaporan = $this->mutasiService->getDataMutasiWip($fromDate, $toDate);
@@ -87,6 +91,10 @@ class ReportBcController extends Controller
                 $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
 
+            if($jenis == 'mutasi_barang_jadi_gudang'){
+                $this->mutasiService->exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            }
+
             if($jenis == 'mutasi_mesin_sparepart'){
                 $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
@@ -124,7 +132,7 @@ class ReportBcController extends Controller
             'toDate'         => $toDate,
             'filterBy'       => $filterBy,
             'kategoriBarang' => $kategoriBarang,
-            'data'           => $dataLaporan
+            'data'           => $dataLaporan,
         ]);
     }
 
@@ -170,5 +178,54 @@ class ReportBcController extends Controller
         $dateField = $this->getFieldTanggal($filterBy);
 
         return collect();
+    }
+
+    public function getMutasiGudangJadi(Request $request)
+    {
+        $fromDate = $request->input('from');
+        $toDate   = $request->input('to');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['error' => 'Tanggal from/to wajib diisi'], 400);
+        }
+
+        $draw   = intval($request->input('draw'));
+        $start  = intval($request->input('start', 0));
+        $length = intval($request->input('length', 25));
+        $searchValue = strtolower($request->input('search.value', ''));
+
+        $cacheKey = "mutasi_gudang_{$fromDate}_{$toDate}_{$kategoriBarang}";
+
+        $allData = Cache::remember($cacheKey, 300, function () use ($fromDate, $toDate, $kategoriBarang) {
+            return $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+        });
+
+        $totalRecords = $allData->count();
+
+        $filteredData = $allData;
+        if (!empty($searchValue)) {
+            $filteredData = $allData->filter(function ($row) use ($searchValue) {
+                return str_contains(strtolower($row->styleno ?? ''), $searchValue)
+                    || str_contains(strtolower($row->ws ?? ''), $searchValue)
+                    || str_contains(strtolower($row->id_so_det ?? ''), $searchValue)
+                    || str_contains(strtolower($row->color ?? ''), $searchValue)
+                    || str_contains(strtolower($row->lokasi ?? ''), $searchValue)
+                    || str_contains(strtolower($row->no_carton ?? ''), $searchValue);
+            })->values();
+        }
+
+        $totalFiltered = $filteredData->count();
+
+        $pageData = $length == -1
+            ? $filteredData
+            : $filteredData->slice($start, $length)->values();
+
+            return response()->json([
+            "draw"            => $draw,
+            "recordsTotal"    => $totalRecords,
+            "recordsFiltered" => $totalFiltered,
+            "data"            => $pageData,
+        ]);
     }
 }

@@ -2150,6 +2150,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportBcController::class)->prefix("report-bc")->middleware('role:export_import')->group(function () {
         Route::get('/index', 'index')->name('index-report-bc');
         Route::get('/{jenis}/{kategori}/{kategoribarang}', 'showReport')->name('report-bc.show');
+        Route::get('/report-bc/mutasi-gudang-jadi', [ReportBcController::class, 'getMutasiGudangJadi'])->name('mutasi-gudang-ajax');
     });
 });
 

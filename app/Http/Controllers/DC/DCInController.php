@@ -1539,6 +1539,12 @@ class DCInController extends Controller
         // Generate Rescan Message
         $message = "<br>";
         foreach ($dcRescan as $rescan) {
+            if (checkClosingDate($rescan->tgl_trans)) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Stocker <b>'.$rescan->id_qr_stocker.'</b> tidak dapat di rescan karena periode sudah ditutup. <br><br> Tanggal scan : <b>'.$rescan->tgl_trans.'</b>',
+                );
+            }
             $message .= "<br> <span class='text-danger fw-bold'>" . $rescan->id_qr_stocker . " sudah discan pada tanggal " . $rescan->tgl_trans . "</span>";
         }
 
