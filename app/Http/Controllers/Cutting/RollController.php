@@ -1937,7 +1937,7 @@ class RollController extends Controller
 
             // Update qty ScannedItem
             ScannedItem::updateOrCreate(
-                ['id_roll' => $barcode],
+                ['id_roll' => $request['barcode']],
                 [
                     'qty' => $request->qty_sisa,
                 ]
@@ -1946,6 +1946,7 @@ class RollController extends Controller
             DB::table('form_cut_alokasi_gr_panel_barcode')
                 ->where('id', $id)
                 ->update([
+                    'barcode'    => $request->barcode,
                     'ws'         => $request->ws_act,
                     'panel'      => $request->panel,
                     'qty_roll'   => $request->qty_roll,
