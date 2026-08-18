@@ -168,7 +168,7 @@
         <div class="card-body pb-0">
             <div class="row mb-3 g-2">
                 <div class="col-12 col-md-4">
-                    <button type="button" class="btn btn-warning btn-sm w-100" onclick="openScannerModalFabric()" >
+                    <button type="button" class="btn btn-warning btn-sm w-100" onclick="openScannerModalFabric()" disabled>
                         <i class="fas fa-barcode"></i> Scan Barcode
                     </button>
                 </div>
