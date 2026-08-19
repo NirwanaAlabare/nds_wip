@@ -5436,7 +5436,6 @@ order by  ws asc, color asc
         );
 
         foreach ($data as $row) {
-
             $rows = [
                 $row->ws ?: '',
                 $row->buyer ?: '',
@@ -7767,7 +7766,7 @@ order by tanggal asc, no_form asc
         //                                 WHERE
         //                                     form_cut_reject.tanggal >= '".$tgl_saldo."'
         //                                     AND form_cut_reject.tanggal < '".$start_date."'
-        //                                     AND form_cut_reject.tanggal > '2026-04-31'
+        //                                     AND form_cut_reject.tanggal > '2026-04-30'
         //                                     AND form_cut_reject_detail.qty > 0
         //                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
         //                                 GROUP BY
@@ -8027,7 +8026,7 @@ order by tanggal asc, no_form asc
         //                                 WHERE
         //                                     form_cut_reject.tanggal >= '".$start_date."'
         //                                     AND form_cut_reject.tanggal <= '".$end_date."'
-        //                                     AND form_cut_reject.tanggal > '2026-04-31'
+        //                                     AND form_cut_reject.tanggal > '2026-04-30'
         //                                     AND form_cut_reject_detail.qty > 0
         //                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
         //                                 GROUP BY
@@ -9027,7 +9026,7 @@ order by tanggal asc, no_form asc
                                 WHERE
                                     form_cut_reject.tanggal >= '".$tgl_saldo."'
                                     AND form_cut_reject.tanggal < '".$start_date."'
-                                    AND form_cut_reject.tanggal > '2026-04-31'
+                                    AND form_cut_reject.tanggal > '2026-04-30'
                                     AND form_cut_reject_detail.qty > 0
                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                 GROUP BY
@@ -9288,7 +9287,7 @@ order by tanggal asc, no_form asc
                                 WHERE
                                     form_cut_reject.tanggal >= '".$start_date."'
                                     AND form_cut_reject.tanggal <= '".$end_date."'
-                                    AND form_cut_reject.tanggal > '2026-04-31'
+                                    AND form_cut_reject.tanggal > '2026-04-30'
                                     AND form_cut_reject_detail.qty > 0
                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                 GROUP BY
@@ -10060,7 +10059,7 @@ order by tanggal asc, no_form asc
                                                 part.panel_status panel_status,
                                                 part.panel part_panel,
                                                 part_detail.id part_detail_id,
-                                                part_detail.part_status part_status,
+                                                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                                 master_part.id master_part_id,
                                                 master_part.nama_part
                                         FROM
@@ -10276,7 +10275,7 @@ order by tanggal asc, no_form asc
                                         WHERE
                                             form_cut_reject.tanggal >= '".$tgl_saldo."'
                                             AND form_cut_reject.tanggal < '".$start_date."'
-                                            AND form_cut_reject.tanggal > '2026-04-31'
+                                            AND form_cut_reject.tanggal > '2026-04-30'
                                             AND form_cut_reject_detail.qty > 0
                                             AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                                         GROUP BY
@@ -10443,14 +10442,14 @@ order by tanggal asc, no_form asc
                                                 COALESCE ( modify_size_qty.difference_qty, 0 ),
                                                 COALESCE ( modify_size_qty.modified_qty, 0 ),
                                                 (( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + ( COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-                                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-                                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-                                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
                                                 part.id as part_id,
                                                 part.panel_status panel_status,
                                                 part.panel part_panel,
                                                 part_detail.id part_detail_id,
-                                                part_detail.part_status part_status,
+                                                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                                 master_part.id master_part_id,
                                                 master_part.nama_part
                                         FROM
@@ -10540,7 +10539,7 @@ order by tanggal asc, no_form asc
                                         WHERE
                                             form_cut_reject.tanggal >= '".$start_date."'
                                             AND form_cut_reject.tanggal <= '".$end_date."'
-                                            AND form_cut_reject.tanggal > '2026-04-31'
+                                            AND form_cut_reject.tanggal > '2026-04-30'
                                             AND form_cut_reject_detail.qty > 0
                                             AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                                         GROUP BY
@@ -11561,7 +11560,7 @@ order by tanggal asc, no_form asc
                     WHERE
                         form_cut_reject.tanggal >= '".$tgl_saldo."'
                         AND form_cut_reject.tanggal < '".$start_date."'
-                        AND form_cut_reject.tanggal > '2026-04-31'
+                        AND form_cut_reject.tanggal > '2026-04-30'
                         AND form_cut_reject_detail.qty > 0
                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                     GROUP BY
@@ -11977,7 +11976,7 @@ order by tanggal asc, no_form asc
                                     WHERE
                                         form_cut_reject.tanggal >= '".$start_date."'
                                         AND form_cut_reject.tanggal <= '".$end_date."'
-                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject.tanggal > '2026-04-30'
                                         AND form_cut_reject_detail.qty > 0
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                                     GROUP BY
@@ -12741,7 +12740,7 @@ order by tanggal asc, no_form asc
         //                         WHERE
         //                             form_cut_reject.tanggal >= '".$start_date."'
         //                             AND form_cut_reject.tanggal <= '".$end_date."'
-        //                             AND form_cut_reject.tanggal > '2026-04-31'
+        //                             AND form_cut_reject.tanggal > '2026-04-30'
         //                             AND form_cut_reject_detail.qty > 0
         //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
         //                         GROUP BY
