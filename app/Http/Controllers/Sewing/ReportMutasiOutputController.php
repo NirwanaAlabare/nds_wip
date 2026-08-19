@@ -3326,76 +3326,135 @@ class ReportMutasiOutputController extends Controller
                         END
                     ) AS finishing_adjust,
 
-                    -- FINISHING
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_pasang_kancing_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_pasang_kancing,
+                    -- FINISHING - PASANG KANCING
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Pasang Kancing'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_pasang_kancing_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_bartack_before,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Pasang Kancing'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_pasang_kancing,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_bartack,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_heatseal_before,
+                    -- FINISHING - BARTACK
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Bartack'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_bartack_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_heatseal,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Bartack'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_bartack,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_snap_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_snap,
+                    -- FINISHING - HEATSEAL
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Heatseal'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_heatseal_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_embro_before,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Heatseal'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_heatseal,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_embro,
+
+                    -- FINISHING - SNAP
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Snap'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_snap_before,
+
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Snap'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_snap,
+
+
+                    -- FINISHING - EMBRO
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Embro'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_embro_before,
+
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Embro'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_embro,
 
                     -- DEFECT SEWING
                     SUM(
