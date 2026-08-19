@@ -161,6 +161,7 @@ use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
 use App\Http\Controllers\HelpdeskDashboardController;
 use App\Http\Controllers\BAPFormController;
+use App\Http\Controllers\MaintenanceACFormController;
 use App\Http\Controllers\ReportBc\ReportBcController;
 use App\Http\Controllers\ReportBc\DashboardReportBcController;
 use Illuminate\Support\Facades\Route;
@@ -1745,6 +1746,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_bap/form/users-department', 'listUsersDepartment')->name('list-users-department-form-bap');
         Route::get('/dashboard_bap/form/users-department/list', 'getUserDepartments')->name('get-user-departments-form-bap');
         Route::post('/dashboard_bap/form/users-department/sync', 'syncUserDepartment')->name('sync-user-department-form-bap');
+    });
+
+    // Form Maintenance AC
+    Route::controller(MaintenanceACFormController::class)->group(function () {
+        Route::get('/dashboard_mt_ac', 'form_maintenance_ac')->name('dashboard-mt-ac');
+        Route::post('/dashboard_mt_ac/store', 'store')->name('store-form-maintenance-ac');
+        Route::get('/dashboard_mt_ac/edit', 'edit')->name('edit-form-maintenance-ac');
+        Route::post('/dashboard_mt_ac/update', 'update')->name('update-form-maintenance-ac');
+        Route::post('/dashboard_mt_ac/start-progress', 'startProgress')->name('start-progress-form-maintenance-ac');
+        Route::post('/dashboard_mt_ac/finish-progress', 'finishProgress')->name('finish-progress-form-maintenance-ac');
+        Route::post('/dashboard_mt_ac/cancel', 'cancel')->name('cancel-form-maintenance-ac');
+        Route::post('/dashboard_mt_ac/restore-cancel', 'restoreCancel')->name('restore-cancel-form-maintenance-ac');
+        Route::get('/dashboard_mt_ac/summary', 'summary')->name('summary-form-maintenance-ac');
     });
     // Export Import (EXIM)
 
