@@ -84,6 +84,11 @@ class FGStokBPPBController extends Controller
 
         $kode_trans = $kode . $no . '/' . $kodepay;
 
+        if($request->cbotuj == 'PACKING CENTRAL'){
+            $tujuan_pengeluaran = 'SWITCHING PPIC';
+        }else{
+            $tujuan_pengeluaran = $request->cbotuj_pengeluaran;
+        }
 
         foreach ($JmlArray as $key => $value) {
             if ($value != '0' && $value != '') {
@@ -93,7 +98,7 @@ class FGStokBPPBController extends Controller
                 $txtgrade       = $gradeArray[$key]; {
                     $insert_bppb =  DB::insert("
                 insert into fg_stok_bppb(no_trans_out,tgl_pengeluaran,id_so_det,qty_out,grade,no_carton,lokasi,tujuan,tujuan_pengeluaran,mutasi,cancel,created_by,created_at,updated_at)
-                values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi','" . $validatedRequest['cbotuj'] . "','" . $validatedRequest['cbotuj_pengeluaran'] . "','N','N','$user','$timestamp','$timestamp')");
+                values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi','" . $validatedRequest['cbotuj'] . "','$tujuan_pengeluaran','N','N','$user','$timestamp','$timestamp')");
                 }
             }
         }

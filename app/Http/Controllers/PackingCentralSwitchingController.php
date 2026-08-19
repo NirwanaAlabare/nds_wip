@@ -1687,6 +1687,8 @@ class PackingCentralSwitchingController extends Controller
 
         $sheet->writeRow(['']);
 
+        $sheet->setColFormat('A', '@date');
+
         $header = [
             'Tgl Shipment',
             'PO',
