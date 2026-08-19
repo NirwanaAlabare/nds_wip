@@ -1464,6 +1464,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_mgt_report/raw-data-full-earn', 'getFullEarnData')->name('dashboard-mgt-report.raw-data-full-earn');
         Route::get('/dashboard_mgt_report/product-costing-comparison', 'getProductCostingComparison')->name('dashboard-mgt-report.product-costing-comparison');
         Route::post('/dashboard_mgt_report/sync', 'syncData')->name('dashboard-mgt-report.sync');
+        Route::get('/dashboard_mgt_report/export', 'exportExcel')->name('dashboard-mgt-report.export');
     });
 
     // Proses Management Report

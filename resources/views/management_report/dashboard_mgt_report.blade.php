@@ -105,6 +105,14 @@
             background: #0069d9;
         }
 
+        .btn-load-dash.btn-excel-dash {
+            background: #1d6f42;
+        }
+
+        .btn-load-dash.btn-excel-dash:hover {
+            background: #175633;
+        }
+
         /* KPI grid */
         .kpi-grid {
             display: grid;
@@ -541,6 +549,9 @@
                         <i class="fas fa-sync-alt mr-1"></i>Sync Data
                     </button>
                 @endif
+                <button type="button" id="btnExportExcel" class="btn-load-dash btn-excel-dash">
+                    <i class="fas fa-file-excel mr-1"></i>Export Excel
+                </button>
             </div>
         </div>
 
@@ -688,6 +699,50 @@
     </div>
 
     <div id="heatmapTooltip" class="heatmap-tooltip"></div>
+
+    {{-- Modal Export Excel --}}
+    <div class="modal fade" id="modalExportExcel" tabindex="-1" role="dialog"
+        aria-labelledby="modalExportExcelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExportExcelLabel" style="font-size:0.95rem;font-weight:600;">
+                        <i class="fas fa-file-excel mr-1" style="color:#1d6f42"></i>Export Excel
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formExportExcel" method="GET" action="{{ route('dashboard-mgt-report.export') }}"
+                    target="_blank">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label style="font-size:0.8rem;font-weight:600;">Tanggal Dari</label>
+                                <input type="date" name="start_date" id="exportStartDate"
+                                    class="form-control form-control-sm" value="{{ date('Y-m-01') }}" required>
+                            </div>
+                            <div class="form-group col-6">
+                                <label style="font-size:0.8rem;font-weight:600;">Tanggal Sampai</label>
+                                <input type="date" name="end_date" id="exportEndDate"
+                                    class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <small class="text-muted" style="font-size:0.75rem;">
+                            Data yang di-export mengikuti periode di atas. Pastikan sudah klik
+                            <strong>Sync Data</strong> agar data terbaru ikut ter-export.
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="fas fa-download mr-1"></i>Download
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div id="syncOverlay">
         <div class="sync-box">
@@ -1963,6 +2018,34 @@
                 }, 30);
             });
             $('#btnSync').on('click', syncData);
+
+            $('#btnExportExcel').on('click', function() {
+                $('#modalExportExcel').modal('show');
+            });
+
+            $('#modalExportExcel').on('show.bs.modal', function() {
+                $('#exportStartDate').val($('#startDate').val());
+                $('#exportEndDate').val($('#endDate').val());
+            });
+
+            $('#formExportExcel').on('submit', function(e) {
+                const start = $('#exportStartDate').val();
+                const end = $('#exportEndDate').val();
+
+                if (!start || !end) {
+                    e.preventDefault();
+                    alert('Tanggal dari dan sampai wajib diisi.');
+                    return;
+                }
+
+                if (start > end) {
+                    e.preventDefault();
+                    alert('Tanggal dari tidak boleh melebihi tanggal sampai.');
+                    return;
+                }
+
+                $('#modalExportExcel').modal('hide');
+            });
             $('#searchProductCosting').on('input', renderProductCosting);
 
             applyReportTypeUI();

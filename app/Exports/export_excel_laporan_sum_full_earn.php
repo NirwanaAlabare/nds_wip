@@ -751,7 +751,7 @@ ROUND((COALESCE(tot_earning_rupiah, 0) - CASE
             (COALESCE(sum_tot_labor, 0) / c.sum_mins_avail)
             * COALESCE(a.mins_avail, 0),
         2)
-END AS blc,
+END), 2) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
     / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)
