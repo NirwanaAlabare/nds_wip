@@ -1060,7 +1060,8 @@ class ReportMutasiOutputController extends Controller
             saldo_awal as (
                 SELECT
                 mut_wip_tmp.id_so_det,
-                SUM(CASE WHEN tgl_trans < '2026-06-01' THEN qty_loading ELSE 0 END) qty_loading_awal,
+                SUM(qty_loading) qty_loading_awal,
+                -- SUM(CASE WHEN tgl_trans < '2026-06-01' THEN qty_loading ELSE 0 END) qty_loading_awal,
                 SUM(qty_sewing) qty_sewing_awal,
                 SUM(input_rework_sewing) input_rework_sewing_awal,
                 SUM(input_rework_spotcleaning) input_rework_spotcleaning_awal,
@@ -1134,39 +1135,39 @@ class ReportMutasiOutputController extends Controller
                 -- LEFT JOIN secondary_process_mapping_awal spm ON spm.id_so_det = mut_wip_tmp.id_so_det
                 where tgl_trans >= '$tgl_saldo' AND tgl_trans <= '$prev_date'
                 group by mut_wip_tmp.id_so_det
-                UNION
-                SELECT
-                    id_so_det,
-                    SUM(qty_loading) qty_loading_awal,
-                    0 qty_sewing_awal,
-                    0 input_rework_sewing_awal,
-                    0 input_rework_spotcleaning_awal,
-                    0 input_rework_mending_awal,
-                    0 defect_sewing_awal,
-                    0 defect_spotcleaning_awal,
-                    0 defect_mending_awal,
-                    0 qty_sew_reject_awal,
+                -- UNION
+                -- SELECT
+                --     id_so_det,
+                --     SUM(qty_loading) qty_loading_awal,
+                --     0 qty_sewing_awal,
+                --     0 input_rework_sewing_awal,
+                --     0 input_rework_spotcleaning_awal,
+                --     0 input_rework_mending_awal,
+                --     0 defect_sewing_awal,
+                --     0 defect_spotcleaning_awal,
+                --     0 defect_mending_awal,
+                --     0 qty_sew_reject_awal,
 
-                    0 qty_finishing_awal,
-                    0 input_rework_sewing_f_awal,
-                    0 input_rework_spotcleaning_f_awal,
-                    0 input_rework_mending_f_awal,
-                    0 defect_sewing_f_awal,
-                    0 defect_spotcleaning_f_awal,
-                    0 defect_mending_f_awal,
-                    0 qty_fin_reject_awal,
+                --     0 qty_finishing_awal,
+                --     0 input_rework_sewing_f_awal,
+                --     0 input_rework_spotcleaning_f_awal,
+                --     0 input_rework_mending_f_awal,
+                --     0 defect_sewing_f_awal,
+                --     0 defect_spotcleaning_f_awal,
+                --     0 defect_mending_f_awal,
+                --     0 qty_fin_reject_awal,
 
-                    0 total_in_sp_awal,
-                    0 rft_sp_awal,
-                    0 defect_sp_awal,
-                    0 rework_sp_awal,
-                    0 reject_sp_awal,
-                    0 reject_defect_sp_awal,
-                    0 qty_reject_in_awal,
-                    0 qty_rejected_awal,
-                    0 qty_reworked_awal
-                FROM
-                    saldo_loading_awal
+                --     0 total_in_sp_awal,
+                --     0 rft_sp_awal,
+                --     0 defect_sp_awal,
+                --     0 rework_sp_awal,
+                --     0 reject_sp_awal,
+                --     0 reject_defect_sp_awal,
+                --     0 qty_reject_in_awal,
+                --     0 qty_rejected_awal,
+                --     0 qty_reworked_awal
+                -- FROM
+                --     saldo_loading_awal
             ),
             saldo_awal_upload as(
                 SELECT
@@ -3059,7 +3060,7 @@ class ReportMutasiOutputController extends Controller
                             styleno,
                             color,
                             size,
-                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before) + loading_inject_bef) saldo_awal_sewing,
+                            SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before) + loading_inject_bef + loading_inject_bef) saldo_awal_sewing,
                             SUM( qty_loading) qty_loading,
                             SUM( terima_gudang ) terima_gudang,
                             SUM( qty_in ) qty_in_subcont,
@@ -3072,7 +3073,7 @@ class ReportMutasiOutputController extends Controller
                             SUM( qty_sew_reject ) qty_sew_reject,
                             SUM( qty_sewing ) qty_sewing,
                             ROUND(SUM( qty_out ),0) qty_out_subcont,
-                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) + ((loading_inject_bef) + loading_inject) ) saldo_akhir_sewing,
+                            SUM( saldo_akhir_sewing + ((qty_in_before - qty_out_before) + qty_in - qty_out) + ((terima_gudang_before) + terima_gudang) + ((loading_inject_bef + loading_inject_bef) + loading_inject) ) saldo_akhir_sewing,
                             SUM( saldo_awal_finishing ) saldo_awal_finishing,
                             SUM( input_rework_sewing_f ) input_rework_sewing_f,
                             SUM( input_rework_spotcleaning_f ) input_rework_spotcleaning_f,
