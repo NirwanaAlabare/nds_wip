@@ -10,6 +10,29 @@ use Illuminate\Support\Facades\Auth;
 
 class HelpdeskDashboardController extends Controller
 {
+    private function isAc(Request $request)
+    {
+        return $request->jenis === 'ac';
+    }
+
+    private function getDepartmentNames($subDeptIds)
+    {
+        $subDeptIds = collect($subDeptIds)->filter()->unique()->values();
+
+        if ($subDeptIds->isEmpty()) {
+            return collect();
+        }
+
+        $placeholders = implode(',', array_fill(0, $subDeptIds->count(), '?'));
+
+        $rows = DB::connection('mysql_hris')->select(
+            "SELECT sub_dept_id, sub_dept_name FROM department_all WHERE sub_dept_id IN ($placeholders)",
+            $subDeptIds->all()
+        );
+
+        return collect($rows)->pluck('sub_dept_name', 'sub_dept_id');
+    }
+
     public function dashboard_helpdesk(Request $request)
     {
         return view('helpdesk.dashboard_helpdesk', [
@@ -21,6 +44,17 @@ class HelpdeskDashboardController extends Controller
     public function summaryBap(Request $request)
     {
         $tahun = $request->tahun ?: date('Y');
+
+        if ($this->isAc($request)) {
+            $query = DB::table('maintenance_ac_form')->whereYear('tgl_form', $tahun);
+
+            return response()->json([
+                'total' => (clone $query)->count(),
+                'proses' => (clone $query)->whereIn('status', ['DRAFT', 'ON PROGRESS'])->count(),
+                'selesai' => (clone $query)->where('status', 'DONE')->count(),
+                'cancel' => (clone $query)->where('status', 'CANCEL')->count(),
+            ]);
+        }
 
         $query = DB::table('bap_form')->whereYear('tgl_form', $tahun);
 
@@ -40,6 +74,36 @@ class HelpdeskDashboardController extends Controller
     public function recentActivityBap(Request $request)
     {
         $tahun = $request->tahun ?: date('Y');
+
+        if ($this->isAc($request)) {
+            $rows = DB::table('maintenance_ac_form')
+                ->select('no_form', 'sub_dept_id', 'tgl_form', 'status', 'updated_at')
+                ->whereYear('tgl_form', $tahun)
+                ->orderByDesc('updated_at')
+                ->limit(5)
+                ->get();
+
+            $departmentNames = $this->getDepartmentNames($rows->pluck('sub_dept_id'));
+
+            $statusMap = [
+                'DRAFT' => 'proses',
+                'ON PROGRESS' => 'proses',
+                'DONE' => 'selesai',
+                'CANCEL' => 'cancel',
+            ];
+
+            $data = $rows->map(function ($row) use ($departmentNames, $statusMap) {
+                return [
+                    'no_form' => $row->no_form,
+                    'department' => $departmentNames->get($row->sub_dept_id, $row->sub_dept_id),
+                    'status' => $statusMap[$row->status] ?? 'proses',
+                    'bulan' => $row->tgl_form ? date('M \'y', strtotime($row->tgl_form)) : '-',
+                    'updated_at' => $row->updated_at ? date('d M Y H:i', strtotime($row->updated_at)) : '-',
+                ];
+            });
+
+            return response()->json($data);
+        }
 
         $data = DB::table('bap_form')
             ->select('no_form', 'department', 'tgl_form', 'is_selesai', 'is_cancel', 'updated_at')
@@ -66,6 +130,27 @@ class HelpdeskDashboardController extends Controller
     {
         $tahun = $request->tahun ?: date('Y');
 
+        if ($this->isAc($request)) {
+            $rows = DB::table('maintenance_ac_form')
+                ->selectRaw('sub_dept_id, COUNT(*) as total')
+                ->whereYear('tgl_form', $tahun)
+                ->where('status', '!=', 'CANCEL')
+                ->groupBy('sub_dept_id')
+                ->orderByDesc('total')
+                ->get();
+
+            $departmentNames = $this->getDepartmentNames($rows->pluck('sub_dept_id'));
+
+            $data = $rows->map(function ($row) use ($departmentNames) {
+                return [
+                    'department' => $departmentNames->get($row->sub_dept_id, $row->sub_dept_id),
+                    'total' => $row->total,
+                ];
+            });
+
+            return response()->json($data);
+        }
+
         $data = DB::table('bap_form')
             ->selectRaw('department, COUNT(*) as total')
             ->whereYear('tgl_form', $tahun)
@@ -81,14 +166,25 @@ class HelpdeskDashboardController extends Controller
     {
         $tahun = $request->tahun ?: date('Y');
 
-        $data = DB::table('bap_form')
-            ->selectRaw('MONTH(tgl_form) as bulan, COUNT(*) as total')
-            ->whereYear('tgl_form', $tahun)
-            ->where('is_cancel', false)
-            ->groupBy('bulan')
-            ->orderBy('bulan')
-            ->get()
-            ->keyBy('bulan');
+        if ($this->isAc($request)) {
+            $data = DB::table('maintenance_ac_form')
+                ->selectRaw('MONTH(tgl_form) as bulan, COUNT(*) as total')
+                ->whereYear('tgl_form', $tahun)
+                ->where('status', '!=', 'CANCEL')
+                ->groupBy('bulan')
+                ->orderBy('bulan')
+                ->get()
+                ->keyBy('bulan');
+        } else {
+            $data = DB::table('bap_form')
+                ->selectRaw('MONTH(tgl_form) as bulan, COUNT(*) as total')
+                ->whereYear('tgl_form', $tahun)
+                ->where('is_cancel', false)
+                ->groupBy('bulan')
+                ->orderBy('bulan')
+                ->get()
+                ->keyBy('bulan');
+        }
 
         $namaBulan = [
             1 => 'Jan',

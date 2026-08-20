@@ -104,7 +104,8 @@
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
     <div class="container">
         <!-- LEFT SECTION -->
-        <a href="{{ $page != '' ? route($page) : '#' }}" class="navbar-brand">
+        <a href="{{ isset($brandRoute) ? route($brandRoute) : ($page != '' ? route($page) : '#') }}"
+            class="navbar-brand">
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
@@ -1598,7 +1599,7 @@
                 @endif
 
                 {{-- BAP --}}
-                @if ($page == 'dashboard-helpdesk')
+                @if (in_array($page, ['dashboard-helpdesk', 'dashboard-mt-ac']))
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'bap-form' ? 'active' : '' }}">Form
@@ -1607,7 +1608,24 @@
                             <li>
                                 <a href="{{ route('form-bap') }}"
                                     class="dropdown-item {{ $subPage == 'form-bap' ? 'active' : '' }}">
-                                    Buat Form BAP <i class="fa-solid fa-file-alt fa-sm"></i>
+                                    <i class="fa-solid fa-file-alt fa-sm fa-fw"></i> Buat Form BAP
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                {{-- Maintenance AC --}}
+                @if (in_array($page, ['dashboard-helpdesk', 'dashboard-mt-ac']))
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'mt-ac-form' ? 'active' : '' }}">Maintenance
+                            AC</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('dashboard-mt-ac') }}"
+                                    class="dropdown-item {{ $subPage == 'form-maintenance-ac' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-snowflake fa-sm fa-fw"></i> Buat Form Maintenance AC
                                 </a>
                             </li>
                         </ul>
