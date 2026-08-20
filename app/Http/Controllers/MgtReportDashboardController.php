@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExportMgtReportDashboardWorkbook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,28 @@ class MgtReportDashboardController extends Controller
         return response()->json([
             'data' => $this->fetchProductCostingComparison(),
         ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        if (!$this->isAllowedUser()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $export = new ExportMgtReportDashboardWorkbook(
+            $request->start_date,
+            $request->end_date,
+            $this->fetchRawData($request)
+        );
+
+        $fileName = 'mgt_report_' . $request->start_date . '_sd_' . $request->end_date . '.xlsx';
+
+        return $export->download($fileName);
     }
 
     private function fetchProductCostingComparison(): array

@@ -238,9 +238,6 @@ SELECT
                     sum(a.tot_output) tot_output,
                     sum(d_rfts.tot_rfts) tot_rfts,
                     op.tot_output_line,
-                    so.curr,
-                    CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end AS cm_price,
 					ac.curr,
 					acm.allowance,
                     acm.price AS cm_price,
