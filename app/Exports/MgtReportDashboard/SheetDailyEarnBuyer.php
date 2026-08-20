@@ -11,6 +11,6 @@ class SheetDailyEarnBuyer extends export_excel_laporan_daily_earn_buyer implemen
 
     public function title(): string
     {
-        return 'mgt_report_daily_earn_buyer';
+        return 'Daily Earn per Buyer';
     }
 }

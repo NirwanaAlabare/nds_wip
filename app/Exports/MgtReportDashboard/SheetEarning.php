@@ -37,7 +37,7 @@ class SheetEarning implements FromView, ShouldAutoSize, WithEvents, WithTitle
 
     public function title(): string
     {
-        return 'mgt_report_earning';
+        return 'Earning';
     }
 
     public function registerEvents(): array

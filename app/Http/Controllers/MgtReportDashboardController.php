@@ -89,6 +89,9 @@ class MgtReportDashboardController extends Controller
             abort(403, 'Unauthorized.');
         }
 
+        // sheet costing menarik seluruh act_costing sejak 2025, jadi butuh waktu lebih
+        ini_set('max_execution_time', 0);
+
         $request->validate([
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after_or_equal:start_date',

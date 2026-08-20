@@ -11,6 +11,6 @@ class SheetProfitLine extends export_excel_laporan_profit_line implements WithTi
 
     public function title(): string
     {
-        return 'mgt_report_profit_line';
+        return 'Profit Line';
     }
 }

@@ -707,23 +707,21 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalExportExcelLabel" style="font-size:0.95rem;font-weight:600;">
-                        <i class="fas fa-file-excel mr-1" style="color:#1d6f42"></i>Export Excel
+                        <i class="fas fa-file-excel me-1" style="color:#1d6f42"></i>Export Excel
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="formExportExcel" method="GET" action="{{ route('dashboard-mgt-report.export') }}"
                     target="_blank">
                     <div class="modal-body">
-                        <div class="form-row">
-                            <div class="form-group col-6">
-                                <label style="font-size:0.8rem;font-weight:600;">Tanggal Dari</label>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label" style="font-size:0.8rem;font-weight:600;">Tanggal Dari</label>
                                 <input type="date" name="start_date" id="exportStartDate"
                                     class="form-control form-control-sm" value="{{ date('Y-m-01') }}" required>
                             </div>
-                            <div class="form-group col-6">
-                                <label style="font-size:0.8rem;font-weight:600;">Tanggal Sampai</label>
+                            <div class="col-6 mb-3">
+                                <label class="form-label" style="font-size:0.8rem;font-weight:600;">Tanggal Sampai</label>
                                 <input type="date" name="end_date" id="exportEndDate"
                                     class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
                             </div>
@@ -734,9 +732,9 @@
                         </small>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-sm btn-success">
-                            <i class="fas fa-download mr-1"></i>Download
+                            <i class="fas fa-download me-1"></i>Download
                         </button>
                     </div>
                 </form>
@@ -2019,8 +2017,10 @@
             });
             $('#btnSync').on('click', syncData);
 
+            const modalExport = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalExportExcel'));
+
             $('#btnExportExcel').on('click', function() {
-                $('#modalExportExcel').modal('show');
+                modalExport.show();
             });
 
             $('#modalExportExcel').on('show.bs.modal', function() {
@@ -2044,7 +2044,7 @@
                     return;
                 }
 
-                $('#modalExportExcel').modal('hide');
+                modalExport.hide();
             });
             $('#searchProductCosting').on('input', renderProductCosting);
 
