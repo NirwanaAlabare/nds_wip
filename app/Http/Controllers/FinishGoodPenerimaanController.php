@@ -424,8 +424,8 @@ ORDER BY pl.no_carton
                     $id_sb = $cek_id_sb ? $cek_id_sb[0]->id : 0;
 
                     if ($id_sb == '0') {
-                        $insert_fg_in_sb =  DB::connection('mysql_sb')->insert("insert into bpb(bpbno,bpbno_int,bpbdate,id_supplier,grade,invno,jenis_dok,id_item,id_so_det,qty,unit,price,curr,username,status_input,po_fg)
-                        values('FG$bpbno','$bpbno_int','$tgl_penerimaan','435','GRADE A','-','INHOUSE','$id_item','$id_so_det','$txtqty','PCS','$price','$curr','$user','nds','$po') ");
+                        $insert_fg_in_sb =  DB::connection('mysql_sb')->insert("insert into bpb(bpbno,bpbno_int,bpbdate,id_supplier,grade,invno,jenis_dok,id_item,id_so_det,qty,unit,price,curr,username,status_input,po_fg,jenis_trans)
+                        values('FG$bpbno','$bpbno_int','$tgl_penerimaan','435','GRADE A','-','INHOUSE','$id_item','$id_so_det','$txtqty','PCS','$price','$curr','$user','nds','$po','Hasil Produksi') ");
                     } else {
                         $insert_fg_in_sb =  DB::connection('mysql_sb')->update("update bpb set qty = qty + $txtqty where id = '$id_sb' ");
                     }
