@@ -501,7 +501,7 @@
                 processResults: function(data) {
                     return {
                         results: data.map(item => ({
-                            id: item.id_ppic_master_so,
+                            id: item.id_ppic_master_so ?? 0,
                             text: item.po + ' | ' + item.color + ' | ' + item.size,
                             packing_packing_in_id: item.packing_packing_in_id,
                             so_det_id: item.so_det_id,
@@ -535,10 +535,10 @@
 
             $('#banner-from-info').text('Transaksi dipilih');
 
-            sourceSelected = !!data.id;
+            sourceSelected = !!data.packing_packing_in_id;
 
             updateBanner();
-            loadPreview(data.id);
+            loadPreview(data.id, data.packing_packing_in_id);
             checkSubmitReady();
         });
 
@@ -676,9 +676,9 @@
         }
 
         /* ── Load preview (simulasi — ganti dengan AJAX saat route siap) ── */
-        function loadPreview(noTrans) {
+        function loadPreview(noTrans, packing_packing_in_id) {
             const $body = $('#tbl-preview-body');
-            if (!noTrans) {
+            if (!packing_packing_in_id) {
                 $body.html(`
                     <tr>
                         <td colspan="10" class="text-center text-muted py-4">
@@ -701,7 +701,8 @@
                 url: "{{ route('preview_packing_central_switching') }}",
                 type: "GET",
                 data: {
-                    id_ppic_master_so: noTrans
+                    id_ppic_master_so: noTrans,
+                    packing_packing_in_id: packing_packing_in_id
                 },
                 success: function(res) {
                     renderPreview(res);

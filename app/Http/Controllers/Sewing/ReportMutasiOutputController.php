@@ -150,8 +150,8 @@ class ReportMutasiOutputController extends Controller
                     LEFT JOIN laravel_nds.part p ON p.id = pd.part_id
                     LEFT JOIN laravel_nds.part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
                     LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
-                    WHERE
-                        ll.tanggal_loading >= '2026-06-01' AND ll.tanggal_loading <= '$prev_date'
+                    WHERE 
+                        ll.tanggal_loading >= '2026-07-01' AND ll.tanggal_loading <= '$prev_date'
                         AND COALESCE(s.cancel, 'n') != 'y'
                         AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                 )
@@ -1057,116 +1057,204 @@ class ReportMutasiOutputController extends Controller
                     ON osm.id = osi.secondary_id
                 GROUP BY r.so_det_id
             ),
-            saldo_awal as (
-                SELECT
-                mut_wip_tmp.id_so_det,
-                SUM(CASE WHEN tgl_trans < '2026-06-01' THEN qty_loading ELSE 0 END) qty_loading_awal,
-                SUM(qty_sewing) qty_sewing_awal,
-                SUM(input_rework_sewing) input_rework_sewing_awal,
-                SUM(input_rework_spotcleaning) input_rework_spotcleaning_awal,
-                SUM(input_rework_mending) input_rework_mending_awal,
-                SUM(defect_sewing) defect_sewing_awal,
-                SUM(defect_spotcleaning) defect_spotcleaning_awal,
-                SUM(defect_mending) defect_mending_awal,
-                SUM(qty_sew_reject) qty_sew_reject_awal,
+            -- saldo_awal as (
+            --     SELECT
+            --     mut_wip_tmp.id_so_det,
+            --     -- SUM(qty_loading) qty_loading_awal,
+            --     SUM(CASE WHEN tgl_trans < '2026-07-01' THEN qty_loading ELSE 0 END) qty_loading_awal,
+            --     SUM(qty_sewing) qty_sewing_awal,
+            --     SUM(input_rework_sewing) input_rework_sewing_awal,
+            --     SUM(input_rework_spotcleaning) input_rework_spotcleaning_awal,
+            --     SUM(input_rework_mending) input_rework_mending_awal,
+            --     SUM(defect_sewing) defect_sewing_awal,
+            --     SUM(defect_spotcleaning) defect_spotcleaning_awal,
+            --     SUM(defect_mending) defect_mending_awal,
+            --     SUM(qty_sew_reject) qty_sew_reject_awal,
 
-                SUM(qty_finishing) qty_finishing_awal,
-                SUM(input_rework_sewing_f) input_rework_sewing_f_awal,
-                SUM(input_rework_spotcleaning_f) input_rework_spotcleaning_f_awal,
-                SUM(input_rework_mending_f) input_rework_mending_f_awal,
-                SUM(defect_sewing_f) defect_sewing_f_awal,
-                SUM(defect_spotcleaning_f) defect_spotcleaning_f_awal,
-                SUM(defect_mending_f) defect_mending_f_awal,
-                SUM(qty_fin_reject) qty_fin_reject_awal,
+            --     SUM(qty_finishing) qty_finishing_awal,
+            --     SUM(input_rework_sewing_f) input_rework_sewing_f_awal,
+            --     SUM(input_rework_spotcleaning_f) input_rework_spotcleaning_f_awal,
+            --     SUM(input_rework_mending_f) input_rework_mending_f_awal,
+            --     SUM(defect_sewing_f) defect_sewing_f_awal,
+            --     SUM(defect_spotcleaning_f) defect_spotcleaning_f_awal,
+            --     SUM(defect_mending_f) defect_mending_f_awal,
+            --     SUM(qty_fin_reject) qty_fin_reject_awal,
 
-                SUM(total_in_sp) total_in_sp_awal,
-                SUM(rft_sp) rft_sp_awal,
-                SUM(defect_sp) defect_sp_awal,
-                SUM(rework_sp) rework_sp_awal,
-                SUM(reject_sp) reject_sp_awal,
-                SUM(reject_defect_sp) reject_defect_sp_awal,
-                SUM(qty_reject_in) qty_reject_in_awal,
-                SUM(qty_rejected) qty_rejected_awal,
-                SUM(qty_reworked) qty_reworked_awal
+            --     SUM(total_in_sp) total_in_sp_awal,
+            --     SUM(rft_sp) rft_sp_awal,
+            --     SUM(defect_sp) defect_sp_awal,
+            --     SUM(rework_sp) rework_sp_awal,
+            --     SUM(reject_sp) reject_sp_awal,
+            --     SUM(reject_defect_sp) reject_defect_sp_awal,
+            --     SUM(qty_reject_in) qty_reject_in_awal,
+            --     SUM(qty_rejected) qty_rejected_awal,
+            --     SUM(qty_reworked) qty_reworked_awal
+            --     FROM mut_wip_tmp
+            --     where tgl_trans >= '$tgl_saldo' AND tgl_trans <= '$prev_date'
+            --     group by mut_wip_tmp.id_so_det
+            --     UNION
+            --     SELECT
+            --         id_so_det,
+            --         SUM(qty_loading) qty_loading_awal,
+            --         0 qty_sewing_awal,
+            --         0 input_rework_sewing_awal,
+            --         0 input_rework_spotcleaning_awal,
+            --         0 input_rework_mending_awal,
+            --         0 defect_sewing_awal,
+            --         0 defect_spotcleaning_awal,
+            --         0 defect_mending_awal,
+            --         0 qty_sew_reject_awal,
 
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN total_in_sp ELSE 0 END) AS total_in_sp_pasang_kancing_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN rft_sp ELSE 0 END) AS rft_sp_pasang_kancing_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN defect_sp ELSE 0 END) AS defect_sp_pasang_kancing_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN rework_sp ELSE 0 END) AS rework_sp_pasang_kancing_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN reject_sp ELSE 0 END) AS reject_sp_pasang_kancing_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Pasang Kancing' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_pasang_kancing_awal,
+            --         0 qty_finishing_awal,
+            --         0 input_rework_sewing_f_awal,
+            --         0 input_rework_spotcleaning_f_awal,
+            --         0 input_rework_mending_f_awal,
+            --         0 defect_sewing_f_awal,
+            --         0 defect_spotcleaning_f_awal,
+            --         0 defect_mending_f_awal,
+            --         0 qty_fin_reject_awal,
 
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN total_in_sp ELSE 0 END) AS total_in_sp_bartack_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN rft_sp ELSE 0 END) AS rft_sp_bartack_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN defect_sp ELSE 0 END) AS defect_sp_bartack_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN rework_sp ELSE 0 END) AS rework_sp_bartack_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN reject_sp ELSE 0 END) AS reject_sp_bartack_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Bartack' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_bartack_awal,
-
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN total_in_sp ELSE 0 END) AS total_in_sp_heatseal_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN rft_sp ELSE 0 END) AS rft_sp_heatseal_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN defect_sp ELSE 0 END) AS defect_sp_heatseal_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN rework_sp ELSE 0 END) AS rework_sp_heatseal_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN reject_sp ELSE 0 END) AS reject_sp_heatseal_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Heatseal' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_heatseal_awal,
-
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN total_in_sp ELSE 0 END) AS total_in_sp_snap_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN rft_sp ELSE 0 END) AS rft_sp_snap_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN defect_sp ELSE 0 END) AS defect_sp_snap_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN rework_sp ELSE 0 END) AS rework_sp_snap_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN reject_sp ELSE 0 END) AS reject_sp_snap_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Snap' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_snap_awal,
-
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN total_in_sp ELSE 0 END) AS total_in_sp_embro_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN rft_sp ELSE 0 END) AS rft_sp_embro_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN defect_sp ELSE 0 END) AS defect_sp_embro_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN rework_sp ELSE 0 END) AS rework_sp_embro_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN reject_sp ELSE 0 END) AS reject_sp_embro_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'Embro' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_embro_awal,
-
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN total_in_sp ELSE 0 END) AS total_in_sp_other_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN rft_sp ELSE 0 END) AS rft_sp_other_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN defect_sp ELSE 0 END) AS defect_sp_other_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN rework_sp ELSE 0 END) AS rework_sp_other_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN reject_sp ELSE 0 END) AS reject_sp_other_awal,
-                -- SUM(CASE WHEN spm.secondary_process = 'TIDAK ADA MAPPING' THEN reject_defect_sp ELSE 0 END) AS reject_defect_sp_other_awal
-                FROM mut_wip_tmp
-                -- LEFT JOIN secondary_process_mapping_awal spm ON spm.id_so_det = mut_wip_tmp.id_so_det
-                where tgl_trans >= '$tgl_saldo' AND tgl_trans <= '$prev_date'
-                group by mut_wip_tmp.id_so_det
-                UNION
+            --         0 total_in_sp_awal,
+            --         0 rft_sp_awal,
+            --         0 defect_sp_awal,
+            --         0 rework_sp_awal,
+            --         0 reject_sp_awal,
+            --         0 reject_defect_sp_awal,
+            --         0 qty_reject_in_awal,
+            --         0 qty_rejected_awal,
+            --         0 qty_reworked_awal
+            --     FROM
+            --         saldo_loading_awal
+            -- ),
+            saldo_awal AS (
                 SELECT
                     id_so_det,
-                    SUM(qty_loading) qty_loading_awal,
-                    0 qty_sewing_awal,
-                    0 input_rework_sewing_awal,
-                    0 input_rework_spotcleaning_awal,
-                    0 input_rework_mending_awal,
-                    0 defect_sewing_awal,
-                    0 defect_spotcleaning_awal,
-                    0 defect_mending_awal,
-                    0 qty_sew_reject_awal,
+                    SUM(qty_loading_awal) AS qty_loading_awal,
+                    SUM(qty_sewing_awal) AS qty_sewing_awal,
+                    SUM(input_rework_sewing_awal) AS input_rework_sewing_awal,
+                    SUM(input_rework_spotcleaning_awal) AS input_rework_spotcleaning_awal,
+                    SUM(input_rework_mending_awal) AS input_rework_mending_awal,
+                    SUM(defect_sewing_awal) AS defect_sewing_awal,
+                    SUM(defect_spotcleaning_awal) AS defect_spotcleaning_awal,
+                    SUM(defect_mending_awal) AS defect_mending_awal,
+                    SUM(qty_sew_reject_awal) AS qty_sew_reject_awal,
 
-                    0 qty_finishing_awal,
-                    0 input_rework_sewing_f_awal,
-                    0 input_rework_spotcleaning_f_awal,
-                    0 input_rework_mending_f_awal,
-                    0 defect_sewing_f_awal,
-                    0 defect_spotcleaning_f_awal,
-                    0 defect_mending_f_awal,
-                    0 qty_fin_reject_awal,
+                    SUM(qty_finishing_awal) AS qty_finishing_awal,
+                    SUM(input_rework_sewing_f_awal) AS input_rework_sewing_f_awal,
+                    SUM(input_rework_spotcleaning_f_awal) AS input_rework_spotcleaning_f_awal,
+                    SUM(input_rework_mending_f_awal) AS input_rework_mending_f_awal,
+                    SUM(defect_sewing_f_awal) AS defect_sewing_f_awal,
+                    SUM(defect_spotcleaning_f_awal) AS defect_spotcleaning_f_awal,
+                    SUM(defect_mending_f_awal) AS defect_mending_f_awal,
+                    SUM(qty_fin_reject_awal) AS qty_fin_reject_awal,
 
-                    0 total_in_sp_awal,
-                    0 rft_sp_awal,
-                    0 defect_sp_awal,
-                    0 rework_sp_awal,
-                    0 reject_sp_awal,
-                    0 reject_defect_sp_awal,
-                    0 qty_reject_in_awal,
-                    0 qty_rejected_awal,
-                    0 qty_reworked_awal
-                FROM
-                    saldo_loading_awal
+                    SUM(total_in_sp_awal) AS total_in_sp_awal,
+                    SUM(rft_sp_awal) AS rft_sp_awal,
+                    SUM(defect_sp_awal) AS defect_sp_awal,
+                    SUM(rework_sp_awal) AS rework_sp_awal,
+                    SUM(reject_sp_awal) AS reject_sp_awal,
+                    SUM(reject_defect_sp_awal) AS reject_defect_sp_awal,
+                    SUM(qty_reject_in_awal) AS qty_reject_in_awal,
+                    SUM(qty_rejected_awal) AS qty_rejected_awal,
+                    SUM(qty_reworked_awal) AS qty_reworked_awal
+
+                FROM (
+                    /* =====================================================
+                    SUMBER 1 : MUT WIP
+                    HANYA LOADING SEBELUM 1 JULI
+                    ===================================================== */
+                    SELECT
+                        mut_wip_tmp.id_so_det,
+
+                        SUM(
+                            CASE
+                                WHEN tgl_trans < '2026-07-01'
+                                THEN qty_loading
+                                ELSE 0
+                            END
+                        ) AS qty_loading_awal,
+
+                        SUM(qty_sewing) AS qty_sewing_awal,
+                        SUM(input_rework_sewing) AS input_rework_sewing_awal,
+                        SUM(input_rework_spotcleaning) AS input_rework_spotcleaning_awal,
+                        SUM(input_rework_mending) AS input_rework_mending_awal,
+                        SUM(defect_sewing) AS defect_sewing_awal,
+                        SUM(defect_spotcleaning) AS defect_spotcleaning_awal,
+                        SUM(defect_mending) AS defect_mending_awal,
+                        SUM(qty_sew_reject) AS qty_sew_reject_awal,
+
+                        SUM(qty_finishing) AS qty_finishing_awal,
+                        SUM(input_rework_sewing_f) AS input_rework_sewing_f_awal,
+                        SUM(input_rework_spotcleaning_f) AS input_rework_spotcleaning_f_awal,
+                        SUM(input_rework_mending_f) AS input_rework_mending_f_awal,
+                        SUM(defect_sewing_f) AS defect_sewing_f_awal,
+                        SUM(defect_spotcleaning_f) AS defect_spotcleaning_f_awal,
+                        SUM(defect_mending_f) AS defect_mending_f_awal,
+                        SUM(qty_fin_reject) AS qty_fin_reject_awal,
+
+                        SUM(total_in_sp) AS total_in_sp_awal,
+                        SUM(rft_sp) AS rft_sp_awal,
+                        SUM(defect_sp) AS defect_sp_awal,
+                        SUM(rework_sp) AS rework_sp_awal,
+                        SUM(reject_sp) AS reject_sp_awal,
+                        SUM(reject_defect_sp) AS reject_defect_sp_awal,
+                        SUM(qty_reject_in) AS qty_reject_in_awal,
+                        SUM(qty_rejected) AS qty_rejected_awal,
+                        SUM(qty_reworked) AS qty_reworked_awal
+
+                    FROM mut_wip_tmp
+                    WHERE
+                        tgl_trans >= '$tgl_saldo'
+                        AND tgl_trans <= '$prev_date'
+                    GROUP BY
+                        mut_wip_tmp.id_so_det
+
+                    UNION ALL
+
+                    /* =====================================================
+                    SUMBER 2 : SALDO LOADING AWAL
+                    ===================================================== */
+                    SELECT
+                        id_so_det,
+
+                        SUM(qty_loading) AS qty_loading_awal,
+
+                        0 AS qty_sewing_awal,
+                        0 AS input_rework_sewing_awal,
+                        0 AS input_rework_spotcleaning_awal,
+                        0 AS input_rework_mending_awal,
+                        0 AS defect_sewing_awal,
+                        0 AS defect_spotcleaning_awal,
+                        0 AS defect_mending_awal,
+                        0 AS qty_sew_reject_awal,
+
+                        0 AS qty_finishing_awal,
+                        0 AS input_rework_sewing_f_awal,
+                        0 AS input_rework_spotcleaning_f_awal,
+                        0 AS input_rework_mending_f_awal,
+                        0 AS defect_sewing_f_awal,
+                        0 AS defect_spotcleaning_f_awal,
+                        0 AS defect_mending_f_awal,
+                        0 AS qty_fin_reject_awal,
+
+                        0 AS total_in_sp_awal,
+                        0 AS rft_sp_awal,
+                        0 AS defect_sp_awal,
+                        0 AS rework_sp_awal,
+                        0 AS reject_sp_awal,
+                        0 AS reject_defect_sp_awal,
+                        0 AS qty_reject_in_awal,
+                        0 AS qty_rejected_awal,
+                        0 AS qty_reworked_awal
+
+                    FROM saldo_loading_awal
+                    GROUP BY
+                        id_so_det
+
+                ) x
+
+                GROUP BY
+                    id_so_det
             ),
             saldo_awal_upload as(
                 SELECT
@@ -2942,7 +3030,8 @@ class ReportMutasiOutputController extends Controller
                     color,
                     size,
                     CASE WHEN sewing_loading_inject.tanggal < '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject_bef,
-                    CASE WHEN sewing_loading_inject.tanggal >= '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject
+                    -- CASE WHEN sewing_loading_inject.tanggal >= '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject
+                    0 AS loading_inject
                 FROM laravel_nds.sewing_loading_inject
                 LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = sewing_loading_inject.so_det_id
                 WHERE sewing_loading_inject.tanggal <= '$end_date'
@@ -3326,76 +3415,135 @@ class ReportMutasiOutputController extends Controller
                         END
                     ) AS finishing_adjust,
 
-                    -- FINISHING
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_pasang_kancing_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Pasang Kancing'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_pasang_kancing,
+                    -- FINISHING - PASANG KANCING
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Pasang Kancing'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_pasang_kancing_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_bartack_before,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Pasang Kancing'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_pasang_kancing,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Bartack'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_bartack,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_heatseal_before,
+                    -- FINISHING - BARTACK
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Bartack'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_bartack_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Heatseal'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_heatseal,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Bartack'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_bartack,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_snap_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Snap'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_snap,
+                    -- FINISHING - HEATSEAL
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Heatseal'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_heatseal_before,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo < '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_embro_before,
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Heatseal'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_heatseal,
 
-                    SUM(CASE
-                        WHEN type_report = 'FINISHING'
-                        AND spm.secondary_process = 'Embro'
-                        AND tgl_saldo >= '$start_date'
-                        THEN qty ELSE 0
-                    END) AS finishing_adjust_embro,
+
+                    -- FINISHING - SNAP
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Snap'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_snap_before,
+
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Snap'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_snap,
+
+
+                    -- FINISHING - EMBRO
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Embro'
+                                AND tgl_saldo < '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_embro_before,
+
+                    SUM(
+                        CASE
+                            WHEN type_report = 'FINISHING'
+                                AND COALESCE(
+                                    NULLIF(TRIM(wip_adjustment.proses), ''),
+                                    spm.secondary_process
+                                ) = 'Embro'
+                                AND tgl_saldo >= '$start_date'
+                            THEN qty ELSE 0
+                        END
+                    ) AS finishing_adjust_embro,
 
                     -- DEFECT SEWING
                     SUM(

@@ -75,6 +75,7 @@ group by buyer");
         from masterpilihan where
          kode_pilihan='Status KB Out' order by nama_pilihan");
 
+        $jenis_trans = DB::connection('mysql_sb')->select("select nama_trans isi,nama_trans tampil from mastertransaksi where jenis_trans='OUT' and jns_gudang = 'FG' order by id");
 
         return view('finish_good.create_finish_good_retur', [
             'page' => 'dashboard_finish_good',
@@ -82,6 +83,7 @@ group by buyer");
             "subPage" => "finish_good_retur",
             "data_buyer" => $data_buyer,
             "data_dok" => $data_dok,
+            "jenis_trans" => $jenis_trans,
             "user" => $user
         ]);
     }
@@ -333,6 +335,7 @@ order by po asc, no_carton asc ");
 
         $jns_dok    = $_POST['cbotipe_doc'];
         $inv        = $_POST['txtinv'];
+        $jenis_trans = $_POST['jenis_trans'];
 
         $update_data_bpbno = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = 'O.FG'");
         $data_bppbno = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = 'O.FG'");
@@ -364,8 +367,8 @@ order by po asc, no_carton asc ");
                 $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
 
                 $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
-                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,remark)
-        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','1384','N','Y','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','1384','RETUR') ");
+                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,remark,jenis_trans)
+        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','1384','N','Y','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','1384','RETUR','$jenis_trans') ");
 
                 // $update_karton =  DB::update("
                 //     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");

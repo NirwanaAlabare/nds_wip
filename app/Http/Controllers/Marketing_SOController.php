@@ -3387,6 +3387,231 @@ class Marketing_SOController extends Controller
     //     }
     // }
 
+    // public static function executeSyncBom($id)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+    //     $mysql_sb->beginTransaction();
+
+    //     try {
+    //         // ==========================================
+    //         // 1. Validasi Awal SO & JO
+    //         // ==========================================
+    //         $so = $mysql_sb->table('so')->where('id', $id)->first();
+    //         if (!$so) return ['status' => 400, 'message' => 'SO tidak ditemukan'];
+    //         if (!$so->id_bom) return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
+
+    //         $jo_det = $mysql_sb->table('jo_det')->where('id_so', $id)->first();
+    //         if (!$jo_det) return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
+
+    //         $id_jo = $jo_det->id_jo;
+    //         $id_bom = $so->id_bom;
+    //         $username = auth()->check() ? auth()->user()->username : 'system';
+
+    //         // ==========================================
+    //         // 2. Ambil Data Master BOM & Data Existing
+    //         // ==========================================
+    //         $required_items = $mysql_sb->select("
+    //             SELECT
+    //                 ? as id_jo,
+    //                 sd.id as id_so_det,
+    //                 CASE WHEN acd.type = 'Manufacturing' THEN 'P' ELSE 'M' END as status,
+    //                 CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE mi.id_gen END as id_item,
+    //                 bmd.qty as cons,
+    //                 bmd.unit,
+    //                 bmd.id_supplier,
+    //                 UPPER(bmd.rule_bom) as rule_bom,
+    //                 bmd.shell as id_panel,
+    //                 bmd.notes as notes -- PERUBAHAN: Ambil notes dari bom_marketing_detail
+    //             FROM so_det sd
+    //             INNER JOIN bom_marketing_detail bmd
+    //                 ON  bmd.id_bom_marketing = ?
+    //                 AND (bmd.id_color IS NULL OR bmd.id_color = sd.id_color)
+    //                 AND (bmd.id_size  IS NULL OR bmd.id_size  = sd.id_size)
+    //                 AND (bmd.id_set   IS NULL OR bmd.id_set   = (SELECT id FROM master_set WHERE nama = sd.product_set LIMIT 1))
+    //             INNER JOIN masteritem mi
+    //                 ON mi.id_item = bmd.id_item
+    //             LEFT JOIN act_costing_detail_new acd
+    //                 ON bmd.id_costing_detail = acd.id
+    //             WHERE sd.id_so = ? AND bmd.cancel = 'N'
+    //             AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
+    //         ", [$id_jo, $id_bom, $id]);
+
+    //         $existing_items = $mysql_sb->table('bom_jo_item')
+    //             ->where('id_jo', $id_jo)
+    //             ->where('cancel', 'N')
+    //             ->get();
+
+    //         // Mapping Data Existing (Array Based) untuk handle baris kembar
+    //         $existing_map = [];
+    //         $posno_map = [];
+    //         foreach ($existing_items as $item) {
+    //             $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel;
+    //             $existing_map[$key][] = $item;
+
+    //             if (!isset($posno_map[$item->id_item])) {
+    //                 $posno_map[$item->id_item] = $item->posno;
+    //             }
+    //         }
+
+    //         $posno_counter = (int) $mysql_sb->table('bom_jo_item')->where('id_jo', $id_jo)->max('posno');
+
+    //         // ==========================================
+    //         // 3. Proses Komparasi (Insert / Update)
+    //         // ==========================================
+    //         $processed_ids = [];
+    //         $to_insert = [];
+    //         $update_count = 0;
+
+    //         foreach ($required_items as $req) {
+    //             $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
+    //             $match_idx = null;
+
+    //             // Jika ada di mapping, cari pasangan yang paling cocok (Prioritas: cons sama)
+    //             if (!empty($existing_map[$key])) {
+    //                 foreach ($existing_map[$key] as $idx => $ext) {
+    //                     if (floatval($ext->cons) == floatval($req->cons)) {
+    //                         $match_idx = $idx; break;
+    //                     }
+    //                 }
+    //                 if ($match_idx === null) $match_idx = array_key_first($existing_map[$key]);
+    //             }
+
+    //             if ($match_idx !== null) {
+    //                 // ---- UPDATE EXISTING ITEM ----
+    //                 $ext = $existing_map[$key][$match_idx];
+    //                 $processed_ids[] = $ext->id;
+
+    //                 // PERUBAHAN: Tambahkan pengecekan apakah notes berubah
+    //                 if (floatval($ext->cons) != floatval($req->cons) ||
+    //                     $ext->unit != $req->unit ||
+    //                     $ext->rule_bom != $req->rule_bom ||
+    //                     $ext->notes != $req->notes ||
+    //                     $ext->cancel == 'Y'
+    //                 ) {
+    //                     $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update([
+    //                         'cons'     => $req->cons,
+    //                         'unit'     => $req->unit,
+    //                         'rule_bom' => $req->rule_bom,
+    //                         'id_panel' => $req->id_panel,
+    //                         'notes'    => $req->notes, // PERUBAHAN: Update kolom notes jika ada perubahan
+    //                         'cancel'   => 'N'
+    //                     ]);
+    //                     $update_count++;
+    //                 }
+    //                 unset($existing_map[$key][$match_idx]);
+    //             } else {
+    //                 // ---- INSERT NEW ITEM ----
+    //                 if (!isset($posno_map[$req->id_item])) {
+    //                     $posno_counter++;
+    //                     $posno_map[$req->id_item] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+    //                 }
+
+    //                 $to_insert[] = [
+    //                     'id_jo'       => $req->id_jo,
+    //                     'id_so_det'   => $req->id_so_det,
+    //                     'status'      => $req->status,
+    //                     'id_item'     => $req->id_item,
+    //                     'cons'        => $req->cons,
+    //                     'unit'        => $req->unit,
+    //                     'id_supplier' => $req->id_supplier,
+    //                     'rule_bom'    => $req->rule_bom,
+    //                     'cancel'      => 'N',
+    //                     'add_item'    => 'N',
+    //                     'username'    => $username,
+    //                     'dateinput'   => now(),
+    //                     'id_panel'    => $req->id_panel,
+    //                     'posno'       => $posno_map[$req->id_item],
+    //                     'notes'       => $req->notes, // PERUBAHAN: Masukkan notes dari Master BOM
+    //                 ];
+    //             }
+    //         }
+
+    //         if (!empty($to_insert)) {
+    //             foreach (array_chunk($to_insert, 500) as $chunk) {
+    //                 $mysql_sb->table('bom_jo_item')->insert($chunk);
+    //             }
+    //         }
+
+    //         // ==========================================
+    //         // 4. Proses Cancel Item (Sisa di Existing)
+    //         // ==========================================
+    //         $cancel_count = 0;
+    //         foreach ($existing_items as $ext) {
+    //             if (!in_array($ext->id, $processed_ids) && $ext->cancel != 'Y') {
+    //                 $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update(['cancel' => 'Y']);
+    //                 $cancel_count++;
+    //             }
+    //         }
+
+    //         // ==========================================
+    //         // 5. Sync Costing Native (MAT, MFG, OTH)
+    //         // ==========================================
+    //         $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+    //         if ($bom && $so->id_cost) {
+    //             $costing = $mysql_sb->table('act_costing_new')->where('id', $bom->id_costing)->first();
+
+    //             if ($costing) {
+    //                 $jenis_rate_val = 'B';
+    //                 if ($costing->curr) {
+    //                     $curr_record = $mysql_sb->table('masterpilihan')->where('id', $costing->curr)->first();
+    //                     if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') $jenis_rate_val = 'J';
+    //                 }
+
+    //                 $cost_details = $mysql_sb->table('act_costing_detail_new')->where('id_costing', $costing->id)->get();
+    //                 $mat_items = []; $mfg_items = []; $oth_items = [];
+
+    //                 foreach ($cost_details as $det) {
+    //                     $price = $det->price != 0 ? $det->price : ($jenis_rate_val == 'J' ? ($det->value_usd ?? 0) : ($det->value_idr ?? 0));
+
+    //                     if (in_array($det->type, ['Fabric', 'Accessories Sewing', 'Accessories Packing']) && !in_array($det->item_id, $mat_items)) {
+    //                         $mysql_sb->table('act_costing_mat')->updateOrInsert(
+    //                             ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
+    //                             ['price' => $price, 'cons' => $det->cons ?? 0, 'unit' => $det->unit ?? '', 'allowance' => $det->allowance ?? 0, 'material_source' => $det->origin ?? 'LOKAL', 'jenis_rate' => $jenis_rate_val]
+    //                         );
+    //                         $mat_items[] = $det->item_id;
+    //                     }
+    //                     elseif ($det->type == 'Manufacturing' && !in_array($det->item_id, $mfg_items)) {
+    //                         $mysql_sb->table('act_costing_mfg')->updateOrInsert(
+    //                             ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
+    //                             ['smv' => null, 'price' => $price, 'cons' => $det->cons ?? 1, 'unit' => $det->unit ?? 'PCS', 'allowance' => $det->allowance ?? 0, 'material_source' => $det->origin ?? 'LOKAL', 'jenis_rate' => $jenis_rate_val]
+    //                         );
+    //                         $mfg_items[] = $det->item_id;
+    //                     }
+    //                     elseif ($det->type == 'Other Cost' && !in_array($det->item_id, $oth_items)) {
+    //                         $mysql_sb->table('act_costing_oth')->updateOrInsert(
+    //                             ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
+    //                             ['smv' => null, 'price' => $price, 'cons' => $det->cons ?? null, 'unit' => $det->unit ?? null, 'allowance' => $det->allowance ?? null, 'material_source' => null, 'jenis_rate' => $jenis_rate_val]
+    //                         );
+    //                         $oth_items[] = $det->item_id;
+    //                     }
+    //                 }
+
+    //                 if (empty($mat_items)) $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->delete();
+    //                 else $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $mat_items)->delete();
+
+    //                 if (empty($mfg_items)) $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->delete();
+    //                 else $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $mfg_items)->delete();
+
+    //                 if (empty($oth_items)) $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->delete();
+    //                 else $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $oth_items)->delete();
+    //             }
+    //         }
+
+    //         $mysql_sb->commit();
+    //         return [
+    //             'status' => 200,
+    //             'message' => 'Sync berhasil',
+    //             'inserted' => count($to_insert),
+    //             'updated' => $update_count,
+    //             'canceled' => $cancel_count
+    //         ];
+
+    //     } catch (\Exception $e) {
+    //         $mysql_sb->rollBack();
+    //         return ['status' => 500, 'message' => $e->getMessage()];
+    //     }
+    // }
+
     public static function executeSyncBom($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
@@ -3394,9 +3619,10 @@ class Marketing_SOController extends Controller
 
         try {
             // ==========================================
-            // 1. Validasi Awal SO & JO
+            // 1. Validasi Awal SO & JO (dengan lock, cegah race condition kalau
+            //    sync di-trigger 2x hampir bersamaan)
             // ==========================================
-            $so = $mysql_sb->table('so')->where('id', $id)->first();
+            $so = $mysql_sb->table('so')->where('id', $id)->lockForUpdate()->first();
             if (!$so) return ['status' => 400, 'message' => 'SO tidak ditemukan'];
             if (!$so->id_bom) return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
 
@@ -3408,20 +3634,27 @@ class Marketing_SOController extends Controller
             $username = auth()->check() ? auth()->user()->username : 'system';
 
             // ==========================================
-            // 2. Ambil Data Master BOM & Data Existing
+            // 2. Ambil Data Master BOM
+            //    Aturan bisnis: 1 kombinasi id_bom_marketing + id_item + id_color +
+            //    id_size (+ id_panel khusus fabric) HARUS cuma 1 baris aktif.
+            //    id_supplier & rule_bom adalah ATRIBUT, bukan pembeda baris.
+            //    Key GROUP BY & matching = id_so_det + id_item + id_panel saja.
             // ==========================================
             $required_items = $mysql_sb->select("
                 SELECT
                     ? as id_jo,
                     sd.id as id_so_det,
-                    CASE WHEN acd.type = 'Manufacturing' THEN 'P' ELSE 'M' END as status,
-                    CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE mi.id_gen END as id_item,
-                    bmd.qty as cons,
-                    bmd.unit,
-                    bmd.id_supplier,
-                    UPPER(bmd.rule_bom) as rule_bom,
+                    MAX(CASE WHEN acd.type = 'Manufacturing' THEN 'P' ELSE 'M' END) as status,
+                    CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END as id_item,
                     bmd.shell as id_panel,
-                    bmd.notes as notes -- PERUBAHAN: Ambil notes dari bom_marketing_detail
+                    MAX(bmd.id_supplier) as id_supplier,
+                    MAX(UPPER(bmd.rule_bom)) as rule_bom,
+                    MAX(bmd.qty) as cons,
+                    MAX(bmd.unit) as unit,
+                    MAX(bmd.notes) as notes,
+                    COUNT(*) as jumlah_baris_source,
+                    COUNT(DISTINCT bmd.id_supplier) as jumlah_supplier_beda,
+                    COUNT(DISTINCT UPPER(bmd.rule_bom)) as jumlah_rule_beda
                 FROM so_det sd
                 INNER JOIN bom_marketing_detail bmd
                     ON  bmd.id_bom_marketing = ?
@@ -3434,19 +3667,68 @@ class Marketing_SOController extends Controller
                     ON bmd.id_costing_detail = acd.id
                 WHERE sd.id_so = ? AND bmd.cancel = 'N'
                 AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
+                GROUP BY
+                    sd.id,
+                    CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END,
+                    bmd.shell
             ", [$id_jo, $id_bom, $id]);
+
+            // ==========================================
+            // 2b. Deteksi anomali data Master BOM sebelum lanjut.
+            //     - Duplikat identik (supplier & rule sama) -> boleh lanjut, cuma di-log.
+            //     - Duplikat dengan supplier/rule BEDA -> konflik data nyata,
+            //       hentikan sync, jangan asal pilih salah satu secara diam-diam.
+            // ==========================================
+            foreach ($required_items as $req) {
+                if ($req->jumlah_baris_source > 1) {
+                    \Log::warning("BOM sync: ditemukan baris duplikat di bom_marketing_detail", [
+                        'id_jo' => $id_jo,
+                        'id_so_det' => $req->id_so_det,
+                        'id_item' => $req->id_item,
+                        'id_panel' => $req->id_panel,
+                        'jumlah_baris_source' => $req->jumlah_baris_source,
+                        'jumlah_supplier_beda' => $req->jumlah_supplier_beda,
+                        'jumlah_rule_beda' => $req->jumlah_rule_beda,
+                    ]);
+
+                    if ($req->jumlah_supplier_beda > 1 || $req->jumlah_rule_beda > 1) {
+                        $mysql_sb->rollBack();
+                        return [
+                            'status' => 409,
+                            'message' => "Konflik data di Master BOM: item {$req->id_item} untuk SO Detail {$req->id_so_det} punya {$req->jumlah_baris_source} baris dengan supplier/rule_bom berbeda. Mohon perbaiki Master BOM terlebih dahulu sebelum sync."
+                        ];
+                    }
+                }
+            }
 
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
                 ->get();
 
-            // Mapping Data Existing (Array Based) untuk handle baris kembar
+            // ==========================================
+            // Key matching: id_so_det + id_item + id_panel (unik, deterministic).
+            // Tidak ada lagi array-per-key + fallback "cocokin cons/ambil yang pertama".
+            // ==========================================
             $existing_map = [];
             $posno_map = [];
             foreach ($existing_items as $item) {
                 $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel;
-                $existing_map[$key][] = $item;
+
+                if (isset($existing_map[$key])) {
+                    // Sisa duplikat lama (dari bug sebelumnya) -- log saja,
+                    // baris ini akan otomatis ke-cancel di step 4 karena tidak
+                    // pernah masuk $processed_ids.
+                    \Log::warning("BOM sync: existing bom_jo_item duplikat ditemukan, akan di-cancel otomatis", [
+                        'id_jo' => $id_jo,
+                        'key' => $key,
+                        'id_lama' => $existing_map[$key]->id,
+                        'id_dilewati' => $item->id,
+                    ]);
+                    continue;
+                }
+
+                $existing_map[$key] = $item;
 
                 if (!isset($posno_map[$item->id_item])) {
                     $posno_map[$item->id_item] = $item->posno;
@@ -3464,41 +3746,29 @@ class Marketing_SOController extends Controller
 
             foreach ($required_items as $req) {
                 $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
-                $match_idx = null;
 
-                // Jika ada di mapping, cari pasangan yang paling cocok (Prioritas: cons sama)
-                if (!empty($existing_map[$key])) {
-                    foreach ($existing_map[$key] as $idx => $ext) {
-                        if (floatval($ext->cons) == floatval($req->cons)) {
-                            $match_idx = $idx; break;
-                        }
-                    }
-                    if ($match_idx === null) $match_idx = array_key_first($existing_map[$key]);
-                }
-
-                if ($match_idx !== null) {
+                if (isset($existing_map[$key])) {
                     // ---- UPDATE EXISTING ITEM ----
-                    $ext = $existing_map[$key][$match_idx];
+                    $ext = $existing_map[$key];
                     $processed_ids[] = $ext->id;
 
-                    // PERUBAHAN: Tambahkan pengecekan apakah notes berubah
                     if (floatval($ext->cons) != floatval($req->cons) ||
                         $ext->unit != $req->unit ||
                         $ext->rule_bom != $req->rule_bom ||
+                        $ext->id_supplier != $req->id_supplier ||
                         $ext->notes != $req->notes ||
                         $ext->cancel == 'Y'
                     ) {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update([
-                            'cons'     => $req->cons,
-                            'unit'     => $req->unit,
-                            'rule_bom' => $req->rule_bom,
-                            'id_panel' => $req->id_panel,
-                            'notes'    => $req->notes, // PERUBAHAN: Update kolom notes jika ada perubahan
-                            'cancel'   => 'N'
+                            'cons'        => $req->cons,
+                            'unit'        => $req->unit,
+                            'rule_bom'    => $req->rule_bom,
+                            'id_supplier' => $req->id_supplier,
+                            'notes'       => $req->notes,
+                            'cancel'      => 'N'
                         ]);
                         $update_count++;
                     }
-                    unset($existing_map[$key][$match_idx]);
                 } else {
                     // ---- INSERT NEW ITEM ----
                     if (!isset($posno_map[$req->id_item])) {
@@ -3521,7 +3791,7 @@ class Marketing_SOController extends Controller
                         'dateinput'   => now(),
                         'id_panel'    => $req->id_panel,
                         'posno'       => $posno_map[$req->id_item],
-                        'notes'       => $req->notes, // PERUBAHAN: Masukkan notes dari Master BOM
+                        'notes'       => $req->notes,
                     ];
                 }
             }
@@ -3533,7 +3803,7 @@ class Marketing_SOController extends Controller
             }
 
             // ==========================================
-            // 4. Proses Cancel Item (Sisa di Existing)
+            // 4. Proses Cancel Item (Sisa di Existing) -> Soft Cancel
             // ==========================================
             $cancel_count = 0;
             foreach ($existing_items as $ext) {
@@ -3544,7 +3814,7 @@ class Marketing_SOController extends Controller
             }
 
             // ==========================================
-            // 5. Sync Costing Native (MAT, MFG, OTH)
+            // 5. Sync Costing Native (MAT, MFG, OTH) -- tidak diubah, sama seperti sebelumnya
             // ==========================================
             $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
             if ($bom && $so->id_cost) {

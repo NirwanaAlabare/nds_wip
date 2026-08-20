@@ -85,20 +85,26 @@
 @endsection
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar"></i> Dashboard BAP</h5>
-        <select class="form-control form-control-sm select2bs4" id="filter-tahun" style="width: 120px;">
-            @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
-                <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
-            @endfor
-        </select>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar"></i> <span id="judul-dashboard">Dashboard BAP</span></h5>
+        <div class="d-flex align-items-center gap-2">
+            <select class="form-control form-control-sm select2bs4" id="filter-jenis" style="width: 190px;">
+                <option value="bap" selected>Form BAP</option>
+                <option value="ac">Form Maintenance AC</option>
+            </select>
+            <select class="form-control form-control-sm select2bs4" id="filter-tahun" style="width: 120px;">
+                @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
+                    <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
+        </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-md-3 col-6 mb-3">
             <div class="bap-stat-card">
                 <div class="d-flex justify-content-between align-items-start">
-                    <span class="text-muted" style="font-size: 13px;">Total BAP</span>
+                    <span class="text-muted" style="font-size: 13px;">Total Form</span>
                     <div class="bap-stat-icon" style="background:#f1f2f4; color:#555;"><i class="fas fa-file-alt"></i></div>
                 </div>
                 <div class="bap-stat-value" id="stat-total">0</div>
@@ -149,13 +155,13 @@
     <div class="row mb-3">
         <div class="col-md-6 mb-3">
             <div class="bap-panel">
-                <h6 class="fw-bold mb-3">BAP per Departement</h6>
+                <h6 class="fw-bold mb-3"><span class="label-jenis">BAP</span> per Departement</h6>
                 <div id="chart-bap-department"></div>
             </div>
         </div>
         <div class="col-md-6 mb-3">
             <div class="bap-panel">
-                <h6 class="fw-bold mb-3">BAP per Bulan</h6>
+                <h6 class="fw-bold mb-3"><span class="label-jenis">BAP</span> per Bulan</h6>
                 <div id="chart-bap-monthly"></div>
             </div>
         </div>
@@ -164,7 +170,7 @@
     <div class="row">
         <div class="col-12">
             <div class="bap-panel">
-                <h6 class="fw-bold mb-3">Riwayat Aktivitas Terakhir BAP</h6>
+                <h6 class="fw-bold mb-3">Riwayat Aktivitas Terakhir <span class="label-jenis">BAP</span></h6>
                 <div id="bap-activity-list">
                     <div class="text-muted text-center py-3">Memuat data...</div>
                 </div>
@@ -184,6 +190,27 @@
     </script>
     <script>
         const departmentPalette = ['#14b8a6', '#a78bfa', '#f59e0b', '#fb7185', '#60a5fa', '#34d399', '#f472b6', '#818cf8'];
+
+        function jenisAktif() {
+            return $('#filter-jenis').val() || 'bap';
+        }
+
+        function labelJenis() {
+            return jenisAktif() === 'ac' ? 'Maintenance AC' : 'BAP';
+        }
+
+        function filterParams() {
+            return {
+                tahun: $('#filter-tahun').val(),
+                jenis: jenisAktif()
+            };
+        }
+
+        function terapkanLabelJenis() {
+            const label = labelJenis();
+            $('#judul-dashboard').text('Dashboard ' + label);
+            $('.label-jenis').text(label);
+        }
 
         let chartDepartment, chartMonthly;
 
@@ -301,9 +328,7 @@
             $.ajax({
                 type: "GET",
                 url: '{{ route('chart-bap-department') }}',
-                data: {
-                    tahun: $('#filter-tahun').val()
-                },
+                data: filterParams(),
                 success: function(response) {
                     const categories = response.map(item => item.department || '-');
                     const data = response.map(item => item.total);
@@ -316,7 +341,7 @@
                         }
                     }, false, true);
                     chartDepartment.updateSeries([{
-                        name: 'Total BAP',
+                        name: 'Total ' + labelJenis(),
                         data: data
                     }]);
                 },
@@ -330,9 +355,7 @@
             $.ajax({
                 type: "GET",
                 url: '{{ route('chart-bap-monthly') }}',
-                data: {
-                    tahun: $('#filter-tahun').val()
-                },
+                data: filterParams(),
                 success: function(response) {
                     const categories = response.map(item => item.bulan);
                     const data = response.map(item => item.total);
@@ -343,7 +366,7 @@
                         }
                     }, false, true);
                     chartMonthly.updateSeries([{
-                        name: 'Total BAP',
+                        name: 'Total ' + labelJenis(),
                         data: data
                     }]);
                 },
@@ -357,9 +380,7 @@
             $.ajax({
                 type: "GET",
                 url: '{{ route('summary-bap-helpdesk') }}',
-                data: {
-                    tahun: $('#filter-tahun').val()
-                },
+                data: filterParams(),
                 success: function(response) {
                     const total = response.total || 0;
                     $('#stat-total').text(total);
@@ -382,9 +403,7 @@
             $.ajax({
                 type: "GET",
                 url: '{{ route('recent-activity-bap') }}',
-                data: {
-                    tahun: $('#filter-tahun').val()
-                },
+                data: filterParams(),
                 success: function(response) {
                     const $list = $('#bap-activity-list');
                     $list.empty();
@@ -448,6 +467,7 @@
         }
 
         function reloadAll() {
+            terapkanLabelJenis();
             loadSummary();
             loadChartDepartment();
             loadChartMonthly();
@@ -455,7 +475,7 @@
         }
 
         $(document).ready(() => {
-            $('#filter-tahun').select2({
+            $('#filter-jenis, #filter-tahun').select2({
                 theme: 'bootstrap4',
                 width: 'resolve'
             });
@@ -469,7 +489,7 @@
             initChartMonthly();
             reloadAll();
 
-            $('#filter-tahun').on('change', reloadAll);
+            $('#filter-jenis, #filter-tahun').on('change', reloadAll);
         });
     </script>
 @endsection
