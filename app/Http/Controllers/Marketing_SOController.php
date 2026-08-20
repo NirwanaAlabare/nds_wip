@@ -3633,7 +3633,7 @@ class Marketing_SOController extends Controller
             $username = auth()->check() ? auth()->user()->username : 'system';
 
             // ==========================================
-            // 2. Ambil Data Master BOM & Data Existing (DENGAN GROUP BY & COALESCE)
+            // 2. Ambil Data Master BOM & Data Existing
             // ==========================================
             $required_items = $mysql_sb->select("
                 SELECT
@@ -3641,12 +3641,13 @@ class Marketing_SOController extends Controller
                     sd.id as id_so_det,
                     MAX(CASE WHEN acd.type = 'Manufacturing' THEN 'P' ELSE 'M' END) as status,
                     CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END as id_item,
-                    SUM(bmd.qty) as cons,
-                    MAX(bmd.unit) as unit,
-                    MAX(bmd.id_supplier) as id_supplier,
-                    MAX(UPPER(bmd.rule_bom)) as rule_bom,
                     bmd.shell as id_panel,
-                    MAX(bmd.notes) as notes
+                    bmd.id_supplier,
+                    UPPER(bmd.rule_bom) as rule_bom,
+                    MAX(bmd.qty) as cons,
+                    MAX(bmd.unit) as unit,
+                    MAX(bmd.notes) as notes,
+                    COUNT(*) as jumlah_baris_source
                 FROM so_det sd
                 INNER JOIN bom_marketing_detail bmd
                     ON  bmd.id_bom_marketing = ?
@@ -3659,23 +3660,48 @@ class Marketing_SOController extends Controller
                     ON bmd.id_costing_detail = acd.id
                 WHERE sd.id_so = ? AND bmd.cancel = 'N'
                 AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
-                GROUP BY 
+                GROUP BY
                     sd.id,
                     CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END,
-                    bmd.shell
+                    bmd.shell,
+                    bmd.id_supplier,
+                    UPPER(bmd.rule_bom)
             ", [$id_jo, $id_bom, $id]);
+
+            // Deteksi dini kalau ternyata ada source dobel di master BOM
+            // (seharusnya tidak pernah terjadi, tapi kalau terjadi harus ketahuan, bukan salah hitung diam-diam)
+            foreach ($required_items as $req) {
+                if ($req->jumlah_baris_source > 1) {
+                    \Log::warning("BOM sync anomaly: {$req->jumlah_baris_source} baris source identik ditemukan", [
+                        'id_jo' => $id_jo,
+                        'id_so_det' => $req->id_so_det,
+                        'id_item' => $req->id_item,
+                        'id_panel' => $req->id_panel,
+                    ]);
+                }
+            }
 
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
                 ->get();
 
-            // Mapping Data Existing (Array Based) untuk handle baris kembar
+            // ==========================================
+            // Key sekarang unik & lengkap: so_det + item + panel + supplier + rule_bom
+            // Tidak perlu lagi array per key + fallback "ambil yang cocok cons-nya".
+            // Matching sekarang deterministic 1:1.
+            // ==========================================
             $existing_map = [];
             $posno_map = [];
             foreach ($existing_items as $item) {
-                $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel;
-                $existing_map[$key][] = $item;
+                $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel . '_' . $item->id_supplier . '_' . $item->rule_bom;
+
+                // Kalau ternyata masih ada >1 existing dengan key sama (sisa data lama),
+                // log saja dan pertahankan yang pertama ketemu; sisanya akan otomatis
+                // ke-cancel di step 4 karena tidak akan pernah "processed".
+                if (!isset($existing_map[$key])) {
+                    $existing_map[$key] = $item;
+                }
 
                 if (!isset($posno_map[$item->id_item])) {
                     $posno_map[$item->id_item] = $item->posno;
@@ -3692,41 +3718,26 @@ class Marketing_SOController extends Controller
             $update_count = 0;
 
             foreach ($required_items as $req) {
-                $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
-                $match_idx = null;
+                $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel . '_' . $req->id_supplier . '_' . $req->rule_bom;
 
-                // Jika ada di mapping, cari pasangan yang paling cocok (Prioritas: cons sama)
-                if (!empty($existing_map[$key])) {
-                    foreach ($existing_map[$key] as $idx => $ext) {
-                        if (floatval($ext->cons) == floatval($req->cons)) {
-                            $match_idx = $idx; break;
-                        }
-                    }
-                    if ($match_idx === null) $match_idx = array_key_first($existing_map[$key]);
-                }
-
-                if ($match_idx !== null) {
+                if (isset($existing_map[$key])) {
                     // ---- UPDATE EXISTING ITEM ----
-                    $ext = $existing_map[$key][$match_idx];
+                    $ext = $existing_map[$key];
                     $processed_ids[] = $ext->id;
 
                     if (floatval($ext->cons) != floatval($req->cons) ||
                         $ext->unit != $req->unit ||
-                        $ext->rule_bom != $req->rule_bom ||
                         $ext->notes != $req->notes ||
                         $ext->cancel == 'Y'
                     ) {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update([
                             'cons'     => $req->cons,
                             'unit'     => $req->unit,
-                            'rule_bom' => $req->rule_bom,
-                            'id_panel' => $req->id_panel,
                             'notes'    => $req->notes,
                             'cancel'   => 'N'
                         ]);
                         $update_count++;
                     }
-                    unset($existing_map[$key][$match_idx]);
                 } else {
                     // ---- INSERT NEW ITEM ----
                     if (!isset($posno_map[$req->id_item])) {
@@ -3761,7 +3772,7 @@ class Marketing_SOController extends Controller
             }
 
             // ==========================================
-            // 4. Proses Cancel Item (Sisa di Existing) -> Soft Cancel (Tanpa Hard Delete)
+            // 4. Proses Cancel Item (Sisa di Existing) -> Soft Cancel
             // ==========================================
             $cancel_count = 0;
             foreach ($existing_items as $ext) {
@@ -3772,7 +3783,7 @@ class Marketing_SOController extends Controller
             }
 
             // ==========================================
-            // 5. Sync Costing Native (MAT, MFG, OTH)
+            // 5. Sync Costing Native (MAT, MFG, OTH) -- tetap sama persis seperti sebelumnya
             // ==========================================
             $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
             if ($bom && $so->id_cost) {
