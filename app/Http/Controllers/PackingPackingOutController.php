@@ -698,6 +698,7 @@ group by a.po, a.dest
                     WHERE packing_packing_in.barcode = '$barcode'
                     AND ppic_master_so.po = '$cek_dest_po'
                     AND ppic_master_so.dest = '$dest'
+                    AND sumber = 'Sewing'
 
                     GROUP BY
                         packing_packing_in.id_ppic_master_so,

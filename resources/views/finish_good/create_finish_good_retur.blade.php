@@ -112,7 +112,21 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label><small><b>Jenis Transaksi :</b></small></label>
+                            <select class="form-control select2bs4" id="jenis_trans" name="jenis_trans" style="width: 100%;"
+                                required>
+                                <option selected="selected" value="" disabled="true">Pilih Jenis Transaksi</option>
+                                @foreach ($jenis_trans as $jns_trans)
+                                    <option value="{{ $jns_trans->isi }}">
+                                        {{ $jns_trans->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-5">
                         <div class="form-group">
                             <label><small><b>Inv / SJ :</b></small></label>
                             <input type="text" class="form-control form-control-sm" id="txtinv" name="txtinv"
