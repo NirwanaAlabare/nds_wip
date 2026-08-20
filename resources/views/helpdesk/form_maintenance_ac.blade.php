@@ -292,7 +292,7 @@
 
             $.ajax({
                 type: "GET",
-                url: '{{ route('my-departments-form-bap') }}',
+                url: '{{ route('departments-form-maintenance-ac') }}',
                 success: function(response) {
                     let $select = $('#txtdepartment');
                     response.forEach(function(item) {

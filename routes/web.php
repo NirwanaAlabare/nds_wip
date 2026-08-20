@@ -1760,6 +1760,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/dashboard_mt_ac/cancel', 'cancel')->name('cancel-form-maintenance-ac');
         Route::post('/dashboard_mt_ac/restore-cancel', 'restoreCancel')->name('restore-cancel-form-maintenance-ac');
         Route::get('/dashboard_mt_ac/summary', 'summary')->name('summary-form-maintenance-ac');
+        Route::get('/dashboard_mt_ac/departments', 'getDepartments')->name('departments-form-maintenance-ac');
     });
     // Export Import (EXIM)
 
