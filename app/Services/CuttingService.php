@@ -639,14 +639,14 @@ class CuttingService
                                     $scannedItem->qty = $currentRoll->sisa_kain;
                                 }
 
-                                // Checking new penerimaan after last input
-                                $newPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
-                                    where("created_at", ">", $currentRoll->created_at)->
-                                    sum("qty_konv");
+                                // // Checking new penerimaan after last input
+                                // $newPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
+                                //     where("created_at", ">", $currentRoll->created_at)->
+                                //     sum("qty_konv");
 
-                                if ($newPenerimaan > 0) {
-                                    $scannedItem->qty += $newPenerimaan;
-                                }
+                                // if ($newPenerimaan > 0) {
+                                //     $scannedItem->qty += $newPenerimaan;
+                                // }
                             }
                         }
 
@@ -879,11 +879,12 @@ class CuttingService
 
             $currentPenerimaan = [];
             $currentQty = $firstFormCutDetail->qty;
+            $createdBefore = $firstFormCutDetail->created_at;
             foreach ($formCutDetail as $index => $detail) {
-                
+
                 // Check Penerimaan
-                $penerimaan = DB::table("penerimaan_cutting")->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
-                
+                $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+
                 $qtyPenerimaan = 0;
                 foreach ($penerimaan as $p) {
                     $qtyPenerimaan += $p->qty_konv;
@@ -970,6 +971,8 @@ class CuttingService
                     \Log::info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
                     $detail->save();
                 // End of Recalculate
+
+                $createdBefore = $detail->created_at;
             }
 
             // Fix Scanned Item

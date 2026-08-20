@@ -534,6 +534,15 @@ class CompletedFormController extends Controller
                 $cuttingService->recalculateForm($validatedRequest['id']);
             }
 
+            // Fix Chained Qty
+            $firstId = null;
+            $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $detail->form_cut_id)->where("created_at", "<", $detail->created_at)->first();
+            if (!$similarFormCutDetailBef) {
+                $firstId = $formCutDetail->id;
+            }
+
+            $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
+
             DB::commit();
 
             return array(
