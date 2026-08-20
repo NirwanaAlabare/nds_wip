@@ -900,6 +900,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
                         AND bpbdate < '{$tgl_awal} 00:00:00'
                         AND id_supplier IN (357, 435)
+                        AND id_item != 0
                     GROUP BY
                         id_so_det
 
@@ -1825,6 +1826,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
                     AND bpbdate < '{$tgl_awal} 00:00:00'
                     AND id_supplier IN (357, 435)
+                    AND id_item != 0
                 GROUP BY
                     id_so_det
 
