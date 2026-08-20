@@ -64,8 +64,29 @@ class PackingPackingInController extends Controller
             inner join packing_trf_garment_out_temporary b on a.id_trf_garment = b.id
             inner join ppic_master_so p on a.id_ppic_master_so = p.id
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Temporary' and a.line = 'Temporary'
-order by created_at desc
+            where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Temporary' and a.line = 'Temporary'
+            union
+            select
+            a.no_trans,
+            concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
+            ) tgl_penerimaan_fix,
+            b.no_trans_out no_trf_garment,
+            'FGS' line,
+            a.barcode,
+            a.po,
+            a.dest,
+            a.qty,
+            m.ws,
+            m.styleno,
+            m.color,
+            m.size,
+            a.created_at,
+            a.created_by
+            from packing_packing_in a
+            inner join fg_stok_bppb b on a.fg_stok_bppb_id = b.id
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'FGS' and a.line = 'FGS'
+            order by created_at desc
 
             ");
 
@@ -102,6 +123,20 @@ order by created_at desc
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
             having a.qty - coalesce(b.qty_in,0) > '0'
+            union
+            SELECT
+            a.id,
+            a.no_trans_out as no_trans,
+            a.qty_out as qty,
+            b.qty_in
+            from fg_stok_bppb a
+		    left join
+                (
+                select fg_stok_bppb_id,sum(qty) qty_in from packing_packing_in
+                group by fg_stok_bppb_id
+                ) b on a.id = b.fg_stok_bppb_id
+            where tujuan = 'PACKING CENTRAL'
+            having a.qty_out - coalesce(b.qty_in,0) > '0'
             ) data_cek
             group by data_cek.no_trans
             order by id desc, no_trans asc
@@ -121,6 +156,20 @@ order by created_at desc
     public function show_preview_packing_in(Request $request)
     {
         $user = Auth::user()->name;
+
+        $tahun = date('Y');
+        $no = date('my');
+        $kode = 'PO/FGS/OUT/';
+        $cek_nomor = DB::select("
+        select max(right(po,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "' and sumber = 'FGS'
+        ");
+        $nomor_tr = $cek_nomor[0]->nomor;
+        $urutan = (int)($nomor_tr);
+        $urutan++;
+        $kodepay = sprintf("%05s", $urutan);
+
+        $kode_trans = $kode . $no . '/' . $kodepay;
+
         if ($request->ajax()) {
 
             $data_preview = DB::select("
@@ -169,6 +218,28 @@ order by created_at desc
 						inner join master_sb_ws m on p.id_so_det = m.id_so_det
 						where a.no_trans = '" . $request->cbono . "'
             having a.qty - coalesce(b.qty_in,0) != '0'
+            union
+            SELECT
+            a.id,
+            'FGS' line,
+			a.qty_out - COALESCE(b.qty_in, 0) AS qty,
+            b.qty_in,
+			m.ws,
+			m.color,
+			m.size,
+			'-' barcode,
+			'-' dest,
+			'$kode_trans' po,
+            'PCS' unit
+            from fg_stok_bppb a
+            left join
+                (
+                select fg_stok_bppb_id,sum(qty) qty_in from packing_packing_in where sumber = 'FGS'
+                group by fg_stok_bppb_id
+                ) b on a.id = b.fg_stok_bppb_id
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where a.no_trans_out = '" . $request->cbono . "'
+            HAVING qty != 0
             ");
 
             return DataTables::of($data_preview)->toJson();
@@ -265,6 +336,7 @@ order by created_at desc
         $timestamp = Carbon::now();
         $JmlArray               = $_POST['txtqty'];
         $id_trf_garmentArray    = $_POST['id_trf_garment'];
+        $po_fgsArray            = $_POST['po_fgs'];
         $status              = implode(',', $_POST['status']);
         $tgl_penerimaan = date('Y-m-d');
         $isTemporary = ($status == 'Temporary');
@@ -311,7 +383,9 @@ order by created_at desc
                 $isTemporary,
                 $sourceTable,
                 $sumber,
-                $sumberFilter
+                $sumberFilter,
+                $status,
+                $po_fgsArray
             ) {
                 $tahun = date('Y', strtotime($tgl_penerimaan));
                 $no = date('my', strtotime($tgl_penerimaan));
@@ -336,40 +410,72 @@ order by created_at desc
 
                     $txtqty = (float) $JmlArray[$key];
                     $txtid_trf_garment = $id_trf_garmentArray[$key];
-
                     // Row-lock the source transfer so concurrent submissions
                     // (different user/device, same no_trans) queue up instead
                     // of both reading a stale "sisa qty".
-                    $cek = DB::select("select * from $sourceTable where id = ? for update", [$txtid_trf_garment]);
-                    if (empty($cek)) {
-                        continue;
+                    if($status == 'FGS'){
+                        $cek = DB::select("select * from fg_stok_bppb where id = ? for update", [$txtid_trf_garment]);
+                        if (empty($cek)) {
+                            continue;
+                        }
+                        $cek = $cek[0];
+
+                        $qtyInRow = DB::selectOne("
+                            select coalesce(sum(qty),0) qty_in from packing_packing_in
+                            where fg_stok_bppb_id = ? and sumber = 'FGS'
+                        ", [$txtid_trf_garment]);
+                        $sisa = (float) $cek->qty_out - (float) $qtyInRow->qty_in;
+    
+                        if ($txtqty > $sisa) {
+                            throw new \RuntimeException(
+                                'Qty untuk No. Transaksi sumber tidak lagi mencukupi (sisa: ' . $sisa . '). '
+                                . 'Kemungkinan data sudah diinput oleh user lain, silakan refresh dan coba lagi.'
+                            );
+                        }
+    
+                        $id_ppic_master_so = null;
+                        $id_so_det = $cek->id_so_det;
+                        $line = 'FGS';
+                        $po = array_values($po_fgsArray)[0];
+                        $barcode = '-';
+                        $dest = '-';
+
+                        DB::insert("
+                        insert into packing_packing_in
+                        (id_trf_garment,fg_stok_bppb_id,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+                        values(null,'$txtid_trf_garment','$kode_trans','$tgl_penerimaan',null,'$id_so_det','$txtqty','$line','$po','$barcode','$dest','FGS','$user','$timestamp','$timestamp')");
+                    }else{
+                        $cek = DB::select("select * from $sourceTable where id = ? for update", [$txtid_trf_garment]);
+                        if (empty($cek)) {
+                            continue;
+                        }
+                        $cek = $cek[0];
+    
+                        $qtyInRow = DB::selectOne("
+                            select coalesce(sum(qty),0) qty_in from packing_packing_in
+                            where id_trf_garment = ? and $sumberFilter
+                        ", [$txtid_trf_garment]);
+                        $sisa = (float) $cek->qty - (float) $qtyInRow->qty_in;
+    
+                        if ($txtqty > $sisa) {
+                            throw new \RuntimeException(
+                                'Qty untuk No. Transaksi sumber tidak lagi mencukupi (sisa: ' . $sisa . '). '
+                                . 'Kemungkinan data sudah diinput oleh user lain, silakan refresh dan coba lagi.'
+                            );
+                        }
+    
+                        $id_ppic_master_so = $cek->id_ppic_master_so;
+                        $id_so_det = $cek->id_so_det;
+                        $line = $isTemporary ? 'Temporary' : $cek->line;
+                        $po = $cek->po;
+                        $barcode = $cek->barcode;
+                        $dest = $cek->dest;
+
+                        DB::insert("
+                        insert into packing_packing_in
+                        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+                        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$sumber','$user','$timestamp','$timestamp')");
                     }
-                    $cek = $cek[0];
-
-                    $qtyInRow = DB::selectOne("
-                        select coalesce(sum(qty),0) qty_in from packing_packing_in
-                        where id_trf_garment = ? and $sumberFilter
-                    ", [$txtid_trf_garment]);
-                    $sisa = (float) $cek->qty - (float) $qtyInRow->qty_in;
-
-                    if ($txtqty > $sisa) {
-                        throw new \RuntimeException(
-                            'Qty untuk No. Transaksi sumber tidak lagi mencukupi (sisa: ' . $sisa . '). '
-                            . 'Kemungkinan data sudah diinput oleh user lain, silakan refresh dan coba lagi.'
-                        );
-                    }
-
-                    $id_ppic_master_so = $cek->id_ppic_master_so;
-                    $id_so_det = $cek->id_so_det;
-                    $line = $isTemporary ? 'Temporary' : $cek->line;
-                    $po = $cek->po;
-                    $barcode = $cek->barcode;
-                    $dest = $cek->dest;
-
-                    DB::insert("
-        insert into packing_packing_in
-        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
-        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$sumber','$user','$timestamp','$timestamp')");
 
                     $insertedAny = true;
                 }
@@ -382,7 +488,7 @@ order by created_at desc
             });
         } catch (\RuntimeException $e) {
             return array(
-                "status" => 200,
+                "status" => 400,
                 "message" => $e->getMessage(),
                 "additional" => [],
             );
