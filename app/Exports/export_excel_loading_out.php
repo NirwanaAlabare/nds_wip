@@ -54,12 +54,17 @@ ac.styleno,
 sd.color,
 sd.size,
 nama_part,
+( CASE WHEN COALESCE(pcust.set_part_status, p.part_status) = 'complement' THEN COALESCE ( p_com.panel, prt.panel ) ELSE prt.panel END ) panel,
 mb.supplier buyer
 from wip_out a
 left join wip_out_det b on a.id = b.id_wip_out
 left join signalbit_erp.po_header ph on a.id_po = ph.id
 left join stocker_input si on b.id_qr_stocker = si.id_qr_stocker
 left join part_detail p on si.part_detail_id = p.id
+left join part prt on prt.id = p.part_id
+LEFT JOIN part_detail pd_com ON pd_com.id = p.from_part_detail AND p.part_status = 'complement'
+LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+LEFT JOIN part_custom pcust ON pcust.part_id = prt.id and pcust.part_detail_id = p.id and pcust.color = si.color
 left join master_part mp on p.master_part_id = mp.id
 left join part_detail_item pdi on p.id = pdi.part_detail_id
 left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
