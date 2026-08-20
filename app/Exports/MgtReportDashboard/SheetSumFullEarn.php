@@ -11,6 +11,6 @@ class SheetSumFullEarn extends export_excel_laporan_sum_full_earn implements Wit
 
     public function title(): string
     {
-        return 'mgt_report_sum_full_earn';
+        return 'Summary (Full Earn)';
     }
 }

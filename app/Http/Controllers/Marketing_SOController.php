@@ -869,8 +869,8 @@ class Marketing_SOController extends Controller
             $is_multiple = (!empty($prod_set_clean) && $prod_set_clean !== '-' && strtolower($prod_set_clean) !== 'null');
             $set_key = $is_multiple ? $prod_set_clean : 'SINGLE';
 
-            // Key pemisah di preview: Style + PO + ProductSet + Warna
-            $key = $row->style . '_' . $row->po . '_' . $set_key . '_' . $row->id_color;
+            // Key pemisah di preview: Market + Style + PO + ProductSet + Warna
+            $key = $row->market . '_' . $row->style . '_' . $row->po . '_' . $set_key . '_' . $row->id_color;
 
             if (!isset($pivot_data[$key])) {
                 $pivot_data[$key] = [

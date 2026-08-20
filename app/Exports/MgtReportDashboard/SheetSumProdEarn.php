@@ -11,6 +11,6 @@ class SheetSumProdEarn extends export_excel_laporan_sum_prod_earn implements Wit
 
     public function title(): string
     {
-        return 'mgt_report_sum_prod_earn';
+        return 'Summary (Pdr Earn)';
     }
 }

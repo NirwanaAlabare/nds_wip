@@ -48,15 +48,6 @@ class MaintenanceACFormController extends Controller
         return $jam ? $hari . ' hari ' . $jam . ' jam' : $hari . ' hari';
     }
 
-    private function getAllowedSubDeptIds()
-    {
-        return collect(DB::select("SELECT sub_dept_id FROM user_department WHERE user_id = ?", [Auth::id()]))
-            ->pluck('sub_dept_id')
-            ->filter()
-            ->unique()
-            ->values();
-    }
-
     private function getDepartmentNames($subDeptIds)
     {
         $subDeptIds = collect($subDeptIds)->filter()->unique()->values();
@@ -75,13 +66,23 @@ class MaintenanceACFormController extends Controller
         return collect($rows)->pluck('sub_dept_name', 'sub_dept_id');
     }
 
+    public function getDepartments()
+    {
+        $departments = DB::connection('mysql_hris')->select("SELECT sub_dept_id, sub_dept_name FROM department_all
+        WHERE site_nirwana_id = 'NAG'
+        AND status = 'AKTIF'
+        GROUP BY sub_dept_id, sub_dept_name
+        ORDER BY sub_dept_name ASC");
+
+        return response()->json($departments);
+    }
+
     public function summary(Request $request)
     {
         $tgl_awal = $request->tgl_awal;
         $tgl_akhir = $request->tgl_akhir;
 
-        $query = DB::table('maintenance_ac_form')
-            ->whereIn('sub_dept_id', $this->getAllowedSubDeptIds());
+        $query = DB::table('maintenance_ac_form');
 
         if (!empty($tgl_awal) && !empty($tgl_akhir)) {
             $query->whereDate('tgl_form', '>=', $tgl_awal)
@@ -106,7 +107,6 @@ class MaintenanceACFormController extends Controller
 
             $data = DB::table('maintenance_ac_form')
                 ->select('id', 'no_form', 'tgl_form', 'sub_dept_id', 'keterangan', 'usulan', 'penyelesaian', 'tgl_pengerjaan', 'tgl_selesai', 'status', 'created_by')
-                ->whereIn('sub_dept_id', $this->getAllowedSubDeptIds())
                 ->orderByRaw("FIELD(status, 'ON PROGRESS', 'DRAFT', 'DONE', 'CANCEL')")
                 ->orderBy('tgl_form', 'desc')
                 ->orderBy('no_form', 'desc');

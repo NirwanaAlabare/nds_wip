@@ -11,6 +11,6 @@ class SheetSumBuyer extends export_excel_laporan_sum_buyer implements WithTitle
 
     public function title(): string
     {
-        return 'mgt_report_sum_buyer';
+        return 'Summary Buyer';
     }
 }
