@@ -2411,7 +2411,11 @@ class DcReportController extends Controller
                     SUM(qty_adjustment_secondary_dalam_before) qty_adjustment_secondary_dalam_before,
                     SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
                     SUM(qty_adjustment_secondary_luar_before) qty_adjustment_secondary_luar_before,
-                    SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar
+                    SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
+                    SUM(qty_adjustment_transit_terima_secondary_luar_before) qty_adjustment_transit_terima_secondary_luar_before,
+                    SUM(qty_adjustment_transit_terima_secondary_luar) qty_adjustment_transit_terima_secondary_luar,
+                    SUM(qty_transit_terima_secondary_luar_before) qty_transit_terima_secondary_luar_before,
+                    SUM(qty_transit_terima_secondary_luar) qty_transit_terima_secondary_luar
                 from (
                     select
                         stockers,
@@ -2447,7 +2451,11 @@ class DcReportController extends Controller
                         0 as qty_adjustment_secondary_dalam_before,
                         0 as qty_adjustment_secondary_dalam,
                         0 as qty_adjustment_secondary_luar_before,
-                        0 as qty_adjustment_secondary_luar
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         dc_saldo
                     UNION ALL
@@ -2485,7 +2493,11 @@ class DcReportController extends Controller
                         0 as qty_adjustment_secondary_dalam_before,
                         0 as qty_adjustment_secondary_dalam,
                         0 as qty_adjustment_secondary_luar_before,
-                        0 as qty_adjustment_secondary_luar
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         wip_adjustment
                     WHERE
@@ -2528,7 +2540,11 @@ class DcReportController extends Controller
                         0 as qty_adjustment_secondary_dalam_before,
                         0 as qty_adjustment_secondary_dalam,
                         0 as qty_adjustment_secondary_luar_before,
-                        0 as qty_adjustment_secondary_luar
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         wip_switching_adj
                     where
@@ -2571,7 +2587,11 @@ class DcReportController extends Controller
                         0 as qty_adjustment_secondary_dalam_before,
                         0 as qty_adjustment_secondary_dalam,
                         0 as qty_adjustment_secondary_luar_before,
-                        0 as qty_adjustment_secondary_luar
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         wip_switching_adj
                     WHERE
@@ -2614,7 +2634,11 @@ class DcReportController extends Controller
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_dalam_before,
                         SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_dalam,
                         0 as qty_adjustment_secondary_luar_before,
-                        0 as qty_adjustment_secondary_luar
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         wip_adjustment
                     WHERE
@@ -2657,12 +2681,110 @@ class DcReportController extends Controller
                         0 as qty_adjustment_secondary_dalam_before,
                         0 as qty_adjustment_secondary_dalam,
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_secondary_luar_before,
-                        SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_luar
+                        SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
                     FROM
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
                         type_report = 'DC_SECONDARY_LUAR'
+                    GROUP BY
+                        ws, color, size, panel, part
+                    UNION ALL
+                    select
+                        null stockers,
+                        no_ws ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        panel,
+                        part nama_part,
+                        0 current_saldo_awal,
+                        0 qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading_qty,
+                        0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar,
+                        SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) as qty_adjustment_transit_terima_secondary_luar_before,
+                        SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar
+                    FROM
+                        wip_adjustment
+                    WHERE
+                        tgl_saldo <= '$dateTo' and
+                        type_report = 'TERIMA_TRANSIT_SECONDARY_LUAR'
+                    GROUP BY
+                        ws, color, size, panel, part
+                    UNION ALL
+                    select
+                        null stockers,
+                        no_ws ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        panel,
+                        part nama_part,
+                        0 current_saldo_awal,
+                        0 qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading_qty,
+                        0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        SUM(IF(tanggal < '".$dateFrom."',qty,0)) as qty_transit_terima_secondary_luar_before,
+                        SUM(IF(tanggal >= '".$dateFrom."',qty,0)) as qty_transit_terima_secondary_luar
+                    FROM
+                        inject_mutasi_dc
+                    WHERE
+                        tanggal <= '$dateTo' and
+                        type_report = 'SECONDARY_LUAR'
                     GROUP BY
                         ws, color, size, panel, part
                 ) dc
@@ -2692,7 +2814,11 @@ class DcReportController extends Controller
                         qty_adjustment_secondary_dalam_before != 0 OR
                         qty_adjustment_secondary_dalam != 0 OR
                         qty_adjustment_secondary_luar_before != 0 OR
-                        qty_adjustment_secondary_luar != 0
+                        qty_adjustment_secondary_luar != 0 OR
+                        qty_adjustment_transit_terima_secondary_luar_before != 0 OR
+                        qty_adjustment_transit_terima_secondary_luar != 0 OR
+                        qty_transit_terima_secondary_luar_before != 0 OR
+                        qty_transit_terima_secondary_luar != 0
                     )
             ),
 
@@ -2733,7 +2859,11 @@ class DcReportController extends Controller
                             0 qty_adjustment_secondary_dalam_before,
                             0 qty_adjustment_secondary_dalam,
                             0 qty_adjustment_secondary_luar_before,
-                            0 qty_adjustment_secondary_luar
+                            0 qty_adjustment_secondary_luar,
+                            0 qty_adjustment_transit_terima_secondary_luar_before,
+                            0 qty_adjustment_transit_terima_secondary_luar,
+                            0 qty_transit_terima_secondary_luar_before,
+                            0 qty_transit_terima_secondary_luar
                     from
                             dc
                             left join part on part.act_costing_ws = dc.ws and part.panel = dc.panel
@@ -2858,7 +2988,73 @@ class DcReportController extends Controller
                 SUM(terima_good_secondary_luar)
                 +
                 SUM(qty_adjustment_secondary_luar)
-                ) saldo_akhir_secondary_luar
+                ) saldo_akhir_secondary_luar,
+                (
+                CASE
+                        WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                        ELSE
+                        (
+                                SUM(kirim_secondary_luar_before) 
+                                - SUM(qty_transit_terima_secondary_luar_before)
+                                + SUM(qty_adjustment_secondary_luar_before)
+                                - SUM(terima_repaired_secondary_luar_before) 
+                                - SUM(terima_good_secondary_luar_before)
+                        )
+                END
+                ) new_saldo_awal_secondary_luar,
+                kirim_secondary_luar AS new_terima_dc,
+                qty_transit_terima_secondary_luar AS new_kirim_dc,
+                qty_adjustment_secondary_luar AS new_qty_adjustment_secondary_luar,
+                (
+                        (
+                                CASE
+                                WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                                ELSE (
+                                        SUM(kirim_secondary_luar_before) 
+                                        - SUM(qty_transit_terima_secondary_luar_before)
+                                        + SUM(qty_adjustment_secondary_luar_before)
+                                        - SUM(terima_repaired_secondary_luar_before) 
+                                        - SUM(terima_good_secondary_luar_before)
+                                )
+                                END
+                        )
+                        + SUM(kirim_secondary_luar)
+                        - SUM(qty_transit_terima_secondary_luar)
+                        + SUM(qty_adjustment_secondary_luar)
+                ) AS new_saldo_akhir_secondary_luar,
+                (
+                CASE
+                        WHEN '".$dateFrom."' <= '2026-07-01' THEN 0
+                        ELSE
+                        (
+                                SUM(qty_transit_terima_secondary_luar_before)
+                                - SUM(terima_repaired_secondary_luar_before) 
+                                - SUM(terima_good_secondary_luar_before)
+                                + SUM(qty_adjustment_transit_terima_secondary_luar_before)
+                        )
+                END
+                ) transit_saldo_awal_secondary_luar,
+                qty_transit_terima_secondary_luar AS transit_terima_secondary_luar,
+                terima_repaired_secondary_luar AS transit_kirim_rep_secondary_luar,
+                terima_good_secondary_luar AS transit_kirim_good_secondary_luar,
+                qty_adjustment_transit_terima_secondary_luar AS transit_qty_adjustment_transit_terima_secondary_luar,
+                (
+                        (
+                                CASE
+                                WHEN '".$dateFrom."' <= '2026-07-01' THEN 0
+                                ELSE (
+                                        SUM(qty_transit_terima_secondary_luar_before)
+                                        - SUM(terima_repaired_secondary_luar_before) 
+                                        - SUM(terima_good_secondary_luar_before)
+                                        + SUM(qty_adjustment_transit_terima_secondary_luar_before)
+                                )
+                                END
+                        )
+                        + SUM(qty_transit_terima_secondary_luar)
+                        - SUM(terima_repaired_secondary_luar)
+                        - SUM(terima_good_secondary_luar)
+                        + SUM(qty_adjustment_transit_terima_secondary_luar)
+                ) AS transit_saldo_akhir_secondary_luar
             FROM (
                 select * from dc
                 UNION
@@ -2879,6 +3075,10 @@ class DcReportController extends Controller
 
         if ($request->ajax()) {
 
+            if (!$request->dateFrom || !$request->dateTo) {
+                return DataTables::of([])->toJson();
+            }
+            
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
             $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
 
@@ -2900,15 +3100,20 @@ class DcReportController extends Controller
         ini_set("max_execution_time", 36000);
         ini_set('memory_limit', '1024M');
 
-        $from = $request->from ? $request->from : date("Y-m-d");
-        $to = $request->to ? $request->to : date("Y-m-d");
+        $from = $request->from;
+        $to   = $request->to;
 
         $dateFrom = $from;
-        $dateTo = $to;
+        $dateTo   = $to;
 
-        $dcQuery = $this->buildQuery($dateFrom, $dateTo);
+        $dataReport = collect();
 
-        $dataReport = DB::select($dcQuery);
+        if (!empty($dateFrom) && !empty($dateTo)) {
+
+                $dcQuery = $this->buildQuery($dateFrom, $dateTo);
+
+                $dataReport = collect(DB::select($dcQuery));
+        }
 
         $fileName = 'laporan-dc';
 
@@ -2935,102 +3140,237 @@ class DcReportController extends Controller
 
         $sheet->writeRow(['']);
 
-        $sheet->writeRow([
-            'No. WS','Buyer','Style','Color','Size', 'Panel', 'Part',
-            'Saldo Awal','Masuk','Kirim Sec Dalam','Terima Rep Sec Dalam','Terima Good Sec Dalam', 'Kirim Sec Luar', 'Terima Rep Sec Luar', 'Terima Good Sec Luar', 'Loading', 'Adjustment', 'Saldo Akhir',
-            'Mutasi Secondary Dalam','','','','','',
-            'Mutasi Secondary Luar','','','','',''
-        ], [
-            'font-style' => 'bold',
-            'border'     => 'thin',
-            'halign'     => 'center',
-            'valign'     => 'center',
+        $batasTanggal = '2026-07-01';
+
+        $isOld = $to < $batasTanggal;
+
+        $header = [
+                'No. WS',
+                'Buyer',
+                'Style',
+                'Color',
+                'Size',
+                'Panel',
+                'Part',
+
+                'Mutasi DC',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+
+                'Mutasi Secondary Dalam',
+                '',
+                '',
+                '',
+                '',
+                '',
+        ];
+
+
+        if ($isOld) {
+
+                $header = array_merge($header, [
+                        'Mutasi Secondary Luar',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                ]);
+
+        } else {
+
+                $header = array_merge($header, [
+                        'Mutasi Secondary Luar',
+                        '',
+                        '',
+                        '',
+                        '',
+
+                        'Terima Transit Secondary Luar',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                ]);
+        }
+
+        $sheet->writeRow($header, [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
         ]);
 
-        $sheet->mergeCells('A4:A5');
-        $sheet->mergeCells('B4:B5');
-        $sheet->mergeCells('C4:C5');
-        $sheet->mergeCells('D4:D5');
-        $sheet->mergeCells('E4:E5');
-        $sheet->mergeCells('F4:F5');
-        $sheet->mergeCells('G4:G5');
-        $sheet->mergeCells('H4:H5');
-        $sheet->mergeCells('I4:I5');
-        $sheet->mergeCells('J4:J5');
-        $sheet->mergeCells('K4:K5');
-        $sheet->mergeCells('L4:L5');
-        $sheet->mergeCells('M4:M5');
-        $sheet->mergeCells('N4:N5');
-        $sheet->mergeCells('O4:O5');
-        $sheet->mergeCells('P4:P5');
-        $sheet->mergeCells('Q4:Q5');
-        $sheet->mergeCells('R4:R5');
+        foreach (range('A', 'G') as $col) {
+                $sheet->mergeCells("{$col}4:{$col}5");
+        }
 
+        $sheet->mergeCells('H4:R4');
         $sheet->mergeCells('S4:X4');
-        $sheet->mergeCells('Y4:AD4');
 
+        if ($isOld) {
+                $sheet->mergeCells('Y4:AD4');
+        } else {
+                $sheet->mergeCells('Y4:AC4');
+                $sheet->mergeCells('AD4:AI4');
+        }
+
+        // Identitas
         $sheet->setCellStyle('A4:G4', [
-            'fill'   => '#ADD8E6',
-            'text-align' => 'center',
+                'fill'       => '#ADD8E6',
+                'text-align' => 'center',
         ]);
 
+        // Mutasi DC
         $sheet->setCellStyle('H4:R4', [
-            'fill'   => '#FFFFE0',
-            'text-align' => 'center',
+                'fill'       => '#FFFFE0',
+                'text-align' => 'center',
         ]);
 
+        // Mutasi Secondary Dalam
         $sheet->setCellStyle('S4:X4', [
-            'fill'   => '#FFD966',
-            'text-align' => 'center',
+                'fill'       => '#FFD966',
+                'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('Y4:AD4', [
-            'fill'   => '#90EE90',
-            'text-align' => 'center',
+        if ($isOld) {
+
+                $sheet->setCellStyle('Y4:AD4', [
+                        'fill'       => '#90EE90',
+                        'text-align' => 'center',
+                ]);
+
+        } else {
+
+                $sheet->setCellStyle('Y4:AC4', [
+                        'fill'       => '#90EE90',
+                        'text-align' => 'center',
+                ]);
+
+                $sheet->setCellStyle('AD4:AI4', [
+                        'fill'       => '#FFA94D',
+                        'text-align' => 'center',
+                ]);
+        }
+
+
+        $subHeader = [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+
+                'Saldo Awal',
+                'Masuk',
+                'Kirim Sec Dalam',
+                'Terima Rep Sec Dalam',
+                'Terima Good Sec Dalam',
+                'Kirim Sec Luar',
+                'Terima Rep Sec Luar',
+                'Terima Good Sec Luar',
+                'Loading',
+                'Adjustment',
+                'Saldo Akhir',
+
+                'Saldo Awal Secondary',
+                'Terima DC',
+                'Kirim Rep ke DC',
+                'Kirim Good ke DC',
+                'Adjustment',
+                'Saldo Akhir Secondary',
+        ];
+
+        if ($isOld) {
+
+                $subHeader = array_merge($subHeader, [
+                        'Saldo Awal Secondary',
+                        'Terima DC',
+                        'Kirim Rep ke DC',
+                        'Kirim Good ke DC',
+                        'Adjustment',
+                        'Saldo Akhir Secondary',
+                ]);
+
+        } else {
+
+                $subHeader = array_merge($subHeader, [
+                        'Saldo Awal Secondary',
+                        'Terima DC',
+                        'Kirim Ke DC',
+                        'Adjustment',
+                        'Saldo Akhir Secondary',
+                ]);
+
+                $subHeader = array_merge($subHeader, [
+                        'Saldo Awal',
+                        'Terima Secondary Luar',
+                        'Kirim Rep Secondary Luar',
+                        'Kirim Good Secondary Luar',
+                        'Adjustment',
+                        'Saldo Akhir',
+                ]);
+        }
+
+        $sheet->writeRow($subHeader, [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
         ]);
 
-        $sheet->writeRow([
-            '','','','','','','','','','','','','','','','','','',
-            'Saldo Awal Secondary',
-            'Terima DC',
-            'Kirim Rep ke DC',
-            'Kirim Good ke DC',
-            'Adjustment',
-            'Saldo Akhir Secondary',
-            'Saldo Awal Secondary',
-            'Terima DC',
-            'Kirim Rep ke DC',
-            'Kirim Good ke DC',
-            'Adjustment',
-            'Saldo Akhir Secondary',
-        ], [
-            'font-style' => 'bold',
-            'border'     => 'thin',
-            'halign'     => 'center',
-            'valign'     => 'center',
-        ]);
-
+        // Identitas
         $sheet->setCellStyle('A5:G5', [
-            'fill'   => '#ADD8E6',
-            'text-align' => 'center',
+                'fill'       => '#ADD8E6',
+                'text-align' => 'center',
         ]);
 
+        // Mutasi DC
         $sheet->setCellStyle('H5:R5', [
-            'fill'   => '#FFFFE0',
-            'text-align' => 'center',
+                'fill'       => '#FFFFE0',
+                'text-align' => 'center',
         ]);
 
+        // Mutasi Secondary Dalam
         $sheet->setCellStyle('S5:X5', [
-            'fill'   => '#FFD966',
-            'text-align' => 'center',
+                'fill'       => '#FFD966',
+                'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('Y5:AD5', [
-            'fill'   => '#90EE90',
-            'text-align' => 'center',
-        ]);
+        if ($isOld) {
+
+                $sheet->setCellStyle('Y5:AD5', [
+                        'fill'       => '#90EE90',
+                        'text-align' => 'center',
+                ]);
+
+        } else {
+
+                $sheet->setCellStyle('Y5:AC5', [
+                        'fill'       => '#90EE90',
+                        'text-align' => 'center',
+                ]);
+
+                $sheet->setCellStyle('AD5:AI5', [
+                        'fill'       => '#FFA94D',
+                        'text-align' => 'center',
+                ]);
+        }
+
 
         foreach ($dataReport as $row) {
+
                 $saldoAwal = $row->current_saldo_awal_adjustment ?? 0;
                 $masuk = $row->qty_in ?? 0;
                 $kirimDalam = $row->kirim_secondary_dalam ?? 0;
@@ -3044,9 +3384,11 @@ class DcReportController extends Controller
                 $switchingIn = $row->switching_in ?? 0;
                 $switchingOut = $row->switching_out ?? 0;
 
-                $saldoAkhir = $saldoAwal + $masuk - $kirimDalam + $repDalam + $goodDalam - $kirimLuar + $repLuar + $goodLuar - $loading + ($adjustment + $switchingIn - $switchingOut);
-
+                $saldoAkhir =
+                        $saldoAwal + $masuk - $kirimDalam + $repDalam + $goodDalam - $kirimLuar + $repLuar + $goodLuar - $loading
+                        + ( $adjustment + $switchingIn - $switchingOut);
                 $rows = [
+
                         $row->ws,
                         $row->buyer,
                         $row->style,
@@ -3055,43 +3397,71 @@ class DcReportController extends Controller
                         $row->panel,
                         $row->nama_part,
 
-                        (float) ($saldoAwal),
-                        (float) ($masuk),
-                        (float) ($kirimDalam),
-                        (float) ($repDalam),
-                        (float) ($goodDalam),
-                        (float) ($kirimLuar),
-                        (float) ($repLuar),
-                        (float) ($goodLuar),
-                        (float) ($loading),
-                        (float) ($adjustment),
-                        (float) ($saldoAkhir),
+                        (float) $saldoAwal,
+                        (float) $masuk,
+                        (float) $kirimDalam,
+                        (float) $repDalam,
+                        (float) $goodDalam,
+                        (float) $kirimLuar,
+                        (float) $repLuar,
+                        (float) $goodLuar,
+                        (float) $loading,
+                        (float) $adjustment,
+                        (float) $saldoAkhir,
+                ];
 
+
+                $rows = array_merge($rows, [
                         (float) ($row->saldo_awal_secondary_dalam ?? 0),
                         (float) ($row->kirim_secondary_dalam ?? 0),
                         (float) ($row->terima_repaired_secondary_dalam ?? 0),
                         (float) ($row->terima_good_secondary_dalam ?? 0),
                         (float) ($row->qty_adjustment_secondary_dalam ?? 0),
                         (float) ($row->saldo_akhir_secondary_dalam ?? 0),
-                        (float) ($row->saldo_awal_secondary_luar ?? 0),
-                        (float) ($row->kirim_secondary_luar ?? 0),
-                        (float) ($row->terima_repaired_secondary_luar ?? 0),
-                        (float) ($row->terima_good_secondary_luar ?? 0),
-                        (float) ($row->qty_adjustment_secondary_luar ?? 0),
-                        (float) ($row->saldo_akhir_secondary_luar ?? 0),
-            ];
+                ]);
 
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+                if ($isOld) {
+                        $rows = array_merge($rows, [
+                                (float) ($row->saldo_awal_secondary_luar ?? 0),
+                                (float) ($row->kirim_secondary_luar ?? 0),
+                                (float) ($row->terima_repaired_secondary_luar ?? 0),
+                                (float) ($row->terima_good_secondary_luar ?? 0),
+                                (float) ($row->qty_adjustment_secondary_luar ?? 0),
+                                (float) ($row->saldo_akhir_secondary_luar ?? 0),
+                        ]);
+
+                } else {
+                        $rows = array_merge($rows, [
+                                (float) ($row->new_saldo_awal_secondary_luar ?? 0),
+                                (float) ($row->new_terima_dc ?? 0),
+                                (float) ($row->new_kirim_dc ?? 0),
+                                (float) ($row->new_qty_adjustment_secondary_luar ?? 0),
+                                (float) ($row->new_saldo_akhir_secondary_luar ?? 0),
+                        ]);
+
+                        $rows = array_merge($rows, [
+                                (float) ($row->transit_saldo_awal_secondary_luar ?? 0),
+                                (float) ($row->transit_terima_secondary_luar ?? 0),
+                                (float) ($row->transit_kirim_rep_secondary_luar ?? 0),
+                                (float) ($row->transit_kirim_good_secondary_luar ?? 0),
+                                (float) ($row->transit_qty_adjustment_transit_terima_secondary_luar ?? 0),
+                                (float) ($row->transit_saldo_akhir_secondary_luar ?? 0),
+                        ]);
+                }
+
+                $sheet->writeRow($rows, [
+                        'border' => 'thin',
+                ]);
         }
 
+        // A:Z
         foreach (range('A', 'Z') as $col) {
-            $sheet->setColWidth($col, 20);
+                $sheet->setColWidth($col, 20);
         }
 
-        $sheet->setColWidth('AA', 20);
-        $sheet->setColWidth('AB', 20);
-        $sheet->setColWidth('AC', 20);
-        $sheet->setColWidth('AD', 20);
+        foreach ([ 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'] as $col) {
+                $sheet->setColWidth($col, 20);
+        }
 
         return $excel->download();
     }
