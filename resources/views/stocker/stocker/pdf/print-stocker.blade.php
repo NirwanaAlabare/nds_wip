@@ -81,10 +81,10 @@
                 <td colspan="2">Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
             </tr>
             <tr>
-                <td style="width: 50%; {{ strlen($dataStocker->size) > 15 ? 'font-size: 8px;' : '' }}">
+                <td style="width: 50%; {{ strlen($dataStocker->size) > 13 ? 'font-size: 8px;' : '' }}">
                     Size : {{ strtoupper($dataStocker->size) }}
                 </td>
-                <td style="width: 50%; {{ strlen($dataStocker->dest) > 15 ? 'font-size: 8px;' : '' }}">
+                <td style="width: 50%; {{ strlen($dataStocker->dest) > 13 ? 'font-size: 8px;' : '' }}">
                     Country : {{ strtoupper($dataStocker->dest) }}
                 </td>
             </tr>
