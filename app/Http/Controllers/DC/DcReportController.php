@@ -7107,4 +7107,116 @@ class DcReportController extends Controller
 
         return $excel->download();
     }
+
+    public function report_terima_secondary_luar(Request $request){
+        ini_set("max_execution_time", 36000);
+        ini_set('memory_limit', '1024M');
+
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+
+        if ($request->ajax()) {
+            if ($dateFrom === null || $dateTo === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $dataReport = DB::select("
+                        SELECT 
+                                *, 
+                                DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
+                        FROM inject_mutasi_dc
+                        WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                ");
+            }
+
+            return DataTables::of($dataReport)->toJson();
+        }
+
+        return view('dc.report.report-terima-secondary-luar', [
+            "page" => "dashboard-dc",
+            "subPageGroup" => "report",
+            "subPage" => "report_terima_secondary_luar",
+        ]);
+    }
+
+    public function export_excel_report_terima_secondary_luar(Request $request)
+    {
+        $start_date = $request->from;
+        $end_date = $request->to;
+        $dateFrom = $request->from;
+        $dateTo = $request->to;
+
+        $data = DB::select("
+                SELECT 
+                        *, 
+                        DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
+                FROM inject_mutasi_dc
+                WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+        ");
+
+        $fileName = 'report-mutasi-wip-set-dc';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Report Terima Secondary Luar'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow([
+                'Tanggal',
+                'No. WS',
+                'Buyer',
+                'Style',
+                'Color',
+                'Size',
+                'Panel',
+                'Part',
+                'Qty',
+        ], [
+                'font-style' => 'bold',
+                'border' => 'thin',
+                'halign' => 'center',
+                'valign'     => 'center',
+                'text-align' => 'center',
+        ]);
+
+        foreach ($data as $row) {
+
+        $rows = [
+                $row->tanggal ?: '',
+                $row->no_ws ?: '',
+                $row->buyer ?: '',
+                $row->style ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->panel ?: '',
+                $row->part ?: '',
+
+                (float) ($row->qty ?? 0),
+        ];
+
+        $sheet->writeRow(
+                $rows, [ 'border' => 'thin', ] );
+        }
+
+        foreach (range('A', 'I') as $col) {
+                $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
 }
