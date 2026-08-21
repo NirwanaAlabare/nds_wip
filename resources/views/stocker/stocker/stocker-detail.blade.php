@@ -467,6 +467,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -480,6 +481,10 @@
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                 </div>
                                             </div>
 
@@ -499,6 +504,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -512,6 +518,10 @@
                                                     <div class="mb-3">
                                                         <label><small>Qty</small></label>
                                                         <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Catatan</small></label>
+                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -538,6 +548,10 @@
                                                         <label><small>Qty</small></label>
                                                         <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Catatan</small></label>
+                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                    </div>
                                                 </div>
 
                                                 @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -555,6 +569,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -568,6 +583,10 @@
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Catatan</small></label>
+                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
                                                 </div>
                                             </div>
 
@@ -587,6 +606,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -600,6 +620,10 @@
                                                     <div class="mb-3">
                                                         <label><small>Qty</small></label>
                                                         <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Catatan</small></label>
+                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -625,6 +649,10 @@
                                                     <div class="mb-3">
                                                         <label><small>Qty</small></label>
                                                         <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Catatan</small></label>
+                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -820,7 +848,7 @@
                                             <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
                                             <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
                                             <input type="hidden" name="mod_size[{{ $index }}]" id="mod_size_{{ $index }}" value="{{ $ratio->size }}">
-                                            <input type="hidden" name="mod_range_awal[{{ $index }}]" id="mod_range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                            <input type="hidden" name=" [{{ $index }}]" id="mod_range_awal_{{ $index }}" value="{{ $rangeAwal }}">
                                             <input type="hidden" name="mod_range_akhir[{{ $index }}]" id="mod_range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
                                             @php
                                                 $index++;
@@ -1288,6 +1316,7 @@
                                                     @php
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                     @endphp
                                                 @endif
 
@@ -1301,6 +1330,10 @@
                                                         <div class="mb-3">
                                                             <label><small>Qty</small></label>
                                                             <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label><small>Catatan</small></label>
+                                                            <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
                                                         </div>
                                                     </div>
                                                     @php
@@ -1323,6 +1356,7 @@
 
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                         $currentTotal = $detail->lembar_gelaran;
 
                                                         $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
@@ -1338,6 +1372,10 @@
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
                                                             </div>
                                                         </div>
                                                         @php
@@ -1366,6 +1404,10 @@
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
                                                             </div>
                                                         </div>
                                                         @php
@@ -1401,6 +1443,10 @@
                                                             <label><small>Qty</small></label>
                                                             <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                         </div>
+                                                        <div class="mb-3">
+                                                            <label><small>Catatan</small></label>
+                                                            <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                        </div>
                                                     </div>
                                                     @php
                                                         array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
@@ -1436,6 +1482,10 @@
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                             </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                            </div>
                                                         </div>
                                                         @php
                                                             array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
@@ -1463,6 +1513,10 @@
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
                                                             </div>
                                                         </div>
                                                         @php
@@ -1541,6 +1595,8 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+
                                                         @endphp
                                                     @endif
 
@@ -1554,6 +1610,10 @@
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                             </div>
                                                         </div>
 
@@ -1573,6 +1633,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
@@ -1586,6 +1647,10 @@
                                                                 <div class="mb-3">
                                                                     <label><small>Qty</small></label>
                                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Catatan</small></label>
+                                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                                 </div>
                                                             </div>
 
@@ -1612,6 +1677,10 @@
                                                                     <label><small>Qty</small></label>
                                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
                                                                 </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Catatan</small></label>
+                                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                                </div>
                                                             </div>
 
                                                             @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -1629,6 +1698,7 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                         @endphp
                                                     @endif
 
@@ -1642,6 +1712,10 @@
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
                                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Catatan</small></label>
+                                                                <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                             </div>
                                                         </div>
 
@@ -1661,6 +1735,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
@@ -1674,6 +1749,10 @@
                                                                 <div class="mb-3">
                                                                     <label><small>Qty</small></label>
                                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Catatan</small></label>
+                                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                                 </div>
                                                             </div>
 
@@ -1699,6 +1778,10 @@
                                                                 <div class="mb-3">
                                                                     <label><small>Qty</small></label>
                                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Catatan</small></label>
+                                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                                 </div>
                                                             </div>
 
