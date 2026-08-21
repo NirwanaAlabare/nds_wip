@@ -82,9 +82,11 @@
             </tr>
             <tr>
                 <td style="width: 50%; {{ strlen($dataStocker->size) > 15 ? 'font-size: 8px;' : '' }}">
-                    Size : {{ $dataStocker->size }}
+                    Size : {{ strtoupper($dataStocker->size) }}
                 </td>
-                <td style="width: 50%;"> Country : {{ strtoupper(substr($dataStocker->dest, 0, 30)).(strlen($dataStocker->dest) > 30 ? '...' : '') }}</td>
+                <td style="width: 50%; {{ strlen($dataStocker->dest) > 15 ? 'font-size: 8px;' : '' }}">
+                    Country : {{ strtoupper($dataStocker->dest) }}
+                </td>
             </tr>
             <tr>
                 <td colspan="2">Range : {{ $dataStocker->range_awal." - ".$dataStocker->range_akhir }}</td>
