@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
         Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
         Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
-        Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
+        Route::post('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 
         Route::get('/stocker-part', 'part')->name('stocker-part');
 
@@ -50,7 +50,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');
 
         // add
-        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
         Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
 
         // stocker reject
