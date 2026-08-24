@@ -200,6 +200,12 @@
                     Report WIP Set DC  <i class="fa-solid fa-file"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('dc-report-terima-secondary-luar') }}"
+                    class="dropdown-item {{ $routeName == 'dc-report-terima-secondary-luar' ? 'active' : '' }}">
+                    Terima Secondary Luar  <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole
