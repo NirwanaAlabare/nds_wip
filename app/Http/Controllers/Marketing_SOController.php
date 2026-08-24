@@ -1607,7 +1607,7 @@ class Marketing_SOController extends Controller
                         'id_color'     => $color->id ?? null,
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
-                        'dest'    => $d->market ?? '-',
+                        'dest'    => !empty($d->market) ? $d->market : '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
                     ];
