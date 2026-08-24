@@ -238,10 +238,10 @@
                                     <td>{{ $row->goods_code ?? '-' }}</td>
                                     <td>{{ $row->itemdesc ?? '-' }}</td>
                                     <td>{{ $row->kpno ?? '-' }}</td>
-                                    <td class="text-right text-info font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
-                                    <td class="text-right text-success">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
-                                    <td class="text-right text-danger">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
-                                    <td class="text-right text-primary font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
                                     <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                 </tr>
                             @endforeach

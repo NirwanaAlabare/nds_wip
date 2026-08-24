@@ -50,7 +50,7 @@ class ReportBcController extends Controller
             $cleanKategori = 'barangjadi';
         } elseif ($jenis === 'mutasi_barang_jadi_gudang') {
             $dataLaporan = $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
-            $cleanKategori = 'barangjadi';
+            $cleanKategori = 'barangjadi_gudang';
         } elseif ($jenis === 'mutasi_wip') {
             $dataLaporan = $this->mutasiService->getDataMutasiWip($fromDate, $toDate);
             $cleanKategori = 'mutasiwip';
