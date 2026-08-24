@@ -175,12 +175,12 @@
                     <thead class="text-center">
                         <tr>
                             <th width="5%">No</th>
-                            <th>Id So Det</th>
+                            {{-- <th>Id So Det</th> --}}
                             <th>Kode Barang</th>
-                            <th>Style</th>
-                            <th>No WS</th>
-                            <th>Color</th>
-                            <th>Size</th>
+                            {{-- <th>Style</th> --}}
+                            {{-- <th>No WS</th> --}}
+                            {{-- <th>Color</th> --}}
+                            {{-- <th>Size</th> --}}
                             <th>Dest / Country</th>
                             <th>Unit</th>
                             <th>Saldo Awal</th>
@@ -194,19 +194,19 @@
                             @foreach ($data as $index => $row)
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
-                                    <td>{{ $row->id_so_det ?? '-' }}</td>
-                                    <td>{{ $row->goods_code ?? '-' }}</td>
-                                    <td>{{ $row->styleno ?? '-' }}</td>
+                                    {{-- <td>{!! $row->id_so_det ? str_replace(',', '<br>', $row->id_so_det) : '-' !!}</td> --}}
+                                    {{-- <td>{{ $row->goods_code ?? '-' }}</td> --}}
+                                    {{-- <td>{{ $row->styleno ?? '-' }}</td> --}}
                                     <td>{{ $row->kpno ?? '-' }}</td>
-                                    <td>{{ $row->color ?? '-' }}</td>
-                                    <td>{{ $row->size ?? '-' }}</td>
+                                    {{-- <td>{!! $row->color ? str_replace(',', '<br>', $row->color) : '-' !!}</td> --}}
+                                    {{-- <td>{!! $row->size ? str_replace(',', '<br>', $row->size) : '-' !!}</td> --}}
                                     <td>{{ $row->country ?? '-' }}</td>
                                     <td class="text-center">PCS</td>
 
-                                    <td class="text-right text-info font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
-                                    <td class="text-right text-success">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
-                                    <td class="text-right text-danger">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
-                                    <td class="text-right text-primary font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
                                 </tr>
                             @endforeach
                         @endif

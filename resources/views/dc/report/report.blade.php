@@ -27,11 +27,11 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="">
                     </div>
                     <div>
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="datatableReportDC()"><i class="fa fa-search"></i></button>
@@ -50,38 +50,63 @@
                             <th rowspan="2">Size</th>
                             <th rowspan="2">Panel</th>
                             <th rowspan="2">Part</th>
-                            <th rowspan="2">Saldo Awal</th>
-                            <th rowspan="2">Masuk</th>
-                            <th rowspan="2">Kirim Sec Dalam</th>
-                            <th rowspan="2">Terima Repaired Sec Dalam</th>
-                            <th rowspan="2">Terima Good Sec Dalam</th>
-                            <th rowspan="2">Kirim Sec Luar</th>
-                            <th rowspan="2">Terima Repaired Sec Luar</th>
-                            <th rowspan="2">Terima Good Sec Luar</th>
-                            <th rowspan="2">Loading</th>
-                            <th rowspan="2">Adjustment</th>
-                            <th rowspan="2">Saldo Akhir</th>
+                            <th class="text-center" colspan="11">Mutasi DC</th>
                             <th class="text-center" colspan="6">Mutasi Secondary Dalam</th>
                             <th class="text-center" colspan="6">Mutasi Secondary Luar</th>
+                            <th class="text-center" colspan="5">Mutasi Secondary Luar</th>
+                            <th class="text-center" colspan="6">Terima Transit Secondary Luar</th>
                         </tr>
                         <tr>
-                            <th>Saldo Awal Secondary</th>
+                            <th>Saldo Awal</th>
+                            <th>Masuk</th>
+                            <th>Kirim Sec Dalam</th>
+                            <th>Terima Repaired Sec Dalam</th>
+                            <th>Terima Good Sec Dalam</th>
+                            <th>Kirim Sec Luar</th>
+                            <th>Terima Repaired Sec Luar</th>
+                            <th>Terima Good Sec Luar</th>
+                            <th>Loading</th>
+                            <th>Adjustment</th>
+                            <th>Saldo Akhir</th>
+                            <th>Saldo Awal</th>
                             <th>Terima DC</th>
                             <th>Kirim Rep ke DC</th>
                             <th>Kirim Good ke DC</th>
                             <th>Adjustment</th>
-                            <th>Saldo Akhir Secondary</th>
-                            <th>Saldo Awal Secondary</th>
+                            <th>Saldo Akhir</th>
+                            <th>Saldo Awal</th>
                             <th>Terima DC</th>
                             <th>Kirim Rep ke DC</th>
                             <th>Kirim Good ke DC</th>
                             <th>Adjustment</th>
-                            <th>Saldo Akhir Secondary</th>
+                            <th>Saldo Akhir</th>
+                            <th>Saldo Awal</th>
+                            <th>Terima DC</th>
+                            <th>Kirim Ke DC</th>
+                            <th>Adjustment</th>
+                            <th>Saldo Akhir</th>
+                            <th>Saldo Awal</th>
+                            <th>Terima Secondary Luar</th>
+                            <th>Kirim Rep Secondary Luar</th>
+                            <th>Kirim Good Secondary Luar</th>
+                            <th>Adjustment</th>
+                            <th>Saldo Akhir</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
                             <th colspan="7">TOTAL</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -125,42 +150,69 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            let today = new Date(new Date().setDate(new Date().getDate()));
-            let todayDate = ("0" + today.getDate()).slice(-2);
-            let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
-            let todayYear = today.getFullYear();
-            let todayFull = todayYear + '-' + todayMonth + '-' + todayDate;
+        // document.addEventListener("DOMContentLoaded", () => {
+        //     let today = new Date(new Date().setDate(new Date().getDate()));
+        //     let todayDate = ("0" + today.getDate()).slice(-2);
+        //     let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+        //     let todayYear = today.getFullYear();
+        //     let todayFull = todayYear + '-' + todayMonth + '-' + todayDate;
 
-            $("#tgl-awal").val(todayFull).trigger("change");
+        //     $("#tgl-awal").val(todayFull).trigger("change");
 
-            window.addEventListener("focus", () => {
-                // $('#datatable-dc-report').DataTable().ajax.reload(null, false);
-            });
-        });
+        //     window.addEventListener("focus", () => {
+        //         // $('#datatable-dc-report').DataTable().ajax.reload(null, false);
+        //     });
+        // });
 
 
         let datatableDcReport = $("#datatable-dc-report").DataTable({
             ordering: false,
-            processing: true,
+            processing: false,
             serverSide: true,
             scrollX: true,
             scrollY: "60vh",
             scrollCollapse: true,
+            deferLoading: 0,
             pageLength: 25,
             lengthMenu: [
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "All"]
             ],
-
             ajax: {
                 url: '{{ route('dc-report') }}',
+                type: 'POST',
+                beforeSend: function () {
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Please wait while data is loading.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
                 data: function (d) {
                     d.dateFrom = $("#tgl-awal").val();
                     d.dateTo = $("#tgl-akhir").val();
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataSrc: function (json) {
+                    Swal.close();
+
+                    return json.data;
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+
+                    Swal.fire(
+                        'Error',
+                        'Failed to load data.',
+                        'error'
+                    );
                 }
             },
-
             columns: [
                 { data: 'ws' },
                 { data: 'buyer' },
@@ -210,42 +262,24 @@
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'qty_adjustment_secondary_luar', defaultContent: 0 },
                 { data: 'saldo_akhir_secondary_luar', defaultContent: 0 },
+                { data: 'new_saldo_awal_secondary_luar', defaultContent: 0 },
+                { data: 'new_terima_dc', defaultContent: 0 },
+                { data: 'new_kirim_dc', defaultContent: 0 },
+                { data: 'new_qty_adjustment_secondary_luar', defaultContent: 0 },
+                { data: 'new_saldo_akhir_secondary_luar', defaultContent: 0 },
+                { data: 'transit_saldo_awal_secondary_luar', defaultContent: 0 },
+                { data: 'transit_terima_secondary_luar', defaultContent: 0 },
+                { data: 'transit_kirim_rep_secondary_luar', defaultContent: 0 },
+                { data: 'transit_kirim_good_secondary_luar', defaultContent: 0 },
+                { data: 'transit_qty_adjustment_transit_terima_secondary_luar', defaultContent: 0 },
+                { data: 'transit_saldo_akhir_secondary_luar', defaultContent: 0 },
             ],
-
             columnDefs: [
                 {
                     targets: "_all",
                     className: 'align-middle text-nowrap'
                 },
             ],
-            // drawCallback: function () {
-            //     let api = this.api();
-
-            //     $('#datatable-dc-report tbody tr.total-row').remove();
-
-            //     const sum = (idx) =>
-            //         api.column(idx, { page: 'current' }).data()
-            //         .reduce((a, b) => (+a || 0) + (+b || 0), 0);
-
-            //     let totalRow = `
-            //         <tr class="total-row fw-bold bg-light">
-            //             <td colspan="6" class="text-end">TOTAL</td>
-            //             <td>${sum(6)}</td>
-            //             <td>${sum(7)}</td>
-            //             <td>${sum(8)}</td>
-            //             <td>${sum(9)}</td>
-            //             <td>${sum(10)}</td>
-            //             <td>${sum(11)}</td>
-            //             <td>${sum(12)}</td>
-            //             <td>${sum(13)}</td>
-            //             <td>${sum(14)}</td>
-            //             <td>${sum(15)}</td>
-            //         </tr>
-            //     `;
-
-            //     $('#datatable-dc-report tbody').append(totalRow);
-            // }
-
             footerCallback: function (row, data, start, end, display) {
                 let api = this.api();
 
@@ -301,33 +335,80 @@
                 $(api.column(27).footer()).html(sumCol(27));
                 $(api.column(28).footer()).html(sumCol(28));
                 $(api.column(29).footer()).html(sumCol(29));
+                $(api.column(30).footer()).html(sumCol(30));
+                $(api.column(31).footer()).html(sumCol(31));
+                $(api.column(32).footer()).html(sumCol(32));
+                $(api.column(33).footer()).html(sumCol(33));
+                $(api.column(34).footer()).html(sumCol(34));
+                $(api.column(35).footer()).html(sumCol(35));
+                $(api.column(36).footer()).html(sumCol(36));
+                $(api.column(37).footer()).html(sumCol(37));
+                $(api.column(38).footer()).html(sumCol(38));
+                $(api.column(39).footer()).html(sumCol(39));
+                $(api.column(40).footer()).html(sumCol(40));
             }
         });
 
+        updateDcReportView();
+
+        $('#tgl-awal, #tgl-akhir').on('change', function () {
+            updateDcReportView();
+        });
 
         function datatableReportDC() {
-            datatableDcReport.ajax.reload()
+            datatableDcReport.ajax.reload();
         }
 
-        var filters = ['noWsColorSizeFilter', 'noWsColorPartFilter', 'noWsFilter', 'buyerFilter', 'styleFilter', 'colorFilter', 'sizeFilter', 'partFilter', 'saldoAwalFilter', 'masukFilter', 'kirimSecDalamFilter', 'terimaRepairedSecDalamFilter', 'terimaGoodSecDalamFilter', 'kirimSecLuarFilter', 'terimaRepairedSecLuarFilter', 'terimaGoodSecLuarFilter', 'loadingFilter', 'saldoAkhirFilter'];
-        $('#datatable-dc-report thead tr').clone(true).appendTo('#datatable-dc-report thead');
-        $('#datatable-dc-report thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" id="'+filters[i]+'"/>');
+        function updateDcReportView() {
 
-                $('input', this).on('keyup change', function() {
-                    if (datatableDcReport.column(i).search() !== this.value) {
-                        datatableDcReport
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
+            const endDate = $('#tgl-akhir').val();
+
+            if (!endDate) {
+                return;
             }
-        });
+
+            const batasTanggal = '2026-07-01';
+            const isOld = endDate < batasTanggal;
+
+            const table = $('#datatable-dc-report').DataTable();
+
+            // Lama
+            for (let col = 24; col <= 29; col++) {
+                table.column(col).visible(isOld, false);
+            }
+
+            // Baru
+            for (let col = 30; col <= 34; col++) {
+                table.column(col).visible(!isOld, false);
+            }
+
+            // Transit
+            for (let col = 35; col <= 40; col++) {
+                table.column(col).visible(!isOld, false);
+            }
+
+            table.columns.adjust();
+        }
+
+        // var filters = ['noWsColorSizeFilter', 'noWsColorPartFilter', 'noWsFilter', 'buyerFilter', 'styleFilter', 'colorFilter', 'sizeFilter', 'partFilter', 'saldoAwalFilter', 'masukFilter', 'kirimSecDalamFilter', 'terimaRepairedSecDalamFilter', 'terimaGoodSecDalamFilter', 'kirimSecLuarFilter', 'terimaRepairedSecLuarFilter', 'terimaGoodSecLuarFilter', 'loadingFilter', 'saldoAkhirFilter'];
+        // $('#datatable-dc-report thead tr').clone(true).appendTo('#datatable-dc-report thead');
+        // $('#datatable-dc-report thead tr:eq(1) th').each(function(i) {
+        //     if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5) {
+        //         var title = $(this).text();
+        //         $(this).html('<input type="text" class="form-control form-control-sm" id="'+filters[i]+'"/>');
+
+        //         $('input', this).on('keyup change', function() {
+        //             if (datatableDcReport.column(i).search() !== this.value) {
+        //                 datatableDcReport
+        //                     .column(i)
+        //                     .search(this.value)
+        //                     .draw();
+        //             }
+        //         });
+        //     } else {
+        //         $(this).empty();
+        //     }
+        // });
 
         async function exportExcel() {
             Swal.fire({

@@ -365,6 +365,11 @@
             if (data.status_closing === 'Closed') {
                 $(row).addClass('tr-closed');
             }
+        },
+        drawCallback: function() {
+            // Selalu sinkronkan jumlah_data setiap kali tabel di-render
+            // (termasuk load awal & pencarian via kotak search), bukan hanya saat tombol "search" diklik
+            document.getElementById('jumlah_data').value = this.api().data().count();
         }
     });
 

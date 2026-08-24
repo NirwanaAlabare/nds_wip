@@ -13,8 +13,8 @@
                 <h2 class="accordion-header w-75">
                     <button class="accordion-button accordion-sb-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen1-{{ $indexAdditional }}" aria-expanded="false" aria-controls="panelsStayOpen1-collapseTwo">
                         <div class="d-flex w-75 justify-content-between align-items-center">
-                            <p class="w-25 mb-0">{{ $partDetailAdd->nama_part." - ".$partDetailAdd->bag }}</p>
-                            <p class="w-50 mb-0">{{ $partDetailAdd->tujuan." - ".$partDetailAdd->proses }}</p>
+                            <p class="w-25 mb-0">{{ $partDetailAdd->id ? $partDetailAdd->nama_part." - ".$partDetailAdd->bag : 'Belum ada Part' }}</p>
+                            <p class="w-50 mb-0">{{ $partDetailAdd->id ? $partDetailAdd->tujuan." - ".$partDetailAdd->proses : 'Belum ada Proses Part' }}</p>
                         </div>
                     </button>
                 </h2>

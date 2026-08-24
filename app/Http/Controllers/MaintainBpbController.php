@@ -116,9 +116,21 @@ class MaintainBpbController extends Controller
             ]);
         }
 
+    // Ambil baris yang dicentang (checkbox yang tidak dicentang tidak ikut ter-submit)
+        $chekIds = $request->input('chek_id', []);
+
+    // Validasi: minimal ada satu baris yang dicentang
+        if (empty($chekIds)) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Belum ada baris BPB yang dipilih.",
+                "additional" => [],
+                "redirect" => null
+            ]);
+        }
+
     // Validasi: Pastikan setiap baris yang dicentang memiliki keterangan
-        for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
-            $check = isset($request['chek_id'][$i]) ? $request['chek_id'][$i] : 0;
+        foreach ($chekIds as $i => $check) {
             if ($check > 0 && empty($request["keterangan"][$i])) {
                 return response()->json([
                     "status" => 400,
@@ -154,8 +166,7 @@ class MaintainBpbController extends Controller
         ]);
 
     // Insert detail
-        for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
-            $check = isset($request['chek_id'][$i]) ? $request['chek_id'][$i] : 0;
+        foreach ($chekIds as $i => $check) {
             if ($check > 0 && !empty($request["keterangan"][$i])) {
                 DB::connection('mysql_sb')->table('maintain_bpb_det')->insert([
                     'no_maintain'        => $kodeDokumen,

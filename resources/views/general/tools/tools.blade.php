@@ -182,6 +182,12 @@
             dropdownParent: $("#updateGeneralOrderColorModal")
         });
 
+        $( document ).ready(function() {
+            document.getElementById("loading").classList.add("d-none");
+
+            $("#act_costing_id_color").val("").trigger("change");
+        });
+
         function updateGeneralOrder() {
             Swal.fire({
                 title: 'Please Wait...',
@@ -233,6 +239,8 @@
         }
 
         function getOrderColorListFrom() {
+            showLoading();
+
             $('#color_from').empty();
 
             $.ajax({
@@ -243,6 +251,8 @@
                 },
                 dataType: "json",
                 success: function (response) {
+                    hideLoading();
+
                     console.log(response);
 
                     if (response.length > 0) {
@@ -252,6 +262,8 @@
                     }
                 },
                 error: function (jqXHR) {
+                    hideLoading();
+
                     console.error(jqXHR);
                 }
             });
