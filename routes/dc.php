@@ -289,6 +289,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export-report-dc', 'exportReportDc')->name('export-report-dc');
         Route::get('/report_mutasi_wip_dc_set', 'report_mutasi_wip_dc_set')->name('dc-report-mutasi-wip-dc-set');
         Route::post('/export_excel_report_mutasi_wip_dc_set', 'export_excel_report_mutasi_wip_dc_set')->name('export_excel_report_mutasi_wip_dc_set');
+        Route::get('/report_terima_secondary_luar', 'report_terima_secondary_luar')->name('dc-report-terima-secondary-luar');
+        Route::post('/export_excel_report_terima_secondary_luar', 'export_excel_report_terima_secondary_luar')->name('export_excel_report_terima_secondary_luar');
 
     });
 });
