@@ -268,7 +268,7 @@
                             <th>Nama Penerima</th>
                             <th>No BPPB</th>
                             <th>Tanggal BPPB</th>
-                            <th>ID Item</th>
+                            <th>No WS</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
                             <th>Jumlah Satuan</th>
@@ -290,14 +290,14 @@
                                 <td>{{ $row->nama_pengirim ?? '-' }}</td>
                                 <td>{{ $row->nomor_bpb ?? '-' }}</td>
                                 <td>{{ ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000' }}</td>
-                                <td>{{ $row->id_item ?? '-' }}</td>
+                                <td>{{ $row->ws ?? '-' }}</td>
                                 <td>{{ $row->uraian_barang ?? '-' }}</td>
                                 <td>{{ $row->jenis_satuan ?? '-' }}</td>
-                                <td class="text-right">{{ number_format($row->jumlah_satuan ?? 0, 2) }}</td>
+                                <td class="text-right font-weight-bold">{{ number_format($row->jumlah_satuan ?? 0, 2) }}</td>
                                 <td>{{ $row->kode_valuta ?? '-' }}</td>
-                                <td class="text-right">{{ number_format($row->nilai_barang ?? 0, 2) }}</td>
-                                <td class="text-right">{{ number_format($row->kurs ?? 0, 2) }}</td>
-                                <td class="text-right">{{ number_format($row->nilai_barang_idr ?? 0, 2) }}</td>
+                                <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang ?? 0, 2) }}</td>
+                                <td class="text-right font-weight-bold">{{ number_format($row->kurs ?? 0, 2) }}</td>
+                                <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang_idr ?? 0, 2) }}</td>
                             </tr>
                         @empty
                             <tr>

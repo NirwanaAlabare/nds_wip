@@ -109,10 +109,10 @@
                                     <td class="text-center">{{ $row->id_item ?? '-' }}</td>
                                     <td>{{ $row->kode_brg ?? '-' }}</td>
                                     <td>{{ $row->nama_brg ?? '-' }}</td>
-                                    <td class="text-right text-info font-weight-bold">{{ number_format($row->saldo_awal ?? 0, 2) }}</td>
-                                    <td class="text-right text-success">{{ number_format($row->qtyrcv ?? 0, 2) }}</td>
-                                    <td class="text-right text-danger">{{ number_format($row->qtyout ?? 0, 2) }}</td>
-                                    <td class="text-right text-primary font-weight-bold">{{ number_format($row->qty_akhir ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldo_awal ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyrcv ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyout ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qty_akhir ?? 0, 2) }}</td>
                                     <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                 </tr>
                             @endforeach
