@@ -467,7 +467,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -484,7 +484,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Catatan</small></label>
-                                                    <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                    <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                 </div>
                                             </div>
 
@@ -504,7 +504,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -521,7 +521,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label><small>Catatan</small></label>
-                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                        <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -550,7 +550,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label><small>Catatan</small></label>
-                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                        <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -569,7 +569,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -586,7 +586,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Catatan</small></label>
-                                                    <input type="text" id="note_{{ $currentGroupStocker }}" name="note_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNote }}">
+                                                    <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                 </div>
                                             </div>
 
@@ -606,7 +606,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -623,7 +623,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label><small>Catatan</small></label>
-                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                        <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -652,7 +652,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label><small>Catatan</small></label>
-                                                        <input type="text" id="note_add_{{ $currentGroupStocker }}" name="note_add_{{ $currentGroupStocker }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
+                                                        <input type="text" id="note_add_{{ $currentGroupStockerAdditional }}" name="note_add_{{ $currentGroupStockerAdditional }}" class="form-control form-control-sm" value="{{ $currentNoteAdditional }}">
                                                     </div>
                                                 </div>
 
@@ -2570,82 +2570,6 @@
             });
         }
 
-        function printStockerAllSizeAdd() {
-            generating = true;
-
-            let stockerForm = new FormData(document.getElementById("stocker-form"));
-
-            let no_ws = document.getElementById("no_ws_add").value;
-            let style = document.getElementById("style_add").value;
-            let color = document.getElementById("color_add").value;
-            let panel = document.getElementById("panel_add").value;
-            let no_form_cut = document.getElementById("no_form_cut").value;
-
-            let fileName = [
-                no_ws,
-                style,
-                color,
-                panel,
-                part,
-                no_form_cut
-            ].join('-');
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: '{{ route('print-stocker-all-size-add') }}',
-                type: 'post',
-                processData: false,
-                contentType: false,
-                data: stockerForm,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = fileName+".pdf";
-                        link.click();
-
-                        swal.close();
-
-                        window.location.reload();
-                    }
-                    generating = false;
-                },
-                error: function(jqXHR) {
-                    console.log(jqXHR);
-
-                    generating = false;
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Terjadi kesalahan',
-                        confirmButtonText: 'Coba Lagi',
-                        showCancelButton: true,
-                        cancelButtonText: 'Batalkan',
-                    }).then(result => {
-                        if (result.isConfirmed) {
-                            printStockerAllSizeAdd(); // Retry the request
-                        }
-                    });
-                }
-            });
-        }
-
         function massChange(element) {
             let dataGroup = element.getAttribute('data-group');
             let dataChecked = element.checked;
@@ -3528,80 +3452,6 @@
                     }).then(result => {
                         if (result.isConfirmed) {
                             printStockerAllSize(part); // Retry the request
-                        }
-                    });
-                }
-            });
-        }
-
-        function printStockerAllSizeAddCom(i) {
-            generating = true;
-
-            let stockerForm = new FormData(document.getElementById("stocker-form-com-"+i));
-
-            let no_ws = document.getElementById("no_ws_add_com_"+i).value;
-            let style = document.getElementById("style_add_com_"+i).value;
-            let color = document.getElementById("color_add_com_"+i).value;
-            let panel = document.getElementById("panel_add_com_"+i).value;
-            let no_form_cut = document.getElementById("no_form_cut_com_"+i).value;
-
-            let fileName = [
-                no_ws,
-                style,
-                color,
-                panel,
-                part,
-                no_form_cut
-            ].join('-');
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: '{{ route('print-stocker-all-size-add') }}',
-                type: 'post',
-                processData: false,
-                contentType: false,
-                data: stockerForm,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = fileName+".pdf";
-                        link.click();
-
-                        swal.close();
-
-                        window.location.reload();
-                    }
-                    generating = false;
-                },
-                error: function(jqXHR) {
-                    console.log(jqXHR);
-
-                    generating = false;
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Terjadi kesalahan',
-                        confirmButtonText: 'Coba Lagi',
-                        showCancelButton: true,
-                        cancelButtonText: 'Batalkan',
-                    }).then(result => {
-                        if (result.isConfirmed) {
-                            printStockerAllSizeAddCom(i); // Retry the request
                         }
                     });
                 }
