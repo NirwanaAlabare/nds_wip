@@ -445,11 +445,11 @@
 @section('content')
 <div class="dash2">
 
-    <div class="d2-header">
+    <div class="d2-header bg-sb">
         <div>
-            <div class="d2-eyebrow">Bea Cukai</div>
+            <div class="d2-eyebrow" style="color:white;">Bea Cukai</div>
             <h1 class="d2-title">Dashboard Report BC</h1>
-            <div class="d2-sub" id="periodeLabelSub">Memuat...</div>
+            <div class="d2-sub" id="periodeLabelSub" style="color:white;">Memuat...</div>
         </div>
         <span class="d2-stamp" id="periodBadge">Memuat...</span>
     </div>
