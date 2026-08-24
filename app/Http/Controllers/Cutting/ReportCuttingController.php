@@ -5023,101 +5023,107 @@ order by  ws asc, color asc
                 mi.itemdesc,
 
                 ROUND(
-                    SUM(saldo_awal)
-                    - CASE
-                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(qty_pakai_before), 0) = 0
-                        THEN SUM(qty_pakai_adjustment_before)
-                        ELSE 0
-                    END
-                    + CASE
-                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(sr_before), 0) = 0
-                        THEN SUM(sr_adjustment_before)
-                        ELSE 0
-                    END
-                    - CASE
-                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
-                            AND COALESCE(SUM(qty_retur_before), 0) = 0
-                        THEN SUM(qty_retur_adjustment_before)
-                        ELSE 0
-                    END
-                    + COALESCE(SUM(qty_adjustment_before), 0),
+                        SUM(saldo_awal)
+                        - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                        AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                THEN SUM(qty_pakai_adjustment_before)
+                                ELSE 0
+                        END
+                        + CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(sr_before), 0) = 0
+                                        AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                THEN SUM(sr_adjustment_before)
+                                ELSE 0
+                        END
+                        - CASE
+                                WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                        AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                        AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                THEN SUM(qty_retur_adjustment_before)
+                                ELSE 0
+                        END
+                        + COALESCE(SUM(qty_adjustment_before), 0),
                 2) AS saldo_awal,
                 ROUND(SUM(qty_in),2) AS penerimaan,
                 ROUND(
-                    CASE
-                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
-                        ELSE SUM(qty_pakai_adjustment)
-                    END
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
+                                ELSE SUM(qty_pakai_adjustment)
+                        END
                 ,2) AS pemakaian,
                 ROUND(
-                    CASE
-                        WHEN COALESCE(SUM(sr),0) <> 0
-                            THEN SUM(sr)
-                        ELSE SUM(sr_adjustment)
-                    END
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%'
+                                        THEN SUM(sr)
+                                ELSE SUM(sr_adjustment)
+                        END
                 ,2) AS short_roll,
                 ROUND(SUM(gr_p),2) AS gr_panel,
                 ROUND(SUM(gr_g),2) AS gr_set,
                 ROUND(
-                    CASE
-                        WHEN COALESCE(SUM(qty_retur),0) <> 0
-                            THEN SUM(qty_retur)
-                        ELSE SUM(qty_retur_adjustment)
-                    END
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%'
+                                        THEN SUM(qty_retur)
+                                ELSE SUM(qty_retur_adjustment)
+                        END
                 ,2) AS retur,
                 ROUND(SUM(qty_adjustment),2) AS adjustment,
                 ROUND(
-                    (
-                        SUM(saldo_awal)
-                        - CASE
-                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
-                            THEN SUM(qty_pakai_adjustment_before)
-                            ELSE 0
+                        (
+                                SUM(saldo_awal)
+                                - CASE
+                                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                        THEN SUM(qty_pakai_adjustment_before)
+                                        ELSE 0
+                                END
+                                + CASE
+                                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(sr_before), 0) = 0
+                                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                        THEN SUM(sr_adjustment_before)
+                                        ELSE 0
+                                END
+                                - CASE
+                                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                                AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                                        THEN SUM(qty_retur_adjustment_before)
+                                        ELSE 0
+                                END
+                                + COALESCE(SUM(qty_adjustment_before), 0)
+                        )
+                        + SUM(qty_in)
+                        -
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
+                                ELSE SUM(qty_pakai_adjustment)
                         END
-                        + CASE
-                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(sr_before), 0) = 0
-                            THEN SUM(sr_adjustment_before)
-                            ELSE 0
+                        +
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%'
+                                        THEN SUM(sr)
+                                ELSE SUM(sr_adjustment)
                         END
-                        - CASE
-                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
-                                AND COALESCE(SUM(qty_retur_before), 0) = 0
-                            THEN SUM(qty_retur_adjustment_before)
-                            ELSE 0
+                        - SUM(gr_p)
+                        - SUM(gr_g)
+                        -
+                        CASE
+                                WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%'
+                                        THEN SUM(qty_retur)
+                                ELSE SUM(qty_retur_adjustment)
                         END
-                        + COALESCE(SUM(qty_adjustment_before), 0)
-                    )
-                    + SUM(qty_in)
-                    -
-                    CASE
-                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
-                        ELSE SUM(qty_pakai_adjustment)
-                    END
-                    +
-                    CASE
-                        WHEN COALESCE(SUM(sr),0) <> 0
-                            THEN SUM(sr)
-                        ELSE SUM(sr_adjustment)
-                    END
-                    - SUM(gr_p)
-                    - SUM(gr_g)
-                    -
-                    CASE
-                        WHEN COALESCE(SUM(qty_retur),0) <> 0
-                            THEN SUM(qty_retur)
-                        ELSE SUM(qty_retur_adjustment)
-                    END
-                    + SUM(qty_adjustment)
+                        + SUM(qty_adjustment)
                 ,2) AS saldo_akhir,
                 satuan
 
@@ -5143,7 +5149,8 @@ order by  ws asc, color asc
                     0 qty_retur_adjustment_before,
                     0 qty_pakai_before,
                     0 sr_before,
-                    0 qty_retur_before
+                    0 qty_retur_before,
+                    null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans BETWEEN ? AND ?
                 GROUP BY $groupBy
@@ -5162,7 +5169,8 @@ order by  ws asc, color asc
                     0 qty_retur_adjustment_before,
                     0 qty_pakai_before,
                     0 sr_before,
-                    0 qty_retur_before
+                    0 qty_retur_before,
+                    null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans = ?
                 GROUP BY $groupBy
@@ -5181,7 +5189,8 @@ order by  ws asc, color asc
                     0 qty_retur_adjustment_before,
                     SUM(qty_pakai) qty_pakai_before,
                     SUM(sr) sr_before,
-                    SUM(qty_retur) qty_retur_before
+                    SUM(qty_retur) qty_retur_before,
+                    null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
                 GROUP BY $groupBy
@@ -5259,7 +5268,8 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment_before,
                     0 qty_pakai_before,
                     0 sr_before,
-                    0 qty_retur_before
+                    0 qty_retur_before,
+                    type
                 FROM
                     wip_adjustment_fabric
                 WHERE
@@ -5268,7 +5278,7 @@ order by  ws asc, color asc
                     $groupBy
             ) mut
             LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
-            LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from whs_bppb_det left join whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '".$start_date."' and '".$end_date."' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs
+            LEFT JOIN (select id_roll as id_roll_whs, MIN(tgl_bppb) tgl_bppb from signalbit_erp.whs_bppb_det left join signalbit_erp.whs_bppb_h on whs_bppb_det.no_bppb = whs_bppb_h.no_bppb where tgl_bppb between '{$start_date}' and '{$end_date}' group by whs_bppb_det.id_roll) whs ON mut.id_roll = whs.id_roll_whs
             LEFT JOIN (
                 SELECT
                     ac.kpno,
