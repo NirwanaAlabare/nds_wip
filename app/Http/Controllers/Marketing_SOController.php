@@ -3622,10 +3622,8 @@ class Marketing_SOController extends Controller
         $mysql_sb->beginTransaction();
 
         try {
-            // ==========================================
-            // 1. Validasi Awal SO & JO (dengan lock, cegah race condition kalau
-            //    sync di-trigger 2x hampir bersamaan)
-            // ==========================================
+            // 1. Validasi Awal SO & JO + lock
+
             $so = $mysql_sb->table('so')->where('id', $id)->lockForUpdate()->first();
             if (!$so) return ['status' => 400, 'message' => 'SO tidak ditemukan'];
             if (!$so->id_bom) return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
@@ -3637,13 +3635,7 @@ class Marketing_SOController extends Controller
             $id_bom = $so->id_bom;
             $username = auth()->check() ? auth()->user()->username : 'system';
 
-            // ==========================================
             // 2. Ambil Data Master BOM
-            //    Aturan bisnis: 1 kombinasi id_bom_marketing + id_item + id_color +
-            //    id_size (+ id_panel khusus fabric) HARUS cuma 1 baris aktif.
-            //    id_supplier & rule_bom adalah ATRIBUT, bukan pembeda baris.
-            //    Key GROUP BY & matching = id_so_det + id_item + id_panel saja.
-            // ==========================================
             $required_items = $mysql_sb->select("
                 SELECT
                     ? as id_jo,
@@ -3679,12 +3671,7 @@ class Marketing_SOController extends Controller
                     bmd.notes
             ", [$id_jo, $id_bom, $id]);
 
-            // ==========================================
-            // 2b. Deteksi anomali data Master BOM sebelum lanjut.
-            //     - Duplikat identik (supplier & rule sama) -> boleh lanjut, cuma di-log.
-            //     - Duplikat dengan supplier/rule BEDA -> konflik data nyata,
-            //       hentikan sync, jangan asal pilih salah satu secara diam-diam.
-            // ==========================================
+            // Deteksi anomali data Master BOM sebelum lanjut.
             foreach ($required_items as $req) {
                 if ($req->jumlah_baris_source > 1) {
                     \Log::warning("BOM sync: ditemukan baris duplikat di bom_marketing_detail", [
@@ -3712,19 +3699,13 @@ class Marketing_SOController extends Controller
                 ->where('cancel', 'N')
                 ->get();
 
-            // ==========================================
-            // Key matching: id_so_det + id_item + id_panel (unik, deterministic).
-            // Tidak ada lagi array-per-key + fallback "cocokin cons/ambil yang pertama".
-            // ==========================================
+            // Key matching: id_so_det + id_item + id_panel + rule + notes
             $existing_map = [];
             $posno_map = [];
             foreach ($existing_items as $item) {
                 $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel . '_' . $item->rule_bom . '_' . $item->notes;
 
                 if (isset($existing_map[$key])) {
-                    // Sisa duplikat lama (dari bug sebelumnya) -- log saja,
-                    // baris ini akan otomatis ke-cancel di step 4 karena tidak
-                    // pernah masuk $processed_ids.
                     \Log::warning("BOM sync: existing bom_jo_item duplikat ditemukan, akan di-cancel otomatis", [
                         'id_jo' => $id_jo,
                         'key' => $key,
@@ -3743,9 +3724,7 @@ class Marketing_SOController extends Controller
 
             $posno_counter = (int) $mysql_sb->table('bom_jo_item')->where('id_jo', $id_jo)->max('posno');
 
-            // ==========================================
-            // 3. Proses Komparasi (Insert / Update)
-            // ==========================================
+            //Proses compare (Insert / Update)
             $processed_ids = [];
             $to_insert = [];
             $update_count = 0;
@@ -3754,7 +3733,6 @@ class Marketing_SOController extends Controller
                 $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel . '_' . $req->rule_bom . '_' . $req->notes;
 
                 if (isset($existing_map[$key])) {
-                    // ---- UPDATE EXISTING ITEM ----
                     $ext = $existing_map[$key];
                     $processed_ids[] = $ext->id;
 
@@ -3776,7 +3754,6 @@ class Marketing_SOController extends Controller
                         $update_count++;
                     }
                 } else {
-                    // ---- INSERT NEW ITEM ----
                     if (!isset($posno_map[$req->id_item])) {
                         $posno_counter++;
                         $posno_map[$req->id_item] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
@@ -3808,9 +3785,7 @@ class Marketing_SOController extends Controller
                 }
             }
 
-            // ==========================================
-            // 4. Proses Cancel Item (Sisa di Existing) -> Soft Cancel
-            // ==========================================
+            // Proses Cancel Item (Sisa di Existing)
             $cancel_count = 0;
             foreach ($existing_items as $ext) {
                 if (!in_array($ext->id, $processed_ids) && $ext->cancel != 'Y') {
@@ -3819,9 +3794,7 @@ class Marketing_SOController extends Controller
                 }
             }
 
-            // ==========================================
-            // 5. Sync Costing Native (MAT, MFG, OTH) -- tidak diubah, sama seperti sebelumnya
-            // ==========================================
+            // Sync Costing Native (MAT, MFG, OTH)
             $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
             if ($bom && $so->id_cost) {
                 $costing = $mysql_sb->table('act_costing_new')->where('id', $bom->id_costing)->first();
