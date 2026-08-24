@@ -3672,9 +3672,11 @@ class Marketing_SOController extends Controller
                 WHERE sd.id_so = ? AND bmd.cancel = 'N'
                 AND (mi.id_gen IS NOT NULL OR acd.type = 'Manufacturing')
                 GROUP BY
-                    sd.id,
+                   sd.id,
                     CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END,
-                    bmd.shell
+                    bmd.shell,
+                    UPPER(bmd.rule_bom),
+                    bmd.notes
             ", [$id_jo, $id_bom, $id]);
 
             // ==========================================
@@ -3717,7 +3719,7 @@ class Marketing_SOController extends Controller
             $existing_map = [];
             $posno_map = [];
             foreach ($existing_items as $item) {
-                $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel;
+                $key = $item->id_so_det . '_' . $item->id_item . '_' . $item->id_panel . '_' . $item->rule_bom . '_' . $item->notes;
 
                 if (isset($existing_map[$key])) {
                     // Sisa duplikat lama (dari bug sebelumnya) -- log saja,
@@ -3749,7 +3751,7 @@ class Marketing_SOController extends Controller
             $update_count = 0;
 
             foreach ($required_items as $req) {
-                $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel;
+                $key = $req->id_so_det . '_' . $req->id_item . '_' . $req->id_panel . '_' . $req->rule_bom . '_' . $req->notes;
 
                 if (isset($existing_map[$key])) {
                     // ---- UPDATE EXISTING ITEM ----
