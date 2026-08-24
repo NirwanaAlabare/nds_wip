@@ -1588,6 +1588,10 @@ class Marketing_SOController extends Controller
                     $color = $mysql_sb->table('master_colors_gmt')->where('id', $d->id_color)->first();
                     $size  = $mysql_sb->table('master_size_new')->where('id', $d->size)->first();
 
+                    if($d->market == ""){
+                        $d->market = '-';
+                    }
+
                     $details_insert[] = [
                         'id_so'        => $id_so,
                         'color'        => $color->name ?? '-',
