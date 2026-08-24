@@ -177,14 +177,14 @@
                             <th width="5%">No</th>
                             <th>No WS</th>
                             <th>Style</th>
-                            <th>Id So Det</th>
+                            {{-- <th>Id So Det</th> --}}
                             <th>Product Group</th>
                             <th>Product Item</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Grade</th>
-                            <th>Lokasi</th>
-                            <th>No Carton</th>
+                            {{-- <th>Color</th> --}}
+                            {{-- <th>Size</th> --}}
+                            {{-- <th>Grade</th> --}}
+                            {{-- <th>Lokasi</th> --}}
+                            {{-- <th>No Carton</th> --}}
                             <th>Saldo Awal</th>
                             <th>Penerimaan</th>
                             <th>Pengeluaran</th>
@@ -192,6 +192,21 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @if(count($data) > 0)
+                            @foreach ($data as $index => $row)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td>{{ $row->ws ?? '-' }}</td>
+                                    <td>{{ $row->styleno ?? '-' }}</td>
+                                    <td>{{ $row->product_group ?? '-' }}</td>
+                                    <td>{{ $row->product_item ?? '-' }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -205,56 +220,63 @@
 
     <script>
         $(document).ready(function() {
-            $('#tabel-report').DataTable({
+             $('#tabel-report').DataTable({
                 "responsive": false,
                 "autoWidth": false,
                 "scrollX": true,
-                "processing": true,
-                "serverSide": true,
-                "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]], 
-                "language": {
-                    "emptyTable": "Tidak ada data mutasi barang jadi gudang untuk periode ini.",
-                    "processing": "Memuat data..."
-                },
-                "ajax": {
-                    "url": "{{ route('mutasi-gudang-ajax') }}",
-                    "type": "GET",
-                    "data": function(d) {
-                        d.from = "{{ $fromDate }}";
-                        d.to = "{{ $toDate }}";
-                        d.kategoriBarang = "{{ $kategoriBarang }}";
-                    }
-                },
-                "columns": [
-                    { "data": null, "orderable": false, "searchable": false,
-                      "render": function(data, type, row, meta) {
-                          return meta.settings._iDisplayStart + meta.row + 1;
-                      }
-                    },
-                    { "data": "ws" },
-                    { "data": "styleno" },
-                    { "data": "id_so_det" },
-                    { "data": "product_group" },
-                    { "data": "product_item" },
-                    { "data": "color" },
-                    { "data": "size" },
-                    { "data": "grade", "className": "text-center" },
-                    { "data": "lokasi" },
-                    { "data": "no_carton" },
-                    { "data": "saldoawal", "className": "text-right font-weight-bold",
-                      "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
-                    },
-                    { "data": "qtyterima", "className": "text-right",
-                      "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
-                    },
-                    { "data": "qtykeluar", "className": "text-right",
-                      "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
-                    },
-                    { "data": "saldoakhir", "className": "text-right font-weight-bold",
-                      "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
-                    },
-                ]
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "language": { "emptyTable": "Tidak ada data mutasi barang jadi untuk periode ini." }
             });
+            // $('#tabel-report').DataTable({
+            //     "responsive": false,
+            //     "autoWidth": false,
+            //     "scrollX": true,
+            //     "processing": true,
+            //     "serverSide": true,
+            //     "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+            //     "language": {
+            //         "emptyTable": "Tidak ada data mutasi barang jadi gudang untuk periode ini.",
+            //         "processing": "Memuat data..."
+            //     },
+            //     "ajax": {
+            //         "url": "{{ route('mutasi-gudang-ajax') }}",
+            //         "type": "GET",
+            //         "data": function(d) {
+            //             d.from = "{{ $fromDate }}";
+            //             d.to = "{{ $toDate }}";
+            //             d.kategoriBarang = "{{ $kategoriBarang }}";
+            //         }
+            //     },
+            //     "columns": [
+            //         { "data": null, "orderable": false, "searchable": false,
+            //           "render": function(data, type, row, meta) {
+            //               return meta.settings._iDisplayStart + meta.row + 1;
+            //           }
+            //         },
+            //         { "data": "ws" },
+            //         { "data": "styleno" },
+            //         // { "data": "id_so_det" },
+            //         { "data": "product_group" },
+            //         { "data": "product_item" },
+            //         // { "data": "color" },
+            //         // { "data": "size" },
+            //         // { "data": "grade", "className": "text-center" },
+            //         // { "data": "lokasi" },
+            //         // { "data": "no_carton" },
+            //         { "data": "saldoawal", "className": "text-right font-weight-bold",
+            //           "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
+            //         },
+            //         { "data": "qtyterima", "className": "text-right",
+            //           "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
+            //         },
+            //         { "data": "qtykeluar", "className": "text-right",
+            //           "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
+            //         },
+            //         { "data": "saldoakhir", "className": "text-right font-weight-bold",
+            //           "render": function(data) { return parseFloat(data ?? 0).toLocaleString('id-ID', {minimumFractionDigits: 2}); }
+            //         },
+            //     ]
+            // });
 
             $('#btn-export-excel').on('click', function(e) {
                 e.preventDefault();

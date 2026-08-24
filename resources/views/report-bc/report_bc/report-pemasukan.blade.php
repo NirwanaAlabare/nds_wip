@@ -298,11 +298,11 @@
                                     <td>{{ $row->id_item ?? '-' }}</td>
                                     <td>{{ $row->uraian_barang ?? '-' }}</td>
                                     <td>{{ $row->jenis_satuan ?? '-' }}</td>
-                                    <td class="text-right">{{ number_format($row->jumlah_satuan ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->jumlah_satuan ?? 0, 2) }}</td>
                                     <td>{{ $row->kode_valuta ?? '-' }}</td>
-                                    <td class="text-right">{{ number_format($row->nilai_barang ?? 0, 2) }}</td>
-                                    <td class="text-right">{{ number_format($row->kurs ?? 0, 2) }}</td>
-                                    <td class="text-right">{{ number_format($row->nilai_barang_idr ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->kurs ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang_idr ?? 0, 2) }}</td>
                                 </tr>
                             @endforeach
                         @endif
