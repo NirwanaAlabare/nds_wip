@@ -613,7 +613,7 @@
                     <span class="bar-nums"><b>${formatIdr(v1)}</b> · ${formatIdr(v2)}</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill" data-w="${(v1 / max) * 100}" style="background:${color}"></div></div>
-                <div class="bar-track"><div class="bar-fill" data-w="${(v2 / max) * 100}" style="background:#cbd5e1"></div></div>
+                <div class="bar-track"><div class="bar-fill" data-w="${(v2 / max) * 100}" style="background:#082149"></div></div>
             `;
             row.addEventListener('mousemove', (evt) => showTooltip(
                 `<strong>${label}</strong><br>${labelYtd}: ${formatIdr(v1)}<br>${labelBulan}: ${formatIdr(v2)}`, evt
