@@ -1392,7 +1392,9 @@ class DcReportController extends Controller
                             0 terima_good_secondary_dalam_before,
                             0 kirim_secondary_luar_before,
                             0 terima_repaired_secondary_luar_before,
-                            0 terima_good_secondary_luar_before
+                            0 terima_good_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before_new,
+                            0 terima_good_secondary_luar_before_new
                     from
                             dc_in_dump
                             left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -1442,7 +1444,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     from
                                             dc_in_input a
                                             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -1480,7 +1486,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     from
                                             dc_in_input a
                                             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -1522,7 +1532,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_inhouse_in_input sii_in
                                             left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
@@ -1558,7 +1572,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_inhouse_in_input sii_in
                                             left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
@@ -1597,7 +1615,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_inhouse_input sii
                                             left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
@@ -1633,7 +1655,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_inhouse_input sii
                                             left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
@@ -1670,7 +1696,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_in_input si
                                             left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
@@ -1712,7 +1742,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_in_input si
                                             left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
@@ -1756,7 +1790,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             wip_out_det wod
                                             left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
@@ -1794,7 +1832,11 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             wip_out_det wod
                                             left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
@@ -1830,11 +1872,15 @@ class DcReportController extends Controller
                                             null sec_inhouse_out,
                                             null sec_in_in_main,
                                             null sec_in_in,
-                                            si.qty_replace sec_in_rep_main,
+                                            CASE WHEN si.tgl_trans < '2026-07-01' THEN si.qty_replace ELSE NULL END AS sec_in_rep_main,
                                             null sec_in_rep,
-                                            si.qty_in sec_in_out_main,
+                                            CASE WHEN si.tgl_trans < '2026-07-01' THEN si.qty_in ELSE NULL END AS sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            CASE WHEN si.tgl_trans >= '2026-07-01' THEN si.qty_replace ELSE NULL END AS sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            CASE WHEN si.tgl_trans >= '2026-07-01' THEN si.qty_in ELSE NULL END AS sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM
                                             secondary_in_input si
                                             left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
@@ -1873,10 +1919,14 @@ class DcReportController extends Controller
                                             null sec_in_in_main,
                                             null sec_in_in,
                                             null sec_in_rep_main,
-                                            si.qty_replace sec_in_rep,
+                                            CASE WHEN si.tgl_trans < '2026-07-01' THEN si.qty_replace ELSE NULL END AS sec_in_rep,
                                             null sec_in_out_main,
-                                            si.qty_in sec_in_out,
-                                            null loading_qty
+                                            CASE WHEN si.tgl_trans < '2026-07-01' THEN si.qty_in ELSE NULL END AS sec_in_out,
+                                            null loading_qty,
+                                            null sec_in_rep_main_new,
+                                            CASE WHEN si.tgl_trans >= '2026-07-01' THEN si.qty_replace ELSE NULL END AS sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            CASE WHEN si.tgl_trans >= '2026-07-01' THEN si.qty_in ELSE NULL END AS sec_in_out_new
                                     FROM
                                             secondary_in_input si
                                             left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
@@ -1935,7 +1985,11 @@ class DcReportController extends Controller
                                                                     s.stocker_reject
                                                     ),
                                                     ll.qty
-                                            ) AS loading_qty
+                                            ) AS loading_qty,
+                                            null sec_in_rep_main_new,
+                                            null sec_in_rep_new,
+                                            null sec_in_out_main_new,
+                                            null sec_in_out_new
                                     FROM loading_line ll
                                     JOIN stocker_input s ON s.id = ll.stocker_id
                                     LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
@@ -2011,6 +2065,8 @@ class DcReportController extends Controller
                             SUM(kirim_secondary_luar) kirim_secondary_luar,
                             SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                             SUM(terima_good_secondary_luar) terima_good_secondary_luar,
+                            SUM(terima_repaired_secondary_luar_new) terima_repaired_secondary_luar_new,
+                            SUM(terima_good_secondary_luar_new) terima_good_secondary_luar_new,
                             SUM(loading_qty) loading_qty,
                             SUM(saldo_awal)+SUM(saldo_akhir) saldo_akhir,
                             CURRENT_TIMESTAMP() created_at,
@@ -2036,6 +2092,8 @@ class DcReportController extends Controller
                                             kirim_secondary_luar,
                                             terima_repaired_secondary_luar,
                                             terima_good_secondary_luar,
+                                            terima_repaired_secondary_luar_new,
+                                            terima_good_secondary_luar_new,
                                             loading_qty,
                                             qty_in-kirim_secondary_dalam+terima_repaired_secondary_dalam+terima_good_secondary_dalam-kirim_secondary_luar+terima_repaired_secondary_luar+terima_good_secondary_luar-loading_qty saldo_akhir,
                                             CURRENT_TIMESTAMP() created_at,
@@ -2061,6 +2119,8 @@ class DcReportController extends Controller
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_in_in_main, 0)), SUM(COALESCE(sec_in_in,0))) ELSE SUM(COALESCE(sec_in_in, 0)) END) kirim_secondary_luar,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_in_rep_main, 0)), SUM(COALESCE(sec_in_rep,0))) ELSE SUM(COALESCE(sec_in_rep,0)) END) terima_repaired_secondary_luar,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_in_out_main, 0)), SUM(COALESCE(sec_in_out,0))) ELSE SUM(COALESCE(sec_in_out, 0)) END) terima_good_secondary_luar,
+                                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_in_rep_main_new, 0)), SUM(COALESCE(sec_in_rep_new,0))) ELSE SUM(COALESCE(sec_in_rep_new,0)) END) terima_repaired_secondary_luar_new,
+                                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_in_out_main_new, 0)), SUM(COALESCE(sec_in_out_new,0))) ELSE SUM(COALESCE(sec_in_out_new, 0)) END) terima_good_secondary_luar_new,
                                                     -- loading.stockers,
                                                     SUM(COALESCE(saldo_dc.loading_qty, 0)) loading_qty,
                                                     COALESCE(loading_line.loading_qty, 0) loading_qty1
@@ -2127,8 +2187,10 @@ class DcReportController extends Controller
                                             terima_repaired_secondary_dalam,
                                             terima_good_secondary_dalam,
                                             kirim_secondary_luar,
-                                            terima_repaired_secondary_luar,
-                                            terima_good_secondary_luar,
+                                            CASE WHEN tanggal < '2026-07-01' THEN terima_repaired_secondary_luar ELSE 0 END AS terima_repaired_secondary_luar,
+                                            CASE WHEN tanggal < '2026-07-01' THEN terima_good_secondary_luar ELSE 0 END AS terima_good_secondary_luar,
+                                            CASE WHEN tanggal >= '2026-07-01' THEN terima_repaired_secondary_luar ELSE 0 END AS terima_repaired_secondary_luar_new,
+                                            CASE WHEN tanggal >= '2026-07-01' THEN terima_good_secondary_luar ELSE 0 END AS terima_good_secondary_luar_new,   
                                             0 loading_qty,
                                             0 saldo_akhir,
                                             CURRENT_TIMESTAMP() created_at,
@@ -2167,7 +2229,9 @@ class DcReportController extends Controller
                             SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
                             SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
                             SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
-                            SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before
+                            SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before,
+                            SUM(terima_repaired_secondary_luar_before_new) terima_repaired_secondary_luar_before_new,
+                            SUM(terima_good_secondary_luar_before_new) terima_good_secondary_luar_before_new
                         from (
                             select
                                     GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
@@ -2197,7 +2261,9 @@ class DcReportController extends Controller
                                     0 as terima_good_secondary_dalam_before,
                                     0 as kirim_secondary_luar_before,
                                     0 as terima_repaired_secondary_luar_before,
-                                    0 as terima_good_secondary_luar_before
+                                    0 as terima_good_secondary_luar_before,
+                                    0 as terima_repaired_secondary_luar_before_new,
+                                    0 as terima_good_secondary_luar_before_new
                             from
                                     dc_current_saldo
                             GROUP BY
@@ -2234,7 +2300,9 @@ class DcReportController extends Controller
                                     0 terima_good_secondary_dalam_before,
                                     0 kirim_secondary_luar_before,
                                     0 terima_repaired_secondary_luar_before,
-                                    0 terima_good_secondary_luar_before
+                                    0 terima_good_secondary_luar_before,
+                                    0 terima_repaired_secondary_luar_before_new,
+                                    0 terima_good_secondary_luar_before_new
                             from
                                     dc_before_saldo
                                     left join master_sb_ws msb on msb.id_so_det = dc_before_saldo.so_det_id
@@ -2274,7 +2342,9 @@ class DcReportController extends Controller
                                     SUM(terima_good_secondary_dalam) as terima_good_secondary_dalam_before,
                                     SUM(kirim_secondary_luar) as kirim_secondary_luar_before,
                                     SUM(terima_repaired_secondary_luar) as terima_repaired_secondary_luar_before,
-                                    SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before
+                                    SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before,
+                                    SUM(terima_repaired_secondary_luar_new) as terima_repaired_secondary_luar_before_new,
+                                    SUM(terima_good_secondary_luar_new) as terima_good_secondary_luar_before_new
                             from
                                     dc_before_saldo_secondary
                                     left join master_sb_ws msb on msb.id_so_det = dc_before_saldo_secondary.so_det_id
@@ -2290,7 +2360,9 @@ class DcReportController extends Controller
                                     terima_good_secondary_dalam_before != 0 OR
                                     kirim_secondary_luar_before != 0 OR
                                     terima_repaired_secondary_luar_before != 0 OR
-                                    terima_good_secondary_luar_before != 0
+                                    terima_good_secondary_luar_before != 0 OR
+                                    terima_repaired_secondary_luar_before_new != 0 OR
+                                    terima_good_secondary_luar_before_new != 0
                                 )
                             UNION ALL
                             select
@@ -2321,7 +2393,9 @@ class DcReportController extends Controller
                                     0 as terima_good_secondary_dalam_before,
                                     0 as kirim_secondary_luar_before,
                                     0 as terima_repaired_secondary_luar_before,
-                                    0 as terima_good_secondary_luar_before
+                                    0 as terima_good_secondary_luar_before,
+                                    0 as terima_repaired_secondary_luar_before_new,
+                                    0 as terima_good_secondary_luar_before_new
                             from
                                     dc_in_dump
                                     left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
@@ -2363,7 +2437,9 @@ class DcReportController extends Controller
                                     terima_good_secondary_dalam_before,
                                     kirim_secondary_luar_before,
                                     terima_repaired_secondary_luar_before,
-                                    terima_good_secondary_luar_before
+                                    terima_good_secondary_luar_before,
+                                    terima_repaired_secondary_luar_before_new,
+                                    terima_good_secondary_luar_before_new
                             from
                                     dc_in_dump_before
                         ) current_saldo
@@ -2404,6 +2480,8 @@ class DcReportController extends Controller
                     SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
                     SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
                     SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before,
+                    SUM(terima_repaired_secondary_luar_before_new) terima_repaired_secondary_luar_before_new,
+                    SUM(terima_good_secondary_luar_before_new) terima_good_secondary_luar_before_new,
                     SUM(qty_adjustment) adjustment,
                     SUM(switching_in) switching_in,
                     SUM(switching_out) switching_out,
@@ -2442,6 +2520,8 @@ class DcReportController extends Controller
                         kirim_secondary_luar_before,
                         terima_repaired_secondary_luar_before,
                         terima_good_secondary_luar_before,
+                        terima_repaired_secondary_luar_before_new,
+                        terima_good_secondary_luar_before_new,
                         0 as qty_adjustment_before,
                         0 qty_adjustment,
                         0 as switching_in_before,
@@ -2484,6 +2564,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) qty_adjustment_before,
                         SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment,
                         0 switching_in_before,
@@ -2531,6 +2613,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -2578,6 +2662,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) switching_in_before,
@@ -2625,6 +2711,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 qty_adjustment_before,
                         0 qty_adjustment,
                         0 switching_in_before,
@@ -2672,6 +2760,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 qty_adjustment_before,
                         0 qty_adjustment,
                         0 switching_in_before,
@@ -2719,6 +2809,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 qty_adjustment_before,
                         0 qty_adjustment,
                         0 switching_in_before,
@@ -2766,6 +2858,8 @@ class DcReportController extends Controller
                         0 kirim_secondary_luar_before,
                         0 terima_repaired_secondary_luar_before,
                         0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
                         0 qty_adjustment_before,
                         0 qty_adjustment,
                         0 switching_in_before,
@@ -2807,6 +2901,8 @@ class DcReportController extends Controller
                         kirim_secondary_luar_before != 0 OR
                         terima_repaired_secondary_luar_before != 0 OR
                         terima_good_secondary_luar_before != 0 OR
+                        terima_repaired_secondary_luar_before_new != 0 OR
+                        terima_good_secondary_luar_before_new != 0 OR
                         current_saldo_akhir_adjustment != 0 OR
                         adjustment != 0 OR
                         switching_in != 0 OR
@@ -2852,6 +2948,8 @@ class DcReportController extends Controller
                             0 kirim_secondary_luar_before,
                             0 terima_repaired_secondary_luar_before,
                             0 terima_good_secondary_luar_before,
+                            0 terima_repaired_secondary_luar_before_new,
+                            0 terima_good_secondary_luar_before_new,
                             0 adjustment,
                             0 switching_in,
                             0 switching_out,
@@ -2906,88 +3004,64 @@ class DcReportController extends Controller
                 SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
                 SUM(qty_adjustment_secondary_luar) qty_adjustment_secondary_luar,
                 (
-                CASE
-                        WHEN '".$dateFrom."' < '2026-06-01'
-                        THEN 0
+                        CASE
+                        WHEN '".$dateFrom."' < '2026-06-01' THEN 0
                         ELSE
                         (
                                 SUM(kirim_secondary_dalam_before)
-                                -
-                                SUM(terima_repaired_secondary_dalam_before)
-                                -
-                                SUM(terima_good_secondary_dalam_before)
-                                +
-                                SUM(qty_adjustment_secondary_dalam_before)
+                                - SUM(terima_repaired_secondary_dalam_before)
+                                - SUM(terima_good_secondary_dalam_before)
+                                + SUM(qty_adjustment_secondary_dalam_before)
                         )
                 END
                 ) saldo_awal_secondary_dalam,
                 (
                 (
                         CASE
-                        WHEN '".$dateFrom."' < '2026-06-01'
-                        THEN 0
+                        WHEN '".$dateFrom."' < '2026-06-01' THEN 0
                         ELSE
                                 (
                                 SUM(kirim_secondary_dalam_before)
-                                -
-                                SUM(terima_repaired_secondary_dalam_before)
-                                -
-                                SUM(terima_good_secondary_dalam_before)
-                                +
-                                SUM(qty_adjustment_secondary_dalam_before)
+                                - SUM(terima_repaired_secondary_dalam_before)
+                                - SUM(terima_good_secondary_dalam_before)
+                                + SUM(qty_adjustment_secondary_dalam_before)
                                 )
                         END
                 )
-                +
-                SUM(kirim_secondary_dalam)
-                -
-                SUM(terima_repaired_secondary_dalam)
-                -
-                SUM(terima_good_secondary_dalam)
-                +
-                SUM(qty_adjustment_secondary_dalam)
+                + SUM(kirim_secondary_dalam)
+                - SUM(terima_repaired_secondary_dalam)
+                - SUM(terima_good_secondary_dalam)
+                + SUM(qty_adjustment_secondary_dalam)
                 ) saldo_akhir_secondary_dalam,
                 (
-                CASE
-                        WHEN '".$dateFrom."' < '2026-06-01'
-                        THEN 0
+                        CASE
+                        WHEN '".$dateFrom."' < '2026-06-01' THEN 0
                         ELSE
                         (
                                 SUM(kirim_secondary_luar_before)
-                                -
-                                SUM(terima_repaired_secondary_luar_before)
-                                -
-                                SUM(terima_good_secondary_luar_before)
-                                +
-                                SUM(qty_adjustment_secondary_luar_before)
+                                - SUM(terima_repaired_secondary_luar_before)
+                                - SUM(terima_good_secondary_luar_before)
+                                + SUM(qty_adjustment_secondary_luar_before)
                         )
                 END
                 ) saldo_awal_secondary_luar,
                 (
                 (
                         CASE
-                        WHEN '".$dateFrom."' < '2026-06-01'
-                        THEN 0
+                        WHEN '".$dateFrom."' < '2026-06-01' THEN 0
                         ELSE
                                 (
                                 SUM(kirim_secondary_luar_before)
-                                -
-                                SUM(terima_repaired_secondary_luar_before)
-                                -
-                                SUM(terima_good_secondary_luar_before)
-                                +
-                                SUM(qty_adjustment_secondary_luar_before)
+                                - SUM(terima_repaired_secondary_luar_before)
+                                - SUM(terima_good_secondary_luar_before)
+                                + SUM(qty_adjustment_secondary_luar_before)
                                 )
                         END
                 )
-                +
-                SUM(kirim_secondary_luar)
-                -
-                SUM(terima_repaired_secondary_luar)
-                -
-                SUM(terima_good_secondary_luar)
-                +
-                SUM(qty_adjustment_secondary_luar)
+                + SUM(kirim_secondary_luar)
+                - SUM(terima_repaired_secondary_luar)
+                - SUM(terima_good_secondary_luar)
+                + SUM(qty_adjustment_secondary_luar)
                 ) saldo_akhir_secondary_luar,
                 (
                 CASE
@@ -3028,8 +3102,8 @@ class DcReportController extends Controller
                         ELSE
                         (
                                 SUM(qty_transit_terima_secondary_luar_before)
-                                - SUM(terima_repaired_secondary_luar_before) 
-                                - SUM(terima_good_secondary_luar_before)
+                                - SUM(terima_repaired_secondary_luar_before_new) 
+                                - SUM(terima_good_secondary_luar_before_new)
                                 + SUM(qty_adjustment_transit_terima_secondary_luar_before)
                         )
                 END
@@ -3044,8 +3118,8 @@ class DcReportController extends Controller
                                 WHEN '".$dateFrom."' <= '2026-07-01' THEN 0
                                 ELSE (
                                         SUM(qty_transit_terima_secondary_luar_before)
-                                        - SUM(terima_repaired_secondary_luar_before) 
-                                        - SUM(terima_good_secondary_luar_before)
+                                        - SUM(terima_repaired_secondary_luar_before_new) 
+                                        - SUM(terima_good_secondary_luar_before_new)
                                         + SUM(qty_adjustment_transit_terima_secondary_luar_before)
                                 )
                                 END
