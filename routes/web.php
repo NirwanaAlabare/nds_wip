@@ -1799,6 +1799,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
         Route::put('/update-draft-bc23/{id}', 'updateDraftBc23')->name('dokumen-pabean-update_draft_bc23')->where('id', '.*');
         Route::post('/send-bc23/{id}', 'sendCeisaBc23')->name('dokumen-pabean-send-bc23')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc23/{ids}', 'editBatchBc23')->name('dokumen-pabean-edit-batch-bc23');
+        Route::put('/dokumen-pabean/update-draft-batch-bc23/{ids}', 'updateDraftBatchBc23')->name('dokumen-pabean-update_draft_batch_bc23');
 
         // BC 2.7 routes
         Route::get('/{id}/edit-bc27', 'editBc27')->name('dokumen-pabean-edit-bc27')->where('id', '.*');
@@ -1811,11 +1813,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc30', 'editBc30')->name('dokumen-pabean-edit-bc30')->where('id', '.*');
         Route::put('/update-draft-bc30/{id}', 'updateDraftBc30')->name('dokumen-pabean-update_draft_bc30')->where('id', '.*');
         Route::post('/send-bc30/{id}', 'sendCeisaBc30')->name('dokumen-pabean-send-bc30')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc30/{ids}', 'editBatchBc30')->name('dokumen-pabean-edit-batch-bc30');
+        Route::put('/dokumen-pabean/update-draft-batch-bc30/{ids}', 'updateDraftBatchBc30')->name('dokumen-pabean-update_draft_batch_bc30');
+        Route::get('/{id}/edit-trial-bc30', 'editBcTrial30')->name('dokumen-pabean-edit-bc30-trial')->where('id', '.*');
 
         // BC 3.3 routes
         Route::get('/{id}/edit-bc33', 'editBc33')->name('dokumen-pabean-edit-bc33')->where('id', '.*');
         Route::put('/update-draft-bc33/{id}', 'updateDraftBc33')->name('dokumen-pabean-update_draft_bc33')->where('id', '.*');
         Route::post('/send-bc33/{id}', 'sendCeisaBc33')->name('dokumen-pabean-send-bc33')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc33/{ids}', 'editBatchBc33')->name('dokumen-pabean-edit-batch-bc33');
+        Route::put('/dokumen-pabean/update-draft-batch-bc33/{ids}', 'updateDraftBatchBc33')->name('dokumen-pabean-update_draft_batch_bc33');
+
 
         // BC 4.1 routes
         Route::get('/{id}/edit-bc41', 'editBc41')->name('dokumen-pabean-edit-bc41')->where('id', '.*');
@@ -1829,17 +1837,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc25', 'editBc25')->name('dokumen-pabean-edit-bc25')->where('id', '.*');
         Route::put('/update-draft-bc25/{id}', 'updateDraftBc25')->name('dokumen-pabean-update_draft_bc25')->where('id', '.*');
         Route::post('/send-bc25/{id}', 'sendCeisaBc25')->name('dokumen-pabean-send-bc25')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc25/{ids}', 'editBatchBc25')->name('dokumen-pabean-edit-batch-bc25');
+        Route::put('/dokumen-pabean/update-draft-batch-bc25/{ids}', 'updateDraftBatchBc25')->name('dokumen-pabean-update_draft_batch_bc25');
 
 
         // BC 2.6.1 routes
         Route::get('/{id}/edit-bc261', 'editBc261')->name('dokumen-pabean-edit-bc261')->where('id', '.*');
         Route::put('/update-draft-bc261/{id}', 'updateDraftBc261')->name('dokumen-pabean-update_draft_bc261')->where('id', '.*');
         Route::post('/send-bc261/{id}', 'sendCeisaBc261')->name('dokumen-pabean-send-bc261')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc261/{ids}', 'editBatchBc261')->name('dokumen-pabean-edit-batch-bc261');
+        Route::put('/dokumen-pabean/update-draft-batch-bc261/{ids}', 'updateDraftBatchBc261')->name('dokumen-pabean-update_draft_batch_bc261');
 
         // BC 2.6.2 routes
         Route::get('/{id}/edit-bc262', 'editBc262')->name('dokumen-pabean-edit-bc262')->where('id', '.*');
         Route::put('/update-draft-bc262/{id}', 'updateDraftBc262')->name('dokumen-pabean-update_draft_bc262')->where('id', '.*');
         Route::post('/send-bc262/{id}', 'sendCeisaBc262')->name('dokumen-pabean-send-bc262')->where('id', '.*');
+        Route::get('/dokumen-pabean/edit-batch-bc262/{ids}', 'editBatchBc262')->name('dokumen-pabean-edit-batch-bc262');
+        Route::put('/dokumen-pabean/update-draft-batch-bc262/{ids}', 'updateDraftBatchBc262')->name('dokumen-pabean-update_draft_batch_bc262');
     });
 
     // WHS Soljer
