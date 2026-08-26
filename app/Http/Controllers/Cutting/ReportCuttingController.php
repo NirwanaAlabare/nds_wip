@@ -4980,7 +4980,7 @@ order by  ws asc, color asc
 
             retur_before as (
                 SELECT
-                    whs_lokasi_inmaterial.no_ws,
+                    COALESCE(bppb_req.idws_act, whs_lokasi_inmaterial.no_ws) no_ws,
                     whs_lokasi_inmaterial.no_barcode,
                     whs_lokasi_inmaterial.id_item,
                     whs_lokasi_inmaterial.qty_aktual,
@@ -4988,16 +4988,19 @@ order by  ws asc, color asc
                 FROM
                     signalbit_erp.whs_lokasi_inmaterial
                 LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = whs_inmaterial_fabric.no_invoice and bppb_req.id_item = whs_lokasi_inmaterial.id_item and whs_inmaterial_fabric.tgl_dok >= '2026-07-31'
                 WHERE
                     whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
                     AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
                     and whs_inmaterial_fabric.tgl_dok > '2026-05-01 00:00:00'
                     and whs_inmaterial_fabric.tgl_dok <= '" . $start_date . " 23:59:59'
+                group by
+		            whs_lokasi_inmaterial.id
             ),
 
             retur as (
                 SELECT
-                    whs_lokasi_inmaterial.no_ws,
+                    COALESCE(bppb_req.idws_act, whs_lokasi_inmaterial.no_ws) no_ws,
                     whs_lokasi_inmaterial.no_barcode,
                     whs_lokasi_inmaterial.id_item,
                     whs_lokasi_inmaterial.qty_aktual,
@@ -5005,12 +5008,13 @@ order by  ws asc, color asc
                 FROM
                     signalbit_erp.whs_lokasi_inmaterial
                     LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
-                    LEFT JOIN mut_cut_fab_saldo_tmp on mut_cut_fab_saldo_tmp.id_roll = whs_lokasi_inmaterial.no_barcode and mut_cut_fab_saldo_tmp.qty_retur > 0
+                    LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = whs_inmaterial_fabric.no_invoice and bppb_req.id_item = whs_lokasi_inmaterial.id_item  and whs_inmaterial_fabric.tgl_dok >= '2026-07-31'
                 WHERE
                     whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
                     AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
                     AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '" . $start_date. "' AND '" . $end_date. "'
-                    AND mut_cut_fab_saldo_tmp.id is null
+                group by
+		            whs_lokasi_inmaterial.id
             )
 
             SELECT
