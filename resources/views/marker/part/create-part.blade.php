@@ -116,7 +116,12 @@
                         <h5 class="text-sb">Parts</h5>
                         <div class="card">
                             <div class="card-header bg-sb-secondary">
-                                <h6 class="mb-0">Part 1</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Part 1</h6>
+                                    <button type="button" class="btn btn-sm btn-danger float-end" onclick="removePart(this)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -651,13 +656,17 @@
             let isMainPartElements = document.querySelectorAll(".is-main-part");
             let isMainPartLabelElements = document.querySelectorAll(".is-main-part-label");
             if (isMainPartElements && isMainPartElements.length > 0) {
-                isMainPartElements[0].checked = true;
+                let isMainPartChecked = false;
                 for (let i = 0; i < isMainPartElements.length; i++) {
-                    if (i == 0) {
-                        isMainPartElements[i].checked = true;
+                    if (isMainPartElements[i].checked) {
+                        isMainPartChecked = true;
                     }
-                    isMainPartElements[i].classList.remove("d-none");
-                    isMainPartLabelElements[i].classList.remove("d-none");
+
+                    if (i > 0 && i == isMainPartElements.length-1 && !isMainPartChecked) {
+                        isMainPartElements[0].checked = true;
+                    }
+                    // isMainPartElements[i].classList.remove("d-none");
+                    // isMainPartLabelElements[i].classList.remove("d-none");
                 }
             }
         }
@@ -676,15 +685,15 @@
             }
 
             // hide main part check
-            let isMainPartElements = document.querySelectorAll(".is-main-part");
-            let isMainPartLabelElements = document.querySelectorAll(".is-main-part-label");
-            if (isMainPartElements && isMainPartElements.length > 0) {
-                for (let i = 0; i < isMainPartElements.length; i++) {
-                    isMainPartElements[i].checked = false;
-                    isMainPartElements[i].classList.add("d-none");
-                    isMainPartLabelElements[i].classList.add("d-none");
-                }
-            }
+            // let isMainPartElements = document.querySelectorAll(".is-main-part");
+            // let isMainPartLabelElements = document.querySelectorAll(".is-main-part-label");
+            // if (isMainPartElements && isMainPartElements.length > 0) {
+            //     for (let i = 0; i < isMainPartElements.length; i++) {
+            //         isMainPartElements[i].checked = false;
+            //         isMainPartElements[i].classList.add("d-none");
+            //         isMainPartLabelElements[i].classList.add("d-none");
+            //     }
+            // }
         }
 
         function uncheckOtherMainPart(index) {
@@ -813,7 +822,14 @@
             // Card Header
             let cardHeader = document.createElement('div');
             cardHeader.classList.add('card-header', 'bg-sb-secondary');
-            cardHeader.innerHTML = `<h6 class="mb-0">Part ${index + 1}</h6>`; // 1-based numbering
+            cardHeader.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <h6 class="mb-0">Part ${index + 1}</h6>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removePart(this)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            `; // 1-based numbering
 
             // Card body
             let cardBody = document.createElement('div');
@@ -920,7 +936,7 @@
             colMain.innerHTML = `
                 <label class="form-label"><small>Main Part</small></label><br>
                 <div class="form-check">
-                    <input class="form-check-input is-main-part `+(panelStatusVal ? (panelStatusVal == 'main' ? '' : 'd-none') : '')+`" type="checkbox" value="true" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
+                    <input class="form-check-input is-main-part `+(panelStatusVal ? (panelStatusVal == 'main' ? '' : '/*d-none*/') : '')+`" type="checkbox" value="true" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
                 </div>
             `;
 
@@ -978,6 +994,126 @@
 
             // Increment counter
             jumlahPartDetail.value++;
+        }
+
+        // Remove a Part card, blocked if it's the last remaining one
+        function removePart(button) {
+            let cards = document.querySelectorAll('#parts-section > .card');
+
+            if (cards.length <= 1) {
+                Swal.fire({
+                    title: "Warning",
+                    text: "Minimal harus ada 1 Part",
+                    icon: "warning"
+                });
+                return;
+            }
+
+            let card = button.closest('.card');
+            if (card) {
+                card.remove();
+            }
+
+            reindexPartDetails();
+        }
+
+        // Renumber Part cards and re-key their inputs/selects after a removal
+        function reindexPartDetails() {
+            let cards = document.querySelectorAll('#parts-section > .card');
+
+            cards.forEach((card, index) => {
+                let header = card.querySelector('.card-header h6');
+                if (header) header.textContent = `Part ${index + 1}`;
+
+                let partSelect = card.querySelector('select[name^="part_details["]');
+                if (partSelect) {
+                    partSelect.id = `part_details_${index}`;
+                    partSelect.name = `part_details[${index}]`;
+                }
+
+                let consInput = card.querySelector('input[name^="cons["]');
+                if (consInput) {
+                    consInput.id = `cons_${index}`;
+                    consInput.name = `cons[${index}]`;
+                }
+
+                let consUnitSelect = card.querySelector('select[name^="cons_unit["]');
+                if (consUnitSelect) {
+                    consUnitSelect.id = `cons_unit_${index}`;
+                    consUnitSelect.name = `cons_unit[${index}]`;
+                }
+
+                let itemContainer = card.querySelector('[id^="parent-detail-"]');
+                if (itemContainer) itemContainer.id = `parent-detail-${index}`;
+
+                let itemSelect = card.querySelector('select[name^="item["]');
+                if (itemSelect) {
+                    itemSelect.id = `item_${index}`;
+                    itemSelect.name = `item[${index}][]`;
+                    itemSelect.setAttribute('data-index', index);
+                }
+
+                let tujuanSelect = card.querySelector('select[name^="tujuan["]');
+                if (tujuanSelect) {
+                    tujuanSelect.id = `tujuan_${index}`;
+                    tujuanSelect.name = `tujuan[${index}]`;
+                    tujuanSelect.setAttribute('onchange', `switchTujuan(this, ${index})`);
+                }
+
+                let nonSecondaryContainer = card.querySelector('[id^="non_secondary_container_"]');
+                if (nonSecondaryContainer) nonSecondaryContainer.id = `non_secondary_container_${index}`;
+
+                let prosesSelect = card.querySelector('select[name^="proses["]');
+                if (prosesSelect) {
+                    prosesSelect.id = `proses_${index}`;
+                    prosesSelect.name = `proses[${index}]`;
+                    prosesSelect.setAttribute('data-index', index);
+                    prosesSelect.setAttribute('onchange', `orderNonSecondary(this, ${index})`);
+                }
+
+                let secondaryContainer = card.querySelector('[id^="secondary_container_"]');
+                if (secondaryContainer) secondaryContainer.id = `secondary_container_${index}`;
+
+                let secondariesSelect = card.querySelector('select[name^="secondaries["]');
+                if (secondariesSelect) {
+                    secondariesSelect.id = `secondaries_${index}`;
+                    secondariesSelect.name = `secondaries[${index}][]`;
+                    secondariesSelect.setAttribute('onchange', `orderSecondary(this, ${index})`);
+                }
+
+                let clearButton = card.querySelector('button[onclick^="clearSelectOptions("]');
+                if (clearButton) clearButton.setAttribute('onclick', `clearSelectOptions(${index})`);
+
+                let urutanContainer = card.querySelector('[id^="urutan_container_"]');
+                if (urutanContainer) urutanContainer.id = `urutan_container_${index}`;
+
+                let urutanShow = card.querySelector('[id^="urutan_show_"]');
+                if (urutanShow) urutanShow.id = `urutan_show_${index}`;
+
+                let urutanInput = card.querySelector('input[name^="urutan["]');
+                if (urutanInput) {
+                    urutanInput.id = `urutan_${index}`;
+                    urutanInput.name = `urutan[${index}]`;
+                }
+
+                let prosesLuarSelect = card.querySelector('select[name^="proses_secondary_luar["]');
+                if (prosesLuarSelect) {
+                    prosesLuarSelect.id = `proses_secondary_luar_${index}`;
+                    prosesLuarSelect.name = `proses_secondary_luar[${index}]`;
+                    prosesLuarSelect.setAttribute('data-index', index);
+                }
+
+                let mainPartInput = card.querySelector('input[name^="main_part["]');
+                if (mainPartInput) {
+                    mainPartInput.id = `main_part_${index}`;
+                    mainPartInput.name = `main_part[${index}]`;
+                    mainPartInput.setAttribute('onchange', `uncheckOtherMainPart(${index})`);
+                }
+            });
+
+            if (jumlahPartDetail) {
+                jumlahPartDetail.value = cards.length;
+            }
         }
 
 
