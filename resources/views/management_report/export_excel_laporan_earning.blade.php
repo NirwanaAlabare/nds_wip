@@ -10,7 +10,7 @@
     <table>
         <thead>
             <tr>
-                <th colspan="25">LAPORAN EARNING</th>
+                <th colspan="6">LAPORAN EARNING</th>
             </tr>
             <tr>
                 <th rowspan="2">Tanggal</th>

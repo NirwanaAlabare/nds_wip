@@ -1184,7 +1184,8 @@ class LoadingLineController extends Controller
                     ".$additionalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
-                    loading_line_plan.id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.color,
                     loading_stock.size
                     ".$dateFilter."
                 ORDER BY
@@ -1300,7 +1301,8 @@ class LoadingLineController extends Controller
                 loading_stock.tanggal_loading IS NOT NULL
             GROUP BY
                 loading_stock.tanggal_loading,
-                loading_line_plan.id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.color,
                 loading_stock.size
                 ".$dateFilter."
             ORDER BY
@@ -1469,7 +1471,8 @@ class LoadingLineController extends Controller
                     ".$generalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
-                    loading_line_plan.id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.color,
                     loading_stock.size
                     ".$dateFilter."
                 ORDER BY
@@ -1589,7 +1592,8 @@ class LoadingLineController extends Controller
                 loading_stock.tanggal_loading IS NOT NULL
             GROUP BY
                 loading_stock.tanggal_loading,
-                loading_line_plan.id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.color,
                 loading_stock.size
                 ".$dateFilter."
             ORDER BY

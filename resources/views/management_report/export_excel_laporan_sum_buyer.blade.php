@@ -5,8 +5,8 @@
     <table>
         <thead>
             <tr>
-                <th colspan="100">LAPORAN SUMMARY BUYER</th>
-                {{-- <th colspan="100">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
+                <th colspan="6">LAPORAN SUMMARY BUYER</th>
+                {{-- <th colspan="6">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
             </tr>
             <tr>
