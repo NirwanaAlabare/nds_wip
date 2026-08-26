@@ -1931,7 +1931,7 @@ public function saveBarcodeRiTemp(Request $request)
     $det_item = $this->queryBarcodeDetailRi($id_barcode_array, $tipe);
 
     $found_barcodes = $det_item->pluck('id_roll')->unique()->values()->toArray();
-    $not_found = array_values(array_diff($id_barcode_array, $found_barcodes));
+    $not_found = array_values(array_udiff(array_unique($id_barcode_array), $found_barcodes,'strcasecmp'));
 
     // one row per barcode in temp — dedup by id_roll only
     $existing_rolls = InMaterialBarcodeRiTemp::where('created_by', $username)
