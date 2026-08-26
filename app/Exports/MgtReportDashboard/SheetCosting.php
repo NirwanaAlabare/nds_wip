@@ -24,6 +24,9 @@ class SheetCosting implements FromArray, WithEvents, WithHeadings, WithTitle
     /** kolom angka yang berada sebelum kolom biaya: qty so, price so, qty cost */
     private const NUMERIC_COLS = [10, 11, 14];
 
+    /** lebar merge untuk baris judul */
+    private const TITLE_MERGE_COLS = 6;
+
     /** kolom identitas awal (cost no s/d status cost) dibuat lebih lebar */
     private const IDENTITY_WIDTH_COLS = 6;
 
@@ -204,10 +207,13 @@ LEFT JOIN (
                 $highestColumn = $sheet->getHighestColumn();
                 $lastColIndex  = Coordinate::columnIndexFromString($highestColumn);
 
-                $sheet->mergeCells('A1:' . $highestColumn . '1');
-                $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+                // judul cukup selebar beberapa kolom saja, tidak perlu sampai kolom terakhir
+                $titleColumn = Coordinate::stringFromColumnIndex(min(self::TITLE_MERGE_COLS, $lastColIndex));
+
+                $sheet->mergeCells('A1:' . $titleColumn . '1');
+                $sheet->getStyle('A1:' . $titleColumn . '1')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 14],
-                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
                 ]);
 
                 $sheet->getStyle('A2:' . $highestColumn . '2')->applyFromArray([
@@ -242,7 +248,7 @@ LEFT JOIN (
 
                 // border hanya di baris judul + header: memberi border ke ~99rb sel data
                 // menambah ~7 detik, sementara Excel sudah menampilkan gridline sendiri
-                $sheet->getStyle('A1:' . $highestColumn . '2')->applyFromArray([
+                $sheet->getStyle('A2:' . $highestColumn . '2')->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,

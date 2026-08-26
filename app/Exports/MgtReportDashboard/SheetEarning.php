@@ -48,9 +48,9 @@ class SheetEarning implements FromView, ShouldAutoSize, WithEvents, WithTitle
                 $highestRow    = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn();
 
-                $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+                $sheet->getStyle('A1:F1')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 14],
-                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
                 ]);
 
                 $sheet->getStyle('A2:' . $highestColumn . '3')->applyFromArray([
