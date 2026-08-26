@@ -616,18 +616,50 @@ class MutLokasiController extends Controller
 
         $editNoMut = session('mutlok_edit_no_mut');
 
-        if ($editNoMut) {
-            $no_mut = $editNoMut;
-        } else {
-            $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
-            $no_mut = $notrans[0]->kode;
+        if (intval($validatedRequest['txt_total_roll']) <= 0) {
+            return array(
+                "status" => 400,
+                "message" => ' Please Input Data',
+                "additional" => [],
+                "redirect" => url('/mutasi-lokasi')
+            );
         }
 
-        if (intval($validatedRequest['txt_total_roll']) > 0) {
+        // Kunci global agar penyimpanan berjalan berurutan (mencegah double-submit /
+        // double-click yang membuat nomor MT & detail ganda, sekaligus mencegah 2 user
+        // mendapat nomor MT yang sama karena membaca MAX(no_mut) bersamaan).
+        $lock = DB::connection('mysql_sb')->selectOne("SELECT GET_LOCK('whs_mutlok_store', 10) AS l");
+        if (!$lock || intval($lock->l) !== 1) {
+            return array(
+                "status" => 400,
+                "message" => 'Sistem sedang memproses penyimpanan lain. Silakan coba lagi.',
+                "additional" => [],
+                "redirect" => ''
+            );
+        }
+
+        try {
+
+            // Nomor MT digenerate DI DALAM lock supaya alokasinya atomik.
+            if ($editNoMut) {
+                $no_mut = $editNoMut;
+            } else {
+                $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+                $no_mut = $notrans[0]->kode;
+            }
 
             DB::connection('mysql_sb')->beginTransaction();
             DB::connection('mysql_sb')->enableQueryLog();
             try {
+
+            // Baca temp lebih dulu sebagai sumber data. Jika kosong berarti submit ini
+            // duplikat/stale (mis. klik ganda, data sudah dikonsumsi request sebelumnya),
+            // jadi jangan buat header/hapus detail apa pun.
+            $tempRows = DB::connection('mysql_sb')->select("select a.*, b.goods_code, b.itemdesc from whs_mut_lokasi_temp a inner join masteritem b on b.id_item = a.id_item where a.created_by = '".Auth::user()->name."'");
+
+            if (empty($tempRows)) {
+                throw new \Exception('Tidak ada data untuk disimpan (kemungkinan sudah tersimpan sebelumnya).');
+            }
 
             if ($editNoMut) {
                 // Barcode yang sudah terkunci (dimutasi lagi) wajib tetap ada di temp, tidak boleh dihapus lewat edit
@@ -662,8 +694,6 @@ class MutLokasiController extends Controller
                     "updated_at" => $timestamp,
                 ]);
             }
-
-            $tempRows = DB::connection('mysql_sb')->select("select a.*, b.goods_code, b.itemdesc from whs_mut_lokasi_temp a inner join masteritem b on b.id_item = a.id_item where a.created_by = '".Auth::user()->name."'");
 
             $mutLokasiData = [];
             $lokasiInData = [];
@@ -777,9 +807,8 @@ class MutLokasiController extends Controller
                 $stat = 400;
             }
 
-        }else{
-            $massage = ' Please Input Data';
-            $stat = 400;
+        } finally {
+            DB::connection('mysql_sb')->select("SELECT RELEASE_LOCK('whs_mutlok_store')");
         }
 
         return array(

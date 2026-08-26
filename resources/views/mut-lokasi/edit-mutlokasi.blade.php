@@ -190,7 +190,7 @@
         </div>
         <div class="mb-1">
             <div class="form-group">
-                <input type="button"   class="btn btn-sb float-end mt-2 ml-2" value="Save" onclick="savedataopname()" />
+                <input type="button" id="btnSaveMut"  class="btn btn-sb float-end mt-2 ml-2" value="Save" onclick="savedataopname()" />
                 <input type="button"   class="btn btn-danger float-end mt-2 ml-2" value="Delete All" onclick="delete_scan_all()" />
                 <a href="{{ route('mutasi-lokasi') }}" class="btn btn-warning float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Back</a>
@@ -511,6 +511,13 @@ function GantilokasiTujuan(){
         }
 
 
+                // Cegah double-submit (klik ganda / re-entry) yang membuat data & nomor MT ganda
+                if (window.__savingMut) {
+                    return;
+                }
+                window.__savingMut = true;
+                $('#btnSaveMut').prop('disabled', true);
+
                 return $.ajax({
                     url: '{{ route('save-mutasi-rak-fabric') }}',
                     type: 'POST',
@@ -523,40 +530,41 @@ function GantilokasiTujuan(){
                         txt_total_roll: txt_total_roll,
                     },
                     success: function(res) {
-                        if (res) {
-                            if (res.status == 200) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: 'Data Berhasil Disimpan ' + res.message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    timer: 1500,
-                                    timerProgressBar: true
-                                }).then(async (result) => {
-                                    dataTableReload();
-                                    window.location.href = res.redirect;
-
-                                });
-
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: res.message
-                                });
-                            }
+                        if (res && res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan ' + res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 1500,
+                                timerProgressBar: true
+                            }).then(async (result) => {
+                                dataTableReload();
+                                window.location.href = res.redirect;
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: (res && res.message) ? res.message : 'Data tidak dapat disimpan.'
+                            });
                         }
-                    }, error: function(jqXHR){
+                    },
+                    error: function(jqXHR){
                         Swal.fire({
                             icon: 'warning',
                             title: 'Gagal!',
-                            text: 'Silahkan Coba Lagi',
+                            text: 'Terjadi kesalahan. Silakan periksa data mutasi lalu coba simpan lagi.',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke'
                         });
+                    },
+                    complete: function(){
+                        window.__savingMut = false;
+                        $('#btnSaveMut').prop('disabled', false);
                     }
                 });
             }
