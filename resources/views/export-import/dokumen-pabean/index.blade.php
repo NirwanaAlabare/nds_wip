@@ -621,6 +621,7 @@
              actionUrl = '{{ route("dokumen-pabean-send-bc262", ":id") }}';
         }
 
+
         actionUrl = actionUrl.replace(':id', trxNo);
 
         Swal.fire({
@@ -646,7 +647,7 @@
                     url: actionUrl,
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}'
+                        _token: $('meta[name="csrf-token"]').attr('content'),
                     },
                     success: function(res) {
                         if(res.status === 200) {
@@ -1337,12 +1338,12 @@
                             let jenis = $('#jenis_modal').val();
                             let valId = (jenis == 'Pemasukan') ? row.bpbno : row.bppbno;
                             let jenisBc = $('#jenis_bc_modal').val();
-
                             if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1' || jenisBc === 'BC 2.7' ){
                                 return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
                             }else{
                                 return '';
                             }
+                            // return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
                         }
                     },
                     { data: 'trx_no',    name: 'trx_no' },
@@ -1443,6 +1444,32 @@
                 if(jenisBc === 'BC 2.7'){
                     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc27", "") }}/' + ids;
                 }
+
+                // if(jenisBc === 'BC 3.0'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc30", "") }}/' + ids;
+                // }
+
+                // if(jenisBc === 'BC 2.6.2'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc262", "") }}/' + ids;
+                // }
+
+                // if(jenisBc === 'BC 2.6.1'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc261", "") }}/' + ids;
+                // }
+
+                // if(jenisBc === 'BC 2.3'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc23", "") }}/' + ids;
+                // }
+
+                // if(jenisBc === 'BC 3.3'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc33", "") }}/' + ids;
+                // }
+
+                // if(jenisBc === 'BC 2.5'){
+                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc25", "") }}/' + ids;
+                // }
+
+
             }
         });
     });
