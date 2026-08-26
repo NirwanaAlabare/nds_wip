@@ -644,7 +644,10 @@
         {{-- Charts --}}
         <div class="chart-grid mb-3">
             <div class="chart-card">
-                <div class="card-heading">Daily Earning vs Estimated Cost</div>
+                <div class="card-heading d-flex justify-content-between">
+                    <span>Daily Earning vs Estimated Cost</span>
+                    <span id="headingDailyNote" style="font-weight:400;text-transform:none;"></span>
+                </div>
                 <div id="chartDaily" style="height:300px;"></div>
             </div>
             <div class="chart-card" id="cardBuyerChart">
@@ -766,8 +769,8 @@
         let apexBuyer = null;
         let apexEfficiency = null;
         let apexProductCosting = null;
-        let dtDetail = null;
         let rawRows = [];
+        let dailySummaryRows = []; // rekap harian dari mgt_rep_tmp_sum_prod_earning
         let productCosting = [];
         let reportType = 'prod_earn';
 
@@ -837,36 +840,152 @@
             });
         }
 
-        /* ---- Report type UI toggling ---- */
-        function applyReportTypeUI() {
-            const isFullEarn = reportType === 'full_earn';
+        /* =========================================================================
+         * REPORT REGISTRY
+         * Tiap tipe report (Production Earning / Full Earning) punya definisi
+         * sendiri: sumber data, normalisasi row, label UI, KPI, dan widget-nya.
+         * Tambah tipe report baru = tambah 1 objek di REPORTS, tanpa menyentuh
+         * fungsi shared (loadRawData / renderDashboard / renderKPI).
+         * ========================================================================= */
 
-            $('#prodEarnFilters').toggle(!isFullEarn);
-            $('#cardProfitLine').toggle(!isFullEarn);
-            $('#cardHeatmap').toggle(!isFullEarn);
-            $('#cardEfficiency').css('grid-column', isFullEarn ? '1 / -1' : '');
+        const PROD_EARN_REPORT = {
+            key: 'prod_earn',
+            url: '{{ route('dashboard-mgt-report.raw-data') }}',
 
-            $('#headingBuyerChart').text(isFullEarn ? 'Earning Breakdown by Type' : 'Buyer Profitability (Top 10)');
-            $('#headingEfficiency').text(isFullEarn ? 'Balance Trend by Earning Type' : 'Daily Efficiency');
+            /* chart Earning vs Est Cost pakai rekap harian (mgt_rep_tmp_sum_prod_earning),
+             * bukan hasil penjumlahan row per line */
+            useDailySummary: true,
 
-            $('#kpiOutputLabel').text(isFullEarn ? 'Prod Est. Balance' : 'Total Output');
-            $('#kpiOutputSub').text(isFullEarn ? 'Earning Produksi − Cost' : 'pcs produksi');
-            $('#kpiActiveLabel').text(isFullEarn ? 'Mkt Est. Balance' : 'Active');
-            $('#kpiActiveSub').text(isFullEarn ? 'Earning Market − Cost' : 'Lines & Buyers');
+            dailySeries: function() {
+                return dailySummaryRows.map(function(r) {
+                    return {
+                        tanggal: r.tanggal,
+                        earning: parseFloat(r.sum_tot_earning_rupiah) || 0,
+                        cost: parseFloat(r.est_tot_cost) || 0,
+                        balance: parseFloat(r.blc) || 0,
+                    };
+                }).sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+            },
 
-            $('#kpiTopBuyerLabel').text(isFullEarn ? 'Full Earning Est' : 'Top Buyer');
-            $('#kpiTopBuyerSub').text(isFullEarn ? 'Estimated Full Earning (periode)' : 'Highest Earning Produksi');
-            $('#kpiRiskWatchLabel').text(isFullEarn ? 'Full Earn Balance' : 'Risk Watch');
-            $('#kpiRiskWatchSub').text(isFullEarn ? 'Full Earning − Cost (periode)' : 'Lowest Earning Produksi');
+            /* data sudah pakai nama field standar, tidak perlu dinormalisasi */
+            normalizeRow: function(r) {
+                return r;
+            },
+
+            applyUI: function() {
+                $('#prodEarnFilters').show();
+                $('#cardProfitLine').show();
+                $('#cardHeatmap').show();
+                $('#cardEfficiency').css('grid-column', '');
+
+                $('#headingDailyNote').text('from Sum Prod Earn sheet · semua line');
+                $('#headingBuyerChart').text('Buyer Profitability (Top 10)');
+                $('#headingEfficiency').text('Daily Efficiency');
+
+                $('#kpiOutputLabel').text('Total Output');
+                $('#kpiOutputSub').text('pcs produksi');
+                $('#kpiActiveLabel').text('Active');
+                $('#kpiActiveSub').text('Lines & Buyers');
+
+                $('#kpiTopBuyerLabel').text('Top Buyer');
+                $('#kpiTopBuyerSub').text('Highest Earning Produksi');
+                $('#kpiRiskWatchLabel').text('Risk Watch');
+                $('#kpiRiskWatchSub').text('Lowest Earning Produksi');
+            },
+
+            /* dua KPI card terakhir yang isinya beda tiap tipe report */
+            renderKpiExtra: function(t) {
+                $('#kpiOutput').removeClass('skel').text(fmtNum(t.output) + ' pcs');
+                $('#kpiActive').removeClass('skel').text(t.lines.size + 'L / ' + t.buyers.size + 'B');
+            },
+
+            render: function(rows) {
+                renderProdEarnHighlights(rows);
+                renderProdEarnBuyerChart();
+                renderProdEarnProfitLineRanking(rows);
+                renderProdEarnLineHeatmap(rows);
+                renderProdEarnDailyEfficiency(rows);
+            },
+        };
+
+        const FULL_EARN_REPORT = {
+            key: 'full_earn',
+            url: '{{ route('dashboard-mgt-report.raw-data-full-earn') }}',
+
+            /* row full earning sudah 1 baris per tanggal, tidak perlu request tambahan */
+            useDailySummary: false,
+
+            dailySeries: function(rows) {
+                const byDay = {};
+                rows.forEach(function(r) {
+                    const key = r.tanggal;
+                    if (!byDay[key]) byDay[key] = {
+                        tanggal: key,
+                        earning: 0,
+                        cost: 0,
+                        balance: 0
+                    };
+                    byDay[key].earning += parseFloat(r.tot_earning_rupiah) || 0;
+                    byDay[key].cost += parseFloat(r.est_tot_cost) || 0;
+                    byDay[key].balance += parseFloat(r.blc) || 0;
+                });
+                return Object.values(byDay).sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+            },
+
+            /* samakan nama field ke standar yang dipakai widget shared */
+            normalizeRow: function(r) {
+                return Object.assign({}, r, {
+                    tot_earning_rupiah: r.sum_tot_earning_rupiah,
+                    sewing_line: null,
+                    buyer: null,
+                });
+            },
+
+            applyUI: function() {
+                $('#prodEarnFilters').hide();
+                $('#cardProfitLine').hide();
+                $('#cardHeatmap').hide();
+                $('#cardEfficiency').css('grid-column', '1 / -1');
+
+                $('#headingDailyNote').text('');
+                $('#headingBuyerChart').text('Earning Breakdown by Type');
+                $('#headingEfficiency').text('Balance Trend by Earning Type');
+
+                $('#kpiOutputLabel').text('Prod Est. Balance');
+                $('#kpiOutputSub').text('Earning Produksi − Cost');
+                $('#kpiActiveLabel').text('Mkt Est. Balance');
+                $('#kpiActiveSub').text('Earning Market − Cost');
+
+                $('#kpiTopBuyerLabel').text('Full Earning Est');
+                $('#kpiTopBuyerSub').text('Estimated Full Earning (periode)');
+                $('#kpiRiskWatchLabel').text('Full Earn Balance');
+                $('#kpiRiskWatchSub').text('Full Earning − Cost (periode)');
+            },
+
+            renderKpiExtra: function(t) {
+                $('#kpiOutput').removeClass('skel').text(fmtRp(t.prodBalance));
+                $('#kpiActive').removeClass('skel').text(fmtRp(t.mktBalance));
+            },
+
+            render: function(rows) {
+                renderFullEarnHighlights(rows);
+                renderFullEarnBreakdownChart(rows);
+                renderFullEarnBalanceTrendChart(rows);
+            },
+        };
+
+        const REPORTS = {
+            prod_earn: PROD_EARN_REPORT,
+            full_earn: FULL_EARN_REPORT,
+        };
+
+        function currentReport() {
+            return REPORTS[reportType] || PROD_EARN_REPORT;
         }
 
-        /* ---- Normalize full-earning rows onto the shared field names used by shared widgets ---- */
-        function normalizeFullEarnRow(r) {
-            return Object.assign({}, r, {
-                tot_earning_rupiah: r.sum_tot_earning_rupiah,
-                sewing_line: null,
-                buyer: null,
-            });
+        /* ---- Report type UI toggling ---- */
+        function applyReportTypeUI() {
+            currentReport().applyUI();
         }
 
         /* ---- Fetch raw data, then render everything client-side ---- */
@@ -879,6 +998,7 @@
         }
 
         let rawDataXhr = null;
+        let dailySummaryXhr = null;
         let rawDataReqId = 0;
 
         function loadRawData() {
@@ -902,26 +1022,36 @@
 
             // Cancel any in-flight request so a slow/stale response can't
             // overwrite newer data (was causing 0/empty values on quick filter changes).
-            if (rawDataXhr) {
-                rawDataXhr.abort();
-            }
+            if (rawDataXhr) rawDataXhr.abort();
+            if (dailySummaryXhr) dailySummaryXhr.abort();
+
             const reqId = ++rawDataReqId;
+            const report = currentReport();
 
-            const url = reportType === 'full_earn' ?
-                '{{ route('dashboard-mgt-report.raw-data-full-earn') }}' :
-                '{{ route('dashboard-mgt-report.raw-data') }}';
+            rawDataXhr = $.get(report.url, p);
+            dailySummaryXhr = report.useDailySummary ?
+                $.get('{{ route('dashboard-mgt-report.daily-summary') }}', p) :
+                null;
 
-            rawDataXhr = $.get(url, p)
-                .done(function(data) {
+            // .then() dipakai supaya tiap request resolve dengan 1 nilai saja,
+            // jadi $.when meneruskannya apa adanya (bukan array [data, status, xhr]).
+            const rowsReq = rawDataXhr.then(d => (d && d.rows) || []);
+            const summaryReq = dailySummaryXhr ?
+                dailySummaryXhr.then(d => (d && d.rows) || []) :
+                $.Deferred().resolve([]).promise();
+
+            $.when(rowsReq, summaryReq)
+                .done(function(rows, summary) {
                     if (reqId !== rawDataReqId) return; // stale response, ignore
-                    const rows = (data && data.rows) || [];
-                    rawRows = reportType === 'full_earn' ? rows.map(normalizeFullEarnRow) : rows;
+                    rawRows = rows.map(report.normalizeRow);
+                    dailySummaryRows = summary;
                     loadFilterOptions();
                     renderDashboard();
                 })
                 .fail(function(jqXHR, textStatus) {
                     if (textStatus === 'abort' || reqId !== rawDataReqId) return;
                     rawRows = [];
+                    dailySummaryRows = [];
                     renderDashboard();
                 })
                 .always(function(jqXHRorData, textStatus) {
@@ -946,24 +1076,47 @@
         /* ---- Render everything from cached rawRows ---- */
         function renderDashboard() {
             const rows = getFilteredRows();
-            renderKPI(rows);
-            renderDailyChart(rows);
-            renderDetailTable(rows);
 
-            if (reportType === 'full_earn') {
-                renderFullEarnHighlights(rows);
-                renderEarnBreakdownChart(rows);
-                renderBalanceTrendChart(rows);
-            } else {
-                renderHighlights(rows);
-                renderBuyerChart();
-                renderProfitLineRanking(rows);
-                renderLineHeatmap(rows);
-                renderDailyEfficiency(rows);
-            }
+            // widget shared (dipakai semua tipe report)
+            renderKPI(rows);
+            renderDailyChart(currentReport().dailySeries(rows));
+
+            // widget khusus tipe report yang sedang dipilih
+            currentReport().render(rows);
         }
 
-        /* ---- KPI ---- */
+        /* =========================================================================
+         * SHARED WIDGETS
+         * ========================================================================= */
+
+        /* ---- KPI: hitung total dari rows ---- */
+        function sumKpiTotals(rows) {
+            const t = {
+                earning: 0,
+                cost: 0,
+                balance: 0,
+                output: 0,
+                prodBalance: 0,
+                mktBalance: 0,
+                lines: new Set(),
+                buyers: new Set(),
+            };
+
+            rows.forEach(function(r) {
+                t.earning += parseFloat(r.tot_earning_rupiah) || 0;
+                t.cost += parseFloat(r.est_tot_cost) || 0;
+                t.balance += parseFloat(r.blc) || 0;
+                t.output += parseFloat(r.tot_output) || 0;
+                t.prodBalance += parseFloat(r.blc_est_earn_cost_prod) || 0;
+                t.mktBalance += parseFloat(r.blc_est_earn_cost_mkt) || 0;
+                if (r.sewing_line) t.lines.add(r.sewing_line);
+                if (r.buyer) t.buyers.add(r.buyer);
+            });
+
+            return t;
+        }
+
+        /* ---- KPI: 4 card pertama shared, 2 card terakhir diserahkan ke report ---- */
         function renderKPI(rows) {
             const ids = ['kpiEarning', 'kpiCost', 'kpiBalance', 'kpiMargin', 'kpiOutput', 'kpiActive'];
             if (!rows.length) {
@@ -971,42 +1124,17 @@
                 return;
             }
 
-            let totalEarning = 0,
-                totalCost = 0,
-                totalBalance = 0,
-                totalOutput = 0,
-                totalProdBalance = 0,
-                totalMktBalance = 0;
-            const lines = new Set();
-            const buyers = new Set();
+            const t = sumKpiTotals(rows);
+            const margin = t.cost > 0 ? (t.earning / t.cost) * 100 : 0;
 
-            rows.forEach(function(r) {
-                totalEarning += parseFloat(r.tot_earning_rupiah) || 0;
-                totalCost += parseFloat(r.est_tot_cost) || 0;
-                totalBalance += parseFloat(r.blc) || 0;
-                totalOutput += parseFloat(r.tot_output) || 0;
-                totalProdBalance += parseFloat(r.blc_est_earn_cost_prod) || 0;
-                totalMktBalance += parseFloat(r.blc_est_earn_cost_mkt) || 0;
-                if (r.sewing_line) lines.add(r.sewing_line);
-                if (r.buyer) buyers.add(r.buyer);
-            });
-
-            const margin = totalCost > 0 ? (totalEarning / totalCost) * 100 : 0;
-
-            $('#kpiEarning').removeClass('skel').text(fmtRp(totalEarning));
-            $('#kpiCost').removeClass('skel').text(fmtRp(totalCost));
-            $('#kpiBalance').removeClass('skel').text(fmtRp(totalBalance));
+            $('#kpiEarning').removeClass('skel').text(fmtRp(t.earning));
+            $('#kpiCost').removeClass('skel').text(fmtRp(t.cost));
+            $('#kpiBalance').removeClass('skel').text(fmtRp(t.balance));
             $('#kpiMargin').removeClass('skel').text(margin.toFixed(1) + '%');
 
-            if (reportType === 'full_earn') {
-                $('#kpiOutput').removeClass('skel').text(fmtRp(totalProdBalance));
-                $('#kpiActive').removeClass('skel').text(fmtRp(totalMktBalance));
-            } else {
-                $('#kpiOutput').removeClass('skel').text(fmtNum(totalOutput) + ' pcs');
-                $('#kpiActive').removeClass('skel').text(lines.size + 'L / ' + buyers.size + 'B');
-            }
+            currentReport().renderKpiExtra(t);
 
-            $('#kpiBalCard').removeClass('c-pos c-neg').addClass(totalBalance >= 0 ? 'c-pos' : 'c-neg');
+            $('#kpiBalCard').removeClass('c-pos c-neg').addClass(t.balance >= 0 ? 'c-pos' : 'c-neg');
         }
 
         /* ---- Highlights for Full Earning (Best Day / Full Earning Est / Full Earn Balance) ---- */
@@ -1039,7 +1167,7 @@
         }
 
         /* ---- Highlights (Best Day / Top Buyer / Risk Watch) ---- */
-        function renderHighlights(rows) {
+        function renderProdEarnHighlights(rows) {
             const ids = ['kpiBestDay', 'kpiTopBuyer', 'kpiRiskWatch'];
 
             if (!rows.length) {
@@ -1048,9 +1176,7 @@
             }
 
             const byDay = {};
-            const byDayWorking = {};
             const byBuyer = {};
-            const byBuyerWorking = {};
             rows.forEach(function(r) {
                 const earn = parseFloat(r.tot_earning_rupiah) || 0;
 
@@ -1061,21 +1187,8 @@
                 };
                 byDay[dayKey].total += earn;
 
-                if (r.stat_kerja !== 'LIBUR') {
-                    if (!byDayWorking[dayKey]) byDayWorking[dayKey] = {
-                        label: r.tanggal_fix || r.tanggal,
-                        total: 0
-                    };
-                    byDayWorking[dayKey].total += earn;
-                }
-
                 if (!(r.buyer in byBuyer)) byBuyer[r.buyer] = 0;
                 byBuyer[r.buyer] += earn;
-
-                if (r.stat_kerja !== 'LIBUR') {
-                    if (!(r.buyer in byBuyerWorking)) byBuyerWorking[r.buyer] = 0;
-                    byBuyerWorking[r.buyer] += earn;
-                }
             });
 
             let bestDay = null;
@@ -1091,63 +1204,93 @@
                 };
             });
 
-            /* When filtered to a single buyer, show that buyer's lowest-earning day instead */
-            const buyerFilter = getFilters().buyer;
-            let riskLabel = null;
-            let riskValue = null;
-            if (buyerFilter !== 'all') {
-                let riskDay = null;
-                Object.values(byDayWorking).forEach(function(d) {
-                    if (!riskDay || d.total < riskDay.total) riskDay = d;
-                });
-                if (riskDay) {
-                    riskLabel = riskDay.label;
-                    riskValue = riskDay.total;
-                }
-                $('#kpiRiskWatchSub').text('Lowest Earning Day');
-            } else {
-                let riskBuyer = null;
-                Object.entries(byBuyerWorking).forEach(function([buyer, total]) {
-                    if (!riskBuyer || total < riskBuyer.total) riskBuyer = {
-                        buyer,
-                        total
-                    };
-                });
-                if (riskBuyer) {
-                    riskLabel = riskBuyer.buyer;
-                    riskValue = riskBuyer.total;
-                }
-                $('#kpiRiskWatchSub').text('Lowest Earning Produksi');
-            }
-
             $('#kpiBestDay').removeClass('skel').text(bestDay ? (bestDay.label + ' · ' + fmtRp(bestDay.total)) : '—');
             $('#kpiTopBuyer').removeClass('skel').text(topBuyer ? (topBuyer.buyer + ' · ' + fmtRp(topBuyer.total)) : '—');
-            $('#kpiRiskWatch').removeClass('skel').text(riskLabel !== null ? (riskLabel + ' · ' + fmtRp(riskValue)) :
-                '—');
+
+            renderProdEarnRiskWatch(rows);
         }
 
-        /* ---- Daily chart ---- */
-        function renderDailyChart(rows) {
-            const byDay = {};
+        /* ---- Buang seluruh row yang jatuh di hari libur ----
+         * Satu tanggal dianggap LIBUR kalau tidak ada satu pun row berstatus kerja
+         * di tanggal itu, atau total earning-nya nol (tidak ada produksi sama sekali).
+         * Row LIBUR di tanggal kerja (mis. line tertentu saja yang libur) ikut dibuang. */
+        function excludeHolidayRows(rows) {
+            const perDay = {};
             rows.forEach(function(r) {
-                const key = r.tanggal;
-                if (!byDay[key]) byDay[key] = {
-                    tanggal: key,
-                    earning: 0,
-                    cost: 0,
-                    balance: 0
+                const d = r.tanggal;
+                if (!perDay[d]) perDay[d] = {
+                    hasWork: false,
+                    earning: 0
                 };
-                byDay[key].earning += parseFloat(r.tot_earning_rupiah) || 0;
-                byDay[key].cost += parseFloat(r.est_tot_cost) || 0;
-                byDay[key].balance += parseFloat(r.blc) || 0;
+                if (r.stat_kerja !== 'LIBUR') perDay[d].hasWork = true;
+                perDay[d].earning += parseFloat(r.tot_earning_rupiah) || 0;
             });
 
-            const days = Object.values(byDay).sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+            return rows.filter(function(r) {
+                const day = perDay[r.tanggal];
+                return r.stat_kerja !== 'LIBUR' && day.hasWork && day.earning > 0;
+            });
+        }
 
+        /* ---- Risk Watch (selalu mengabaikan hari libur) ----
+         * Default: buyer dengan earning produksi terendah.
+         * Kalau difilter ke satu buyer: hari kerja dengan earning terendah. */
+        function renderProdEarnRiskWatch(rows) {
+            const workingRows = excludeHolidayRows(rows);
+            const perBuyer = getFilters().buyer === 'all';
+
+            $('#kpiRiskWatchSub').text(perBuyer ? 'Lowest Earning Produksi' : 'Lowest Earning Day');
+
+            if (!workingRows.length) {
+                $('#kpiRiskWatch').removeClass('skel').text('—');
+                return;
+            }
+
+            const totals = {};
+            workingRows.forEach(function(r) {
+                const key = perBuyer ? r.buyer : r.tanggal;
+                if (!totals[key]) totals[key] = {
+                    label: perBuyer ? r.buyer : (r.tanggal_fix || r.tanggal),
+                    total: 0
+                };
+                totals[key].total += parseFloat(r.tot_earning_rupiah) || 0;
+            });
+
+            let lowest = null;
+            Object.values(totals).forEach(function(t) {
+                if (!lowest || t.total < lowest.total) lowest = t;
+            });
+
+            $('#kpiRiskWatch').removeClass('skel').text(lowest ? (lowest.label + ' · ' + fmtRp(lowest.total)) : '—');
+        }
+
+        /* ---- Daily chart ----
+         * days: [{ tanggal, earning, cost, balance }] sudah terurut,
+         * disiapkan oleh dailySeries() milik masing-masing tipe report. */
+        function renderDailyChart(days) {
             const labels = days.map(d => fmtDayLabel(d.tanggal));
-            const earning = days.map(d => Math.round(d.earning));
-            const cost = days.map(d => Math.round(d.cost));
+            const realEarning = days.map(d => Math.round(d.earning));
+            const realCost = days.map(d => Math.round(d.cost));
             const balance = days.map(d => Math.round(d.balance));
+
+            /* Nilai kecil (mis. idle cost hari libur ~500rb) tingginya 0 pixel di
+             * sumbu yang skalanya miliaran, jadi terlihat seperti tidak ada data.
+             * Batang bernilai > 0 diberi tinggi minimum ~1.5% dari rentang sumbu
+             * supaya tetap terlihat; tooltip tetap memakai angka aslinya. */
+            const allValues = realEarning.concat(realCost, balance, [0]);
+            const span = Math.max.apply(null, allValues) - Math.min.apply(null, allValues);
+            const minVisible = span * 0.015;
+            const lift = v => (v > 0 && v < minVisible ? Math.round(minVisible) : v);
+
+            const earning = realEarning.map(lift);
+            const cost = realCost.map(lift);
+
+            /* tooltip: kembalikan angka asli, bukan nilai yang sudah di-lift */
+            const realValueAt = function(seriesIndex, i) {
+                if (seriesIndex === 0) return realEarning[i];
+                if (seriesIndex === 1) return realCost[i];
+                return balance[i];
+            };
 
             const opts = {
                 series: [{
@@ -1232,7 +1375,10 @@
                 tooltip: {
                     theme: 'light',
                     y: {
-                        formatter: v => fmtRp(v)
+                        formatter: function(v, opts) {
+                            if (!opts || typeof opts.dataPointIndex !== 'number') return fmtRp(v);
+                            return fmtRp(realValueAt(opts.seriesIndex, opts.dataPointIndex));
+                        }
                     }
                 },
             };
@@ -1242,9 +1388,9 @@
             apexDaily.render();
         }
 
-        /* ---- Buyer chart ---- */
-        function renderBuyerChart() {
-            const rows = getLineFilteredRows();
+        /* ---- Buyer chart (hari libur diabaikan) ---- */
+        function renderProdEarnBuyerChart() {
+            const rows = excludeHolidayRows(getLineFilteredRows());
 
             const byBuyer = {};
             rows.forEach(function(r) {
@@ -1347,7 +1493,7 @@
         }
 
         /* ---- Earning breakdown by type (Full Earning report) ---- */
-        function renderEarnBreakdownChart(rows) {
+        function renderFullEarnBreakdownChart(rows) {
             let actualEarn = 0,
                 actualCost = 0,
                 fullEarn = 0,
@@ -1448,7 +1594,7 @@
         }
 
         /* ---- Balance trend by earning type (Full Earning report) ---- */
-        function renderBalanceTrendChart(rows) {
+        function renderFullEarnBalanceTrendChart(rows) {
             const sorted = rows.slice().sort((a, b) => a.tanggal.localeCompare(b.tanggal));
             const labels = sorted.map(r => fmtDayLabel(r.tanggal));
             const blc = sorted.map(r => Math.round(parseFloat(r.blc) || 0));
@@ -1551,12 +1697,30 @@
             return line || '—';
         }
 
-        function renderProfitLineRanking(rows) {
+        /* ---- Nilai profit per line ----
+         * Dipakai bersama oleh Profit Line Ranking & Line Profit Heatmap.
+         * Memakai blc_full_earn (full earning - cost) supaya angkanya sama dengan
+         * Laporan Profit Line, yang query-nya:
+         *   SELECT tanggal, sewing_line, SUM(blc_full_earn) FROM mgt_rep_tmp_earning
+         *   GROUP BY tanggal, sewing_line
+         * Sebelumnya di sini memakai blc (production earning - cost), jadi nilainya
+         * jauh lebih kecil dan tidak cocok dengan laporannya. */
+        function profitLineValue(r) {
+            return parseFloat(r.blc_full_earn) || 0;
+        }
+
+        /* Row tanpa sewing_line (idle cost hari libur / hari tanpa produksi) tidak
+         * ditampilkan di ranking maupun heatmap — bukan milik line mana pun. */
+        function withSewingLine(rows) {
+            return rows.filter(r => r.sewing_line);
+        }
+
+        function renderProdEarnProfitLineRanking(rows) {
             const byLine = {};
-            rows.forEach(function(r) {
-                const key = r.sewing_line || '—';
+            withSewingLine(rows).forEach(function(r) {
+                const key = r.sewing_line;
                 if (!(key in byLine)) byLine[key] = 0;
-                byLine[key] += parseFloat(r.blc) || 0;
+                byLine[key] += profitLineValue(r);
             });
 
             const entries = Object.entries(byLine).map(([line, blc]) => ({
@@ -1595,15 +1759,15 @@
             return v > 0 ? `rgba(40, 167, 69, ${alpha})` : `rgba(220, 53, 69, ${alpha})`;
         }
 
-        function renderLineHeatmap(rows) {
+        function renderProdEarnLineHeatmap(rows) {
             const cellMap = {};
             const lineTotals = {};
             const daysSet = new Set();
 
-            rows.forEach(function(r) {
-                const line = r.sewing_line || '—';
+            withSewingLine(rows).forEach(function(r) {
+                const line = r.sewing_line;
                 const day = r.tanggal;
-                const blc = parseFloat(r.blc) || 0;
+                const blc = profitLineValue(r);
 
                 daysSet.add(day);
                 if (!cellMap[line]) cellMap[line] = {};
@@ -1654,7 +1818,7 @@
         }
 
         /* ---- Daily efficiency (earn/min vs cost/min) ---- */
-        function renderDailyEfficiency(rows) {
+        function renderProdEarnDailyEfficiency(rows) {
             const byDay = {};
             rows.forEach(function(r) {
                 const key = r.tanggal;
@@ -1891,64 +2055,6 @@
             if (apexProductCosting) apexProductCosting.destroy();
             apexProductCosting = new ApexCharts(document.querySelector('#chartProductCosting'), opts);
             apexProductCosting.render();
-        }
-
-        /* ---- Detail table ---- */
-        function renderDetailTable(rows) {
-            $('#detailCount').text('(' + rows.length + ' rows)');
-
-            if (dtDetail) {
-                dtDetail.destroy();
-                dtDetail = null;
-            }
-
-            const sorted = rows.slice().sort(function(a, b) {
-                if (a.tanggal !== b.tanggal) return a.tanggal < b.tanggal ? 1 : -1;
-                return String(a.sewing_line).localeCompare(String(b.sewing_line));
-            });
-
-            const tbody = $('#detailTableBody').empty();
-            sorted.forEach(function(r) {
-                const bal = parseFloat(r.blc) || 0;
-                const margin = parseFloat(r.percent_est_earn) || 0;
-                const profit = bal >= 0;
-                tbody.append(
-                    `<tr>
-                    <td>${r.tanggal_fix || r.tanggal}</td>
-                    <td>${r.sewing_line}</td>
-                    <td>${r.buyer}</td>
-                    <td>${r.kpno || '—'}</td>
-                    <td class="text-right">${fmtNum(r.tot_output)}</td>
-                    <td class="text-right">${parseFloat(r.eff_line || 0).toFixed(1)}%</td>
-                    <td class="text-right">${fmtRp(r.tot_earning_rupiah)}</td>
-                    <td class="text-right">${fmtRp(r.est_tot_cost)}</td>
-                    <td class="text-right ${profit ? 'col-profit' : 'col-loss'}">${fmtRp(r.blc)}</td>
-                    <td class="text-right">
-                        <span class="${profit ? 'badge-profit' : 'badge-loss'}">${margin.toFixed(1)}%</span>
-                    </td>
-                </tr>`
-                );
-            });
-
-            dtDetail = $('#detailTable').DataTable({
-                pageLength: 25,
-                order: [
-                    [0, 'desc']
-                ],
-                language: {
-                    search: 'Cari:',
-                    lengthMenu: 'Tampilkan _MENU_ data',
-                    info: 'Data _START_–_END_ dari _TOTAL_',
-                    paginate: {
-                        previous: '‹',
-                        next: '›'
-                    }
-                },
-                columnDefs: [{
-                    className: 'text-right',
-                    targets: [4, 5, 6, 7, 8, 9]
-                }]
-            });
         }
 
         /* ---- Filter options ---- */

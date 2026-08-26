@@ -1106,7 +1106,7 @@ class SpreadingController extends Controller
                 cutting.panel,
                 part.panel_status,
                 master_part.nama_part,
-                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
+                COALESCE(pcust.set_part_status, COALESCE(part_detail.part_status_notes, part_detail.part_status)) part_status,
                 cutting.max_group,
                 cutting.group_stocker,
                 SUM(cutting.qty_awal) qty_awal,
@@ -1115,7 +1115,7 @@ class SpreadingController extends Controller
                 SUM(cutting.qty) qty
             FROM
             (
-                    SELECT
+                SELECT
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
                     UPPER(meja.name) meja,
                     marker_input.act_costing_ws worksheet,
