@@ -70,6 +70,19 @@ class MgtReportDashboardController extends Controller
         ]);
     }
 
+    public function getDailySummary(Request $request)
+    {
+        if (!$this->isAllowedUser()) {
+            return response()->json([
+                'rows' => [],
+            ]);
+        }
+
+        return response()->json([
+            'rows' => $this->fetchDailySummary($request),
+        ]);
+    }
+
     public function getProductCostingComparison(Request $request)
     {
         if (!$this->isAllowedUser()) {
@@ -106,6 +119,37 @@ class MgtReportDashboardController extends Controller
         $fileName = 'mgt_report_' . $request->start_date . '_sd_' . $request->end_date . '.xlsx';
 
         return $export->download($fileName);
+    }
+
+    /**
+     * Rekap harian Earning vs Est Cost.
+     *
+     * Diambil langsung dari mgt_rep_tmp_sum_prod_earning (satu baris per tanggal)
+     * supaya angkanya sama persis dengan Laporan Sum Prod Earn. Menjumlahkan
+     * sendiri dari mgt_rep_tmp_earning tidak akurat: est_tot_cost di sana sudah
+     * di-prorate per line, jadi tanggal yang sebagian line-nya tidak berproduksi
+     * kehilangan porsi cost-nya, dan tanggal tanpa row earning sama sekali tidak
+     * muncul di chart.
+     *
+     * Catatan: tabel ini di-refresh oleh tombol Sync (get_mgt_rep_tmp_sum_prod_earning),
+     * jadi data hari ini baru ikut setelah sync dijalankan.
+     */
+    private function fetchDailySummary(Request $request): array
+    {
+        $start_date = $request->start_date ?? date('Y-m-01');
+        $end_date   = $request->end_date   ?? date('Y-m-d');
+
+        return DB::connection('mysql_sb')->select("
+            SELECT
+                tanggal,
+                tanggal_fix,
+                sum_tot_earning_rupiah,
+                est_tot_cost,
+                blc
+            FROM mgt_rep_tmp_sum_prod_earning
+            WHERE tanggal >= ? AND tanggal <= ?
+            ORDER BY tanggal ASC
+        ", [$start_date, $end_date]);
     }
 
     private function fetchProductCostingComparison(): array
