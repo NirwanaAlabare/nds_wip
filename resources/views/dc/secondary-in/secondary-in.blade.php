@@ -594,7 +594,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row justify-content-center">
                             <div class='col-sm-3 d-none'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty Stocker</small></label>
@@ -610,25 +610,62 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreject' name='edit_qtyreject' value='' oninput='editsum();'
-                                        style = 'border-color:blue;'>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreject' name='edit_qtyreject' value='0' oninput='editsum();' readonly>
                                 </div>
                             </div>
 
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreplace' name='edit_qtyreplace' value = '0' oninput='editsum();'
-                                        style = 'border-color:blue;'>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreplace' name='edit_qtyreplace' value = '0' oninput='editsum();' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty In</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='edit_qtyin' name='edit_qtyin' value='' readonly style = 'border-color:green;'>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyin' name='edit_qtyin' value='' readonly>
                                 </div>
                             </div>
-
+                            <div class="col-sm-12">
+                                <div class="row justify-content-center">
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label'><small>Total Reject Qty</small></label>
+                                            <input type='number' class='form-control form-control-sm' id='edit_totalreject' name='edit_totalreject' value='0' style = 'border-color:green;' readonly>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label'><small>Total Replace Qty</small></label>
+                                            <input type='number' class='form-control form-control-sm' id='edit_totalreplace' name='edit_totalreplace' value='0' style = 'border-color:green;' readonly>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label'><small>Last Qty</small></label>
+                                            <input type='number' class='form-control form-control-sm' id='edit_lastupdate' name='edit_lastupdate' value='0' style = 'border-color:green;' readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>New Reject</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyrejectnew' name='edit_qtyrejectnew' value='0' oninput='editsumnew();' style = 'border-color:blue;'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>New Replace</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreplacenew' name='edit_qtyreplacenew' value='0' oninput='editsumnew();' style = 'border-color:blue;'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>New Qty IN</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyinnew' name='edit_qtyinnew' value='' style = 'border-color:green;' readonly>
+                                </div>
+                            </div>
                         </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -1338,10 +1375,15 @@
                     document.getElementById('edit_alokasi').value = response.lokasi;
                     document.getElementById('edit_qtystocker').value = response.qty_stocker;
                     document.getElementById('edit_qtyawal').value = response.qty_awal;
+                    document.getElementById('edit_totalreject').value = response.total_reject;
+                    document.getElementById('edit_totalreplace').value = response.total_replace;
+                    document.getElementById('edit_lastupdate').value = response.qty_in_akhir;
 
                     console.log(response);
                     $("#edit_qtyreject").val(response.qty_reject);
                     $("#edit_qtyreplace").val(response.qty_replace);
+                    $("#edit_qtyin").val(response.qty_in);
+
                     $("#edit_qtyin").val(response.qty_in);
                 },
                 error: function(request, status, error) {
@@ -1399,6 +1441,31 @@
 
                 document.getElementById('edit_qtyreplace').value = txtqtyreject;
                 document.getElementById('edit_qtyin').value = txtqty;
+            }
+        }
+
+        function editsumnew() {
+            let txtqtystocker = document.getElementById('edit_qtystocker').value;
+            let txtqty = document.getElementById('edit_lastupdate').value;
+            let txtqtyreject = document.getElementById('edit_qtyrejectnew').value;
+            let txtqtyreplace = document.getElementById('edit_qtyreplacenew').value;
+            document.getElementById("edit_qtyinnew").value = +txtqty;
+            let result = parseFloat(txtqty) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
+            let result_fix = Math.ceil(result);
+            console.log(txtqtyreject, txtqtyreplace, result_fix);
+            if (!isNaN(result_fix)) {
+                document.getElementById("edit_qtyinnew").value = result_fix;
+            }
+
+            if (result > txtqtystocker) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat melebihi qty awal.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('edit_qtyreplacenew').value = txtqtyreject;
+                document.getElementById('edit_qtyinnew').value = txtqty;
             }
         }
 

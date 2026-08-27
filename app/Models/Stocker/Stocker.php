@@ -121,4 +121,28 @@ class Stocker extends Model
     {
         return $this->hasMany(TrolleyStocker::class, 'stocker_id', 'id');
     }
+
+    /**
+     * Qty stocker setelah penyesuaian reject & replace dari DC In / Secondary In.
+     */
+    public function getQtyAdjustedAttribute()
+    {
+        $qty = $this->qty_ply_mod > 0 ? $this->qty_ply_mod : $this->qty_ply;
+
+        foreach ([$this->dcIn, $this->secondaryInhouse] as $adjustment) {
+            if ($adjustment) {
+                $qty += $adjustment->qty_replace - $adjustment->qty_reject;
+            }
+        }
+
+        if ($this->secondaryIn) {
+            $qty += $this->secondaryIn->qty_replace - $this->secondaryIn->qty_reject;
+
+            // Penyesuaian lanjutan secondary in tersimpan di secondary_in_update
+            $updates = $this->secondaryIn->secondaryInUpdate;
+            $qty += $updates->sum("replace") - $updates->sum("reject");
+        }
+
+        return $qty;
+    }
 }
