@@ -4008,7 +4008,6 @@ class Marketing_SOController extends Controller
                             'cons'        => $req->cons,
                             'unit'        => $req->unit,
                             'rule_bom'    => $req->rule_bom,
-                            'id_supplier' => $req->id_supplier,
                             'notes'       => $req->notes,
                             'cancel'      => 'N'
                         ]);
@@ -4028,7 +4027,6 @@ class Marketing_SOController extends Controller
                         'id_item'     => $req->id_item,
                         'cons'        => $req->cons,
                         'unit'        => $req->unit,
-                        'id_supplier' => $req->id_supplier,
                         'rule_bom'    => $req->rule_bom,
                         'cancel'      => 'N',
                         'add_item'    => 'N',
