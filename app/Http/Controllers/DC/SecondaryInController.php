@@ -2382,10 +2382,11 @@ class SecondaryInController extends Controller
             );
         }
 
-        $qtyAwal = $dataSecondaryIn->qty_awal;
+        $qtyAwal = $dataStocker->qty_ply_mod ?? $dataStocker->qty_ply;
+        $qtySecondaryIn = $dataSecondaryIn->qty_in;
         $qtyRejectTotal = $dataSecondaryIn->qty_reject + $dataSecondaryInUpdate->sum("reject") + $qtyRejectNew;
         $qtyReplaceTotal = $dataSecondaryIn->qty_replace + $dataSecondaryInUpdate->sum("replace") + $qtyReplaceNew;
-        $qtyInTotal = $qtyAwal - $qtyRejectTotal + $qtyReplaceTotal;
+        $qtyInTotal = $qtySecondaryIn - $qtyRejectTotal + $qtyReplaceTotal;
 
         if ($qtyInTotal > $qtyAwal) {
             return array(
