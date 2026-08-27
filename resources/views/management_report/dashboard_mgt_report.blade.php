@@ -12,7 +12,7 @@
         }
 
         /* Non-blocking loading badge: does not cover/disable the page,
-               filters stay clickable while data is being fetched/rendered. */
+                   filters stay clickable while data is being fetched/rendered. */
         #dashLoadOverlay {
             position: fixed;
             top: 16px;
@@ -752,7 +752,7 @@
                 <div class="chart-card" id="cardProfitLine">
                     <div class="card-heading d-flex justify-content-between">
                         <span>Profit Line Ranking</span>
-                        <span style="font-weight:400;text-transform:none;">from Profit Line sheet</span>
+                        <span style="font-weight:400;text-transform:none;"></span>
                     </div>
                     <div id="profitLineRanking" style="max-height:300px;overflow-y:auto;"></div>
                 </div>
@@ -1064,7 +1064,7 @@
                     $('#kpiGridHighlight').hide();
                     $('#kpiGridFullEarn').show();
 
-                    $('#headingDailyNote').text('from Sum Full Earn sheet');
+                    $('#headingDailyNote').text('');
                     $('#headingBuyerChart').text('Earning Breakdown by Type');
                     $('#headingEfficiency').text('Balance Trend by Earning Type');
                 },
