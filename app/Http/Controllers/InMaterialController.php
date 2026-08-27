@@ -1400,6 +1400,13 @@ public function pdfinmaterial(Request $request, $id)
     PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
     $pdf = PDF::loadView('inmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser,"dataHead" => $dataHead])->setPaper('a4', 'potrait');
 
+    // Buka PDF pada zoom 100% (bukan default viewer yang 120%)
+    $pdf->render();
+    $canvas = $pdf->getDomPDF()->getCanvas();
+    if (method_exists($canvas, 'get_cpdf')) {
+        $canvas->get_cpdf()->openHere('XYZ', 'null', 'null', 1);
+    }
+
     $fileName = 'pdf-material.pdf';
 
     return $pdf->stream(str_replace("/", "_", $fileName));
