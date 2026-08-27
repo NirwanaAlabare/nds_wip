@@ -940,7 +940,7 @@ class MutasiService
         $headerKolom = [
             'No',
             // 'Id So Det',
-            'Kode Barang',
+            'WS',
             // 'Style',
             // 'No WS',
             // 'Color',
