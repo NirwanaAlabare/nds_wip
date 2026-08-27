@@ -55,9 +55,12 @@ class export_excel_laporan_daily_cost implements FromView, ShouldAutoSize, WithE
     GROUP  BY a.bulan, a.nama_bulan, a.tahun
 ),
 dim_tgl AS (
-    SELECT tanggal,
-           CASE WHEN status_prod IN ('KERJA','LIBUR') THEN status_prod END AS stat_kerja
-    FROM   dim_date
+SELECT d.tanggal,
+       CASE WHEN b.tanggal_libur IS NOT NULL THEN 'LIBUR'
+       ELSE d.status_prod
+       END AS stat_kerja
+FROM   dim_date d
+LEFT JOIN mgt_rep_hari_libur b ON d.tanggal = b.tanggal_libur
     WHERE  tahun = '$this->tahun' AND bulan = '$this->bulan'
 ),
 dc AS (
