@@ -12,13 +12,13 @@ use DB;
 
 class DcReportController extends Controller
 {
-    public function buildQuery($from, $to, DcService $dcService) {
+    public function buildQuery($from, $to) {
         $dateFrom = $from ? $from : date("Y-m-d");
         $dateTo = $to ? $to : date("Y-m-d");
 
-        $query = $dcService->buildQuery($dateFrom, $dateTo);
+        $dcService = new DcService();
 
-        return $query;
+        return $dcService->buildQuery($dateFrom, $dateTo);
     }
 
     public function index(Request $request){
