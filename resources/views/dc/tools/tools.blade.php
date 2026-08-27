@@ -89,6 +89,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="runRekapDc()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Mulai Rekap DC</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -290,6 +299,65 @@
                                     icon: 'error',
                                     title: 'Gagal',
                                     html: 'Terjadi kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function runRekapDc() {
+            Swal.fire({
+                title: 'Mulai Rekap DC?',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan menjalankan rekap DC?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'JALANKAN',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Menjalankan Rekap DC...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('run-rekap-dc') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'INFO',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response.message ? response.message : 'Terjadi kesalahan',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',

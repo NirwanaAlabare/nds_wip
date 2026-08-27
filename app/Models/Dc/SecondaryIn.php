@@ -12,4 +12,8 @@ class SecondaryIn extends Model
     protected $table = "secondary_in_input";
 
     protected $guarded = [];
+
+    public function secondaryInUpdate() {
+        return $this->hasMany(SecondaryInUpdate::class, 'secondary_in_id', 'id');
+    }
 }

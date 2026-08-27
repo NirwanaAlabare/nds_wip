@@ -12,6 +12,7 @@ use App\Models\Dc\LoadingLinePlan;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Stocker\YearSequence;
 use App\Models\SignalBit\UserLine;
+use App\Services\DcService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -174,6 +175,15 @@ class DcToolsController extends Controller
         return array(
             'status' => 200,
             'message' => 'Berhasil mengubah '.count($success).' data <br> Gagal mengubah '.count($fails).' data',
+        );
+    }
+
+    public function runRekapDc(Request $request, DcService $dcService) {
+        $result = $dcService->runRekap();
+
+        return array(
+            'status' => $result['status'],
+            'message' => $result['message'],
         );
     }
 
