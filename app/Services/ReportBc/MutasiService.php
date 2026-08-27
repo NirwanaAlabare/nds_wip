@@ -9,6 +9,57 @@ use Carbon\Carbon;
 
 class MutasiService
 {
+    // public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+    //     if (strtolower($kategoriBarang) === 'fabric') {
+    //         $whereClass = "mi.matclass = 'FABRIC'";
+    //     } elseif (strtolower($kategoriBarang) === 'accesories') {
+    //         $whereClass = "mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+    //     } else {
+    //         $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
+    //     }
+
+    //     $sql = "
+    //         SELECT isi.*, mi.itemdesc, mi.goods_code, ac.kpno
+    //         FROM (
+    //             SELECT A.id_jo, A.id_item,
+    //                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
+    //                    SUM(A.qtyin) AS qtyterima,
+    //                    SUM(A.qtyout) AS qtykeluar,
+    //                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
+    //                    A.unit
+    //             FROM (
+    //                 SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate < ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bppb WHERE bppbdate < ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_jo, id_item, unit
+    //             ) A
+    //             GROUP BY A.id_jo, A.id_item, A.unit
+    //         ) isi
+    //         INNER JOIN masteritem mi ON isi.id_item = mi.id_item
+    //         INNER JOIN (
+    //             SELECT jd.id_jo, ac.kpno FROM jo_det jd
+    //             INNER JOIN so ON so.id = jd.id_so
+    //             INNER JOIN act_costing ac ON ac.id = so.id_cost
+    //         ) ac ON ac.id_jo = isi.id_jo
+    //         INNER JOIN
+    //         WHERE $whereClass
+    //     ";
+
+
+
+    //     return $mysql_sb->select($sql, [
+    //         $fromDate,
+    //         $fromDate,
+    //         $fromDate, $toDate,
+    //         $fromDate, $toDate
+    //     ]);
+    // }
+
     public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
     {
         $mysql_sb = DB::connection('mysql_sb');
@@ -20,36 +71,66 @@ class MutasiService
             $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
         }
 
+        $contentJoin = "
+            INNER JOIN masteritem mi ON mi.id_item = b.id_item
+            INNER JOIN masterdesc bd ON bd.id = mi.id_gen
+            INNER JOIN mastercolor mc2 ON mc2.id = bd.id_color
+            INNER JOIN masterweight mw ON mw.id = mc2.id_weight
+            INNER JOIN masterlength ml ON ml.id = mw.id_length
+            INNER JOIN masterwidth mwd ON mwd.id = ml.id_width
+            INNER JOIN mastercontents mcnt ON mcnt.id = mwd.id_contents
+        ";
+
         $sql = "
-            SELECT isi.*, mi.itemdesc, mi.goods_code, ac.kpno
+            SELECT isi.*, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, ac.kpno
             FROM (
-                SELECT A.id_jo, A.id_item,
-                       SUM(A.sain) - SUM(A.saout) AS saldoawal,
-                       SUM(A.qtyin) AS qtyterima,
-                       SUM(A.qtyout) AS qtykeluar,
-                       (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
-                       A.unit
+                SELECT A.id_contents AS id_item,
+                    A.id_jo, A.id_contents,
+                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
+                    SUM(A.qtyin) AS qtyterima,
+                    SUM(A.qtyout) AS qtykeluar,
+                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
+                    A.unit
                 FROM (
-                    SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate < ? GROUP BY id_jo, id_item, unit
+                    SELECT mcnt.id AS id_contents, b.id_jo, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM bpb b
+                    $contentJoin
+                    WHERE b.bpbdate < ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bppb WHERE bppbdate < ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM bppb b
+                    $contentJoin
+                    WHERE b.bppbdate < ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
+                    FROM bpb b
+                    $contentJoin
+                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
+                    FROM bppb b
+                    $contentJoin
+                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
                 ) A
-                GROUP BY A.id_jo, A.id_item, A.unit
+                GROUP BY A.id_jo, A.id_contents, A.unit
             ) isi
-            INNER JOIN masteritem mi ON isi.id_item = mi.id_item
+            LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
             INNER JOIN (
                 SELECT jd.id_jo, ac.kpno FROM jo_det jd
                 INNER JOIN so ON so.id = jd.id_so
                 INNER JOIN act_costing ac ON ac.id = so.id_cost
             ) ac ON ac.id_jo = isi.id_jo
-            WHERE $whereClass
         ";
-
-
 
         return $mysql_sb->select($sql, [
             $fromDate,
