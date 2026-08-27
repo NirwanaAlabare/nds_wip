@@ -89,12 +89,15 @@
             <td></td>
             <td width="10%">SJ # / Inv #</td>
             <td> : {{ $dheader->no_invoice }}</td>
+            <td rowspan="4" align="right" style="vertical-align: top; border:none; width:110px;">
+                <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(65)->generate($dheader->no_bppb)) !!}" style="width: 65px; height: 65px;">
+            </td>
         </tr>
         <tr>
             <td>No PO</td>
             <td> : {{ $dheader->no_po_subkon }}</td>
             <td>Tgl. BPB</td>
-            <td> : {{ $dheader->tgl_bppb }}</td>    
+            <td> : {{ $dheader->tgl_bppb }}</td>
         </tr>
         <tr>
             <td>Dok. BC</td>
