@@ -225,102 +225,199 @@ class MutasiService
     //     ]);
     // }
 
+    // public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     $whereCategory = "1=1";
+    //     if (strtolower($kategoriBarang) === 'garment') {
+    //         $whereCategory = "ms.kategori = 'GARMENT'";
+    //     } elseif (strtolower($kategoriBarang) === 'sample') {
+    //         $whereCategory = "ms.kategori = 'SAMPLE'";
+    //     } elseif (strtolower($kategoriBarang) === 'kain') {
+    //         $whereCategory = "ms.kategori = 'KAIN'";
+    //     }
+
+    //     $sql = "
+    //         SELECT
+    //             ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
+    //             GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
+    //             GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
+    //             MAX(ms.country) AS country,
+    //             GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+    //             SUM(saldo_awal) AS saldoawal,
+    //             SUM(penerimaan) AS qtyterima,
+    //             SUM(pengeluaran) AS qtykeluar,
+    //             SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
+    //         FROM (
+    //             SELECT * FROM (
+    //                 SELECT saldoawal.id_item, saldoawal.id_so_det,
+    //                     SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
+    //                     0 AS penerimaan,
+    //                     0 AS pengeluaran,
+    //                     GROUP_CONCAT(DISTINCT ws) AS ws
+    //                 FROM (
+    //                     SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //                     FROM saldoawal_fg
+    //                     WHERE periode = '2022-10-01'
+
+    //                     UNION ALL
+
+    //                     SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //                     FROM bpb
+    //                     WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
+    //                     AND bpbno LIKE 'FG%'
+    //                     GROUP BY id_item, id_so_det
+
+    //                     UNION ALL
+
+    //                     SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+    //                         act_costing.kpno AS ws
+    //                     FROM bppb
+    //                     LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+    //                     LEFT JOIN so ON so_det.id_so = so.id
+    //                     LEFT JOIN act_costing ON so.id_cost = act_costing.id
+    //                     WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
+    //                     AND bppb.bppbno LIKE 'SJ-FG%'
+    //                     GROUP BY act_costing.kpno
+    //                 ) saldoawal
+    //                 INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
+    //                 GROUP BY saldoawal.id_item, saldoawal.id_so_det
+    //             ) sa
+
+    //             UNION ALL
+
+    //             SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //             FROM bpb
+    //             WHERE bpbdate >= ? AND bpbdate <= ?
+    //             AND bpbno LIKE 'FG%'
+    //             GROUP BY id_item, id_so_det
+
+    //             UNION ALL
+
+    //             SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+    //                 act_costing.kpno AS ws
+    //             FROM bppb
+    //             LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+    //             LEFT JOIN so ON so_det.id_so = so.id
+    //             LEFT JOIN act_costing ON so.id_cost = act_costing.id
+    //             WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
+    //             AND bppb.bppbno LIKE 'SJ-FG%'
+    //             GROUP BY act_costing.kpno
+    //         ) mutasi
+    //         INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+    //         WHERE $whereCategory
+    //         GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
+    //         HAVING SUM(saldo_awal) != 0
+    //             OR SUM(penerimaan) != 0
+    //             OR SUM(pengeluaran) != 0
+    //             OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
+    //     ";
+
+    //     return $mysql_sb->select($sql, [
+    //         $fromDate,
+    //         $fromDate,
+    //         $fromDate, $toDate,
+    //         $fromDate, $toDate
+    //     ]);
+    // }
+
     public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
-    {
-        $mysql_sb = DB::connection('mysql_sb');
+{
+    $mysql_sb = DB::connection('mysql_sb');
 
-        $whereCategory = "1=1";
-        if (strtolower($kategoriBarang) === 'garment') {
-            $whereCategory = "ms.kategori = 'GARMENT'";
-        } elseif (strtolower($kategoriBarang) === 'sample') {
-            $whereCategory = "ms.kategori = 'SAMPLE'";
-        } elseif (strtolower($kategoriBarang) === 'kain') {
-            $whereCategory = "ms.kategori = 'KAIN'";
-        }
-
-        $sql = "
-            SELECT
-                ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
-                GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
-                GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
-                MAX(ms.country) AS country,
-                GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
-                SUM(saldo_awal) AS saldoawal,
-                SUM(penerimaan) AS qtyterima,
-                SUM(pengeluaran) AS qtykeluar,
-                SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
-            FROM (
-                SELECT * FROM (
-                    SELECT saldoawal.id_item, saldoawal.id_so_det,
-                        SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
-                        0 AS penerimaan,
-                        0 AS pengeluaran,
-                        GROUP_CONCAT(DISTINCT ws) AS ws
-                    FROM (
-                        SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                        FROM saldoawal_fg
-                        WHERE periode = '2022-10-01'
-
-                        UNION ALL
-
-                        SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                        FROM bpb
-                        WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
-                        AND bpbno LIKE 'FG%'
-                        GROUP BY id_item, id_so_det
-
-                        UNION ALL
-
-                        SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                            act_costing.kpno AS ws
-                        FROM bppb
-                        LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-                        LEFT JOIN so ON so_det.id_so = so.id
-                        LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                        WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
-                        AND bppb.bppbno LIKE 'SJ-FG%'
-                        GROUP BY act_costing.kpno
-                    ) saldoawal
-                    INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
-                    GROUP BY saldoawal.id_item, saldoawal.id_so_det
-                ) sa
-
-                UNION ALL
-
-                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                FROM bpb
-                WHERE bpbdate >= ? AND bpbdate <= ?
-                AND bpbno LIKE 'FG%'
-                GROUP BY id_item, id_so_det
-
-                UNION ALL
-
-                SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                    act_costing.kpno AS ws
-                FROM bppb
-                LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-                LEFT JOIN so ON so_det.id_so = so.id
-                LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
-                AND bppb.bppbno LIKE 'SJ-FG%'
-                GROUP BY act_costing.kpno
-            ) mutasi
-            INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
-            WHERE $whereCategory
-            GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
-            HAVING SUM(saldo_awal) != 0
-                OR SUM(penerimaan) != 0
-                OR SUM(pengeluaran) != 0
-                OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
-        ";
-
-        return $mysql_sb->select($sql, [
-            $fromDate,
-            $fromDate,
-            $fromDate, $toDate,
-            $fromDate, $toDate
-        ]);
+    $whereCategory = "1=1";
+    if (strtolower($kategoriBarang) === 'garment') {
+        $whereCategory = "ms.kategori = 'GARMENT'";
+    } elseif (strtolower($kategoriBarang) === 'sample') {
+        $whereCategory = "ms.kategori = 'SAMPLE'";
+    } elseif (strtolower($kategoriBarang) === 'kain') {
+        $whereCategory = "ms.kategori = 'KAIN'";
     }
+
+    $sql = "
+        SELECT
+            ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
+            GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
+            GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
+            MAX(ms.country) AS country,
+            GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+            SUM(saldo_awal) AS saldoawal,
+            SUM(penerimaan) AS qtyterima,
+            SUM(pengeluaran) AS qtykeluar,
+            SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
+        FROM (
+            SELECT * FROM (
+                SELECT saldoawal.id_item, saldoawal.id_so_det,
+                    SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
+                    0 AS penerimaan,
+                    0 AS pengeluaran,
+                    GROUP_CONCAT(DISTINCT ws) AS ws
+                FROM (
+                    SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                    FROM saldoawal_fg
+                    WHERE periode = '2022-10-01'
+
+                    UNION ALL
+
+                    SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                    FROM bpb
+                    WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
+                    AND bpbno LIKE 'FG%'
+                    GROUP BY id_item, id_so_det
+
+                    UNION ALL
+
+                    SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                        MAX(act_costing.kpno) AS ws
+                    FROM bppb
+                    LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+                    LEFT JOIN so ON so_det.id_so = so.id
+                    LEFT JOIN act_costing ON so.id_cost = act_costing.id
+                    WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
+                    AND bppb.bppbno LIKE 'SJ-FG%'
+                    GROUP BY bppb.id_item, bppb.id_so_det
+                ) saldoawal
+                INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
+                GROUP BY saldoawal.id_item, saldoawal.id_so_det
+            ) sa
+
+            UNION ALL
+
+            SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+            FROM bpb
+            WHERE bpbdate >= ? AND bpbdate <= ?
+            AND bpbno LIKE 'FG%'
+            GROUP BY id_item, id_so_det
+
+            UNION ALL
+
+            SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                MAX(act_costing.kpno) AS ws
+            FROM bppb
+            LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+            LEFT JOIN so ON so_det.id_so = so.id
+            LEFT JOIN act_costing ON so.id_cost = act_costing.id
+            WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
+            AND bppb.bppbno LIKE 'SJ-FG%'
+            GROUP BY bppb.id_item, bppb.id_so_det
+        ) mutasi
+        INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+        WHERE $whereCategory
+        GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
+        HAVING SUM(saldo_awal) != 0
+            OR SUM(penerimaan) != 0
+            OR SUM(pengeluaran) != 0
+            OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
+    ";
+
+    return $mysql_sb->select($sql, [
+        $fromDate,
+        $fromDate,
+        $fromDate, $toDate,
+        $fromDate, $toDate
+    ]);
+}
 
     public function getDataMutasiWip($fromDate, $toDate)
     {
