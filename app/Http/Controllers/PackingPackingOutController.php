@@ -698,7 +698,7 @@ group by a.po, a.dest
                     WHERE packing_packing_in.barcode = '$barcode'
                     AND ppic_master_so.po = '$cek_dest_po'
                     AND ppic_master_so.dest = '$dest'
-                    AND sumber = 'Sewing'
+                    AND packing_packing_in.sumber = 'Sewing'
 
                     GROUP BY
                         packing_packing_in.id_ppic_master_so,
@@ -729,7 +729,7 @@ group by a.po, a.dest
                         a.id_so_det
                 ) pack_out
                     ON p.id = pack_out.id_ppic
-                    AND pack_in.id_so_det = pack_out.id_so_det
+                    AND p.id_so_det = pack_out.id_so_det
 
                 LEFT JOIN
                 (
@@ -745,7 +745,7 @@ group by a.po, a.dest
                         asal_so_det_id
                 ) pack_switch
                     ON p.id = pack_switch.asal_ppic_master_so_id
-                    AND pack_in.id_so_det = pack_switch.asal_so_det_id
+                    AND p.id_so_det = pack_switch.asal_so_det_id
 
                 LEFT JOIN
                 (
@@ -761,7 +761,7 @@ group by a.po, a.dest
                         tujuan_so_det_id
                 ) pack_switch_in
                     ON p.id = pack_switch_in.tujuan_ppic_master_so_id
-                    AND pack_in.id_so_det = pack_switch_in.tujuan_so_det_id
+                    AND p.id_so_det = pack_switch_in.tujuan_so_det_id
 
                 WHERE p.barcode = '$barcode'
                 AND p.po = '$cek_dest_po'

@@ -176,9 +176,9 @@
                         <tr>
                             <th width="5%">No</th>
                             {{-- <th>Id So Det</th> --}}
-                            <th>Kode Barang</th>
+                            {{-- <th>Kode Barang</th> --}}
                             {{-- <th>Style</th> --}}
-                            {{-- <th>No WS</th> --}}
+                            <th>No WS</th>
                             {{-- <th>Color</th> --}}
                             {{-- <th>Size</th> --}}
                             <th>Dest / Country</th>

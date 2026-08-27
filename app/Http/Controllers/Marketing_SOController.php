@@ -1643,7 +1643,6 @@ class Marketing_SOController extends Controller
                             id_item,
                             cons,
                             unit,
-                            id_supplier,
                             rule_bom,
                             cancel,
                             add_item,
@@ -1660,7 +1659,6 @@ class Marketing_SOController extends Controller
                             CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE mi.id_gen END    as id_item,
                             bmd.qty                                                                     as cons,
                             bmd.unit,
-                            bmd.id_supplier,
                             UPPER(bmd.rule_bom)                                                         as rule_bom,
                             'N'                                                                         as cancel,
                             'N'                                                                         as add_item,
@@ -4008,7 +4006,6 @@ class Marketing_SOController extends Controller
                             'cons'        => $req->cons,
                             'unit'        => $req->unit,
                             'rule_bom'    => $req->rule_bom,
-                            'id_supplier' => $req->id_supplier,
                             'notes'       => $req->notes,
                             'cancel'      => 'N'
                         ]);
@@ -4028,7 +4025,6 @@ class Marketing_SOController extends Controller
                         'id_item'     => $req->id_item,
                         'cons'        => $req->cons,
                         'unit'        => $req->unit,
-                        'id_supplier' => $req->id_supplier,
                         'rule_bom'    => $req->rule_bom,
                         'cancel'      => 'N',
                         'add_item'    => 'N',
