@@ -512,10 +512,12 @@
         </a>
         @endrole
 
+        @role('helpdesk')
         <a href="{{ route('dashboard-helpdesk') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/ticketing.png') }}" alt="asset"></div>
             <span class="menu-label">Helpdesk</span>
         </a>
+        @endrole
 
         @if(auth()->user()->username == 'acc')
             <a href="{{ route('stock_opname') }}" class="menu-card">
