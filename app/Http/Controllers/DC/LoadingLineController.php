@@ -1184,6 +1184,7 @@ class LoadingLineController extends Controller
                     ".$additionalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
+                    loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
                     loading_stock.size
@@ -1301,6 +1302,7 @@ class LoadingLineController extends Controller
                 loading_stock.tanggal_loading IS NOT NULL
             GROUP BY
                 loading_stock.tanggal_loading,
+                loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
                 loading_stock.size
@@ -1471,6 +1473,7 @@ class LoadingLineController extends Controller
                     ".$generalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
+                    loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
                     loading_stock.size
@@ -1592,6 +1595,7 @@ class LoadingLineController extends Controller
                 loading_stock.tanggal_loading IS NOT NULL
             GROUP BY
                 loading_stock.tanggal_loading,
+                loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
                 loading_stock.size
