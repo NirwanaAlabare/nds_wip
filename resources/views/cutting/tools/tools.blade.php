@@ -421,6 +421,14 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="bypass" id="modify_ratio_bypass_stocker" name="modify_ratio_bypass_stocker">
+                                <label class="form-check-label" for="modify_ratio_bypass_stocker">
+                                    Bypass Stocker
+                                </label>
+                            </div>
+                        </div>
                         <button type="submit" class="btn btn-sb btn-block">Simpan</button>
                     </form>
                 </div>
