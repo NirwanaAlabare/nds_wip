@@ -1883,7 +1883,7 @@ class GeneralController extends Controller
                     SUM(CASE WHEN status = 'RFT' THEN 1 ELSE 0 END) rft,
                     SUM(CASE WHEN status = 'defect' THEN 1 ELSE 0 END) defect,
                     SUM(CASE WHEN status = 'reworked' THEN 1 ELSE 0 END) rework,
-                    SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) reject
+                    SUM(CASE WHEN status = 'rejected' OR status = 'mati' THEN 1 ELSE 0 END) reject
                 FROM
                 (
                     SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line ".($request->department == "_packing_po" ? ', ppic_master_so.po ' : '')." FROM (

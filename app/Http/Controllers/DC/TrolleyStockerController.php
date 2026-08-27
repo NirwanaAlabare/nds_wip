@@ -1072,6 +1072,17 @@ class TrolleyStockerController extends Controller
         $trolleys = Trolley::with('userLine')->where('id', "!=", $id)->orderBy("nama_trolley")->get();
 
         $trolleyStocks = collect(DB::select("
+            WITH secondary_in_update as (
+                select
+                    secondary_in_id,
+                    SUM(secondary_in_update.reject) qty_reject,
+                    SUM(secondary_in_update.replace) qty_replace
+                FROM
+                    secondary_in_update
+                GROUP BY
+                    secondary_in_id
+            )
+
             SELECT
                 id,
                 GROUP_CONCAT( DISTINCT stocker_id ORDER BY stocker_id ASC SEPARATOR ', ' ) stocker_id,
@@ -1103,8 +1114,8 @@ class TrolleyStockerController extends Controller
                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
                     COALESCE ( stocker_input.size, stocker_input.size ) size,
-                    COALESCE (last_in.qty_in, MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty_main,
-                    COALESCE (last_in.qty_in, MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
+                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty_main,
+                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir )) rangeAwalAkhir,
                     CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
@@ -1118,6 +1129,7 @@ class TrolleyStockerController extends Controller
                     LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id`
                     LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `secondary_in_input` ON `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
+                    LEFT JOIN `secondary_in_update` ON `secondary_in_update`.`secondary_in_id` = `secondary_in_input`.`id`
                     LEFT JOIN `secondary_inhouse_input` ON `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `stocker_input`.`form_cut_id`
                     LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
@@ -1145,6 +1157,7 @@ class TrolleyStockerController extends Controller
                     ) AS multi_secondary ON `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `secondary_in_input` AS `last_in` ON `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     AND `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
+                    LEFT JOIN secondary_in_update AS last_update ON last_update.secondary_in_id = last_in.id
                 WHERE
                     `trolley_id` = ".$id."
                     AND `trolley_stocker`.`status` = 'active'
@@ -1168,7 +1181,7 @@ class TrolleyStockerController extends Controller
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
                     COALESCE ( stocker_input.size, stocker_input.size ) size,
                     null as qty_main,
-                    COALESCE (last_in.qty_in, MIN(COALESCE (stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
+                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir )) rangeAwalAkhir,
                     CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
@@ -1182,6 +1195,7 @@ class TrolleyStockerController extends Controller
                     LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id`
                     LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `secondary_in_input` ON `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
+                    LEFT JOIN `secondary_in_update` ON `secondary_in_update`.`secondary_in_id` = `secondary_in_input`.`id`
                     LEFT JOIN `secondary_inhouse_input` ON `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `stocker_input`.`form_cut_id`
                     LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
@@ -1209,6 +1223,7 @@ class TrolleyStockerController extends Controller
                     ) AS multi_secondary ON `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `secondary_in_input` AS `last_in` ON `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     AND `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
+                    LEFT JOIN secondary_in_update AS last_update ON last_update.secondary_in_id = last_in.id
                 WHERE
                     `trolley_id` = ".$id."
                     AND `trolley_stocker`.`status` = 'active'
@@ -1422,22 +1437,38 @@ class TrolleyStockerController extends Controller
 
                         if ($currentSecondary && $currentSecondary->secondary) {
                             if ($currentSecondary->secondary->tujuan != 'NON SECONDARY') {
-                                $currentQty = SecondaryIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)->where("urutan", $currentSecondary->urutan)->value("qty_in");
+                                $currentSecondaryIn = SecondaryIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)
+                                    ->where("urutan", $currentSecondary->urutan)
+                                    ->first();
+
+                                if ($currentSecondaryIn) {
+                                    $updates = $currentSecondaryIn->secondaryInUpdate;
+                                    $currentQty = $currentSecondaryIn->qty_in - $updates->sum("reject") + $updates->sum("replace");
+                                } else {
+                                    $currentQty = $thisStockerData->qty_adjusted;
+                                }
                             } else {
                                 $currentDc = DCIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)->first();
-                                $currentQty = $currentDc->qty_awal - $currentDc->qty_reject + $currentDc->qty_replace;
+                                $currentQty = $currentDc
+                                    ? $currentDc->qty_awal - $currentDc->qty_reject + $currentDc->qty_replace
+                                    : $thisStockerData->qty_adjusted;
                             }
                         } else {
-                            $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
+                            $currentQty = $thisStockerData->qty_adjusted;
                         }
                     } else {
-                        $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
+                        $currentQty = $thisStockerData->qty_adjusted;
                     }
 
                     // Prevent zero on stocker reject
                     if ($currentQty < 1) {
-                        $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
+                        $currentQty = $thisStockerData->qty_adjusted;
                     }
+
+                    /*
+                    '$thisStockerData->qty_adjusted' MERUPAKAN ACCESSOR
+                    FUNGSINYA ADA DI DALAM MODEL 'App/Models/Stocker/Stocker.php' dengan nama 'getQtyAdjustedAttribute'
+                     */
 
                     if ($smallestQty === null || $currentQty < $smallestQty) {
                         $smallestQty = $currentQty;

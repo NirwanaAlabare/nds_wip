@@ -1924,6 +1924,51 @@
     @push('scripts')
         <script>
             let notifMesinSewaItems = [];
+            const NOTIF_MESIN_SEWA_LIMIT = 5;
+
+            function labelSisaHariNotifMesinSewa(sisaHari) {
+                return sisaHari <= 0 ? 'Berakhir hari ini' : ('H-' + sisaHari);
+            }
+
+            function renderDropdownNotifMesinSewa(items, total) {
+                let $list = $('#listNotifMesinSewa');
+
+                $list.empty();
+                if (items.length === 0) {
+                    $list.append(
+                        '<span class="dropdown-item text-muted">Tidak ada kontrak yang akan berakhir</span>'
+                    );
+                    return;
+                }
+
+                items.slice(0, NOTIF_MESIN_SEWA_LIMIT).forEach(function(item, idx) {
+                    $list.append(
+                        '<a href="javascript:void(0)" class="dropdown-item d-flex justify-content-between align-items-start" onclick="showDetailNotifMesinSewa(' +
+                        idx + ')" style="white-space: normal;">' +
+                        '<span class="pe-2"><i class="fas fa-exclamation-triangle text-warning mr-2"></i>' +
+                        item.nm_jenis + ' ' + item.nm_merk + ' - ' + item.serial_number +
+                        '</span>' +
+                        '<span class="text-muted text-sm flex-shrink-0">' +
+                        labelSisaHariNotifMesinSewa(item.sisa_hari) +
+                        '</span>' +
+                        '</a><div class="dropdown-divider"></div>'
+                    );
+                });
+
+                let sisa = total - Math.min(items.length, NOTIF_MESIN_SEWA_LIMIT);
+                if (sisa > 0) {
+                    $list.append(
+                        '<span class="dropdown-item text-muted text-sm">dan ' + sisa + ' kontrak lainnya</span>'
+                    );
+                }
+            }
+
+            function renderCardNotifMesinSewa(items, total) {
+                // Rendering card di halaman dashboard asset (DataTable) ditangani oleh view dashboard
+                if (typeof window.renderNotifMesinSewaTable === 'function') {
+                    window.renderNotifMesinSewaTable(items, total);
+                }
+            }
 
             function loadNotifMesinSewa() {
                 $.ajax({
@@ -1932,7 +1977,6 @@
                     dataType: 'json',
                     success: function(res) {
                         let $badge = $('#badgeNotifMesinSewa');
-                        let $list = $('#listNotifMesinSewa');
 
                         notifMesinSewaItems = res.items;
 
@@ -1946,45 +1990,8 @@
 
                         $('#headerNotifMesinSewa').text('Kontrak Sewa Akan Berakhir (' + res.count + ')');
 
-                        $list.empty();
-                        if (res.items.length === 0) {
-                            $list.append(
-                                '<span class="dropdown-item text-muted">Tidak ada kontrak yang akan berakhir</span>'
-                            );
-                        } else {
-                            res.items.forEach(function(item, idx) {
-                                let label = item.sisa_hari <= 0 ? 'Berakhir hari ini' : ('H-' + item
-                                    .sisa_hari);
-                                $list.append(
-                                    '<a href="javascript:void(0)" class="dropdown-item d-flex justify-content-between align-items-start" onclick="showDetailNotifMesinSewa(' +
-                                    idx + ')" style="white-space: normal;">' +
-                                    '<span class="pe-2"><i class="fas fa-exclamation-triangle text-warning mr-2"></i>' +
-                                    item.nm_jenis + ' ' + item.nm_merk + ' - ' + item.serial_number +
-                                    '</span>' +
-                                    '<span class="text-muted text-sm flex-shrink-0">' + label +
-                                    '</span>' +
-                                    '</a><div class="dropdown-divider"></div>'
-                                );
-                            });
-                        }
-
-                        let $marqueeWrap = $('#marqueeNotifMesinSewa');
-                        let $marqueeText = $('#marqueeNotifMesinSewaText');
-                        if ($marqueeWrap.length) {
-                            if (res.count > 0) {
-                                let parts = res.items.map(function(item) {
-                                    let label = item.sisa_hari <= 0 ? 'BERAKHIR HARI INI' : ('H-' + item
-                                        .sisa_hari);
-                                    return item.nm_jenis + ' ' + item.nm_merk + ' (' + item
-                                        .serial_number + ') - ' + label;
-                                });
-                                $marqueeText.text('⚠ KONTRAK SEWA MESIN AKAN BERAKHIR: ' + parts.join(
-                                    '   |   '));
-                                $marqueeWrap.removeClass('d-none');
-                            } else {
-                                $marqueeWrap.addClass('d-none');
-                            }
-                        }
+                        renderDropdownNotifMesinSewa(res.items, res.count);
+                        renderCardNotifMesinSewa(res.items, res.count);
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);

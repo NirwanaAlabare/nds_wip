@@ -320,7 +320,7 @@ class PartController extends Controller
 
                     if (isset($request["part_details"][$i]) && isset($request["cons"][$i]) && isset($request["cons_unit"][$i]) && isset($request["tujuan"][$i])) {
                         // Store to Part Detail
-                        $currentPartDetail = PartDetail::create( [
+                        $currentPartDetail = PartDetail::create([
                             "part_id" => $partId,
                             "batch" => $batch,
                             "master_part_id" => $request["part_details"][$i],
@@ -329,6 +329,7 @@ class PartController extends Controller
                             "cons" => $request["cons"][$i],
                             "from_part_detail" => null,
                             "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular',
+                            "part_status_notes" => $validatedRequest['panel_status'] == "complement" && isset($request["main_part"][$i]) ? 'main' : 'regular',
                             "created_by" => Auth::user()->id,
                             "created_by_username" => Auth::user()->username,
                             "unit" => $request["cons_unit"][$i],
@@ -463,7 +464,7 @@ class PartController extends Controller
                     "status" => 200,
                     "message" => $partCode,
                     "additional" => [],
-                    "redirect" => route('manage-part-form', ["id" => $partStore->id])
+                    "redirect" => route('manage-part-secondary', ["id" => $partStore->id])
                 );
             } catch (\Exception $e) {
                 DB::rollBack();

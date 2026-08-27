@@ -9,6 +9,57 @@ use Carbon\Carbon;
 
 class MutasiService
 {
+    // public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+    //     if (strtolower($kategoriBarang) === 'fabric') {
+    //         $whereClass = "mi.matclass = 'FABRIC'";
+    //     } elseif (strtolower($kategoriBarang) === 'accesories') {
+    //         $whereClass = "mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+    //     } else {
+    //         $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
+    //     }
+
+    //     $sql = "
+    //         SELECT isi.*, mi.itemdesc, mi.goods_code, ac.kpno
+    //         FROM (
+    //             SELECT A.id_jo, A.id_item,
+    //                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
+    //                    SUM(A.qtyin) AS qtyterima,
+    //                    SUM(A.qtyout) AS qtykeluar,
+    //                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
+    //                    A.unit
+    //             FROM (
+    //                 SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate < ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bppb WHERE bppbdate < ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_jo, id_item, unit
+    //                 UNION ALL
+    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_jo, id_item, unit
+    //             ) A
+    //             GROUP BY A.id_jo, A.id_item, A.unit
+    //         ) isi
+    //         INNER JOIN masteritem mi ON isi.id_item = mi.id_item
+    //         INNER JOIN (
+    //             SELECT jd.id_jo, ac.kpno FROM jo_det jd
+    //             INNER JOIN so ON so.id = jd.id_so
+    //             INNER JOIN act_costing ac ON ac.id = so.id_cost
+    //         ) ac ON ac.id_jo = isi.id_jo
+    //         INNER JOIN
+    //         WHERE $whereClass
+    //     ";
+
+
+
+    //     return $mysql_sb->select($sql, [
+    //         $fromDate,
+    //         $fromDate,
+    //         $fromDate, $toDate,
+    //         $fromDate, $toDate
+    //     ]);
+    // }
+
     public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
     {
         $mysql_sb = DB::connection('mysql_sb');
@@ -20,36 +71,66 @@ class MutasiService
             $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
         }
 
+        $contentJoin = "
+            INNER JOIN masteritem mi ON mi.id_item = b.id_item
+            INNER JOIN masterdesc bd ON bd.id = mi.id_gen
+            INNER JOIN mastercolor mc2 ON mc2.id = bd.id_color
+            INNER JOIN masterweight mw ON mw.id = mc2.id_weight
+            INNER JOIN masterlength ml ON ml.id = mw.id_length
+            INNER JOIN masterwidth mwd ON mwd.id = ml.id_width
+            INNER JOIN mastercontents mcnt ON mcnt.id = mwd.id_contents
+        ";
+
         $sql = "
-            SELECT isi.*, mi.itemdesc, mi.goods_code, ac.kpno
+            SELECT isi.*, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, ac.kpno
             FROM (
-                SELECT A.id_jo, A.id_item,
-                       SUM(A.sain) - SUM(A.saout) AS saldoawal,
-                       SUM(A.qtyin) AS qtyterima,
-                       SUM(A.qtyout) AS qtykeluar,
-                       (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
-                       A.unit
+                SELECT A.id_contents AS id_item,
+                    A.id_jo, A.id_contents,
+                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
+                    SUM(A.qtyin) AS qtyterima,
+                    SUM(A.qtyout) AS qtykeluar,
+                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
+                    A.unit
                 FROM (
-                    SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate < ? GROUP BY id_jo, id_item, unit
+                    SELECT mcnt.id AS id_contents, b.id_jo, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM bpb b
+                    $contentJoin
+                    WHERE b.bpbdate < ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bppb WHERE bppbdate < ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM bppb b
+                    $contentJoin
+                    WHERE b.bppbdate < ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
+                    FROM bpb b
+                    $contentJoin
+                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
+
                     UNION ALL
-                    SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_jo, id_item, unit
+
+                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
+                    FROM bppb b
+                    $contentJoin
+                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND $whereClass
+                    GROUP BY mcnt.id, b.unit
                 ) A
-                GROUP BY A.id_jo, A.id_item, A.unit
+                GROUP BY A.id_jo, A.id_contents, A.unit
             ) isi
-            INNER JOIN masteritem mi ON isi.id_item = mi.id_item
+            LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
             INNER JOIN (
                 SELECT jd.id_jo, ac.kpno FROM jo_det jd
                 INNER JOIN so ON so.id = jd.id_so
                 INNER JOIN act_costing ac ON ac.id = so.id_cost
             ) ac ON ac.id_jo = isi.id_jo
-            WHERE $whereClass
         ";
-
-
 
         return $mysql_sb->select($sql, [
             $fromDate,
@@ -144,102 +225,199 @@ class MutasiService
     //     ]);
     // }
 
+    // public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     $whereCategory = "1=1";
+    //     if (strtolower($kategoriBarang) === 'garment') {
+    //         $whereCategory = "ms.kategori = 'GARMENT'";
+    //     } elseif (strtolower($kategoriBarang) === 'sample') {
+    //         $whereCategory = "ms.kategori = 'SAMPLE'";
+    //     } elseif (strtolower($kategoriBarang) === 'kain') {
+    //         $whereCategory = "ms.kategori = 'KAIN'";
+    //     }
+
+    //     $sql = "
+    //         SELECT
+    //             ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
+    //             GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
+    //             GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
+    //             MAX(ms.country) AS country,
+    //             GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+    //             SUM(saldo_awal) AS saldoawal,
+    //             SUM(penerimaan) AS qtyterima,
+    //             SUM(pengeluaran) AS qtykeluar,
+    //             SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
+    //         FROM (
+    //             SELECT * FROM (
+    //                 SELECT saldoawal.id_item, saldoawal.id_so_det,
+    //                     SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
+    //                     0 AS penerimaan,
+    //                     0 AS pengeluaran,
+    //                     GROUP_CONCAT(DISTINCT ws) AS ws
+    //                 FROM (
+    //                     SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //                     FROM saldoawal_fg
+    //                     WHERE periode = '2022-10-01'
+
+    //                     UNION ALL
+
+    //                     SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //                     FROM bpb
+    //                     WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
+    //                     AND bpbno LIKE 'FG%'
+    //                     GROUP BY id_item, id_so_det
+
+    //                     UNION ALL
+
+    //                     SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+    //                         act_costing.kpno AS ws
+    //                     FROM bppb
+    //                     LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+    //                     LEFT JOIN so ON so_det.id_so = so.id
+    //                     LEFT JOIN act_costing ON so.id_cost = act_costing.id
+    //                     WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
+    //                     AND bppb.bppbno LIKE 'SJ-FG%'
+    //                     GROUP BY act_costing.kpno
+    //                 ) saldoawal
+    //                 INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
+    //                 GROUP BY saldoawal.id_item, saldoawal.id_so_det
+    //             ) sa
+
+    //             UNION ALL
+
+    //             SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+    //             FROM bpb
+    //             WHERE bpbdate >= ? AND bpbdate <= ?
+    //             AND bpbno LIKE 'FG%'
+    //             GROUP BY id_item, id_so_det
+
+    //             UNION ALL
+
+    //             SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+    //                 act_costing.kpno AS ws
+    //             FROM bppb
+    //             LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+    //             LEFT JOIN so ON so_det.id_so = so.id
+    //             LEFT JOIN act_costing ON so.id_cost = act_costing.id
+    //             WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
+    //             AND bppb.bppbno LIKE 'SJ-FG%'
+    //             GROUP BY act_costing.kpno
+    //         ) mutasi
+    //         INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+    //         WHERE $whereCategory
+    //         GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
+    //         HAVING SUM(saldo_awal) != 0
+    //             OR SUM(penerimaan) != 0
+    //             OR SUM(pengeluaran) != 0
+    //             OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
+    //     ";
+
+    //     return $mysql_sb->select($sql, [
+    //         $fromDate,
+    //         $fromDate,
+    //         $fromDate, $toDate,
+    //         $fromDate, $toDate
+    //     ]);
+    // }
+
     public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
-    {
-        $mysql_sb = DB::connection('mysql_sb');
+{
+    $mysql_sb = DB::connection('mysql_sb');
 
-        $whereCategory = "1=1";
-        if (strtolower($kategoriBarang) === 'garment') {
-            $whereCategory = "ms.kategori = 'GARMENT'";
-        } elseif (strtolower($kategoriBarang) === 'sample') {
-            $whereCategory = "ms.kategori = 'SAMPLE'";
-        } elseif (strtolower($kategoriBarang) === 'kain') {
-            $whereCategory = "ms.kategori = 'KAIN'";
-        }
-
-        $sql = "
-            SELECT
-                ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
-                GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
-                GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
-                MAX(ms.country) AS country,
-                GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
-                SUM(saldo_awal) AS saldoawal,
-                SUM(penerimaan) AS qtyterima,
-                SUM(pengeluaran) AS qtykeluar,
-                SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
-            FROM (
-                SELECT * FROM (
-                    SELECT saldoawal.id_item, saldoawal.id_so_det,
-                        SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
-                        0 AS penerimaan,
-                        0 AS pengeluaran,
-                        GROUP_CONCAT(DISTINCT ws) AS ws
-                    FROM (
-                        SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                        FROM saldoawal_fg
-                        WHERE periode = '2022-10-01'
-
-                        UNION ALL
-
-                        SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                        FROM bpb
-                        WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
-                        AND bpbno LIKE 'FG%'
-                        GROUP BY id_item, id_so_det
-
-                        UNION ALL
-
-                        SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                            act_costing.kpno AS ws
-                        FROM bppb
-                        LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-                        LEFT JOIN so ON so_det.id_so = so.id
-                        LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                        WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
-                        AND bppb.bppbno LIKE 'SJ-FG%'
-                        GROUP BY act_costing.kpno
-                    ) saldoawal
-                    INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
-                    GROUP BY saldoawal.id_item, saldoawal.id_so_det
-                ) sa
-
-                UNION ALL
-
-                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                FROM bpb
-                WHERE bpbdate >= ? AND bpbdate <= ?
-                AND bpbno LIKE 'FG%'
-                GROUP BY id_item, id_so_det
-
-                UNION ALL
-
-                SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                    act_costing.kpno AS ws
-                FROM bppb
-                LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-                LEFT JOIN so ON so_det.id_so = so.id
-                LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
-                AND bppb.bppbno LIKE 'SJ-FG%'
-                GROUP BY act_costing.kpno
-            ) mutasi
-            INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
-            WHERE $whereCategory
-            GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
-            HAVING SUM(saldo_awal) != 0
-                OR SUM(penerimaan) != 0
-                OR SUM(pengeluaran) != 0
-                OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
-        ";
-
-        return $mysql_sb->select($sql, [
-            $fromDate,
-            $fromDate,
-            $fromDate, $toDate,
-            $fromDate, $toDate
-        ]);
+    $whereCategory = "1=1";
+    if (strtolower($kategoriBarang) === 'garment') {
+        $whereCategory = "ms.kategori = 'GARMENT'";
+    } elseif (strtolower($kategoriBarang) === 'sample') {
+        $whereCategory = "ms.kategori = 'SAMPLE'";
+    } elseif (strtolower($kategoriBarang) === 'kain') {
+        $whereCategory = "ms.kategori = 'KAIN'";
     }
+
+    $sql = "
+        SELECT
+            ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
+            GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
+            GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
+            MAX(ms.country) AS country,
+            GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+            SUM(saldo_awal) AS saldoawal,
+            SUM(penerimaan) AS qtyterima,
+            SUM(pengeluaran) AS qtykeluar,
+            SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
+        FROM (
+            SELECT * FROM (
+                SELECT saldoawal.id_item, saldoawal.id_so_det,
+                    SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
+                    0 AS penerimaan,
+                    0 AS pengeluaran,
+                    GROUP_CONCAT(DISTINCT ws) AS ws
+                FROM (
+                    SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                    FROM saldoawal_fg
+                    WHERE periode = '2022-10-01'
+
+                    UNION ALL
+
+                    SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                    FROM bpb
+                    WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
+                    AND bpbno LIKE 'FG%'
+                    GROUP BY id_item, id_so_det
+
+                    UNION ALL
+
+                    SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                        MAX(act_costing.kpno) AS ws
+                    FROM bppb
+                    LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+                    LEFT JOIN so ON so_det.id_so = so.id
+                    LEFT JOIN act_costing ON so.id_cost = act_costing.id
+                    WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
+                    AND bppb.bppbno LIKE 'SJ-FG%'
+                    GROUP BY bppb.id_item, bppb.id_so_det
+                ) saldoawal
+                INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
+                GROUP BY saldoawal.id_item, saldoawal.id_so_det
+            ) sa
+
+            UNION ALL
+
+            SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+            FROM bpb
+            WHERE bpbdate >= ? AND bpbdate <= ?
+            AND bpbno LIKE 'FG%'
+            GROUP BY id_item, id_so_det
+
+            UNION ALL
+
+            SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                MAX(act_costing.kpno) AS ws
+            FROM bppb
+            LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+            LEFT JOIN so ON so_det.id_so = so.id
+            LEFT JOIN act_costing ON so.id_cost = act_costing.id
+            WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
+            AND bppb.bppbno LIKE 'SJ-FG%'
+            GROUP BY bppb.id_item, bppb.id_so_det
+        ) mutasi
+        INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+        WHERE $whereCategory
+        GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
+        HAVING SUM(saldo_awal) != 0
+            OR SUM(penerimaan) != 0
+            OR SUM(pengeluaran) != 0
+            OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
+    ";
+
+    return $mysql_sb->select($sql, [
+        $fromDate,
+        $fromDate,
+        $fromDate, $toDate,
+        $fromDate, $toDate
+    ]);
+}
 
     public function getDataMutasiWip($fromDate, $toDate)
     {
@@ -762,7 +940,7 @@ class MutasiService
         $headerKolom = [
             'No',
             // 'Id So Det',
-            'Kode Barang',
+            'WS',
             // 'Style',
             // 'No WS',
             // 'Color',
