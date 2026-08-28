@@ -894,9 +894,9 @@ class Bc30Service
             ];
 
 
-            $isDev = $request->boolean('is_dev');
-            $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload, 'false', $isDev);
-            // $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
+            // $isDev = $request->boolean('is_dev');
+            // $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload, 'false', $isDev);
+            $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
 
             if ($responseCeisa['successful']) {
                 $db->table('bppb')
