@@ -279,18 +279,7 @@ class FGStokLaporanController extends Controller
 
                     UNION ALL
 
-                    SELECT
-                        id_so_det,
-                        SUM(qty) AS qty_in,
-                        '0' AS qty_out,
-                        grade,
-                        lokasi,
-                        no_carton
-                    FROM fg_stok_bpb_scan
-                    WHERE tgl_terima < '$tgl_awal'
-                    GROUP BY id_so_det, grade, lokasi, no_carton
 
-                    UNION ALL
 
                     SELECT
                         id_so_det,
