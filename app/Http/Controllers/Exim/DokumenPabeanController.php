@@ -28,6 +28,7 @@ class DokumenPabeanController extends Controller
         $tgl_akhir = $request->input('tanggal_akhir', date('Y-m-d'));
         $jenis = $request->input('jenis', 'Pemasukan');
 
+
         $jenis_bc = $request->input('jenis_bc', 'BC 4.0');
         $status_ceisa = $request->input('status_ceisa', '');
 
@@ -107,32 +108,51 @@ class DokumenPabeanController extends Controller
                 ->addColumn('action', function($row) use ($jenis) {
                     $btn = '<div class="d-flex justify-content-center">';
 
-                    // Kondisi Cek: Apakah dokumen ini berstatus Batch atau Satuan
+
                     if (isset($row->is_batch) && $row->is_batch == '1') {
-                        // --- TOMBOL EDIT BATCH ---
                         $editUrl = '';
-                        if($row->jenis_dok == 'BC 4.1'){
+                        if ($row->jenis_dok == 'BC 4.1') {
                             $editUrl = route('dokumen-pabean-edit-batch-bc41', ['ids' => $row->no_dokumen_merge]);
                         }
-
-                        if($row->jenis_dok == 'BC 4.0'){
+                        if ($row->jenis_dok == 'BC 4.0') {
                             $editUrl = route('dokumen-pabean-edit-batch-bc40', ['ids' => $row->no_dokumen_merge]);
                         }
-
-                        if($row->jenis_dok == 'BC 2.7'){
+                        if ($row->jenis_dok == 'BC 2.7') {
                             $editUrl = route('dokumen-pabean-edit-batch-bc27', ['ids' => $row->no_dokumen_merge]);
                         }
 
-                        $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Batch"><i class="fas fa-edit"></i> Edit Batch</a>';
+                        if ($row->jenis_dok == 'BC 3.0') {
+                            $editUrl = route('dokumen-pabean-edit-batch-bc30', ['ids' => $row->no_dokumen_merge]);
+                        }
+                        if ($row->jenis_dok == 'BC 2.6.2'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc262', ['ids' => $row->no_dokumen_merge]);
+                        }
+                        if ($row->jenis_dok == 'BC 2.6.1'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc261', ['ids' => $row->no_dokumen_merge]);
+                        }
+
+                        if($row->jenis_dok == 'BC 2.3'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc23', ['ids' => $row->no_dokumen_merge]);
+                        }
+
+                        if($row->jenis_dok == 'BC 3.3'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc33', ['ids' => $row->no_dokumen_merge]);
+                        }
+
+                        if($row->jenis_dok == 'BC 2.5'){
+                            $editUrl = route('dokumen-pabean-edit-batch-bc25', ['ids' => $row->no_dokumen_merge]);
+                        }
+
+
+                        $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Batch"><i class="fas fa-layer-group"></i></a>';
 
                         if ($row->ceisa_status == 1) {
-                            $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Status CEISA" data-noaju="' . $row->nomor_aju_ceisa . '" data-jenis_bc="' . $row->jenis_dok . '"><i class="fas fa-check"></i></button>';
+                            $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Status CEISA" data-noaju="' . $row->nomor_aju_ceisa . '" data-jenis_bc="' . $row->jenis_dok . '" ><i class="fas fa-check"></i></button>';
                             $btn .= '<button type="button" class="btn btn-sm btn-warning mr-1 btn-rollback" title="Rollback Status CEISA" data-id="' . $row->trx_no_par . '" data-noaju="' . ($row->nomor_aju_ceisa ?: 'BELUM ADA') . '"><i class="fas fa-undo"></i></button>';
                         } else {
-                            $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim-batch" data-ids="' . $row->no_dokumen_merge . '" data-jenis_bc="' . $row->jenis_dok . '" title="Kirim Batch ke CEISA"><i class="fas fa-paper-plane"></i> Kirim Batch</button>';
+                            $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim-batch" data-ids="' . $row->no_dokumen_merge . '" data-jenis_bc="' . $row->jenis_dok . '" title="Kirim Batch ke CEISA"><i class="fas fa-paper-plane"></i></button>';
                         }
                     } else {
-                        // --- TOMBOL EDIT SATUAN ---
                         $editUrl = '#';
                         if ($row->jenis_dok == 'BC 2.3') {
                             $editUrl = route('dokumen-pabean-edit-bc23', ['id' => $row->trx_no_par]);
@@ -140,31 +160,36 @@ class DokumenPabeanController extends Controller
                         if ($row->jenis_dok == 'BC 4.0' && $jenis == 'Pemasukan') {
                             $editUrl = route('dokumen-pabean-edit', ['id' => $row->trx_no_par, 'trx' => $jenis]);
                         }
-                        if($row->jenis_dok == 'BC 2.7') {
+                        if ($row->jenis_dok == 'BC 2.7') {
                             $editUrl = route('dokumen-pabean-edit-bc27', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 2.5' || $row->jenis_dok == '25' || $row->jenis_dok == '2.5') {
+                        if ($row->jenis_dok == 'BC 2.5' || $row->jenis_dok == '25' || $row->jenis_dok == '2.5') {
                             $editUrl = route('dokumen-pabean-edit-bc25', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 3.0') {
+                        if ($row->jenis_dok == 'BC 3.0') {
                             $editUrl = route('dokumen-pabean-edit-bc30', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 3.3' && $jenis == 'Pengeluaran') {
+                        if ($row->jenis_dok == 'BC 3.3' && $jenis == 'Pengeluaran') {
                             $editUrl = route('dokumen-pabean-edit-bc33', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 4.1' && $jenis == 'Pengeluaran') {
+                        if ($row->jenis_dok == 'BC 4.1' && $jenis == 'Pengeluaran') {
                             $editUrl = route('dokumen-pabean-edit-bc41', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 2.6.1' && $jenis == 'Pengeluaran') {
+                        if ($row->jenis_dok == 'BC 2.6.1' && $jenis == 'Pengeluaran') {
                             $editUrl = route('dokumen-pabean-edit-bc261', ['id' => $row->trx_no_par]);
                         }
-                        if($row->jenis_dok == 'BC 2.6.2' && $jenis == 'Pemasukan') {
+                        if ($row->jenis_dok == 'BC 2.6.2' && $jenis == 'Pemasukan') {
                             $editUrl = route('dokumen-pabean-edit-bc262', ['id' => $row->trx_no_par]);
                         }
 
                         $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
-                        if($row->ceisa_status == 1) {
+                        if ($row->jenis_dok == 'BC 3.0') {
+                            $editUrl = route('dokumen-pabean-edit-bc30-trial', ['id' => $row->trx_no_par]);
+                            $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-success mr-1" title="Edit Trial"><i class="fas fa-edit"></i></a>';
+                        }
+
+                        if ($row->ceisa_status == 1) {
                             $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Status CEISA" data-noaju="' . $row->nomor_aju_ceisa . '" data-jenis_bc="' . $row->jenis_dok . '"><i class="fas fa-check"></i></button>';
                             $btn .= '<button type="button" class="btn btn-sm btn-warning mr-1 btn-rollback" title="Rollback Status CEISA" data-id="' . $row->trx_no_par . '" data-noaju="' . ($row->nomor_aju_ceisa ?: 'BELUM ADA') . '"><i class="fas fa-undo"></i></button>';
                         } else {
@@ -2057,6 +2082,11 @@ class DokumenPabeanController extends Controller
         return app(\App\Services\Bc30Service::class)->edit($id, $request);
     }
 
+    public function editBCTrial30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->editTrial($id, $request);
+    }
+
     public function updateDraftBc30($id, Request $request)
     {
         return app(\App\Services\Bc30Service::class)->updateDraft($id, $request);
@@ -2176,6 +2206,66 @@ class DokumenPabeanController extends Controller
         return app(\App\Services\Bc27Service::class)->updateDraftBatchBc27($id, $request);
     }
 
+    public function editBatchBc30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc30($id, Request $request)
+    {
+        return app(\App\Services\Bc30Service::class)->updateDraftBatchBc30($id, $request);
+    }
+
+    public function editBatchBc262($id, Request $request)
+    {
+        return app(\App\Services\Bc262Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc262($id, Request $request)
+    {
+        return app(\App\Services\Bc262Service::class)->updateDraftBatchBc262($id, $request);
+    }
+
+    public function editBatchBc261($id, Request $request)
+    {
+        return app(\App\Services\Bc261Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc261($id, Request $request)
+    {
+        return app(\App\Services\Bc261Service::class)->updateDraftBatchBc261($id, $request);
+    }
+
+    public function editBatchBc23($id, Request $request)
+    {
+        return app(\App\Services\Bc23Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc23($id, Request $request)
+    {
+        return app(\App\Services\Bc23Service::class)->updateDraftBatchBc23($id, $request);
+    }
+
+    public function editBatchBc33($id, Request $request)
+    {
+        return app(\App\Services\Bc33Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc33($id, Request $request)
+    {
+        return app(\App\Services\Bc33Service::class)->updateDraftBatchBc33($id, $request);
+    }
+
+    public function editBatchBc25($id, Request $request)
+    {
+        return app(\App\Services\Bc25Service::class)->editBatch($id, $request);
+    }
+
+    public function updateDraftBatchBc25($id, Request $request)
+    {
+        return app(\App\Services\Bc25Service::class)->updateDraftBatchBc25($id, $request);
+    }
+
 
 
     // send batch
@@ -2197,6 +2287,7 @@ class DokumenPabeanController extends Controller
             ], 400);
         }
 
+
         if($jenisBc == 'BC 4.0') {
             return app(\App\Services\Bc40Service::class)->sendCeisaBatch40($bpbs, $request);
         }
@@ -2215,6 +2306,26 @@ class DokumenPabeanController extends Controller
 
         if($jenisBc == 'BC 4.1'){
             return app(\App\Services\Bc41Service::class)->sendCeisaBatch41($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.6.2'){
+            return app(\App\Services\Bc262Service::class)->sendCeisaBatch262($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.6.1'){
+            return app(\App\Services\Bc261Service::class)->sendCeisaBatch261($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.3'){
+            return app(\App\Services\Bc23Service::class)->sendCeisaBatch23($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 3.3'){
+            return app(\App\Services\Bc33Service::class)->sendCeisaBatch33($bpbs, $request);
+        }
+
+        if($jenisBc == 'BC 2.5'){
+            return app(\App\Services\Bc25Service::class)->sendCeisaBatch25($bpbs, $request);
         }
 
         return response()->json([
