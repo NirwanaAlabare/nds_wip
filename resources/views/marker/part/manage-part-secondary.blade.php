@@ -610,7 +610,7 @@
                 <div class="card collapsed-card card-sb h-100">
                     <div class="card-header">
                         <h5 class="card-title fw-bold">
-                            <i class="fa fa-cog"></i> Custom Part 
+                            <i class="fa fa-cog"></i> Custom Part
                         </h5>
                         <div class='card-tools'>
                             <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
@@ -627,7 +627,7 @@
                                     @endphp
                                     <select class="form-select select2bs4" name="part_custom_color" id="part_custom_color">
                                         <option selected="selected" value="">Pilih Color</option>
-                                        @if ($colors) 
+                                        @if ($colors)
                                             @for ($i = 0; $i < count($colors); $i++)
                                                 <option value="{{ $colors[$i] }}">{{ $colors[$i] }}</li>
                                             @endfor
@@ -704,7 +704,7 @@
                                     @if ($colors)
                                         @for ($i = 0; $i < count($colors); $i++)
                                             <option value="{{ $colors[$i] }}">{{ $colors[$i] }}</li>
-                                        @endfor    
+                                        @endfor
                                     @endif
                                 </select>
                             </div>
@@ -1005,7 +1005,7 @@
                                 <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this, "delete", "Menghapus Part Detail ini akan <br> <b>menghapus stocker terkait beserta transaksinya</b>")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                                 `+ (
@@ -1082,7 +1082,7 @@
                                 message: response.msg,
                                 position: 'topCenter'
                             });
-    
+
                             dataTableReload();
                             dataTableComplementReload();
                             cleardata();
@@ -1139,7 +1139,7 @@
                                 message: response.msg,
                                 position: 'topCenter'
                             });
-                            
+
                             dataTableReload();
                             dataTableComplementReload();
                             cleardata();
@@ -1266,7 +1266,7 @@
                                 <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryComplementModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm mb-1' id="delete-complement" data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' id="delete-complement" data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this, "delete", "Menghapus Part Detail ini akan <br> <b>menghapus stocker terkait beserta transaksinya</b>")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;

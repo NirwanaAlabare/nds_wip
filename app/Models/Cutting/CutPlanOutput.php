@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Auth\User;
 use App\Scopes\ThisYearScope;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CutPlanOutput extends Model
 {
     use HasFactory;
+
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
+    protected static $logAttributes = ['*'];
+    protected static $logOnlyDirty = true;
 
     protected $table = 'cutting_plan_output';
 

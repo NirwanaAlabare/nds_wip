@@ -295,13 +295,19 @@ class CuttingFormPieceController extends Controller
 
                         if ($updateFormCutPiece) {
 
+                            // Log Cutting Piece
                             $dataLog = FormCutPiece::where("id", $validatedRequest["id"])->first();
                             logHistory(
                                 $dataLog->id,
                                 $dataLog->toArray()
                             );
 
+                            // Log Cutting Piece Detail
                             $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem", "scannedItem.penerimaanCutting")->where("id", $storeFormCutPieceDetail->id)->first();
+                            logHistory(
+                                $thisFormCutPieceDetail->id,
+                                $thisFormCutPieceDetail->toArray()
+                            );
 
                             return array(
                                 "status" => 200,
@@ -396,6 +402,12 @@ class CuttingFormPieceController extends Controller
                         logHistory(
                             $dataLog->id,
                             $dataLog->toArray()
+                        );
+
+                        $dataLogDetail = FormCutPieceDetail::where("id", $validatedRequest["id_detail"])->first();
+                        logHistory(
+                            $dataLogDetail->id,
+                            $dataLogDetail->toArray()
                         );
 
                         return array(

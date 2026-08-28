@@ -36,6 +36,11 @@
                     <button class="btn btn-success btn-sm" onclick="exportExcel(this);"><i class="fa fa-file-excel fa-sm"></i> Excel</button>
                 </div>
             </div>
+            <div id="active-filters" class="d-flex flex-wrap align-items-center gap-2 mb-3 d-none">
+                <small class="text-muted fw-bold">Filter aktif :</small>
+                <span id="active-filters-list" class="d-flex flex-wrap gap-2"></span>
+                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" onclick="clearAllFilters()"><i class="fa fa-times fa-sm"></i> Hapus Semua</button>
+            </div>
             <div class="table-responsive">
                 <table id="datatable-loading-line" class="table table-bordered table w-100">
                     <thead>
@@ -210,7 +215,62 @@
         });
 
         function datatableLoadingLineReload() {
+            renderActiveFilters();
             datatableLoadingLine.ajax.reload();
+        }
+
+        var summaryLoadingFilters = [
+            { id: 'filter_line', label: 'Line' },
+            { id: 'filter_ws', label: 'No. WS' },
+            { id: 'filter_style', label: 'Style' },
+            { id: 'filter_color', label: 'Color' },
+            { id: 'filter_size', label: 'Size' },
+        ];
+
+        function renderActiveFilters() {
+            let list = $('#active-filters-list');
+            list.empty();
+
+            let total = 0;
+
+            summaryLoadingFilters.forEach(function(filter) {
+                let values = $('#' + filter.id).val() || [];
+
+                values.forEach(function(value) {
+                    total++;
+
+                    let badge = $('<span class="badge bg-sb d-inline-flex align-items-center"></span>');
+                    badge.append($('<span></span>').text(filter.label + ' : ' + value));
+
+                    let remove = $('<a href="javascript:void(0);" class="text-light ms-2" title="Hapus filter"><i class="fa fa-times fa-sm"></i></a>');
+                    remove.on('click', function() {
+                        removeFilterValue(filter.id, value);
+                    });
+
+                    badge.append(remove);
+                    list.append(badge);
+                });
+            });
+
+            $('#active-filters').toggleClass('d-none', total < 1);
+        }
+
+        function removeFilterValue(id, value) {
+            let remaining = ($('#' + id).val() || []).filter(function(item) {
+                return item != value;
+            });
+
+            $('#' + id).val(remaining).trigger('change');
+
+            datatableLoadingLineReload();
+        }
+
+        function clearAllFilters() {
+            summaryLoadingFilters.forEach(function(filter) {
+                $('#' + filter.id).val(null).trigger('change');
+            });
+
+            datatableLoadingLineReload();
         }
 
         $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
@@ -388,6 +448,8 @@
                             });
                         }
                     }
+
+                    renderActiveFilters();
                 },
                 error: function(jqXHR) {
                     document.getElementById('loading').classList.add('d-none');

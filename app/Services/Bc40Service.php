@@ -264,7 +264,7 @@ class Bc40Service
 
                     if (isset($bpbPayload['barang']) && is_array($bpbPayload['barang'])) {
                         foreach ($bpbPayload['barang'] as $brg) {
-                            $id_item = $brg['idItem'];
+                            $id_item = $brg['idItem'] ?? $brg['kodeBarang'] ?? ($brg['seriBarang'] ?? uniqid());
 
                             if (isset($mergedBarang[$id_item])) {
                                 // $mergedBarang[$id_item]['jumlahSatuan'] += (float)($brg['jumlahSatuan'] ?? 0);
@@ -622,10 +622,6 @@ class Bc40Service
             $responseCeisa = $this->ceisaService->kirimDokumenBatch40($payload, 'false');
 
             if ($responseCeisa['successful']) {
-
-
-
-
                 foreach ($bpbs as $no_bpb) {
 
                     $updated = $db->table('bpb')

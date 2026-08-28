@@ -20,9 +20,9 @@ class FormCutInput extends Model
     protected $guarded = [];
 
     //only the `deleted` event will get logged automatically
-    protected static $recordEvents = ['updated', 'deleted'];
-
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
     protected static $logAttributes = ['*'];
+    protected static $logOnlyDirty = true;
 
     protected static function boot()
     {
