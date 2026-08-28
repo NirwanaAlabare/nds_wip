@@ -279,7 +279,18 @@ class FGStokLaporanController extends Controller
 
                     UNION ALL
 
+                    SELECT
+                        id_so_det,
+                        SUM(qty) AS qty_in,
+                        '0' AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb_scan
+                    WHERE tgl_terima < '$tgl_awal'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
 
+                    UNION ALL
 
                     SELECT
                         id_so_det,
@@ -341,7 +352,7 @@ class FGStokLaporanController extends Controller
             ) mt
             LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
             LEFT JOIN master_size_new ms ON m.size = ms.size
-            GROUP BY buyer, ws, styleno, color, m.size, m.product_group, m.product_item
+            GROUP BY buyer, ws, styleno, color, m.size
             ORDER BY buyer ASC, color ASC, ms.urutan ASC
         ");
         return response()->json([
