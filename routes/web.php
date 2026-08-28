@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\TestEvent;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\BarcodePackingController;
 use App\Http\Controllers\CeisaAPIController;
@@ -1192,15 +1193,6 @@ Route::middleware('auth')->group(function () {
     Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
         Route::get('/', 'index')->name('approval-bahan-bakar');
         Route::post('/store', 'store')->name('store-approval-bahan-bakar');
-    });
-
-    Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'cuttingMeja')->name('dashboard-chart');
-        Route::get('/{mejaId?}', 'cuttingMejaDetail')->name('dashboard-chart-detail');
-
-        // TEST TRIGGER SOCKET.IO
-        Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
-        Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
     });
 
     // Marketing
