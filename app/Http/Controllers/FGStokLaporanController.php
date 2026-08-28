@@ -275,7 +275,6 @@ class FGStokLaporanController extends Controller
                         no_carton
                     FROM fg_stok_bpb
                     WHERE tgl_terima < '$tgl_awal'
-                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
                     GROUP BY id_so_det, grade, lokasi, no_carton
 
                     UNION ALL
@@ -289,7 +288,6 @@ class FGStokLaporanController extends Controller
                         no_carton
                     FROM fg_stok_bpb_scan
                     WHERE tgl_terima < '$tgl_awal'
-                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
                     GROUP BY id_so_det, grade, lokasi, no_carton
 
                     UNION ALL
@@ -303,7 +301,6 @@ class FGStokLaporanController extends Controller
                         no_carton
                     FROM fg_stok_bppb
                     WHERE tgl_pengeluaran < '$tgl_awal'
-                        AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
                     GROUP BY id_so_det, grade, lokasi, no_carton
                 ) sa
                 GROUP BY id_so_det, grade, lokasi, no_carton
