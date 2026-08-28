@@ -758,7 +758,7 @@ class TrolleyStockerController extends Controller
             ]);
 
             if ($updateStocker) {
-                $trolley = Trolley::where()->where('id', $trolleyId)->first();
+                $trolley = Trolley::where('id', $trolleyId)->first();
 
                 return array(
                     'status' => 202,
