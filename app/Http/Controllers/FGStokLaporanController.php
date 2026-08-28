@@ -228,6 +228,114 @@ class FGStokLaporanController extends Controller
         ], JsonResponse::HTTP_OK);
     }
 
+    public function report_mutasi_barang_jadi(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+
+        $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+        $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+
+        $data_preview = DB::select("
+            SELECT
+                mt.id_so_det,
+                SUM(qty_awal) AS qty_awal,
+                SUM(qty_in) AS qty_in,
+                SUM(qty_out) AS qty_out,
+                SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir,
+                grade,
+                lokasi,
+                no_carton,
+                buyer,
+                color,
+                m.size,
+                ws,
+                brand,
+                styleno,
+                m.product_group,
+                m.product_item,
+                m.dest,
+                '$tgl_awal' AS tgl_awal,
+                '$tgl_akhir' AS tgl_akhir
+            FROM (
+                SELECT
+                    id_so_det,
+                    SUM(qty_in) - SUM(qty_out) AS qty_awal,
+                    '0' AS qty_in,
+                    '0' AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM (
+                    SELECT
+                        id_so_det,
+                        SUM(qty) AS qty_in,
+                        '0' AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb
+                    WHERE tgl_terima < '$tgl_awal'
+                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION
+
+                    SELECT
+                        id_so_det,
+                        '0' AS qty_in,
+                        SUM(qty_out) AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bppb
+                    WHERE tgl_pengeluaran < '$tgl_awal'
+                        AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+                ) sa
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION
+
+                SELECT
+                    id_so_det,
+                    '0' AS qty_awal,
+                    SUM(qty) AS qty_in,
+                    '0' AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bpb
+                WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+                    AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION
+
+                SELECT
+                    id_so_det,
+                    '0' AS qty_awal,
+                    '0' AS qty_in,
+                    SUM(qty_out) AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bppb
+                WHERE tgl_pengeluaran >= '$tgl_awal' AND tgl_pengeluaran <= '$tgl_akhir'
+                    AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+                GROUP BY id_so_det, grade, lokasi, no_carton
+            ) mt
+            LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
+            LEFT JOIN master_size_new ms ON m.size = ms.size
+            GROUP BY mt.id_so_det, grade, lokasi, no_carton
+            ORDER BY buyer ASC, color ASC, ms.urutan ASC
+        ");
+        return response()->json([
+            'tanggal' => $tgl_awal . " - " . $tgl_akhir,
+            'data' => $data_preview,
+            'message' => 'Succeed'
+        ], JsonResponse::HTTP_OK);
+    }
+
     public function rep_mutasi_fg_stock(Request $request)
     {
         $tgl_awal = $request->dateFrom;
@@ -684,7 +792,7 @@ class FGStokLaporanController extends Controller
         $saldo_awal = '2026-05-01';
 
         if ($request->ajax()) {
-            $data_input = DB::select("WITH 
+            $data_input = DB::select("WITH
 
                     saldo_awal AS (
                         SELECT
@@ -753,7 +861,7 @@ class FGStokLaporanController extends Controller
                         LEFT JOIN master_size_new ms ON m.size = ms.size
                         GROUP BY mt.id_so_det, grade, lokasi, no_carton
                     ),
-                
+
                     all_data AS (
                         SELECT
                             x.buyer,
@@ -811,7 +919,7 @@ class FGStokLaporanController extends Controller
                                 0 qty_keluar_qa,
                                 0 qty_keluar_ekspedisi_before,
                                 0 qty_keluar_ekspedisi
-                            FROM saldo_awal 
+                            FROM saldo_awal
 
                             UNION ALL
 
@@ -1044,7 +1152,7 @@ class FGStokLaporanController extends Controller
                             LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                             WHERE a.tgl_terima <= '".$tgl_akhir."'
                             AND a.sumber_pemasukan = 'EKSPEDISI'
-                            
+
                             UNION ALL
 
                             SELECT
@@ -1330,7 +1438,7 @@ class FGStokLaporanController extends Controller
 
                     )
 
-                    SELECT 
+                    SELECT
                         buyer,
                         ws,
                         styleno,
@@ -1362,7 +1470,7 @@ class FGStokLaporanController extends Controller
                             + COALESCE(qty_adjustment,0)
                         ) AS saldo_akhir_transit,
                         (
-                            CASE 
+                            CASE
                                 WHEN '".$tgl_awal."' = '".$saldo_awal."'
                                 THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                                 ELSE
@@ -1380,7 +1488,7 @@ class FGStokLaporanController extends Controller
                         qty_keluar_qa,
                         qty_keluar_ekspedisi,
                         (
-                            CASE 
+                            CASE
                                 WHEN '".$tgl_awal."' = '".$saldo_awal."'
                                 THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                                 ELSE
@@ -1397,7 +1505,7 @@ class FGStokLaporanController extends Controller
                             - COALESCE(qty_keluar_qa,0)
                             - COALESCE(qty_keluar_ekspedisi,0)
                         ) AS saldo_akhir_gudang_stok
-                    FROM 
+                    FROM
                         all_data
             ");
 
@@ -1411,7 +1519,7 @@ class FGStokLaporanController extends Controller
         $tgl_akhir = $request->to;
         $saldo_awal = '2026-05-01';
 
-        $data = DB::select("WITH 
+        $data = DB::select("WITH
 
                 saldo_awal AS (
                     SELECT
@@ -1480,7 +1588,7 @@ class FGStokLaporanController extends Controller
                     LEFT JOIN master_size_new ms ON m.size = ms.size
                     GROUP BY mt.id_so_det, grade, lokasi, no_carton
                 ),
-            
+
                 all_data AS (
                     SELECT
                         x.buyer,
@@ -1538,7 +1646,7 @@ class FGStokLaporanController extends Controller
                             0 qty_keluar_qa,
                             0 qty_keluar_ekspedisi_before,
                             0 qty_keluar_ekspedisi
-                        FROM saldo_awal 
+                        FROM saldo_awal
 
                         UNION ALL
 
@@ -1771,7 +1879,7 @@ class FGStokLaporanController extends Controller
                         LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                         WHERE a.tgl_terima <= '".$tgl_akhir."'
                         AND a.sumber_pemasukan = 'EKSPEDISI'
-                        
+
                         UNION ALL
 
                         SELECT
@@ -2057,7 +2165,7 @@ class FGStokLaporanController extends Controller
 
                 )
 
-                SELECT 
+                SELECT
                     buyer,
                     ws,
                     styleno,
@@ -2089,7 +2197,7 @@ class FGStokLaporanController extends Controller
                         + COALESCE(qty_adjustment,0)
                     ) AS saldo_akhir_transit,
                     (
-                        CASE 
+                        CASE
                             WHEN '".$tgl_awal."' = '".$saldo_awal."'
                             THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                             ELSE
@@ -2107,7 +2215,7 @@ class FGStokLaporanController extends Controller
                     qty_keluar_qa,
                     qty_keluar_ekspedisi,
                     (
-                        CASE 
+                        CASE
                             WHEN '".$tgl_awal."' = '".$saldo_awal."'
                             THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                             ELSE
@@ -2124,14 +2232,14 @@ class FGStokLaporanController extends Controller
                         - COALESCE(qty_keluar_qa,0)
                         - COALESCE(qty_keluar_ekspedisi,0)
                     ) AS saldo_akhir_gudang_stok
-                FROM 
+                FROM
                     all_data
         ");
 
         $fileName = 'laporan-mutasi-fg-stock-global';
 
         $excel = FastExcel::create($fileName);
-        
+
         $sheet = $excel->sheet();
 
         $sheet->writeRow(

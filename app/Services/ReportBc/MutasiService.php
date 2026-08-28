@@ -642,7 +642,8 @@ class MutasiService
             "tgl_awal"  => $fromDate,
             "tgl_akhir" => $toDate,
         ]);
-        $apiUrl = "http://10.10.5.62:8123/api/laporan-fg-stock/show_fg_stok_mutasi?" . $params;
+        $apiUrl = "http://10.10.5.62:8123/api/laporan-fg-stock/report_mutasi_barang_jadi?" . $params;
+
 
         curl_setopt($ch, CURLOPT_URL, $apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -681,6 +682,7 @@ class MutasiService
                     && strtolower($row['product_group']) === strtolower($kategoriBarang);
             });
         }
+
 
         return collect($rows)
             ->groupBy(function ($row) {
