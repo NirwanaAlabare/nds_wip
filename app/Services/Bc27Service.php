@@ -1690,6 +1690,8 @@ class Bc27Service
 
             Log::info('Kirim Batch BC 2.7 CEISA Payload: ', $payload);
 
+            dd($payload);
+
             $responseCeisa = $this->ceisaService->kirimDokumenBatch27($payload);
 
             if ($responseCeisa['successful']) {
