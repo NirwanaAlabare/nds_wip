@@ -1450,7 +1450,7 @@ class Bc27Service
                         }
 
                         $bahanBakuList[] = [
-                            "cif"                   => (float) ($bb['cif'] ?? 0),
+                            "cif"                   => round((float) ($bb['cif'] ?? 0), 2),
                             "cifRupiah"             => (float) ($bb['cifRupiah'] ?? 0),
                             "hargaPenyerahan"       => (float) ($bb['hargaPenyerahan'] ?? 0),
                             "hargaPerolehan"        => (float) ($bb['hargaPerolehan'] ?? 0),
@@ -1486,7 +1486,7 @@ class Bc27Service
                     if (!in_array($asalBbFallback, ["0", "1"])) $asalBbFallback = "0";
 
                     $bahanBakuList[] = [
-                        "cif"                   => $cifItem,
+                        "cif"                   => round($cifItem, 2),
                         "cifRupiah"             => (float) ($brg['cifRupiah'] ?? 0),
                         "hargaPenyerahan"       => $hargaPenyerahanItem,
                         "hargaPerolehan"        => (float) ($brg['hargaPerolehan'] ?? 0),
@@ -1530,7 +1530,7 @@ class Bc27Service
                 }
 
                 $arrayBarang[] = [
-                    "cif"               => $cifItem,
+                    "cif"               => round($cifItem, 2),
                     "cifRupiah"         => (float) ($brg['cifRupiah'] ?? 0),
                     "hargaEkspor"       => (float) ($brg['hargaEkspor'] ?? 0),
                     "hargaPenyerahan"   => $hargaPenyerahanItem,
@@ -1543,7 +1543,8 @@ class Bc27Service
                     "merk"              => !empty($brg['merk']) ? strval($brg['merk']) : "-",
                     "ndpbm"             => (float) ($brg['ndpbm'] ?? 0),
                     "netto"             => $nettoItem,
-                    "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? 0),
+                    // "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? 0),
+                    "nilaiBarang"       => round((float) ($brg['nilaiBarang'] ?? 0), 2),
                     "nilaiJasa"         => (float) ($brg['nilaiJasa'] ?? 0),
                     "posTarif"          => strval($brg['posTarif'] ?? ""),
                     "seriBarang"        => strval($brg['seriBarang'] ?? ($index + 1)),
