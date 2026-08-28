@@ -684,30 +684,51 @@ class MutasiService
         }
 
 
-        return collect($rows)
-            ->groupBy(function ($row) {
-                return $row['ws'] ?? '-';
-            })
-            ->map(function ($group, $ws) {
-                return (object) [
-                    'ws'            => $ws,
-                    'styleno'       => $group->pluck('styleno')->filter()->unique()->implode(', ') ?: '-',
-                    'id_so_det'     => $group->pluck('id_so_det')->filter()->unique()->implode(', ') ?: '-',
-                    'product_group' => $group->pluck('product_group')->filter()->unique()->implode(', ') ?: '-',
-                    'product_item'  => $group->pluck('product_item')->filter()->unique()->implode(', ') ?: '-',
-                    'color'         => $group->pluck('color')->filter()->unique()->implode(', ') ?: '-',
-                    'size'          => $group->pluck('size')->filter()->unique()->implode(', ') ?: '-',
-                    'grade'         => $group->pluck('grade')->filter()->unique()->implode(', ') ?: '-',
-                    'lokasi'        => $group->pluck('lokasi')->filter()->unique()->implode(', ') ?: '-',
-                    'no_carton'     => $group->pluck('no_carton')->filter()->unique()->implode(', ') ?: '-',
-                    'saldoawal'     => $group->sum(fn ($r) => $r['qty_awal'] ?? 0),
-                    'qtyterima'     => $group->sum(fn ($r) => $r['qty_in'] ?? 0),
-                    'qtykeluar'     => $group->sum(fn ($r) => $r['qty_out'] ?? 0),
-                    'saldoakhir'    => $group->sum(fn ($r) => $r['saldo_akhir'] ?? 0),
-                ];
-            })
-            ->values();
+        // return collect($rows)
+        //     ->groupBy(function ($row) {
+        //         return $row['ws'] ?? '-';
+        //     })
+        //     ->map(function ($group, $ws) {
+        //         return (object) [
+        //             'ws'            => $ws,
+        //             'styleno'       => $group->pluck('styleno')->filter()->unique()->implode(', ') ?: '-',
+        //             'id_so_det'     => $group->pluck('id_so_det')->filter()->unique()->implode(', ') ?: '-',
+        //             'product_group' => $group->pluck('product_group')->filter()->unique()->implode(', ') ?: '-',
+        //             'product_item'  => $group->pluck('product_item')->filter()->unique()->implode(', ') ?: '-',
+        //             'color'         => $group->pluck('color')->filter()->unique()->implode(', ') ?: '-',
+        //             'size'          => $group->pluck('size')->filter()->unique()->implode(', ') ?: '-',
+        //             'grade'         => $group->pluck('grade')->filter()->unique()->implode(', ') ?: '-',
+        //             'lokasi'        => $group->pluck('lokasi')->filter()->unique()->implode(', ') ?: '-',
+        //             'no_carton'     => $group->pluck('no_carton')->filter()->unique()->implode(', ') ?: '-',
+        //             'saldoawal'     => $group->sum(fn ($r) => $r['qty_awal'] ?? 0),
+        //             'qtyterima'     => $group->sum(fn ($r) => $r['qty_in'] ?? 0),
+        //             'qtykeluar'     => $group->sum(fn ($r) => $r['qty_out'] ?? 0),
+        //             'saldoakhir'    => $group->sum(fn ($r) => $r['saldo_akhir'] ?? 0),
+        //         ];
+        //     })
+        //     ->values();
+
+        return collect($rows)->map(function ($row) {
+            return (object) [
+                'ws'            => $row['ws'] ?? '-',
+                'styleno'       => $row['styleno'] ?? '-',
+                'id_so_det'     => $row['id_so_det'] ?? '-',
+                'product_group' => $row['product_group'] ?? '-',
+                'product_item'  => $row['product_item'] ?? '-',
+                'color'         => $row['color'] ?? '-',
+                'size'          => $row['size'] ?? '-',
+                'grade'         => $row['grade'] ?? '-',
+                'lokasi'        => $row['lokasi'] ?? '-',
+                'no_carton'     => $row['no_carton'] ?? '-',
+                'saldoawal'     => $row['qty_awal'] ?? 0,
+                'qtyterima'     => $row['qty_in'] ?? 0,
+                'qtykeluar'     => $row['qty_out'] ?? 0,
+                'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+            ];
+        });
     }
+
+    
 
     // public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
     // {
@@ -1212,14 +1233,14 @@ class MutasiService
             'font' => ['size' => 14, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A1:I1');
+        $sheet->mergeCells('A1:K1');
 
         $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
         $sheet->writeTo('A2', $judulLaporan, [
             'font' => ['size' => 12, 'style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A2:I2');
+        $sheet->mergeCells('A2:K2');
 
         $periode_date = Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
         if($fromDate == $toDate){
@@ -1231,14 +1252,14 @@ class MutasiService
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A3:I3');
+        $sheet->mergeCells('A3:K3');
 
         $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
         $sheet->writeTo('A4', $filterText, [
             'font' => ['style' => 'bold'],
             'text-align' => 'center'
         ]);
-        $sheet->mergeCells('A4:I4');
+        $sheet->mergeCells('A4:K4');
 
         $headerKolom = [
             'No',
@@ -1247,8 +1268,8 @@ class MutasiService
             // 'Id So Det',
             'Product Group',
             'Product Item',
-            // 'Color',
-            // 'Size',
+            'Color',
+            'Size',
             // 'Grade',
             // 'Lokasi',
             // 'No Carton',
@@ -1265,7 +1286,7 @@ class MutasiService
             'text-align' => 'center'
         ];
 
-        $kolomHuruf = range('A', 'I');
+        $kolomHuruf = range('A', 'K');
         foreach ($headerKolom as $i => $judul) {
             $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
         }
@@ -1284,8 +1305,8 @@ class MutasiService
                     // $row->id_so_det ?? '-',
                     $row->product_group ?? '-',
                     $row->product_item ?? '-',
-                    // $row->color ?? '-',
-                    // $row->size ?? '-',
+                    $row->color ?? '-',
+                    $row->size ?? '-',
                     // $row->grade ?? '-',
                     // $row->lokasi ?? '-',
                     // $row->no_carton ?? '-',
