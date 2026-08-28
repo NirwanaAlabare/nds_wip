@@ -355,7 +355,7 @@ class FGStokLaporanController extends Controller
             ) mt
             LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
             LEFT JOIN master_size_new ms ON m.size = ms.size
-            GROUP BY mt.id_so_det, grade, lokasi, no_carton
+            GROUP BY buyer, ws, styleno, color, m.size, m.product_group, m.product_item
             ORDER BY buyer ASC, color ASC, ms.urutan ASC
         ");
         return response()->json([
