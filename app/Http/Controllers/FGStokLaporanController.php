@@ -365,6 +365,200 @@ class FGStokLaporanController extends Controller
         ], JsonResponse::HTTP_OK);
     }
 
+    // public function report_mutasi_barang_jadi(Request $request)
+    // {
+    //     ini_set("max_execution_time", 3600);
+
+    //     $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+    //     $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+
+    //     $data_preview = DB::select("
+    //         SELECT
+    //             buyer,
+    //             ws,
+    //             styleno,
+    //             color,
+    //             m.size,
+    //             m.product_group,
+    //             m.product_item,
+    //             m.dest,
+    //             brand,
+    //             SUM(x.qty_awal) AS qty_awal,
+    //             SUM(x.qty_in) AS qty_in,
+    //             SUM(x.qty_out) AS qty_out,
+    //             SUM(x.qty_awal) + SUM(x.qty_in) - SUM(x.qty_out) AS saldo_akhir,
+    //             '$tgl_awal' AS tgl_awal,
+    //             '$tgl_akhir' AS tgl_akhir
+    //         FROM (
+
+    //             -- ================== SALDO AWAL (sebelum tgl_awal) ==================
+    //             SELECT
+    //                 id_so_det,
+    //                 SUM(qty_in) - SUM(qty_out) AS qty_awal,
+    //                 0 AS qty_in,
+    //                 0 AS qty_out
+    //             FROM (
+    //                 SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
+    //                 FROM fg_stok_bpb
+    //                 WHERE tgl_terima < '$tgl_awal'
+    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //                 GROUP BY id_so_det
+
+    //                 UNION ALL
+
+    //                 SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
+    //                 FROM fg_stok_bpb_scan
+    //                 WHERE tgl_terima < '$tgl_awal'
+    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //                 GROUP BY id_so_det
+
+    //                 UNION ALL
+
+    //                 SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out
+    //                 FROM fg_stok_bppb
+    //                 WHERE tgl_pengeluaran < '$tgl_awal'
+    //                     AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+    //                 GROUP BY id_so_det
+
+    //                 UNION ALL
+
+    //                 -- reject QC (saldo awal) - 1 baris dianggap 1 pcs
+    //                 SELECT
+    //                     mb.id_so_det,
+    //                     COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
+    //                     0 AS qty_out
+    //                 FROM signalbit_erp.output_reject_out_detail a
+    //                 INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
+    //                 INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
+    //                 INNER JOIN signalbit_erp.so_det mb ON b.so_det_id = mb.id
+    //                 WHERE DATE(a.created_at) < '$tgl_awal'
+    //                     AND mp.cancel = 'N'
+    //                 GROUP BY mb.id_so_det
+
+    //                 UNION ALL
+
+    //                 -- ekspedisi masuk dari bppb (saldo awal)
+    //                 SELECT
+    //                     tmpjod.id_so_det,
+    //                     SUM(bppb.qty) AS qty_in,
+    //                     0 AS qty_out
+    //                 FROM signalbit_erp.bppb
+    //                 INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
+    //                 INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
+    //                 LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
+    //                     ON tmpjod.id_so_det = bppb.id_so_det
+    //                 WHERE MID(bppbno,4,2) IN ('FG')
+    //                     AND bppbdate < '$tgl_awal'
+    //                     AND mastersupplier.supplier = 'BARANG JADI STOCK'
+    //                 GROUP BY tmpjod.id_so_det
+
+    //                 UNION ALL
+
+    //                 -- wip_adjustment (saldo awal), join manual via ws/style/color/size ke id_so_det
+    //                 SELECT
+    //                     m2.id_so_det,
+    //                     SUM(wa.qty) AS qty_in,
+    //                     0 AS qty_out
+    //                 FROM wip_adjustment wa
+    //                 LEFT JOIN master_sb_ws m2
+    //                     ON wa.no_ws = m2.ws AND wa.style = m2.styleno
+    //                     AND wa.color = m2.color AND wa.size = m2.size
+    //                 WHERE wa.tgl_saldo < '$tgl_awal'
+    //                     AND wa.type_report = 'TRANSIT_GUDANG_STOK'
+    //                 GROUP BY m2.id_so_det
+    //             ) sa
+    //             GROUP BY id_so_det
+
+    //             UNION ALL
+
+    //             -- ================== PENERIMAAN PERIODE BERJALAN ==================
+    //             SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
+    //             FROM fg_stok_bpb
+    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //             GROUP BY id_so_det
+
+    //             UNION ALL
+
+    //             SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
+    //             FROM fg_stok_bpb_scan
+    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //             GROUP BY id_so_det
+
+    //             UNION ALL
+
+    //             -- reject QC (periode berjalan)
+    //             SELECT
+    //                 mb.id_so_det,
+    //                 0 AS qty_awal,
+    //                 COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
+    //                 0 AS qty_out
+    //             FROM signalbit_erp.output_reject_out_detail a
+    //             INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
+    //             INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
+    //             INNER JOIN signalbit_erp.so_det mb ON b.so_det_id = mb.id
+    //             WHERE DATE(a.created_at) >= '$tgl_awal' AND DATE(a.created_at) <= '$tgl_akhir'
+    //                 AND mp.cancel = 'N'
+    //             GROUP BY mb.id_so_det
+
+    //             UNION ALL
+
+    //             -- ekspedisi masuk dari bppb (periode berjalan)
+    //             SELECT
+    //                 tmpjod.id_so_det,
+    //                 0 AS qty_awal,
+    //                 SUM(bppb.qty) AS qty_in,
+    //                 0 AS qty_out
+    //             FROM signalbit_erp.bppb
+    //             INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
+    //             INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
+    //             LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
+    //                 ON tmpjod.id_so_det = bppb.id_so_det
+    //             WHERE MID(bppbno,4,2) IN ('FG')
+    //                 AND bppbdate >= '$tgl_awal' AND bppbdate <= '$tgl_akhir'
+    //                 AND mastersupplier.supplier = 'BARANG JADI STOCK'
+    //             GROUP BY tmpjod.id_so_det
+
+    //             UNION ALL
+
+    //             -- wip_adjustment (periode berjalan)
+    //             SELECT
+    //                 m2.id_so_det,
+    //                 0 AS qty_awal,
+    //                 SUM(wa.qty) AS qty_in,
+    //                 0 AS qty_out
+    //             FROM wip_adjustment wa
+    //             LEFT JOIN master_sb_ws m2
+    //                 ON wa.no_ws = m2.ws AND wa.style = m2.styleno
+    //                 AND wa.color = m2.color AND wa.size = m2.size
+    //             WHERE wa.tgl_saldo >= '$tgl_awal' AND wa.tgl_saldo <= '$tgl_akhir'
+    //                 AND wa.type_report = 'TRANSIT_GUDANG_STOK'
+    //             GROUP BY m2.id_so_det
+
+    //             UNION ALL
+
+    //             -- ================== PENGELUARAN PERIODE BERJALAN ==================
+    //             SELECT id_so_det, 0 AS qty_awal, 0 AS qty_in, SUM(qty_out) AS qty_out
+    //             FROM fg_stok_bppb
+    //             WHERE tgl_pengeluaran >= '$tgl_awal' AND tgl_pengeluaran <= '$tgl_akhir'
+    //                 AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+    //             GROUP BY id_so_det
+
+    //         ) x
+    //         LEFT JOIN master_sb_ws m ON x.id_so_det = m.id_so_det
+    //         LEFT JOIN master_size_new ms ON m.size = ms.size
+    //         GROUP BY buyer, ws, styleno, color, m.size, m.product_group, m.product_item
+    //         ORDER BY buyer ASC, color ASC, ms.urutan ASC
+    //     ");
+
+    //     return response()->json([
+    //         'tanggal' => $tgl_awal . " - " . $tgl_akhir,
+    //         'data' => $data_preview,
+    //         'message' => 'Succeed'
+    //     ], JsonResponse::HTTP_OK);
+    // }
+
     public function rep_mutasi_fg_stock(Request $request)
     {
         $tgl_awal = $request->dateFrom;
