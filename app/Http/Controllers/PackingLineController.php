@@ -51,8 +51,12 @@ class PackingLineController extends Controller
         $groupBy = $request->groupBy;
         $order = $request->order;
         $buyer = $request->buyer;
+        $color = $request->color;
+        $line = $request->line;
+        $po = $request->po;
+        $size = $request->size;
 
-        return Excel::download(new PackingOutputExport($dateFrom, $dateTo, $groupBy, $order, $buyer), 'order_output.xlsx');
+        return Excel::download(new PackingOutputExport($dateFrom, $dateTo, $groupBy, $order, $buyer, $color, $line, $po, $size), 'order_output.xlsx');
     }
 
     public function wip_packing_line()
