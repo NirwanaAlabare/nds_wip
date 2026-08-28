@@ -278,7 +278,21 @@ class FGStokLaporanController extends Controller
                         AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
                     GROUP BY id_so_det, grade, lokasi, no_carton
 
-                    UNION
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        SUM(qty) AS qty_in,
+                        '0' AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb_scan
+                    WHERE tgl_terima < '$tgl_awal'
+                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
 
                     SELECT
                         id_so_det,
@@ -294,7 +308,7 @@ class FGStokLaporanController extends Controller
                 ) sa
                 GROUP BY id_so_det, grade, lokasi, no_carton
 
-                UNION
+                UNION ALL
 
                 SELECT
                     id_so_det,
@@ -309,7 +323,22 @@ class FGStokLaporanController extends Controller
                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
                 GROUP BY id_so_det, grade, lokasi, no_carton
 
-                UNION
+                UNION ALL
+
+                SELECT
+                    id_so_det,
+                    '0' AS qty_awal,
+                    SUM(qty) AS qty_in,
+                    '0' AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bpb_scan
+                WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+                    AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION ALL
 
                 SELECT
                     id_so_det,
