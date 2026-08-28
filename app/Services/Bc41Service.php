@@ -964,6 +964,12 @@ class Bc41Service
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {
+                    $db->table('bppb')->where('bppbno', $no_bppb)->orWhere('bppbno_int', $no_bppb)->update([
+                        'nomor_aju'   => $nomorAju,
+                        'tanggal_aju' => date('Y-m-d'),
+                        'bcdate' => date('Y-m-d'),
+                    ]);
+
                     $db->table('bpb_ceisa')->where('bpbno', $no_bppb)->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => date('Y-m-d'),

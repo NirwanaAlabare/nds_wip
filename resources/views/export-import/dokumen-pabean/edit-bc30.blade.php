@@ -2771,8 +2771,8 @@
                                     <div class="row">
                                         <div class="col-5 form-group mb-2 pr-1"><label>Tempat Asuransi</label>
                                             <select name="kodeAsuransi" class="form-control form-control-sm ">
-                                                <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'DN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option>
-                                                <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? 'DN') == 'DN' ? 'selected' : '' }}>DALAM NEGERI</option>
+                                                <option value="LN" {{ ($dataDetail['kodeAsuransi'] ?? 'LN') == 'LN' ? 'selected' : '' }}>LUAR NEGERI</option>
+                                                <option value="DN" {{ ($dataDetail['kodeAsuransi'] ?? 'DN') == '' ? 'selected' : '' }}>DALAM NEGERI</option>
                                             </select>
                                         </div>
                                         <div class="col-7 form-group mb-2 pl-1"><label>Nilai Asuransi</label><input type="number" step="any" name="asuransi" class="form-control form-control-sm " value="{{ $dataDetail['asuransi'] ?? '0.00' }}"></div>
@@ -3100,6 +3100,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
 
                                         </div>
                                     </div>

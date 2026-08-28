@@ -68,6 +68,36 @@ class Bc30Service
             ->groupBy('a.id_item')
             ->get();
 
+        // $items = $db->table('bppb as a')
+        //         ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+        //         ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+        //         ->leftJoin('so_det', 'a.id_so_det', '=', 'so_det.id')
+        //         ->leftJoin('so', 'so_det.id_so', '=', 'so.id')
+        //         ->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')
+        //         ->leftJoin('mastersupplier', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')
+        //         ->select(
+        //             'act_costing.kpno as ws',
+        //             'a.id_item',
+        //             'act_costing.kpno as ws',
+        //             'act_costing.styleno as style',
+        //             'mastersupplier.Supplier as buyer',
+
+        //             DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code)) as goods_code"),
+        //             // DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc)) as itemdesc"),
+        //             DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.itemname, mi.itemdesc)) as itemdesc"),
+
+
+        //             DB::raw("MAX(a.unit) as unit"),
+        //             DB::raw('SUM(a.qty) as qty'),
+        //             DB::raw('AVG(a.price) as price'),
+        //             DB::raw('SUM(a.qty * a.price) as total_harga')
+        //         )
+        //         ->where(function ($query) use ($id) {
+        //             $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+        //         })
+        //         ->groupBy('act_costing.kpno')
+        //         ->get();
+
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
         $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
             ['kode' => '', 'nomor' => '', 'tgl' => '']
@@ -864,8 +894,9 @@ class Bc30Service
             ];
 
 
-
-            $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
+            $isDev = $request->boolean('is_dev');
+            $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload, 'false', $isDev);
+            // $responseCeisa = $this->ceisaService->kirimDokumenBc30($finalPayload);
 
             if ($responseCeisa['successful']) {
                 $db->table('bppb')
@@ -987,8 +1018,16 @@ class Bc30Service
             $items = $db->table('bppb as a')
                     ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
                     ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+                    ->leftJoin('so_det', 'a.id_so_det', '=', 'so_det.id')
+                    ->leftJoin('so', 'so_det.id_so', '=', 'so.id')
+                    ->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')
+                    ->leftJoin('mastersupplier', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')
                     ->select(
+                        'act_costing.kpno as ws',
                         'a.id_item',
+                        'act_costing.kpno as ws',
+                        'act_costing.styleno as style',
+                        'mastersupplier.Supplier as buyer',
 
                         DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code) as goods_code"),
                         DB::raw("IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', CONCAT(ms.itemname, ' ', IFNULL(ms.color,''), ' ', IFNULL(ms.size,'')), mi.itemdesc) as itemdesc"),
@@ -1001,7 +1040,7 @@ class Bc30Service
                     ->where(function($query) use ($bppbs) {
                         $query->whereIn('a.bppbno', $bppbs)->orWhereIn('a.bppbno_int', $bppbs);
                     })
-                    ->groupBy('a.id_item')
+                    ->groupBy('act_costing.kpno')
                     ->get();
 
         }
@@ -1852,6 +1891,117 @@ class Bc30Service
                 'message' => $e->getMessage() . ' di baris ' . $e->getLine(),
             ], 500);
         }
+    }
+
+    public function editTrial($id, Request $request)
+    {
+        $db = DB::connection('mysql_sb');
+
+        $header = $db->table('bppb as a')
+            ->select(
+                'a.*',
+                'ms.supplier',
+                'ms.alamat as alamat_supplier',
+                'ms.npwp as npwp_supplier',
+                DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trx_no_par")
+            )
+            ->leftJoin('mastersupplier as ms', 'a.id_supplier', '=', 'ms.id_supplier')
+            ->where(function ($query) use ($id) {
+                $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+            })
+            ->first();
+
+
+        if (!$header) abort(404, 'Data Transaksi Tidak Ditemukan');
+
+        $ceisaInfo = $db->table('bpb_ceisa')
+            ->where(function ($query) use ($id, $header) {
+                $query->where('bpbno', $id)
+                      ->orWhere('bpbno', $header->bppbno)
+                      ->orWhere('bpbno_int', $id)
+                      ->orWhere('bpbno_int', $header->bppbno_int);
+            })
+            ->first();
+        $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
+
+        $items = $db->table('bppb as a')
+                ->leftJoin('masteritem as mi', 'a.id_item', '=', 'mi.id_item')
+                ->leftJoin('masterstyle as ms', 'a.id_item', '=', 'ms.id_item')
+                ->leftJoin('so_det', 'a.id_so_det', '=', 'so_det.id')
+                ->leftJoin('so', 'so_det.id_so', '=', 'so.id')
+                ->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')
+                ->leftJoin('mastersupplier', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')
+                ->leftJoin('master_size_new as msz', 'so_det.size', '=', 'msz.size')
+                ->select(
+                    'act_costing.kpno as ws',
+                    'a.id_item',
+                    'act_costing.kpno as ws',
+                    'act_costing.styleno as style',
+                    'mastersupplier.Supplier as buyer',
+
+                    DB::raw("GROUP_CONCAT(DISTINCT so_det.size ORDER BY COALESCE(msz.urutan, 9999) SEPARATOR ', ') AS size"),
+                    DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code)) as goods_code"),
+                    DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.itemname, mi.itemdesc)) as itemdesc"),
+
+                    DB::raw("MAX(a.unit) as unit"),
+                    DB::raw('SUM(a.qty) as qty'),
+                    DB::raw('AVG(a.price) as price'),
+                    DB::raw('SUM(a.qty * a.price) as total_harga')
+                )
+                ->where(function ($query) use ($id) {
+                    $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
+                })
+                ->groupBy('act_costing.kpno')
+                ->get();
+
+        $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
+        $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
+            ['kode' => '', 'nomor' => '', 'tgl' => '']
+        ];
+
+
+        return view('export-import.dokumen-pabean.edit-trial-bc30', [
+            'page'          => 'dashboard-export-import',
+            'subPageGroup'  => 'export-import',
+            'subPage'       => 'dokumen-pabean-list',
+            'containerFluid'=> true,
+            'header'        => $header,
+            'ceisaInfo'     => $ceisaInfo,
+            'dataDetail'    => $dataDetail,
+            'items'         => $items,
+            'nomorAju'      => $nomorAju,
+            'dokumens'      => $dokumens,
+            'listIncoterm'       => BcReferenceService::getIncoterm(),
+            'listSatuanBarang'   => BcReferenceService::getSatuanBarang(),
+            'listJenisKemasan'   => BcReferenceService::getJenisKemasan(),
+            'referensiDokumen'   => BcReferenceService::getReferensiDokumen(),
+            'listValuta'         => BcReferenceService::getValuta(),
+            'listKategoriBarang' => BcReferenceService::getKategoriBarang(),
+            'listJenisKontainer' => BcReferenceService::getJenisKontainer(),
+            'listTipeKontainer'  => BcReferenceService::getTipeKontainer(),
+            'listUkuranKontainer'=> BcReferenceService::getUkuranKontainer(),
+            'listCaraAngkut' => BcReferenceService::getCaraAngkut(),
+            'listJenisKemasan'     => BcReferenceService::getJenisKemasan(),
+            'listSatuanBarang'     => BcReferenceService::getSatuanBarang(),
+            'referensiDokumen'     => BcReferenceService::getReferensiDokumen(),
+            'listValuta'           => BcReferenceService::getValuta(),
+            'listIncoterm'         => BcReferenceService::getIncoterm(),
+            'listCaraAngkut'       => BcReferenceService::getCaraAngkut(),
+            'listCaraDagang'       => BcReferenceService::getCaraDagang(),
+            'listCaraBayar'        => BcReferenceService::getCaraPembayaran(),
+            'listJenisKontainer'   => BcReferenceService::getJenisKontainer(),
+            'listTipeKontainer'    => BcReferenceService::getTipeKontainer(),
+            'listUkuranKontainer'  => BcReferenceService::getUkuranKontainer(),
+            'listNegara'           => BcReferenceService::getNegara(),
+            'listBank'             => BcReferenceService::getBank(),
+            'listDaerahAsal'       => BcReferenceService::getDaerahAsal(),
+            'listJenisIdentitas'   => BcReferenceService::getJenisIdentitas(),
+            'listJenisEkspor'      => BcReferenceService::getJenisEkspor(),
+            'listStatusPengusaha'  => BcReferenceService::getStatusPengusaha(),
+            'listJenisPengangkutan'=> BcReferenceService::getJenisPengangkutan(),
+            'listKategoriKonsolidator' => BcReferenceService::getKategoriKonsolidator(),
+            'kantorList'           => BcReferenceService::getKantorPelayanan(),
+        ]);
     }
 
 }
