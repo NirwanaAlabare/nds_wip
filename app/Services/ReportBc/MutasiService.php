@@ -2162,7 +2162,7 @@ class MutasiService
         );
 
         $sheet->writeRow(
-            ['LAPORAN MUTASI BARANG JADI GUDANG'],
+            ['LAPORAN MUTASI BARANG BAKU'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
@@ -2183,11 +2183,11 @@ class MutasiService
 
         $sheet->writeRow([
             'No',
-            'WS',
-            'Dest / Country',
-            'Unit',
+            'ID Item',
+            'Nama Barang',
+            'Satuan',
             'Saldo Awal',
-            'Penerimaan',
+            'Pemasukan',
             'Pengeluaran',
             'Saldo Akhir',
         ], [
@@ -2202,13 +2202,13 @@ class MutasiService
 
             $rows = [
                 $no++,
-                $row->kpno ?? '-',
-                $row->country ?? '-',
-                'PCS',
-                (float)($row->saldoawal),
-                (float)($row->qtyterima),
-                (float)($row->qtykeluar),
-                (float)($row->saldoakhir),
+                $row->id_item ?? '-',
+                $row->itemdesc ?? '-',
+                $row->unit ?? '-',
+                number_format($row->saldoawal ?? 0, 2),
+                number_format($row->qtyterima ?? 0, 2),
+                number_format($row->qtykeluar ?? 0, 2),
+                number_format($row->saldoakhir ?? 0, 2),
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
