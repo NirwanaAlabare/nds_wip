@@ -10,6 +10,7 @@ use DB;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
 
 class PenerimaanCuttingController extends Controller
@@ -236,6 +237,16 @@ class PenerimaanCuttingController extends Controller
     public function destroy($id){
         $data = PenerimaanCutting::find($id);
 
+        $cuttingService = new CuttingService();
+        if ($cuttingService->isRollUsed($data->id_roll)) {
+            return [
+                "status" => 400,
+                "message" => "Roll sudah digunakan.",
+                "table" => "datatable",
+                "additional" => [],
+            ];
+        }
+
         if ($data) {
             $data->delete();
 
@@ -308,7 +319,7 @@ class PenerimaanCuttingController extends Controller
             ->whereNull('penerimaan_cutting.id')
             ->orderBy('whs_bppb_det.id', 'DESC')
             ->first();
-        
+
         // When data is nowhere to be found
         if (!$data) {
             $isExist = DB::table('penerimaan_cutting')
