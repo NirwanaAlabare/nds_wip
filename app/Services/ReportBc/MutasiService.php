@@ -972,7 +972,7 @@ class MutasiService
                     ) mb ON b.so_det_id = mb.id_so_det
                     WHERE DATE(a.created_at) <= '$tgl_akhir'
                     AND mp.cancel = 'N'
-                    GROUP BY mb.buyer, mb.ws, mb.color, mb.styleno, mb.size
+                    GROUP BY mb.buyer, mb.ws, mb.styleno
 
                     UNION ALL
 
@@ -1250,7 +1250,7 @@ class MutasiService
                     WHERE a.tgl_pengeluaran <= '$tgl_akhir'
                     AND a.tujuan = 'EKSPEDISI'
                 ) x
-                GROUP BY x.buyer, x.ws, x.color, x.styleno, x.size
+                GROUP BY x.buyer, x.ws, x.styleno
             )
 
 
@@ -1302,7 +1302,7 @@ class MutasiService
             LEFT JOIN master_sb_ws m
                 ON ad.buyer = m.buyer AND ad.ws = m.ws AND ad.styleno = m.styleno
                 AND ad.color = m.color AND ad.size = m.size
-            GROUP BY ad.buyer, ad.ws, ad.styleno, ad.color, ad.size
+            GROUP BY ad.buyer, ad.ws, ad.styleno
             ORDER BY ad.buyer ASC, ad.color ASC
         ");
 
@@ -1341,6 +1341,7 @@ class MutasiService
             ];
         });
     }
+
 
     // function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
@@ -2010,7 +2011,7 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'WS',
-            // 'Dest / Country',
+            'Dest / Country',
             'Unit',
             'Saldo Awal',
             'Penerimaan',
@@ -2029,7 +2030,7 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->kpno ?? '-',
-                // $row->country ?? '-',
+                $row->country ?? '-',
                 'PCS',
                 (float)($row->saldoawal),
                 (float)($row->qtyterima),
@@ -2040,7 +2041,7 @@ class MutasiService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'G') as $col) {
+        foreach (range('A', 'H') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
@@ -2096,8 +2097,8 @@ class MutasiService
             'Style',
             'Product Group',
             'Product Item',
-            // 'Color',
-            // 'Size',
+            'Color',
+            'Size',
             'Saldo Awal',
             'Penerimaan',
             'Pengeluaran',
@@ -2118,8 +2119,8 @@ class MutasiService
                 $row->styleno ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
-                // $row->color ?? '-',
-                // $row->size ?? '-',
+                $row->color ?? '-',
+                $row->size ?? '-',
                 $row->saldoawal ?? '-',
                 $row->qtyterima ?? '-',
                 $row->qtykeluar ?? '-',
@@ -2129,7 +2130,7 @@ class MutasiService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'I') as $col) {
+        foreach (range('A', 'K') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
