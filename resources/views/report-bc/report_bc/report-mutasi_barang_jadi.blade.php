@@ -181,7 +181,7 @@
                             <th>No WS</th>
                             {{-- <th>Color</th> --}}
                             {{-- <th>Size</th> --}}
-                            <th>Dest / Country</th>
+                            {{-- <th>Dest / Country</th> --}}
                             <th>Unit</th>
                             <th>Saldo Awal</th>
                             <th>Penerimaan</th>
@@ -200,7 +200,7 @@
                                     <td>{{ $row->kpno ?? '-' }}</td>
                                     {{-- <td>{!! $row->color ? str_replace(',', '<br>', $row->color) : '-' !!}</td> --}}
                                     {{-- <td>{!! $row->size ? str_replace(',', '<br>', $row->size) : '-' !!}</td> --}}
-                                    <td>{{ $row->country ?? '-' }}</td>
+                                    {{-- <td>{{ $row->country ?? '-' }}</td> --}}
                                     <td class="text-center">PCS</td>
 
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>

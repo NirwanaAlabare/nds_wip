@@ -2010,7 +2010,7 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'WS',
-            'Dest / Country',
+            // 'Dest / Country',
             'Unit',
             'Saldo Awal',
             'Penerimaan',
@@ -2029,7 +2029,7 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->kpno ?? '-',
-                $row->country ?? '-',
+                // $row->country ?? '-',
                 'PCS',
                 (float)($row->saldoawal),
                 (float)($row->qtyterima),
@@ -2040,7 +2040,7 @@ class MutasiService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'H') as $col) {
+        foreach (range('A', 'G') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
@@ -2096,8 +2096,8 @@ class MutasiService
             'Style',
             'Product Group',
             'Product Item',
-            'Color',
-            'Size',
+            // 'Color',
+            // 'Size',
             'Saldo Awal',
             'Penerimaan',
             'Pengeluaran',
@@ -2118,8 +2118,8 @@ class MutasiService
                 $row->styleno ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
-                $row->color ?? '-',
-                $row->size ?? '-',
+                // $row->color ?? '-',
+                // $row->size ?? '-',
                 $row->saldoawal ?? '-',
                 $row->qtyterima ?? '-',
                 $row->qtykeluar ?? '-',
@@ -2129,7 +2129,7 @@ class MutasiService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        foreach (range('A', 'I') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

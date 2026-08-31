@@ -180,8 +180,8 @@
                             {{-- <th>Id So Det</th> --}}
                             <th>Product Group</th>
                             <th>Product Item</th>
-                            <th>Color</th>
-                            <th>Size</th>
+                            {{-- <th>Color</th> --}}
+                            {{-- <th>Size</th> --}}
                             {{-- <th>Grade</th> --}}
                             {{-- <th>Lokasi</th> --}}
                             {{-- <th>No Carton</th> --}}
@@ -258,8 +258,8 @@
                     // { "data": "id_so_det" },
                     { "data": "product_group" },
                     { "data": "product_item" },
-                    { "data": "color" },
-                    { "data": "size" },
+                    // { "data": "color" },
+                    // { "data": "size" },
                     // { "data": "grade", "className": "text-center" },
                     // { "data": "lokasi" },
                     // { "data": "no_carton" },
