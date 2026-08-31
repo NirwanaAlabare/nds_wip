@@ -2162,7 +2162,7 @@ class MutasiService
         );
 
         $sheet->writeRow(
-            ['LAPORAN MUTASI BARANG JADI GUDANG'],
+            ['LAPORAN MUTASI BARANG BAKU'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
