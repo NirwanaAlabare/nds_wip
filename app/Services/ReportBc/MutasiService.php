@@ -632,71 +632,119 @@ class MutasiService
         ]);
     }
 
-
     // public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
     // {
     //     ini_set('memory_limit', '1024M');
     //     ini_set('max_execution_time', 120);
 
-    //     $tgl_awal  = $fromDate;
-    //     $tgl_akhir = $toDate;
+    //     $tgl_awal = '2026-07-01';
+    //     $tgl_akhir = '2026-07-31';
+    //     $saldo_awal = '2026-05-01';
 
-    //     $data_preview = DB::select("
-    //         SELECT
-    //             buyer,
-    //             ws,
-    //             styleno,
-    //             color,
-    //             m.size,
-    //             MIN(m.product_group) AS product_group,
-    //             MIN(m.product_item) AS product_item,
-    //             MIN(brand) AS brand,
-    //             MIN(m.dest) AS dest,
-    //             SUM(qty_awal) AS qty_awal,
-    //             SUM(qty_in) AS qty_in,
-    //             SUM(qty_out) AS qty_out,
-    //             SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir
-    //         FROM (
+    //     $data_preview = DB::select("WITH
 
+    //         saldo_awal AS (
     //             SELECT
-    //                 id_so_det,
-    //                 SUM(qty_in) - SUM(qty_out) AS qty_awal,
-    //                 0 AS qty_in,
-    //                 0 AS qty_out
+    //                 buyer, ws, styleno, color, m.size,
+    //                 SUM(qty_awal) AS qty_awal,
+    //                 SUM(qty_in) AS qty_in,
+    //                 SUM(qty_out) AS qty_out,
+    //                 SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir
     //             FROM (
-    //                 SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
-    //                 FROM fg_stok_bpb
-    //                 WHERE tgl_terima < '$tgl_awal'
-    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
-    //                 GROUP BY id_so_det
+    //                 SELECT
+    //                     id_so_det,
+    //                     SUM(qty_in) - SUM(qty_out) AS qty_awal,
+    //                     0 AS qty_in, 0 AS qty_out,
+    //                     grade, lokasi, no_carton
+    //                 FROM (
+    //                     SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
+    //                     FROM fg_stok_bpb
+    //                     WHERE tgl_terima < '$saldo_awal'
+    //                     GROUP BY id_so_det, grade, lokasi, no_carton
 
-    //                 UNION ALL
+    //                     UNION ALL
 
-    //                 SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
-    //                 FROM fg_stok_bpb_scan
-    //                 WHERE tgl_terima < '$tgl_awal'
-    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
-    //                 GROUP BY id_so_det
+    //                     SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
+    //                     FROM fg_stok_bpb_scan
+    //                     WHERE tgl_terima < '$saldo_awal'
+    //                     GROUP BY id_so_det, grade, lokasi, no_carton
 
-    //                 UNION ALL
+    //                     UNION ALL
 
-    //                 SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out
-    //                 FROM fg_stok_bppb
-    //                 WHERE tgl_pengeluaran < '$tgl_awal'
-    //                     AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
-    //                 GROUP BY id_so_det
+    //                     SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out, grade, lokasi, no_carton
+    //                     FROM fg_stok_bppb
+    //                     WHERE tgl_pengeluaran < '$saldo_awal'
+    //                     GROUP BY id_so_det, grade, lokasi, no_carton
+    //                 ) sa
+    //                 GROUP BY id_so_det, grade, lokasi, no_carton
+    //             ) mt
+    //             LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
+    //             LEFT JOIN master_size_new ms ON m.size = ms.size
+    //             GROUP BY mt.id_so_det, grade, lokasi, no_carton
+    //         ),
+
+    //         all_data AS (
+    //             SELECT
+    //                 x.buyer, x.ws, x.color, x.styleno, x.size,
+    //                 SUM(x.qty_saldo_awal_adjustment_before) AS qty_saldo_awal_adjustment_before,
+    //                 SUM(x.qty_in_qc_reject_before) AS qty_in_qc_reject_before,
+    //                 SUM(x.qty_in_qc_reject) AS qty_in_qc_reject,
+    //                 SUM(x.qty_in_ekspedisi_before) AS qty_in_ekspedisi_before,
+    //                 SUM(x.qty_in_ekspedisi) AS qty_in_ekspedisi,
+    //                 SUM(x.qty_out_qc_reject_before) AS qty_out_qc_reject_before,
+    //                 SUM(x.qty_out_qc_reject) AS qty_out_qc_reject,
+    //                 SUM(x.qty_out_ekspedisi_before) AS qty_out_ekspedisi_before,
+    //                 SUM(x.qty_out_ekspedisi) AS qty_out_ekspedisi,
+    //                 SUM(x.qty_adjustment_before) AS qty_adjustment_before,
+    //                 SUM(x.qty_adjustment) AS qty_adjustment,
+    //                 SUM(x.qty_terima_qc_reject_before) AS qty_terima_qc_reject_before,
+    //                 SUM(x.qty_terima_qc_reject) AS qty_terima_qc_reject,
+    //                 SUM(x.qty_terima_ekspedisi_before) AS qty_terima_ekspedisi_before,
+    //                 SUM(x.qty_terima_ekspedisi) AS qty_terima_ekspedisi,
+    //                 SUM(x.qty_keluar_sewing_before) AS qty_keluar_sewing_before,
+    //                 SUM(x.qty_keluar_sewing) AS qty_keluar_sewing,
+    //                 SUM(x.qty_keluar_qa_before) AS qty_keluar_qa_before,
+    //                 SUM(x.qty_keluar_qa) AS qty_keluar_qa,
+    //                 SUM(x.qty_keluar_ekspedisi_before) AS qty_keluar_ekspedisi_before,
+    //                 SUM(x.qty_keluar_ekspedisi) AS qty_keluar_ekspedisi
+    //             FROM (
+
+    //                 SELECT
+    //                     buyer, ws, color, styleno, size,
+    //                     saldo_awal.qty_awal AS qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM saldo_awal
 
     //                 UNION ALL
 
     //                 SELECT
-    //                     mb.id_so_det,
-    //                     COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
-    //                     0 AS qty_out
+    //                     mb.buyer, mb.ws, mb.color, mb.styleno, mb.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     COUNT(CASE WHEN b.status = 'rejected' AND DATE(a.created_at) >= '$saldo_awal' AND DATE(a.created_at) < '$tgl_awal' THEN 1 END) AS qty_in_qc_reject_before,
+    //                     COUNT(CASE WHEN b.status = 'rejected' AND DATE(a.created_at) >= '$tgl_awal' THEN 1 END) AS qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
     //                 FROM signalbit_erp.output_reject_out_detail a
     //                 INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
     //                 INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
     //                 LEFT JOIN (
-    //                     SELECT sd.id AS id_so_det
+    //                     SELECT sd.id AS id_so_det, ac.kpno AS ws, supplier AS buyer, styleno, color, size, dest
     //                     FROM signalbit_erp.so_det sd
     //                     INNER JOIN signalbit_erp.so ON sd.id_so = so.id
     //                     INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
@@ -704,159 +752,389 @@ class MutasiService
     //                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
     //                     WHERE jd.cancel = 'N'
     //                 ) mb ON b.so_det_id = mb.id_so_det
-    //                 WHERE DATE(a.created_at) < '$tgl_awal'
-    //                     AND mp.cancel = 'N'
-    //                 GROUP BY mb.id_so_det
+    //                 WHERE DATE(a.created_at) <= '$tgl_akhir'
+    //                 AND mp.cancel = 'N'
+    //                 GROUP BY mb.buyer, mb.ws, mb.color, mb.styleno, mb.size
 
     //                 UNION ALL
 
     //                 SELECT
-    //                     tmpjod.id_so_det,
-    //                     SUM(bppb.qty) AS qty_in,
-    //                     0 AS qty_out
+    //                     buyer.supplier AS buyer, act_costing.kpno ws, masterstyle.color, act_costing.styleno, masterstyle.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     IF(bppbdate >= '$saldo_awal' AND bppbdate < '$tgl_awal', bppb.qty, 0) qty_in_ekspedisi_before,
+    //                     IF(bppbdate >= '$tgl_awal', bppb.qty, 0) qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
     //                 FROM signalbit_erp.bppb
     //                 INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
     //                 INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
-    //                 LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
-    //                     ON tmpjod.id_so_det = bppb.id_so_det
-    //                 WHERE MID(bppbno,4,2) IN ('FG')
-    //                     AND bppbdate < '$tgl_awal'
-    //                     AND mastersupplier.supplier = 'BARANG JADI STOCK'
-    //                 GROUP BY tmpjod.id_so_det
+    //                 LEFT JOIN (SELECT sod.id_so, sod.id id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod ON tmpjod.id_so_det = bppb.id_so_det
+    //                 LEFT JOIN signalbit_erp.so ON so.id = tmpjod.id_so
+    //                 LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
+    //                 WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK'
 
     //                 UNION ALL
 
     //                 SELECT
-    //                     m2.id_so_det,
-    //                     SUM(wa.qty) AS qty_in,
-    //                     0 AS qty_out
-    //                 FROM wip_adjustment wa
-    //                 LEFT JOIN master_sb_ws m2
-    //                     ON wa.no_ws = m2.ws AND wa.style = m2.styleno
-    //                     AND wa.color = m2.color AND wa.size = m2.size
-    //                 WHERE wa.tgl_saldo < '$tgl_awal'
-    //                     AND wa.type_report = 'TRANSIT_GUDANG_STOK'
-    //                 GROUP BY m2.id_so_det
-    //             ) sa
-    //             GROUP BY id_so_det
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_qc_reject_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
-    //             FROM fg_stok_bpb
-    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
-    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
-    //             GROUP BY id_so_det
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_qc_reject_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb_scan a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
-    //             FROM fg_stok_bpb_scan
-    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
-    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
-    //             GROUP BY id_so_det
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan = 'EKSPEDISI'
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT
-    //                 mb.id_so_det,
-    //                 0 AS qty_awal,
-    //                 COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
-    //                 0 AS qty_out
-    //             FROM signalbit_erp.output_reject_out_detail a
-    //             INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
-    //             INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
-    //             LEFT JOIN (
-    //                 SELECT sd.id AS id_so_det
-    //                 FROM signalbit_erp.so_det sd
-    //                 INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-    //                 INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-    //                 INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-    //                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-    //                 WHERE jd.cancel = 'N'
-    //             ) mb ON b.so_det_id = mb.id_so_det
-    //             WHERE DATE(a.created_at) >= '$tgl_awal' AND DATE(a.created_at) <= '$tgl_akhir'
-    //                 AND mp.cancel = 'N'
-    //             GROUP BY mb.id_so_det
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb_scan a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan = 'EKSPEDISI'
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT
-    //                 tmpjod.id_so_det,
-    //                 0 AS qty_awal,
-    //                 SUM(bppb.qty) AS qty_in,
-    //                 0 AS qty_out
-    //             FROM signalbit_erp.bppb
-    //             INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
-    //             INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
-    //             LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
-    //                 ON tmpjod.id_so_det = bppb.id_so_det
-    //             WHERE MID(bppbno,4,2) IN ('FG')
-    //                 AND bppbdate >= '$tgl_awal' AND bppbdate <= '$tgl_akhir'
-    //                 AND mastersupplier.supplier = 'BARANG JADI STOCK'
-    //             GROUP BY tmpjod.id_so_det
+    //                 SELECT
+    //                     buyer, no_ws ws, color, style styleno, size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     SUM(IF(tgl_saldo >= '$saldo_awal' AND tgl_saldo < '$tgl_awal', qty, 0)) qty_adjustment_before,
+    //                     SUM(IF(tgl_saldo >= '$tgl_awal', qty, 0)) qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM wip_adjustment
+    //                 WHERE tgl_saldo <= '$tgl_akhir' AND type_report = 'TRANSIT_GUDANG_STOK'
+    //                 GROUP BY ws, color, size, panel, part
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT
-    //                 m2.id_so_det,
-    //                 0 AS qty_awal,
-    //                 SUM(wa.qty) AS qty_in,
-    //                 0 AS qty_out
-    //             FROM wip_adjustment wa
-    //             LEFT JOIN master_sb_ws m2
-    //                 ON wa.no_ws = m2.ws AND wa.style = m2.styleno
-    //                 AND wa.color = m2.color AND wa.size = m2.size
-    //             WHERE wa.tgl_saldo >= '$tgl_awal' AND wa.tgl_saldo <= '$tgl_akhir'
-    //                 AND wa.type_report = 'TRANSIT_GUDANG_STOK'
-    //             GROUP BY m2.id_so_det
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
-    //             UNION ALL
+    //                 UNION ALL
 
-    //             SELECT id_so_det, 0 AS qty_awal, 0 AS qty_in, SUM(qty_out) AS qty_out
-    //             FROM fg_stok_bppb
-    //             WHERE tgl_pengeluaran >= '$tgl_awal' AND tgl_pengeluaran <= '$tgl_akhir'
-    //                 AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
-    //             GROUP BY id_so_det
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb_scan a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
 
-    //         ) x
-    //         LEFT JOIN master_sb_ws m ON x.id_so_det = m.id_so_det
-    //         LEFT JOIN master_size_new ms ON m.size = ms.size
-    //         GROUP BY buyer, ws, styleno, color, m.size
-    //         ORDER BY buyer ASC, color ASC, ms.urutan ASC
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan = 'EKSPEDISI'
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
+    //                     IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bpb_scan a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_terima <= '$tgl_akhir'
+    //                 AND a.sumber_pemasukan = 'EKSPEDISI'
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     IF(tgl_pengeluaran >= '$saldo_awal' AND tgl_pengeluaran < '$tgl_awal', a.qty_out, 0) AS qty_keluar_sewing_before,
+    //                     IF(tgl_pengeluaran >= '$tgl_awal', a.qty_out, 0) AS qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bppb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_pengeluaran <= '$tgl_akhir'
+    //                 AND a.tujuan = 'PRODUCTION-SEWING'
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     IF(tgl_pengeluaran >= '$saldo_awal' AND tgl_pengeluaran < '$tgl_awal', a.qty_out, 0) AS qty_keluar_qa_before,
+    //                     IF(tgl_pengeluaran >= '$tgl_awal', a.qty_out, 0) AS qty_keluar_qa,
+    //                     0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+    //                 FROM fg_stok_bppb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_pengeluaran <= '$tgl_akhir'
+    //                 AND a.tujuan = 'QA'
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     m.buyer, m.ws, m.color, m.styleno, m.size,
+    //                     0 qty_saldo_awal_adjustment_before,
+    //                     0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+    //                     0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+    //                     0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+    //                     0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+    //                     0 qty_adjustment_before, 0 qty_adjustment,
+    //                     0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+    //                     0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+    //                     0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+    //                     0 qty_keluar_qa_before, 0 qty_keluar_qa,
+    //                     IF(tgl_pengeluaran >= '$saldo_awal' AND tgl_pengeluaran < '$tgl_awal', a.qty_out, 0) AS qty_keluar_ekspedisi_before,
+    //                     IF(tgl_pengeluaran >= '$tgl_awal', a.qty_out, 0) AS qty_keluar_ekspedisi
+    //                 FROM fg_stok_bppb a
+    //                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+    //                 WHERE a.tgl_pengeluaran <= '$tgl_akhir'
+    //                 AND a.tujuan = 'EKSPEDISI'
+    //             ) x
+    //             GROUP BY x.buyer, x.ws, x.color, x.styleno, x.size
+    //         )
+
+
+    //         SELECT
+    //             ad.buyer,
+    //             ad.ws,
+    //             ad.styleno,
+    //             ad.color,
+    //             ad.size,
+    //             MIN(m.product_group) AS product_group,
+    //             MIN(m.product_item) AS product_item,
+    //             (
+    //                 CASE
+    //                     WHEN '$tgl_awal' = '$saldo_awal'
+    //                     THEN COALESCE(ad.qty_saldo_awal_adjustment_before,0)
+    //                     ELSE
+    //                         COALESCE(ad.qty_saldo_awal_adjustment_before,0)
+    //                         + COALESCE(ad.qty_terima_qc_reject_before,0)
+    //                         + COALESCE(ad.qty_terima_ekspedisi_before,0)
+    //                         - COALESCE(ad.qty_keluar_sewing_before,0)
+    //                         - COALESCE(ad.qty_keluar_qa_before,0)
+    //                         - COALESCE(ad.qty_keluar_ekspedisi_before,0)
+    //                 END
+    //             ) AS saldo_awal,
+    //             COALESCE(ad.qty_terima_qc_reject,0)   AS terima_qc_reject,
+    //             COALESCE(ad.qty_terima_ekspedisi,0)   AS terima_ekspedisi,
+    //             COALESCE(ad.qty_keluar_sewing,0)      AS keluar_sewing,
+    //             COALESCE(ad.qty_keluar_qa,0)          AS keluar_qa,
+    //             COALESCE(ad.qty_keluar_ekspedisi,0)   AS keluar_ekspedisi,
+    //             (
+    //                 CASE
+    //                     WHEN '$tgl_awal' = '$saldo_awal'
+    //                     THEN COALESCE(ad.qty_saldo_awal_adjustment_before,0)
+    //                     ELSE
+    //                         COALESCE(ad.qty_saldo_awal_adjustment_before,0)
+    //                         + COALESCE(ad.qty_terima_qc_reject_before,0)
+    //                         + COALESCE(ad.qty_terima_ekspedisi_before,0)
+    //                         - COALESCE(ad.qty_keluar_sewing_before,0)
+    //                         - COALESCE(ad.qty_keluar_qa_before,0)
+    //                         - COALESCE(ad.qty_keluar_ekspedisi_before,0)
+    //                 END
+    //                 + COALESCE(ad.qty_terima_qc_reject,0)
+    //                 + COALESCE(ad.qty_terima_ekspedisi,0)
+    //                 - COALESCE(ad.qty_keluar_sewing,0)
+    //                 - COALESCE(ad.qty_keluar_qa,0)
+    //                 - COALESCE(ad.qty_keluar_ekspedisi,0)
+    //             ) AS saldo_akhir
+    //         FROM all_data ad
+    //         LEFT JOIN master_sb_ws m
+    //             ON ad.buyer = m.buyer AND ad.ws = m.ws AND ad.styleno = m.styleno
+    //             AND ad.color = m.color AND ad.size = m.size
+    //         GROUP BY ad.buyer, ad.ws, ad.styleno, ad.color, ad.size
+    //         ORDER BY ad.buyer ASC, ad.color ASC
     //     ");
 
     //     $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-    //     if (strtolower($kategoriBarang) !== 'all') {
-    //         $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-    //             return isset($row['product_group'])
-    //                 && strtolower($row['product_group']) === strtolower($kategoriBarang);
-    //         });
-    //     }
+    //     // if (strtolower($kategoriBarang) !== 'all') {
+    //     //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+    //     //         return isset($row['product_group'])
+    //     //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
+    //     //     });
+    //     // }
+
+    //     // 'ws'            => $row['ws'] ?? '-',
+    //     //         'styleno'       => $row['styleno'] ?? '-',
+    //     //         'product_group' => $row['product_group'] ?? '-',
+    //     //         'product_item'  => $row['product_item'] ?? '-',
+    //     //         'color'         => $row['color'] ?? '-',
+    //     //         'size'          => $row['size'] ?? '-',
+    //     //         'saldoawal'     => $row['qty_awal'] ?? 0,
+    //     //         'qtyterima'     => $row['qty_in'] ?? 0,
+    //     //         'qtykeluar'     => $row['qty_out'] ?? 0,
+    //     //         'saldoakhir'    => $row['saldo_akhir'] ?? 0,
 
     //     return collect($rows)->map(function ($row) {
     //         return (object) [
-    //             'ws'            => $row['ws'] ?? '-',
-    //             'styleno'       => $row['styleno'] ?? '-',
-    //             'product_group' => $row['product_group'] ?? '-',
-    //             'product_item'  => $row['product_item'] ?? '-',
-    //             'color'         => $row['color'] ?? '-',
-    //             'size'          => $row['size'] ?? '-',
-    //             'saldoawal'     => $row['qty_awal'] ?? 0,
-    //             'qtyterima'     => $row['qty_in'] ?? 0,
-    //             'qtykeluar'     => $row['qty_out'] ?? 0,
-    //             'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+    //             'ws'               => $row['ws'] ?? '-',
+    //             'styleno'          => $row['styleno'] ?? '-',
+    //             'product_group'    => $row['product_group'] ?? '-',
+    //             'product_item'     => $row['product_item'] ?? '-',
+    //             'color'            => $row['color'] ?? '-',
+    //             'size'             => $row['size'] ?? '-',
+    //             'saldoawal'        => $row['saldo_awal'] ?? 0,
+    //             'qtyterima'        => $row['terima_qc_reject'] + $row['terima_ekspedisi']?? 0,
+    //             'qtykeluar'        => $row['keluar_sewing'] + $row['keluar_qa'] + $row['keluar_ekspedisi'] ?? 0,
+    //             // 'terimaekspedisi'  => $row['terima_ekspedisi'] ?? 0,
+    //             // 'keluarsewing'     => $row['keluar_sewing'] ?? 0,
+    //             // 'keluarqa'         => $row['keluar_qa'] ?? 0,
+    //             // 'keluarekspedisi'  => $row['keluar_ekspedisi'] ?? 0,
+    //             'saldoakhir'       => $row['saldo_akhir'] ?? 0,
     //         ];
     //     });
     // }
+
     public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
     {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', 120);
 
-        $tgl_awal = '2026-07-01';
-        $tgl_akhir = '2026-07-31';
+        $tgl_awal   = $fromDate;
+        $tgl_akhir  = $toDate;
         $saldo_awal = '2026-05-01';
 
         $data_preview = DB::select("WITH
@@ -905,16 +1183,6 @@ class MutasiService
                 SELECT
                     x.buyer, x.ws, x.color, x.styleno, x.size,
                     SUM(x.qty_saldo_awal_adjustment_before) AS qty_saldo_awal_adjustment_before,
-                    SUM(x.qty_in_qc_reject_before) AS qty_in_qc_reject_before,
-                    SUM(x.qty_in_qc_reject) AS qty_in_qc_reject,
-                    SUM(x.qty_in_ekspedisi_before) AS qty_in_ekspedisi_before,
-                    SUM(x.qty_in_ekspedisi) AS qty_in_ekspedisi,
-                    SUM(x.qty_out_qc_reject_before) AS qty_out_qc_reject_before,
-                    SUM(x.qty_out_qc_reject) AS qty_out_qc_reject,
-                    SUM(x.qty_out_ekspedisi_before) AS qty_out_ekspedisi_before,
-                    SUM(x.qty_out_ekspedisi) AS qty_out_ekspedisi,
-                    SUM(x.qty_adjustment_before) AS qty_adjustment_before,
-                    SUM(x.qty_adjustment) AS qty_adjustment,
                     SUM(x.qty_terima_qc_reject_before) AS qty_terima_qc_reject_before,
                     SUM(x.qty_terima_qc_reject) AS qty_terima_qc_reject,
                     SUM(x.qty_terima_ekspedisi_before) AS qty_terima_ekspedisi_before,
@@ -930,11 +1198,6 @@ class MutasiService
                     SELECT
                         buyer, ws, color, styleno, size,
                         saldo_awal.qty_awal AS qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
                         0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
@@ -945,174 +1208,8 @@ class MutasiService
                     UNION ALL
 
                     SELECT
-                        mb.buyer, mb.ws, mb.color, mb.styleno, mb.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        COUNT(CASE WHEN b.status = 'rejected' AND DATE(a.created_at) >= '$saldo_awal' AND DATE(a.created_at) < '$tgl_awal' THEN 1 END) AS qty_in_qc_reject_before,
-                        COUNT(CASE WHEN b.status = 'rejected' AND DATE(a.created_at) >= '$tgl_awal' THEN 1 END) AS qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM signalbit_erp.output_reject_out_detail a
-                    INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
-                    INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
-                    LEFT JOIN (
-                        SELECT sd.id AS id_so_det, ac.kpno AS ws, supplier AS buyer, styleno, color, size, dest
-                        FROM signalbit_erp.so_det sd
-                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N'
-                    ) mb ON b.so_det_id = mb.id_so_det
-                    WHERE DATE(a.created_at) <= '$tgl_akhir'
-                    AND mp.cancel = 'N'
-                    GROUP BY mb.buyer, mb.ws, mb.color, mb.styleno, mb.size
-
-                    UNION ALL
-
-                    SELECT
-                        buyer.supplier AS buyer, act_costing.kpno ws, masterstyle.color, act_costing.styleno, masterstyle.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        IF(bppbdate >= '$saldo_awal' AND bppbdate < '$tgl_awal', bppb.qty, 0) qty_in_ekspedisi_before,
-                        IF(bppbdate >= '$tgl_awal', bppb.qty, 0) qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM signalbit_erp.bppb
-                    INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
-                    INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
-                    LEFT JOIN (SELECT sod.id_so, sod.id id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod ON tmpjod.id_so_det = bppb.id_so_det
-                    LEFT JOIN signalbit_erp.so ON so.id = tmpjod.id_so
-                    LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
-                    WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK'
-
-                    UNION ALL
-
-                    SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_qc_reject_before,
-                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM fg_stok_bpb a
-                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-                    WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
-
-                    UNION ALL
-
-                    SELECT
-                        m.buyer, m.ws, m.color, m.styleno, m.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_qc_reject_before,
-                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM fg_stok_bpb_scan a
-                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-                    WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
-
-                    UNION ALL
-
-                    SELECT
-                        m.buyer, m.ws, m.color, m.styleno, m.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi_before,
-                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM fg_stok_bpb a
-                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-                    WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan = 'EKSPEDISI'
-
-                    UNION ALL
-
-                    SELECT
-                        m.buyer, m.ws, m.color, m.styleno, m.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi_before,
-                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM fg_stok_bpb_scan a
-                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-                    WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan = 'EKSPEDISI'
-
-                    UNION ALL
-
-                    SELECT
-                        buyer, no_ws ws, color, style styleno, size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        SUM(IF(tgl_saldo >= '$saldo_awal' AND tgl_saldo < '$tgl_awal', qty, 0)) qty_adjustment_before,
-                        SUM(IF(tgl_saldo >= '$tgl_awal', qty, 0)) qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM wip_adjustment
-                    WHERE tgl_saldo <= '$tgl_akhir' AND type_report = 'TRANSIT_GUDANG_STOK'
-                    GROUP BY ws, color, size, panel, part
-
-                    UNION ALL
-
-                    SELECT
-                        m.buyer, m.ws, m.color, m.styleno, m.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
@@ -1129,11 +1226,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
@@ -1150,11 +1242,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
@@ -1171,11 +1258,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
@@ -1192,11 +1274,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
                         IF(tgl_pengeluaran >= '$saldo_awal' AND tgl_pengeluaran < '$tgl_awal', a.qty_out, 0) AS qty_keluar_sewing_before,
@@ -1213,11 +1290,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
                         0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
@@ -1234,11 +1306,6 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
                         0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
@@ -1253,9 +1320,7 @@ class MutasiService
                 GROUP BY x.buyer, x.ws, x.color, x.styleno, x.size
             )
 
-
             SELECT
-                ad.buyer,
                 ad.ws,
                 ad.styleno,
                 ad.color,
@@ -1308,23 +1373,12 @@ class MutasiService
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-        // if (strtolower($kategoriBarang) !== 'all') {
-        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-        //         return isset($row['product_group'])
-        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
-        //     });
-        // }
-
-        // 'ws'            => $row['ws'] ?? '-',
-        //         'styleno'       => $row['styleno'] ?? '-',
-        //         'product_group' => $row['product_group'] ?? '-',
-        //         'product_item'  => $row['product_item'] ?? '-',
-        //         'color'         => $row['color'] ?? '-',
-        //         'size'          => $row['size'] ?? '-',
-        //         'saldoawal'     => $row['qty_awal'] ?? 0,
-        //         'qtyterima'     => $row['qty_in'] ?? 0,
-        //         'qtykeluar'     => $row['qty_out'] ?? 0,
-        //         'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+        if (strtolower($kategoriBarang) !== 'all') {
+            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+                return isset($row['product_group'])
+                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
+            });
+        }
 
         return collect($rows)->map(function ($row) {
             return (object) [
@@ -1335,12 +1389,8 @@ class MutasiService
                 'color'            => $row['color'] ?? '-',
                 'size'             => $row['size'] ?? '-',
                 'saldoawal'        => $row['saldo_awal'] ?? 0,
-                'qtyterima'        => $row['terima_qc_reject'] + $row['terima_ekspedisi']?? 0,
-                'qtykeluar'        => $row['keluar_sewing'] + $row['keluar_qa'] + $row['keluar_ekspedisi'] ?? 0,
-                // 'terimaekspedisi'  => $row['terima_ekspedisi'] ?? 0,
-                // 'keluarsewing'     => $row['keluar_sewing'] ?? 0,
-                // 'keluarqa'         => $row['keluar_qa'] ?? 0,
-                // 'keluarekspedisi'  => $row['keluar_ekspedisi'] ?? 0,
+                'qtyterima'        => ($row['terima_qc_reject'] ?? 0) + ($row['terima_ekspedisi'] ?? 0),
+                'qtykeluar'        => ($row['keluar_sewing'] ?? 0) + ($row['keluar_qa'] ?? 0) + ($row['keluar_ekspedisi'] ?? 0),
                 'saldoakhir'       => $row['saldo_akhir'] ?? 0,
             ];
         });
