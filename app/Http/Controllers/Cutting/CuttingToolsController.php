@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
