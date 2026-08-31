@@ -5394,6 +5394,33 @@ class SewingToolsController extends Controller
 
         $department = $request->department;
 
+        if ($request->department) {
+            $departmentClosing = ($request->department == "packing_po" ? "_packing_po" : ($request->department == "packing" ? "_packing" : ""));
+        } else {
+            $departmentClosing = "";
+        }
+
+        // Tentukan table sesuai department
+        $tableOutput = "output_undo" . $departmentClosing;
+
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')
+            ->table($tableOutput)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
+        dd($dataCheckClosing);
+
         if ($kodeNumbering) {
             if ($department == "packing_po") {
                 $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing_po.kode_numbering")->get();
