@@ -213,22 +213,35 @@
                             document.getElementById("loading").classList.add("d-none");
 
                             if (res) {
-                                console.log(res);
-                                let messageRft = (res.rft.length)+" RFT <br>";
-                                let messageDefect = (res.defect.length)+" Defect <br>";
-                                let messageRework = (res.rework.length)+" Rework <br>";
-                                let messageReject = (res.reject.length)+" Reject <br>";
-                                let message = messageRft + messageDefect + messageRework + messageReject;
 
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Info',
-                                    html: message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    confirmButtonColor: "#082149",
-                                });
+                                if(res.status == 400){
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Info',
+                                        html: res.message,
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                        confirmButtonColor: "#082149",
+                                    });
+                                }else{
+
+                                    let messageRft = (res.rft.length)+" RFT <br>";
+                                    let messageDefect = (res.defect.length)+" Defect <br>";
+                                    let messageRework = (res.rework.length)+" Rework <br>";
+                                    let messageReject = (res.reject.length)+" Reject <br>";
+                                    let message = messageRft + messageDefect + messageRework + messageReject;
+    
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Info',
+                                        html: message,
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                        confirmButtonColor: "#082149",
+                                    });
+                                }
                             }
 
                             listTableReload();
