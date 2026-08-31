@@ -867,13 +867,23 @@
                         type: "DELETE",
                     url: `{{ route('destroy-cutting-switching') }}/${id}`,
                         success: function (response) {
-                            Swal.fire(
-                                'Dihapus!',
-                                response.message,
-                                'success'
-                            ).then(() => {
-                                location.reload();
-                            });
+                            if (response.status == 200) {
+                                Swal.fire(
+                                    'Dihapus!',
+                                    response.message,
+                                    'success'
+                                ).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire(
+                                    'Gagal!',
+                                    response.message,
+                                    'error'
+                                ).then(() => {
+                                    // location.reload();
+                                });
+                            }
                         },
                         error: function (jqXHR) {
                             Swal.fire({
