@@ -9,6 +9,7 @@ use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
