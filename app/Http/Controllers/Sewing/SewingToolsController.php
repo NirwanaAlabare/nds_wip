@@ -4714,8 +4714,10 @@ class SewingToolsController extends Controller
                     so_det.size,
                     master_plan.sewing_line AS line,
                     master_plan.tgl_plan,
-                    output_undo_packing.undo_by,
-                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.undo_by undo_by_id,
+                    userpassword.username undo_by,
+                    output_undo_packing.undo_by_nds undo_by_nds_id,
+                    users.username undo_by_nds,
                     output_undo_packing.keterangan,
                     output_undo_packing.undo_at AS undo_at,
                     output_undo_packing.created_at AS output_created_at,
@@ -4729,6 +4731,8 @@ class SewingToolsController extends Controller
                 ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
                 ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
                 ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->leftJoin('userpassword', 'userpassword.line_id', '=', 'output_undo_packing.undo_by')
+                ->leftJoin('laravel_nds.users', 'users.id', '=', 'output_undo_packing.undo_by_nds')
                 ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
                 ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
                 ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
