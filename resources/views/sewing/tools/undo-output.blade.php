@@ -171,6 +171,16 @@
                                 });
 
                                 listTableReload();
+                            }else{
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Info',
+                                    html: res.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
                             }
                         }
                     });

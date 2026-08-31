@@ -2897,6 +2897,26 @@ class SewingToolsController extends Controller
                 $department = "";
             }
 
+            // Tentukan table sesuai department
+            $tableOutput = "output_rfts" . $department;
+
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table($tableOutput)
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
+            }
+
             if ($kodeNumbering) {
                 $kodeNumberingOutput = collect(
                     DB::connection("mysql_sb")->select("
