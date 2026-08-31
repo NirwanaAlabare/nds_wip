@@ -122,7 +122,7 @@ class MutasiService
                     WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND $whereClass
                     GROUP BY mcnt.id, b.unit
                 ) A
-                GROUP BY A.id_jo, A.id_contents, A.unit
+                GROUP BY A.id_contents, A.unit
             ) isi
             LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
             INNER JOIN (
@@ -972,7 +972,7 @@ class MutasiService
                     ) mb ON b.so_det_id = mb.id_so_det
                     WHERE DATE(a.created_at) <= '$tgl_akhir'
                     AND mp.cancel = 'N'
-                    GROUP BY mb.buyer, mb.ws, mb.color, mb.styleno, mb.size
+                    GROUP BY mb.buyer, mb.ws, mb.styleno
 
                     UNION ALL
 
@@ -1250,7 +1250,7 @@ class MutasiService
                     WHERE a.tgl_pengeluaran <= '$tgl_akhir'
                     AND a.tujuan = 'EKSPEDISI'
                 ) x
-                GROUP BY x.buyer, x.ws, x.color, x.styleno, x.size
+                GROUP BY x.buyer, x.ws, x.styleno
             )
 
 
@@ -1302,7 +1302,7 @@ class MutasiService
             LEFT JOIN master_sb_ws m
                 ON ad.buyer = m.buyer AND ad.ws = m.ws AND ad.styleno = m.styleno
                 AND ad.color = m.color AND ad.size = m.size
-            GROUP BY ad.buyer, ad.ws, ad.styleno, ad.color, ad.size
+            GROUP BY ad.buyer, ad.ws, ad.styleno
             ORDER BY ad.buyer ASC, ad.color ASC
         ");
 
@@ -1341,6 +1341,7 @@ class MutasiService
             ];
         });
     }
+
 
     // function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
