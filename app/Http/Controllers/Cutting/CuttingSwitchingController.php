@@ -363,14 +363,6 @@ class CuttingSwitchingController extends Controller
 
     public function destroy($id = 0)
     {
-        $checkStocker = Stocker::where("form_cut_id", $transfer['form_cut_id'])->first();
-        if ($checkStocker) {
-            return array(
-                "status" => 400,
-                "message" => "Form sudah memiliki Stocker."
-            );
-        }
-
         DB::beginTransaction();
         try {
             // 1. Find the log entry
@@ -385,6 +377,21 @@ class CuttingSwitchingController extends Controller
             // 2. Get source and destination forms
             $fromForm = FormCutInput::with('marker')->find($log->form_cut_input_id_asal);
             $toForm = FormCutInput::with('marker')->find($log->form_cut_input_id_tujuan);
+
+            $checkStockerFrom = Stocker::where("form_cut_id", $log->form_cut_input_id_asal)->first();
+            if ($checkStockerFrom) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
+            $checkStockerTo = Stocker::where("form_cut_id", $log->form_cut_input_id_tujuan)->first();
+            if ($checkStockerTo) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
 
             if (!$fromForm || !$toForm) {
                 DB::rollBack();
