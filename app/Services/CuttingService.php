@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Models\Part\PartForm;
 use App\Models\Cutting\ScannedItem;
-use App\Models\Cutting\Piping;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputDetailDelete;
 use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
 use App\Models\Cutting\PenerimaanCutting;
+use App\Models\Cutting\Piping;
+use App\Models\Cutting\PipingProcessDetail;
 use Illuminate\Http\Request;
 use Illuminate\HttpRequest;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,19 @@ use Carbon\Carbon;
 
 class CuttingService
 {
+    public function isRollUsed($idRoll) {
+        $isRollUsed = FormCutInputDetail::where("id_roll", $idRoll)->exists() ||
+              Piping::where("id_roll", $idRoll)->exists() ||
+              PipingProcessDetail::where("id_roll", $idRoll)->exists() ||
+              DB::table("form_cut_alokasi_gr_panel_barcode")->where("barcode", $idRoll)->exists();
+
+        if ($isRollUsed) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function recalculateForm($formId)
     {
         ini_set('max_execution_time', 360000);

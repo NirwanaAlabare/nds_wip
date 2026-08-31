@@ -768,10 +768,10 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_awal,
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
                     LEFT JOIN (
@@ -788,7 +788,7 @@ class SpreadingController extends Controller
                             (status != 'not complete' and status != 'extension')
                         GROUP BY
                             form_cut_id,
-                            group_stocker
+                            group_roll
                     ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     LEFT JOIN (
                         SELECT
@@ -804,15 +804,40 @@ class SpreadingController extends Controller
                     LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                     LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-                    LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
+                    LEFT JOIN (
+                        SELECT
+                            modify_size_qty.form_cut_id, modify_size_qty.so_det_id, master_sb_ws.size, form_cut_input_detail.group_roll,
+                            SUM(modify_size_qty.difference_qty) difference_qty,
+                            SUM(modify_size_qty.original_qty) original_qty,
+                            SUM(modify_size_qty.modified_qty) modified_qty
+                        FROM
+                            modify_size_qty
+                            LEFT JOIN form_cut_input ON form_cut_input.id = modify_size_qty.form_cut_id
+                            LEFT JOIN (select form_cut_id, group_stocker, group_roll from form_cut_input_detail group by form_cut_id, group_stocker) form_cut_input_detail
+                                ON form_cut_input_detail.group_stocker = modify_size_qty.group_stocker and form_cut_input_detail.form_cut_id = form_cut_input.id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = modify_size_qty.so_det_id
+                        WHERE
+                            COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$dateFrom."'
+                            AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$dateTo."'
+                        group by
+                            modify_size_qty.form_cut_id,
+                            modify_size_qty.so_det_id,
+                            form_cut_input_detail.group_roll
+                    ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id
+                        AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                    LEFT JOIN form_cut_input_detail_output
+                        ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
+                        AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
+                        AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN' and
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
                     (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
                 GROUP BY
                     form_cut_input.id,
-                    form_cut_input_detail.group_stocker,
+                    form_cut_input_detail.group_roll,
                     marker_input_detail.id
                 UNION ALL
                 SELECT
@@ -877,16 +902,15 @@ class SpreadingController extends Controller
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
                     0 qty_awal,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_additional,
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
                             form_cut_id,
@@ -901,7 +925,7 @@ class SpreadingController extends Controller
                             (status != 'not complete' and status != 'extension')
                     GROUP BY
                             form_cut_id,
-                            group_stocker
+                            group_roll
                 ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
@@ -911,7 +935,33 @@ class SpreadingController extends Controller
                     WHERE status NOT IN ('not complete', 'extension')
                     GROUP BY form_cut_id
                 ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                LEFT JOIN (
+                    SELECT
+                        modify_size_qty.form_cut_id, modify_size_qty.so_det_id, master_sb_ws.size, form_cut_input_detail.group_roll,
+                        SUM(modify_size_qty.difference_qty) difference_qty,
+                        SUM(modify_size_qty.original_qty) original_qty,
+                        SUM(modify_size_qty.modified_qty) modified_qty
+                    FROM
+                        modify_size_qty
+                        LEFT JOIN form_cut_input ON form_cut_input.id = modify_size_qty.form_cut_id
+                        LEFT JOIN (select form_cut_id, group_stocker, group_roll from form_cut_input_detail group by form_cut_id, group_stocker) form_cut_input_detail
+                            ON form_cut_input_detail.group_stocker = modify_size_qty.group_stocker and form_cut_input_detail.form_cut_id = form_cut_input.id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = modify_size_qty.so_det_id
+                    WHERE
+                        COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$dateFrom."'
+                        AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$dateTo."'
+                    group by
+                        modify_size_qty.form_cut_id,
+                        modify_size_qty.so_det_id,
+                        form_cut_input_detail.group_roll
+                ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id
+                    AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                    AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                LEFT JOIN form_cut_input_detail_output
+                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
+                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
+                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                 WHERE
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."'
                     AND form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -921,8 +971,8 @@ class SpreadingController extends Controller
                     )
                 GROUP BY
                     form_cut_input.id,
-                    form_cut_input_detail.group_stocker,
-                    marker_input_detail.id
+                    form_cut_input_detail.group_roll,
+                    stocker_ws_additional_detail.id
                 UNION ALL
                 SELECT
                     form_cut_reject.tanggal,
@@ -1136,10 +1186,10 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_awal,
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
                     LEFT JOIN (
@@ -1156,7 +1206,7 @@ class SpreadingController extends Controller
                             (status != 'not complete' and status != 'extension')
                         GROUP BY
                             form_cut_id,
-                            group_stocker
+                            group_roll
                     ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     LEFT JOIN (
                         SELECT
@@ -1172,15 +1222,40 @@ class SpreadingController extends Controller
                     LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                     LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-                    LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
+                    LEFT JOIN (
+                        SELECT
+                            modify_size_qty.form_cut_id, modify_size_qty.so_det_id, master_sb_ws.size, form_cut_input_detail.group_roll,
+                            SUM(modify_size_qty.difference_qty) difference_qty,
+                            SUM(modify_size_qty.original_qty) original_qty,
+                            SUM(modify_size_qty.modified_qty) modified_qty
+                        FROM
+                            modify_size_qty
+                            LEFT JOIN form_cut_input ON form_cut_input.id = modify_size_qty.form_cut_id
+                            LEFT JOIN (select form_cut_id, group_stocker, group_roll from form_cut_input_detail group by form_cut_id, group_stocker) form_cut_input_detail
+                                ON form_cut_input_detail.group_stocker = modify_size_qty.group_stocker and form_cut_input_detail.form_cut_id = form_cut_input.id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = modify_size_qty.so_det_id
+                        WHERE
+                            COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$dateFrom."'
+                            AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$dateTo."'
+                        group by
+                            modify_size_qty.form_cut_id,
+                            modify_size_qty.so_det_id,
+                            form_cut_input_detail.group_roll
+                    ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id
+                        AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                    LEFT JOIN form_cut_input_detail_output
+                        ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
+                        AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
+                        AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN' and
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
                     (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
                 GROUP BY
                     form_cut_input.id,
-                    form_cut_input_detail.group_stocker,
+                    form_cut_input_detail.group_roll,
                     marker_input_detail.id
                 UNION ALL
                 SELECT
@@ -1245,16 +1320,15 @@ class SpreadingController extends Controller
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
                     0 qty_awal,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) ) qty_additional,
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
                             form_cut_id,
@@ -1269,7 +1343,7 @@ class SpreadingController extends Controller
                             (status != 'not complete' and status != 'extension')
                     GROUP BY
                             form_cut_id,
-                            group_stocker
+                            group_roll
                 ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                 LEFT JOIN (
                     SELECT
@@ -1279,7 +1353,33 @@ class SpreadingController extends Controller
                     WHERE status NOT IN ('not complete', 'extension')
                     GROUP BY form_cut_id
                 ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                LEFT JOIN (
+                    SELECT
+                        modify_size_qty.form_cut_id, modify_size_qty.so_det_id, master_sb_ws.size, form_cut_input_detail.group_roll,
+                        SUM(modify_size_qty.difference_qty) difference_qty,
+                        SUM(modify_size_qty.original_qty) original_qty,
+                        SUM(modify_size_qty.modified_qty) modified_qty
+                    FROM
+                        modify_size_qty
+                        LEFT JOIN form_cut_input ON form_cut_input.id = modify_size_qty.form_cut_id
+                        LEFT JOIN (select form_cut_id, group_stocker, group_roll from form_cut_input_detail group by form_cut_id, group_stocker) form_cut_input_detail
+                            ON form_cut_input_detail.group_stocker = modify_size_qty.group_stocker and form_cut_input_detail.form_cut_id = form_cut_input.id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = modify_size_qty.so_det_id
+                    WHERE
+                        COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$dateFrom."'
+                        AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$dateTo."'
+                    group by
+                        modify_size_qty.form_cut_id,
+                        modify_size_qty.so_det_id,
+                        form_cut_input_detail.group_roll
+                ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id
+                    AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                    AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                LEFT JOIN form_cut_input_detail_output
+                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
+                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
+                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                 WHERE
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."'
                     AND form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -1289,8 +1389,8 @@ class SpreadingController extends Controller
                     )
                 GROUP BY
                     form_cut_input.id,
-                    form_cut_input_detail.group_stocker,
-                    marker_input_detail.id
+                    form_cut_input_detail.group_roll,
+                    stocker_ws_additional_detail.id
                 UNION ALL
                 SELECT
                     form_cut_reject.tanggal,

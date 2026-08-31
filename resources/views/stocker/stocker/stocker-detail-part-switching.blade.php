@@ -13,8 +13,8 @@
                 <h2 class="accordion-header w-75">
                     <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                         <div class="d-flex w-75 justify-content-between align-items-center">
-                            <p class="w-25 mb-0">{{ $partDetail->id ? $partDetail->nama_part." - ".$partDetail->bag : 'Belum ada Part' }}</p>
-                            <p class="w-50 mb-0">{{ $partDetail->id ? $partDetail->proses_tujuan : 'Belum ada Proses Part' }}</p>
+                            <p class="w-25 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
+                            <p class="w-50 mb-0">{{ $partDetail->proses_tujuan }}</p>
                         </div>
                     </button>
                 </h2>
@@ -44,76 +44,17 @@
                             <tbody>
                                 @foreach ($dataRatio as $ratio)
                                     @php
-                                        $partDetailId = $partDetail->id;
-
-                                        // Get Ratio Output List Array
-                                        $checkRatioOutputList = array_filter($ratioOutputList, function ($ratioOutput) use ($currentGroup, $ratio, $partDetailId) { return  $ratioOutput['currentGroupRoll'] === $currentGroup && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id && $ratioOutput['currentPartDetailId'] === $partDetailId; });
-
-                                        // When Ratio Output List Exist
-                                        if (isset($checkRatioOutputList) && count($checkRatioOutputList) > 0) {
-                                            // When Found Ratio Output Qty is greater than current qty
-                                            $index = array_key_first($checkRatioOutputList);
-                                            if ($checkRatioOutputList[$index]['qty'] > (intval($ratio->ratio) * intval($currentTotal))) {
-                                                $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
-                                                $checkRatioOutputList[$index]['qty'] = intval($checkRatioOutputList[$index]['qty']) - $currentOutputQty;
-                                            }
-                                            // When less
-                                            else {
-                                                $currentOutputQty = $checkRatioOutputList[$index]['qty'];
-                                                $checkRatioOutputList[$index]['qty'] = 0;
-                                            }
-
-                                            // Next Group Stocker
-                                            $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroup)->where('group_stocker', '<', $currentGroupStocker)->first();
-                                            if (!$checkNextGroupStocker) {
-                                                $currentOutputQty += $checkRatioOutputList[$index]['qty'];
-                                                $checkRatioOutputList[$index]['qty'] = 0;
-                                            }
-                                        }
-                                        // When Ratio Output List not Exist
-                                        else {
-
-                                            // Get Ratio Output Data
-                                            $currentOutput = $dataRatioOutput ? $dataRatioOutput->where("marker_detail_id", $ratio->marker_detail_id)->where("group_roll", $currentGroup)->first() : null;
-
-                                            if ($currentOutput) {
-                                                $currentOutputStock = $currentOutput['qty_output_aktual'];
-                                                // When Found Ratio Output Qty is greater than current qty
-                                                if ($currentOutput['qty_output_aktual'] > (intval($ratio->ratio) * intval($currentTotal))) {
-                                                    $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
-                                                    $currentOutputStock = $currentOutputStock - $currentOutputQty;
-                                                }
-                                                // When less
-                                                else {
-                                                    $currentOutputQty = $currentOutputStock;
-                                                    $currentOutputStock = 0;
-                                                }
-
-                                                // Next Group Stocker
-                                                $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroup)->where('group_stocker', '<', $currentGroupStocker)->first();
-                                                if (!$checkNextGroupStocker) {
-                                                    $currentOutputQty += $currentOutputStock;
-                                                    $currentOutputStock = 0;
-                                                }
-
-                                                array_push($ratioOutputList, [
-                                                    "currentGroupRoll" => $currentGroup,
-                                                    "currentMarkerDetailId" => $currentOutput["marker_detail_id"],
-                                                    "currentPartDetailId" => $partDetailId,
-                                                    "qty" => $currentOutputStock
-                                                ]);
-                                            }
-                                        }
+                                        $currentOutput = $dataRatioOutput ? $dataRatioOutput->where("marker_detail_id", $ratio->marker_detail_id)->where("group_roll", $currentGroup)->first() : null;
 
                                         $currentModify = $currentModifySize ? $currentModifySize->where("group_stocker", "!=", $currentGroupStocker)->where("so_det_id", $ratio->so_det_id)->first() : null;
 
-                                        $qty = intval($ratio->ratio) * intval($currentTotal);
-                                        $qtyBefore = (intval($ratio->ratio) * intval($currentBefore)) + ($currentModify ? $currentModify['difference_qty'] : 0);
+                                        $qty = intval(1) * intval($currentTotal);
+                                        $qtyBefore = (intval(1) * intval($currentBefore)) + ($currentModify ? $currentModify['difference_qty'] : 0);
                                     @endphp
 
                                     @php
-                                        if (isset($currentOutputQty) && $currentOutputQty > 0) {
-                                            $qty = $currentOutputQty;
+                                        if (isset($currentOutput) && $currentOutput) {
+                                            $qty = $currentOutput->qty_output_aktual;
                                         }
 
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
@@ -135,12 +76,12 @@
                                             $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where('ratio', '>', '0')->first() : null;
                                             $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->filter(function ($item) { return ($item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null)) || ($item->difference_qty > 0); })->first() : null;
 
-                                            $rangeAwal = ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' || $dataSpreading->part_id == '3401' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
-                                            $rangeAkhir = ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' || $dataSpreading->part_id == '3401' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">
-                                        <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                        <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ 1 }}">
                                         <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
                                         <input type="hidden" name="size[{{ $index }}]" id="size_{{ $index }}" value="{{ $ratio->size }}">
                                         <input type="hidden" name="group[{{ $index }}]" id="group_{{ $index }}" value="{{ $currentGroup }}">
@@ -151,15 +92,15 @@
                                         <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
 
                                         <td>{{ $ratio->size_dest }}</td>
-                                        <td>{{ $ratio->ratio }}</td>
-                                        <td>{{ (intval($ratio->ratio) * intval($currentTotal)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotal))."".(($qty - (intval($ratio->ratio) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
+                                        <td>{{ 1 }}</td>
+                                        <td>{{ (intval(1) * intval($currentTotal)) != $qty ? $qty." (".(intval(1) * intval($currentTotal))."".(($qty - (intval(1) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
-                                            @if ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383')
+                                            @if ($dataSpreading->no_cut > 1)
                                                 @if ($stockerBefore)
-                                                    @if ($stockerBefore->stocker_id !== null)
-                                                        @if ($stockerThis && $stockerThis->stocker_id !== null)
+                                                    @if ($stockerBefore->stocker_id != null)
+                                                        @if ($stockerThis && $stockerThis->stocker_id != null)
                                                             <i class="fa fa-check"></i>
                                                         @else
                                                             <i class="fa fa-times"></i>
@@ -169,27 +110,26 @@
                                                         <i class="fa fa-minus"></i>
                                                     @endif
                                                 @else
-                                                    @if ($stockerThis && $stockerThis->stocker_id !== null)
+                                                    @if ($stockerThis && $stockerThis->stocker_id != null)
                                                         <i class="fa fa-check"></i>
                                                     @else
                                                         <i class="fa fa-times"></i>
                                                     @endif
                                                 @endif
                                             @else
-                                                @if ($stockerThis && $stockerThis->stocker_id !== null)
+                                                @if ($stockerThis && $stockerThis->stocker_id != null)
                                                     <i class="fa fa-check"></i>
                                                 @else
                                                     <i class="fa fa-times"></i>
                                                 @endif
                                             @endif
-                                        </td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' || $dataSpreading->part_id == '3401' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? "" : "disabled") : "") : "") }}>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
                                                 <i class="fa fa-print fa-s"></i>
                                             </button>
                                         </td>
                                         {{-- <td>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 || $dataSpreading->part_id == '3383' ? ($stockerBefore ? ($stockerBefore->stocker_id !== null ? "" : "disabled") : "") : "") }}>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
                                                 <i class="fa fa-print fa-s"></i>
                                             </button>
                                         </td> --}}

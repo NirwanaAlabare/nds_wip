@@ -702,6 +702,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
         Route::get('/rep_mutasi_global_fg_stock', 'rep_mutasi_global_fg_stock')->name('rep_mutasi_global_fg_stock');
         Route::get('/export_excel_rep_mutasi_global_fg_stock', 'export_excel_rep_mutasi_global_fg_stock')->name('export_excel_rep_mutasi_global_fg_stock');
+        Route::get('/report_mutasi_barang_jadi', 'report_mutasi_barang_jadi')->name('report_mutasi_barang_jadi');
+
     });
 
     Route::controller(FGStokOpnameController::class)->prefix("opname-fg-stock")->middleware('fg-stock')->group(function () {

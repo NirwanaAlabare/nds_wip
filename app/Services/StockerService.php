@@ -12,6 +12,7 @@ use App\Models\Stocker\StockerDetail;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
@@ -709,6 +710,30 @@ class StockerService
                 })->count();
 
                 $incompleteModSizeQty = [];
+
+                // Marker Detail & Ratio Output Data
+                $dataMarkerDetail = MarkerDetail::selectRaw("
+                        marker_input_detail.id marker_detail_id,
+                        marker_input_detail.so_det_id,
+                        marker_input_detail.ratio
+                    ")->
+                    leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+                    leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                    where("form_cut_input.id", $formCut->id_form)->
+                    groupBy("marker_input_detail.id")->
+                    get();
+
+                $dataRatioOutput = FormCutInputDetailOutput::selectRaw("
+                        form_cut_input_detail_output.marker_input_detail_id marker_detail_id,
+                        form_cut_input_detail_output.group_roll,
+                        form_cut_input_detail_output.qty_output_aktual
+                    ")->
+                    where("form_cut_input_detail_output.form_cut_input_id", $formCut->id_form)->
+                    get();
+
+                $ratioOutputList = [];
+                $ratioOutputAllocation = [];
+
                 foreach ($stockerForm as $key => $stocker) {
                     // Qty Ply
                     $lembarGelaran = 1;
@@ -716,6 +741,93 @@ class StockerService
                         $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                     } else {
                         $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                    }
+
+                    // Get Marker Detail of current stocker size
+                    $markerInputDetail = $dataMarkerDetail->where("so_det_id", $stocker->so_det_id)->first();
+
+                    // Ratio Output Qty
+                    $currentOutputQty = 0;
+                    if ($markerInputDetail) {
+                        $currentGroupRoll = $stocker->shade;
+                        $currentGroupStocker = $stocker->group_stocker;
+                        $partDetailId = $stocker->part_detail_id;
+                        $currentTotal = $lembarGelaran;
+                        $markerDetailId = $markerInputDetail->marker_detail_id;
+
+                        // Allocate output qty once for every group stocker - size - part
+                        $outputKey = $currentGroupStocker."-".$currentGroupRoll."-".$markerDetailId."-".$partDetailId;
+
+                        if (isset($ratioOutputAllocation[$outputKey])) {
+                            $currentOutputQty = $ratioOutputAllocation[$outputKey];
+                        } else {
+                            // Get Ratio Output List Array
+                            $checkRatioOutputList = array_filter($ratioOutputList, function ($ratioOutput) use ($currentGroupRoll, $markerDetailId, $partDetailId) { return $ratioOutput['currentGroupRoll'] == $currentGroupRoll && $ratioOutput['currentMarkerDetailId'] == $markerDetailId && $ratioOutput['currentPartDetailId'] == $partDetailId; });
+
+                            // When Ratio Output List Exist
+                            if (count($checkRatioOutputList) > 0) {
+                                $outputIndex = array_key_first($checkRatioOutputList);
+
+                                // When Found Ratio Output Qty is greater than current qty
+                                if ($ratioOutputList[$outputIndex]['qty'] > (intval($markerInputDetail->ratio) * intval($currentTotal))) {
+                                    $currentOutputQty = intval($markerInputDetail->ratio) * intval($currentTotal);
+                                    $ratioOutputList[$outputIndex]['qty'] = intval($ratioOutputList[$outputIndex]['qty']) - $currentOutputQty;
+                                }
+                                // When less
+                                else {
+                                    $currentOutputQty = $ratioOutputList[$outputIndex]['qty'];
+                                    $ratioOutputList[$outputIndex]['qty'] = 0;
+                                }
+
+                                // Next Group Stocker
+                                $checkNextGroupStocker = $formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll', $currentGroupRoll)->where('group_stocker', '<', $currentGroupStocker)->first();
+                                if (!$checkNextGroupStocker) {
+                                    $currentOutputQty += $ratioOutputList[$outputIndex]['qty'];
+                                    $ratioOutputList[$outputIndex]['qty'] = 0;
+                                }
+                            }
+                            // When Ratio Output List not Exist
+                            else {
+
+                                // Get Ratio Output Data
+                                $currentOutput = $dataRatioOutput ? $dataRatioOutput->where("marker_detail_id", $markerDetailId)->where("group_roll", $currentGroupRoll)->first() : null;
+
+                                if ($currentOutput) {
+                                    $currentOutputStock = $currentOutput['qty_output_aktual'];
+                                    // When Found Ratio Output Qty is greater than current qty
+                                    if ($currentOutput['qty_output_aktual'] > (intval($markerInputDetail->ratio) * intval($currentTotal))) {
+                                        $currentOutputQty = intval($markerInputDetail->ratio) * intval($currentTotal);
+                                        $currentOutputStock = $currentOutputStock - $currentOutputQty;
+                                    }
+                                    // When less
+                                    else {
+                                        $currentOutputQty = $currentOutputStock;
+                                        $currentOutputStock = 0;
+                                    }
+
+                                    // Next Group Stocker
+                                    $checkNextGroupStocker = $formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll', $currentGroupRoll)->where('group_stocker', '<', $currentGroupStocker)->first();
+                                    if (!$checkNextGroupStocker) {
+                                        $currentOutputQty += $currentOutputStock;
+                                        $currentOutputStock = 0;
+                                    }
+
+                                    array_push($ratioOutputList, [
+                                        "currentGroupRoll" => $currentGroupRoll,
+                                        "currentMarkerDetailId" => $currentOutput["marker_detail_id"],
+                                        "currentPartDetailId" => $partDetailId,
+                                        "qty" => $currentOutputStock
+                                    ]);
+                                }
+                            }
+
+                            $ratioOutputAllocation[$outputKey] = $currentOutputQty;
+                        }
+
+                        // Adjust last ratio qty ply with the actual output qty
+                        if ($currentOutputQty > 0 && intval($markerInputDetail->ratio) > 0 && $stocker->ratio == intval($markerInputDetail->ratio)) {
+                            $lembarGelaran = $lembarGelaran + ($currentOutputQty - (intval($markerInputDetail->ratio) * intval($lembarGelaran)));
+                        }
                     }
 
                     if ($currentStockerPart == $stocker->part_detail_id) {
@@ -785,7 +897,7 @@ class StockerService
 
                     if (
                         // Qty minimal : 0
-                        ($stocker->qty_ply_mod != null && $stocker->qty_ply_mod < 1)
+                        (($stocker->qty_ply_mod ?? $stocker->qty_ply) < 1)
                         // Part not match
                         || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
                         // Ratio  exceed
@@ -881,7 +993,7 @@ class StockerService
 
                     if (
                         // Qty minimal : 0
-                        ($stocker->qty_ply_mod != null && $stocker->qty_ply_mod < 1)
+                        (($stocker->qty_ply_mod ?? $stocker->qty_ply) < 1)
                         // Part not match
                         || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
                         // Ratio  exceed

@@ -27,6 +27,11 @@ class FormCutInputDetailOutput extends Model
         parent::boot();
     }
 
+    public static function generateFormCutOutput($id)
+    {
+        return DB::select('call generate_form_cut_output(?)', [$id]);
+    }
+
     public function markerDetail()
     {
         return $this->belongsTo(MarkerDetail::class, 'marker_input_detail_id', 'id');

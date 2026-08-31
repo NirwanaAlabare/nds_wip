@@ -19,6 +19,7 @@ use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingStockController;
 use App\Http\Controllers\Cutting\CuttingStockOpnameController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
+use App\Http\Controllers\Cutting\CuttingSwitchingController;
 
 Route::middleware('auth')->group(function () {
     // Spreading
@@ -59,7 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-penerimaan-cutting');
         Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
         Route::post('/update', 'update')->name('update-penerimaan-cutting');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting')->middleware("role:superadmin");
         Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
         Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
     });
@@ -442,6 +443,19 @@ Route::middleware('auth')->group(function () {
             Route::get('/get_ws_all_form_gr_panel', 'get_ws_all_form_gr_panel')->name('get_ws_all_form_gr_panel');
             Route::post('/save_form_gr_panel', 'save_form_gr_panel')->name('save_form_gr_panel');
             Route::get('/export_excel_form_gr_panel_det', 'export_excel_form_gr_panel_det')->name('export_excel_form_gr_panel_det');
+        });
+
+    // PENGELUARAN CUTTING :
+        // Switching Cutting
+        Route::controller(CuttingSwitchingController::class)->prefix("cutting-switching")->middleware('role:cutting')->group(function () {
+            Route::get('/index', 'index')->name('cutting-switching');
+            Route::get('/show/{id?}', 'show')->name('show-cutting-switching');
+
+            Route::get('/get-form-list', 'getFormList')->name('get-form-list-cutting-switching');
+            Route::get('/get-form-size-list', 'getFormSizeList')->name('get-form-size-list-cutting-switching');
+            Route::post('/store', 'store')->name('store-cutting-switching');
+            Route::post('/mass-store', 'massStore')->name('mass-store-cutting-switching');
+            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-switching');
         });
 
     // TOOLS :

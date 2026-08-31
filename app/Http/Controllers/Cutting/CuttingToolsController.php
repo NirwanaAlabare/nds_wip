@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
@@ -191,10 +192,20 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
+            // Check Form Cut Input Detail Output
+            $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['modify_ratio_form_id'])->get();
+            foreach ($formCutOutputs as $formCutOutput) {
+                if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah ada transfer switching."
+                    );
+                }
+            }
 
             // If not Bypassed
             if (!isset($request['modify_ratio_bypass_stocker'])) {
+                $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
                 if ($checkStocker) {
                     return array(
                         "status" => 400,
@@ -275,6 +286,9 @@ class CuttingToolsController extends Controller
                         }
                     }
 
+                    // Regenerate form cut detail output
+                    FormCutInputDetailOutput::generateFormCutOutput($validatedRequest['modify_ratio_form_id']);
+
                     return array(
                         "status" => 200,
                         "message" => "Ratio Form berhasil diubah.",
@@ -338,6 +352,17 @@ class CuttingToolsController extends Controller
         if ($validatedRequest) {
             // Check Current Form
             $currentForm = FormCutInput::where("id", $validatedRequest['modify_marker_form_id'])->first();
+
+            // Check Form Cut Input Detail Output
+            $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['modify_marker_form_id'])->get();
+            foreach ($formCutOutputs as $formCutOutput) {
+                if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah ada transfer switching."
+                    );
+                }
+            }
 
             // If not Bypassed
             if (!isset($request['modify_bypass_stocker'])) {

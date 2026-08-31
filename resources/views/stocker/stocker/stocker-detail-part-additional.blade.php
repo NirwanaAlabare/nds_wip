@@ -49,27 +49,26 @@
                                             $qtyAdditional = intval($ratio->ratio) * intval($currentTotalAdditional);
                                             $qtyBeforeAdditional = intval($ratio->ratio) * intval($currentBeforeAdditional);
 
-                                            if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
-                                                $modifyThisStocker = null;
-                                                if ($currentModifySizeQty > 0) {
-                                                    $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
-                                                } else {
-                                                    $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
-                                                }
+                                        if (isset($currentOutput) && $currentOutput) {
+                                            $qtyAdditional = $currentOutput->qty_output_aktual;
+                                        }
 
-                                                if ($modifyThisStocker) {
-                                                    $qtyAdditional = $qtyAdditional + $modifyThisStocker->difference_qty;
-
-                                                    $currentModifySizeAdditional->push(["so_det_id" => $ratio->so_det_id, "group_stocker" => $currentGroupStocker, "difference_qty" => $modifyThisStocker->difference_qty]);
-                                                }
+                                        if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
+                                            $modifyThisStocker = null;
+                                            if ($currentModifySizeQty > 0) {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
+                                            } else {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
                                             }
+                                        }
 
-                                            if ($qtyAdditional > 0) :
-                                                $stockerThis = $dataStocker ? $dataStocker->where("size", $ratio->size)->where("no_cut", $dataSpreading->no_cut)->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
-                                                $stockerBefore = $dataStocker ? $dataStocker->where("size", $ratio->size)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 || ($item->ratio < 1 && $item->difference_qty > 0); })->first() : null;
+                                        if ($qtyAdditional > 0) :
+                                            $stockerThis = $dataStocker ? $dataStocker->where("size", $ratio->size)->where("no_cut", $dataSpreading->no_cut)->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
+                                            $stockerBefore = $dataStocker ? $dataStocker->where("size", $ratio->size)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 || ($item->ratio < 1 && $item->difference_qty > 0); })->first() : null;
 
-                                                $rangeAwalAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBeforeAdditional) : "-") : 1 + ($qtyBeforeAdditional)) : 1 + ($qtyBeforeAdditional));
-                                                $rangeAkhirAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qtyAdditional + ($qtyBeforeAdditional) : "-") : $qtyAdditional + ($qtyBeforeAdditional)) : $qtyAdditional + ($qtyBeforeAdditional));
+                                            $rangeAwalAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBeforeAdditional) : "-") : 1 + ($qtyBeforeAdditional)) : 1 + ($qtyBeforeAdditional));
+                                            $rangeAkhirAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qtyAdditional + ($qtyBeforeAdditional) : "-") : $qtyAdditional + ($qtyBeforeAdditional)) : $qtyAdditional + ($qtyBeforeAdditional));
+
                                         @endphp
                                         <tr>
                                             <input type="hidden" name="part_detail_id_add[{{ $indexAdditional }}]" id="part_detail_id_add_{{ $indexAdditional }}" value="{{ $partDetailAdd->id }}">
