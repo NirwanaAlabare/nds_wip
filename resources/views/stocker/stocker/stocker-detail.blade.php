@@ -52,7 +52,7 @@
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate Qty
                 </button>
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
-                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Range
                 </button>
                 <button type="button" class="btn btn-info btn-sm" onclick="rearrangeGroup('{{ $dataSpreading->id }}', '{{ $dataSpreading->no_form }}')">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Grouping
@@ -175,6 +175,7 @@
                                 })->count();
 
                                 $groupStockerList = [];
+                                $ratioOutputList = [];
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
@@ -185,7 +186,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -225,7 +226,7 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
 
 
@@ -299,7 +300,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -339,7 +340,7 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
 
@@ -404,6 +405,37 @@
                                     @endif
                                 @endif
                             @endforeach
+                            @php
+                                $groupRollList = array_column($groupStockerList, 'group_roll');
+                            @endphp
+                            @if (isset($dataRatioOutput) && $dataRatioOutput->count() > 0)
+                                @php
+                                    $orphanOutputs = $dataRatioOutput->whereNotIn('group_roll', $groupRollList)->groupBy('group_roll');
+                                @endphp
+
+                                @foreach ($orphanOutputs as $groupRoll => $outputs)
+                                    @php
+                                        // Set variabel untuk partial view
+                                        $currentGroup = $groupRoll;
+                                        $currentGroupStocker = $outputs->first()->group_stocker;
+                                        $currentTotal = 0; // Qty tidak relevan karena diambil dari output
+                                        $currentBefore = 0;
+                                        $currentModifySize = collect();
+                                    @endphp
+                                    <div class="d-flex gap-3">
+                                        <div class="mb-3">
+                                            <label><small>Group (Tambahan)</small></label>
+                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                        </div>
+                                    </div>
+
+                                    @include('stocker.stocker.stocker-detail-part-switching', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @php
+                                        $index += $dataRatio->count() * $dataPartDetail->count();
+                                        $partIndex += $dataPartDetail->count();
+                                    @endphp
+                                @endforeach
+                            @endif
                         </div>
                         <div class="d-flex justify-content-end p-3">
                             <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
@@ -467,7 +499,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->where("type", "ADDITIONAL")->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -504,7 +536,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -569,7 +601,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -606,7 +638,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -1316,7 +1348,7 @@
                                                     @php
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
-                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                     @endphp
                                                 @endif
 
@@ -1356,7 +1388,7 @@
 
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
-                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                         $currentTotal = $detail->lembar_gelaran;
 
                                                         $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
@@ -1595,7 +1627,7 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
 
                                                         @endphp
                                                     @endif
@@ -1633,7 +1665,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
@@ -1698,7 +1730,7 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                         @endphp
                                                     @endif
 
@@ -1735,7 +1767,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
@@ -3460,66 +3492,92 @@
 
         function rearrangeGroup(id, no_form) {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Rearranging Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
+                title: 'Rearrange Group',
+                html: '<span class="text-danger"><b>Perhatian</b></span><br>Yakin akan merapikan ulang group data ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Rapikan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc3545',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
 
-            $.ajax({
-                url: '{{ route('rearrange-group') }}',
-                type: 'post',
-                data: {
-                    form_cut_id : id,
-                    no_form : no_form
-                },
-                success: function(res) {
-                    console.log("successs", res);
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Rearranging Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
 
-                    location.reload();
-                },
-                error: function(jqXHR) {
-                    console.log("error", jqXHR);
-                }
+                $.ajax({
+                    url: '{{ route('rearrange-group') }}',
+                    type: 'post',
+                    data: {
+                        form_cut_id : id,
+                        no_form : no_form
+                    },
+                    success: function(res) {
+                        console.log("successs", res);
+
+                        location.reload();
+                    },
+                    error: function(jqXHR) {
+                        console.log("error", jqXHR);
+                    }
+                });
             });
         }
 
         function countStockerUpdate() {
-            generating = true;
+            return Swal.fire({
+                title: 'Recalculate range stocker?',
+                html: '<span class="text-danger"><b>Perhatian</b></span><br>Yakin akan mengupdate data stocker ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Update',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc3545',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
 
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
+                generating = true;
 
-            let stockerForm = new FormData(document.getElementById("stocker-form"));
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Fixing Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
 
-            return $.ajax({
-                url: '{{ route('count-stocker-update') }}',
-                type: 'put',
-                data: stockerForm,
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    console.log("successs", res);
+                let stockerForm = new FormData(document.getElementById("stocker-form"));
 
-                    swal.close();
+                console.log("count stocker update", stockerForm);
 
-                    generating = false;
-                },
-                error: function(jqXHR) {
-                    console.log("error", jqXHR);
+                return $.ajax({
+                    url: '{{ route('count-stocker-update') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    success: function(res) {
+                        console.log("successs", res);
 
-                    swal.close();
+                        swal.close();
 
-                    generating = false;
-                }
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log("error", jqXHR);
+
+                        swal.close();
+
+                        generating = false;
+                    }
+                });
             });
         }
 

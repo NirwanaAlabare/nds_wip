@@ -1379,7 +1379,7 @@ class Bc27Service
             }
 
             foreach (($draft['barang'] ?? []) as $index => $brg) {
-                $cifItem = (float) ($brg['cif'] ?? 0);
+                $cifItem = round((float) ($brg['cif'] ?? 0), 2);
                 $nettoItem = (float) ($brg['netto'] ?? 0);
 
                 if ($cifItem <= 0 || $nettoItem <= 0) {
@@ -1450,7 +1450,7 @@ class Bc27Service
                         }
 
                         $bahanBakuList[] = [
-                            "cif"                   => (float) ($bb['cif'] ?? 0),
+                            "cif"                   => round((float) ($bb['cif'] ?? 0), 2),
                             "cifRupiah"             => (float) ($bb['cifRupiah'] ?? 0),
                             "hargaPenyerahan"       => (float) ($bb['hargaPenyerahan'] ?? 0),
                             "hargaPerolehan"        => (float) ($bb['hargaPerolehan'] ?? 0),
@@ -1543,7 +1543,7 @@ class Bc27Service
                     "merk"              => !empty($brg['merk']) ? strval($brg['merk']) : "-",
                     "ndpbm"             => (float) ($brg['ndpbm'] ?? 0),
                     "netto"             => $nettoItem,
-                    "nilaiBarang"       => (float) ($brg['nilaiBarang'] ?? 0),
+                    "nilaiBarang"       => round((float) ($brg['nilaiBarang'] ?? 0), 2),
                     "nilaiJasa"         => (float) ($brg['nilaiJasa'] ?? 0),
                     "posTarif"          => strval($brg['posTarif'] ?? ""),
                     "seriBarang"        => strval($brg['seriBarang'] ?? ($index + 1)),
@@ -1621,11 +1621,11 @@ class Bc27Service
                 }
             }
 
-            $nilaiBarangHeader = (float) ($draft['nilaiBarang'] ?? 0);
+            $nilaiBarangHeader = round((float) ($draft['nilaiBarang'] ?? 0), 2);
             if ($nilaiBarangHeader <= 0 && $totalHargaPenyerahan > 0) {
-                $nilaiBarangHeader = $totalHargaPenyerahan;
+                $nilaiBarangHeader = round($totalHargaPenyerahan, 2);
             } elseif ($nilaiBarangHeader <= 0 && $totalCif > 0) {
-                $nilaiBarangHeader = $totalCif;
+                $nilaiBarangHeader = round($totalCif, 2);
             }
 
             $jenisTpb = !empty($draft['jenisTpb']) ? strval($draft['jenisTpb']) : "1";
@@ -1642,7 +1642,7 @@ class Bc27Service
                 "biayaPengurang"       => (float) ($draft['biayaPengurang'] ?? 0),
                 "biayaTambahan"        => (float) ($draft['biayaTambahan'] ?? 0),
                 "bruto"                => (float) ($draft['bruto'] ?? 0),
-                "cif"                  => $totalCif > 0 ? $totalCif : (float) ($draft['cif'] ?? 0),
+                "cif"                  => $totalCif > 0 ? round($totalCif, 2) : round((float) ($draft['cif'] ?? 0), 2),
                 "dasarPengenaanPajak"  => (float) ($draft['dasarPengenaanPajak'] ?? 0),
                 "disclaimer"           => "0",
                 "freight"              => $totalFreight > 0 ? $totalFreight : (float) ($draft['freight'] ?? 0),

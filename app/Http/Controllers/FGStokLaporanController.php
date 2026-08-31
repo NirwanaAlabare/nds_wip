@@ -229,12 +229,363 @@ class FGStokLaporanController extends Controller
         ], JsonResponse::HTTP_OK);
     }
 
+<<<<<<< HEAD
     /**
      * Query dasar laporan mutasi detail.
      * Dipakai ulang untuk hitung total dan ambil satu halaman, memakai binding
      * supaya tanggal tidak diinterpolasi langsung ke SQL.
      */
     private function repMutasiBaseQuery()
+=======
+    // public function report_mutasi_barang_jadi(Request $request)
+    // {
+    //     ini_set("max_execution_time", 3600);
+
+    //     $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+    //     $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+
+    //     $data_preview = DB::select("
+    //         SELECT
+    //             mt.id_so_det,
+    //             SUM(qty_awal) AS qty_awal,
+    //             SUM(qty_in) AS qty_in,
+    //             SUM(qty_out) AS qty_out,
+    //             SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir,
+    //             grade,
+    //             lokasi,
+    //             no_carton,
+    //             buyer,
+    //             color,
+    //             m.size,
+    //             ws,
+    //             brand,
+    //             styleno,
+    //             m.product_group,
+    //             m.product_item,
+    //             m.dest,
+    //             '$tgl_awal' AS tgl_awal,
+    //             '$tgl_akhir' AS tgl_akhir
+    //         FROM (
+    //             SELECT
+    //                 id_so_det,
+    //                 SUM(qty_in) - SUM(qty_out) AS qty_awal,
+    //                 '0' AS qty_in,
+    //                 '0' AS qty_out,
+    //                 grade,
+    //                 lokasi,
+    //                 no_carton
+    //             FROM (
+    //                 SELECT
+    //                     id_so_det,
+    //                     SUM(qty) AS qty_in,
+    //                     '0' AS qty_out,
+    //                     grade,
+    //                     lokasi,
+    //                     no_carton
+    //                 FROM fg_stok_bpb
+    //                 WHERE tgl_terima < '$tgl_awal'
+    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //                 GROUP BY id_so_det, grade, lokasi, no_carton
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     id_so_det,
+    //                     SUM(qty) AS qty_in,
+    //                     '0' AS qty_out,
+    //                     grade,
+    //                     lokasi,
+    //                     no_carton
+    //                 FROM fg_stok_bpb_scan
+    //                 WHERE tgl_terima < '$tgl_awal'
+    //                     AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //                 GROUP BY id_so_det, grade, lokasi, no_carton
+
+    //                 UNION ALL
+
+    //                 SELECT
+    //                     id_so_det,
+    //                     '0' AS qty_in,
+    //                     SUM(qty_out) AS qty_out,
+    //                     grade,
+    //                     lokasi,
+    //                     no_carton
+    //                 FROM fg_stok_bppb
+    //                 WHERE tgl_pengeluaran < '$tgl_awal'
+    //                     AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+    //                 GROUP BY id_so_det, grade, lokasi, no_carton
+    //             ) sa
+    //             GROUP BY id_so_det, grade, lokasi, no_carton
+
+    //             UNION ALL
+
+    //             SELECT
+    //                 id_so_det,
+    //                 '0' AS qty_awal,
+    //                 SUM(qty) AS qty_in,
+    //                 '0' AS qty_out,
+    //                 grade,
+    //                 lokasi,
+    //                 no_carton
+    //             FROM fg_stok_bpb
+    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //             GROUP BY id_so_det, grade, lokasi, no_carton
+
+    //             UNION ALL
+
+    //             SELECT
+    //                 id_so_det,
+    //                 '0' AS qty_awal,
+    //                 SUM(qty) AS qty_in,
+    //                 '0' AS qty_out,
+    //                 grade,
+    //                 lokasi,
+    //                 no_carton
+    //             FROM fg_stok_bpb_scan
+    //             WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+    //                 AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+    //             GROUP BY id_so_det, grade, lokasi, no_carton
+
+    //             UNION ALL
+
+    //             SELECT
+    //                 id_so_det,
+    //                 '0' AS qty_awal,
+    //                 '0' AS qty_in,
+    //                 SUM(qty_out) AS qty_out,
+    //                 grade,
+    //                 lokasi,
+    //                 no_carton
+    //             FROM fg_stok_bppb
+    //             WHERE tgl_pengeluaran >= '$tgl_awal' AND tgl_pengeluaran <= '$tgl_akhir'
+    //                 AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+    //             GROUP BY id_so_det, grade, lokasi, no_carton
+    //         ) mt
+    //         LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
+    //         LEFT JOIN master_size_new ms ON m.size = ms.size
+    //         GROUP BY buyer, ws, styleno, color, m.size
+    //         ORDER BY buyer ASC, color ASC, ms.urutan ASC
+    //     ");
+    //     return response()->json([
+    //         'tanggal' => $tgl_awal . " - " . $tgl_akhir,
+    //         'data' => $data_preview,
+    //         'message' => 'Succeed'
+    //     ], JsonResponse::HTTP_OK);
+    // }
+
+    public function report_mutasi_barang_jadi(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+
+        $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+        $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+
+        $data_preview = DB::select("
+            SELECT
+                buyer,
+                ws,
+                styleno,
+                color,
+                m.size,
+                MIN(m.product_group) AS product_group,
+                MIN(m.product_item) AS product_item,
+                MIN(brand) AS brand,
+                MIN(m.dest) AS dest,
+                SUM(qty_awal) AS qty_awal,
+                SUM(qty_in) AS qty_in,
+                SUM(qty_out) AS qty_out,
+                SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir,
+                '$tgl_awal' AS tgl_awal,
+                '$tgl_akhir' AS tgl_akhir
+            FROM (
+
+                -- ================== SALDO AWAL (sebelum tgl_awal) ==================
+                SELECT
+                    id_so_det,
+                    SUM(qty_in) - SUM(qty_out) AS qty_awal,
+                    0 AS qty_in,
+                    0 AS qty_out
+                FROM (
+                    SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
+                    FROM fg_stok_bpb
+                    WHERE tgl_terima < '$tgl_awal'
+                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                    GROUP BY id_so_det
+
+                    UNION ALL
+
+                    SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out
+                    FROM fg_stok_bpb_scan
+                    WHERE tgl_terima < '$tgl_awal'
+                        AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                    GROUP BY id_so_det
+
+                    UNION ALL
+
+                    SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out
+                    FROM fg_stok_bppb
+                    WHERE tgl_pengeluaran < '$tgl_awal'
+                        AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+                    GROUP BY id_so_det
+
+                    UNION ALL
+
+                    -- TAMBAHAN 1: reject QC (saldo awal)
+                    SELECT
+                        mb.id_so_det,
+                        COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
+                        0 AS qty_out
+                    FROM signalbit_erp.output_reject_out_detail a
+                    INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
+                    INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
+                    LEFT JOIN (
+                        SELECT sd.id AS id_so_det
+                        FROM signalbit_erp.so_det sd
+                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                        WHERE jd.cancel = 'N'
+                    ) mb ON b.so_det_id = mb.id_so_det
+                    WHERE DATE(a.created_at) < '$tgl_awal'
+                        AND mp.cancel = 'N'
+                    GROUP BY mb.id_so_det
+
+                    UNION ALL
+
+                    -- TAMBAHAN 2: ekspedisi masuk dari bppb (saldo awal)
+                    SELECT
+                        tmpjod.id_so_det,
+                        SUM(bppb.qty) AS qty_in,
+                        0 AS qty_out
+                    FROM signalbit_erp.bppb
+                    INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
+                    INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
+                    LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
+                        ON tmpjod.id_so_det = bppb.id_so_det
+                    WHERE MID(bppbno,4,2) IN ('FG')
+                        AND bppbdate < '$tgl_awal'
+                        AND mastersupplier.supplier = 'BARANG JADI STOCK'
+                    GROUP BY tmpjod.id_so_det
+
+                    UNION ALL
+
+                    -- TAMBAHAN 3: wip_adjustment (saldo awal), di-translate ke id_so_det via master_sb_ws
+                    SELECT
+                        m2.id_so_det,
+                        SUM(wa.qty) AS qty_in,
+                        0 AS qty_out
+                    FROM wip_adjustment wa
+                    LEFT JOIN master_sb_ws m2
+                        ON wa.no_ws = m2.ws AND wa.style = m2.styleno
+                        AND wa.color = m2.color AND wa.size = m2.size
+                    WHERE wa.tgl_saldo < '$tgl_awal'
+                        AND wa.type_report = 'TRANSIT_GUDANG_STOK'
+                    GROUP BY m2.id_so_det
+                ) sa
+                GROUP BY id_so_det
+
+                UNION ALL
+
+                -- ================== PENERIMAAN PERIODE BERJALAN ==================
+                SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
+                FROM fg_stok_bpb
+                WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+                    AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                GROUP BY id_so_det
+
+                UNION ALL
+
+                SELECT id_so_det, 0 AS qty_awal, SUM(qty) AS qty_in, 0 AS qty_out
+                FROM fg_stok_bpb_scan
+                WHERE tgl_terima >= '$tgl_awal' AND tgl_terima <= '$tgl_akhir'
+                    AND sumber_pemasukan IN ('SEWING', 'REJECT', 'EKSPEDISI')
+                GROUP BY id_so_det
+
+                UNION ALL
+
+                -- TAMBAHAN 1: reject QC (periode berjalan)
+                SELECT
+                    mb.id_so_det,
+                    0 AS qty_awal,
+                    COUNT(CASE WHEN b.status = 'rejected' THEN 1 END) AS qty_in,
+                    0 AS qty_out
+                FROM signalbit_erp.output_reject_out_detail a
+                INNER JOIN signalbit_erp.output_reject_in b ON a.reject_in_id = b.id
+                INNER JOIN signalbit_erp.master_plan mp ON b.master_plan_id = mp.id
+                LEFT JOIN (
+                    SELECT sd.id AS id_so_det
+                    FROM signalbit_erp.so_det sd
+                    INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                    INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                    WHERE jd.cancel = 'N'
+                ) mb ON b.so_det_id = mb.id_so_det
+                WHERE DATE(a.created_at) >= '$tgl_awal' AND DATE(a.created_at) <= '$tgl_akhir'
+                    AND mp.cancel = 'N'
+                GROUP BY mb.id_so_det
+
+                UNION ALL
+
+                -- TAMBAHAN 2: ekspedisi masuk dari bppb (periode berjalan)
+                SELECT
+                    tmpjod.id_so_det,
+                    0 AS qty_awal,
+                    SUM(bppb.qty) AS qty_in,
+                    0 AS qty_out
+                FROM signalbit_erp.bppb
+                INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
+                INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
+                LEFT JOIN (SELECT sod.id AS id_so_det FROM signalbit_erp.so_det sod GROUP BY sod.id) tmpjod
+                    ON tmpjod.id_so_det = bppb.id_so_det
+                WHERE MID(bppbno,4,2) IN ('FG')
+                    AND bppbdate >= '$tgl_awal' AND bppbdate <= '$tgl_akhir'
+                    AND mastersupplier.supplier = 'BARANG JADI STOCK'
+                GROUP BY tmpjod.id_so_det
+
+                UNION ALL
+
+                -- TAMBAHAN 3: wip_adjustment (periode berjalan)
+                SELECT
+                    m2.id_so_det,
+                    0 AS qty_awal,
+                    SUM(wa.qty) AS qty_in,
+                    0 AS qty_out
+                FROM wip_adjustment wa
+                LEFT JOIN master_sb_ws m2
+                    ON wa.no_ws = m2.ws AND wa.style = m2.styleno
+                    AND wa.color = m2.color AND wa.size = m2.size
+                WHERE wa.tgl_saldo >= '$tgl_awal' AND wa.tgl_saldo <= '$tgl_akhir'
+                    AND wa.type_report = 'TRANSIT_GUDANG_STOK'
+                GROUP BY m2.id_so_det
+
+                UNION ALL
+
+                -- ================== PENGELUARAN PERIODE BERJALAN ==================
+                SELECT id_so_det, 0 AS qty_awal, 0 AS qty_in, SUM(qty_out) AS qty_out
+                FROM fg_stok_bppb
+                WHERE tgl_pengeluaran >= '$tgl_awal' AND tgl_pengeluaran <= '$tgl_akhir'
+                    AND tujuan IN ('PRODUCTION-SEWING', 'QA', 'EKSPEDISI')
+                GROUP BY id_so_det
+
+            ) x
+            LEFT JOIN master_sb_ws m ON x.id_so_det = m.id_so_det
+            LEFT JOIN master_size_new ms ON m.size = ms.size
+            GROUP BY buyer, ws, styleno, color, m.size
+            ORDER BY buyer ASC, color ASC, ms.urutan ASC
+        ");
+
+        return response()->json([
+            'tanggal' => $tgl_awal . " - " . $tgl_akhir,
+            'data' => $data_preview,
+            'message' => 'Succeed'
+        ], JsonResponse::HTTP_OK);
+    }
+
+    public function rep_mutasi_fg_stock(Request $request)
+>>>>>>> 7884853c0e0d4a552729e1de5cf8c287c2dd844b
     {
         return "
             SELECT
@@ -755,6 +1106,7 @@ class FGStokLaporanController extends Controller
     {
         return Excel::download(new ExportListLaporanPenerimaanFGStockBPB($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
+
 
     public function rep_mutasi_global_fg_stock(Request $request)
     {
@@ -1442,7 +1794,11 @@ class FGStokLaporanController extends Controller
                         ) AS saldo_akhir_transit,
                         (
                             CASE
+<<<<<<< HEAD
                                 WHEN '" . $tgl_awal . "' = '" . $saldo_awal . "'
+=======
+                                WHEN '".$tgl_awal."' = '".$saldo_awal."'
+>>>>>>> 7884853c0e0d4a552729e1de5cf8c287c2dd844b
                                 THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                                 ELSE
                                     COALESCE(qty_saldo_awal_adjustment_before,0)
@@ -1460,7 +1816,11 @@ class FGStokLaporanController extends Controller
                         qty_keluar_ekspedisi,
                         (
                             CASE
+<<<<<<< HEAD
                                 WHEN '" . $tgl_awal . "' = '" . $saldo_awal . "'
+=======
+                                WHEN '".$tgl_awal."' = '".$saldo_awal."'
+>>>>>>> 7884853c0e0d4a552729e1de5cf8c287c2dd844b
                                 THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                                 ELSE
                                     COALESCE(qty_saldo_awal_adjustment_before,0)
@@ -2171,7 +2531,11 @@ order by ws asc, color asc, urutan asc
                     ) AS saldo_akhir_transit,
                     (
                         CASE
+<<<<<<< HEAD
                             WHEN '" . $tgl_awal . "' = '" . $saldo_awal . "'
+=======
+                            WHEN '".$tgl_awal."' = '".$saldo_awal."'
+>>>>>>> 7884853c0e0d4a552729e1de5cf8c287c2dd844b
                             THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                             ELSE
                                 COALESCE(qty_saldo_awal_adjustment_before,0)
@@ -2189,7 +2553,11 @@ order by ws asc, color asc, urutan asc
                     qty_keluar_ekspedisi,
                     (
                         CASE
+<<<<<<< HEAD
                             WHEN '" . $tgl_awal . "' = '" . $saldo_awal . "'
+=======
+                            WHEN '".$tgl_awal."' = '".$saldo_awal."'
+>>>>>>> 7884853c0e0d4a552729e1de5cf8c287c2dd844b
                             THEN COALESCE(qty_saldo_awal_adjustment_before,0)
                             ELSE
                                 COALESCE(qty_saldo_awal_adjustment_before,0)

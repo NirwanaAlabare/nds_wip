@@ -8,6 +8,7 @@ use App\Models\Auth\User;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use Spatie\Activitylog\Traits\LogsActivity;
+use DB;
 
 class FormCutInputDetailOutput extends Model
 {
@@ -25,6 +26,11 @@ class FormCutInputDetailOutput extends Model
     protected static function boot()
     {
         parent::boot();
+    }
+
+    public static function generateFormCutOutput($id)
+    {
+        return DB::select('call generate_form_cut_output(?)', [$id]);
     }
 
     public function markerDetail()

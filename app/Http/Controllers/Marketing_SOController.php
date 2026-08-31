@@ -2366,6 +2366,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_colors_gmt as c', 'so_det.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 'so_det.id_size', '=', 's.id')
             ->where('so_det.id_so', $id)
+            ->where('cancel', 'N')
             ->select('c.name as color', 's.size as size_name', 's.urutan', 'so_det.qty', 'so_det.deldate_det', 'so_det.id_color', 'so_det.id_size', 'so_det.product_set')
             ->orderBy('so_det.product_set', 'asc')
             ->orderBy('s.urutan', 'asc')

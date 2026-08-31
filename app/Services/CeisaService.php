@@ -310,10 +310,10 @@ class CeisaService
     /**
      * Kirim dokumen BC 3.0 ke CEISA
      */
-    public function kirimDokumenBc30($payload, $isFinal = 'false')
+    public function kirimDokumenBc30($payload, $isFinal = 'false', $isDev = true)
     {
         $this->useUserCredential();
-        $this->setEnv('live');
+        $this->setEnv($isDev ? 'dev' : 'live');
 
         $response = $this->requestWithRetry(
             'POST',

@@ -9,6 +9,7 @@ use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
@@ -316,6 +317,17 @@ class CompletedFormController extends Controller
             where('id', $validatedRequest['current_id'])->
             first();
 
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -543,6 +555,9 @@ class CompletedFormController extends Controller
 
             $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
 
+            // generate form cut output
+            FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
+
             DB::commit();
 
             return array(
@@ -565,6 +580,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -800,6 +826,9 @@ class CompletedFormController extends Controller
                 }
             }
 
+            // generate form cut output
+            FormCutInputDetailOutput::generateFormCutOutput($id);
+
             return array(
                 "status" => 200,
                 "message" => "alright",
@@ -832,6 +861,7 @@ class CompletedFormController extends Controller
             "l_act" => "required",
         ]);
 
+        // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
@@ -842,6 +872,17 @@ class CompletedFormController extends Controller
                 'table' => 'datatable',
                 'additional' => [],
             );
+        }
+
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
         }
 
         // Form Recalculate
@@ -866,6 +907,9 @@ class CompletedFormController extends Controller
 
                 $cuttingService->recalculateForm($validatedRequest['id']);
             }
+
+            // generate form cut output
+            FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -898,6 +942,7 @@ class CompletedFormController extends Controller
             "qty_ply" => "required"
         ]);
 
+        // // Check Stocker
         // $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         // Log::channel("completedFormBypassStocker")->info($stockerForm);
         // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
@@ -908,6 +953,17 @@ class CompletedFormController extends Controller
         //         'table' => 'datatable',
         //         'additional' => [],
         //     );
+        // }
+
+        // // Check Form Cut Input Detail Output
+        // $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        // foreach ($formCutOutputs as $formCutOutput) {
+        //     if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+        //         return array(
+        //             "status" => 400,
+        //             "message" => "Form sudah ada transfer switching."
+        //         );
+        //     }
         // }
 
         // Form Recalculate
@@ -939,6 +995,9 @@ class CompletedFormController extends Controller
                 $formCutInput->edit_notes .= ($formCutInput->edit_notes ? " | " : "")."Edit Waktu Mulai to ".$formCutInput->waktu_mulai."  |  Edit Waktu Selesai to ".$formCutInput->waktu_selesai."  |  Edit Meja to ".$formCutInput->no_meja." by ".Auth::user()->username." on ".Carbon::now()->format("d/m/Y H:i:s");
                 $formCutInput->save();
             }
+
+            // generate form cut output
+            // FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -997,6 +1056,19 @@ class CompletedFormController extends Controller
                         'table' => 'datatable',
                         'additional' => [],
                     );
+                }
+
+                // Check Form Cut Input Detail Output
+                $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $formCutDetail->form_cut_id)->get();
+                foreach ($formCutOutputs as $formCutOutput) {
+                    if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                        DB::rollBack();
+
+                        return array(
+                            "status" => 400,
+                            "message" => "Form sudah ada transfer switching."
+                        );
+                    }
                 }
 
                 // Update scanned item qty
@@ -1112,16 +1184,19 @@ class CompletedFormController extends Controller
                         }
 
                         // If the form has part form (delete part form & reorder)
-                        $partForm = PartForm::where('form_id', $formCutDetail->id)->first();
+                        $partForm = PartForm::where('form_id', $formCutDetail->form_cut_id)->first();
                         if ($partForm) {
                             // Delete part form
-                            $deletePartForm = PartForm::where('form_id', $formCutDetail->id)->delete();
+                            $deletePartForm = PartForm::where('form_id', $formCutDetail->form_cut_id)->delete();
 
                             if ($deletePartForm) {
                                 // Reorder part form group
                                 $stockerService->reorderStockerNumbering($partForm->part_id);
                             }
                         }
+
+                        // generate form cut output
+                        FormCutInputDetailOutput::where("form_cut_input_id", $formCutDetail->form_cut_id)->delete();
 
                         DB::commit();
 
@@ -1147,6 +1222,9 @@ class CompletedFormController extends Controller
                     //         'additional' => [],
                     //     );
                     // }
+
+                    // generate form cut output
+                    FormCutInputDetailOutput::generateFormCutOutput($formCutDetail->form_cut_id);
 
                     DB::commit();
 

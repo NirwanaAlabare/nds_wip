@@ -326,7 +326,7 @@ class TrackPackingOutput extends Component
                 if ($this->dateToFilter) $dailyOrderOutputSql->whereRaw('rfts.tanggal <= "'.$this->dateToFilter.'"');
                 if ($this->colorFilter) $dailyOrderOutputSql->where('master_plan.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderOutputSql->whereRaw('COALESCE(rfts.created_by, master_plan.sewing_line) = "'.$this->lineFilter.'"');
-                if ($this->poFilter) $dailyOrderGroupSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->poFilter);
+                if ($this->poFilter) $dailyOrderOutputSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->poFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $dailyOrderOutputSql->where('so_det.size', $this->sizeFilter);
                 $dailyOrderOutputSql->
                     groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal, ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->

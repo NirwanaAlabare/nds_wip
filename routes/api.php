@@ -47,6 +47,7 @@ Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->g
     Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok');
     Route::get('/export_excel_mutasi_fg_stok_new', 'exportExcelMutasiFgStok');
     Route::get('/export_excel_mutasi_fg_stok_sb', 'exportExcelMutasiFgStokSb');
+    Route::get('/report_mutasi_barang_jadi', 'report_mutasi_barang_jadi');
 });
 
 //In Barcode Fabric

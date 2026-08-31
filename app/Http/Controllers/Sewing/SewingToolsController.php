@@ -2897,6 +2897,26 @@ class SewingToolsController extends Controller
                 $department = "";
             }
 
+            // Tentukan table sesuai department
+            $tableOutput = "output_rfts" . $department;
+
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table($tableOutput)
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
+            }
+
             if ($kodeNumbering) {
                 $kodeNumberingOutput = collect(
                     DB::connection("mysql_sb")->select("
@@ -4526,6 +4546,23 @@ class SewingToolsController extends Controller
         if ($request->kode_numbering) {
             $kodeNumbering = addQuotesAround($request->kode_numbering);
 
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table("output_defect_in_out")
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
+            }
+
             $department = $request->department;
 
             if ($kodeNumbering) {
@@ -4576,6 +4613,23 @@ class SewingToolsController extends Controller
                 $department = $request->department == "packing" ? "_packing" : "";
             } else {
                 $department = "";
+            }
+
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table("output_reject_in")
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
             }
 
             if ($kodeNumbering) {
@@ -4714,8 +4768,10 @@ class SewingToolsController extends Controller
                     so_det.size,
                     master_plan.sewing_line AS line,
                     master_plan.tgl_plan,
-                    output_undo_packing.undo_by,
-                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.undo_by undo_by_id,
+                    userpassword.username undo_by,
+                    output_undo_packing.undo_by_nds undo_by_nds_id,
+                    users.username undo_by_nds,
                     output_undo_packing.keterangan,
                     output_undo_packing.undo_at AS undo_at,
                     output_undo_packing.created_at AS output_created_at,
@@ -4729,6 +4785,8 @@ class SewingToolsController extends Controller
                 ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
                 ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
                 ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->leftJoin('userpassword', 'userpassword.line_id', '=', 'output_undo_packing.undo_by')
+                ->leftJoin('laravel_nds.users', 'users.id', '=', 'output_undo_packing.undo_by_nds')
                 ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
                 ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
                 ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
@@ -4750,8 +4808,10 @@ class SewingToolsController extends Controller
                     so_det.size,
                     master_plan.sewing_line   AS line,
                     master_plan.tgl_plan,
-                    output_undo.undo_by,
-                    output_undo.undo_by_nds,
+                    output_undo.undo_by undo_by_id,
+                    userpassword.username undo_by,
+                    output_undo.undo_by_nds undo_by_nds_id,
+                    users.username undo_by_nds,
                     output_undo.keterangan,
                     output_undo.undo_at,
                     output_undo.created_at AS output_created_at,
@@ -4765,6 +4825,8 @@ class SewingToolsController extends Controller
                 ->leftJoin('output_defects as odef', 'odef.id', '=', 'output_undo.output_defect_id')
                 ->leftJoin('output_rejects as orej', 'orej.id', '=', 'output_undo.output_reject_id')
                 ->leftJoin('output_reworks as orw', 'orw.id', '=', 'output_undo.output_rework_id')
+                ->leftJoin('userpassword', 'userpassword.line_id', '=', 'output_undo.undo_by')
+                ->leftJoin('laravel_nds.users', 'users.id', '=', 'output_undo.undo_by_nds')
                 ->whereRaw("DATE(COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
                 ->when($kode, fn($q) => $q->where('output_undo.kode_numbering', 'like', '%'.$kode.'%'))
                 ->orderByRaw("COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at) DESC")
@@ -4892,6 +4954,33 @@ class SewingToolsController extends Controller
     {
         $ids = addQuotesAround($request->id);
         $department = $request->department;
+
+        if($department == 'packing_po'){
+            $departmentClosing = '_packing_po';
+        }else if($department == 'packing'){
+            $departmentClosing = '_packing';
+        }else{
+            $departmentClosing = '';
+        }
+
+        $tableOutput = "output_undo" . $departmentClosing;
+
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')
+            ->table($tableOutput)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("id in (" . $ids . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat direstore karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
 
         if ($ids) {
             if ($department == "packing_po") {
@@ -5365,6 +5454,32 @@ class SewingToolsController extends Controller
         $kodeNumbering = addQuotesAround($request->kode_numbering);
 
         $department = $request->department;
+
+        if ($request->department) {
+            $departmentClosing = ($request->department == "packing_po" ? "_packing_po" : ($request->department == "packing" ? "_packing" : ""));
+        } else {
+            $departmentClosing = "";
+        }
+
+        // Tentukan table sesuai department
+        $tableOutput = "output_undo" . $departmentClosing;
+
+        // Check Closing
+        $dataCheckClosing = DB::connection('mysql_sb')
+            ->table($tableOutput)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->get();
+
+        foreach ($dataCheckClosing as $data) {
+            if (checkClosingDate($data->tanggal)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                    "additional" => "Closing"
+                ];
+            }
+        }
 
         if ($kodeNumbering) {
             if ($department == "packing_po") {

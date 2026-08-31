@@ -184,13 +184,21 @@
                             Swal.showLoading();
                         },
                         success: function (response) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: response.message ?? 'Data berhasil direstore.'
-                            });
-
-                            table.ajax.reload(null, false);
+                            if(response.status == 400){
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Warning',
+                                    text: response.message
+                                });
+                            }else{
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: response.message ?? 'Data berhasil direstore.'
+                                });
+    
+                                table.ajax.reload(null, false);
+                            }
                         },
                         error: function (xhr) {
                             Swal.fire({

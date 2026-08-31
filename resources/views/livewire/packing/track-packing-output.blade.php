@@ -656,6 +656,10 @@
                     groupBy:$("#group-by").val(),
                     order:$("#order").val(),
                     buyer:$("#supplier").val(),
+                    color:$("#color").val(),
+                    line:$("#line").val(),
+                    po:$("#po").val(),
+                    size:$("#size").val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {

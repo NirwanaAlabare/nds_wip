@@ -152,8 +152,8 @@
 
         <div class="card-body">
             <form method="GET" action="" class="toolbar-panel">
-                <input type="hidden" name="from" value="{{ $fromDate }}">
-                <input type="hidden" name="to" value="{{ $toDate }}">
+                <input type="hidden" name="from" id="from" value="{{ $fromDate }}">
+                <input type="hidden" name="to" id="to" value="{{ $toDate }}">
 
                 <div class="row align-items-center">
                     <div class="col-md-8 d-flex align-items-center">
@@ -181,7 +181,7 @@
                             <th>No WS</th>
                             {{-- <th>Color</th> --}}
                             {{-- <th>Size</th> --}}
-                            <th>Dest / Country</th>
+                            {{-- <th>Dest / Country</th> --}}
                             <th>Unit</th>
                             <th>Saldo Awal</th>
                             <th>Penerimaan</th>
@@ -200,7 +200,7 @@
                                     <td>{{ $row->kpno ?? '-' }}</td>
                                     {{-- <td>{!! $row->color ? str_replace(',', '<br>', $row->color) : '-' !!}</td> --}}
                                     {{-- <td>{!! $row->size ? str_replace(',', '<br>', $row->size) : '-' !!}</td> --}}
-                                    <td>{{ $row->country ?? '-' }}</td>
+                                    {{-- <td>{{ $row->country ?? '-' }}</td> --}}
                                     <td class="text-center">PCS</td>
 
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
@@ -231,43 +231,83 @@
                 "language": { "emptyTable": "Tidak ada data mutasi barang jadi untuk periode ini." }
             });
 
-            $('#btn-export-excel').on('click', function(e) {
-                e.preventDefault();
-                let btn = $(this);
-                let originalText = btn.html();
-                let form = btn.closest('form');
-                let url = window.location.href.split('?')[0];
-                let formData = form.serialize() + '&export=excel';
+            // $('#btn-export-excel').on('click', function(e) {
+            //     e.preventDefault();
+            //     let btn = $(this);
+            //     let originalText = btn.html();
+            //     let form = btn.closest('form');
+            //     let url = window.location.href.split('?')[0];
+            //     let formData = form.serialize() + '&export=excel';
 
-                $('#loading-bg').removeClass('d-none');
-                btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...').prop('disabled', true);
+            //     $('#loading-bg').removeClass('d-none');
+            //     btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...').prop('disabled', true);
+
+            //     $.ajax({
+            //         url: url, type: 'GET', data: formData,
+            //         xhrFields: { responseType: 'blob' },
+            //         success: function(response, status, xhr) {
+            //             let filename = "Laporan_Mutasi_Barang_Jadi.xls";
+            //             let disposition = xhr.getResponseHeader('Content-Disposition');
+            //             if (disposition && disposition.indexOf('attachment') !== -1) {
+            //                 let matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            //                 if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+            //             }
+
+            //             let blob = new Blob([response], { type: 'application/vnd.ms-excel' });
+            //             let downloadUrl = window.URL.createObjectURL(blob);
+            //             let a = document.createElement('a');
+            //             a.href = downloadUrl; a.download = filename;
+            //             document.body.appendChild(a); a.click(); a.remove();
+            //             window.URL.revokeObjectURL(downloadUrl);
+
+            //             $('#loading-bg').addClass('d-none');
+            //             btn.html(originalText).prop('disabled', false);
+            //         },
+            //         error: function() {
+            //             alert('Terjadi kesalahan saat mengunduh file Excel.');
+            //             $('#loading-bg').addClass('d-none');
+            //             btn.html(originalText).prop('disabled', false);
+            //         }
+            //     });
+            // });
+            $('#btn-export-excel').on('click', function(e) {
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
 
                 $.ajax({
-                    url: url, type: 'GET', data: formData,
-                    xhrFields: { responseType: 'blob' },
-                    success: function(response, status, xhr) {
-                        let filename = "Laporan_Mutasi_Barang_Jadi.xls";
-                        let disposition = xhr.getResponseHeader('Content-Disposition');
-                        if (disposition && disposition.indexOf('attachment') !== -1) {
-                            let matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-                        }
-
-                        let blob = new Blob([response], { type: 'application/vnd.ms-excel' });
-                        let downloadUrl = window.URL.createObjectURL(blob);
-                        let a = document.createElement('a');
-                        a.href = downloadUrl; a.download = filename;
-                        document.body.appendChild(a); a.click(); a.remove();
-                        window.URL.revokeObjectURL(downloadUrl);
-
-                        $('#loading-bg').addClass('d-none');
-                        btn.html(originalText).prop('disabled', false);
+                    type: "get",
+                    url: '{{ route('export_excel_mutasi_barang_jadi') }}',
+                    data: {
+                        from: $('#from').val(),
+                        to: $('#to').val()
                     },
-                    error: function() {
-                        alert('Terjadi kesalahan saat mengunduh file Excel.');
-                        $('#loading-bg').addClass('d-none');
-                        btn.html(originalText).prop('disabled', false);
-                    }
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response) {
+                        {
+                            swal.close();
+                            Swal.fire({
+                                title: 'Data Sudah Di Export!',
+                                icon: "success",
+                                showConfirmButton: true,
+                                allowOutsideClick: false
+                            });
+                            var blob = new Blob([response]);
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Laporan Mutasi Barang Jadi " + $('#from').val() + " sampai " +
+                                $('#to').val() + ".xlsx";
+                            link.click();
+
+                        }
+                    },
                 });
             });
         });
