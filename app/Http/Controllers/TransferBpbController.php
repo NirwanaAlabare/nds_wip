@@ -53,7 +53,7 @@ class TransferBpbController extends Controller
     public function create(Request $request)
     {
 
-        $nama_supp = DB::connection('mysql_sb')->select("select DISTINCT id_supplier, supplier from mastersupplier where tipe_sup = 'S' order by Supplier ASC");
+        $nama_supp = DB::connection('mysql_sb')->select("select DISTINCT id_supplier, supplier from mastersupplier order by Supplier ASC");
 
         $kode_gr = DB::connection('mysql_sb')->select("
         select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'TBPB/NAG' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_trans) is null,'00001',LPAD(SUBSTR(max(SUBSTR(no_trans,15)),1,5)+1,5,0)) nomor from ir_log_trans where kode_trans = 'TBPB') a");
@@ -75,7 +75,7 @@ class TransferBpbController extends Controller
             left join masterpterms on masterpterms.id = po_header.id_terms
             where stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com is null  ".$where." || stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com IN ('REGULAR','BUYER','FOC') ".$where." group by bpb.bpbno_int
                     UNION
-                  select id,bppb.bppbno_int, '-' pono, bppb.bppbdate, mastersupplier.Supplier , '' ,'' , bppb.curr,bppb.confirm_by,DATE_FORMAT(bppb.confirm_date,'%Y-%m-%d') confirm_date, sum(bppb.qty * bppb.price) as total, '','' from bppb inner join mastersupplier on mastersupplier.Id_Supplier = bppb.id_supplier where bppbno_int like '%GK%' and confirm = 'Y' and cancel != 'Y' and  bppb.bppbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and stat_trf is null and tipe_sup = 'S' group by bppbno_int");
+                  select id,bppb.bppbno_int, '-' pono, bppb.bppbdate, mastersupplier.Supplier , '' ,'' , bppb.curr,bppb.confirm_by,DATE_FORMAT(bppb.confirm_date,'%Y-%m-%d') confirm_date, sum(bppb.qty * bppb.price) as total, '','' from bppb inner join mastersupplier on mastersupplier.Id_Supplier = bppb.id_supplier where bppbno_int like '%GK%' and confirm = 'Y' and cancel != 'Y' and  bppb.bppbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and stat_trf is null  group by bppbno_int");
 
             // dd($data_trfbpb);
             return DataTables::of($data_trfbpb)->toJson();
