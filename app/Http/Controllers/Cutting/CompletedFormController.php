@@ -316,6 +316,17 @@ class CompletedFormController extends Controller
             where('id', $validatedRequest['current_id'])->
             first();
 
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -565,6 +576,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -984,6 +1006,17 @@ class CompletedFormController extends Controller
             $formCutDetail = FormCutInputDetail::find($id);
 
             if ($formCutDetail) {
+                // Check Form Cut Input Detail Output
+                $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $formCutDetail->form_cut_id)->get();
+                foreach ($formCutOutputs as $formCutOutput) {
+                    if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Form sudah ada transfer switching."
+                        );
+                    }
+                }
+
                 // Check Stocker
                 $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
                 Log::channel("completedFormBypassStocker")->info($stockerForm);
