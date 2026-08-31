@@ -1420,7 +1420,7 @@ class MutasiService
         $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            // $sheet->writeAreas();
 
             foreach ($rows as $row) {
                 $rowArr = [
@@ -1528,7 +1528,7 @@ class MutasiService
         $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            // $sheet->writeAreas();
 
             foreach ($rows as $row) {
                 $rowArr = [
@@ -1632,7 +1632,7 @@ class MutasiService
         $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            // $sheet->writeAreas();
 
             foreach ($rows as $row) {
                 $rowArr = [
@@ -1732,7 +1732,7 @@ class MutasiService
         $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            // $sheet->writeAreas();
 
             foreach ($rows as $row) {
                 $rowArr = [
@@ -1759,6 +1759,11 @@ class MutasiService
 
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
+        ini_set('display_errors', 0);
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
 
         $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
 
@@ -1831,7 +1836,7 @@ class MutasiService
         $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            // $sheet->writeAreas();
 
             foreach ($rows as $row) {
                 $rowArr = [
