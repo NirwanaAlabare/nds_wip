@@ -261,7 +261,7 @@
         </ul>
     </li>
 @endrole
-@role('admin')
+@role('cutting')
 <li class="nav-item">
     <a href="{{ route('cutting-switching') }}"
         class="nav-link {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
