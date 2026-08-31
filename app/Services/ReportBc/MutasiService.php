@@ -122,7 +122,7 @@ class MutasiService
                     WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND $whereClass
                     GROUP BY mcnt.id, b.unit
                 ) A
-                GROUP BY A.id_jo, A.id_contents, A.unit
+                GROUP BY A.id_contents, A.unit
             ) isi
             LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
             INNER JOIN (
