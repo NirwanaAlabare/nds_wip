@@ -197,6 +197,11 @@ class ReportBcController extends Controller
 
         $cacheKey = "mutasi_gudang_{$fromDate}_{$toDate}_{$kategoriBarang}";
 
+        // $allData = Cache::remember($cacheKey, 300, function () use ($fromDate, $toDate, $kategoriBarang) {
+        //     return $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+        // });
+
+        Cache::forget($cacheKey);
         $allData = Cache::remember($cacheKey, 300, function () use ($fromDate, $toDate, $kategoriBarang) {
             return $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
         });
