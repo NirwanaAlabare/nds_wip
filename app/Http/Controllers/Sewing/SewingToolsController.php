@@ -4546,6 +4546,23 @@ class SewingToolsController extends Controller
         if ($request->kode_numbering) {
             $kodeNumbering = addQuotesAround($request->kode_numbering);
 
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table("output_defect_in_out")
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
+            }
+
             $department = $request->department;
 
             if ($kodeNumbering) {
@@ -4596,6 +4613,23 @@ class SewingToolsController extends Controller
                 $department = $request->department == "packing" ? "_packing" : "";
             } else {
                 $department = "";
+            }
+
+            // Check Closing
+            $dataCheckClosing = DB::connection('mysql_sb')
+                ->table("output_reject_in")
+                ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as tanggal")
+                ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+                ->get();
+
+            foreach ($dataCheckClosing as $data) {
+                if (checkClosingDate($data->tanggal)) {
+                    return [
+                        "status" => 400,
+                        "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                        "additional" => "Closing"
+                    ];
+                }
             }
 
             if ($kodeNumbering) {
@@ -5419,7 +5453,6 @@ class SewingToolsController extends Controller
                 ];
             }
         }
-        dd($dataCheckClosing);
 
         if ($kodeNumbering) {
             if ($department == "packing_po") {
