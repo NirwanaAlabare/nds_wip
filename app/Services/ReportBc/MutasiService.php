@@ -323,101 +323,101 @@ class MutasiService
     // }
 
     public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
-{
-    $mysql_sb = DB::connection('mysql_sb');
+    {
+        $mysql_sb = DB::connection('mysql_sb');
 
-    $whereCategory = "1=1";
-    if (strtolower($kategoriBarang) === 'garment') {
-        $whereCategory = "ms.kategori = 'GARMENT'";
-    } elseif (strtolower($kategoriBarang) === 'sample') {
-        $whereCategory = "ms.kategori = 'SAMPLE'";
-    } elseif (strtolower($kategoriBarang) === 'kain') {
-        $whereCategory = "ms.kategori = 'KAIN'";
+        $whereCategory = "1=1";
+        if (strtolower($kategoriBarang) === 'garment') {
+            $whereCategory = "ms.kategori = 'GARMENT'";
+        } elseif (strtolower($kategoriBarang) === 'sample') {
+            $whereCategory = "ms.kategori = 'SAMPLE'";
+        } elseif (strtolower($kategoriBarang) === 'kain') {
+            $whereCategory = "ms.kategori = 'KAIN'";
+        }
+
+        $sql = "
+            SELECT
+                ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
+                GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
+                GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
+                MAX(ms.country) AS country,
+                GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+                SUM(saldo_awal) AS saldoawal,
+                SUM(penerimaan) AS qtyterima,
+                SUM(pengeluaran) AS qtykeluar,
+                SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
+            FROM (
+                SELECT * FROM (
+                    SELECT saldoawal.id_item, saldoawal.id_so_det,
+                        SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
+                        0 AS penerimaan,
+                        0 AS pengeluaran,
+                        GROUP_CONCAT(DISTINCT ws) AS ws
+                    FROM (
+                        SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                        FROM saldoawal_fg
+                        WHERE periode = '2022-10-01'
+
+                        UNION ALL
+
+                        SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                        FROM bpb
+                        WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
+                        AND bpbno LIKE 'FG%'
+                        GROUP BY id_item, id_so_det
+
+                        UNION ALL
+
+                        SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                            MAX(act_costing.kpno) AS ws
+                        FROM bppb
+                        LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+                        LEFT JOIN so ON so_det.id_so = so.id
+                        LEFT JOIN act_costing ON so.id_cost = act_costing.id
+                        WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
+                        AND bppb.bppbno LIKE 'SJ-FG%'
+                        GROUP BY bppb.id_item, bppb.id_so_det
+                    ) saldoawal
+                    INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
+                    GROUP BY saldoawal.id_item, saldoawal.id_so_det
+                ) sa
+
+                UNION ALL
+
+                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                FROM bpb
+                WHERE bpbdate >= ? AND bpbdate <= ?
+                AND bpbno LIKE 'FG%'
+                GROUP BY id_item, id_so_det
+
+                UNION ALL
+
+                SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
+                    MAX(act_costing.kpno) AS ws
+                FROM bppb
+                LEFT JOIN so_det ON bppb.id_so_det = so_det.id
+                LEFT JOIN so ON so_det.id_so = so.id
+                LEFT JOIN act_costing ON so.id_cost = act_costing.id
+                WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
+                AND bppb.bppbno LIKE 'SJ-FG%'
+                GROUP BY bppb.id_item, bppb.id_so_det
+            ) mutasi
+            INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+            WHERE $whereCategory
+            GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
+            HAVING SUM(saldo_awal) != 0
+                OR SUM(penerimaan) != 0
+                OR SUM(pengeluaran) != 0
+                OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
+        ";
+
+        return $mysql_sb->select($sql, [
+            $fromDate,
+            $fromDate,
+            $fromDate, $toDate,
+            $fromDate, $toDate
+        ]);
     }
-
-    $sql = "
-        SELECT
-            ms.goods_code, ms.itemname, ms.styleno, ms.kpno,
-            GROUP_CONCAT(DISTINCT ms.color ORDER BY ms.color SEPARATOR ', ') AS color,
-            GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
-            MAX(ms.country) AS country,
-            GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
-            SUM(saldo_awal) AS saldoawal,
-            SUM(penerimaan) AS qtyterima,
-            SUM(pengeluaran) AS qtykeluar,
-            SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldoakhir
-        FROM (
-            SELECT * FROM (
-                SELECT saldoawal.id_item, saldoawal.id_so_det,
-                    SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) AS saldo_awal,
-                    0 AS penerimaan,
-                    0 AS pengeluaran,
-                    GROUP_CONCAT(DISTINCT ws) AS ws
-                FROM (
-                    SELECT id_item, id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                    FROM saldoawal_fg
-                    WHERE periode = '2022-10-01'
-
-                    UNION ALL
-
-                    SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-                    FROM bpb
-                    WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
-                    AND bpbno LIKE 'FG%'
-                    GROUP BY id_item, id_so_det
-
-                    UNION ALL
-
-                    SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                        MAX(act_costing.kpno) AS ws
-                    FROM bppb
-                    LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-                    LEFT JOIN so ON so_det.id_so = so.id
-                    LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                    WHERE bppb.bppbdate >= '2022-10-01' AND bppb.bppbdate < ?
-                    AND bppb.bppbno LIKE 'SJ-FG%'
-                    GROUP BY bppb.id_item, bppb.id_so_det
-                ) saldoawal
-                INNER JOIN masterstyle ms ON saldoawal.id_item = ms.id_item AND saldoawal.id_so_det = ms.id_so_det
-                GROUP BY saldoawal.id_item, saldoawal.id_so_det
-            ) sa
-
-            UNION ALL
-
-            SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
-            FROM bpb
-            WHERE bpbdate >= ? AND bpbdate <= ?
-            AND bpbno LIKE 'FG%'
-            GROUP BY id_item, id_so_det
-
-            UNION ALL
-
-            SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
-                MAX(act_costing.kpno) AS ws
-            FROM bppb
-            LEFT JOIN so_det ON bppb.id_so_det = so_det.id
-            LEFT JOIN so ON so_det.id_so = so.id
-            LEFT JOIN act_costing ON so.id_cost = act_costing.id
-            WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
-            AND bppb.bppbno LIKE 'SJ-FG%'
-            GROUP BY bppb.id_item, bppb.id_so_det
-        ) mutasi
-        INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
-        WHERE $whereCategory
-        GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
-        HAVING SUM(saldo_awal) != 0
-            OR SUM(penerimaan) != 0
-            OR SUM(pengeluaran) != 0
-            OR SUM(saldo_awal) + SUM(penerimaan) - SUM(pengeluaran) != 0
-    ";
-
-    return $mysql_sb->select($sql, [
-        $fromDate,
-        $fromDate,
-        $fromDate, $toDate,
-        $fromDate, $toDate
-    ]);
-}
 
     public function getDataMutasiWip($fromDate, $toDate)
     {
@@ -855,8 +855,8 @@ class MutasiService
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', 120);
 
-        $tgl_awal = '2026-07-01';
-        $tgl_akhir = '2026-07-31';
+        $tgl_awal = $fromDate;
+        $tgl_akhir = $toDate;
         $saldo_awal = '2026-05-01';
 
         $data_preview = DB::select("WITH
@@ -1342,6 +1342,801 @@ class MutasiService
         });
     }
 
+    // function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $data = $this->getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:J1');
+
+    //     $judulLaporan = "LAPORAN MUTASI BAHAN BAKU - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:J2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:J3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:J4');
+    //     $sheet->setColWidths([
+    //         6,   // A - No
+    //         12,  // B - ID Item
+    //         16,  // C - Kode Barang
+    //         30,  // D - Nama Barang
+    //         14,  // E - No WS
+    //         14,  // F - Saldo Awal
+    //         14,  // G - Pemasukan
+    //         14,  // H - Pengeluaran
+    //         14,  // I - Saldo Akhir
+    //         10,  // J - Satuan
+    //     ]);
+
+    //     $headerKolom = [
+    //         'No',
+    //         'ID Item',
+    //         'Kode Barang',
+    //         'Nama Barang',
+    //         'No WS',
+    //         'Saldo Awal',
+    //         'Pemasukan',
+    //         'Pengeluaran',
+    //         'Saldo Akhir',
+    //         'Satuan',
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'Q');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         // $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->id_item ?? '-',
+    //                 $row->goods_code ?? '-',
+    //                 $row->itemdesc ?? '-',
+    //                 $row->kpno,
+    //                 (float)($row->saldoawal),
+    //                 (float)($row->qtyterima),
+    //                 (float)($row->qtykeluar),
+    //                 (float)($row->saldoakhir),
+    //                 $row->unit ?? '-',
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    // function exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $data = $this->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+    //     $sheet->setColWidths([
+    //         6,   // A - No
+    //         14,  // B - Id So Det
+    //         16,  // C - Kode Barang
+    //         20,  // D - Style
+    //         14,  // E - No WS
+    //         12,  // F - Color
+    //         10,  // G - Size
+    //         16,  // H - Dest/Country
+    //         8,   // I - Unit
+    //         14,  // J - Saldo Awal
+    //         14,  // K - Penerimaan
+    //         14,  // L - Pengeluaran
+    //         14,  // M - Saldo Akhir
+    //     ]);
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:H1');
+
+    //     $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:H2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:H3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:H4');
+
+    //     $headerKolom = [
+    //         'No',
+    //         // 'Id So Det',
+    //         'WS',
+    //         // 'Style',
+    //         // 'No WS',
+    //         // 'Color',
+    //         // 'Size',
+    //         'Dest / Country',
+    //         'Unit',
+    //         'Saldo Awal',
+    //         'Penerimaan',
+    //         'Pengeluaran',
+    //         'Saldo Akhir',
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'H');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         // $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 // $row->id_so_det ?? '-',
+    //                 // $row->goods_code ?? '-',
+    //                 // $row->styleno ?? '-',
+    //                 $row->kpno ?? '-',
+    //                 // $row->color ?? '-',
+    //                 // $row->size ?? '-',
+    //                 $row->country ?? '-',
+    //                 'PCS',
+    //                 (float)($row->saldoawal),
+    //                 (float)($row->qtyterima),
+    //                 (float)($row->qtykeluar),
+    //                 (float)($row->saldoakhir),
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    // function exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $data = $this->getDataMutasiMesinSparepart($fromDate, $toDate, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->setColWidths([
+    //         6,   // A - No
+    //         12,  // B - Id Item
+    //         16,  // C - Kode Barang
+    //         30,  // D - Nama Barang
+    //         14,  // E - Saldo Awal
+    //         14,  // F - Penerimaan
+    //         14,  // G - Pengeluaran
+    //         14,  // H - Saldo Akhir
+    //         10,  // I - Unit
+    //     ]);
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:I1');
+
+    //     $judulLaporan = "LAPORAN MUTASI MESIN/SPAREPART -" . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:I2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:I3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:I4');
+
+    //     $headerKolom = [
+    //         'No',
+    //         'Id Item',
+    //         'Kode Barang',
+    //         'Nama Barang',
+    //         'Saldo Awal',
+    //         'Penerimaan',
+    //         'Pengeluaran',
+    //         'Saldo Akhir',
+    //         'Unit',
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'I');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         // $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->id_item ?? '-',
+    //                 $row->kode_brg ?? '-',
+    //                 $row->nama_brg ?? '-',
+    //                 (float)($row->saldo_awal),
+    //                 (float)($row->qtyrcv),
+    //                 (float)($row->qtyout),
+    //                 (float)($row->qty_akhir),
+    //                 $row->unit ?? '-',
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    // function exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $data = $this->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->setColWidths([
+    //         6,   // A - No
+    //         12,  // B - Id Item
+    //         16,  // C - Kode Barang
+    //         30,  // D - Nama Barang
+    //         14,  // E - Saldo Awal
+    //         14,  // F - Penerimaan
+    //         14,  // G - Pengeluaran
+    //         14,  // H - Saldo Akhir
+    //         10,  // I - Unit
+    //     ]);
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:I1');
+
+    //     $judulLaporan = "LAPORAN MUTASI BARANG SISA/SCRAP -" . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:I2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:I3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:I4');
+
+    //     $headerKolom = [
+    //         'No',
+    //         'Id Item',
+    //         'Kode Barang',
+    //         'Nama Barang',
+    //         'Saldo Awal',
+    //         'Penerimaan',
+    //         'Pengeluaran',
+    //         'Saldo Akhir',
+    //         'Unit',
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'I');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         // $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->id_item ?? '-',
+    //                 $row->kode_brg ?? '-',
+    //                 $row->nama_brg ?? '-',
+    //                 (float)($row->saldo_awal),
+    //                 (float)($row->qtyrcv),
+    //                 (float)($row->qtyout),
+    //                 (float)($row->qty_akhir),
+    //                 $row->unit ?? '-',
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    // function exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+    //     ini_set('display_errors', 0);
+
+    //     if (ob_get_level()) {
+    //         ob_end_clean();
+    //     }
+
+    //     $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:K1');
+
+    //     $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:K2');
+
+    //     $periode_date = Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     if($fromDate == $toDate){
+    //         $periode_date = Carbon::parse($fromDate)->format('d/m/Y');
+    //     }
+
+    //     $periode = "PERIODE: " . $periode_date;
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:K3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:K4');
+
+    //     $headerKolom = [
+    //         'No',
+    //         'No WS',
+    //         'Style',
+    //         // 'Id So Det',
+    //         'Product Group',
+    //         'Product Item',
+    //         'Color',
+    //         'Size',
+    //         // 'Grade',
+    //         // 'Lokasi',
+    //         // 'No Carton',
+    //         'Saldo Awal',
+    //         'Penerimaan',
+    //         'Pengeluaran',
+    //         'Saldo Akhir',
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'K');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         // $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->ws ?? '-',
+    //                 $row->styleno ?? '-',
+    //                 // $row->id_so_det ?? '-',
+    //                 $row->product_group ?? '-',
+    //                 $row->product_item ?? '-',
+    //                 $row->color ?? '-',
+    //                 $row->size ?? '-',
+    //                 // $row->grade ?? '-',
+    //                 // $row->lokasi ?? '-',
+    //                 // $row->no_carton ?? '-',
+    //                 $row->saldoawal ?? '-',
+    //                 $row->qtyterima ?? '-',
+    //                 $row->qtykeluar ?? '-',
+    //                 $row->saldoakhir ?? '-',
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    // function exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    // {
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+
+    //     $periode_date = Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     if ($fromDate == $toDate) {
+    //         $periode_date = Carbon::parse($fromDate)->format('d/m/Y');
+    //     }
+
+    //     $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+
+    //     $headerKolom = [
+    //         'No', 'No WS', 'Style', 'Product Group', 'Product Item',
+    //         'Color', 'Size', 'Saldo Awal', 'Penerimaan', 'Pengeluaran', 'Saldo Akhir',
+    //     ];
+
+    //     // Susun array data mentah dulu
+    //     $rows = [];
+    //     $no = 1;
+    //     foreach ($data as $row) {
+    //         $rows[] = [
+    //             $no++,
+    //             $row->ws ?? '-',
+    //             $row->styleno ?? '-',
+    //             $row->product_group ?? '-',
+    //             $row->product_item ?? '-',
+    //             $row->color ?? '-',
+    //             $row->size ?? '-',
+    //             $row->saldoawal ?? '-',
+    //             $row->qtyterima ?? '-',
+    //             $row->qtykeluar ?? '-',
+    //             $row->saldoakhir ?? '-',
+    //         ];
+    //     }
+
+    //     $export = new class($judulLaporan, $periode_date, $filterText, $headerKolom, $rows) implements FromArray, WithEvents, WithStyles {
+    //         protected $judulLaporan, $periode_date, $filterText, $headerKolom, $rows;
+
+    //         public function __construct($judulLaporan, $periode_date, $filterText, $headerKolom, $rows)
+    //         {
+    //             $this->judulLaporan = $judulLaporan;
+    //             $this->periode_date = $periode_date;
+    //             $this->filterText   = $filterText;
+    //             $this->headerKolom  = $headerKolom;
+    //             $this->rows         = $rows;
+    //         }
+
+    //         public function array(): array
+    //         {
+    //             return array_merge([
+    //                 ['PT NIRWANA ALABARE GARMENT'],
+    //                 [$this->judulLaporan],
+    //                 ['PERIODE: ' . $this->periode_date],
+    //                 [$this->filterText],
+    //                 $this->headerKolom,
+    //             ], $this->rows);
+    //         }
+
+    //         public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
+    //         {
+    //             $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+    //             $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(12);
+    //             $sheet->getStyle('A3:A4')->getFont()->setBold(true);
+    //             $sheet->getStyle('A5:K5')->getFont()->setBold(true);
+    //             $sheet->getStyle('A5:K5')->getFill()
+    //                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+    //                 ->getStartColor()->setRGB('D9EDF7');
+
+    //             $lastRow = 5 + count($this->rows);
+    //             $sheet->getStyle('A5:K' . $lastRow)
+    //                 ->getBorders()->getAllBorders()
+    //                 ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+    //             return [];
+    //         }
+
+    //         public function registerEvents(): array
+    //         {
+    //             return [
+    //                 AfterSheet::class => function (AfterSheet $event) {
+    //                     $event->sheet->mergeCells('A1:K1');
+    //                     $event->sheet->mergeCells('A2:K2');
+    //                     $event->sheet->mergeCells('A3:K3');
+    //                     $event->sheet->mergeCells('A4:K4');
+    //                     $event->sheet->getStyle('A1:K4')->getAlignment()
+    //                         ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    //                 },
+    //             ];
+    //         }
+    //     };
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return Excel::download($export, $filename);
+    // }
+
+    public function exportExcelBarangJadi($fromDate, $toDate)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $data = $this->getDataMutasiBarangJadi($fromDate, $toDate, 'all');
+
+        $fileName = 'laporan-mutasi-barang-jadi';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG JADI'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
+            'No',
+            'WS',
+            'Dest / Country',
+            'Unit',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pengeluaran',
+            'Saldo Akhir',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $no = 1;
+        foreach ($data as $row) {
+
+            $rows = [
+                $no++,
+                $row->kpno ?? '-',
+                $row->country ?? '-',
+                'PCS',
+                (float)($row->saldoawal),
+                (float)($row->qtyterima),
+                (float)($row->qtykeluar),
+                (float)($row->saldoakhir),
+            ];
+
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
+
+        foreach (range('A', 'H') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
+    public function exportExcelBarangJadiGudang($fromDate, $toDate)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, 'all');
+
+        $fileName = 'laporan-mutasi-barang-jadi-gudang';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG JADI GUDANG'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
+            'No',
+            'No WS',
+            'Style',
+            'Product Group',
+            'Product Item',
+            'Color',
+            'Size',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pengeluaran',
+            'Saldo Akhir',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $no = 1;
+        foreach ($data as $row) {
+
+            $rows = [
+                $no++,
+                $row->ws ?? '-',
+                $row->styleno ?? '-',
+                $row->product_group ?? '-',
+                $row->product_item ?? '-',
+                $row->color ?? '-',
+                $row->size ?? '-',
+                $row->saldoawal ?? '-',
+                $row->qtyterima ?? '-',
+                $row->qtykeluar ?? '-',
+                $row->saldoakhir ?? '-',
+            ];
+
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
+
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
+
     function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
         ini_set('memory_limit', '1024M');
@@ -1349,211 +2144,82 @@ class MutasiService
 
         $data = $this->getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang);
 
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
 
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:J1');
+        $fileName = 'laporan-mutasi-bahan-baku';
+        $excel = FastExcel::create($fileName);
 
-        $judulLaporan = "LAPORAN MUTASI BAHAN BAKU - " . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:J2');
+        $sheet = $excel->sheet();
 
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:J3');
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:J4');
-        $sheet->setColWidths([
-            6,   // A - No
-            12,  // B - ID Item
-            16,  // C - Kode Barang
-            30,  // D - Nama Barang
-            14,  // E - No WS
-            14,  // F - Saldo Awal
-            14,  // G - Pemasukan
-            14,  // H - Pengeluaran
-            14,  // I - Saldo Akhir
-            10,  // J - Satuan
-        ]);
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG JADI GUDANG'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $headerKolom = [
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
             'No',
-            'ID Item',
-            'Kode Barang',
-            'Nama Barang',
-            'No WS',
-            'Saldo Awal',
-            'Pemasukan',
-            'Pengeluaran',
-            'Saldo Akhir',
-            'Satuan',
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'Q');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
-
-        $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
-
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            // $sheet->writeAreas();
-
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->id_item ?? '-',
-                    $row->goods_code ?? '-',
-                    $row->itemdesc ?? '-',
-                    $row->kpno,
-                    (float)($row->saldoawal),
-                    (float)($row->qtyterima),
-                    (float)($row->qtykeluar),
-                    (float)($row->saldoakhir),
-                    $row->unit ?? '-',
-                ];
-
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
-
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
-    }
-
-    function exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
-
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', '3600');
-
-        $data = $this->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang);
-
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
-        $sheet->setColWidths([
-            6,   // A - No
-            14,  // B - Id So Det
-            16,  // C - Kode Barang
-            20,  // D - Style
-            14,  // E - No WS
-            12,  // F - Color
-            10,  // G - Size
-            16,  // H - Dest/Country
-            8,   // I - Unit
-            14,  // J - Saldo Awal
-            14,  // K - Penerimaan
-            14,  // L - Pengeluaran
-            14,  // M - Saldo Akhir
-        ]);
-
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:H1');
-
-        $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:H2');
-
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:H3');
-
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:H4');
-
-        $headerKolom = [
-            'No',
-            // 'Id So Det',
             'WS',
-            // 'Style',
-            // 'No WS',
-            // 'Color',
-            // 'Size',
             'Dest / Country',
             'Unit',
             'Saldo Awal',
             'Penerimaan',
             'Pengeluaran',
             'Saldo Akhir',
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'H');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
         $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+        foreach ($data as $row) {
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            // $sheet->writeAreas();
+            $rows = [
+                $no++,
+                $row->kpno ?? '-',
+                $row->country ?? '-',
+                'PCS',
+                (float)($row->saldoawal),
+                (float)($row->qtyterima),
+                (float)($row->qtykeluar),
+                (float)($row->saldoakhir),
+            ];
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    // $row->id_so_det ?? '-',
-                    // $row->goods_code ?? '-',
-                    // $row->styleno ?? '-',
-                    $row->kpno ?? '-',
-                    // $row->color ?? '-',
-                    // $row->size ?? '-',
-                    $row->country ?? '-',
-                    'PCS',
-                    (float)($row->saldoawal),
-                    (float)($row->qtyterima),
-                    (float)($row->qtykeluar),
-                    (float)($row->saldoakhir),
-                ];
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
+        return $excel->download();
     }
+
 
     function exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
@@ -1562,49 +2228,43 @@ class MutasiService
 
         $data = $this->getDataMutasiMesinSparepart($fromDate, $toDate, $kategoriBarang);
 
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
 
-        $sheet->setColWidths([
-            6,   // A - No
-            12,  // B - Id Item
-            16,  // C - Kode Barang
-            30,  // D - Nama Barang
-            14,  // E - Saldo Awal
-            14,  // F - Penerimaan
-            14,  // G - Pengeluaran
-            14,  // H - Saldo Akhir
-            10,  // I - Unit
-        ]);
+        $fileName = 'laporan-mutasi-mesin-sparepart';
+        $excel = FastExcel::create($fileName);
 
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:I1');
+        $sheet = $excel->sheet();
 
-        $judulLaporan = "LAPORAN MUTASI MESIN/SPAREPART -" . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:I2');
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:I3');
+        $sheet->writeRow(
+            ['LAPORAN MUTASI MESIN DAN SPAREPART'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:I4');
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
 
-        $headerKolom = [
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
             'No',
             'Id Item',
             'Kode Barang',
@@ -1614,45 +2274,36 @@ class MutasiService
             'Pengeluaran',
             'Saldo Akhir',
             'Unit',
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'I');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
         $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+        foreach ($data as $row) {
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            // $sheet->writeAreas();
+            $rows = [
+                $no++,
+                $row->id_item ?? '-',
+                $row->kode_brg ?? '-',
+                $row->nama_brg ?? '-',
+                (float)($row->saldo_awal),
+                (float)($row->qtyrcv),
+                (float)($row->qtyout),
+                (float)($row->qty_akhir),
+                $row->unit ?? '-',
+            ];
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->id_item ?? '-',
-                    $row->kode_brg ?? '-',
-                    $row->nama_brg ?? '-',
-                    (float)($row->saldo_awal),
-                    (float)($row->qtyrcv),
-                    (float)($row->qtyout),
-                    (float)($row->qty_akhir),
-                    $row->unit ?? '-',
-                ];
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
+        return $excel->download();
     }
 
     function exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
@@ -1662,49 +2313,43 @@ class MutasiService
 
         $data = $this->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
 
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
 
-        $sheet->setColWidths([
-            6,   // A - No
-            12,  // B - Id Item
-            16,  // C - Kode Barang
-            30,  // D - Nama Barang
-            14,  // E - Saldo Awal
-            14,  // F - Penerimaan
-            14,  // G - Pengeluaran
-            14,  // H - Saldo Akhir
-            10,  // I - Unit
-        ]);
+        $fileName = 'laporan-mutasi-barang-sisa';
+        $excel = FastExcel::create($fileName);
 
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:I1');
+        $sheet = $excel->sheet();
 
-        $judulLaporan = "LAPORAN MUTASI BARANG SISA/SCRAP -" . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:I2');
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:I3');
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG SISA'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:I4');
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
 
-        $headerKolom = [
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
             'No',
             'Id Item',
             'Kode Barang',
@@ -1714,155 +2359,37 @@ class MutasiService
             'Pengeluaran',
             'Saldo Akhir',
             'Unit',
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'I');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
         $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+        foreach ($data as $row) {
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            // $sheet->writeAreas();
+            $rows = [
+                $no++,
+                $row->id_item ?? '-',
+                $row->kode_brg ?? '-',
+                $row->nama_brg ?? '-',
+                (float)($row->saldo_awal),
+                (float)($row->qtyrcv),
+                (float)($row->qtyout),
+                (float)($row->qty_akhir),
+                $row->unit ?? '-',
+            ];
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->id_item ?? '-',
-                    $row->kode_brg ?? '-',
-                    $row->nama_brg ?? '-',
-                    (float)($row->saldo_awal),
-                    (float)($row->qtyrcv),
-                    (float)($row->qtyout),
-                    (float)($row->qty_akhir),
-                    $row->unit ?? '-',
-                ];
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
-
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
-    }
-
-    function exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
-
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', '3600');
-        ini_set('display_errors', 0);
-
-        if (ob_get_level()) {
-            ob_end_clean();
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        $data = $this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
-
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
-
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:K1');
-
-        $judulLaporan = "LAPORAN MUTASI BARANG JADI - " . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:K2');
-
-        $periode_date = Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        if($fromDate == $toDate){
-            $periode_date = Carbon::parse($fromDate)->format('d/m/Y');
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
         }
 
-        $periode = "PERIODE: " . $periode_date;
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:K3');
-
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:K4');
-
-        $headerKolom = [
-            'No',
-            'No WS',
-            'Style',
-            // 'Id So Det',
-            'Product Group',
-            'Product Item',
-            'Color',
-            'Size',
-            // 'Grade',
-            // 'Lokasi',
-            // 'No Carton',
-            'Saldo Awal',
-            'Penerimaan',
-            'Pengeluaran',
-            'Saldo Akhir',
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'K');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
-
-        $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
-
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            // $sheet->writeAreas();
-
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->ws ?? '-',
-                    $row->styleno ?? '-',
-                    // $row->id_so_det ?? '-',
-                    $row->product_group ?? '-',
-                    $row->product_item ?? '-',
-                    $row->color ?? '-',
-                    $row->size ?? '-',
-                    // $row->grade ?? '-',
-                    // $row->lokasi ?? '-',
-                    // $row->no_carton ?? '-',
-                    $row->saldoawal ?? '-',
-                    $row->qtyterima ?? '-',
-                    $row->qtykeluar ?? '-',
-                    $row->saldoakhir ?? '-',
-                ];
-
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
-
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
+        return $excel->download();
     }
 
 
