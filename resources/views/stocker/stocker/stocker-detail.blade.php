@@ -186,7 +186,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -226,7 +226,7 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
 
 
@@ -300,7 +300,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                         @endphp
                                     @endif
 
@@ -340,7 +340,7 @@
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                            $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
 
@@ -499,7 +499,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->where("type", "ADDITIONAL")->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -536,7 +536,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -601,7 +601,7 @@
                                             @php
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                             @endphp
                                         @endif
 
@@ -638,7 +638,7 @@
 
                                                 $currentGroupAdditional = $detail->group_roll;
                                                 $currentGroupStockerAdditional = $detail->group_stocker;
-                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->first()->notes : "";
+                                                $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStockerAdditional)->where("type", "ADDITIONAL")->first()->notes : "";
                                                 $currentTotalAdditional = $detail->lembar_gelaran;
                                             @endphp
 
@@ -1348,7 +1348,7 @@
                                                     @php
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
-                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                     @endphp
                                                 @endif
 
@@ -1388,7 +1388,7 @@
 
                                                         $currentGroup = $detail->group_roll;
                                                         $currentGroupStocker = $detail->group_stocker;
-                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                        $currentNote = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                         $currentTotal = $detail->lembar_gelaran;
 
                                                         $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
@@ -1627,7 +1627,7 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
 
                                                         @endphp
                                                     @endif
@@ -1665,7 +1665,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
@@ -1730,7 +1730,7 @@
                                                         @php
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                         @endphp
                                                     @endif
 
@@ -1767,7 +1767,7 @@
 
                                                             $currentGroupAdditional = $detail->group_roll;
                                                             $currentGroupStockerAdditional = $detail->group_stocker;
-                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->first()->notes : "";
+                                                            $currentNoteAdditional = $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first() ? $dataGroupNotes->where("group_stocker", $currentGroupStocker)->where("type", "NORMAL")->first()->notes : "";
                                                             $currentTotalAdditional = $detail->lembar_gelaran;
                                                         @endphp
 
