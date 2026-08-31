@@ -936,7 +936,7 @@ class StockerController extends Controller
 
                 $qtyPly = $ratio < 1 ? 0 : $qty;
                 $qtyPlyMod = (($groupStocker == ($modifySizeQty ? $modifySizeQty->group_stocker : $minGroupStocker)) && (($i == ($ratio - 1) && $modifySizeQty) || ($ratio < 1 && $modifySizeQty)) ? ($ratio < 1 ? null : $qty) + $modifySizeQty->difference_qty : null);
-                $expectedQtyPly = $qtyPlyMod ? $qtyPlyMod : $qtyPly;
+                $expectedQtyPly = $qtyPlyMod !== null ? $qtyPlyMod : $qtyPly;
                 $expectedRangeAkhir = ( $groupStocker == ($modifySizeQty ? $modifySizeQty->group_stocker : $minGroupStocker) && (($i == ($ratio - 1) && $modifySizeQty) || ($ratio < 1 && $modifySizeQty)) ) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir;
                 $conditional = $checkStocker && (($checkStocker->qty_ply != $qtyPly) || ($qtyPlyMod > 0 && $checkStocker->qty_ply_mod != $qtyPlyMod) || ($checkStocker->range_awal != $cumRangeAwal) || ($checkStocker->range_akhir != $expectedRangeAkhir) || ($cumRangeAwal > $expectedRangeAkhir && $checkStocker->cancel != 'Y') || ($expectedQtyPly < 1));
 
