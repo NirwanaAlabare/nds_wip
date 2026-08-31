@@ -1394,6 +1394,7 @@ public function pdfoutmaterial(Request $request, $id)
         $rows = $request->data;
         $qtyReqChanged = false;
         $processedGroups = [];
+        $changedIds = [];
 
         // Qty yang diedit tidak boleh melebihi qty barcode yang masih tersedia.
         // Qty lama roll ini ditambahkan dulu ke sal_akhir karena qty tsb sedang
@@ -1408,6 +1409,15 @@ public function pdfoutmaterial(Request $request, $id)
                 ], 400);
             }
 
+            $oldQtyOut = DB::connection('mysql_sb')->table('whs_bppb_det')->where('id', $row['id_bppbdet'])->value('qty_out');
+
+            // Hanya baris yang qty-nya benar-benar berubah yang divalidasi & diupdate.
+            // Baris yang tidak diubah (mis. barcode lain yang kebetulan sudah diterima
+            // di Cutting) tidak boleh ikut memblokir update baris yang sedang diedit.
+            if (abs((float) $row['qty_out'] - (float) $oldQtyOut) < 0.001) {
+                continue;
+            }
+
             // Barcode yang sudah diterima di Cutting (database laravel_nds) tidak boleh diedit lagi
             $sudahDiterima = DB::connection('mysql')->table('penerimaan_cutting')->where('whs_bppb_det_id', $row['id_bppbdet'])->exists();
             if ($sudahDiterima) {
@@ -1417,7 +1427,6 @@ public function pdfoutmaterial(Request $request, $id)
                 ], 400);
             }
 
-            $oldQtyOut = DB::connection('mysql_sb')->table('whs_bppb_det')->where('id', $row['id_bppbdet'])->value('qty_out');
             $salAkhir = DB::connection('mysql_sb')->table('data_stock_fabric')->where('no_barcode', $idRoll)->value('sal_akhir');
 
             $maxQty = (float) $salAkhir + (float) $oldQtyOut;
@@ -1428,6 +1437,8 @@ public function pdfoutmaterial(Request $request, $id)
                     'message' => "Qty barcode " . $idRoll . " tersedia hanya " . $maxQty . ", tidak bisa diubah menjadi " . $row['qty_out'] . ".",
                 ], 400);
             }
+
+            $changedIds[] = $row['id_bppbdet'];
         }
 
         DB::connection('mysql_sb')->beginTransaction();
@@ -1436,6 +1447,12 @@ public function pdfoutmaterial(Request $request, $id)
             DB::connection('mysql_sb')->enableQueryLog();
 
             foreach ($rows as $row) {
+                // Lewati baris yang tidak berubah agar data barcode lain (termasuk
+                // yang sudah diterima Cutting) tidak ikut tersentuh.
+                if (!in_array($row['id_bppbdet'], $changedIds)) {
+                    continue;
+                }
+
                 $no_bppb = $row['no_bppb'];
                 $id_item = $row['id_item'];
                 $id_jo = $row['id_jo'];

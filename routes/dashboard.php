@@ -75,3 +75,13 @@ Route::get('/dashboard-rak/detail-fg/{id?}', [DashboardRakController::class, 'de
 Route::get('/dashboard-rak/getDataRak', [DashboardRakController::class, 'getDataRak'])->name('dashboard-rak-detail-get-data-rak');
 Route::get('/dashboard-rak/getDataRakFg', [DashboardRakController::class, 'getDataRakFg'])->name('dashboard-rak-detail-get-data-rak-fg');
 Route::get('/dashboard-rak/getDataRakFgDetail', [DashboardRakController::class, 'getDataRakFgDetail'])->name('dashboard-rak-detail-get-data-rak-fg-detail');
+
+// Dashboard Cutting
+Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
+    Route::get('/', 'cuttingMeja')->name('dashboard-chart');
+    Route::get('/{mejaId?}', 'cuttingMejaDetail')->name('dashboard-chart-detail');
+
+    // TEST TRIGGER SOCKET.IO
+    Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
+    Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
+});

@@ -581,6 +581,93 @@
         }
     }
 
+    // $(document).on('click', '.btn-kirim', function() {
+    //     let trxNo = $(this).data('id');
+    //     let jenisBc = $(this).data('jenis_bc');
+    //     let actionUrl = '';
+    //     if(jenisBc === 'BC 2.3') {
+    //         actionUrl = '{{ route("dokumen-pabean-send-bc23", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 2.5' || jenisBc === '25' || jenisBc === '2.5') {
+    //         actionUrl = '{{ route("dokumen-pabean-send-bc25", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 4.0') {
+    //          actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 3.0') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc30", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 2.7') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc27", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 3.3') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc33", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 4.1') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc41", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 2.6.1') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc261", ":id") }}';
+    //     }
+
+    //     if(jenisBc === 'BC 2.6.2') {
+    //          actionUrl = '{{ route("dokumen-pabean-send-bc262", ":id") }}';
+    //     }
+
+
+    //     actionUrl = actionUrl.replace(':id', trxNo);
+
+    //     Swal.fire({
+    //         title: 'Kirim ke CEISA?',
+    //         text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai.",
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#28a745',
+    //         cancelButtonColor: '#6c757d',
+    //         confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim!',
+    //         cancelButtonText: 'Batal'
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+
+    //             Swal.fire({
+    //                 title: 'Memproses ke CEISA...',
+    //                 text: 'Mohon tunggu sebentar',
+    //                 allowOutsideClick: false,
+    //                 didOpen: () => { Swal.showLoading(); }
+    //             });
+
+    //             $.ajax({
+    //                 url: actionUrl,
+    //                 type: 'POST',
+    //                 data: {
+    //                     _token: $('meta[name="csrf-token"]').attr('content'),
+    //                 },
+    //                 success: function(res) {
+    //                     if(res.status === 200) {
+    //                         Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+    //                         console.log("Response CEISA:", res.ceisa_response);
+
+    //                         refreshTable();
+    //                     } else {
+    //                         showErrorSwal(res);
+    //                     }
+    //                 },
+    //                 error: function(xhr) {
+    //                     let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+    //                     showErrorSwal(res);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
+
     $(document).on('click', '.btn-kirim', function() {
         let trxNo = $(this).data('id');
         let jenisBc = $(this).data('jenis_bc');
@@ -588,83 +675,85 @@
         if(jenisBc === 'BC 2.3') {
             actionUrl = '{{ route("dokumen-pabean-send-bc23", ":id") }}';
         }
-
         if(jenisBc === 'BC 2.5' || jenisBc === '25' || jenisBc === '2.5') {
             actionUrl = '{{ route("dokumen-pabean-send-bc25", ":id") }}';
         }
-
         if(jenisBc === 'BC 4.0') {
-             actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
         }
-
         if(jenisBc === 'BC 3.0') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc30", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc30", ":id") }}';
         }
-
         if(jenisBc === 'BC 2.7') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc27", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc27", ":id") }}';
         }
-
         if(jenisBc === 'BC 3.3') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc33", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc33", ":id") }}';
         }
-
         if(jenisBc === 'BC 4.1') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc41", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc41", ":id") }}';
         }
-
         if(jenisBc === 'BC 2.6.1') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc261", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc261", ":id") }}';
         }
-
         if(jenisBc === 'BC 2.6.2') {
-             actionUrl = '{{ route("dokumen-pabean-send-bc262", ":id") }}';
+            actionUrl = '{{ route("dokumen-pabean-send-bc262", ":id") }}';
         }
-
-
         actionUrl = actionUrl.replace(':id', trxNo);
 
-        Swal.fire({
+        let isBc30 = (jenisBc === 'BC 3.0');
+
+        let swalConfig = {
             title: 'Kirim ke CEISA?',
             text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-paper-plane"></i> Ya, Kirim!',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Kirim',
             cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
+        };
 
-                Swal.fire({
-                    title: 'Memproses ke CEISA...',
-                    text: 'Mohon tunggu sebentar',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
+        if (isBc30) {
+            swalConfig.showDenyButton = true;
+            swalConfig.denyButtonColor = '#0dcaf0';
+            swalConfig.confirmButtonText = '<i class="fas fa-paper-plane"></i> Kirim Live';
+            swalConfig.denyButtonText = '<i class="fas fa-paper-plane"></i> Kirim Dev';
+        }
 
-                $.ajax({
-                    url: actionUrl,
-                    type: 'POST',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content'),
-                    },
-                    success: function(res) {
-                        if(res.status === 200) {
-                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
-                            console.log("Response CEISA:", res.ceisa_response);
+        Swal.fire(swalConfig).then((result) => {
+            if (!result.isConfirmed && !result.isDenied) return;
 
-                            refreshTable();
-                        } else {
-                            showErrorSwal(res);
-                        }
-                    },
-                    error: function(xhr) {
-                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+            let isDev = isBc30 && result.isDenied;
+
+            Swal.fire({
+                title: isDev ? 'Memproses ke CEISA (Dev)...' : 'Memproses ke CEISA...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: actionUrl,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    is_dev: isDev
+                },
+                success: function(res) {
+                    if(res.status === 200) {
+                        Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                        console.log("Response CEISA:", res.ceisa_response);
+                        refreshTable();
+                    } else {
                         showErrorSwal(res);
                     }
-                });
-            }
+                },
+                error: function(xhr) {
+                    let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                    showErrorSwal(res);
+                }
+            });
         });
     });
 
@@ -1338,12 +1427,12 @@
                             let jenis = $('#jenis_modal').val();
                             let valId = (jenis == 'Pemasukan') ? row.bpbno : row.bppbno;
                             let jenisBc = $('#jenis_bc_modal').val();
-                            if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1' || jenisBc === 'BC 2.7' ){
-                                return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
-                            }else{
-                                return '';
-                            }
-                            // return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
+                            // if(jenisBc === 'BC 4.0' || jenisBc === 'BC 4.1' || jenisBc === 'BC 2.7' ){
+                            //     return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
+                            // }else{
+                            //     return '';
+                            // }
+                            return `<input type="checkbox" class="check-batch-item" value="${valId}" data-supplier="${row.supplier}">`;
                         }
                     },
                     { data: 'trx_no',    name: 'trx_no' },
@@ -1445,29 +1534,29 @@
                     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc27", "") }}/' + ids;
                 }
 
-                // if(jenisBc === 'BC 3.0'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc30", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 3.0'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc30", "") }}/' + ids;
+                }
 
-                // if(jenisBc === 'BC 2.6.2'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc262", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 2.6.2'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc262", "") }}/' + ids;
+                }
 
-                // if(jenisBc === 'BC 2.6.1'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc261", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 2.6.1'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc261", "") }}/' + ids;
+                }
 
-                // if(jenisBc === 'BC 2.3'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc23", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 2.3'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc23", "") }}/' + ids;
+                }
 
-                // if(jenisBc === 'BC 3.3'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc33", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 3.3'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc33", "") }}/' + ids;
+                }
 
-                // if(jenisBc === 'BC 2.5'){
-                //     window.location.href = '{{ route("dokumen-pabean-edit-batch-bc25", "") }}/' + ids;
-                // }
+                if(jenisBc === 'BC 2.5'){
+                    window.location.href = '{{ route("dokumen-pabean-edit-batch-bc25", "") }}/' + ids;
+                }
 
 
             }
