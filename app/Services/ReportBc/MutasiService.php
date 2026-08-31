@@ -2011,7 +2011,7 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'WS',
-            'Dest / Country',
+            // 'Dest / Country',
             'Unit',
             'Saldo Awal',
             'Penerimaan',
@@ -2030,7 +2030,7 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->kpno ?? '-',
-                $row->country ?? '-',
+                // $row->country ?? '-',
                 'PCS',
                 (float)($row->saldoawal),
                 (float)($row->qtyterima),
