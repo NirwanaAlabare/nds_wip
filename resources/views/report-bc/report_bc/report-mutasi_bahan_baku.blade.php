@@ -186,7 +186,7 @@
         <div class="card-body">
 
             <form method="GET" action="" class="toolbar-panel">
-                 <input type="hidden" name="from" id="from" value="{{ $fromDate }}">
+                <input type="hidden" name="from" id="from" value="{{ $fromDate }}">
                 <input type="hidden" name="to" id="to" value="{{ $toDate }}">
                 <input type="hidden" name="jenis" id="jenis" value="{{ $jenis }}">
                 <input type="hidden" name="kategori" id="kategori" value="{{ $kategori }}">
@@ -222,14 +222,12 @@
                         <tr>
                             <th width="5%">No</th>
                             <th>ID Item</th>
-                            <th>Kode Barang</th>
                             <th>Nama Barang</th>
-                            <th>No WS</th>
+                            <th>Satuan</th>
                             <th>Saldo Awal</th>
                             <th>Pemasukan</th>
                             <th>Pengeluaran</th>
                             <th>Saldo Akhir</th>
-                            <th>Satuan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -238,14 +236,12 @@
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
                                     <td>{{ $row->id_item ?? '-' }}</td>
-                                    <td>{{ $row->goods_code ?? '-' }}</td>
                                     <td>{{ $row->itemdesc ?? '-' }}</td>
-                                    <td>{{ $row->kpno ?? '-' }}</td>
+                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
-                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         @endif
