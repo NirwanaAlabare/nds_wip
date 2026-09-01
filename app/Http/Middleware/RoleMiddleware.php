@@ -46,6 +46,13 @@ class RoleMiddleWare
             }
         }
 
-        return redirect('home')->with('error', 'You have not access to this module');
+        if ($request->ajax()) {
+            return response()->json([
+                "status" => "400",
+                "message" => "User tidak memiliki akses untuk modul ini",
+            ]);
+        }
+
+        return redirect('home')->with('error', 'User tidak memiliki akses untuk modul ini');
     }
 }

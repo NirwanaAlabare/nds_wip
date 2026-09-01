@@ -2176,6 +2176,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name('index-report-bc');
         Route::get('/{jenis}/{kategori}/{kategoribarang}', 'showReport')->name('report-bc.show');
         Route::get('/report-bc/mutasi-gudang-jadi', [ReportBcController::class, 'getMutasiGudangJadi'])->name('mutasi-gudang-ajax');
+        Route::get('/export_excel_mutasi_barang_jadi', 'export_excel_mutasi_barang_jadi')->name('export_excel_mutasi_barang_jadi');
+        Route::get('/export_excel_mutasi_barang_jadi_gudang', 'export_excel_mutasi_barang_jadi_gudang')->name('export_excel_mutasi_barang_jadi_gudang');
+        Route::get('/export_excel_pemasukan_bc', 'export_excel_pemasukan_bc')->name('export_excel_pemasukan_bc');
+        Route::get('/export_excel_pengeluaran_bc', 'export_excel_pengeluaran_bc')->name('export_excel_pengeluaran_bc');
+        Route::get('/export_excel_mutasi_bahan_baku', 'export_excel_mutasi_bahan_baku')->name('export_excel_mutasi_bahan_baku');
+        Route::get('/export_excel_mutasi_mesin', 'export_excel_mutasi_mesin')->name('export_excel_mutasi_mesin');
+        Route::get('/export_excel_mutasi_barang_sisa', 'export_excel_mutasi_barang_sisa')->name('export_excel_mutasi_barang_sisa');
     });
 });
 

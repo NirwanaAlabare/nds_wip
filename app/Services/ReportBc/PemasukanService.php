@@ -1341,48 +1341,161 @@ class PemasukanService
             ->get();
     }
 
-    public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+    // public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+    //     $methodName = 'getData' . ucfirst($cleanKategori);
+
+    //     $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:Q1');
+
+    //     $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:Q2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:Q3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:Q4');
+
+
+    //     $headerKolom = [
+    //         'No',
+    //         'Kode Kantor',
+    //         'Jenis Dokumen',
+    //         'Kategori Barang',
+    //         'Nomor Daftar',
+    //         'Tanggal Daftar',
+    //         'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
+    //         'Nomor BPB',
+    //         'Tanggal BPB',
+    //         'ID Item',
+    //         'Uraian Barang',
+    //         'Jenis Satuan',
+    //         'Jumlah Satuan',
+    //         'Kode Valuta',
+    //         'Nilai Barang',
+    //         'Kurs',
+    //         'Nilai Barang IDR'
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'Q');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->kode_kantor ?? '-',
+    //                 $row->jenis_dokumen ?? $jenisDokumenFixed,
+    //                 $row->kategori_barang ?? '-',
+    //                 $row->nomor_daftar ?? '-',
+    //                 ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+    //                 $row->nama_pengirim ?? '-',
+    //                 $row->nomor_bpb ?? '-',
+    //                 ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+    //                 $row->id_item ?? '-',
+    //                 $row->uraian_barang ?? '-',
+    //                 $row->jenis_satuan ?? '-',
+    //                 (float) ($row->jumlah_satuan ?? 0),
+    //                 $row->kode_valuta ?? '-',
+    //                 (float) ($row->nilai_barang ?? 0),
+    //                 (float) ($row->kurs ?? 0),
+    //                 (float) ($row->nilai_barang_idr ?? 0),
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
 
         $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
         $methodName = 'getData' . ucfirst($cleanKategori);
 
+
         $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+        $fileName = 'laporan-pemasukan';
 
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
+        $excel = FastExcel::create($fileName);
 
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet = $excel->sheet();
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->writeRow(
+            ['LAPORAN PEMASUKAN '.strtoupper($cleanKategori).''],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:Q4');
+        $sheet->writeRow(
+            ['Periode ' . $fromDate . ' s/d ' . $toDate],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
 
 
-        $headerKolom = [
+        $sheet->writeRow([
             'No',
             'Kode Kantor',
             'Jenis Dokumen',
@@ -1400,53 +1513,43 @@ class PemasukanService
             'Nilai Barang',
             'Kurs',
             'Nilai Barang IDR'
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'Q');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
         $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+        foreach ($data as $row) {
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            $rows = [
+                $no++,
+                $row->kode_kantor ?? '-',
+                $row->jenis_dokumen ?? $jenisDokumenFixed,
+                $row->kategori_barang ?? '-',
+                $row->nomor_daftar ?? '-',
+                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                $row->nama_pengirim ?? '-',
+                $row->nomor_bpb ?? '-',
+                ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+                $row->id_item ?? '-',
+                $row->uraian_barang ?? '-',
+                $row->jenis_satuan ?? '-',
+                (float) ($row->jumlah_satuan ?? 0),
+                $row->kode_valuta ?? '-',
+                (float) ($row->nilai_barang ?? 0),
+                (float) ($row->kurs ?? 0),
+                (float) ($row->nilai_barang_idr ?? 0),
+            ];
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->kode_kantor ?? '-',
-                    $row->jenis_dokumen ?? $jenisDokumenFixed,
-                    $row->kategori_barang ?? '-',
-                    $row->nomor_daftar ?? '-',
-                    ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
-                    $row->nama_pengirim ?? '-',
-                    $row->nomor_bpb ?? '-',
-                    ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
-                    $row->id_item ?? '-',
-                    $row->uraian_barang ?? '-',
-                    $row->jenis_satuan ?? '-',
-                    (float) ($row->jumlah_satuan ?? 0),
-                    $row->kode_valuta ?? '-',
-                    (float) ($row->nilai_barang ?? 0),
-                    (float) ($row->kurs ?? 0),
-                    (float) ($row->nilai_barang_idr ?? 0),
-                ];
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
+        return $excel->download();
     }
-
 }

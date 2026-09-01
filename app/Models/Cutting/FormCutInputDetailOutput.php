@@ -8,6 +8,7 @@ use App\Models\Auth\User;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use Spatie\Activitylog\Traits\LogsActivity;
+use DB;
 
 class FormCutInputDetailOutput extends Model
 {

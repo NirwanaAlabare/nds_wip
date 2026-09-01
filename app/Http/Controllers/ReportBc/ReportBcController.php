@@ -184,7 +184,7 @@ class ReportBcController extends Controller
     {
         $fromDate = $request->input('from');
         $toDate   = $request->input('to');
-        $kategoriBarang = $request->input('kategoriBarang', 'all');
+        $kategoriBarang = 'all';
 
         if (!$fromDate || !$toDate) {
             return response()->json(['error' => 'Tanggal from/to wajib diisi'], 400);
@@ -229,5 +229,74 @@ class ReportBcController extends Controller
             "recordsFiltered" => $totalFiltered,
             "data"            => $pageData,
         ]);
+    }
+
+    public function export_excel_mutasi_barang_jadi_gudang(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+
+        $this->mutasiService->exportExcelBarangJadiGudang($fromDate, $toDate);
+    }
+
+    public function export_excel_mutasi_barang_jadi(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+
+        $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate);
+    }
+
+    public function export_excel_pemasukan_bc(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+        $filterBy = $request->filter_by;
+        $jenis = $request->jenis;
+        $kategori = $request->kategori;
+        $kategoriBarang = $request->kategoriBarang;
+
+        $this->pemasukanService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    }
+
+    public function export_excel_pengeluaran_bc(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+        $filterBy = $request->filter_by;
+        $jenis = $request->jenis;
+        $kategori = $request->kategori;
+        $kategoriBarang = $request->kategoriBarang;
+
+        $this->pengeluaranService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    }
+
+    public function export_excel_mutasi_bahan_baku(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+        $filterBy = $request->filter_by;
+        $jenis = $request->jenis;
+        $kategori = $request->kategori;
+        $kategoriBarang = $request->kategoriBarang;
+
+        $this->mutasiService->exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    }
+
+    public function export_excel_mutasi_mesin(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+        $filterBy = $request->filter_by;
+        $jenis = $request->jenis;
+        $kategori = $request->kategori;
+        $kategoriBarang = $request->kategoriBarang;
+
+        $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    }
+
+    public function export_excel_mutasi_barang_sisa(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+        $filterBy = $request->filter_by;
+        $jenis = $request->jenis;
+        $kategori = $request->kategori;
+        $kategoriBarang = $request->kategoriBarang;
+
+        $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
     }
 }
