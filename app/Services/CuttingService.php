@@ -882,7 +882,7 @@ class CuttingService
 
             // Check first Qty
             if ($firstId) {
-                $firstFormCutDetail = FormCutInputDetail::where("id", $firstId)->first();
+                $firstFormCutDetail = FormCutInputDetail::where("id_roll", $idRoll)->where("id", $firstId)->first();
 
                 if (!$firstFormCutDetail) {
                     $firstFormCutDetail = DB::table("form_cut_input_detail_delete")->where("old_id", $firstId)->first();
@@ -892,18 +892,28 @@ class CuttingService
             }
 
             $currentPenerimaan = [];
-            $currentQty = $firstFormCutDetail->qty;
-            $createdBefore = $firstFormCutDetail->created_at;
+            $currentQty = null;
+            $createdBefore = null;
             foreach ($formCutDetail as $index => $detail) {
 
                 // Check Penerimaan
-                $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+                $penerimaan = null;
+                if ($index == 0) {
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();    
+                    if ($penerimaan->count() < 1) {
+                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();    
+                    }
+                } else {
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+                }
 
                 $qtyPenerimaan = 0;
-                foreach ($penerimaan as $p) {
-                    $qtyPenerimaan += $p->qty_konv;
+                if ($penerimaan) {
+                    foreach ($penerimaan as $p) {
+                        $qtyPenerimaan += $p->qty_konv;
 
-                    array_push($currentPenerimaan, $p->id);
+                        array_push($currentPenerimaan, $p->id);
+                    }
                 }
 
                 $formCut = $detail->formCutInput;
