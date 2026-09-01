@@ -1007,6 +1007,46 @@ class CuttingToolsController extends Controller
         );
     }
 
+    public function generateFormCutOutput(Request $request, CuttingService $cuttingService) {
+        ini_set('max_execution_time', 3600);
+
+        $validatedRequest = $request->validate([
+            "form_cut_id" => "required",
+        ]);
+        
+        // Check Form 
+        $formCut = FormCutInput::where("id", $validatedRequest["form_cut_id"])->first();
+        if (!$formCut) {
+            return array(
+                "status" => 400,
+                "message" => "Form Cut tidak ditemukan.",
+                "additional" => [],
+            );
+        }
+
+        // Check Closing
+        if (checkClosingDate($formCut->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+            );
+        }
+
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
+        return $cuttingService->callGenerateFormCutOutputDetail($formCut->id, $request->force ? true : false);
+    }
+
     public function deleteRedundantRoll(Request $request, CuttingService $cuttingService) {
         if ($request->id_roll) {
             return $cuttingService->deleteRedundantRoll($request->id_roll);
