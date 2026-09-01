@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
         // get no form
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
+        // get no form for select2
+        Route::get('/get-no-form-cut-select', 'getNoFormCutSelect')->name('get-no-form-cut-select');
         // get group
         Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
         // get stocker

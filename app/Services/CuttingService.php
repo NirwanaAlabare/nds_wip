@@ -1230,4 +1230,71 @@ class CuttingService
 
         return ['status' => 400, 'message' => "Data tidak ditemukan"];
     }
+
+    /**
+     * Regenerate isi form_cut_input_detail_output milik sebuah Form Cut (normal)
+     * dengan memanggil stored procedure generate_form_cut_output.
+     *
+     * @param  int   $id     id form_cut_input
+     * @param  bool  $force  lanjutkan walaupun form pernah dipakai switching output
+     */
+    public function callGenerateFormCutOutputDetail($id, $force = false) {
+        $formCut = FormCutInput::where("id", $id)->first();
+
+        if (!$formCut) {
+            return ['status' => 400, 'message' => "Form Cut tidak ditemukan."];
+        }
+
+        if (!$formCut->marker || $formCut->marker->markerDetails->count() < 1) {
+            return ['status' => 400, 'message' => "Marker / detail marker untuk form ".$formCut->no_form." tidak ditemukan."];
+        }
+
+        if (FormCutInputDetail::where("form_cut_id", $formCut->id)->count() < 1) {
+            return ['status' => 400, 'message' => "Form ".$formCut->no_form." belum memiliki detail gelaran."];
+        }
+
+        // Output hasil switching akan hangus karena generate menghapus lalu mengisi ulang seluruh output form
+        $switchingCount = DB::table("form_cut_input_detail_output_logs")->
+            where("is_active", 1)->
+            whereRaw("(form_cut_input_id_asal = ? OR form_cut_input_id_tujuan = ?)", [$formCut->id, $formCut->id])->
+            count();
+
+        if ($switchingCount > 0 && !$force) {
+            return [
+                'status' => 409,
+                'message' => "Form ".$formCut->no_form." memiliki ".$switchingCount." transaksi switching output. Generate ulang akan mengembalikan qty output ke hasil marker (data switching hangus).",
+                'additional' => ['switching' => $switchingCount],
+            ];
+        }
+
+        DB::beginTransaction();
+        try {
+            FormCutInputDetailOutput::generateFormCutOutput($formCut->id);
+
+            // Stored procedure tidak mengisi is_active, samakan dengan penulis output yang lain
+            FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->update(["is_active" => 1]);
+
+            $generated = FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->count();
+
+            if ($generated < 1) {
+                DB::rollBack();
+
+                return ['status' => 400, 'message' => "Output form ".$formCut->no_form." gagal digenerate (tidak ada baris yang dihasilkan)."];
+            }
+
+            DB::commit();
+
+            return [
+                'status' => 200,
+                'message' => "Output form ".$formCut->no_form." berhasil digenerate (".$generated." baris).",
+                'additional' => ['total' => $generated],
+            ];
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error("Gagal generate form cut output form ".$formCut->no_form." : ".$th->getMessage());
+
+            return ['status' => 400, 'message' => $th->getMessage()];
+        }
+    }
 }

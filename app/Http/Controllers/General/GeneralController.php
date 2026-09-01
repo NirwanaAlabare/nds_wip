@@ -38,6 +38,31 @@ use PDF;
 
 class GeneralController extends Controller
 {
+    public function getNoFormCutSelect(Request $request) {
+        $search = $request->q;
+        $page = $request->page && $request->page > 0 ? intval($request->page) : 1;
+        $perPage = 20;
+
+        // Stored procedure generate_form_cut_output hanya menangani form cut normal
+        $formCuts = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form", "form_cut_input.status")->
+            whereRaw("form_cut_input.updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')")->
+            when($search, function ($query) use ($search) {
+                $query->where("form_cut_input.no_form", "like", "%".$search."%");
+            })->
+            orderBy("form_cut_input.updated_at", "desc")->
+            paginate($perPage, ["*"], "page", $page);
+
+        return response()->json([
+            "items" => $formCuts->map(function ($formCut) {
+                return [
+                    "id" => $formCut->id,
+                    "text" => $formCut->no_form,
+                ];
+            }),
+            "more_pages" => $formCuts->hasMorePages(),
+        ]);
+    }
+    
     public function getNoFormCut(Request $request)
     {
         // Get No. Form Cutting List
