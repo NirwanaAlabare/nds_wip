@@ -482,6 +482,9 @@ Route::middleware('auth')->group(function () {
             // modify group
             Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
 
+            // Regenerate form cut output
+            Route::post('/generate-form-cut-output', 'generateFormCutOutput')->name('generate-form-cut-output');
+
             // Delete redundant roll
             Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
 

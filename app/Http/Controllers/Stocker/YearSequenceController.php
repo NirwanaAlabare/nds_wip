@@ -2178,6 +2178,7 @@ class YearSequenceController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             whereRaw("year_sequence.id_year_sequence in (".$yearSequenceIds.")");
 
+            // QC Endline
             if ($yearSequenceIds) {
                 $dataOutput = collect(
                         DB::connection("mysql_sb")->select("
@@ -2196,14 +2197,33 @@ class YearSequenceController extends Controller
                 $dataOutput = collect([]);
             }
 
-            if ($request->range_awal && $request->range_akhir) {
+            // Finishing
+            if ($yearSequenceIds) {
                 $dataOutputPacking = collect(
                     DB::connection("mysql_sb")->select("
-                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE kode_numbering in (".$yearSequenceIds.")
+                        SELECT output.*, userpassword.username as sewing_line FROM (
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE kode_numbering in (".$yearSequenceIds.")
+                            UNION
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_defects_packing WHERE kode_numbering in (".$yearSequenceIds.")
+                            UNION
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rejects_packing WHERE kode_numbering in (".$yearSequenceIds.")
+                        ) output
+                        left join userpassword on userpassword.username = output.sewing_line
                     ")
                 );
             } else {
                 $dataOutputPacking = collect([]);
+            }
+
+            // Packing
+            if ($yearSequenceIds) {
+                $dataOutputPackingPo = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by_line sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing_po WHERE kode_numbering in (".$yearSequenceIds.")
+                    ")
+                );
+            } else {
+                $dataOutputPackingPo = collect([]);
             }
         } else {
             $data = YearSequence::selectRaw("
@@ -2219,6 +2239,7 @@ class YearSequenceController extends Controller
             where("year_sequence", $request->sequence)->
             whereBetween("year_sequence_number", [($request->range_awal ? $request->range_awal : '-'), ($request->range_akhir ? $request->range_akhir : '-')]);
 
+            // QC Endline
             if ($request->range_awal && $request->range_akhir) {
                 $dataOutput = collect(
                         DB::connection("mysql_sb")->select("
@@ -2237,20 +2258,29 @@ class YearSequenceController extends Controller
                 $dataOutput = collect([]);
             }
 
+            // Finishing
             if ($request->range_awal && $request->range_akhir) {
                 $dataOutputPacking = collect(
                     DB::connection("mysql_sb")->select("
-                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                        SELECT output.*, userpassword.username as sewing_line FROM (
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                            UNION
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_defects_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                            UNION
+                            select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rejects_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                        ) output
+                        left join userpassword on userpassword.username = output.sewing_line
                     ")
                 );
             } else {
                 $dataOutputPacking = collect([]);
             }
 
+            // Packing
             if ($request->range_awal && $request->range_akhir) {
                 $dataOutputPackingPo = collect(
                     DB::connection("mysql_sb")->select("
-                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing_po WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                        select created_by_line sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing_po WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
                     ")
                 );
             } else {
@@ -2277,10 +2307,22 @@ class YearSequenceController extends Controller
             addColumn('qc', function($data) use ($dataOutput) {
                 return $dataOutput->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutput->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
             })->
+            addColumn('qc_at', function($data) use ($dataOutput) {
+                return $dataOutput->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutput->where("kode_numbering", $data->id_year_sequence)->first()->created_at : null;
+            })->
             addColumn('packing', function($data) use ($dataOutputPacking) {
                 return $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
             })->
-            orderColumns(['qc', 'packing'], '-:column $1 $2')->
+            addColumn('packing_at', function($data) use ($dataOutputPacking) {
+                return $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first()->created_at : null;
+            })->
+            addColumn('packing_po', function($data) use ($dataOutputPackingPo) {
+                return $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
+            })->
+            addColumn('packing_po_at', function($data) use ($dataOutputPackingPo) {
+                return $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first()->created_at : null;
+            })->
+            orderColumns(['qc', 'packing', 'packing_po'], '-:column $1 $2')->
             toJson();
     }
 

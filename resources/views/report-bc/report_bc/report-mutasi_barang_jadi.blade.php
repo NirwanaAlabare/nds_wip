@@ -177,8 +177,10 @@
                             <th width="5%">No</th>
                             {{-- <th>Id So Det</th> --}}
                             {{-- <th>Kode Barang</th> --}}
-                            {{-- <th>Style</th> --}}
                             <th>No WS</th>
+                            <th>Style</th>
+                            <th>Product Group</th>
+                            <th>Product Item</th>
                             {{-- <th>Color</th> --}}
                             {{-- <th>Size</th> --}}
                             {{-- <th>Dest / Country</th> --}}
@@ -198,6 +200,10 @@
                                     {{-- <td>{{ $row->goods_code ?? '-' }}</td> --}}
                                     {{-- <td>{{ $row->styleno ?? '-' }}</td> --}}
                                     <td>{{ $row->kpno ?? '-' }}</td>
+                                    <td>{{ $row->styleno ?? '-' }}</td>
+                                    <td>{{ $row->product_group ?? '-' }}</td>
+                                    <td>{{ $row->product_item ?? '-' }}</td>
+
                                     {{-- <td>{!! $row->color ? str_replace(',', '<br>', $row->color) : '-' !!}</td> --}}
                                     {{-- <td>{!! $row->size ? str_replace(',', '<br>', $row->size) : '-' !!}</td> --}}
                                     {{-- <td>{{ $row->country ?? '-' }}</td> --}}

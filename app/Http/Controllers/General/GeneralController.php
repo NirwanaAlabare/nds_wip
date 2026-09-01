@@ -38,6 +38,31 @@ use PDF;
 
 class GeneralController extends Controller
 {
+    public function getNoFormCutSelect(Request $request) {
+        $search = $request->q;
+        $page = $request->page && $request->page > 0 ? intval($request->page) : 1;
+        $perPage = 20;
+
+        // Stored procedure generate_form_cut_output hanya menangani form cut normal
+        $formCuts = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form", "form_cut_input.status")->
+            whereRaw("form_cut_input.updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')")->
+            when($search, function ($query) use ($search) {
+                $query->where("form_cut_input.no_form", "like", "%".$search."%");
+            })->
+            orderBy("form_cut_input.updated_at", "desc")->
+            paginate($perPage, ["*"], "page", $page);
+
+        return response()->json([
+            "items" => $formCuts->map(function ($formCut) {
+                return [
+                    "id" => $formCut->id,
+                    "text" => $formCut->no_form,
+                ];
+            }),
+            "more_pages" => $formCuts->hasMorePages(),
+        ]);
+    }
+    
     public function getNoFormCut(Request $request)
     {
         // Get No. Form Cutting List
@@ -941,6 +966,100 @@ class GeneralController extends Controller
             $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
         }
 
+        // When pemakaian
+        if ($request->form_cut_detail_id) {
+            $currentFormCutDetail = FormCutInputDetail::where("id", $request->form_cut_detail_id)->first();
+
+            if ($currentFormCutDetail) {
+                $beforeFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', "<", $currentFormCutDetail->created_at)->orderBy("created_at", "desc")->first();
+
+                if (!$beforeFormCutDetail) {
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");    
+                    if ($penerimaan < 1) {
+                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $currentFormCutDetail->created_at)->orderBy("created_at", "asc")->limit(1)->sum("qty_konv");    
+                    }
+
+                    $currentQty = ($penerimaan ?? 0);
+                } else {
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $beforeFormCutDetail->created_at)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");
+                    
+                    $currentQty = ($beforeFormCutDetail->sisa_kain + $penerimaan ?? 0);
+                }
+
+                $currentScannedItem = ScannedItem::selectRaw("
+                        scanned_item.id,
+                        scanned_item.id_roll,
+                        scanned_item.id_jo,
+                        scanned_item.id_item,
+                        scanned_item.detail_item,
+                        scanned_item.detail_item_color,
+                        scanned_item.detail_item_size,
+                        scanned_item.color,
+                        scanned_item.lot,
+                        scanned_item.roll,
+                        scanned_item.roll_buyer,
+                        '".$currentQty."' qty,
+                        scanned_item.qty_stok,
+                        scanned_item.qty_in,
+                        COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
+                        scanned_item.unit,
+                        scanned_item.berat_amparan,
+                        scanned_item.so_det_list,
+                        scanned_item.size_list,
+                        penerimaan_cutting.tanggal_terima tanggal
+                    ")->
+                    leftJoin(DB::raw("
+                        (
+                            select
+                                id_roll,
+                                max( qty_awal ) qty_awal,
+                                sum( total_pemakaian ) total_pemakaian
+                            from
+                                (
+                                    SELECT
+                                        id_roll,
+                                        max( qty ) qty_awal,
+                                        sum( COALESCE(total_pemakaian_roll, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
+                                    FROM
+                                        form_cut_input_detail
+                                    WHERE
+                                        id_roll = '".$id."'
+                                    GROUP BY
+                                        id_roll
+                                    UNION
+                                    SELECT
+                                        id_roll,
+                                        max( qty ) qty_awal,
+                                        sum( COALESCE(piping, 0) + COALESCE(qty_sisa, 0) ) total_pemakaian
+                                    FROM
+                                        form_cut_piping
+                                    WHERE
+                                        id_roll = '".$id."'
+                                    GROUP BY
+                                        id_roll
+                                    UNION
+                                    SELECT
+                                        barcode id_roll,
+                                        max( qty_roll ) qty_awal,
+                                        sum( COALESCE(qty_pakai, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
+                                    FROM
+                                        form_cut_reject_barcode
+                                    WHERE
+                                        barcode = '".$id."'
+                                    GROUP BY
+                                        barcode
+                                ) pemakaian
+                            group by
+                                id_roll
+                        ) pemakaian
+                    "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
+                    leftJoin("penerimaan_cutting", "penerimaan_cutting.id_roll", "=", "scanned_item.id_roll")->
+                    where("scanned_item.id_roll", $id)->
+                    first();
+
+                return json_encode($currentScannedItem);
+            }   
+        }
         // if ($request->color) {
         //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
         // }
