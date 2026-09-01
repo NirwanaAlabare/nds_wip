@@ -1266,6 +1266,8 @@ class MutasiService
                 GROUP_CONCAT(DISTINCT ms.size ORDER BY ms.size SEPARATOR ', ') AS size,
                 MAX(ms.country) AS country,
                 GROUP_CONCAT(DISTINCT mutasi.id_so_det ORDER BY mutasi.id_so_det SEPARATOR ', ') AS id_so_det,
+                sbws.product_item,
+                sbws.product_group,
                 SUM(saldo_awal) AS saldoawal,
                 SUM(penerimaan) AS qtyterima,
                 SUM(pengeluaran) AS qtykeluar,
@@ -1327,6 +1329,7 @@ class MutasiService
                 GROUP BY bppb.id_item, bppb.id_so_det
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
+            LEFT JOIN laravel_nds.master_sb_ws sbws ON ms.kpno = sbws.ws AND ms.styleno = sbws.styleno AND ms.color = sbws.color AND ms.size = sbws.size
             WHERE $whereCategory
             GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
             HAVING SUM(saldo_awal) != 0
@@ -2935,6 +2938,9 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'WS',
+            'Style',
+            'Product Group',
+            'Product Item',
             // 'Dest / Country',
             'Unit',
             'Saldo Awal',
@@ -2955,6 +2961,9 @@ class MutasiService
                 $no++,
                 $row->kpno ?? '-',
                 // $row->country ?? '-',
+                $row->styleno ?? '-',
+                $row->product_group ?? '-',
+                $row->product_item ?? '-',
                 'PCS',
                 (float)($row->saldoawal),
                 (float)($row->qtyterima),
