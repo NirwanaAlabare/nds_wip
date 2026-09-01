@@ -161,11 +161,20 @@
                     </a>
                 </div>
                 {{-- New Card for Stock Opname Cutting --}}
-                <div class="col-md-4">
+                {{-- <div class="col-md-4">
                     <a href="{{ route('stock-opname-cutting') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-boxes-stacked"></i> Stock Opname Cutting</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div> --}}
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openGenerateFormCutOutput()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Regenerate Form Cut Output</h5>
                             </div>
                         </div>
                     </a>
@@ -1067,6 +1076,36 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Structure -->
+    <div class="modal fade" id="generateFormCutOutputModal" tabindex="-1" aria-labelledby="generateFormCutOutput" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generateFormCutOutput">Generate Form Cut Output</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_generate_cut_output" id="no_form_generate_cut_output" class="form-control select2bs4cutoutput" style="width: 100%;">
+                            <option value="">Pilih Form</option>
+                        </select>
+                        <small class="text-muted">Output form akan dihapus lalu diisi ulang berdasarkan marker &amp; gelaran form.</small>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="generateFormCutOutput()">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -1101,6 +1140,44 @@
         $('.select2bs4formgroup').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#modifyFormGroup')
+        });
+        $('#no_form_generate_cut_output').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#generateFormCutOutputModal'),
+            ajax: {
+                url: '{{ route('get-no-form-cut-select') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function (data, params) {
+                    let items = data.items || [];
+
+                    // Cek properti asli dari server di Console browser (F12)
+                    if (items.length > 0) {
+                        console.log("Contoh 1 item data dari server:", items[0]);
+                    }
+
+                    return {
+                        results: items.map(function (item) {
+                            return {
+                                id: item.id,   // <-- Periksa apakah di console namanya benar "form_cut_id"
+                                text: item.text     // <-- Periksa apakah di console namanya benar "no_form"
+                            };
+                        }),
+                        pagination: {
+                            more: false
+                        }
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Search for an item...',
+            minimumInputLength: 2
         });
 
         $(document).ready(function () {
@@ -2976,6 +3053,118 @@
                         });
                     });
                 },
+            });
+        }
+
+        function openGenerateFormCutOutput() {
+            $('#no_form_generate_cut_output').val(null).trigger('change');
+
+            $('#generateFormCutOutputModal').modal('show');
+        }
+
+        function generateFormCutOutput(force = false) {
+            const formCutId = $('#no_form_generate_cut_output').val();
+            const noForm = $('#no_form_generate_cut_output option:selected').text();
+
+            if (!formCutId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Gagal',
+                    text: 'Harap pilih No. Form terlebih dahulu.',
+                    showConfirmButton: true,
+                });
+
+                return;
+            }
+
+            Swal.fire({
+                title: 'Generate Form Cut Output?',
+                html: force ?
+                    'Data switching output form <b>'+noForm+'</b> akan hangus. Tetap lanjutkan?' :
+                    'Form <b>'+noForm+'</b> digenerate ulang. Lanjutkan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: force ? 'TETAP GENERATE' : 'GENERATE',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('generate-form-cut-output') }}",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        form_cut_id: formCutId,
+                        force: force ? 1 : 0,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        // Form pernah dipakai switching output, minta konfirmasi ulang
+                        if (response.status == 409) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Perhatian',
+                                html: response.message,
+                                showCancelButton: true,
+                                confirmButtonText: 'LANJUTKAN',
+                                cancelButtonText: 'BATAL',
+                                confirmButtonColor: "#dc3545"
+                            }).then((confirmation) => {
+                                if (confirmation.isConfirmed) {
+                                    generateFormCutOutput(true);
+                                }
+                            });
+
+                            return;
+                        }
+
+                        if (response.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
+                            $('#no_form_generate_cut_output').val(null).trigger('change');
+                            $('#generateFormCutOutputModal').modal('hide');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+
+                        let response = jqXHR.responseJSON;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: (response && response.message ? response.message : 'Terjadi kesalahan.'),
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                });
             });
         }
     </script>

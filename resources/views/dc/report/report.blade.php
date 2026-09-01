@@ -415,6 +415,7 @@
                 title: "Exporting",
                 html: "Please Wait...",
                 timerProgressBar: true,
+                allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
                 },

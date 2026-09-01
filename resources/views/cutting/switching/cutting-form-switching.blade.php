@@ -21,7 +21,7 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label small">Tanggal Awal</label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <label class="form-label small">Tanggal Akhir</label>
@@ -247,7 +247,7 @@
             let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
-
+            console.log(oneWeeksBeforeFull);
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
             window.addEventListener("focus", () => {
