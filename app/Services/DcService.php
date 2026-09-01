@@ -2391,12 +2391,12 @@ class DcService
                                             null sec_in_in,
                                             CASE WHEN siu.tgl_trans < '2026-07-01' THEN siu.replace ELSE NULL END AS sec_in_rep_main,
                                             null sec_in_rep,
-                                            CASE WHEN siu.tgl_trans < '2026-07-01' THEN (0 - COALESCE(siu.reject, 0) + COALESCE(siu.replace)) ELSE NULL END AS sec_in_out_main,
+                                            CASE WHEN siu.tgl_trans < '2026-07-01' THEN (0 - COALESCE(siu.reject, 0)) ELSE NULL END AS sec_in_out_main,
                                             null sec_in_out,
                                             null loading_qty,
                                             CASE WHEN siu.tgl_trans >= '2026-07-01' THEN siu.replace ELSE NULL END AS sec_in_rep_main_new,
                                             null sec_in_rep_new,
-                                            CASE WHEN siu.tgl_trans >= '2026-07-01' THEN (0 - COALESCE(siu.reject, 0) + COALESCE(siu.replace)) ELSE NULL END AS sec_in_out_main_new,
+                                            CASE WHEN siu.tgl_trans >= '2026-07-01' THEN (0 - COALESCE(siu.reject, 0)) ELSE NULL END AS sec_in_out_main_new,
                                             null sec_in_out_new
                                     FROM
                                             secondary_in_update siu
@@ -2439,12 +2439,12 @@ class DcService
                                             null sec_in_rep_main,
                                             CASE WHEN siu.tgl_trans < '2026-07-01' THEN siu.replace ELSE NULL END AS sec_in_rep,
                                             null sec_in_out_main,
-                                            CASE WHEN siu.tgl_trans < '2026-07-01' THEN (0 - COALESCE(siu.reject, 0) + COALESCE(siu.replace, 0)) ELSE NULL END AS sec_in_out,
+                                            CASE WHEN siu.tgl_trans < '2026-07-01' THEN (0 - COALESCE(siu.reject, 0)) ELSE NULL END AS sec_in_out,
                                             null loading_qty,
                                             null sec_in_rep_main_new,
                                             CASE WHEN siu.tgl_trans >= '2026-07-01' THEN siu.replace ELSE NULL END AS sec_in_rep_new,
                                             null sec_in_out_main_new,
-                                            CASE WHEN siu.tgl_trans >= '2026-07-01' THEN (0 - COALESCE(siu.reject, 0) + COALESCE(siu.replace, 0)) ELSE NULL END AS sec_in_out_new
+                                            CASE WHEN siu.tgl_trans >= '2026-07-01' THEN (0 - COALESCE(siu.reject, 0)) ELSE NULL END AS sec_in_out_new
                                     FROM
                                             secondary_in_update siu
                                             left join secondary_in_input si on si.id = siu.secondary_in_id
