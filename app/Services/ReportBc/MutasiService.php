@@ -9,70 +9,904 @@ use Carbon\Carbon;
 
 class MutasiService
 {
+
     // public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
     // {
     //     $mysql_sb = DB::connection('mysql_sb');
-    //     if (strtolower($kategoriBarang) === 'fabric') {
-    //         $whereClass = "mi.matclass = 'FABRIC'";
-    //     } elseif (strtolower($kategoriBarang) === 'accesories') {
-    //         $whereClass = "mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
-    //     } else {
-    //         $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
+    //     $kategori = strtolower($kategoriBarang);
+    //     $result = collect();
+
+    //     // ===== FABRIC =====
+    //     if (in_array($kategori, ['all', 'semua', 'fabric'])) {
+    //         if ($fromDate >= '2024-02-01' && $fromDate < '2026-01-01') {
+    //             // skema lama: whs_sa_fabric
+    //             $sqlFabric = "
+    //                 SELECT '' AS vmat, mi.matclass, a.id_item, mi.goods_code, mi.itemdesc,
+    //                     satuan AS unit,
+    //                     ROUND(SUM(sal_awal), 2) AS saldoawal,
+    //                     ROUND(SUM(qty_in), 2) AS qtyterima,
+    //                     ROUND(SUM(qty_out), 2) AS qtykeluar,
+    //                     ROUND(SUM(sal_akhir), 2) AS saldoakhir,
+    //                     NULL AS kpno
+    //                 FROM (
+    //                     SELECT
+    //                         kode_lok, id_jo, no_ws, styleno, buyer, id_item, goods_code, itemdesc, satuan,
+    //                         ROUND((sal_awal - qty_out_sbl), 2) sal_awal,
+    //                         ROUND(qty_in, 2) qty_in,
+    //                         ROUND(qty_out_sbl, 2) qty_out_sbl,
+    //                         ROUND(qty_out, 2) qty_out,
+    //                         ROUND((sal_awal + qty_in - qty_out_sbl - qty_out), 2) sal_akhir
+    //                     FROM (
+    //                         SELECT a.kode_lok, a.id_jo, no_ws, styleno, buyer, a.id_item, goods_code, itemdesc, a.satuan,
+    //                             sal_awal, qty_in,
+    //                             COALESCE(qty_out_sbl, '0') qty_out_sbl,
+    //                             COALESCE(qty_out, '0') qty_out
+    //                         FROM (
+    //                             SELECT b.kode_lok, b.id_jo, b.no_ws, b.styleno, b.buyer, b.id_item, b.goods_code, b.itemdesc, b.satuan,
+    //                                 sal_awal, qty_in
+    //                             FROM (SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
+    //                                 UNION
+    //                                 SELECT id_item, unit FROM whs_inmaterial_fabric_det GROUP BY id_item, unit) x
+    //                             LEFT JOIN (
+    //                                 SELECT kode_lok, id_jo, no_ws, styleno, buyer, id_item, goods_code, itemdesc, satuan,
+    //                                     SUM(sal_awal) sal_awal, SUM(qty_in) qty_in
+    //                                 FROM (
+    //                                     SELECT 'TR' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.satuan,
+    //                                         SUM(qty_sj) sal_awal, '0' qty_in
+    //                                     FROM whs_lokasi_inmaterial a
+    //                                     INNER JOIN whs_inmaterial_fabric bpb ON bpb.no_dok = a.no_dok
+    //                                     INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                                     INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //                                         INNER JOIN so ON jd.id_so = so.id
+    //                                         INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //                                         WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //                                     INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //                                     WHERE a.status = 'Y' AND bpb.tgl_dok < ?
+    //                                     GROUP BY a.kode_lok, a.id_item, a.id_jo, a.satuan
+
+    //                                     UNION
+
+    //                                     SELECT 'SAM' id, lk.kode_lok, lk.id_jo, lk.no_ws, jd.styleno, mb.supplier buyer, lk.id_item, b.goods_code, b.itemdesc, lk.satuan,
+    //                                         SUM(qty_sj) sal_awal, '0' qty_in
+    //                                     FROM whs_mut_lokasi_h a
+    //                                     INNER JOIN whs_lokasi_inmaterial lk ON lk.no_dok = a.no_mut
+    //                                     INNER JOIN masteritem b ON b.id_item = lk.id_item
+    //                                     INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //                                         INNER JOIN so ON jd.id_so = so.id
+    //                                         INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //                                         WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON lk.id_jo = jd.id_jo
+    //                                     INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //                                     WHERE lk.status = 'Y' AND a.tgl_mut < ?
+    //                                     GROUP BY lk.kode_lok, lk.id_item, lk.id_jo, lk.satuan
+
+    //                                     UNION
+
+    //                                     SELECT 'SA' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.unit,
+    //                                         ROUND(SUM(qty), 2) sal_awal, '0' qty_in
+    //                                     FROM whs_sa_fabric a
+    //                                     INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                                     LEFT JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //                                         INNER JOIN so ON jd.id_so = so.id
+    //                                         INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //                                         WHERE jd.cancel = 'N' GROUP BY id_jo ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //                                     LEFT JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //                                     WHERE a.qty > 0
+    //                                     GROUP BY a.kode_lok, a.id_item, a.id_jo, a.unit
+
+    //                                     UNION
+
+    //                                     SELECT 'TRI' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.satuan,
+    //                                         '0' sal_awal, ROUND(SUM(qty_sj), 2) qty_in
+    //                                     FROM whs_lokasi_inmaterial a
+    //                                     INNER JOIN whs_inmaterial_fabric bpb ON bpb.no_dok = a.no_dok
+    //                                     INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                                     INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //                                         INNER JOIN so ON jd.id_so = so.id
+    //                                         INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //                                         WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //                                     INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //                                     WHERE a.status = 'Y' AND bpb.tgl_dok BETWEEN ? AND ?
+    //                                     GROUP BY a.kode_lok, a.id_item, a.id_jo, a.satuan
+
+    //                                     UNION
+
+    //                                     SELECT 'TRM' id, lk.kode_lok, lk.id_jo, lk.no_ws, jd.styleno, mb.supplier buyer, lk.id_item, b.goods_code, b.itemdesc, lk.satuan,
+    //                                         '0' sal_awal, SUM(qty_sj) qty_in
+    //                                     FROM whs_mut_lokasi_h a
+    //                                     INNER JOIN whs_lokasi_inmaterial lk ON lk.no_dok = a.no_mut
+    //                                     INNER JOIN masteritem b ON b.id_item = lk.id_item
+    //                                     INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //                                         INNER JOIN so ON jd.id_so = so.id
+    //                                         INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //                                         WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON lk.id_jo = jd.id_jo
+    //                                     INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //                                     WHERE lk.status = 'Y' AND a.tgl_mut BETWEEN ? AND ?
+    //                                     GROUP BY lk.kode_lok, lk.id_item, lk.id_jo, lk.satuan
+    //                                 ) t
+    //                                 GROUP BY t.kode_lok, t.id_item, t.id_jo, t.satuan
+    //                             ) b ON b.id_item = x.id_item AND b.satuan = x.unit
+    //                             WHERE kode_lok IS NOT NULL
+    //                         ) a
+    //                         LEFT JOIN (
+    //                             SELECT kode_lok, id_item, id_jo, satuan,
+    //                                 ROUND(SUM(qty_out_sbl), 2) qty_out_sbl,
+    //                                 ROUND(SUM(qty_out), 2) qty_out
+    //                             FROM (
+    //                                 SELECT id, kode_lok, id_item, id_jo, satuan, qty_out_sbl, '0' qty_out FROM (
+    //                                     SELECT 'OMB' id, b.kode_lok, b.id_item, b.id_jo, satuan, SUM(a.qty_mutasi) qty_out_sbl
+    //                                     FROM whs_mut_lokasi a
+    //                                     INNER JOIN (SELECT no_barcode, kode_lok, id_item, id_jo, satuan FROM whs_lokasi_inmaterial GROUP BY no_barcode
+    //                                         UNION
+    //                                         SELECT no_barcode, kode_lok, id_item, id_jo, unit satuan FROM whs_sa_fabric GROUP BY no_barcode) b ON a.idbpb_det = b.no_barcode
+    //                                     WHERE a.status = 'Y' AND tgl_mut < ? GROUP BY b.kode_lok, b.id_item, b.id_jo, satuan
+
+    //                                     UNION
+
+    //                                     SELECT 'OTB' id, no_rak kode_lok, id_item, id_jo, satuan, ROUND(SUM(qty_out), 2) qty_out_sbl
+    //                                     FROM whs_bppb_det a
+    //                                     INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+    //                                     WHERE a.status = 'Y' AND tgl_bppb < ? GROUP BY no_rak, id_item, id_jo, satuan
+    //                                 ) c
+
+    //                                 UNION
+
+    //                                 SELECT id, kode_lok, id_item, id_jo, satuan, '0' qty_out_sbl, qty_out FROM (
+    //                                     SELECT 'OM' id, b.kode_lok, b.id_item, b.id_jo, satuan, SUM(a.qty_mutasi) qty_out
+    //                                     FROM whs_mut_lokasi a
+    //                                     INNER JOIN (SELECT no_barcode, kode_lok, id_item, id_jo, satuan FROM whs_lokasi_inmaterial GROUP BY no_barcode
+    //                                         UNION
+    //                                         SELECT no_barcode, kode_lok, id_item, id_jo, unit satuan FROM whs_sa_fabric GROUP BY no_barcode) b ON a.idbpb_det = b.no_barcode
+    //                                     WHERE a.status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY b.kode_lok, b.id_item, b.id_jo, satuan
+
+    //                                     UNION
+
+    //                                     SELECT 'OT' id, no_rak kode_lok, id_item, id_jo, satuan, ROUND(SUM(qty_out), 2) qty_out
+    //                                     FROM whs_bppb_det a
+    //                                     INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+    //                                     WHERE a.status = 'Y' AND tgl_bppb BETWEEN ? AND ? GROUP BY no_rak, id_item, id_jo, satuan
+    //                                 ) d
+    //                             ) e
+    //                             GROUP BY kode_lok, id_item, id_jo, satuan
+    //                         ) f ON f.kode_lok = a.kode_lok AND f.id_jo = a.id_jo AND f.id_item = a.id_item AND f.satuan = a.satuan
+    //                     ) g
+    //                 ) h
+    //                 INNER JOIN masteritem mi ON mi.id_item = h.id_item
+    //                 GROUP BY h.id_item, satuan
+    //             ";
+
+    //             $bindings = [$fromDate, $fromDate, $fromDate, $toDate, $fromDate, $toDate, $fromDate, $fromDate, $fromDate, $toDate, $fromDate, $toDate];
+
+    //         } else {
+    //             // skema baru (>= 2026-01-01): whs_sa_fabric_copy
+    //             $sqlFabric = "
+    //                 WITH
+    //                 buyer AS (
+    //                     SELECT id_jo, kpno, styleno, supplier buyer
+    //                     FROM act_costing ac
+    //                     INNER JOIN so ON ac.id = so.id_cost
+    //                     INNER JOIN jo_det jod ON so.id = jod.id_so
+    //                     INNER JOIN mastersupplier ms ON ms.id_supplier = ac.id_buyer
+    //                     GROUP BY id_jo
+    //                 ),
+    //                 saldo_awal AS (
+    //                     SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno,
+    //                         a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in
+    //                     FROM whs_sa_fabric_copy a
+    //                     INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                     INNER JOIN buyer c ON c.id_jo = a.id_jo
+    //                     WHERE tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?)
+    //                     GROUP BY no_barcode, kode_lok
+    //                 ),
+    //                 in_before AS (
+    //                     SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                         b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //                     FROM whs_inmaterial_fabric a
+    //                     INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //                     INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                     INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                     WHERE tgl_dok >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_dok < ?
+    //                         AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY b.no_barcode, b.kode_lok
+
+    //                     UNION ALL
+
+    //                     SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                         b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //                     FROM whs_mut_lokasi_h a
+    //                     INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //                     INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                     INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                     WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //                         AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY b.no_barcode, b.kode_lok
+    //                 ),
+    //                 in_act AS (
+    //                     SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                         b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //                     FROM whs_inmaterial_fabric a
+    //                     INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //                     INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                     INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                     WHERE tgl_dok BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY b.no_barcode, b.kode_lok
+
+    //                     UNION ALL
+
+    //                     SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                         b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //                     FROM whs_mut_lokasi_h a
+    //                     INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //                     INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                     INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                     WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY b.no_barcode, b.kode_lok
+    //                 ),
+    //                 out_before AS (
+    //                     SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //                     FROM whs_bppb_h a
+    //                     INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //                     WHERE tgl_bppb >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_bppb < ?
+    //                         AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY id_roll, no_rak
+
+    //                     UNION ALL
+
+    //                     SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //                     FROM whs_mut_lokasi_h a
+    //                     INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //                     WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //                         AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY id_roll, no_rak
+    //                 ),
+    //                 out_act AS (
+    //                     SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                     FROM whs_bppb_h a
+    //                     INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //                     WHERE tgl_bppb BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY id_roll, no_rak
+
+    //                     UNION ALL
+
+    //                     SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                     FROM whs_mut_lokasi_h a
+    //                     INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //                     WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                     GROUP BY id_roll, no_rak
+    //                 ),
+    //                 pemasukan AS (
+    //                     SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc,
+    //                         no_roll, no_roll_buyer, no_lot, satuan, SUM(COALESCE(qty, 0)) qty_awal, SUM(COALESCE(qty_in, 0)) qty_in
+    //                     FROM (SELECT * FROM saldo_awal UNION ALL SELECT * FROM in_before UNION ALL SELECT * FROM in_act) a
+    //                     GROUP BY no_barcode, kode_lok
+    //                 ),
+    //                 pengeluaran AS (
+    //                     SELECT id_roll, no_rak, id_jo, id_item,
+    //                         SUM(COALESCE(qty_out_bfr, 0)) qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                     FROM (SELECT * FROM out_before UNION ALL SELECT * FROM out_act) a
+    //                     GROUP BY id_roll, no_rak
+    //                 ),
+    //                 mutasi AS (
+    //                     SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc,
+    //                         no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in,
+    //                         COALESCE(qty_out_bfr, 0) qty_out_sbl, COALESCE(qty_out, 0) qty_out,
+    //                         (qty_awal + qty_in - COALESCE(qty_out_bfr, 0) - COALESCE(qty_out, 0)) sal_akhir
+    //                     FROM pemasukan a
+    //                     LEFT JOIN pengeluaran b ON b.id_roll = a.no_barcode AND b.no_rak = a.kode_lok
+    //                 ),
+    //                 mutasi_fix AS (
+    //                     SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc,
+    //                         mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir
+    //                     FROM mutasi a
+    //                     INNER JOIN masteritem mi ON mi.id_item = a.id_item
+    //                     WHERE (sal_awal + qty_in) > 0
+    //                 )
+    //                 SELECT '' vmat, b.matclass, a.id_item, b.goods_code, b.itemdesc, satuan AS unit,
+    //                     ROUND(SUM(sal_awal), 2) AS saldoawal,
+    //                     ROUND(SUM(qty_in), 2) AS qtyterima,
+    //                     ROUND(SUM(qty_out), 2) AS qtykeluar,
+    //                     ROUND(SUM(sal_akhir), 2) AS saldoakhir,
+    //                     MAX(kpno) AS kpno
+    //                 FROM mutasi_fix a
+    //                 INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                 GROUP BY a.id_item, satuan
+    //             ";
+
+    //             $bindings = [
+    //                 $fromDate, $fromDate, $fromDate, $fromDate, $fromDate,
+    //                 $fromDate, $toDate, $fromDate, $toDate,
+    //                 $fromDate, $fromDate, $fromDate, $fromDate,
+    //                 $fromDate, $toDate, $fromDate, $toDate,
+    //             ];
+    //         }
+
+    //         $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
+    //         $result = $result->concat($fabricRows);
     //     }
 
-    //     $sql = "
-    //         SELECT isi.*, mi.itemdesc, mi.goods_code, ac.kpno
-    //         FROM (
-    //             SELECT A.id_jo, A.id_item,
-    //                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
-    //                    SUM(A.qtyin) AS qtyterima,
-    //                    SUM(A.qtyout) AS qtykeluar,
-    //                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
-    //                    A.unit
+    //     // ===== ACCESSORIES: pakai skema bpb/bppb biasa =====
+    //     if (in_array($kategori, ['all', 'semua', 'accesories', 'accessories'])) {
+    //         $sqlAcc = "
+    //             SELECT isi.id_item, mi.goods_code, mi.itemdesc, isi.unit,
+    //                 SUM(isi.sain) - SUM(isi.saout) AS saldoawal,
+    //                 SUM(isi.qtyin) AS qtyterima,
+    //                 SUM(isi.qtyout) AS qtykeluar,
+    //                 (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir,
+    //                 NULL AS kpno
     //             FROM (
-    //                 SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate < ? GROUP BY id_jo, id_item, unit
+    //                 SELECT id_item, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit
+    //                 FROM bpb WHERE bpbdate < ? GROUP BY id_item, unit
+
     //                 UNION ALL
-    //                 SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit FROM bppb WHERE bppbdate < ? GROUP BY id_jo, id_item, unit
+
+    //                 SELECT id_item, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit
+    //                 FROM bppb WHERE bppbdate < ? GROUP BY id_item, unit
+
     //                 UNION ALL
-    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_jo, id_item, unit
+
+    //                 SELECT id_item, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit
+    //                 FROM bpb WHERE bpbdate >= ? AND bpbdate <= ? GROUP BY id_item, unit
+
     //                 UNION ALL
-    //                 SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_jo, id_item, unit
-    //             ) A
-    //             GROUP BY A.id_jo, A.id_item, A.unit
-    //         ) isi
-    //         INNER JOIN masteritem mi ON isi.id_item = mi.id_item
-    //         INNER JOIN (
-    //             SELECT jd.id_jo, ac.kpno FROM jo_det jd
-    //             INNER JOIN so ON so.id = jd.id_so
-    //             INNER JOIN act_costing ac ON ac.id = so.id_cost
-    //         ) ac ON ac.id_jo = isi.id_jo
-    //         INNER JOIN
-    //         WHERE $whereClass
+
+    //                 SELECT id_item, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit
+    //                 FROM bppb WHERE bppbdate >= ? AND bppbdate <= ? GROUP BY id_item, unit
+    //             ) isi
+    //             INNER JOIN masteritem mi ON mi.id_item = isi.id_item
+    //             WHERE mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+    //             GROUP BY isi.id_item, isi.unit
+    //         ";
+
+    //         $accRows = $mysql_sb->select($sqlAcc, [
+    //             $fromDate, $fromDate, $fromDate, $toDate, $fromDate, $toDate,
+    //         ]);
+
+    //         $result = $result->concat($accRows);
+    //     }
+
+    //     return $result;
+    // }
+
+    // public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+    //     $kategori = strtolower($kategoriBarang);
+    //     $result = collect();
+
+    //     $contentJoinFromMi = "
+    //         INNER JOIN masterdesc bd ON bd.id = mi.id_gen
+    //         INNER JOIN mastercolor mc2 ON mc2.id = bd.id_color
+    //         INNER JOIN masterweight mw ON mw.id = mc2.id_weight
+    //         INNER JOIN masterlength ml ON ml.id = mw.id_length
+    //         INNER JOIN masterwidth mwd ON mwd.id = ml.id_width
+    //         INNER JOIN mastercontents mcnt ON mcnt.id = mwd.id_contents
     //     ";
 
+    //     // ===== FABRIC: group by mastercontents.id + unit =====
+    //     if (in_array($kategori, ['all', 'semua', 'fabric'])) {
+    //         // if ($fromDate >= '2024-02-01' && $fromDate < '2026-01-01') {
+    //         //     // skema lama: whs_sa_fabric
+    //         //     $sqlFabric = "
+    //         //         SELECT '' AS vmat, mi.matclass, mcnt.id AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc,
+    //         //             satuan AS unit,
+    //         //             ROUND(SUM(sal_awal), 2) AS saldoawal,
+    //         //             ROUND(SUM(qty_in), 2) AS qtyterima,
+    //         //             ROUND(SUM(qty_out), 2) AS qtykeluar,
+    //         //             ROUND(SUM(sal_akhir), 2) AS saldoakhir,
+    //         //             NULL AS kpno
+    //         //         FROM (
+    //         //             SELECT
+    //         //                 kode_lok, id_jo, no_ws, styleno, buyer, id_item, goods_code, itemdesc, satuan,
+    //         //                 ROUND((sal_awal - qty_out_sbl), 2) sal_awal,
+    //         //                 ROUND(qty_in, 2) qty_in,
+    //         //                 ROUND(qty_out_sbl, 2) qty_out_sbl,
+    //         //                 ROUND(qty_out, 2) qty_out,
+    //         //                 ROUND((sal_awal + qty_in - qty_out_sbl - qty_out), 2) sal_akhir
+    //         //             FROM (
+    //         //                 SELECT a.kode_lok, a.id_jo, no_ws, styleno, buyer, a.id_item, goods_code, itemdesc, a.satuan,
+    //         //                     sal_awal, qty_in,
+    //         //                     COALESCE(qty_out_sbl, '0') qty_out_sbl,
+    //         //                     COALESCE(qty_out, '0') qty_out
+    //         //                 FROM (
+    //         //                     SELECT b.kode_lok, b.id_jo, b.no_ws, b.styleno, b.buyer, b.id_item, b.goods_code, b.itemdesc, b.satuan,
+    //         //                         sal_awal, qty_in
+    //         //                     FROM (SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
+    //         //                         UNION
+    //         //                         SELECT id_item, unit FROM whs_inmaterial_fabric_det GROUP BY id_item, unit) x
+    //         //                     LEFT JOIN (
+    //         //                         SELECT kode_lok, id_jo, no_ws, styleno, buyer, id_item, goods_code, itemdesc, satuan,
+    //         //                             SUM(sal_awal) sal_awal, SUM(qty_in) qty_in
+    //         //                         FROM (
+    //         //                             SELECT 'TR' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.satuan,
+    //         //                                 SUM(qty_sj) sal_awal, '0' qty_in
+    //         //                             FROM whs_lokasi_inmaterial a
+    //         //                             INNER JOIN whs_inmaterial_fabric bpb ON bpb.no_dok = a.no_dok
+    //         //                             INNER JOIN masteritem b ON b.id_item = a.id_item
+    //         //                             INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //         //                                 INNER JOIN so ON jd.id_so = so.id
+    //         //                                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //         //                                 WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //         //                             INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //         //                             WHERE a.status = 'Y' AND bpb.tgl_dok < ?
+    //         //                             GROUP BY a.kode_lok, a.id_item, a.id_jo, a.satuan
 
+    //         //                             UNION
 
-    //     return $mysql_sb->select($sql, [
-    //         $fromDate,
-    //         $fromDate,
-    //         $fromDate, $toDate,
-    //         $fromDate, $toDate
-    //     ]);
+    //         //                             SELECT 'SAM' id, lk.kode_lok, lk.id_jo, lk.no_ws, jd.styleno, mb.supplier buyer, lk.id_item, b.goods_code, b.itemdesc, lk.satuan,
+    //         //                                 SUM(qty_sj) sal_awal, '0' qty_in
+    //         //                             FROM whs_mut_lokasi_h a
+    //         //                             INNER JOIN whs_lokasi_inmaterial lk ON lk.no_dok = a.no_mut
+    //         //                             INNER JOIN masteritem b ON b.id_item = lk.id_item
+    //         //                             INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //         //                                 INNER JOIN so ON jd.id_so = so.id
+    //         //                                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //         //                                 WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON lk.id_jo = jd.id_jo
+    //         //                             INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //         //                             WHERE lk.status = 'Y' AND a.tgl_mut < ?
+    //         //                             GROUP BY lk.kode_lok, lk.id_item, lk.id_jo, lk.satuan
+
+    //         //                             UNION
+
+    //         //                             SELECT 'SA' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.unit,
+    //         //                                 ROUND(SUM(qty), 2) sal_awal, '0' qty_in
+    //         //                             FROM whs_sa_fabric a
+    //         //                             INNER JOIN masteritem b ON b.id_item = a.id_item
+    //         //                             LEFT JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //         //                                 INNER JOIN so ON jd.id_so = so.id
+    //         //                                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //         //                                 WHERE jd.cancel = 'N' GROUP BY id_jo ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //         //                             LEFT JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //         //                             WHERE a.qty > 0
+    //         //                             GROUP BY a.kode_lok, a.id_item, a.id_jo, a.unit
+
+    //         //                             UNION
+
+    //         //                             SELECT 'TRI' id, a.kode_lok, a.id_jo, a.no_ws, jd.styleno, mb.supplier buyer, a.id_item, b.goods_code, b.itemdesc, a.satuan,
+    //         //                                 '0' sal_awal, ROUND(SUM(qty_sj), 2) qty_in
+    //         //                             FROM whs_lokasi_inmaterial a
+    //         //                             INNER JOIN whs_inmaterial_fabric bpb ON bpb.no_dok = a.no_dok
+    //         //                             INNER JOIN masteritem b ON b.id_item = a.id_item
+    //         //                             INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //         //                                 INNER JOIN so ON jd.id_so = so.id
+    //         //                                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //         //                                 WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON a.id_jo = jd.id_jo
+    //         //                             INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //         //                             WHERE a.status = 'Y' AND bpb.tgl_dok BETWEEN ? AND ?
+    //         //                             GROUP BY a.kode_lok, a.id_item, a.id_jo, a.satuan
+
+    //         //                             UNION
+
+    //         //                             SELECT 'TRM' id, lk.kode_lok, lk.id_jo, lk.no_ws, jd.styleno, mb.supplier buyer, lk.id_item, b.goods_code, b.itemdesc, lk.satuan,
+    //         //                                 '0' sal_awal, SUM(qty_sj) qty_in
+    //         //                             FROM whs_mut_lokasi_h a
+    //         //                             INNER JOIN whs_lokasi_inmaterial lk ON lk.no_dok = a.no_mut
+    //         //                             INNER JOIN masteritem b ON b.id_item = lk.id_item
+    //         //                             INNER JOIN (SELECT ac.id_buyer, ac.styleno, jd.id_jo, ac.kpno FROM jo_det jd
+    //         //                                 INNER JOIN so ON jd.id_so = so.id
+    //         //                                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //         //                                 WHERE jd.cancel = 'N' GROUP BY id_cost ORDER BY id_jo ASC) jd ON lk.id_jo = jd.id_jo
+    //         //                             INNER JOIN mastersupplier mb ON jd.id_buyer = mb.id_supplier
+    //         //                             WHERE lk.status = 'Y' AND a.tgl_mut BETWEEN ? AND ?
+    //         //                             GROUP BY lk.kode_lok, lk.id_item, lk.id_jo, lk.satuan
+    //         //                         ) t
+    //         //                         GROUP BY t.kode_lok, t.id_item, t.id_jo, t.satuan
+    //         //                     ) b ON b.id_item = x.id_item AND b.satuan = x.unit
+    //         //                     WHERE kode_lok IS NOT NULL
+    //         //                 ) a
+    //         //                 LEFT JOIN (
+    //         //                     SELECT kode_lok, id_item, id_jo, satuan,
+    //         //                         ROUND(SUM(qty_out_sbl), 2) qty_out_sbl,
+    //         //                         ROUND(SUM(qty_out), 2) qty_out
+    //         //                     FROM (
+    //         //                         SELECT id, kode_lok, id_item, id_jo, satuan, qty_out_sbl, '0' qty_out FROM (
+    //         //                             SELECT 'OMB' id, b.kode_lok, b.id_item, b.id_jo, satuan, SUM(a.qty_mutasi) qty_out_sbl
+    //         //                             FROM whs_mut_lokasi a
+    //         //                             INNER JOIN (SELECT no_barcode, kode_lok, id_item, id_jo, satuan FROM whs_lokasi_inmaterial GROUP BY no_barcode
+    //         //                                 UNION
+    //         //                                 SELECT no_barcode, kode_lok, id_item, id_jo, unit satuan FROM whs_sa_fabric GROUP BY no_barcode) b ON a.idbpb_det = b.no_barcode
+    //         //                             WHERE a.status = 'Y' AND tgl_mut < ? GROUP BY b.kode_lok, b.id_item, b.id_jo, satuan
+
+    //         //                             UNION
+
+    //         //                             SELECT 'OTB' id, no_rak kode_lok, id_item, id_jo, satuan, ROUND(SUM(qty_out), 2) qty_out_sbl
+    //         //                             FROM whs_bppb_det a
+    //         //                             INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+    //         //                             WHERE a.status = 'Y' AND tgl_bppb < ? GROUP BY no_rak, id_item, id_jo, satuan
+    //         //                         ) c
+
+    //         //                         UNION
+
+    //         //                         SELECT id, kode_lok, id_item, id_jo, satuan, '0' qty_out_sbl, qty_out FROM (
+    //         //                             SELECT 'OM' id, b.kode_lok, b.id_item, b.id_jo, satuan, SUM(a.qty_mutasi) qty_out
+    //         //                             FROM whs_mut_lokasi a
+    //         //                             INNER JOIN (SELECT no_barcode, kode_lok, id_item, id_jo, satuan FROM whs_lokasi_inmaterial GROUP BY no_barcode
+    //         //                                 UNION
+    //         //                                 SELECT no_barcode, kode_lok, id_item, id_jo, unit satuan FROM whs_sa_fabric GROUP BY no_barcode) b ON a.idbpb_det = b.no_barcode
+    //         //                             WHERE a.status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY b.kode_lok, b.id_item, b.id_jo, satuan
+
+    //         //                             UNION
+
+    //         //                             SELECT 'OT' id, no_rak kode_lok, id_item, id_jo, satuan, ROUND(SUM(qty_out), 2) qty_out
+    //         //                             FROM whs_bppb_det a
+    //         //                             INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+    //         //                             WHERE a.status = 'Y' AND tgl_bppb BETWEEN ? AND ? GROUP BY no_rak, id_item, id_jo, satuan
+    //         //                         ) d
+    //         //                     ) e
+    //         //                     GROUP BY kode_lok, id_item, id_jo, satuan
+    //         //                 ) f ON f.kode_lok = a.kode_lok AND f.id_jo = a.id_jo AND f.id_item = a.id_item AND f.satuan = a.satuan
+    //         //             ) g
+    //         //         ) h
+    //         //         INNER JOIN masteritem mi ON mi.id_item = h.id_item
+    //         //         $contentJoinFromMi
+    //         //         LEFT JOIN mastercontents mc ON mc.id = mcnt.id
+    //         //         GROUP BY mcnt.id, satuan
+    //         //     ";
+
+    //         //     $bindings = [$fromDate, $fromDate, $fromDate, $toDate, $fromDate, $toDate, $fromDate, $fromDate, $fromDate, $toDate, $fromDate, $toDate];
+
+    //         // } else {
+    //         //     // skema baru (>= 2026-01-01): whs_sa_fabric_copy
+    //         //     $sqlFabric = "
+    //         //         WITH
+    //         //         buyer AS (
+    //         //             SELECT id_jo, kpno, styleno, supplier buyer
+    //         //             FROM act_costing ac
+    //         //             INNER JOIN so ON ac.id = so.id_cost
+    //         //             INNER JOIN jo_det jod ON so.id = jod.id_so
+    //         //             INNER JOIN mastersupplier ms ON ms.id_supplier = ac.id_buyer
+    //         //             GROUP BY id_jo
+    //         //         ),
+    //         //         saldo_awal AS (
+    //         //             SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno,
+    //         //                 a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in
+    //         //             FROM whs_sa_fabric_copy a
+    //         //             INNER JOIN masteritem b ON b.id_item = a.id_item
+    //         //             INNER JOIN buyer c ON c.id_jo = a.id_jo
+    //         //             WHERE tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?)
+    //         //             GROUP BY no_barcode, kode_lok
+    //         //         ),
+    //         //         in_before AS (
+    //         //             SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //         //                 b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //         //             FROM whs_inmaterial_fabric a
+    //         //             INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //         //             INNER JOIN masteritem c ON c.id_item = b.id_item
+    //         //             INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //         //             WHERE tgl_dok >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_dok < ?
+    //         //                 AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY b.no_barcode, b.kode_lok
+
+    //         //             UNION ALL
+
+    //         //             SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //         //                 b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //         //             FROM whs_mut_lokasi_h a
+    //         //             INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //         //             INNER JOIN masteritem c ON c.id_item = b.id_item
+    //         //             INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //         //             WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //         //                 AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY b.no_barcode, b.kode_lok
+    //         //         ),
+    //         //         in_act AS (
+    //         //             SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //         //                 b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //         //             FROM whs_inmaterial_fabric a
+    //         //             INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //         //             INNER JOIN masteritem c ON c.id_item = b.id_item
+    //         //             INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //         //             WHERE tgl_dok BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY b.no_barcode, b.kode_lok
+
+    //         //             UNION ALL
+
+    //         //             SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //         //                 b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //         //             FROM whs_mut_lokasi_h a
+    //         //             INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //         //             INNER JOIN masteritem c ON c.id_item = b.id_item
+    //         //             INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //         //             WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY b.no_barcode, b.kode_lok
+    //         //         ),
+    //         //         out_before AS (
+    //         //             SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //         //             FROM whs_bppb_h a
+    //         //             INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //         //             WHERE tgl_bppb >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_bppb < ?
+    //         //                 AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY id_roll, no_rak
+
+    //         //             UNION ALL
+
+    //         //             SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //         //             FROM whs_mut_lokasi_h a
+    //         //             INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //         //             WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //         //                 AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY id_roll, no_rak
+    //         //         ),
+    //         //         out_act AS (
+    //         //             SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //         //             FROM whs_bppb_h a
+    //         //             INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //         //             WHERE tgl_bppb BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY id_roll, no_rak
+
+    //         //             UNION ALL
+
+    //         //             SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //         //             FROM whs_mut_lokasi_h a
+    //         //             INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //         //             WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //         //             GROUP BY id_roll, no_rak
+    //         //         ),
+    //         //         pemasukan AS (
+    //         //             SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc,
+    //         //                 no_roll, no_roll_buyer, no_lot, satuan, SUM(COALESCE(qty, 0)) qty_awal, SUM(COALESCE(qty_in, 0)) qty_in
+    //         //             FROM (SELECT * FROM saldo_awal UNION ALL SELECT * FROM in_before UNION ALL SELECT * FROM in_act) a
+    //         //             GROUP BY no_barcode, kode_lok
+    //         //         ),
+    //         //         pengeluaran AS (
+    //         //             SELECT id_roll, no_rak, id_jo, id_item,
+    //         //                 SUM(COALESCE(qty_out_bfr, 0)) qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //         //             FROM (SELECT * FROM out_before UNION ALL SELECT * FROM out_act) a
+    //         //             GROUP BY id_roll, no_rak
+    //         //         ),
+    //         //         mutasi AS (
+    //         //             SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc,
+    //         //                 no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in,
+    //         //                 COALESCE(qty_out_bfr, 0) qty_out_sbl, COALESCE(qty_out, 0) qty_out,
+    //         //                 (qty_awal + qty_in - COALESCE(qty_out_bfr, 0) - COALESCE(qty_out, 0)) sal_akhir
+    //         //             FROM pemasukan a
+    //         //             LEFT JOIN pengeluaran b ON b.id_roll = a.no_barcode AND b.no_rak = a.kode_lok
+    //         //         ),
+    //         //         mutasi_fix AS (
+    //         //             SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc,
+    //         //                 mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir
+    //         //             FROM mutasi a
+    //         //             INNER JOIN masteritem mi ON mi.id_item = a.id_item
+    //         //             WHERE (sal_awal + qty_in) > 0
+    //         //         )
+    //         //         SELECT '' vmat, b.matclass, mcnt.id AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc,
+    //         //             satuan AS unit,
+    //         //             ROUND(SUM(sal_awal), 2) AS saldoawal,
+    //         //             ROUND(SUM(qty_in), 2) AS qtyterima,
+    //         //             ROUND(SUM(qty_out), 2) AS qtykeluar,
+    //         //             ROUND(SUM(sal_akhir), 2) AS saldoakhir,
+    //         //             MAX(kpno) AS kpno
+    //         //         FROM mutasi_fix a
+    //         //         INNER JOIN masteritem b ON b.id_item = a.id_item
+    //         //         INNER JOIN masteritem mi ON mi.id_item = a.id_item
+    //         //         $contentJoinFromMi
+    //         //         LEFT JOIN mastercontents mc ON mc.id = mcnt.id
+    //         //         GROUP BY mcnt.id, satuan
+    //         //     ";
+
+    //         //     $bindings = [
+    //         //         $fromDate, $fromDate, $fromDate, $fromDate, $fromDate,
+    //         //         $fromDate, $toDate, $fromDate, $toDate,
+    //         //         $fromDate, $fromDate, $fromDate, $fromDate,
+    //         //         $fromDate, $toDate, $fromDate, $toDate,
+    //         //     ];
+    //         // }
+
+    //         $sqlFabric = "
+    //             WITH
+    //             buyer AS (
+    //                 SELECT id_jo, kpno, styleno, supplier buyer
+    //                 FROM act_costing ac
+    //                 INNER JOIN so ON ac.id = so.id_cost
+    //                 INNER JOIN jo_det jod ON so.id = jod.id_so
+    //                 INNER JOIN mastersupplier ms ON ms.id_supplier = ac.id_buyer
+    //                 GROUP BY id_jo
+    //             ),
+    //             saldo_awal AS (
+    //                 SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno,
+    //                     a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in
+    //                 FROM whs_sa_fabric_copy a
+    //                 INNER JOIN masteritem b ON b.id_item = a.id_item
+    //                 INNER JOIN buyer c ON c.id_jo = a.id_jo
+    //                 WHERE tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?)
+    //                 GROUP BY no_barcode, kode_lok
+    //             ),
+    //             in_before AS (
+    //                 SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                     b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //                 FROM whs_inmaterial_fabric a
+    //                 INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //                 INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                 INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                 WHERE tgl_dok >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_dok < ?
+    //                     AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY b.no_barcode, b.kode_lok
+
+    //                 UNION ALL
+
+    //                 SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                     b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, SUM(qty_sj) qty, 0 qty_in
+    //                 FROM whs_mut_lokasi_h a
+    //                 INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //                 INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                 INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                 WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //                     AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY b.no_barcode, b.kode_lok
+    //             ),
+    //             in_act AS (
+    //                 SELECT b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                     b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //                 FROM whs_inmaterial_fabric a
+    //                 INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_dok
+    //                 INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                 INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                 WHERE tgl_dok BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY b.no_barcode, b.kode_lok
+
+    //                 UNION ALL
+
+    //                 SELECT b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno,
+    //                     b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, SUM(qty_sj) qty_in
+    //                 FROM whs_mut_lokasi_h a
+    //                 INNER JOIN whs_lokasi_inmaterial b ON b.no_dok = a.no_mut
+    //                 INNER JOIN masteritem c ON c.id_item = b.id_item
+    //                 INNER JOIN buyer d ON d.id_jo = b.id_jo
+    //                 WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY b.no_barcode, b.kode_lok
+    //             ),
+    //             out_before AS (
+    //                 SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //                 FROM whs_bppb_h a
+    //                 INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //                 WHERE tgl_bppb >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_bppb < ?
+    //                     AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY id_roll, no_rak
+
+    //                 UNION ALL
+
+    //                 SELECT id_roll, no_rak, id_jo, id_item, SUM(COALESCE(qty_out, 0)) qty_out_bfr, 0 qty_out
+    //                 FROM whs_mut_lokasi_h a
+    //                 INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //                 WHERE tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= ?) AND tgl_mut < ?
+    //                     AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY id_roll, no_rak
+    //             ),
+    //             out_act AS (
+    //                 SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                 FROM whs_bppb_h a
+    //                 INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //                 WHERE tgl_bppb BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY id_roll, no_rak
+
+    //                 UNION ALL
+
+    //                 SELECT id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                 FROM whs_mut_lokasi_h a
+    //                 INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_mut
+    //                 WHERE tgl_mut BETWEEN ? AND ? AND a.status != 'Cancel' AND b.status = 'Y'
+    //                 GROUP BY id_roll, no_rak
+    //             ),
+    //             pemasukan AS (
+    //                 SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc,
+    //                     no_roll, no_roll_buyer, no_lot, satuan, SUM(COALESCE(qty, 0)) qty_awal, SUM(COALESCE(qty_in, 0)) qty_in
+    //                 FROM (SELECT * FROM saldo_awal UNION ALL SELECT * FROM in_before UNION ALL SELECT * FROM in_act) a
+    //                 GROUP BY no_barcode, kode_lok
+    //             ),
+    //             pengeluaran AS (
+    //                 SELECT id_roll, no_rak, id_jo, id_item,
+    //                     SUM(COALESCE(qty_out_bfr, 0)) qty_out_bfr, SUM(COALESCE(qty_out, 0)) qty_out
+    //                 FROM (SELECT * FROM out_before UNION ALL SELECT * FROM out_act) a
+    //                 GROUP BY id_roll, no_rak
+    //             ),
+    //             mutasi AS (
+    //                 SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc,
+    //                     no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in,
+    //                     COALESCE(qty_out_bfr, 0) qty_out_sbl, COALESCE(qty_out, 0) qty_out,
+    //                     (qty_awal + qty_in - COALESCE(qty_out_bfr, 0) - COALESCE(qty_out, 0)) sal_akhir
+    //                 FROM pemasukan a
+    //                 LEFT JOIN pengeluaran b ON b.id_roll = a.no_barcode AND b.no_rak = a.kode_lok
+    //             ),
+    //             mutasi_fix AS (
+    //                 SELECT no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc,
+    //                     mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir
+    //                 FROM mutasi a
+    //                 INNER JOIN masteritem mi ON mi.id_item = a.id_item
+    //                 WHERE (sal_awal + qty_in) > 0
+    //             )
+    //             SELECT '' vmat, b.matclass, mcnt.id AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc,
+    //                 satuan AS unit,
+    //                 ROUND(SUM(sal_awal), 2) AS saldoawal,
+    //                 ROUND(SUM(qty_in), 2) AS qtyterima,
+    //                 ROUND(SUM(qty_out), 2) AS qtykeluar,
+    //                 ROUND(SUM(sal_akhir), 2) AS saldoakhir,
+    //                 MAX(kpno) AS kpno
+    //             FROM mutasi_fix a
+    //             INNER JOIN masteritem b ON b.id_item = a.id_item
+    //             INNER JOIN masteritem mi ON mi.id_item = a.id_item
+    //             $contentJoinFromMi
+    //             LEFT JOIN mastercontents mc ON mc.id = mcnt.id
+    //             GROUP BY mcnt.id, satuan
+    //         ";
+
+    //         $bindings = [
+    //             $fromDate, $fromDate, $fromDate, $fromDate, $fromDate,
+    //             $fromDate, $toDate, $fromDate, $toDate,
+    //             $fromDate, $fromDate, $fromDate, $fromDate,
+    //             $fromDate, $toDate, $fromDate, $toDate,
+    //         ];
+
+    //         $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
+    //         $result = $result->concat($fabricRows);
+    //     }
+
+    //     // ===== ACCESSORIES: group by mastercontents.id + unit =====
+    //     if (in_array($kategori, ['all', 'semua', 'accesories', 'accessories'])) {
+    //         $contentJoin = "
+    //             INNER JOIN masteritem mi ON mi.id_item = b.id_item
+    //             $contentJoinFromMi
+    //         ";
+
+    //         $sqlAcc = "
+    //             SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
+    //                 SUM(isi.sain) - SUM(isi.saout) AS saldoawal,
+    //                 SUM(isi.qtyin) AS qtyterima,
+    //                 SUM(isi.qtyout) AS qtykeluar,
+    //                 (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir,
+    //                 NULL AS kpno
+    //             FROM (
+    //                 SELECT mcnt.id AS id_contents, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+    //                 FROM bpb b
+    //                 $contentJoin
+    //                 WHERE b.bpbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+    //                 GROUP BY mcnt.id, b.unit
+
+    //                 UNION ALL
+
+    //                 SELECT mcnt.id AS id_contents, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+    //                 FROM bppb b
+    //                 $contentJoin
+    //                 WHERE b.bppbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+    //                 GROUP BY mcnt.id, b.unit
+
+    //                 UNION ALL
+
+    //                 SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
+    //                 FROM bpb b
+    //                 $contentJoin
+    //                 WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+    //                 GROUP BY mcnt.id, b.unit
+
+    //                 UNION ALL
+
+    //                 SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
+    //                 FROM bppb b
+    //                 $contentJoin
+    //                 WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+    //                 GROUP BY mcnt.id, b.unit
+    //             ) isi
+    //             LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
+    //             GROUP BY isi.id_contents, isi.unit
+    //         ";
+
+    //         $accRows = $mysql_sb->select($sqlAcc, [
+    //             $fromDate,
+    //             $fromDate,
+    //             $fromDate, $toDate,
+    //             $fromDate, $toDate,
+    //         ]);
+
+    //         $result = $result->concat($accRows);
+    //     }
+
+    //     return $result;
     // }
 
     public function getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang)
     {
         $mysql_sb = DB::connection('mysql_sb');
-        if (strtolower($kategoriBarang) === 'fabric') {
-            $whereClass = "mi.matclass = 'FABRIC'";
-        } elseif (strtolower($kategoriBarang) === 'accesories') {
-            $whereClass = "mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
-        } else {
-            $whereClass = "mi.matclass IN ('FABRIC', 'ACCESORIES PACKING', 'ACCESORIES SEWING')";
-        }
+        $kategori = strtolower($kategoriBarang);
+        $result = collect();
 
-        $contentJoin = "
-            INNER JOIN masteritem mi ON mi.id_item = b.id_item
+        $contentJoinFromMi = "
             INNER JOIN masterdesc bd ON bd.id = mi.id_gen
             INNER JOIN mastercolor mc2 ON mc2.id = bd.id_color
             INNER JOIN masterweight mw ON mw.id = mc2.id_weight
@@ -81,63 +915,153 @@ class MutasiService
             INNER JOIN mastercontents mcnt ON mcnt.id = mwd.id_contents
         ";
 
-        $sql = "
-            SELECT isi.*, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, ac.kpno
-            FROM (
-                SELECT A.id_contents AS id_item,
-                    A.id_jo, A.id_contents,
-                    SUM(A.sain) - SUM(A.saout) AS saldoawal,
-                    SUM(A.qtyin) AS qtyterima,
-                    SUM(A.qtyout) AS qtykeluar,
-                    (SUM(A.sain) - SUM(A.saout)) + SUM(A.qtyin) - SUM(A.qtyout) AS saldoakhir,
-                    A.unit
+        // ===== FABRIC: group by mastercontents.id + unit =====
+        if (in_array($kategori, ['all', 'semua', 'fabric'])) {
+            $sqlFabric = "
+                SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
+                    ROUND(SUM(sal_awal - qty_out_sbl), 2) AS saldoawal,
+                    ROUND(SUM(qty_in), 2) AS qtyterima,
+                    ROUND(SUM(qty_out), 2) AS qtykeluar,
+                    ROUND(SUM(sal_awal + qty_in - qty_out_sbl - qty_out), 2) AS saldoakhir,
+                    NULL AS kpno
                 FROM (
-                    SELECT mcnt.id AS id_contents, b.id_jo, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    SELECT a.id_item, a.unit, mcnt.id AS id_contents,
+                        COALESCE(sal_awal, 0) sal_awal,
+                        COALESCE(qty_in, 0) qty_in,
+                        COALESCE(qty_out_sbl, 0) qty_out_sbl,
+                        COALESCE(qty_out, 0) qty_out,
+                        (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) fil
+                    FROM (
+                        SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
+                        UNION
+                        SELECT id_item, unit FROM whs_inmaterial_fabric_det GROUP BY id_item, unit
+                    ) a
+                    LEFT JOIN (
+                        SELECT id_item, unit, SUM(sal_awal) sal_awal FROM (
+                            SELECT 'tr' id, id_item, unit, SUM(qty_good) sal_awal
+                            FROM whs_inmaterial_fabric_det
+                            WHERE tgl_dok < ? AND status = 'Y' GROUP BY id_item, unit
+
+                            UNION
+
+                            SELECT 'sa' id, id_item, unit, ROUND(SUM(qty), 2) sal_awal
+                            FROM whs_sa_fabric GROUP BY id_item, unit
+                        ) x GROUP BY id_item, unit
+                    ) b ON b.id_item = a.id_item AND b.unit = a.unit
+                    LEFT JOIN (
+                        SELECT id_item, unit, SUM(qty_in) qty_in FROM (
+                            SELECT 'T' id, id_item, unit, SUM(qty_good) qty_in
+                            FROM whs_inmaterial_fabric_det
+                            WHERE tgl_dok BETWEEN ? AND ? AND status = 'Y' GROUP BY id_item, unit
+
+                            UNION
+
+                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_in
+                            FROM whs_mut_lokasi
+                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
+                        ) x GROUP BY id_item, unit
+                    ) c ON c.id_item = a.id_item AND c.unit = a.unit
+                    LEFT JOIN (
+                        SELECT id_item, satuan, SUM(qty_out) qty_out_sbl
+                        FROM whs_bppb_det a
+                        INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+                        WHERE b.tgl_bppb < ? AND a.status = 'Y' GROUP BY id_item, satuan
+                    ) d ON d.id_item = a.id_item AND d.satuan = a.unit
+                    LEFT JOIN (
+                        SELECT id_item, satuan, SUM(qty_out) qty_out FROM (
+                            SELECT 'T' id, id_item, satuan, SUM(qty_out) qty_out
+                            FROM whs_bppb_det a
+                            INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
+                            WHERE b.tgl_bppb BETWEEN ? AND ? AND a.status = 'Y' GROUP BY id_item, satuan
+
+                            UNION
+
+                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_out
+                            FROM whs_mut_lokasi
+                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
+                        ) x GROUP BY id_item, satuan
+                    ) e ON e.id_item = a.id_item AND e.satuan = a.unit
+                    INNER JOIN masteritem mi ON mi.id_item = a.id_item
+                    $contentJoinFromMi
+                    WHERE (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) != 0
+                ) isi
+                LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
+                GROUP BY isi.id_contents, isi.unit
+            ";
+
+            $bindings = [
+                $fromDate,
+                $fromDate, $toDate,
+                $fromDate, $toDate,
+                $fromDate,
+                $fromDate, $toDate,
+                $fromDate, $toDate,
+            ];
+
+            $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
+            $result = $result->concat($fabricRows);
+        }
+
+        // ===== ACCESSORIES: group by mastercontents.id + unit (dari bpb/bppb) =====
+        if (in_array($kategori, ['all', 'semua', 'accesories', 'accessories'])) {
+            $contentJoin = "
+                INNER JOIN masteritem mi ON mi.id_item = b.id_item
+                $contentJoinFromMi
+            ";
+
+            $sqlAcc = "
+                SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
+                    SUM(isi.sain) - SUM(isi.saout) AS saldoawal,
+                    SUM(isi.qtyin) AS qtyterima,
+                    SUM(isi.qtyout) AS qtykeluar,
+                    (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir,
+                    NULL AS kpno
+                FROM (
+                    SELECT mcnt.id AS id_contents, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate < ? AND $whereClass
+                    WHERE b.bpbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
-                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    SELECT mcnt.id AS id_contents, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate < ? AND $whereClass
+                    WHERE b.bppbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
-                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
+                    SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND $whereClass
+                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
-                    SELECT mcnt.id AS id_contents, b.id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
+                    SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND $whereClass
+                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
-                ) A
-                GROUP BY A.id_contents, A.unit
-            ) isi
-            LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
-            INNER JOIN (
-                SELECT jd.id_jo, ac.kpno FROM jo_det jd
-                INNER JOIN so ON so.id = jd.id_so
-                INNER JOIN act_costing ac ON ac.id = so.id_cost
-            ) ac ON ac.id_jo = isi.id_jo
-        ";
+                ) isi
+                LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
+                GROUP BY isi.id_contents, isi.unit
+            ";
 
-        return $mysql_sb->select($sql, [
-            $fromDate,
-            $fromDate,
-            $fromDate, $toDate,
-            $fromDate, $toDate
-        ]);
+            $accRows = $mysql_sb->select($sqlAcc, [
+                $fromDate,
+                $fromDate,
+                $fromDate, $toDate,
+                $fromDate, $toDate,
+            ]);
+
+            $result = $result->concat($accRows);
+        }
+
+        return $result;
     }
 
     // public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
@@ -2011,7 +2935,7 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'WS',
-            'Dest / Country',
+            // 'Dest / Country',
             'Unit',
             'Saldo Awal',
             'Penerimaan',
@@ -2030,7 +2954,7 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->kpno ?? '-',
-                $row->country ?? '-',
+                // $row->country ?? '-',
                 'PCS',
                 (float)($row->saldoawal),
                 (float)($row->qtyterima),
@@ -2097,8 +3021,8 @@ class MutasiService
             'Style',
             'Product Group',
             'Product Item',
-            'Color',
-            'Size',
+            // 'Color',
+            // 'Size',
             'Saldo Awal',
             'Penerimaan',
             'Pengeluaran',
@@ -2119,8 +3043,8 @@ class MutasiService
                 $row->styleno ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
-                $row->color ?? '-',
-                $row->size ?? '-',
+                // $row->color ?? '-',
+                // $row->size ?? '-',
                 $row->saldoawal ?? '-',
                 $row->qtyterima ?? '-',
                 $row->qtykeluar ?? '-',

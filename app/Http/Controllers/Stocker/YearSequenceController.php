@@ -2785,6 +2785,17 @@ class YearSequenceController extends Controller
         }
 
         // Check Closing
+        $outputFirstCreated = $output->min('created_at');
+        if (checkClosingDate($outputFirstCreated)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing",
+                "table" => "datatable-input",
+            );
+        }
+
+        // Check Closing
         // $dataCheckClosing = DB::table("form_cut_input")
         //     ->selectRaw("
         //         form_cut_input.*,
