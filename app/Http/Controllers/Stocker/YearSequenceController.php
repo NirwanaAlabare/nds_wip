@@ -2316,8 +2316,8 @@ class YearSequenceController extends Controller
             addColumn('packing_at', function($data) use ($dataOutputPacking) {
                 return $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first()->created_at : null;
             })->
-            addColumn('packing_po', function($data) use ($dataOutputPacking) {
-                return $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
+            addColumn('packing_po', function($data) use ($dataOutputPackingPo) {
+                return $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPacking->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
             })->
             addColumn('packing_po_at', function($data) use ($dataOutputPackingPo) {
                 return $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutputPackingPo->where("kode_numbering", $data->id_year_sequence)->first()->created_at : null;
