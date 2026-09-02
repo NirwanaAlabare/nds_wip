@@ -18,6 +18,7 @@ use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\CutPlan;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Support\Facades\Auth;
@@ -264,6 +265,9 @@ class importCuttingManual implements ToCollection, WithStartRow
                             ]);
 
                             if ($cuttingFormDetail) {
+                                // Generate Form Cut Output
+                                FormCutInputDetailOutput::generateFormCutOutput();
+
                                 \Log::channel("importCuttingManual")->info(["Success Import Cutting Manual :".$i, $cuttingForm, $cuttingFormDetail]);
                             } else {
                                 \Log::channel("importCuttingManual")->info(["Fail Import Cutting Manual on Cutting Form Detail ROW :".$i, $orderInfo]);
