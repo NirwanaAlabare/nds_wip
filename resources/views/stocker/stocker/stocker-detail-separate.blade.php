@@ -12,8 +12,72 @@
         <tbody>
             @foreach ($dataRatio as $ratio)
                 @php
+                // Get Ratio Output List Array
+                    $checkRatioOutputList = array_filter($ratioOutputList, function ($ratioOutput) use ($currentGroupSeparate, $ratio) { return  $ratioOutput['currentGroupRoll'] === $currentGroupSeparate && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id; });
+
+                    // When Ratio Output List Exist
+                    if (isset($checkRatioOutputList) && count($checkRatioOutputList) > 0) {
+                        // When Found Ratio Output Qty is greater than current qty
+                        $index = array_key_first($checkRatioOutputList);
+                        if ($checkRatioOutputList[$index]['qty'] > (intval($ratio->ratio) * intval($currentTotal))) {
+                            $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
+                            $checkRatioOutputList[$index]['qty'] = intval($checkRatioOutputList[$index]['qty']) - $currentOutputQty;
+                        }
+                        // When less
+                        else {
+                            $currentOutputQty = $checkRatioOutputList[$index]['qty'];
+                            $checkRatioOutputList[$index]['qty'] = 0;
+                        }
+
+                        // Next Group Stocker
+                        $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroupSeparate)->where('group_stocker', '<', $currentGroupStockerSeparate)->first();
+                        if (!$checkNextGroupStocker) {
+                            $currentOutputQty += $checkRatioOutputList[$index]['qty'];
+                            $checkRatioOutputList[$index]['qty'] = 0;
+                        }
+                    }
+                    // When Ratio Output List not Exist
+                    else {
+
+                        // Get Ratio Output Data
+                        $currentOutput = $dataRatioOutput ? $dataRatioOutput->where("marker_detail_id", $ratio->marker_detail_id)->where("group_roll", $currentGroupSeparate)->first() : null;
+
+                        if ($currentOutput) {
+                            $currentOutputStock = $currentOutput['qty_output_aktual'];
+                            // When Found Ratio Output Qty is greater than current qty
+                            if ($currentOutput['qty_output_aktual'] > (intval($ratio->ratio) * intval($currentTotal))) {
+                                $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
+                                $currentOutputStock = $currentOutputStock - $currentOutputQty;
+                            }
+                            // When less
+                            else {
+                                $currentOutputQty = $currentOutputStock;
+                                $currentOutputStock = 0;
+                            }
+
+                            // Next Group Stocker
+                            $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroupSeparate)->where('group_stocker', '<', $currentGroupStocker)->first();
+                            if (!$checkNextGroupStocker) {
+                                $currentOutputQty += $currentOutputStock;
+                                $currentOutputStock = 0;
+                            }
+
+                            array_push($ratioOutputList, [
+                                "currentGroupRoll" => $currentGroupSeparate,
+                                "currentMarkerDetailId" => $currentOutput["marker_detail_id"],
+                                "qty" => $currentOutputStock
+                            ]);
+                        }
+                    }
+
+                    $currentModify = $currentModifySize ? $currentModifySize->where("group_stocker", "!=", $currentGroupStockerSeparate)->where("so_det_id", $ratio->so_det_id)->first() : null;
+
                     $qty = intval($ratio->ratio) * intval($currentTotalSeparate);
-                    $qtyBefore = intval($ratio->ratio) * intval($currentBeforeSeparate);
+                    $qtyBefore = (intval($ratio->ratio) * intval($currentBeforeSeparate)) + ($currentModify ? $currentModify['difference_qty'] : 0);
+
+                    if (isset($currentOutputQty) && $currentOutputQty !== null) {
+                        $qty = $currentOutputQty;
+                    }
 
                     if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
                         $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStockerSeparate)->where("so_det_id", $ratio->so_det_id)->first();
