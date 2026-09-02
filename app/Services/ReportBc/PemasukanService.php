@@ -243,7 +243,7 @@ class PemasukanService
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
-                // ->where('a.jenis_dok', '!=', 'INHOUSE')
+                ->where('a.jenis_dok', '!=', 'INHOUSE')
                 ->where('a.bpbno', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -271,11 +271,11 @@ class PemasukanService
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
-                // ->where('a.jenis_dok', '!=', 'INHOUSE')
+                ->where('a.jenis_dok', '!=', 'INHOUSE')
                 ->where('a.bpbno', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    "MAX(a.jenis_dok) as jenis_dokumen",
+                    "'N/A'",
                     "a.bcdate",
                     "ac.kpno",
                     "s.itemname",
