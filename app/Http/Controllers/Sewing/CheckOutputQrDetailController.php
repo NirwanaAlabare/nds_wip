@@ -985,7 +985,7 @@ class CheckOutputQrDetailController extends Controller
                                 null, null, null, null, null,
                                 null, null, null, null, null, null, null,
                                 DATE(output_rfts_packing_po.updated_at) as apl_tgl,
-                                userpassword.username as apl_line,
+                                output_rfts_packing_po.created_by_line as apl_line,
                                 ppic_master_so.po as apl_po,
                                 null,
                                 null, null,
@@ -1000,7 +1000,7 @@ class CheckOutputQrDetailController extends Controller
                         left join userpassword on userpassword.username = output_rfts_packing_po.created_by_username
                         left join laravel_nds.ppic_master_so on ppic_master_so.id = output_rfts_packing_po.po_id
                         where output_rfts_packing_po.id is not null
-                        and output_rfts_packing_po.status = 'NORMAL'
+                        -- and output_rfts_packing_po.status = 'NORMAL'
                         {$filterPackingLine}
                         {$callbackFilterPackingLine}
                         UNION ALL
