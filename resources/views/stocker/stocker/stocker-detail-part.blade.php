@@ -112,7 +112,7 @@
                                     @endphp
 
                                     @php
-                                        if (isset($currentOutputQty) && $currentOutputQty > 0) {
+                                        if (isset($currentOutputQty) && $currentOutputQty !== null) {
                                             $qty = $currentOutputQty;
                                         }
 
