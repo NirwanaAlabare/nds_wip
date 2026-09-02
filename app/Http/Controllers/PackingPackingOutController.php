@@ -676,10 +676,12 @@ group by a.po, a.dest
 
             $cek_stok = DB::select("
                 SELECT
-                    COALESCE(pack_in.tot_in, 0)
-                    + COALESCE(pack_switch_in.qty_switch_masuk, 0)
-                    - COALESCE(pack_out.tot_out, 0)
-                    - COALESCE(pack_switch.qty_switch, 0) AS tot_s
+                    SUM(
+                        COALESCE(pack_in.tot_in, 0)
+                        + COALESCE(pack_switch_in.qty_switch_masuk, 0)
+                        - COALESCE(pack_out.tot_out, 0)
+                        - COALESCE(pack_switch.qty_switch, 0)
+                    ) AS tot_s
 
                 FROM ppic_master_so p
 
