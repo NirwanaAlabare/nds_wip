@@ -439,7 +439,8 @@
     let listTable = $("#list-table").DataTable({
         ordering: false,
         processing: true,
-        serverSide: true,
+        serverSide: false,
+        searching: true,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

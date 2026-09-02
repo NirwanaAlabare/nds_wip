@@ -159,7 +159,7 @@ class CuttingSwitchingController extends Controller
             leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
             where("form_cut_input.id", $request->form_cut_id)->
-            where("marker_input_detail.ratio", ">", 0)->
+            // where("marker_input_detail.ratio", ">", 0)->
             groupBy("marker_input_detail.id")->
             get();
 

@@ -900,8 +900,8 @@ class StockerController extends Controller
 
         // Default Method
         else {
-
             // Loop over ratio
+            $ratio = ($ratio > 0 ? $ratio : 1);
             for ($i = 0; $i < $ratio; $i++) {
                 // Check Stocker Availibility
                 $checkStocker = Stocker::select("id","id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
