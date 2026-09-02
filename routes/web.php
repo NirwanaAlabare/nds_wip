@@ -2183,6 +2183,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mutasi_bahan_baku', 'export_excel_mutasi_bahan_baku')->name('export_excel_mutasi_bahan_baku');
         Route::get('/export_excel_mutasi_mesin', 'export_excel_mutasi_mesin')->name('export_excel_mutasi_mesin');
         Route::get('/export_excel_mutasi_barang_sisa', 'export_excel_mutasi_barang_sisa')->name('export_excel_mutasi_barang_sisa');
+        // report
+        Route::get('/report-bc/pemasukan', 'getPemasukanData')->name('get_pemasukan_data');
+        Route::get('/report-bc/pengeluaran', 'getPengeluaranData')->name('get_pengeluaran_data');
     });
 });
 
