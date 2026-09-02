@@ -62,7 +62,7 @@ class GeneralController extends Controller
             "more_pages" => $formCuts->hasMorePages(),
         ]);
     }
-    
+
     public function getNoFormCut(Request $request)
     {
         // Get No. Form Cutting List
@@ -974,15 +974,15 @@ class GeneralController extends Controller
                 $beforeFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', "<", $currentFormCutDetail->created_at)->orderBy("created_at", "desc")->first();
 
                 if (!$beforeFormCutDetail) {
-                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");    
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");
                     if ($penerimaan < 1) {
-                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $currentFormCutDetail->created_at)->orderBy("created_at", "asc")->limit(1)->sum("qty_konv");    
+                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $currentFormCutDetail->created_at)->orderBy("created_at", "asc")->limit(1)->sum("qty_konv");
                     }
 
                     $currentQty = ($penerimaan ?? 0);
                 } else {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $beforeFormCutDetail->created_at)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");
-                    
+
                     $currentQty = ($beforeFormCutDetail->sisa_kain + $penerimaan ?? 0);
                 }
 
@@ -1057,8 +1057,10 @@ class GeneralController extends Controller
                     where("scanned_item.id_roll", $id)->
                     first();
 
-                return json_encode($currentScannedItem);
-            }   
+                if ($currentScannedItem) {
+                    return json_encode($currentScannedItem);
+                }
+            }
         }
         // if ($request->color) {
         //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
