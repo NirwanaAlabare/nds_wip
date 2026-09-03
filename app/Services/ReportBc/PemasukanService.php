@@ -213,7 +213,7 @@ class PemasukanService
             DB::raw("MAX(a.jenis_dok) as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
+            DB::raw("GROUP_CONCAT(DISTINCT a.bpbno_int ORDER BY a.bpbno_int SEPARATOR ', ') AS trans_no"),
             'a.bpbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
@@ -271,7 +271,7 @@ class PemasukanService
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "MAX(a.jenis_dok) as jenis_dokumen",
@@ -281,7 +281,7 @@ class PemasukanService
                     "'BARANG JADI'",
                     "ac.kpno"
                 ))
-                ->groupBy('ac.kpno');
+                ->groupBy('ac.kpno', 'a.bpbno_int');
         }
 
 
