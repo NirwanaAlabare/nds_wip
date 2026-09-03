@@ -1325,7 +1325,7 @@ class MutasiService
                 LEFT JOIN so ON so_det.id_so = so.id
                 LEFT JOIN act_costing ON so.id_cost = act_costing.id
                 WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
-                WHERE bppb.bppbno LIKE '%SJ%' OR bppb.bppbno LIKE '%FG%'
+                AND bppb.bppbno LIKE 'SJ-FG%'
                 GROUP BY bppb.id_item, bppb.id_so_det
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
