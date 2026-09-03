@@ -225,15 +225,15 @@
                 <input type="hidden" name="kategoriBarang" id="kategoriBarang" value="{{ $kategoriBarang }}">
 
                 <div class="row align-items-center">
-                    <div class="col-md-8 d-flex align-items-center">
+                    {{-- <div class="col-md-8 d-flex align-items-center">
                         <label class="mr-3 mb-0" for="filter_by">Filter Berdasarkan:</label>
                         <select class="form-control form-control-sm w-auto select2bs4" id="filter_by" name="filter_by" onchange="changeFilter(this)">
                             <option value="dokumen" {{ $filterBy == 'dokumen' ? 'selected' : '' }}>Tanggal Dokumen</option>
                             <option value="transaksi" {{ $filterBy == 'transaksi' ? 'selected' : '' }}>Tanggal Transaksi (BPPB)</option>
                         </select>
-                    </div>
+                    </div> --}}
 
-                    <div class="col-md-4 text-right">
+                    <div class="col-md-12 text-right">
                         <button type="button" id="btn-export-excel" class="btn btn-success btn-sm text-white">
                             <i class="fas fa-file-excel mr-1"></i> Ekspor Excel
                         </button>
@@ -290,7 +290,7 @@
                     data: function(d) {
                         d.from = $('#from').val();
                         d.to = $('#to').val();
-                        d.filter_by = $('#filter_by').val();
+                        // d.filter_by = $('#filter_by').val();
                         d.kategoriBarang = $('#kategoriBarang').val();
                         d.kategori = $('#kategori').val();
                     }

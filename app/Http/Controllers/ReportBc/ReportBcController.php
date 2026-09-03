@@ -441,7 +441,7 @@ class ReportBcController extends Controller
     {
         $fromDate = $request->input('from');
         $toDate = $request->input('to');
-        $filterBy = $request->input('filter_by', 'dokumen');
+        $filterBy = '';
         $kategoriBarang = $request->input('kategoriBarang', 'all');
         $kategori = $request->input('kategori');
 
@@ -510,7 +510,7 @@ class ReportBcController extends Controller
     {
         $fromDate = $request->input('from');
         $toDate = $request->input('to');
-        $filterBy = $request->input('filter_by', 'dokumen');
+        $filterBy = '';
         $kategoriBarang = $request->input('kategoriBarang', 'all');
         $kategori = $request->input('kategori');
 

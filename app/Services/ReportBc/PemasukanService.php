@@ -188,7 +188,8 @@ class PemasukanService
 
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -452,7 +453,8 @@ class PemasukanService
 
     public function getDataBc23($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -695,7 +697,8 @@ class PemasukanService
 
     public function getDataBc262($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -961,7 +964,8 @@ class PemasukanService
     // }
     public function getDataBc40($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -1223,7 +1227,8 @@ class PemasukanService
 
     public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
