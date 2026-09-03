@@ -110,7 +110,7 @@
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="5" style="background-color: yellow; text-align:center;">Transit Terima Packing Line</th>
                             <th colspan="8" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            <th colspan="8" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
+                            <th colspan="9" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th style="background-color: lightblue;">WS</th>
@@ -126,7 +126,7 @@
                             <th style="background-color: yellow;">Saldo Akhir</th>
 
                             <th style="background-color: lightgreen;">Saldo Awal</th>
-                            <th style="background-color: lightgreen;">Terima RFT</th>
+                            <th style="background-color: lightgreen;">Terima Good</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
                             <th style="background-color: lightgreen;">Switching OUT</th>
@@ -137,6 +137,7 @@
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
+                            <th style="background-color: lightgoldenrodyellow;">Terima Gudang Stok</th>
                             <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
                             <th style="background-color: lightgoldenrodyellow;">Switching OUT</th>
                             <th style="background-color: lightgoldenrodyellow;">Switching IN</th>
@@ -300,7 +301,7 @@
 
             datatable = $("#datatable").DataTable({
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: false,
@@ -344,6 +345,7 @@
                     { data: 'pc_saldo_awal_adjusment' },
                     { data: 'pc_terima' },
                     { data: 'pc_terima_return' },
+                    { data: 'pc_terima_gudang_stok' },
                     { data: 'pc_fg_in' },
                     { data: 'pc_switching_out' },
                     { data: 'pc_switching_in' },

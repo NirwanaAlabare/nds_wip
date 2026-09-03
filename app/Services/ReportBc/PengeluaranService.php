@@ -324,7 +324,8 @@ class PengeluaranService
 
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $caseJenisDokumen = "
@@ -378,12 +379,12 @@ class PengeluaranService
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1'])
+                ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1','INHOUSE','BC 2.5'])
                 ->where(function ($query) {
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
@@ -437,12 +438,12 @@ class PengeluaranService
                 ->leftJoin('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
                 ->leftJoin('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 2.5', 'BC 3.3', 'BC 4.1'])
+                ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1','INHOUSE','BC 2.5'])
                 ->where(function ($query) {
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+                ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
                 ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -829,7 +830,8 @@ class PengeluaranService
 
     public function getDataBc33($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
@@ -1366,7 +1368,8 @@ class PengeluaranService
 
     public function getDataBc30($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
@@ -1869,7 +1872,8 @@ class PengeluaranService
     // }
     public function getDataBc261($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
@@ -1888,7 +1892,7 @@ class PengeluaranService
             DB::raw("'BC 2.6.1' as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
-            DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
+            DB::raw("a.bppbno_int as trans_no"),
             'a.bppbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
@@ -2345,7 +2349,8 @@ class PengeluaranService
 
     public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $wsExpr = "(SELECT act_costing.kpno
@@ -2618,7 +2623,8 @@ class PengeluaranService
 
     public function getDataBc25($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
@@ -3047,7 +3053,8 @@ class PengeluaranService
 
     public function getDataBc41($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bppbdate' : 'a.bcdate';
+        $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {

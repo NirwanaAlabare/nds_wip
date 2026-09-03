@@ -58,8 +58,11 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
-                            <th>Tujuan</th>
-                            <th>Tujuan Pengeluaran</th>
+                            <th>Requester</th>
+                            <th>Tujuan Penerima</th>
+                            <th>Jenis Pengeluaran</th>
+                            <th>Keterangan</th>
+                            <th>Status</th>
                             <th>No. Dok</th>
                         </tr>
                     </thead>
@@ -157,10 +160,28 @@
                     data: 'qty_out'
                 },
                 {
+                    data: 'requester'
+                },
+                {
                     data: 'tujuan'
                 },
                 {
                     data: 'tujuan_pengeluaran'
+                },
+                {
+                    data: 'keterangan'
+                },
+                {
+                    data: 'status',
+                    render: function(data, type, row) {
+                        if (data === 'PENDING') {
+                            return `<span class="badge bg-warning text-dark" style="width:55px; display:inline-block;">${data}</span>`;
+                        } else if (data === 'TERIMA') {
+                            return `<span class="badge bg-success" style="width:55px; display:inline-block;">${data}</span>`;
+                        } else {
+                            return `<span class="badge bg-success" style="width:55px; display:inline-block;">${data}</span>`;
+                        }
+                    }
                 },
                 {
                     data: 'no_dok'
