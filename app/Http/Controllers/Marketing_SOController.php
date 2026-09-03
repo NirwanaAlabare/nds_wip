@@ -3948,6 +3948,16 @@ class Marketing_SOController extends Controller
                 ]);
             };
 
+            // posno key TANPA id_so_det — supaya 1 item (dgn panel/rule/notes sama) = 1 posno
+            $makePosnoKey = function ($id_item, $id_panel, $rule_bom, $notes) {
+                return implode('|', [
+                    $id_item,
+                    $id_panel ?? '',
+                    strtoupper(trim($rule_bom ?? '')),
+                    trim($notes ?? ''),
+                ]);
+            };
+
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
@@ -3960,24 +3970,12 @@ class Marketing_SOController extends Controller
             $posno_map = [];
             foreach ($existing_items as $item) {
                 $key = $makeKey($item->id_so_det, $item->id_item, $item->id_panel, $item->rule_bom, $item->notes);
-
-                if (isset($existing_map[$key])) {
-                    \Log::warning("BOM sync: existing bom_jo_item duplikat ditemukan, akan di-cancel otomatis", [
-                        'id_jo' => $id_jo,
-                        'key' => $key,
-                        'id_lama' => $existing_map[$key]->id,
-                        'id_dilewati' => $item->id,
-                    ]);
-                    continue;
-                }
-
+                if (isset($existing_map[$key])) { continue; }
                 $existing_map[$key] = $item;
 
-                // posno_map di-key pakai $key (bukan cuma id_item), supaya
-                // baris dengan id_item sama tapi notes/rule beda dapat
-                // posno unik masing-masing, bukan numpuk di posno yang sama.
-                if (!isset($posno_map[$key])) {
-                    $posno_map[$key] = $item->posno;
+                $posnoKey = $makePosnoKey($item->id_item, $item->id_panel, $item->rule_bom, $item->notes);
+                if (!isset($posno_map[$posnoKey])) {
+                    $posno_map[$posnoKey] = $item->posno;
                 }
             }
 
@@ -4013,27 +4011,27 @@ class Marketing_SOController extends Controller
                         $update_count++;
                     }
                 } else {
-                    // ---- INSERT NEW ITEM ----
-                    if (!isset($posno_map[$key])) {
+                    $posnoKey = $makePosnoKey($req->id_item, $req->id_panel, $req->rule_bom, $req->notes);
+                    if (!isset($posno_map[$posnoKey])) {
                         $posno_counter++;
-                        $posno_map[$key] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+                        $posno_map[$posnoKey] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
                     }
 
                     $to_insert[] = [
-                        'id_jo'       => $req->id_jo,
-                        'id_so_det'   => $req->id_so_det,
-                        'status'      => $req->status,
-                        'id_item'     => $req->id_item,
-                        'cons'        => $req->cons,
-                        'unit'        => $req->unit,
-                        'rule_bom'    => $req->rule_bom,
-                        'cancel'      => 'N',
-                        'add_item'    => 'N',
-                        'username'    => $username,
-                        'dateinput'   => now(),
-                        'id_panel'    => $req->id_panel,
-                        'posno'       => $posno_map[$key],
-                        'notes'       => $req->notes,
+                        'id_jo'     => $req->id_jo,
+                        'id_so_det' => $req->id_so_det,
+                        'status'    => $req->status,
+                        'id_item'   => $req->id_item,
+                        'cons'      => $req->cons,
+                        'unit'      => $req->unit,
+                        'rule_bom'  => $req->rule_bom,
+                        'cancel'    => 'N',
+                        'add_item'  => 'N',
+                        'username'  => $username,
+                        'dateinput' => now(),
+                        'id_panel'  => $req->id_panel,
+                        'posno'     => $posno_map[$posnoKey],
+                        'notes'     => $req->notes,
                     ];
                 }
             }
