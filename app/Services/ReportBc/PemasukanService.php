@@ -219,7 +219,7 @@ class PemasukanService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            'a.qty',
+            'SUM(a.qty)',
             'a.curr',
             DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
             'a.berat_bersih',
