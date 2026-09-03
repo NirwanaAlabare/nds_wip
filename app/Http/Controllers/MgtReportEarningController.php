@@ -70,7 +70,7 @@ class MgtReportEarningController extends Controller
                     est_cost_mkt,
                     blc_earn_mkt,
                     percent_earn_mkt
-                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'");
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date' and sewing_line not like '%sample%'");
                 } else {
                     $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  SELECT
@@ -239,7 +239,7 @@ ROUND(
                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
                     group by master_plan_id, userpassword.username, date(a.updated_at)
-										having userpassword.username != 'line_sample_prod'
+					having userpassword.username not like '%sample%'
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
                 inner join so on sd.id_so = so.id
@@ -662,7 +662,7 @@ SELECT
                     est_cost_mkt,
                     blc_earn_mkt,
                     percent_earn_mkt
-                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date' and sewing_line not like '%sample%'
 )
 
 select * from earning where tanggal >= '$start_date' and tanggal <= '$end_date'
@@ -734,7 +734,7 @@ order by tanggal asc, sewing_line asc
                     est_cost_mkt,
                     blc_earn_mkt,
                     percent_earn_mkt
-                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'");
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date' and sewing_line not like '%sample%'");
         } else {
             $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  SELECT
@@ -903,7 +903,7 @@ ROUND(
                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
                     group by master_plan_id, userpassword.username, date(a.updated_at)
-										having userpassword.username != 'line_sample_prod'
+										having userpassword.username not like '%sample%'
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
                 inner join so on sd.id_so = so.id
@@ -1329,7 +1329,7 @@ SELECT
                     est_cost_mkt,
                     blc_earn_mkt,
                     percent_earn_mkt
-                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date' and sewing_line not like '%sample%'
 )
 
     select * from earning where tanggal >= '$start_date' and tanggal <= '$end_date'
