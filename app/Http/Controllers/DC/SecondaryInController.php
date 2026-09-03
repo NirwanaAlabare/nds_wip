@@ -2362,14 +2362,14 @@ class SecondaryInController extends Controller
         }
 
         // Check Closing
-        if (checkClosingDate($dataSecondaryIn->tgl_trans)) {
-            return array(
-                "status" => 400,
-                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
-                "additional" => "Closing",
-                "table" => "datatable-input",
-            );
-        }
+        // if (checkClosingDate($dataSecondaryIn->tgl_trans)) {
+        //     return array(
+        //         "status" => 400,
+        //         "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+        //         "additional" => "Closing",
+        //         "table" => "datatable-input",
+        //     );
+        // }
 
         $qtyRejectNew = (float) ($request['edit_qtyrejectnew'] ?? 0);
         $qtyReplaceNew = (float) ($request['edit_qtyreplacenew'] ?? 0);

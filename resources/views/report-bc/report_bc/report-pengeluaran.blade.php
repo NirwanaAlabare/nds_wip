@@ -1,9 +1,4 @@
-@extends('layouts.index', ['page' => 'dashboard-report-bc', 'containerFluid' => true])
 
-@section('title', 'Laporan ' . ucfirst($jenis) . ' - ' . strtoupper(str_replace('-', ' ', $kategori)))
-
-
-@section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -205,12 +200,9 @@
         }
 
     </style>
-@endsection
 
-@section('content')
     <div class="card report-detail-card">
 
-        {{-- HEADER --}}
         <div class="card-header">
             <div>
                 <span class="card-eyebrow">Pabean · Report BC</span>
@@ -221,14 +213,6 @@
                     </span>
                 </h3>
             </div>
-            <div class="card-tools" style="text-align: right;">
-                <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Report BC
-                </a>
-                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
-                </a>
-            </div>
         </div>
 
         <div class="card-body">
@@ -238,18 +222,18 @@
                 <input type="hidden" name="to" id="to" value="{{ $toDate }}">
                 <input type="hidden" name="jenis" id="jenis" value="{{ $jenis }}">
                 <input type="hidden" name="kategori" id="kategori" value="{{ $kategori }}">
-                <input type="hidden" name="kategoriBarang" id="kategoriBarang" value="{{ $kategoriBarang }}">    
+                <input type="hidden" name="kategoriBarang" id="kategoriBarang" value="{{ $kategoriBarang }}">
 
                 <div class="row align-items-center">
-                    <div class="col-md-8 d-flex align-items-center">
+                    {{-- <div class="col-md-8 d-flex align-items-center">
                         <label class="mr-3 mb-0" for="filter_by">Filter Berdasarkan:</label>
                         <select class="form-control form-control-sm w-auto select2bs4" id="filter_by" name="filter_by" onchange="changeFilter(this)">
                             <option value="dokumen" {{ $filterBy == 'dokumen' ? 'selected' : '' }}>Tanggal Dokumen</option>
                             <option value="transaksi" {{ $filterBy == 'transaksi' ? 'selected' : '' }}>Tanggal Transaksi (BPPB)</option>
                         </select>
-                    </div>
+                    </div> --}}
 
-                    <div class="col-md-4 text-right">
+                    <div class="col-md-12 text-right">
                         <button type="button" id="btn-export-excel" class="btn btn-success btn-sm text-white">
                             <i class="fas fa-file-excel mr-1"></i> Ekspor Excel
                         </button>
@@ -257,7 +241,6 @@
                 </div>
             </form>
 
-            {{-- Tanpa div.table-responsive: biar scrollX/scrollY DataTables yang handle scroll --}}
             <div class="report-table-wrapper">
                 <table id="tabel-report" class="table table-bordered table-striped table-hover table-sm w-100">
                     <thead class="thead-report text-center">
@@ -282,131 +265,78 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($data as $index => $row)
-                            <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $row->kode_kantor ?? '-' }}</td>
-                                <td>{{ $row->jenis_dokumen ?? '-' }}</td>
-                                <td>{{ $row->kategori_barang ?? '-' }}</td>
-                                <td>{{ $row->nomor_daftar ?? '-' }}</td>
-                                <td>{{ ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000' }}</td>
-                                <td>{{ $row->nama_pengirim ?? '-' }}</td>
-                                <td>{{ $row->nomor_bpb ?? '-' }}</td>
-                                <td>{{ ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000' }}</td>
-                                <td>{{ $row->ws ?? '-' }}</td>
-                                <td>{{ $row->uraian_barang ?? '-' }}</td>
-                                <td>{{ $row->jenis_satuan ?? '-' }}</td>
-                                <td class="text-right font-weight-bold">{{ number_format($row->jumlah_satuan ?? 0, 2) }}</td>
-                                <td>{{ $row->kode_valuta ?? '-' }}</td>
-                                <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang ?? 0, 2) }}</td>
-                                <td class="text-right font-weight-bold">{{ number_format($row->kurs ?? 0, 2) }}</td>
-                                <td class="text-right font-weight-bold">{{ number_format($row->nilai_barang_idr ?? 0, 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="17" class="text-center text-muted">Tidak ada data untuk laporan ini pada rentang tanggal tersebut.</td>
-                            </tr>
-                        @endforelse
+                        
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-@endsection
 
-@section('custom-script')
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        $(document).ready(function() {
+       (function() {
             let table = $('#tabel-report').DataTable({
-                "responsive": false,
-                "autoWidth": false,
+                "processing": true,
                 "scrollX": true,
-                "scrollY": "60vh",
-                "scrollCollapse": true,
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                "initComplete": function() {
-                    let api = this.api();
-                    setTimeout(function() {
-                        api.columns.adjust();
-                    }, 50);
-                }
+                "scrollY": "800px",     
+                "scrollCollapse": true, 
+                "paging": true,
+                "ajax": {
+                    url: `{{ route('get_pengeluaran_data') }}`,
+                    data: function(d) {
+                        d.from = $('#from').val();
+                        d.to = $('#to').val();
+                        // d.filter_by = $('#filter_by').val();
+                        d.kategoriBarang = $('#kategoriBarang').val();
+                        d.kategori = $('#kategori').val();
+                    }
+                },
+                "columns": [
+                    { data: 'no' },
+                    { data: 'kode_kantor' },
+                    { data: 'jenis_dokumen' },
+                    { data: 'kategori_barang' },
+                    { data: 'nomor_daftar' },
+                    { data: 'tanggal_daftar' },
+                    { data: 'nama_pengirim' },
+                    { data: 'nomor_bpb' },
+                    { data: 'tanggal_bpb' }, 
+                    { data: 'ws' },
+                    { data: 'uraian_barang' },
+                    { data: 'jenis_satuan' },
+                    { data: 'jumlah_satuan', className: 'text-right font-weight-bold' },
+                    { data: 'kode_valuta' },
+                    { data: 'nilai_barang', className: 'text-right font-weight-bold' },
+                    { data: 'kurs', className: 'text-right font-weight-bold' },
+                    { data: 'nilai_barang_idr', className: 'text-right font-weight-bold' },
+                ]
             });
 
-            $(window).on('resize', function() {
+            $('#filter_by').on('change', function() {
+                table.ajax.reload();
+            });
+
+            $(window).off('resize.reportTable').on('resize.reportTable', function() {
                 table.columns.adjust();
             });
 
-            // $('#btn-export-excel').on('click', function(e) {
-            //     e.preventDefault();
+            $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
 
-            //     let btn = $(this);
-            //     let originalText = btn.html();
-            //     let form = btn.closest('form');
-            //     let url = window.location.href.split('?')[0];
-            //     let formData = form.serialize() + '&export=excel';
-
-            //     $('#loading-bg').removeClass('d-none');
-
-            //     btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...').prop('disabled', true);
-
-            //     $.ajax({
-            //         url: url,
-            //         type: 'GET',
-            //         data: formData,
-            //         xhrFields: {
-            //             responseType: 'blob'
-            //         },
-            //         success: function(response, status, xhr) {
-            //             let filename = "Laporan_Excel.xls";
-            //             let disposition = xhr.getResponseHeader('Content-Disposition');
-            //             if (disposition && disposition.indexOf('attachment') !== -1) {
-            //                 let matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-            //                 if (matches != null && matches[1]) {
-            //                     filename = matches[1].replace(/['"]/g, '');
-            //                 }
-            //             }
-
-            //             let blob = new Blob([response], { type: 'application/vnd.ms-excel' });
-            //             let downloadUrl = window.URL.createObjectURL(blob);
-            //             let a = document.createElement('a');
-            //             a.href = downloadUrl;
-            //             a.download = filename;
-            //             document.body.appendChild(a);
-            //             a.click();
-
-            //             a.remove();
-            //             window.URL.revokeObjectURL(downloadUrl);
-
-            //             $('#loading-bg').addClass('d-none');
-            //             btn.html(originalText).prop('disabled', false);
-            //         },
-            //         error: function() {
-            //             alert('Terjadi kesalahan saat mengunduh file.');
-
-            //             $('#loading-bg').addClass('d-none');
-            //             btn.html(originalText).prop('disabled', false);
-            //         }
-            //     });
-            // });
-
-             $('#btn-export-excel').on('click', function(e) {
+            $('#btn-export-excel').off('click').on('click', function(e) {
                 Swal.fire({
                     title: 'Please Wait...',
                     html: 'Exporting Data...',
-                    didOpen: () => {
-                        Swal.showLoading()
-                    },
+                    didOpen: () => { Swal.showLoading() },
                     allowOutsideClick: false,
                 });
 
                 $.ajax({
                     type: "get",
-                    url: '{{ route('export_excel_pengeluaran_bc') }}',
+                    url: `{{ route('export_excel_pengeluaran_bc') }}`, 
                     data: {
                         from: $('#from').val(),
                         to: $('#to').val(),
@@ -414,52 +344,27 @@
                         jenis: $('#jenis').val(),
                         kategori: $('#kategori').val(),
                         kategoriBarang: $('#kategoriBarang').val(),
-
                     },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
+                    xhrFields: { responseType: 'blob' },
                     success: function(response) {
-                        {
-                            swal.close();
-                            Swal.fire({
-                                title: 'Data Sudah Di Export!',
-                                icon: "success",
-                                showConfirmButton: true,
-                                allowOutsideClick: false
-                            });
-                            var blob = new Blob([response]);
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "Laporan Pengeluaran " + $('#from').val() + " sampai " +
-                                $('#to').val() + ".xlsx";
-                            link.click();
-
-                        }
+                        Swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan pengeluaran " + $('#from').val() + " sampai " + $('#to').val() + ".xlsx";
+                        link.click();
                     },
+                    error: function() {
+                        Swal.close();
+                        Swal.fire('Error', 'Gagal mengeksport data Excel', 'error');
+                    }
                 });
             });
-        });
-
-        function changeFilter(element) {
-            $('#loading-bg').removeClass('d-none');
-
-            $('<input>').attr({
-                type: 'hidden',
-                name: element.name,
-                value: element.value
-            }).appendTo(element.form);
-
-            $(element).prop('disabled', true);
-
-            element.form.submit();
-        }
+        })();
     </script>
-    @push('scripts')
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.title = "Laporan {{ ucfirst($jenis) }} - {{ strtoupper(str_replace('-', ' ', $kategori)) }}";
-        });
-    </script>
-    @endpush
-@endsection

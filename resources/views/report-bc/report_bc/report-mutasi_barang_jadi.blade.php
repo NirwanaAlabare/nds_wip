@@ -1,8 +1,3 @@
-@extends('layouts.index', ['page' => 'dashboard-report-bc', 'containerFluid' => true])
-
-@section('title', 'Laporan Mutasi Barang Jadi - ' . strtoupper($kategoriBarang == 'all' ? 'Semua Kategori' : $kategoriBarang))
-
-@section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -126,9 +121,7 @@
             margin-left: auto;
         }
     </style>
-@endsection
 
-@section('content')
     <div class="card report-detail-card mutasi-fg">
         <div class="card-header">
             <div>
@@ -140,14 +133,7 @@
                     </span>
                 </h3>
             </div>
-            <div class="card-tools" style="text-align: right;">
-                <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Report BC
-                </a>
-                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
-                </a>
-            </div>
+
         </div>
 
         <div class="card-body">
@@ -221,9 +207,7 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('custom-script')
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
 
@@ -318,4 +302,3 @@
             });
         });
     </script>
-@endsection

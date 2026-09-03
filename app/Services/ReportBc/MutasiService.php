@@ -2981,6 +2981,7 @@ class MutasiService
         return $excel->download();
     }
 
+
     public function exportExcelBarangJadiGudang($fromDate, $toDate)
     {
         ini_set('memory_limit', '1024M');
