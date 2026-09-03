@@ -262,7 +262,7 @@
                             <th>Nama Pengirim</th>
                             <th>Nomor BPB</th>
                             <th>Tanggal BPB</th>
-                            <th>ID Item</th>
+                            <th>WS</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
                             <th>Jumlah Satuan</th>
