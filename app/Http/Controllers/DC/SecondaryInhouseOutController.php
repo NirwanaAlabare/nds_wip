@@ -1388,7 +1388,7 @@ class SecondaryInhouseOutController extends Controller
                 (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
                 a.created_at,
                 COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
-                COALESCE(mms.tujuan, ms.proses, mx.proses, dc.lokasi) lokasi,
+                COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
                 dc.tempat,
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
