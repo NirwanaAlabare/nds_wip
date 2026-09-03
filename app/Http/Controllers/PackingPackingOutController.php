@@ -139,6 +139,11 @@ class PackingPackingOutController extends Controller
         $search = $request->input('search');
         $cbopo = $request->input('cbopo');
 
+        // STOK GUDANG (FGS)
+        if ($cbopo !== null && $cbopo !== '' && (int) $cbopo === 0) {
+            return response()->json($this->getNoCartonGudangStok($search));
+        }
+
         // Get PO and destination from master table
         $cek_po = DB::table('ppic_master_so')
             ->select('po', 'dest')
@@ -189,6 +194,64 @@ class PackingPackingOutController extends Controller
         return response()->json($results);
     }
 
+    private function getNoCartonGudangStok($search)
+    {
+        // Stok gudang selalu tercatat dengan po ini di packing_packing_in
+        $po = 'GUDANG STOK';
+
+        // Qty stok gudang per carton per so_det. No. carton tidak ada di
+        // packing list, dia menempel di fg_stok_bppb lewat fg_stok_bppb_id.
+        $stok = '(
+            SELECT a.po, b.no_carton, a.id_so_det, SUM(a.qty) AS qty
+            FROM packing_packing_in a
+            INNER JOIN fg_stok_bppb b ON b.id = a.fg_stok_bppb_id
+            WHERE a.id_ppic_master_so IS NULL
+            GROUP BY a.po, b.no_carton, a.id_so_det
+        ) a';
+
+        // Dest diambil dari ppic_master_so lewat id_so_det. Satu so_det bisa
+        // punya lebih dari satu baris PO, dirapikan dulu biar tidak dobel.
+        $master = '(
+            SELECT id_so_det, MAX(dest) AS dest
+            FROM ppic_master_so
+            GROUP BY id_so_det
+        ) p';
+
+        // Main query for carton data with qty balance
+        $subQuery = DB::table(DB::raw($stok))
+            ->select('a.no_carton', DB::raw('SUM(a.qty) as total_pl'), DB::raw('SUM(COALESCE(b.qty_scan, 0)) as total_scan'))
+            ->join(DB::raw($master), 'p.id_so_det', '=', 'a.id_so_det')
+            ->leftJoin(DB::raw('(
+            SELECT po, dest, no_carton, id_so_det, COUNT(barcode) as qty_scan
+            FROM packing_packing_out_scan
+            WHERE po = "' . $po . '"
+            GROUP BY po, dest, no_carton, id_so_det
+        ) b'), function ($join) {
+                $join->on('a.po', '=', 'b.po')
+                    ->on('p.dest', '=', 'b.dest')
+                    ->on('a.no_carton', '=', 'b.no_carton')
+                    ->on('a.id_so_det', '=', 'b.id_so_det');
+            })
+            ->where('a.po', $po)
+            ->groupBy('a.no_carton')
+            ->havingRaw('SUM(a.qty) - SUM(COALESCE(b.qty_scan, 0)) != 0');
+
+        // Apply search filter if exists
+        if (!empty($search)) {
+            $subQuery->where('a.no_carton', 'like', '%' . $search . '%');
+        }
+
+        $data_carton = $subQuery->limit(50)->get();
+
+        // Format response for Select2
+        return $data_carton->map(function ($row) {
+            return [
+                'id' => $row->no_carton,
+                'text' => $row->no_carton
+            ];
+        });
+    }
+
 
     //     public function getno_carton(Request $request)
     // {
@@ -235,6 +298,19 @@ class PackingPackingOutController extends Controller
         // $cek_po = DB::select("
         // select * from ppic_master_so where id = '" . $request->cbopo . "' and tgl_shipment >= '$tgl_skrg_min_sebulan'
         // ");
+
+        // STOK GUDANG (FGS)
+        if ($request->cbopo !== null && $request->cbopo !== '' && (int) $request->cbopo === 0) {
+            $cek_po_gudang_stok = DB::select("
+            select po, dest from packing_packing_in
+            where id_ppic_master_so is null and po is not null
+            group by po, dest
+            limit 1
+            ");
+
+            return json_encode($cek_po_gudang_stok ? $cek_po_gudang_stok[0] : '-');
+        }
+
         $cek_po = DB::select("
         select * from ppic_master_so where id = '" . $request->cbopo . "'
         ");
@@ -255,52 +331,130 @@ class PackingPackingOutController extends Controller
         $cbono_carton = $request->cbono_carton;
         $dest = $request->txtdest;
 
+        // STOK GUDANG (FGS) 
+        if ($po === 'GUDANG STOK') {
+            return $this->showSummaryGudangStok($po, $dest, $cbono_carton);
+        }
+
         // Main data query
         $data_summary = DB::select("
-        SELECT a.*, COALESCE(tot_scan, 0) AS tot_scan
-        FROM (
-            SELECT
-                a.no_carton,
-                a.po,
-                a.dest,
-                a.id_ppic_master_so,
-                a.id_so_det,
-                m.size,
-                m.color,
-                a.barcode,
-                a.qty
-            FROM packing_master_packing_list a
-            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
-            INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-            WHERE a.po = ?
-              AND a.dest = ?
-              AND a.no_carton = ?
-        ) a
-        LEFT JOIN (
-            SELECT
-                COUNT(barcode) AS tot_scan,
-                barcode,
-                po,
-                no_carton,
-                dest
-            FROM packing_packing_out_scan
-            WHERE po = ?
-              AND dest = ?
-              AND no_carton = ?
-            GROUP BY barcode, no_carton, dest, po
-        ) b ON a.po = b.po
-           AND a.dest = b.dest
-           AND a.no_carton = b.no_carton
-           AND a.barcode = b.barcode
-        LEFT JOIN master_size_new msn ON a.size = msn.size
-        ORDER BY color ASC, urutan ASC
-    ", [$po, $dest, $cbono_carton, $po, $dest, $cbono_carton]);
+            SELECT a.*, COALESCE(tot_scan, 0) AS tot_scan
+            FROM (
+                SELECT
+                    a.no_carton,
+                    a.po,
+                    a.dest,
+                    a.id_ppic_master_so,
+                    a.id_so_det,
+                    m.size,
+                    m.color,
+                    a.barcode,
+                    a.qty
+                FROM packing_master_packing_list a
+                INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+                INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                WHERE a.po = ?
+                AND a.dest = ?
+                AND a.no_carton = ?
+            ) a
+            LEFT JOIN (
+                SELECT
+                    COUNT(barcode) AS tot_scan,
+                    barcode,
+                    po,
+                    no_carton,
+                    dest
+                FROM packing_packing_out_scan
+                WHERE po = ?
+                AND dest = ?
+                AND no_carton = ?
+                GROUP BY barcode, no_carton, dest, po
+            ) b ON a.po = b.po
+            AND a.dest = b.dest
+            AND a.no_carton = b.no_carton
+            AND a.barcode = b.barcode
+            LEFT JOIN master_size_new msn ON a.size = msn.size
+            ORDER BY color ASC, urutan ASC
+        ", [$po, $dest, $cbono_carton, $po, $dest, $cbono_carton]);
 
         // Compute totals (done server-side)
         $total_qty = collect($data_summary)->sum('qty');
         $total_scan = collect($data_summary)->sum('tot_scan');
 
         // Return DataTables-compatible JSON
+        return response()->json([
+            'data' => $data_summary,
+            'totals' => [
+                'qty' => $total_qty,
+                'tot_scan' => $total_scan,
+            ],
+        ]);
+    }
+
+    private function showSummaryGudangStok($po, $dest, $cbono_carton)
+    {
+        $data_summary = DB::select("
+            SELECT a.*, COALESCE(tot_scan, 0) AS tot_scan
+            FROM (
+                SELECT
+                    b.no_carton,
+                    a.po,
+                    p.dest,
+                    a.id_ppic_master_so,
+                    a.id_so_det,
+                    m.size,
+                    m.color,
+                    p.barcode,
+                    SUM(a.qty) AS qty
+                FROM packing_packing_in a
+                INNER JOIN fg_stok_bppb b ON b.id = a.fg_stok_bppb_id
+                INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                INNER JOIN (
+                    SELECT
+                        id_so_det,
+                        MAX(dest) AS dest,
+                        MAX(barcode) AS barcode
+                    FROM ppic_master_so
+                    GROUP BY id_so_det
+                ) p ON p.id_so_det = a.id_so_det
+                WHERE a.id_ppic_master_so IS NULL
+                AND a.po = ?
+                AND p.dest = ?
+                AND b.no_carton = ?
+                GROUP BY
+                    b.no_carton,
+                    a.po,
+                    p.dest,
+                    a.id_ppic_master_so,
+                    a.id_so_det,
+                    m.size,
+                    m.color,
+                    p.barcode
+            ) a
+            LEFT JOIN (
+                SELECT
+                    COUNT(*) AS tot_scan,
+                    id_so_det,
+                    po,
+                    no_carton,
+                    dest
+                FROM packing_packing_out_scan
+                WHERE po = ?
+                AND dest = ?
+                AND no_carton = ?
+                AND id_ppic IS NULL
+                GROUP BY id_so_det, no_carton, dest, po
+            ) b ON a.po = b.po
+            AND a.dest = b.dest
+            AND a.no_carton = b.no_carton
+            AND a.id_so_det = b.id_so_det
+            LEFT JOIN master_size_new msn ON a.size = msn.size
+            ORDER BY color ASC, urutan ASC
+        ", [$po, $dest, $cbono_carton, $po, $dest, $cbono_carton]);
+
+        $total_qty = collect($data_summary)->sum('qty');
+        $total_scan = collect($data_summary)->sum('tot_scan');
+
         return response()->json([
             'data' => $data_summary,
             'totals' => [
@@ -332,25 +486,32 @@ class PackingPackingOutController extends Controller
         if ($request->ajax()) {
 
             $data_history = DB::select("
-select
-o.id,
-tgl_trans,
-if (o.tgl_trans = '" . $tgl_trans . "'  and c.po is null,'ok','no') cek_stat,
-DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
-o.po,
-o.barcode,
-m.color,
-m.size
-from packing_packing_out_scan o
-left join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
-left join master_sb_ws m on p.id_so_det = m.id_so_det
-left join
-(
-select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '" . $request->cbopo . "'
-and dest = '" . $request->txtdest . "' and no_carton = '" . $request->cbono_carton . "' and status = 'NORMAL') c
-on o.barcode = c.barcode and o.po = c.po and o.po = c.po and o.dest = c.dest
-where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "' and o.dest = '" . $request->txtdest . "'
-order by o.created_at desc
+                select
+                    o.id,
+                    tgl_trans,
+                    if (o.tgl_trans = '" . $tgl_trans . "'  and c.po is null,'ok','no') cek_stat,
+                    DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
+                    o.po,
+                    o.barcode,
+                    CASE
+                        WHEN o.id_ppic IS NULL THEN mgs.color
+                        ELSE m.color
+                    END AS color,
+                    CASE
+                        WHEN o.id_ppic IS NULL THEN mgs.size
+                        ELSE m.size
+                    END AS size
+                from packing_packing_out_scan o
+                left join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
+                left join master_sb_ws m on p.id_so_det = m.id_so_det
+                left join master_sb_ws mgs on mgs.id_so_det = o.id_so_det and o.id_ppic is null
+                left join
+                (
+                select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '" . $request->cbopo . "'
+                and dest = '" . $request->txtdest . "' and no_carton = '" . $request->cbono_carton . "' and status = 'NORMAL') c
+                on o.barcode = c.barcode and o.po = c.po and o.po = c.po and o.dest = c.dest
+                where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "' and o.dest = '" . $request->txtdest . "'
+                order by o.created_at desc
             ");
             return DataTables::of($data_history)->toJson();
         }
@@ -375,22 +536,32 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
         $tgl_skrg_4_bln = date('Y-m-d', strtotime('-90 days'));
 
         $data_po = DB::select("SELECT
-a.id_ppic_master_so isi,
-concat(a.po, ' - ', a.dest, ' ( ', count(distinct(a.no_carton)), ' ) ') tampil
-from packing_master_packing_list a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-where p.tgl_shipment >= '$tgl_skrg_4_bln'
-group by a.po, a.dest
-");
+            a.id_ppic_master_so isi,
+            concat(a.po, ' - ', a.dest, ' ( ', count(distinct(a.no_carton)), ' ) ') tampil
+            from packing_master_packing_list a
+            inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            where p.tgl_shipment >= '$tgl_skrg_4_bln'
+            group by a.po, a.dest
 
+            -- union all
+
+            -- STOK GUDANG (FGS)
+            -- select
+            -- 0 isi,
+            -- concat(a.po, ' - ', a.dest, ' ( ', count(distinct(b.no_carton)), ' ) ') tampil
+            -- from packing_packing_in a
+            -- inner join fg_stok_bppb b ON b.id = a.fg_stok_bppb_id
+            -- where a.id_ppic_master_so is null
+            -- and a.po is not null
+            -- and a.tgl_penerimaan >= '$tgl_skrg_4_bln'
+            -- group by a.po, a.dest
+        ");
 
         // $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
         // from ppic_master_so p
         // left join packing_master_carton m on p.po = m.po
         // where barcode is not null and barcode != '' and barcode != '-'
         // group by p.po");
-
-
 
         return view('packing.create_packing_out', [
             'page' => 'dashboard-packing',
@@ -568,6 +739,11 @@ group by a.po, a.dest
             $timestamp
         ) {
 
+            // STOK GUDANG (FGS)
+            if ($cbopo !== null && $cbopo !== '' && (int) $cbopo === 0) {
+                return $this->storeGudangStok($barcode, $no_carton, $user, $timestamp);
+            }
+
             // =========================================================
             // CEK PO PPIC
             // =========================================================
@@ -631,7 +807,6 @@ group by a.po, a.dest
                     'msg' => 'Data tidak ada di packing list',
                 ];
             }
-
 
             // =========================================================
             // LOCK PACKING LIST
@@ -931,6 +1106,263 @@ group by a.po, a.dest
             ];
 
         });
+    }
+
+    private function storeGudangStok($barcode, $no_carton, $user, $timestamp)
+    {
+        $po = 'GUDANG STOK';
+        $tgl_trans = date('Y-m-d');
+
+
+        // =========================================================
+        // CEK BARCODE DI MASTER PPIC
+        // =========================================================
+        //
+        // Stok gudang tidak punya PO sendiri di ppic_master_so, jadi
+        // barcode tidak bisa dicocokkan lewat po. Barcode juga tidak
+        // unik lintas PO, jadi pembatasnya so_det yang memang ada di
+        // carton ini.
+        // =========================================================
+
+        $cek_po = DB::select("
+            SELECT
+                p.id,
+                p.id_so_det,
+                p.dest
+
+            FROM ppic_master_so p
+
+            INNER JOIN
+            (
+                SELECT a.id_so_det
+
+                FROM packing_packing_in a
+
+                INNER JOIN fg_stok_bppb b
+                    ON b.id = a.fg_stok_bppb_id
+
+                WHERE a.id_ppic_master_so IS NULL
+                AND a.po = '$po'
+                AND b.no_carton = '$no_carton'
+
+                GROUP BY a.id_so_det
+            ) c
+                ON c.id_so_det = p.id_so_det
+
+            WHERE p.barcode = '$barcode'
+        ");
+
+        if (!$cek_po) {
+            return [
+                'icon' => 'salah',
+                'msg' => 'Barcode tidak ada di carton stok gudang ini',
+            ];
+        }
+
+        $id_so_det = $cek_po[0]->id_so_det;
+        $dest      = $cek_po[0]->dest;
+
+
+        // =========================================================
+        // LOCK STOK GUDANG
+        // =========================================================
+        //
+        // Padanan lock packing list di alur normal. Stok gudang tidak
+        // punya baris packing list, yang dikunci baris packing in-nya.
+        // =========================================================
+
+        $stok_gudang = DB::select("
+            SELECT a.id
+
+            FROM packing_packing_in a
+
+            INNER JOIN fg_stok_bppb b
+                ON b.id = a.fg_stok_bppb_id
+
+            WHERE a.id_ppic_master_so IS NULL
+            AND a.po = '$po'
+            AND a.id_so_det = '$id_so_det'
+            AND b.no_carton = '$no_carton'
+
+            FOR UPDATE
+        ");
+
+        if (!$stok_gudang) {
+            return [
+                'icon' => 'salah',
+                'msg' => 'Data tidak ada di stok gudang',
+            ];
+        }
+
+
+        // =========================================================
+        // CEK STOK
+        // =========================================================
+        //
+        // Query ini dilakukan SETELAH lock. Semua bucket dipilih lewat
+        // kolom NULL-nya, karena stok gudang tidak punya id_ppic.
+        // =========================================================
+
+        $cek_stok = DB::select("
+            SELECT
+                COALESCE((
+                    SELECT SUM(qty)
+                    FROM packing_packing_in
+                    WHERE id_ppic_master_so IS NULL
+                    AND id_so_det = '$id_so_det'
+                ), 0)
+                + COALESCE((
+                    SELECT SUM(qty_switch)
+                    FROM packing_central_switching
+                    WHERE tujuan_ppic_master_so_id IS NULL
+                    AND tujuan_so_det_id = '$id_so_det'
+                ), 0)
+                - COALESCE((
+                    SELECT COUNT(*)
+                    FROM packing_packing_out_scan
+                    WHERE id_ppic IS NULL
+                    AND id_so_det = '$id_so_det'
+                ), 0)
+                - COALESCE((
+                    SELECT SUM(qty_switch)
+                    FROM packing_central_switching
+                    WHERE asal_ppic_master_so_id IS NULL
+                    AND asal_so_det_id = '$id_so_det'
+                ), 0)
+                AS tot_s
+        ");
+
+        $cek_stok_fix = $cek_stok[0]->tot_s ?? 0;
+
+        if ($cek_stok_fix < 1) {
+            return [
+                'icon' => 'salah',
+                'msg' => 'Tidak Ada Stok',
+            ];
+        }
+
+        // =========================================================
+        // HITUNG TOTAL SUDAH OUT
+        // =========================================================
+        //
+        // Qty carton diambil dari packing in yang menempel di carton
+        // fg_stok_bppb, bukan dari packing list.
+        // =========================================================
+
+        $cek_qty_isi_karton = DB::select("
+            SELECT
+                a.qty,
+                COALESCE(b.tot_input, 0) AS tot_input
+
+            FROM
+            (
+                SELECT SUM(a.qty) AS qty
+
+                FROM packing_packing_in a
+
+                INNER JOIN fg_stok_bppb b
+                    ON b.id = a.fg_stok_bppb_id
+
+                WHERE a.id_ppic_master_so IS NULL
+                AND a.po = '$po'
+                AND a.id_so_det = '$id_so_det'
+                AND b.no_carton = '$no_carton'
+            ) a
+
+            LEFT JOIN
+            (
+                SELECT COUNT(*) AS tot_input
+
+                FROM packing_packing_out_scan
+
+                WHERE po = '$po'
+                AND dest = '$dest'
+                AND no_carton = '$no_carton'
+                AND id_so_det = '$id_so_det'
+                AND id_ppic IS NULL
+            ) b
+                ON 1 = 1
+        ");
+
+        if (!$cek_qty_isi_karton || $cek_qty_isi_karton[0]->qty === null) {
+            return [
+                'icon' => 'salah',
+                'msg' => 'Tidak Ada Data 2',
+            ];
+        }
+
+        $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
+        $tot_out     = $cek_qty_isi_karton[0]->tot_input;
+
+        // =========================================================
+        // CEK QTY KARTON
+        // =========================================================
+
+        if ($cek_qty_isi > $tot_out) {
+
+            // =====================================================
+            // INSERT
+            // =====================================================
+            //
+            // id_ppic sengaja NULL. Kalau diisi id PO asal, stok yang
+            // berkurang jadi stok PO itu, padahal barangnya dari FGS.
+            // =====================================================
+
+            DB::insert("
+                INSERT INTO packing_packing_out_scan
+                (
+                    tgl_trans,
+                    barcode,
+                    po,
+                    dest,
+                    no_carton,
+                    notes,
+                    created_by,
+                    created_at,
+                    updated_at,
+                    id_so_det,
+                    id_ppic
+                )
+                VALUES
+                (
+                    '$tgl_trans',
+                    '$barcode',
+                    '$po',
+                    '$dest',
+                    '$no_carton',
+                    '-',
+                    '$user',
+                    '$timestamp',
+                    '$timestamp',
+                    '$id_so_det',
+                    NULL
+                )
+            ");
+
+
+            return [
+                'icon' => 'benar',
+                'msg' => 'Data berhasil Disimpan',
+            ];
+        }
+
+
+        // =========================================================
+        // QTY SUDAH PENUH
+        // =========================================================
+
+        if ($cek_qty_isi == $tot_out) {
+            return [
+                'icon' => 'lebih',
+                'msg' => 'Data sudah melebihi qty karton',
+            ];
+        }
+
+
+        return [
+            'icon' => 'salah',
+            'msg' => 'Tidak Ada Data 1',
+        ];
     }
 
     public function packing_out_show_tot_input(Request $request)
