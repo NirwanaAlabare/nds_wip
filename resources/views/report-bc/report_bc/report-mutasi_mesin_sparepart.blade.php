@@ -1,8 +1,3 @@
-@extends('layouts.index', ['page' => 'dashboard-report-bc', 'containerFluid' => true])
-
-@section('title', 'Laporan Mutasi ' . ucwords($kategoriBarang))
-
-@section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -31,9 +26,7 @@
             margin-left: auto;
         }
     </style>
-@endsection
 
-@section('content')
     <div class="card report-detail-card">
         <div class="card-header">
             <div>
@@ -45,14 +38,7 @@
                     </span>
                 </h3>
             </div>
-            <div class="card-tools" style="text-align: right;">
-                <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Report BC
-                </a>
-                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
-                </a>
-            </div>
+
         </div>
 
         <div class="card-body">
@@ -96,11 +82,11 @@
                             <th>Id Item</th>
                             <th>Kode Barang</th>
                             <th>Nama Barang</th>
+                            <th>Unit</th>
                             <th>Saldo Awal</th>
                             <th>Penerimaan</th>
                             <th>Pengeluaran</th>
                             <th>Saldo Akhir</th>
-                            <th>Unit</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,11 +97,11 @@
                                     <td>{{ $row->id_item ?? '-' }}</td>
                                     <td>{{ $row->kode_brg ?? '-' }}</td>
                                     <td>{{ $row->nama_brg ?? '-' }}</td>
+                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldo_awal ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyrcv ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyout ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qty_akhir ?? 0, 2) }}</td>
-                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         @endif
@@ -124,9 +110,7 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('custom-script')
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
 
@@ -231,4 +215,3 @@
             });
         });
     </script>
-@endsection

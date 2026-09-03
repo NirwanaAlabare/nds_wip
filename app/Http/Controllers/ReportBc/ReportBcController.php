@@ -25,6 +25,118 @@ class ReportBcController extends Controller
         $this->mutasiService = $mutasiService;
     }
 
+    // public function index(Request $request)
+    // {
+    //     return view('report-bc.report_bc.index', ['page' => 'dashboard-report-bc']);
+    // }
+
+    // public function showReport(Request $request, $jenis, $kategori, $kategoriBarang)
+    // {
+    //     $fromDate = $request->input('from');
+    //     $toDate = $request->input('to');
+    //     $filterBy = $request->input('filter_by', 'dokumen');
+    //     $export = $request->input('export');
+
+    //     if (!$fromDate || !$toDate) {
+    //         return redirect()->route('dashboard-report-bc')->with('error', 'Silakan tentukan range tanggal terlebih dahulu.');
+    //     }
+
+
+    //     if ($jenis === 'mutasi_bahan_baku') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang);
+    //         $cleanKategori = 'bahanbaku';
+    //     } elseif ($jenis === 'mutasi_barang_jadi') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang);
+    //         $cleanKategori = 'barangjadi';
+    //     } elseif ($jenis === 'mutasi_barang_jadi_gudang') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang);
+    //         $cleanKategori = 'barangjadi_gudang';
+    //     } elseif ($jenis === 'mutasi_wip') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiWip($fromDate, $toDate);
+    //         $cleanKategori = 'mutasiwip';
+    //     } elseif ($jenis === 'mutasi_mesin_sparepart') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiMesinSparepart($fromDate, $toDate, $kategoriBarang);
+    //         $cleanKategori = $kategoriBarang;
+    //     }  elseif ($jenis === 'mutasi_barang_sisa') {
+    //         $dataLaporan = $this->mutasiService->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
+    //         $cleanKategori = 'barangsisa';
+    //     }else {
+    //         $service = ($jenis === 'pemasukan') ? $this->pemasukanService : $this->pengeluaranService;
+    //         $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+    //         $methodName = 'getData' . ucfirst($cleanKategori);
+
+    //         if (method_exists($service, $methodName)) {
+    //             $dataLaporan = $service->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+    //         } else {
+    //             $dataLaporan = collect();
+    //         }
+    //     }
+
+    //     if ($export == 'excel') {
+
+
+    //         if($jenis == 'pemasukan'){
+    //             $this->pemasukanService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'pengeluaran'){
+    //             $this->pengeluaranService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'mutasi_bahan_baku'){
+    //             $this->mutasiService->exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'mutasi_barang_jadi'){
+    //             $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'mutasi_barang_jadi_gudang'){
+    //             $this->mutasiService->exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'mutasi_mesin_sparepart'){
+    //             $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+
+    //         if($jenis == 'mutasi_barang_sisa'){
+    //             $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+    //         }
+    //         // $fileName = "Laporan_" . ucfirst($jenis) . "_" . strtoupper($cleanKategori) . "_" . date('Ymd') . ".xls";
+
+    //         // return response(view('report-bc.report_bc.excel-' . $jenis, [
+    //         //     'data' => $dataLaporan,
+    //         //     'jenis' => $jenis,
+    //         //     'kategori' => $kategori,
+    //         //     'fromDate' => $fromDate,
+    //         //     'toDate' => $toDate,
+    //         //     'kategoriBarang' => $kategoriBarang,
+    //         //     'filterBy' => $filterBy,
+    //         //     'fileName' => $fileName
+    //         // ]))
+    //         // ->header('Content-Type', 'application/vnd.ms-excel')
+    //         // ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+    //     }
+
+    //     $viewName = 'report-bc.report_bc.report-' . $jenis;
+
+    //     if (!view()->exists($viewName)) {
+    //         return redirect()->route('dashboard-report-bc')->with('error', 'Halaman view ' . $viewName . ' belum dibuat.');
+    //     }
+
+    //     return view($viewName, [
+    //         'page'           => 'dashboard-report-bc',
+    //         'jenis'          => $jenis,
+    //         'kategori'       => $kategori,
+    //         'fromDate'       => $fromDate,
+    //         'toDate'         => $toDate,
+    //         'filterBy'       => $filterBy,
+    //         'kategoriBarang' => $kategoriBarang,
+    //         'data'           => $dataLaporan,
+    //     ]);
+    // }
+
+
     public function index(Request $request)
     {
         return view('report-bc.report_bc.index', ['page' => 'dashboard-report-bc']);
@@ -38,9 +150,11 @@ class ReportBcController extends Controller
         $export = $request->input('export');
 
         if (!$fromDate || !$toDate) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Silakan tentukan range tanggal terlebih dahulu.'], 422);
+            }
             return redirect()->route('dashboard-report-bc')->with('error', 'Silakan tentukan range tanggal terlebih dahulu.');
         }
-
 
         if ($jenis === 'mutasi_bahan_baku') {
             $dataLaporan = $this->mutasiService->getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang);
@@ -57,10 +171,10 @@ class ReportBcController extends Controller
         } elseif ($jenis === 'mutasi_mesin_sparepart') {
             $dataLaporan = $this->mutasiService->getDataMutasiMesinSparepart($fromDate, $toDate, $kategoriBarang);
             $cleanKategori = $kategoriBarang;
-        }  elseif ($jenis === 'mutasi_barang_sisa') {
+        } elseif ($jenis === 'mutasi_barang_sisa') {
             $dataLaporan = $this->mutasiService->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
             $cleanKategori = 'barangsisa';
-        }else {
+        } else {
             $service = ($jenis === 'pemasukan') ? $this->pemasukanService : $this->pengeluaranService;
             $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
             $methodName = 'getData' . ucfirst($cleanKategori);
@@ -73,51 +187,51 @@ class ReportBcController extends Controller
         }
 
         if ($export == 'excel') {
-
-
-            if($jenis == 'pemasukan'){
-                $this->pemasukanService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'pemasukan') {
+                return $this->pemasukanService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'pengeluaran'){
-                $this->pengeluaranService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'pengeluaran') {
+                return $this->pengeluaranService->exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'mutasi_bahan_baku'){
-                $this->mutasiService->exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'mutasi_bahan_baku') {
+                return $this->mutasiService->exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'mutasi_barang_jadi'){
-                $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'mutasi_barang_jadi') {
+                return $this->mutasiService->exportExcelBarangJadi($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'mutasi_barang_jadi_gudang'){
-                $this->mutasiService->exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'mutasi_barang_jadi_gudang') {
+                return $this->mutasiService->exportExcelBarangJadiGudang($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'mutasi_mesin_sparepart'){
-                $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'mutasi_mesin_sparepart') {
+                return $this->mutasiService->exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-
-            if($jenis == 'mutasi_barang_sisa'){
-                $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
+            if ($jenis == 'mutasi_barang_sisa') {
+                return $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
             }
-            // $fileName = "Laporan_" . ucfirst($jenis) . "_" . strtoupper($cleanKategori) . "_" . date('Ymd') . ".xls";
-
-            // return response(view('report-bc.report_bc.excel-' . $jenis, [
-            //     'data' => $dataLaporan,
-            //     'jenis' => $jenis,
-            //     'kategori' => $kategori,
-            //     'fromDate' => $fromDate,
-            //     'toDate' => $toDate,
-            //     'kategoriBarang' => $kategoriBarang,
-            //     'filterBy' => $filterBy,
-            //     'fileName' => $fileName
-            // ]))
-            // ->header('Content-Type', 'application/vnd.ms-excel')
-            // ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
         }
 
+        // AJAX request dari dashboard → balikin partial HTML tabel, bukan full page
+        if ($request->ajax()) {
+            $partialView = 'report-bc.report_bc.report-' . $jenis;
+
+            if (!view()->exists($partialView)) {
+                return response()->json(['error' => 'Partial view ' . $partialView . ' belum dibuat.'], 404);
+            }
+
+            $html = view($partialView, [
+                'jenis'          => $jenis,
+                'kategori'       => $kategori,
+                'fromDate'       => $fromDate,
+                'toDate'         => $toDate,
+                'filterBy'       => $filterBy,
+                'kategoriBarang' => $kategoriBarang,
+                'data'           => $dataLaporan,
+            ])->render();
+
+            return response()->json(['html' => $html]);
+        }
+
+        // fallback non-AJAX (misal orang buka URL langsung / bookmark)
         $viewName = 'report-bc.report_bc.report-' . $jenis;
 
         if (!view()->exists($viewName)) {
@@ -299,4 +413,210 @@ class ReportBcController extends Controller
 
         $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
     }
+
+    public function pemasukan(Request $request, $kategori)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['error' => 'Silakan tentukan range tanggal terlebih dahulu.'], 422);
+        }
+
+        $html = view('report-bc.report_bc.report-pemasukan', [
+            'jenis' => 'pemasukan',
+            'kategori' => $kategori,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'filterBy' => $filterBy,
+            'kategoriBarang' => $kategoriBarang,
+        ])->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function getPemasukanData(Request $request)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+        $kategori = $request->input('kategori');
+
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['data' => []]);
+        }
+
+        $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+        $methodName = 'getData' . ucfirst($cleanKategori);
+
+        $dataLaporan = method_exists($this->pemasukanService, $methodName)
+            ? $this->pemasukanService->$methodName($fromDate, $toDate, $filterBy, 'pemasukan', $kategoriBarang)
+            : collect();
+
+
+        $rows = collect($dataLaporan)->map(function ($row, $i) {
+            return [
+                'no' => $i + 1,
+                'kode_kantor' => $row->kode_kantor ?? '-',
+                'jenis_dokumen' => $row->jenis_dokumen ?? '-',
+                'kategori_barang' => $row->kategori_barang ?? '-',
+                'nomor_daftar' => $row->nomor_daftar ?? '-',
+                'tanggal_daftar' => ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                'nama_pengirim' => $row->nama_pengirim ?? '-',
+                'nomor_bpb' => $row->nomor_bpb ?? '-',
+                'tanggal_bpb' => ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-', // TERLEWAT SEBELUMNYA
+                'id_item' => $row->id_item ?? '-',
+                'uraian_barang' => $row->uraian_barang ?? '-',
+                'jenis_satuan' => $row->jenis_satuan ?? '-',
+                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'kode_valuta' => $row->kode_valuta ?? '-',
+                'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
+                'kurs' => number_format($row->kurs ?? 0, 2),
+                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+            ];
+        });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    public function pengeluaran(Request $request, $kategori)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['error' => 'Silakan tentukan range tanggal terlebih dahulu.'], 422);
+        }
+
+        $html = view('report-bc.report_bc.report-pengeluaran', [
+            'jenis' => 'pengeluaran',
+            'kategori' => $kategori,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'filterBy' => $filterBy,
+            'kategoriBarang' => $kategoriBarang,
+        ])->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function getPengeluaranData(Request $request)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+        $kategori = $request->input('kategori');
+
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['data' => []]);
+        }
+
+        $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+        $methodName = 'getData' . ucfirst($cleanKategori);
+
+        $dataLaporan = method_exists($this->pengeluaranService, $methodName)
+            ? $this->pengeluaranService->$methodName($fromDate, $toDate, $filterBy, 'pengeluaran', $kategoriBarang)
+            : collect();
+
+
+        $rows = collect($dataLaporan)->map(function ($row, $i) {
+            return [
+                'no' => $i + 1,
+                'kode_kantor' => $row->kode_kantor ?? '-',
+                'jenis_dokumen' => $row->jenis_dokumen ?? '-',
+                'kategori_barang' => $row->kategori_barang ?? '-',
+                'nomor_daftar' => $row->nomor_daftar ?? '-',
+                'tanggal_daftar' => ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                'nama_pengirim' => $row->nama_pengirim ?? '-',
+                'nomor_bpb' => $row->nomor_bpb ?? '-',
+                'ws' => $row->ws ?? '-',
+                'tanggal_bpb' => ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-', // TERLEWAT SEBELUMNYA
+                'id_item' => $row->id_item ?? '-',
+                'uraian_barang' => $row->uraian_barang ?? '-',
+                'jenis_satuan' => $row->jenis_satuan ?? '-',
+                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'kode_valuta' => $row->kode_valuta ?? '-',
+                'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
+                'kurs' => number_format($row->kurs ?? 0, 2),
+                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+            ];
+        });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    public function mutasiBahanBaku(Request $request, $kategori)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['error' => 'Silakan tentukan range tanggal terlebih dahulu.'], 422);
+        }
+
+        $html = view('report-bc.report_bc.report-report-mutasi-bahan-baku', [
+            'jenis' => 'pengeluaran',
+            'kategori' => $kategori,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'filterBy' => $filterBy,
+            'kategoriBarang' => $kategoriBarang,
+        ])->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function getMutasiBahanBaku(Request $request)
+    {
+        $fromDate = $request->input('from');
+        $toDate = $request->input('to');
+        $filterBy = $request->input('filter_by', 'dokumen');
+        $kategoriBarang = $request->input('kategoriBarang', 'all');
+        $kategori = $request->input('kategori');
+
+
+        if (!$fromDate || !$toDate) {
+            return response()->json(['data' => []]);
+        }
+
+        $dataLaporan = $this->mutasiService->getDataMutasiBarangJadi($fromDate, $toDate, 'all');
+
+        $rows = collect($dataLaporan)->map(function ($row, $i) {
+            return [
+                'no' => $i + 1,
+                'kode_kantor' => $row->kode_kantor ?? '-',
+                'jenis_dokumen' => $row->jenis_dokumen ?? '-',
+                'kategori_barang' => $row->kategori_barang ?? '-',
+                'nomor_daftar' => $row->nomor_daftar ?? '-',
+                'tanggal_daftar' => ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                'nama_pengirim' => $row->nama_pengirim ?? '-',
+                'nomor_bpb' => $row->nomor_bpb ?? '-',
+                'ws' => $row->ws ?? '-',
+                'tanggal_bpb' => ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-', // TERLEWAT SEBELUMNYA
+                'id_item' => $row->id_item ?? '-',
+                'uraian_barang' => $row->uraian_barang ?? '-',
+                'jenis_satuan' => $row->jenis_satuan ?? '-',
+                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'kode_valuta' => $row->kode_valuta ?? '-',
+                'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
+                'kurs' => number_format($row->kurs ?? 0, 2),
+                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+            ];
+        });
+
+        return response()->json(['data' => $rows]);
+    }
+
+
+    
 }
