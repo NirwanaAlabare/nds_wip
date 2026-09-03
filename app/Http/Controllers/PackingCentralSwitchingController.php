@@ -34,17 +34,59 @@ class PackingCentralSwitchingController extends Controller
             $id = null;
         }
 
+        // Sumber FGS masuk tanpa id_ppic_master_so, jadi semua item FGS jatuh
+        // ke bucket id = 0 / NULL. Pembeda antar item hanya id_so_det, tanpa
+        // ini preview menampilkan seluruh item FGS, bukan yang dipilih saja.
+        $soDet = $request->so_det_id;
+
+        if (($soDet === null || $soDet === '') && $request->packing_packing_in_id) {
+            $soDet = DB::table('packing_packing_in')
+                ->where('id', $request->packing_packing_in_id)
+                ->value('id_so_det');
+        }
+
+        $filterSoDet = !($soDet === null || $soDet === '');
+
+        $bindings = [];
+
         $whereIdA = is_null($id)
             ? 'a.id_ppic_master_so IS NULL'
             : 'a.id_ppic_master_so = ?';
+
+        if (!is_null($id)) {
+            $bindings[] = $id;
+        }
+
+        if ($filterSoDet) {
+            $whereIdA .= ' AND a.id_so_det <=> ?';
+            $bindings[] = $soDet;
+        }
 
         $whereIdP = is_null($id)
             ? 'id_ppic IS NULL'
             : 'id_ppic = ?';
 
+        if (!is_null($id)) {
+            $bindings[] = $id;
+        }
+
+        if ($filterSoDet) {
+            $whereIdP .= ' AND id_so_det <=> ?';
+            $bindings[] = $soDet;
+        }
+
         $whereIdCombined = is_null($id)
             ? 'combined.id_ppic_master_so IS NULL'
             : 'combined.id_ppic_master_so = ?';
+
+        if (!is_null($id)) {
+            $bindings[] = $id;
+        }
+
+        if ($filterSoDet) {
+            $whereIdCombined .= ' AND combined.so_det_id <=> ?';
+            $bindings[] = $soDet;
+        }
 
         $data = DB::select("
             WITH a AS (
@@ -239,9 +281,7 @@ class PackingCentralSwitchingController extends Controller
 
             HAVING qty_sisa > 0
 
-        ", is_null($id)
-            ? []
-            : [$id, $id, $id]);
+        ", $bindings);
 
         return response()->json($data);
     }
@@ -1330,16 +1370,26 @@ class PackingCentralSwitchingController extends Controller
     
     public function detailTransaksi(Request $request)
     {
-        $dataPo = DB::select("SELECT DISTINCT(po) FROM ppic_master_so WHERE tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)");
+        $dataPo = DB::select("
+            SELECT DISTINCT po FROM ppic_master_so
+            WHERE tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+
+            UNION
+
+            SELECT DISTINCT po FROM packing_packing_in
+            WHERE id_ppic_master_so IS NULL
+                AND po IS NOT NULL
+                AND tgl_penerimaan >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+        ");
 
         $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date'); 
+        $end_date = $request->input('end_date');
         $status = $request->input('status');
         $po = $request->input('po');
 
         $dateCondition = '';
         if (!empty($start_date) && !empty($end_date)) {
-            $dateCondition = "AND ppic_master_so.tgl_shipment BETWEEN '$start_date' AND '$end_date'";
+            $dateCondition = "AND COALESCE(ppic_master_so.tgl_shipment, packing_packing_in.tgl_penerimaan) BETWEEN '$start_date' AND '$end_date'";
         }
 
         $poCondition = '';
@@ -1349,7 +1399,7 @@ class PackingCentralSwitchingController extends Controller
             }
 
             $poList = "'" . implode("','", $po) . "'";
-            $poCondition = "AND ppic_master_so.po IN ($poList)";
+            $poCondition = "AND COALESCE(ppic_master_so.po, packing_packing_in.po) IN ($poList)";
         }
 
         if ($request->ajax()) {
@@ -1361,17 +1411,25 @@ class PackingCentralSwitchingController extends Controller
                     a.id_so_det AS so_det_id,
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
-                    INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE a.sumber IN ('Sewing','FGS') AND YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
+                    LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                    WHERE a.sumber IN ('Sewing','FGS')
+                        AND (
+                            a.id_ppic_master_so IS NULL
+                            OR YEAR(p.tgl_shipment) >= 2026
+                            OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                            OR p.po = '61297671'
+                            OR p.po = '61297673'
+                        )
                     group by id_ppic_master_so,a.id_so_det
                 ),
-                
+
                 p AS (
                     SELECT
                         id_ppic,
                         id_so_det,
                         COUNT(*) AS qty_scan
                     FROM packing_packing_out_scan
+                    WHERE id_so_det IS NOT NULL
                     GROUP BY
                         id_ppic,
                         id_so_det
@@ -1473,10 +1531,13 @@ class PackingCentralSwitchingController extends Controller
 
                 result AS (
                     SELECT
-                        DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                        DATE_FORMAT(
+                            COALESCE(ppic_master_so.tgl_shipment, packing_packing_in.tgl_penerimaan),
+                            '%d-%m-%Y'
+                        ) AS tgl_shipment,
                         combined.id_ppic_master_so,
                         packing_packing_in.id AS packing_packing_in_id,
-                        ppic_master_so.po,
+                        COALESCE(ppic_master_so.po, packing_packing_in.po) AS po,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1517,21 +1578,23 @@ class PackingCentralSwitchingController extends Controller
                             id_ppic_master_so,
                             id_so_det,
                             MIN(id) AS id,
-                            MAX(po) AS po
+                            MAX(po) AS po,
+                            MAX(tgl_penerimaan) AS tgl_penerimaan
                         FROM packing_packing_in
                         GROUP BY
                             id_ppic_master_so,
                             id_so_det
                     ) packing_packing_in
-                        ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
-                        AND packing_packing_in.id_so_det = combined.so_det_id
+                        ON packing_packing_in.id_ppic_master_so <=> combined.id_ppic_master_so
+                        AND packing_packing_in.id_so_det <=> combined.so_det_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
                     LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
                     WHERE 1=1
                         $dateCondition
                         $poCondition
                         AND (
-                            YEAR(ppic_master_so.tgl_shipment) >= 2026
+                            combined.id_ppic_master_so IS NULL
+                            OR YEAR(ppic_master_so.tgl_shipment) >= 2026
                             OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                             OR ppic_master_so.po = '61297671'
                             OR ppic_master_so.po = '61297673'
@@ -1540,7 +1603,7 @@ class PackingCentralSwitchingController extends Controller
                         combined.id_ppic_master_so,
                         combined.so_det_id,
                         packing_packing_in.id,
-                        ppic_master_so.po,
+                        COALESCE(ppic_master_so.po, packing_packing_in.po),
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -1578,7 +1641,7 @@ class PackingCentralSwitchingController extends Controller
 
         $dateCondition = '';
         if (!empty($start_date) && !empty($end_date)) {
-            $dateCondition = "AND ppic_master_so.tgl_shipment BETWEEN '$start_date' AND '$end_date'";
+            $dateCondition = "AND COALESCE(ppic_master_so.tgl_shipment, packing_packing_in.tgl_penerimaan) BETWEEN '$start_date' AND '$end_date'";
         }
 
         $poCondition = '';
@@ -1589,7 +1652,7 @@ class PackingCentralSwitchingController extends Controller
             }
 
             $poList = "'" . implode("','", $po) . "'";
-            $poCondition = "AND ppic_master_so.po IN ($poList)";
+            $poCondition = "AND COALESCE(ppic_master_so.po, packing_packing_in.po) IN ($poList)";
         }
 
         $data = DB::select("
@@ -1600,17 +1663,25 @@ class PackingCentralSwitchingController extends Controller
                 a.id_so_det AS so_det_id,
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.sumber IN ('Sewing','FGS') AND YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
+                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                WHERE a.sumber IN ('Sewing','FGS')
+                    AND (
+                        a.id_ppic_master_so IS NULL
+                        OR YEAR(p.tgl_shipment) >= 2026
+                        OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                        OR p.po = '61297671'
+                        OR p.po = '61297673'
+                    )
                 group by id_ppic_master_so,a.id_so_det
             ),
-            
+
             p AS (
                 SELECT
                     id_ppic,
                     id_so_det,
                     COUNT(*) AS qty_scan
                 FROM packing_packing_out_scan
+                WHERE id_so_det IS NOT NULL
                 GROUP BY
                     id_ppic,
                     id_so_det
@@ -1712,10 +1783,13 @@ class PackingCentralSwitchingController extends Controller
 
             result AS (
                 SELECT
-                    DATE_FORMAT(ppic_master_so.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                    DATE_FORMAT(
+                        COALESCE(ppic_master_so.tgl_shipment, packing_packing_in.tgl_penerimaan),
+                        '%d-%m-%Y'
+                    ) AS tgl_shipment,
                     combined.id_ppic_master_so,
                     packing_packing_in.id AS packing_packing_in_id,
-                    ppic_master_so.po,
+                    COALESCE(ppic_master_so.po, packing_packing_in.po) AS po,
                     master_sb_ws.ws,
                     master_sb_ws.styleno,
                     master_sb_ws.color,
@@ -1756,21 +1830,23 @@ class PackingCentralSwitchingController extends Controller
                         id_ppic_master_so,
                         id_so_det,
                         MIN(id) AS id,
-                        MAX(po) AS po
+                        MAX(po) AS po,
+                        MAX(tgl_penerimaan) AS tgl_penerimaan
                     FROM packing_packing_in
                     GROUP BY
                         id_ppic_master_so,
                         id_so_det
                 ) packing_packing_in
-                    ON packing_packing_in.id_ppic_master_so = combined.id_ppic_master_so
-                    AND packing_packing_in.id_so_det = combined.so_det_id
+                    ON packing_packing_in.id_ppic_master_so <=> combined.id_ppic_master_so
+                    AND packing_packing_in.id_so_det <=> combined.so_det_id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
                 LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
                 WHERE 1=1
                     $dateCondition
                     $poCondition
                     AND (
-                        YEAR(ppic_master_so.tgl_shipment) >= 2026
+                        combined.id_ppic_master_so IS NULL
+                        OR YEAR(ppic_master_so.tgl_shipment) >= 2026
                         OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                         OR ppic_master_so.po = '61297671'
                         OR ppic_master_so.po = '61297673'
@@ -1779,7 +1855,7 @@ class PackingCentralSwitchingController extends Controller
                     combined.id_ppic_master_so,
                     combined.so_det_id,
                     packing_packing_in.id,
-                    ppic_master_so.po,
+                    COALESCE(ppic_master_so.po, packing_packing_in.po),
                     master_sb_ws.ws,
                     master_sb_ws.styleno,
                     master_sb_ws.color,

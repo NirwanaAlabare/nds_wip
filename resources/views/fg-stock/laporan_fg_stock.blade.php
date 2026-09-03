@@ -525,6 +525,7 @@
                     { data: 'qty_keluar_sewing', title: 'Keluar Sewing', group: 'gudang', num: true },
                     { data: 'qty_keluar_qa', title: 'Keluar QA', group: 'gudang', num: true },
                     { data: 'qty_keluar_ekspedisi', title: 'Keluar Ekspedisi', group: 'gudang', num: true },
+                    { data: 'qty_keluar_packing_central', title: 'Keluar Packing Central', group: 'gudang', num: true },
                     { data: 'saldo_akhir_gudang_stok', title: 'Saldo Akhir', group: 'gudang', num: true },
                 ],
             },
