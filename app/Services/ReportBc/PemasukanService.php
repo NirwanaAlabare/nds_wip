@@ -213,7 +213,7 @@ class PemasukanService
             DB::raw("MAX(a.jenis_dok) as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
-            DB::raw("GROUP_CONCAT(DISTINCT a.bpbno_int ORDER BY a.bpbno_int SEPARATOR ', ') AS trans_no"),
+            DB::raw("a.bpbno_int as trans_no"),
             'a.bpbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
