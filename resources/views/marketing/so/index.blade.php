@@ -689,8 +689,9 @@
                                             <tr>
                                                 <th>Color</th>
                                                 <th>Market</th>
-                                                <th width="20%">Size</th>
-                                                <th width="20%">Qty</th>
+                                                <th width="15%">Size</th>
+                                                <th width="15%">Qty</th>
+                                                <th width="15%">FOB</th>
                                                 <th width="15%">Action</th>
                                             </tr>
                                         </thead>
@@ -1059,6 +1060,9 @@
                         <td>
                             <input type="number" id="qty_input_${detail_id}" data-id="${detail_id}" class="form-control form-control-sm text-right qty-input" value="${item.qty}" ${readonly}>
                         </td>
+                        <td>
+                            <input type="number" id="fob_input_${detail_id}" data-id="${detail_id}" class="form-control form-control-sm text-right fob-input" value="${item.fob }" ${readonly}>
+                        </td>
                         <td class="text-center align-middle">
                             ${actionBtn}
                         </td>
@@ -1200,12 +1204,13 @@
                 let qty = $(this).val();
                 let $destInput = $(`.input_dest[data-id="${id}"]`);
                 let isLocked = $destInput.data('locked') == 1;
+                let fob = $(`.fob-input[data-id="${id}"]`).val();
 
                 if (qty === '' || qty <= 0) {
                     isValid = false;
                 }
 
-                let payload = { id: id, qty: qty };
+                let payload = { id: id, qty: qty, fob:fob };
 
                 if (!isLocked) {
                     payload.dest = $destInput.val();
