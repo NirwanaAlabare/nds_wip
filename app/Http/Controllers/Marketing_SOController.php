@@ -2213,6 +2213,7 @@ class Marketing_SOController extends Controller
         $newStyle = $request->input('style');
         $data = $request->input('data');
 
+
         if (!$data || !is_array($data)) {
             return response()->json(['status' => 400, 'message' => 'Data tidak valid!']);
         }
@@ -2230,7 +2231,7 @@ class Marketing_SOController extends Controller
                 ->flip();
 
             foreach ($data as $item) {
-                $updateFields = ['qty' => $item['qty']];
+                $updateFields = ['qty' => $item['qty'], 'fob' => $item['fob']];
 
                 if (array_key_exists('dest', $item) && !isset($lockedIds[$item['id']])) {
                     $updateFields['dest'] = $item['dest'];
@@ -4495,6 +4496,7 @@ class Marketing_SOController extends Controller
             unset($log_data['updated_by']);
             unset($log_data['updated_at']);
             unset($log_data['updated_date']);
+            unset($log_data['fob']);
             DB::connection('mysql_sb')->table('so_log')->insert($log_data);
         }
     }
