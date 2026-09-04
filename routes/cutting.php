@@ -484,6 +484,7 @@ Route::middleware('auth')->group(function () {
 
             // Regenerate form cut output
             Route::post('/generate-form-cut-output', 'generateFormCutOutput')->name('generate-form-cut-output');
+            Route::post('/generate-form-cut-output-all', 'generateFormCutOutputAll')->name('generate-form-cut-output-all');
 
             // Delete redundant roll
             Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');

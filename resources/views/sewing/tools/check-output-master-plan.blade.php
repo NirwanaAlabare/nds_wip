@@ -71,6 +71,7 @@
                             <th>Size</th>
                             <th>WS Plan Terpasang</th>
                             <th>Color Plan Terpasang</th>
+                            <th>Line Plan Terpasang</th>
                             <th>WS Plan Seharusnya</th>
                             <th>Color Plan Seharusnya</th>
                             <th>Keterangan</th>
@@ -172,8 +173,17 @@
                 columns: [
                     { data: null, render: function(data, type, row, meta) { return meta.row + 1; }, className: 'text-center', orderable: false },
                     { data: 'tipe', className: 'text-center', render: function(data) {
-                        var color = data === 'RFT' ? 'success' : (data === 'Defect' ? 'warning' : 'danger');
-                        return '<span class="badge bg-' + color + '">' + data + '</span>';
+                        var colors = {
+                            'RFT': 'success',
+                            'Defect': 'warning',
+                            'Reject': 'danger',
+                            'Finishing': 'info',
+                            'Packing RFT': 'primary',
+                            'Packing Defect': 'warning',
+                            'Packing Reject': 'danger',
+                            'Packing PO': 'dark',
+                        };
+                        return '<span class="badge bg-' + (colors[data] ?? 'secondary') + '">' + data + '</span>';
                     }},
                     { data: 'kode_numbering', className: 'text-center' },
                     { data: 'line', className: 'text-center' },
@@ -183,12 +193,16 @@
                     { data: 'size', className: 'text-center', defaultContent: '-' },
                     { data: 'ws_plan', defaultContent: '<span class="text-muted">NULL</span>', render: function(data) { return data ?? '<span class="text-muted">NULL</span>'; }},
                     { data: 'plan_color', defaultContent: '<span class="text-muted">NULL</span>', render: function(data) { return data ?? '<span class="text-muted">NULL</span>'; }},
+                    { data: 'plan_line', className: 'text-center', defaultContent: '<span class="text-muted">NULL</span>', render: function(data, type, row) {
+                        if (!data) return '<span class="text-muted">NULL</span>';
+                        return data != row.line ? '<span class="text-danger fw-bold">' + data + '</span>' : data;
+                    }},
                     { data: 'ws_correct', defaultContent: '<span class="text-muted">Tidak ditemukan</span>', render: function(data) { return data ?? '<span class="text-muted fst-italic">Tidak ditemukan</span>'; }},
                     { data: 'color_correct', defaultContent: '<span class="text-muted">Tidak ditemukan</span>', render: function(data) { return data ?? '<span class="text-muted fst-italic">Tidak ditemukan</span>'; }},
                     { data: 'keterangan', className: 'text-center' },
                 ],
                 columnDefs: [
-                    { targets: [7, 8, 9, 10, 11], createdCell: function(td) { $(td).css('white-space', 'nowrap'); } }
+                    { targets: [7, 8, 9, 10, 11, 12], createdCell: function(td) { $(td).css('white-space', 'nowrap'); } }
                 ],
                 order: [[3, 'desc']],
                 pageLength: 25,
