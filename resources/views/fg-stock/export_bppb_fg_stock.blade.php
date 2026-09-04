@@ -30,8 +30,11 @@
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Grade</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No. Carton</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Lokasi</th>
-            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tujuan</th>
-            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tujuan Pengeluaran</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Requester</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tujuan Penerima</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Jenis Pengeluaran</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Keterangan</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Status</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No Dok</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">User</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tgl. Input</th>
@@ -59,8 +62,11 @@
                 <td>{{ $item->grade }}</td>
                 <td>{{ $item->no_carton }}</td>
                 <td>{{ $item->lokasi }}</td>
+                <td>{{ $item->requester }}</td>
                 <td>{{ $item->tujuan }}</td>
                 <td>{{ $item->tujuan_pengeluaran }}</td>
+                <td>{{ $item->keterangan }}</td>
+                <td>{{ $item->status }}</td>
                 <td>{{ $item->no_dok }}</td>
                 <td>{{ $item->created_by }}</td>
                 <td>{{ $item->created_at }}</td>
