@@ -65,7 +65,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where()
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -82,7 +82,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
     //     //         "'N/A'",
@@ -103,7 +103,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -127,7 +127,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "'N/A'",
@@ -219,7 +219,7 @@ class PemasukanService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            'a.qty',
+            DB::raw("SUM(a.qty) as qty"),
             'a.curr',
             DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
             'a.berat_bersih',
@@ -244,7 +244,7 @@ class PemasukanService
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -372,7 +372,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.3')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->where($excludeInvno)
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -398,7 +398,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.3')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->where($excludeInvno)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
@@ -468,7 +468,7 @@ class PemasukanService
             DB::raw("'BC 2.3' as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
+            DB::raw("a.bpbno_int as trans_no"),
             'a.bpbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
@@ -498,7 +498,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->where($excludeInvno)
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -528,7 +528,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->where($excludeInvno)
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
@@ -614,7 +614,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.6.2')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -639,7 +639,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.6.2')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -734,7 +734,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -763,7 +763,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "ac.kpno",
@@ -853,7 +853,7 @@ class PemasukanService
     //     // $queryBahanBaku = $mysql_sb->table('bpb as a')
     //     //     ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where($excludeCommon)
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -866,7 +866,7 @@ class PemasukanService
     //     // $queryBarangJadi = $mysql_sb->table('bpb as a')
     //     //     ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->where('d.area', '=', 'L')
     //     //     ->where($excludeCommon)
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
@@ -888,7 +888,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 4.0')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -910,7 +910,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 4.0')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1002,7 +1002,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -1028,7 +1028,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
@@ -1111,7 +1111,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', 'BC 2.7')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where('a.tujuan', 'not regexp', 'SUBKON')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -1127,7 +1127,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', 'BC 2.7')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->where('a.tujuan', 'not regexp', 'SUBKON')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -1149,7 +1149,7 @@ class PemasukanService
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->where('a.tujuan', 'not regexp', 'SUBKON')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -1173,7 +1173,7 @@ class PemasukanService
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //              ->where('a.tujuan', 'not regexp', 'SUBKON')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1265,7 +1265,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -1292,7 +1292,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
