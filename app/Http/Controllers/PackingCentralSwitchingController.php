@@ -1544,7 +1544,7 @@ class PackingCentralSwitchingController extends Controller
                         master_sb_ws.size,
                         master_sb_ws.dest,
                         combined.so_det_id,
-                        ppic_master_so.qty_po,
+                        COALESCE(ppic_master_so.qty_po, 0) AS qty_po,
                         SUM(combined.qty) AS qty_pck_in,
                         SUM(combined.qty_switch_masuk) AS qty_switch_in,
                         SUM(combined.qty_switch) AS qty_switch_out,
