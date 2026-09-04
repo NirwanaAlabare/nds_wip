@@ -400,6 +400,7 @@
                                 <th>PO</th>
                                 <th>Market</th>
                                 <th>Ex Fty</th>
+                                <th>FOB</th>
                                 <th>Color</th>
                                 <th>Size</th>
                                 <th>Qty</th>
@@ -717,8 +718,8 @@
                     $('#table-preview-so').DataTable().destroy();
                 }
 
-                // Nambah Header Product Set
-                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Product Set</th><th>Color</th>`;
+                // Header: 8 kolom non-size (Style, Desc, PO, Market, Ex Fty, FOB, Product Set, Color) + size + Total
+                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>FOB</th><th>Product Set</th><th>Color</th>`;
                 res.available_sizes.forEach(size => {
                     headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
                 });
@@ -726,17 +727,17 @@
                 $('#table-preview-so thead').html(headerHtml);
 
                 let bodyHtml = '';
-                if(res.data && res.data.length > 0) {
+                if (res.data && res.data.length > 0) {
                     res.data.forEach(row => {
                         let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
 
-                        // Nambah Body Product Set
                         bodyHtml += `<tr>
                             <td>${row.style || '-'}</td>
                             <td>${row.desc || '-'}</td>
                             <td>${row.po || '-'}</td>
                             <td>${row.market || '-'}</td>
                             <td>${row.ex_fty || '-'}</td>
+                            <td>${row.fob || '-'}</td>
                             <td>${row.product_set || '-'}</td>
                             <td class="${colorErrorClass}">${row.color || '-'}</td>`;
 
@@ -755,17 +756,20 @@
                         bodyHtml += `<td class="text-right fw-bold bg-light">${rowTotalFormatted}</td></tr>`;
                     });
                 } else {
-                    let colCount = 8 + (res.available_sizes ? res.available_sizes.length : 0); // Ubah jadi 8
+                    // 9 kolom fix (8 non-size + Total) + jumlah size
+                    let colCount = 9 + (res.available_sizes ? res.available_sizes.length : 0);
                     bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
                 }
                 $('#table-preview-so tbody').html(bodyHtml);
 
                 if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
 
-                // Nambah TH kosong buat Footer Product Set
+                // Footer: HARUS 8 sel non-size (bukan 7) supaya sejajar dg 8 kolom body.
+                // Label "TOTAL" ditaruh di sel ke-8 (kolom Color), bukan ke-7.
                 let footerHtml = `<tr>
                         <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
                         <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
+                        <th class="bg-light"></th>
                         <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
                 res.available_sizes.forEach(size => {
                     footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
@@ -790,17 +794,23 @@
                                 return typeof i === 'number' ? i : 0;
                             };
 
-                            // Index kolom size bergeser dari 6 jadi 7
-                            let startColIndex = 7;
+                            // Kolom non-size = 8 (Style, Desc, PO, Market, Ex Fty, FOB, Product Set, Color)
+                            let startColIndex = 8;
                             let numSizes = res.available_sizes.length;
                             for (let i = 0; i < numSizes; i++) {
                                 let colIndex = startColIndex + i;
-                                let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                                let colData = api.column(colIndex, { search: 'applied' }).data();
+                                let colTotal = colData.length
+                                    ? colData.toArray().reduce((sum, v) => sum + intVal(v), 0)
+                                    : 0;
                                 $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
                             }
 
                             let grandTotalColIndex = startColIndex + numSizes;
-                            let grandTotalValue = api.column(grandTotalColIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                            let gtData = api.column(grandTotalColIndex, { search: 'applied' }).data();
+                            let grandTotalValue = gtData.length
+                                ? gtData.toArray().reduce((sum, v) => sum + intVal(v), 0)
+                                : 0;
                             $(api.column(grandTotalColIndex).footer()).html(grandTotalValue.toLocaleString('id-ID'));
                         },
                         "drawCallback": function(settings) {
@@ -821,7 +831,7 @@
                 else if (isSizeMissing) {
                     btnSubmit.prop('disabled', false);
                     let htmlError = `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
-                                     <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
+                                    <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
 
                     Swal.fire({
                         icon: 'error',

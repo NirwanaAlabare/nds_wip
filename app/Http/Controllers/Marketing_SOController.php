@@ -646,7 +646,6 @@ class Marketing_SOController extends Controller
         $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
 
-
         // Tarik Master Data dan bersihkan spasi & case-nya
         $raw_master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
         $master_colors = [];
@@ -660,8 +659,7 @@ class Marketing_SOController extends Controller
             $master_sizes[strtoupper(trim($k))] = $v;
         }
 
-
-        // Tarik Data BOM (Warna & Size yang terdaftar) - Di-unique langsung dari query
+        // Tarik Data BOM (Warna & Size yang terdaftar)
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_color')
@@ -692,16 +690,24 @@ class Marketing_SOController extends Controller
             $po         = trim($row[2]);
             $color_name = trim($row[6]);
 
+            // FOB
+            $fob_raw = $row[7] ?? null;
+            $fob = null;
+            if ($fob_raw !== null && $fob_raw !== '') {
+                $fob_clean = trim($fob_raw, " \t\n\r\0\x0B\xC2\xA0");
+                $fob_clean = preg_replace('/\s+/u', '', $fob_clean);
+                $fob_clean = str_replace(',', '', $fob_clean);
+                $fob = is_numeric($fob_clean) ? $fob_clean : null;
+            }
+
             // =======================================================
-            // REFACTORING: KONDISI SINGLE & MULTIPLE (PRODUCT SET)
+            // KONDISI SINGLE & MULTIPLE (PRODUCT SET)
             // =======================================================
             $raw_product_set = trim($row[5]);
 
             if (empty($raw_product_set) || $raw_product_set === '-' || strtolower($raw_product_set) === 'null') {
-                // KONDISI SINGLE: Paksa jadi NULL agar grouping nanti cuma baca PO
                 $product_set = null;
             } else {
-                // KONDISI MULTIPLE: Simpan nama Set-nya (Contoh: TOP / BOTTOM)
                 $product_set = $raw_product_set;
             }
             // =======================================================
@@ -719,19 +725,16 @@ class Marketing_SOController extends Controller
                 continue;
             }
 
-            // Looping Qty per Size
-            for ($col_index = 7; $col_index < count($row); $col_index++) {
-                // Bersihkan qty dari spasi biasa dan karakter spasi tersembunyi (NBSP)
+            // Looping Qty per Size (mulai index 8, karena index 7 sekarang FOB)
+            for ($col_index = 8; $col_index < count($row); $col_index++) {
                 $qty_raw = $row[$col_index];
                 if ($qty_raw === null || $qty_raw === '') continue;
 
                 $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
-                $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
-
-
+                $qty = preg_replace('/\s+/u', '', $qty);
                 $qty = str_replace(',', '', $qty);
 
-            if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
+                if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
 
@@ -745,13 +748,10 @@ class Marketing_SOController extends Controller
                 }
                 $size_id = $master_sizes[$size_key];
 
-
-
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
                     $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
                     continue;
                 }
-
 
                 $temp_data[] = [
                     'user_id'     => $user_id,
@@ -763,7 +763,8 @@ class Marketing_SOController extends Controller
                     'id_color'    => $color_id,
                     'size'        => $size_id,
                     'qty'         => $qty,
-                    'product_set' => $product_set, // Masuk secara dinamis (NULL / TEXT)
+                    'product_set' => $product_set,
+                    'fob'         => $fob,
                     'created_at'  => now()
                 ];
             }
@@ -829,7 +830,7 @@ class Marketing_SOController extends Controller
             ->where('t.user_id', $user_id)
             ->select(
                 't.style', 't.desc', 't.po', 't.market', 't.ex_fty', 't.product_set',
-                't.id_color', 'c.name as color_name',
+                't.id_color', 't.fob', 'c.name as color_name',
                 't.size as id_size', 's.size as size_name', 's.urutan as size_urutan',
                 't.qty'
             )
@@ -882,6 +883,7 @@ class Marketing_SOController extends Controller
                     'product_set' => $is_multiple ? $prod_set_clean : '-',
                     'id_color'    => $row->id_color,
                     'color'       => $row->color_name,
+                    'fob'         => $row->fob,
                     'errors'      => [],
                     'id_sizes'    => [],
                 ];
@@ -1610,6 +1612,7 @@ class Marketing_SOController extends Controller
                         'dest'    => !empty($d->market) ? $d->market : '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
+                        'fob'=> $d->fob,
                     ];
                 }
 
