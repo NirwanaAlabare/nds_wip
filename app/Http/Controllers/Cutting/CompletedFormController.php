@@ -554,11 +554,12 @@ class CompletedFormController extends Controller
             }
 
             $cuttingService->fixChainedQty($detail->id_roll, $firstId);
-            
+
             $cuttingService->fixChainedQty($request->current_id_roll_ori, null);
 
             // generate form cut output
-            FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             DB::commit();
 
@@ -658,7 +659,8 @@ class CompletedFormController extends Controller
             }
 
             // generate form cut output
-            FormCutInputDetailOutput::generateFormCutOutput($id);
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($id);
 
             return array(
                 "status" => 200,
@@ -740,7 +742,8 @@ class CompletedFormController extends Controller
             }
 
             // generate form cut output
-            FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -828,7 +831,8 @@ class CompletedFormController extends Controller
             }
 
             // generate form cut output
-            // FormCutInputDetailOutput::generateFormCutOutput($formCutInput->id);
+            $cuttingService = new CuttingService();//
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -1055,7 +1059,8 @@ class CompletedFormController extends Controller
                     // }
 
                     // generate form cut output
-                    FormCutInputDetailOutput::generateFormCutOutput($formCutDetail->form_cut_id);
+                    $cuttingService = new CuttingService();
+                    $cuttingService->generateFormCutOutput($formCutDetail->form_cut_id);
 
                     DB::commit();
 

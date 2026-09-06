@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 use DB;
 
 class DcService
@@ -4014,9 +4015,18 @@ class DcService
                     tanggal < '".$dateTo."'
             ");
 
-            $dateFrom = $latestRekap[0]->tanggal ?? '2026-01-01';
+            // Baris rekap terakhir sudah mencakup transaksi PADA tanggalnya, jadi
+            // periode berikutnya harus dimulai H+1. Kalau dimulai tepat di tanggal
+            // rekap terakhir, dc_rekap pada buildBaseCte (MAX(tanggal) < dateFrom)
+            // justru melewati baris tersebut, sehingga saldo_awal yang tersimpan
+            // adalah posisi H-1 dan tidak sama dengan saldo_akhir periode sebelumnya.
+            $lastRekapDate = $latestRekap[0]->tanggal ?? null;
 
-            if ($dateFrom >= $dateTo) {
+            $dateFrom = $lastRekapDate
+                ? Carbon::parse($lastRekapDate)->addDay()->toDateString()
+                : '2026-01-01';
+
+            if ($dateFrom > $dateTo) {
                 return [
                     'status' => 200,
                     'message' => 'Tidak ada data baru untuk direkap.',
