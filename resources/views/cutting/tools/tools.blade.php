@@ -1090,18 +1090,32 @@
                 <!-- Body -->
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">No. Form</label>
+                        <label class="form-label">Generate by No. Form</label>
                         <select name="no_form_generate_cut_output" id="no_form_generate_cut_output" class="form-control select2bs4cutoutput" style="width: 100%;">
                             <option value="">Pilih Form</option>
                         </select>
                         <small class="text-muted">Output form akan dihapus lalu diisi ulang berdasarkan marker &amp; gelaran form.</small>
+                        <button type="button" class="btn btn-primary btn-sm btn-block mt-2" onclick="generateFormCutOutput()">Generate</button>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-0">
+                        <label class="form-label">Generate Semua Form</label>
+                        <div>
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-block mt-2" onclick="generateFormCutOutputAll()">
+                                <i class="fas fa-sync-alt"></i> Generate Semua
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            Regenerate output semua form.
+                        </small>
                     </div>
                 </div>
 
                 <!-- Footer -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="generateFormCutOutput()">Generate</button>
                 </div>
             </div>
         </div>
@@ -1176,7 +1190,7 @@
                 },
                 cache: true
             },
-            placeholder: 'Search for an item...',
+            placeholder: 'Masukkan no. form...',
             minimumInputLength: 2
         });
 
@@ -3126,6 +3140,99 @@
                         }
 
                         if (response.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
+                            $('#no_form_generate_cut_output').val(null).trigger('change');
+                            $('#generateFormCutOutputModal').modal('hide');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+
+                        let response = jqXHR.responseJSON;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: (response && response.message ? response.message : 'Terjadi kesalahan.'),
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                });
+            });
+        }
+
+        function generateFormCutOutputAll(force = false) {
+            Swal.fire({
+                title: 'Generate Semua Form Cut Output?',
+                html: force ?
+                    'Data switching output pada form yang dilewati akan hangus. Tetap lanjutkan?' :
+                    'Output <b>seluruh form berstatus SELESAI PENGERJAAN</b> akan digenerate ulang. Proses ini memakan waktu lama. Lanjutkan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: force ? 'TETAP GENERATE' : 'GENERATE SEMUA',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('generate-form-cut-output-all') }}",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        force: force ? 1 : 0,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (response.status == 200) {
+                            let skippedSwitching = response.additional ? response.additional.skipped_switching : 0;
+
+                            // Masih ada form yang dilewati karena switching, tawarkan generate paksa
+                            if (!force && skippedSwitching > 0) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Perhatian',
+                                    html: response.message + '<br><br>Generate ulang form yang ada switching output?',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'LANJUTKAN',
+                                    cancelButtonText: 'CUKUP',
+                                    confirmButtonColor: "#dc3545"
+                                }).then((confirmation) => {
+                                    if (confirmation.isConfirmed) {
+                                        generateFormCutOutputAll(true);
+                                    }
+                                });
+
+                                return;
+                            }
+
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',

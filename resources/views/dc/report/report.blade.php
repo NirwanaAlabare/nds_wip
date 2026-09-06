@@ -464,6 +464,12 @@
                     link.click();
                 },
                 error: function (jqXHR) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal",
+                        html: "Terjadi kesalahan saat mengekspor data.",
+                    });
+
                     console.error(jqXHR);
                 }
             });

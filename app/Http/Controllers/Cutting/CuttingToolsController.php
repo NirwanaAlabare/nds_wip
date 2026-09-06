@@ -287,7 +287,8 @@ class CuttingToolsController extends Controller
                     }
 
                     // Regenerate form cut detail output
-                    FormCutInputDetailOutput::generateFormCutOutput($validatedRequest['modify_ratio_form_id']);
+                    $cuttingService = new CuttingService();
+                    $cuttingService->generateFormCutOutput($formCutInput->id);
 
                     return array(
                         "status" => 200,
@@ -1013,8 +1014,8 @@ class CuttingToolsController extends Controller
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",
         ]);
-        
-        // Check Form 
+
+        // Check Form
         $formCut = FormCutInput::where("id", $validatedRequest["form_cut_id"])->first();
         if (!$formCut) {
             return array(
@@ -1045,6 +1046,12 @@ class CuttingToolsController extends Controller
         }
 
         return $cuttingService->callGenerateFormCutOutputDetail($formCut->id, $request->force ? true : false);
+    }
+
+    public function generateFormCutOutputAll(Request $request, CuttingService $cuttingService) {
+        ini_set('max_execution_time', 3600);
+
+        return $cuttingService->generateFormCutInputDetailOutputAll($request->force ? true : false);
     }
 
     public function deleteRedundantRoll(Request $request, CuttingService $cuttingService) {
