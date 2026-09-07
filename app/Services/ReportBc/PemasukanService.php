@@ -210,7 +210,7 @@ class PemasukanService
         ";
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw(str_replace('__ELSE_RULE__', $jenisDokElse, $caseJenisDokumen) . " as jenis_dokumen"),
+            DB::raw("MAX(a.jenis_dok) as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
             DB::raw("a.bpbno_int as trans_no"),
@@ -274,7 +274,7 @@ class PemasukanService
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    DB::raw(str_replace('__ELSE_RULE__', $jenisDokElse, $caseJenisDokumen) . " as jenis_dokumen"),
+                    "MAX(a.jenis_dok) as jenis_dokumen",
                     "a.bcdate",
                     "ac.kpno",
                     "s.itemname",
