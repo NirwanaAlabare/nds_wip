@@ -44,7 +44,7 @@ class CuttingService
 
             if ($formCut) {
                 // group stocker
-                $formCutDetailsGroup = FormCutInputDetail::where("form_cut_id", $formCut->id)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
+                $formCutDetailsGroup = FormCutInputDetail::where("form_cut_id", $formCut->id)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
                 $currentGroup = "";
                 $groupNumber = 0;
                 foreach ($formCutDetailsGroup as $formCutDetailGroup) {
