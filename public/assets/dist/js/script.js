@@ -682,7 +682,7 @@ function deleteData(e, type = null, additionalMessage = '') {
         Swal.fire({
             icon: 'error',
             title: type === 'cancel' ? 'Batalkan data?' : 'Hapus data?',
-            html: additionalMessage,
+            html: additionalMessage+"<br>"+(e.getAttribute('data-message') ?? ""),
             showCancelButton: true,
             showConfirmButton: true,
             confirmButtonText: type === 'cancel' ? 'Batalkan' : 'Hapus',

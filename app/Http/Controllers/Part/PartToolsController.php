@@ -57,7 +57,7 @@ class PartToolsController extends Controller
             "part_custom_status" => "required",
         ]);
 
-        $partDetail = PartDetail::find($request->part_custom_part_detail_id);
+        $partDetail = PartDetail::find($validatedRequest['part_custom_part_detail_id']);
 
         if (!$partDetail) {
             return response()->json([
@@ -79,10 +79,12 @@ class PartToolsController extends Controller
 
         // Check Closing
         $dataCheckClosing = DB::table("form_cut_input")->selectRaw("form_cut_input.*")
+            ->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")
             ->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")
             ->leftJoin("part", "part.id", "=", "part_form.part_id")
             ->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
-            ->where("part_detail.id", $partDetail->id)
+            ->where("part_detail.id", $validatedRequest['part_custom_part_detail_id'])
+            ->where("marker_input.color", $validatedRequest['part_custom_color'])
             ->groupBy("form_cut_input.id")
             ->get();
 
@@ -161,6 +163,7 @@ class PartToolsController extends Controller
             return response()->json([
                 "status" => 200,
                 "message" => "Custom Part berhasil diupdate.",
+                "table" => "datatable-part-custom",
             ]);
         }
 
@@ -177,6 +180,7 @@ class PartToolsController extends Controller
         if (!$partCustom) {
             return response()->json([
                 "status" => 400,
+                
                 "message" => "Custom Part tidak ditemukan.",
             ]);
         }
@@ -185,6 +189,7 @@ class PartToolsController extends Controller
             return response()->json([
                 "status" => 200,
                 "message" => "Custom Part berhasil dihapus.",
+                "table" => "datatable-part-custom",
             ]);
         }
 
