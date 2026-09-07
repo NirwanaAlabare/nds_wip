@@ -6457,9 +6457,35 @@ class SewingToolsController extends Controller
         ]);
     }
 
+    /**
+     * Daftar sumber output yang dicek terhadap master plan.
+     *
+     * line_from:
+     *  - 'user'            : created_by berisi id user_sb_wip (output sewing)
+     *  - 'created_by'      : created_by langsung berisi username line (output finishing)
+     *  - 'created_by_line' : created_by_line berisi username line (output packing po)
+     *  - 'sewing_line'     : line diambil dari master_plan.sewing_line, bukan dari pembuat output.
+     *                        Dipakai untuk output packing, karena line pembuatnya adalah line
+     *                        packing yang memang berbeda dari line sewing pada plan. Efeknya
+     *                        pengecekan line dilewati untuk sumber ini.
+     */
+    private function missMasterPlanSources(): array {
+        return [
+            'RFT'            => ['table' => 'output_rfts',            'line_from' => 'user'],
+            'Defect'         => ['table' => 'output_defects',         'line_from' => 'user'],
+            'Reject'         => ['table' => 'output_rejects',         'line_from' => 'user'],
+            'Finishing'      => ['table' => 'output_check_finishing', 'line_from' => 'created_by'],
+            'Packing RFT'    => ['table' => 'output_rfts_packing',    'line_from' => 'sewing_line'],
+            'Packing Defect' => ['table' => 'output_defects_packing', 'line_from' => 'sewing_line'],
+            'Packing Reject' => ['table' => 'output_rejects_packing', 'line_from' => 'sewing_line'],
+            'Packing PO'     => ['table' => 'output_rfts_packing_po', 'line_from' => 'created_by_line'],
+
+        ];
+    }
+
     private function buildMissMasterPlanSql(string $dateFrom, string $dateTo, string $lineFilter): string {
         $outerSelect = "
-                'RFT' AS tipe,
+                '{TIPE}' AS tipe,
                 output.kode_numbering,
                 output.id,
                 output.line,
@@ -6471,117 +6497,72 @@ class SewingToolsController extends Controller
                 ac_actual.kpno  AS ws_actual,
                 ac_plan.kpno    AS ws_plan,
                 output.plan_color,
+                output.plan_line,
                 actual.id       AS correct_plan_id,
                 ac_correct.kpno AS ws_correct,
                 actual.color    AS color_correct
         ";
 
-        $rftSql = "
-            SELECT " . str_replace("'RFT'", "'RFT'", $outerSelect) . "
-            FROM (
-                SELECT
-                    output_rfts.id,
-                    output_rfts.kode_numbering,
-                    master_plan.id                                      AS plan_id,
-                    master_plan.color                                   AS plan_color,
-                    master_plan.id_ws                                   AS plan_act_costing_id,
-                    TRIM(so_det.color)                                  AS actual_color,
-                    act_costing.id                                      AS actual_act_costing_id,
-                    so_det.size,
-                    so_det.dest,
-                    userpassword.username                               AS line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) AS tgl_plan
-                FROM output_rfts
-                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_rfts.created_by
-                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
-                LEFT JOIN so_det        ON so_det.id              = output_rfts.so_det_id
-                LEFT JOIN so            ON so.id                  = so_det.id_so
-                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
-                LEFT JOIN master_plan   ON master_plan.id         = output_rfts.master_plan_id
-                WHERE output_rfts.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
-                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
-                    $lineFilter
-                GROUP BY output_rfts.id
-            ) output
-            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
-            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
-            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
-            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
-            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
-            GROUP BY output.id
-        ";
+        $unions = [];
 
-        $defectSql = "
-            SELECT " . str_replace("'RFT'", "'Defect'", $outerSelect) . "
-            FROM (
-                SELECT
-                    output_defects.id,
-                    output_defects.kode_numbering,
-                    master_plan.id                                       AS plan_id,
-                    master_plan.color                                    AS plan_color,
-                    master_plan.id_ws                                    AS plan_act_costing_id,
-                    TRIM(so_det.color)                                   AS actual_color,
-                    act_costing.id                                       AS actual_act_costing_id,
-                    so_det.size,
-                    so_det.dest,
-                    userpassword.username                                AS line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) AS tgl_plan
-                FROM output_defects
-                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_defects.created_by
-                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
-                LEFT JOIN so_det        ON so_det.id              = output_defects.so_det_id
-                LEFT JOIN so            ON so.id                  = so_det.id_so
-                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
-                LEFT JOIN master_plan   ON master_plan.id         = output_defects.master_plan_id
-                WHERE output_defects.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
-                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
-                    $lineFilter
-                GROUP BY output_defects.id
-            ) output
-            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
-            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
-            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
-            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
-            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
-            GROUP BY output.id
-        ";
+        foreach ($this->missMasterPlanSources() as $tipe => $source) {
+            $table = $source['table'];
 
-        $rejectSql = "
-            SELECT " . str_replace("'RFT'", "'Reject'", $outerSelect) . "
-            FROM (
-                SELECT
-                    output_rejects.id,
-                    output_rejects.kode_numbering,
-                    master_plan.id                                       AS plan_id,
-                    master_plan.color                                    AS plan_color,
-                    master_plan.id_ws                                    AS plan_act_costing_id,
-                    TRIM(so_det.color)                                   AS actual_color,
-                    act_costing.id                                       AS actual_act_costing_id,
-                    so_det.size,
-                    so_det.dest,
-                    userpassword.username                                AS line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) AS tgl_plan
-                FROM output_rejects
-                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_rejects.created_by
-                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
-                LEFT JOIN so_det        ON so_det.id              = output_rejects.so_det_id
-                LEFT JOIN so            ON so.id                  = so_det.id_so
-                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
-                LEFT JOIN master_plan   ON master_plan.id         = output_rejects.master_plan_id
-                WHERE output_rejects.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
-                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
-                    $lineFilter
-                GROUP BY output_rejects.id
-            ) output
-            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
-            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
-            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
-            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
-            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
-            GROUP BY output.id
-        ";
+            if ($source['line_from'] == 'user') {
+                $lineJoin = "LEFT JOIN user_sb_wip   ON user_sb_wip.id         = $table.created_by
+                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id";
 
-        return "$rftSql UNION ALL $defectSql UNION ALL $rejectSql";
+                $lineSelect = "userpassword.username";
+            } else if ($source['line_from'] == 'sewing_line') {
+                $lineJoin   = "LEFT JOIN userpassword  ON userpassword.username  = $table.created_by";
+
+                // Line diambil dari plan yang terpasang; fallback ke line pembuat output
+                // hanya jika output belum punya master plan sama sekali.
+                $lineSelect = "COALESCE(master_plan.sewing_line, userpassword.username, $table.created_by)";
+            } else {
+                $lineColumn = $source['line_from'] == 'created_by_line' ? 'created_by_line' : 'created_by';
+
+                $lineJoin   = "LEFT JOIN userpassword  ON userpassword.username  = $table.$lineColumn";
+                $lineSelect = "COALESCE(userpassword.username, $table.$lineColumn)";
+            }
+
+            $unions[] = "
+                SELECT " . str_replace("{TIPE}", $tipe, $outerSelect) . "
+                FROM (
+                    SELECT
+                        $table.id,
+                        $table.kode_numbering,
+                        master_plan.id                                      AS plan_id,
+                        master_plan.color                                   AS plan_color,
+                        master_plan.sewing_line                             AS plan_line,
+                        master_plan.id_ws                                   AS plan_act_costing_id,
+                        TRIM(so_det.color)                                  AS actual_color,
+                        act_costing.id                                      AS actual_act_costing_id,
+                        so_det.size,
+                        so_det.dest,
+                        $lineSelect                                         AS line,
+                        COALESCE(master_plan.tgl_plan, DATE($table.updated_at)) AS tgl_plan
+                    FROM $table
+                    $lineJoin
+                    LEFT JOIN so_det        ON so_det.id              = $table.so_det_id
+                    LEFT JOIN so            ON so.id                  = so_det.id_so
+                    LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
+                    LEFT JOIN master_plan   ON master_plan.id         = $table.master_plan_id
+                    WHERE $table.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
+                        AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.sewing_line != $lineSelect OR master_plan.id IS NULL)
+                        $lineFilter
+                    GROUP BY $table.id
+                ) output
+                LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
+                LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
+                LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
+                LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
+                WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
+                GROUP BY output.id
+            ";
+        }
+
+        return implode(" UNION ALL ", $unions);
     }
 
     public function checkOutputMasterPlanList(Request $request) {
@@ -6612,7 +6593,8 @@ class SewingToolsController extends Controller
         $dateTo     = $request->date_to   ?? date("Y-m-d");
         $lineFilter = $request->line ? "AND userpassword.username = '" . addslashes($request->line) . "'" : "";
 
-        $data = collect(DB::connection("mysql_sb")->select($this->buildMissMasterPlanSql($dateFrom, $dateTo, $lineFilter)));
+        $sources    = $this->missMasterPlanSources();
+        $data       = collect(DB::connection("mysql_sb")->select($this->buildMissMasterPlanSql($dateFrom, $dateTo, $lineFilter)));
 
         if ($data->count() < 1) {
             return array(
@@ -6690,16 +6672,18 @@ class SewingToolsController extends Controller
             }
 
             if ($targetPlanId) {
-                switch ($row->tipe) {
-                    case 'RFT':
-                        $outputTable = 'output_rfts';
-                        break;
-                    case 'Defect':
-                        $outputTable = 'output_defects';
-                        break;
-                    default:
-                        $outputTable = 'output_rejects';
-                        break;
+                $outputTable = $sources[$row->tipe]['table'] ?? null;
+
+                if (!$outputTable) {
+                    $failed++;
+                    $logs[] = [
+                        'status'    => 'failed',
+                        'tipe'      => $row->tipe,
+                        'output_id' => $row->id,
+                        'reason'    => 'tipe output tidak dikenali',
+                    ];
+
+                    continue;
                 }
 
                 $updated = DB::connection("mysql_sb")->table($outputTable)

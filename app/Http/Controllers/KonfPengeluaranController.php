@@ -265,6 +265,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'cancel_by' => '',
                 'cancel_date' => '',
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
             // Ambil COA debit
@@ -304,6 +305,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'cancel_by' => '',
                 'cancel_date' => '',
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
             // Jurnal PPN
@@ -341,6 +343,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'cancel_by' => '',
                     'cancel_date' => '',
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
             }
 
@@ -373,6 +376,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'cancel_by' => '',
                     'cancel_date' => '',
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
 
                 Journal::create([
@@ -402,6 +406,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'cancel_by' => '',
                     'cancel_date' => '',
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
 
                 if ($tax >= 1) {
@@ -432,6 +437,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                         'cancel_by' => '',
                         'cancel_date' => '',
                         'profit_center' => 'NAG',
+                        'supplier' => $supp,
                     ]);
                 }
             }
