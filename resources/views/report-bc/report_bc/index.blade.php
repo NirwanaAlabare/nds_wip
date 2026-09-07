@@ -329,6 +329,7 @@
             </form>
         </div>
     </div>
+    <div id="report-result-container" class="mt-4"></div>
 @endsection
 
 @section('custom-script')
@@ -500,52 +501,33 @@
                 let kategoriBarang = $('#kategori_barang').val();
 
                 if (!jenis) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Tidak Lengkap',
-                        text: 'Silakan pilih jenis laporan terlebih dahulu',
-                        confirmButtonColor: '#3085d6'
-                    });
+                    Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Silakan pilih jenis laporan terlebih dahulu', confirmButtonColor: '#3085d6' });
                     return;
                 }
 
                 if (jenis === 'mutasi_barang_jadi' || jenis === 'mutasi_barang_jadi_gudang') {
                     kategori = 'mutasi';
                     kategoriBarang = 'all';
-                }
-                else if (jenis === 'mutasi_bahan_baku' || jenis === 'mutasi_mesin_sparepart' || jenis === 'mutasi_barang_sisa') {
+                } else if (jenis === 'mutasi_bahan_baku' || jenis === 'mutasi_mesin_sparepart' || jenis === 'mutasi_barang_sisa') {
                     kategori = 'mutasi';
                     if (!kategoriBarang) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Data Tidak Lengkap',
-                            text: 'Lengkapi pilihan kategori barang terlebih dahulu',
-                            confirmButtonColor: '#3085d6'
-                        });
+                        Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Lengkapi pilihan kategori barang terlebih dahulu', confirmButtonColor: '#3085d6' });
                         return;
                     }
-                }
-                else {
+                } else {
                     if (!kategori || !kategoriBarang) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Data Tidak Lengkap',
-                            text: 'Lengkapi pilihan kategori dan dokumen terlebih dahulu',
-                            confirmButtonColor: '#3085d6'
-                        });
+                        Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Lengkapi pilihan kategori dan dokumen terlebih dahulu', confirmButtonColor: '#3085d6' });
                         return;
                     }
                 }
 
                 Swal.fire({
-                    html: `
-                        <div class="modern-loader">
+                    html: `<div class="modern-loader">
                             <div class="modern-loader-icon"><i class="fas fa-file-invoice"></i></div>
                             <h5 class="modern-loader-title">Menarik Data Laporan</h5>
                             <p class="modern-loader-subtitle">Mohon tunggu, data sedang diproses</p>
                             <div class="modern-loader-dots"><span></span><span></span><span></span></div>
-                        </div>
-                    `,
+                        </div>`,
                     showConfirmButton: false, allowEscapeKey: false, allowOutsideClick: false,
                     customClass: { popup: 'modern-loader-popup' },
                     background: '#fff', backdrop: 'rgba(255, 255, 255, 0.75)'
@@ -554,10 +536,26 @@
                 let targetUrl = `{{ route('report-bc.show', ['jenis' => '__JENIS__', 'kategori' => '__KATEGORI__', 'kategoribarang' => '___KATEGORI_BARANG___']) }}`
                                     .replace('__JENIS__', jenis)
                                     .replace('__KATEGORI__', kategori)
-                                    .replace('___KATEGORI_BARANG___', kategoriBarang)
-                                    + `?from=${fromDate}&to=${toDate}&filter_by=dokumen`;
+                                    .replace('___KATEGORI_BARANG___', kategoriBarang);
 
-                window.location.href = targetUrl;
+                $.ajax({
+                    url: targetUrl,
+                    type: 'GET',
+                    data: { from: fromDate, to: toDate, filter_by: 'dokumen' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(res) {
+                        Swal.close();
+                        $('#report-result-container').html(res.html);
+                        $('html, body').animate({
+                            scrollTop: $('#report-result-container').offset().top - 20
+                        }, 400);
+                    },
+                    error: function(xhr) {
+                        Swal.close();
+                        let msg = xhr.responseJSON?.error || 'Terjadi kesalahan saat menarik data laporan.';
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: msg, confirmButtonColor: '#3085d6' });
+                    }
+                });
             });
 
             $(window).on('pageshow', function(event) {

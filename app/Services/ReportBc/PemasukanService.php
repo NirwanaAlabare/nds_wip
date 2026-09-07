@@ -65,7 +65,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where()
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -82,7 +82,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
     //     //         "'N/A'",
@@ -103,7 +103,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -127,7 +127,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', '!=', 'INHOUSE')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "'N/A'",
@@ -188,7 +188,8 @@ class PemasukanService
 
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -209,16 +210,16 @@ class PemasukanService
         ";
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw(str_replace('__ELSE_RULE__', $jenisDokElse, $caseJenisDokumen) . " as jenis_dokumen"),
+            DB::raw("MAX(a.jenis_dok) as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
+            DB::raw("a.bpbno_int as trans_no"),
             'a.bpbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            'a.qty',
+            DB::raw("SUM(a.qty) as qty"),
             'a.curr',
             DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
             'a.berat_bersih',
@@ -243,8 +244,7 @@ class PemasukanService
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', '!=', 'INHOUSE')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -271,19 +271,19 @@ class PemasukanService
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', '!=', 'INHOUSE')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    "'N/A'",
+                    "MAX(a.jenis_dok) as jenis_dokumen",
                     "a.bcdate",
                     "ac.kpno",
                     "s.itemname",
                     "'BARANG JADI'",
                     "ac.kpno"
                 ))
-                ->groupBy('ac.kpno');
+                ->groupBy('ac.kpno', 'a.bpbno_int');
         }
+
 
         if ($queryBahanBaku && $queryBarangJadi) {
             $unionQuery = $queryBahanBaku->unionAll($queryBarangJadi);
@@ -372,7 +372,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.3')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->where($excludeInvno)
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -398,7 +398,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.3')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->where($excludeInvno)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
@@ -453,7 +453,8 @@ class PemasukanService
 
     public function getDataBc23($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -467,7 +468,7 @@ class PemasukanService
             DB::raw("'BC 2.3' as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
+            DB::raw("a.bpbno_int as trans_no"),
             'a.bpbdate',
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
@@ -497,7 +498,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->where($excludeInvno)
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -527,7 +528,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->where($excludeInvno)
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
@@ -613,7 +614,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.6.2')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -638,7 +639,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.6.2')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -696,7 +697,8 @@ class PemasukanService
 
     public function getDataBc262($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -732,7 +734,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -761,7 +763,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "ac.kpno",
@@ -851,7 +853,7 @@ class PemasukanService
     //     // $queryBahanBaku = $mysql_sb->table('bpb as a')
     //     //     ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where($excludeCommon)
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -864,7 +866,7 @@ class PemasukanService
     //     // $queryBarangJadi = $mysql_sb->table('bpb as a')
     //     //     ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->where('d.area', '=', 'L')
     //     //     ->where($excludeCommon)
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
@@ -886,7 +888,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 4.0')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -908,7 +910,7 @@ class PemasukanService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 4.0')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -962,7 +964,8 @@ class PemasukanService
     // }
     public function getDataBc40($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -999,7 +1002,7 @@ class PemasukanService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -1025,7 +1028,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
@@ -1108,7 +1111,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', 'BC 2.7')
-    //     //     ->where('a.bpbno', 'not like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'not like', 'FG%')
     //     //     ->where('a.tujuan', 'not regexp', 'SUBKON')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -1124,7 +1127,7 @@ class PemasukanService
     //     //     ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //     //     ->where('a.cancel', 'N')
     //     //     ->where('a.jenis_dok', 'BC 2.7')
-    //     //     ->where('a.bpbno', 'like', 'FG%')
+    //     //     ->where('a.bpbno_int', 'like', 'FG%')
     //     //     ->where('a.tujuan', 'not regexp', 'SUBKON')
     //     //     ->whereBetween($dateField, [$fromDate, $toDate])
     //     //     ->select($selectData(
@@ -1146,7 +1149,7 @@ class PemasukanService
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->where('a.tujuan', 'not regexp', 'SUBKON')
-    //             ->where('a.bpbno', 'not like', 'FG%')
+    //             ->where('a.bpbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if (strtolower($kategoriBarang) !== 'all') {
@@ -1170,7 +1173,7 @@ class PemasukanService
     //             ->where('a.cancel', 'N')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //              ->where('a.tujuan', 'not regexp', 'SUBKON')
-    //             ->where('a.bpbno', 'like', 'FG%')
+    //             ->where('a.bpbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "IF(s.goods_code <> '' AND s.goods_code <> '-' AND s.goods_code <> '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1224,7 +1227,8 @@ class PemasukanService
 
     public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
+        $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -1261,7 +1265,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno', 'not like', 'FG%')
+                ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if (strtolower($kategoriBarang) !== 'all') {
@@ -1288,7 +1292,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno', 'like', 'FG%')
+                ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
@@ -1341,48 +1345,161 @@ class PemasukanService
             ->get();
     }
 
-    public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
+    // public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
+    //     ini_set('memory_limit', '1024M');
+    //     ini_set('max_execution_time', '3600');
+
+    //     $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+    //     $methodName = 'getData' . ucfirst($cleanKategori);
+
+    //     $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+
+    //     $excel = FastExcel::create('Laporan');
+    //     $sheet = $excel->getSheet();
+
+    //     $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
+    //         'font' => ['size' => 14, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A1:Q1');
+
+    //     $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
+    //     $sheet->writeTo('A2', $judulLaporan, [
+    //         'font' => ['size' => 12, 'style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A2:Q2');
+
+    //     $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
+    //     $sheet->writeTo('A3', $periode, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A3:Q3');
+
+    //     $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
+    //     $sheet->writeTo('A4', $filterText, [
+    //         'font' => ['style' => 'bold'],
+    //         'text-align' => 'center'
+    //     ]);
+    //     $sheet->mergeCells('A4:Q4');
+
+
+    //     $headerKolom = [
+    //         'No',
+    //         'Kode Kantor',
+    //         'Jenis Dokumen',
+    //         'Kategori Barang',
+    //         'Nomor Daftar',
+    //         'Tanggal Daftar',
+    //         'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
+    //         'Nomor BPB',
+    //         'Tanggal BPB',
+    //         'ID Item',
+    //         'Uraian Barang',
+    //         'Jenis Satuan',
+    //         'Jumlah Satuan',
+    //         'Kode Valuta',
+    //         'Nilai Barang',
+    //         'Kurs',
+    //         'Nilai Barang IDR'
+    //     ];
+
+    //     $styleHeaderKolom = [
+    //         'font' => ['style' => 'bold'],
+    //         'border' => 'thin',
+    //         'background-color' => '#d9edf7',
+    //         'text-align' => 'center'
+    //     ];
+
+    //     $kolomHuruf = range('A', 'Q');
+    //     foreach ($headerKolom as $i => $judul) {
+    //         $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
+    //     }
+
+    //     $no = 1;
+    //     $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+
+    //     collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
+    //         $sheet->writeAreas();
+
+    //         foreach ($rows as $row) {
+    //             $rowArr = [
+    //                 $no++,
+    //                 $row->kode_kantor ?? '-',
+    //                 $row->jenis_dokumen ?? $jenisDokumenFixed,
+    //                 $row->kategori_barang ?? '-',
+    //                 $row->nomor_daftar ?? '-',
+    //                 ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+    //                 $row->nama_pengirim ?? '-',
+    //                 $row->nomor_bpb ?? '-',
+    //                 ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+    //                 $row->id_item ?? '-',
+    //                 $row->uraian_barang ?? '-',
+    //                 $row->jenis_satuan ?? '-',
+    //                 (float) ($row->jumlah_satuan ?? 0),
+    //                 $row->kode_valuta ?? '-',
+    //                 (float) ($row->nilai_barang ?? 0),
+    //                 (float) ($row->kurs ?? 0),
+    //                 (float) ($row->nilai_barang_idr ?? 0),
+    //             ];
+
+    //             $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    //         }
+    //     });
+
+    //     $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
+    //     return $excel->download($filename);
+    // }
+
+    public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
 
         $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
         $methodName = 'getData' . ucfirst($cleanKategori);
 
+
         $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+        $fileName = 'laporan-pemasukan';
 
-        $excel = FastExcel::create('Laporan');
-        $sheet = $excel->getSheet();
+        $excel = FastExcel::create($fileName);
 
-        $sheet->writeTo('A1', 'PT NIRWANA ALABARE GARMENT', [
-            'font' => ['size' => 14, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A1:Q1');
+        $sheet = $excel->sheet();
 
-        $judulLaporan = "LAPORAN " . strtoupper($jenis) . " - " . strtoupper(str_replace('-', ' ', $kategori));
-        $sheet->writeTo('A2', $judulLaporan, [
-            'font' => ['size' => 12, 'style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A2:Q2');
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $periode = "PERIODE: " . Carbon::parse($fromDate)->format('d/m/Y') . " S/D " . Carbon::parse($toDate)->format('d/m/Y');
-        $sheet->writeTo('A3', $periode, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A3:Q3');
+        $sheet->writeRow(
+            ['LAPORAN PEMASUKAN '.strtoupper($cleanKategori).''],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
 
-        $filterText = "FILTER BERDASARKAN : " . strtoupper($kategoriBarang) . " | TANGGAL " . strtoupper(str_replace('-', ' ', $filterBy));
-        $sheet->writeTo('A4', $filterText, [
-            'font' => ['style' => 'bold'],
-            'text-align' => 'center'
-        ]);
-        $sheet->mergeCells('A4:Q4');
+        $sheet->writeRow(
+            ['Periode ' . $fromDate . ' s/d ' . $toDate],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
 
 
-        $headerKolom = [
+        $sheet->writeRow([
             'No',
             'Kode Kantor',
             'Jenis Dokumen',
@@ -1392,7 +1509,7 @@ class PemasukanService
             'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
             'Nomor BPB',
             'Tanggal BPB',
-            'ID Item',
+            'WS',
             'Uraian Barang',
             'Jenis Satuan',
             'Jumlah Satuan',
@@ -1400,53 +1517,43 @@ class PemasukanService
             'Nilai Barang',
             'Kurs',
             'Nilai Barang IDR'
-        ];
-
-        $styleHeaderKolom = [
-            'font' => ['style' => 'bold'],
-            'border' => 'thin',
-            'background-color' => '#d9edf7',
-            'text-align' => 'center'
-        ];
-
-        $kolomHuruf = range('A', 'Q');
-        foreach ($headerKolom as $i => $judul) {
-            $sheet->writeTo($kolomHuruf[$i] . '5', $judul, $styleHeaderKolom);
-        }
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
 
         $no = 1;
-        $jenisDokumenFixed = strtoupper(str_replace('-', ' ', $kategori));
+        foreach ($data as $row) {
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$no, $jenisDokumenFixed) {
-            $sheet->writeAreas();
+            $rows = [
+                $no++,
+                $row->kode_kantor ?? '-',
+                $row->jenis_dokumen ?? $jenisDokumenFixed,
+                $row->kategori_barang ?? '-',
+                $row->nomor_daftar ?? '-',
+                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+                $row->nama_pengirim ?? '-',
+                $row->nomor_bpb ?? '-',
+                ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+                $row->id_item ?? '-',
+                $row->uraian_barang ?? '-',
+                $row->jenis_satuan ?? '-',
+                (float) ($row->jumlah_satuan ?? 0),
+                $row->kode_valuta ?? '-',
+                (float) ($row->nilai_barang ?? 0),
+                (float) ($row->kurs ?? 0),
+                (float) ($row->nilai_barang_idr ?? 0),
+            ];
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $no++,
-                    $row->kode_kantor ?? '-',
-                    $row->jenis_dokumen ?? $jenisDokumenFixed,
-                    $row->kategori_barang ?? '-',
-                    $row->nomor_daftar ?? '-',
-                    ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
-                    $row->nama_pengirim ?? '-',
-                    $row->nomor_bpb ?? '-',
-                    ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
-                    $row->id_item ?? '-',
-                    $row->uraian_barang ?? '-',
-                    $row->jenis_satuan ?? '-',
-                    (float) ($row->jumlah_satuan ?? 0),
-                    $row->kode_valuta ?? '-',
-                    (float) ($row->nilai_barang ?? 0),
-                    (float) ($row->kurs ?? 0),
-                    (float) ($row->nilai_barang_idr ?? 0),
-                ];
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        $filename = "Laporan_" . ucfirst($jenis) . "_" . Carbon::now()->format('Ymd_His') . ".xlsx";
-        return $excel->download($filename);
+        return $excel->download();
     }
-
 }

@@ -288,6 +288,8 @@ class DashboardController extends Controller
                                 marker_input.act_costing_ws,
                                 marker_input.style
                         ) form_cut_all on form_cut_all.act_costing_ws = master_sb.ws and form_cut_all.style = master_sb.styleno
+                    ORDER BY
+                        (form_marker.total_plan - form_marker.total_complete) desc
                 ");
 
                 return DataTables::of($form)->toJson();

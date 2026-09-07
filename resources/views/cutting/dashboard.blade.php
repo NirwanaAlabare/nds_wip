@@ -36,7 +36,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Pending Form</span>
                         <span class="info-box-number" id="pending-qty"></span>
-                        <span class="info-box-number"><small>Total Lembar : <span id="pending-total"></span></small></span>
+                        <span class="info-box-number"><small>Total Lembar : <span id="pending-total" class="fw-bold"></span></small></span>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Plan Form</span>
                         <span class="info-box-number" id="plan-qty"></span>
-                        <span class="info-box-number"><small>Total Lembar : <span id="plan-total"></span></small></span>
+                        <span class="info-box-number"><small>Total Lembar : <span id="plan-total" class="fw-bold"></span></small></span>
                     </div>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Progress Form</span>
                         <span class="info-box-number" id="progress-qty"></span>
-                        <span class="info-box-number"><small>Total Lembar : <span id="progress-total"></span></small></span>
+                        <span class="info-box-number"><small>Total Lembar : <span id="progress-total" class="fw-bold"></span></small></span>
                     </div>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Finished Form</span>
                         <span class="info-box-number" id="finished-qty"></span>
-                        <span class="info-box-number"><small>Total Lembar : <span id="finished-total"></span></small></span>
+                        <span class="info-box-number"><small>Total Lembar : <span id="finished-total" class="fw-bold"></span></small></span>
                     </div>
                 </div>
             </div>

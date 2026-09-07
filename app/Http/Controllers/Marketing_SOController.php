@@ -646,7 +646,6 @@ class Marketing_SOController extends Controller
         $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
 
-
         // Tarik Master Data dan bersihkan spasi & case-nya
         $raw_master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
         $master_colors = [];
@@ -660,8 +659,7 @@ class Marketing_SOController extends Controller
             $master_sizes[strtoupper(trim($k))] = $v;
         }
 
-
-        // Tarik Data BOM (Warna & Size yang terdaftar) - Di-unique langsung dari query
+        // Tarik Data BOM (Warna & Size yang terdaftar)
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_color')
@@ -692,16 +690,24 @@ class Marketing_SOController extends Controller
             $po         = trim($row[2]);
             $color_name = trim($row[6]);
 
+            // FOB
+            $fob_raw = $row[7] ?? null;
+            $fob = null;
+            if ($fob_raw !== null && $fob_raw !== '') {
+                $fob_clean = trim($fob_raw, " \t\n\r\0\x0B\xC2\xA0");
+                $fob_clean = preg_replace('/\s+/u', '', $fob_clean);
+                $fob_clean = str_replace(',', '', $fob_clean);
+                $fob = is_numeric($fob_clean) ? $fob_clean : null;
+            }
+
             // =======================================================
-            // REFACTORING: KONDISI SINGLE & MULTIPLE (PRODUCT SET)
+            // KONDISI SINGLE & MULTIPLE (PRODUCT SET)
             // =======================================================
             $raw_product_set = trim($row[5]);
 
             if (empty($raw_product_set) || $raw_product_set === '-' || strtolower($raw_product_set) === 'null') {
-                // KONDISI SINGLE: Paksa jadi NULL agar grouping nanti cuma baca PO
                 $product_set = null;
             } else {
-                // KONDISI MULTIPLE: Simpan nama Set-nya (Contoh: TOP / BOTTOM)
                 $product_set = $raw_product_set;
             }
             // =======================================================
@@ -719,19 +725,16 @@ class Marketing_SOController extends Controller
                 continue;
             }
 
-            // Looping Qty per Size
-            for ($col_index = 7; $col_index < count($row); $col_index++) {
-                // Bersihkan qty dari spasi biasa dan karakter spasi tersembunyi (NBSP)
+            // Looping Qty per Size (mulai index 8, karena index 7 sekarang FOB)
+            for ($col_index = 8; $col_index < count($row); $col_index++) {
                 $qty_raw = $row[$col_index];
                 if ($qty_raw === null || $qty_raw === '') continue;
 
                 $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
-                $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
-
-
+                $qty = preg_replace('/\s+/u', '', $qty);
                 $qty = str_replace(',', '', $qty);
 
-            if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
+                if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
 
@@ -745,13 +748,10 @@ class Marketing_SOController extends Controller
                 }
                 $size_id = $master_sizes[$size_key];
 
-
-
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
                     $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
                     continue;
                 }
-
 
                 $temp_data[] = [
                     'user_id'     => $user_id,
@@ -763,7 +763,8 @@ class Marketing_SOController extends Controller
                     'id_color'    => $color_id,
                     'size'        => $size_id,
                     'qty'         => $qty,
-                    'product_set' => $product_set, // Masuk secara dinamis (NULL / TEXT)
+                    'product_set' => $product_set,
+                    'fob'         => $fob,
                     'created_at'  => now()
                 ];
             }
@@ -829,7 +830,7 @@ class Marketing_SOController extends Controller
             ->where('t.user_id', $user_id)
             ->select(
                 't.style', 't.desc', 't.po', 't.market', 't.ex_fty', 't.product_set',
-                't.id_color', 'c.name as color_name',
+                't.id_color', 't.fob', 'c.name as color_name',
                 't.size as id_size', 's.size as size_name', 's.urutan as size_urutan',
                 't.qty'
             )
@@ -882,6 +883,7 @@ class Marketing_SOController extends Controller
                     'product_set' => $is_multiple ? $prod_set_clean : '-',
                     'id_color'    => $row->id_color,
                     'color'       => $row->color_name,
+                    'fob'         => $row->fob,
                     'errors'      => [],
                     'id_sizes'    => [],
                 ];
@@ -1610,6 +1612,7 @@ class Marketing_SOController extends Controller
                         'dest'    => !empty($d->market) ? $d->market : '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
+                        'fob'=> $d->fob,
                     ];
                 }
 
@@ -2210,6 +2213,7 @@ class Marketing_SOController extends Controller
         $newStyle = $request->input('style');
         $data = $request->input('data');
 
+
         if (!$data || !is_array($data)) {
             return response()->json(['status' => 400, 'message' => 'Data tidak valid!']);
         }
@@ -2227,7 +2231,7 @@ class Marketing_SOController extends Controller
                 ->flip();
 
             foreach ($data as $item) {
-                $updateFields = ['qty' => $item['qty']];
+                $updateFields = ['qty' => $item['qty'], 'fob' => $item['fob']];
 
                 if (array_key_exists('dest', $item) && !isset($lockedIds[$item['id']])) {
                     $updateFields['dest'] = $item['dest'];
@@ -2366,6 +2370,7 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_colors_gmt as c', 'so_det.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 'so_det.id_size', '=', 's.id')
             ->where('so_det.id_so', $id)
+            ->where('cancel', 'N')
             ->select('c.name as color', 's.size as size_name', 's.urutan', 'so_det.qty', 'so_det.deldate_det', 'so_det.id_color', 'so_det.id_size', 'so_det.product_set')
             ->orderBy('so_det.product_set', 'asc')
             ->orderBy('s.urutan', 'asc')
@@ -3947,6 +3952,16 @@ class Marketing_SOController extends Controller
                 ]);
             };
 
+            // posno key TANPA id_so_det — supaya 1 item (dgn panel/rule/notes sama) = 1 posno
+            $makePosnoKey = function ($id_item, $id_panel, $rule_bom, $notes) {
+                return implode('|', [
+                    $id_item,
+                    $id_panel ?? '',
+                    strtoupper(trim($rule_bom ?? '')),
+                    trim($notes ?? ''),
+                ]);
+            };
+
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('cancel', 'N')
@@ -3959,24 +3974,12 @@ class Marketing_SOController extends Controller
             $posno_map = [];
             foreach ($existing_items as $item) {
                 $key = $makeKey($item->id_so_det, $item->id_item, $item->id_panel, $item->rule_bom, $item->notes);
-
-                if (isset($existing_map[$key])) {
-                    \Log::warning("BOM sync: existing bom_jo_item duplikat ditemukan, akan di-cancel otomatis", [
-                        'id_jo' => $id_jo,
-                        'key' => $key,
-                        'id_lama' => $existing_map[$key]->id,
-                        'id_dilewati' => $item->id,
-                    ]);
-                    continue;
-                }
-
+                if (isset($existing_map[$key])) { continue; }
                 $existing_map[$key] = $item;
 
-                // posno_map di-key pakai $key (bukan cuma id_item), supaya
-                // baris dengan id_item sama tapi notes/rule beda dapat
-                // posno unik masing-masing, bukan numpuk di posno yang sama.
-                if (!isset($posno_map[$key])) {
-                    $posno_map[$key] = $item->posno;
+                $posnoKey = $makePosnoKey($item->id_item, $item->id_panel, $item->rule_bom, $item->notes);
+                if (!isset($posno_map[$posnoKey])) {
+                    $posno_map[$posnoKey] = $item->posno;
                 }
             }
 
@@ -4012,27 +4015,27 @@ class Marketing_SOController extends Controller
                         $update_count++;
                     }
                 } else {
-                    // ---- INSERT NEW ITEM ----
-                    if (!isset($posno_map[$key])) {
+                    $posnoKey = $makePosnoKey($req->id_item, $req->id_panel, $req->rule_bom, $req->notes);
+                    if (!isset($posno_map[$posnoKey])) {
                         $posno_counter++;
-                        $posno_map[$key] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
+                        $posno_map[$posnoKey] = str_pad($posno_counter, 3, '0', STR_PAD_LEFT);
                     }
 
                     $to_insert[] = [
-                        'id_jo'       => $req->id_jo,
-                        'id_so_det'   => $req->id_so_det,
-                        'status'      => $req->status,
-                        'id_item'     => $req->id_item,
-                        'cons'        => $req->cons,
-                        'unit'        => $req->unit,
-                        'rule_bom'    => $req->rule_bom,
-                        'cancel'      => 'N',
-                        'add_item'    => 'N',
-                        'username'    => $username,
-                        'dateinput'   => now(),
-                        'id_panel'    => $req->id_panel,
-                        'posno'       => $posno_map[$key],
-                        'notes'       => $req->notes,
+                        'id_jo'     => $req->id_jo,
+                        'id_so_det' => $req->id_so_det,
+                        'status'    => $req->status,
+                        'id_item'   => $req->id_item,
+                        'cons'      => $req->cons,
+                        'unit'      => $req->unit,
+                        'rule_bom'  => $req->rule_bom,
+                        'cancel'    => 'N',
+                        'add_item'  => 'N',
+                        'username'  => $username,
+                        'dateinput' => now(),
+                        'id_panel'  => $req->id_panel,
+                        'posno'     => $posno_map[$posnoKey],
+                        'notes'     => $req->notes,
                     ];
                 }
             }
@@ -4493,6 +4496,7 @@ class Marketing_SOController extends Controller
             unset($log_data['updated_by']);
             unset($log_data['updated_at']);
             unset($log_data['updated_date']);
+            unset($log_data['fob']);
             DB::connection('mysql_sb')->table('so_log')->insert($log_data);
         }
     }

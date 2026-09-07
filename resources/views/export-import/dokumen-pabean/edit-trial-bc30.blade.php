@@ -2982,7 +2982,7 @@
                                                     <div class="form-group mb-2 row">
                                                         <label class="col-sm-4 col-form-label small">Nilai Ekspor (Nilai FOB) </label>
                                                         <div class="col-sm-8">
-                                                            <input type="number" step="any" name="barang[{{ $index }}][fob]" class="form-control form-control-sm" value="{{ $draftItem['fob'] ?? 0 }}">
+                                                            <input type="number" step="any" name="barang[{{ $index }}][fob]" class="form-control form-control-sm" value="{{ $item->fob ?? $draftItem['fob'] ?? '-' }}">
                                                         </div>
                                                     </div>
                                                     <div class="form-group mb-2 row">

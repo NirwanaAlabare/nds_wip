@@ -235,7 +235,7 @@ ROUND(
                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
                     group by master_plan_id, userpassword.username, date(a.updated_at)
-										having userpassword.username != 'line_sample_prod'
+										having userpassword.username not like '%sample%'
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
                 inner join so on sd.id_so = so.id
@@ -329,6 +329,7 @@ ROUND(
                     WHERE k.v_codecurr = 'HARIAN'
                 ) mr ON a.tgl_trans = mr.tgl_trans
                 group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+                HAVING ul.username NOT LIKE '%sample%'
                 order by a.tgl_trans asc, ul.username asc, ac.kpno asc
 ),
 dd AS (

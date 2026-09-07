@@ -81,7 +81,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label><small><b>Tanggal Pengeluaran</b></small></label>
                             <input type="date" class="form-control" id="tgl_pengeluaran" name="tgl_pengeluaran"
@@ -106,9 +106,22 @@
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label><small><b>Tujuan Pengeluaran</b></small></label>
+                            <label><small><b>Requester</b></small></label>
+                            <select class="form-control select2bs4" id="cborequester" name="cborequester" style="width: 100%;">
+                                <option selected="selected" value="" disabled="true">Pilih Requester</option>
+                                @foreach ($data_requester as $data)
+                                    <option value="{{ $data->isi }}">
+                                        {{ $data->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label><small><b>Tujuan Penerima</b></small></label>
                             <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih Tujuan Pengeluaran</option>
+                                <option selected="selected" value="" disabled="true">Pilih Tujuan Penerima</option>
                                 @foreach ($data_out as $dataout)
                                     <option value="{{ $dataout->isi }}">
                                         {{ $dataout->tampil }}
@@ -117,19 +130,25 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="form-group">
-                            <label><small><b>Tujuan</b></small></label>
+                            <label><small><b>Jenis Pengeluaran</b></small></label>
                             <select class="form-control select2bs4" id="cbotuj_pengeluaran" name="cbotuj_pengeluaran"
                                 style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih Tujuan
+                                <option selected="selected" value="" disabled="true">Pilih Jenis Pengeluaran
                                 </option>
-                                @foreach ($data_buyer as $databuyer)
-                                    <option value="{{ $databuyer->isi }}">
-                                        {{ $databuyer->tampil }}
+                                @foreach ($data_jenis_pengeluaran as $data)
+                                    <option value="{{ $data->isi }}">
+                                        {{ $data->tampil }}
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label><small><b>Keterangan</b></small></label>
+                            <input type="text" name="keterangan" class="form-control" style="width: 100%;">
                         </div>
                     </div>
                     {{-- <div class="col-md-3">

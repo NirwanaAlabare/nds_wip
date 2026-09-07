@@ -648,6 +648,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 sum(pc_saldo_awal) pc_saldo_awal,
                 sum(pc_terima) pc_terima,
                 sum(pc_terima_return) pc_terima_return,
+                sum(pc_terima_gudang_stok) pc_terima_gudang_stok,
                 sum(pc_fg_in) pc_fg_in,
                 sum(pc_saldo_akhir) pc_saldo_akhir,
                 SUM(qty_adjustment_before) adjustment_before,
@@ -661,11 +662,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SUM(pc_qty_adjustment_before) pc_adjustment_before,
                 SUM(pc_switching_in_before) pc_switching_in_before,
                 SUM(pc_switching_out_before) pc_switching_out_before,
-                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) pc_saldo_awal_adjusment,
+                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before) pc_saldo_awal_adjusment,
                 SUM(pc_qty_adjustment) pc_qty_adjustment,
                 SUM(pc_switching_in) + SUM(pc_switching_transaction_in) pc_switching_in,
                 SUM(pc_switching_out) + SUM(pc_switching_transaction_out) pc_switching_out,
-                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out)) pc_saldo_akhir_adj
+                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out) + SUM(pc_terima_gudang_stok)) pc_saldo_akhir_adj
             from
             (
                 select
@@ -689,7 +690,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 from main_select
 
                 UNION ALL
@@ -731,7 +734,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 from saldo_finishing
                 GROUP BY
                     saldo_finishing.ws,
@@ -778,7 +783,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_adjustment
                 WHERE
@@ -825,7 +832,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_adjustment
                 WHERE
@@ -871,7 +880,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_switching_adj
                 where
@@ -917,7 +928,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_switching_adj
                 WHERE
@@ -965,7 +978,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_adjustment
                 WHERE
@@ -1011,7 +1026,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_switching_adj
                 where
@@ -1057,7 +1074,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     wip_switching_adj
                 WHERE
@@ -1104,7 +1123,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in_before,
                     SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
-                    0 as pc_switching_transaction_out
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     packing_central_switching
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.tujuan_so_det_id
@@ -1150,13 +1171,66 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in_before,
                     0 as pc_switching_transaction_in,
                     SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out_before,
-                    SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out
+                    SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok
                 FROM
                     packing_central_switching
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.asal_so_det_id
                 WHERE
                     date(packing_central_switching.created_at) <= '{$tgl_akhir}'
                 GROUP BY 
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    SUM(IF(tgl_penerimaan < '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok_before,
+                    SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok
+                FROM
+                    packing_packing_in
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                WHERE
+                    tgl_penerimaan <= '{$tgl_akhir}' and
+                    sumber = 'FGS'
+                GROUP BY
                     master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
             ) a
             GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
@@ -1232,7 +1306,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Jenis Produk', '', '', '', '',
             'Transit Terima Packing Line', '', '', '', '',
             'Packing Line', '', '', '', '', '', '', '',
-            'Packing Central', '', '', '', '', '', '', '',
+            'Packing Central', '', '', '', '', '', '', '', '',
         ];
 
         $sheet->writeRow(
@@ -1248,7 +1322,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $sheet->mergeCells('A4:E4');
         $sheet->mergeCells('F4:J4');
         $sheet->mergeCells('K4:R4');
-        $sheet->mergeCells('S4:Z4');
+        $sheet->mergeCells('S4:AA4');
 
         $sheet->setCellStyle('A4:E4', [
             'fill'       => '#ADD8E6',
@@ -1265,7 +1339,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('S4:Z4', [
+        $sheet->setCellStyle('S4:AA4', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1282,7 +1356,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Adjustment',
             'Saldo Akhir',
             'Saldo Awal',
-            'Terima RFT',
+            'Terima Good',
             'Terima Reject',
             'Keluar',
             'Switching OUT',
@@ -1292,6 +1366,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Saldo Awal',
             'Terima',
             'Terima Return',
+            'Terima Gudang Stok',
             'Packing Scan FG In',
             'Switching OUT',
             'Switching IN',
@@ -1323,7 +1398,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('S5:Z5', [
+        $sheet->setCellStyle('S5:AA5', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1355,6 +1430,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 (float) ($row->pc_saldo_awal_adjusment ?? 0),
                 (float) ($row->pc_terima ?? 0),
                 (float) ($row->pc_terima_return ?? 0),
+                (float) ($row->pc_terima_gudang_stok ?? 0),
                 (float) ($row->pc_fg_in ?? 0),
                 (float) ($row->pc_switching_out ?? 0),
                 (float) ($row->pc_switching_in ?? 0),
@@ -1370,7 +1446,14 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             );
         }
 
-        foreach (range('A', 'Z') as $col) {
+        $columns = [
+            'A', 'B', 'C', 'D', 'E',
+            'F', 'G', 'H', 'I', 'J',
+            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA'
+        ];
+
+        foreach ($columns as $col) {
             $sheet->setColWidth($col, 20);
         }
 

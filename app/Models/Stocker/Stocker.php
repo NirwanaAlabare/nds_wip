@@ -16,11 +16,12 @@ use App\Models\Dc\SecondaryInHouse;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
+use Spatie\Activitylog\Traits\LogsActivity;
 use DB;
 
 class Stocker extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'stocker_input';
 
@@ -32,6 +33,10 @@ class Stocker extends Model
 
         static::addGlobalScope(new InactiveStocker);
     }
+
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
+
+    protected static $logAttributes = ['*'];
 
     public static function lastId(): string
     {

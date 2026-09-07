@@ -48,31 +48,51 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
     {
         $data = DB::select("
         select
-        a.id,
-        no_trans_out,
-        tgl_pengeluaran,
-        concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
-        ) tgl_pengeluaran_fix,
-        a.id_so_det,
-        m.product_group,
-        m.product_item,
-        buyer,
-        ws,
-        brand,
-        styleno,
-        color,
-        size,
-        a.qty_out,
-        a.grade,
-        no_carton,
-        lokasi,
-        tujuan_pengeluaran,
-        tujuan,
-        no_dok,
-        a.created_by,
-        created_at
+            a.id,
+            no_trans_out,
+            tgl_pengeluaran,
+            concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
+            ) tgl_pengeluaran_fix,
+            a.id_so_det,
+            m.product_group,
+            m.product_item,
+            buyer,
+            ws,
+            brand,
+            styleno,
+            color,
+            size,
+            a.qty_out,
+            a.grade,
+            no_carton,
+            lokasi,
+            tujuan_pengeluaran,
+            tujuan,
+            no_dok,
+            a.created_by,
+            created_at,
+            requester,
+            keterangan,
+            CASE
+                WHEN tujuan = 'PACKING CENTRAL'
+                    AND COALESCE(p.qty_in, 0) >= a.qty_out
+                    THEN 'TERIMA'
+
+                WHEN tujuan = 'PACKING CENTRAL'
+                    AND COALESCE(p.qty_in, 0) < a.qty_out
+                    THEN 'PENDING'
+
+                ELSE 'KIRIM'
+            END AS status
         from fg_stok_bppb a
         left join master_sb_ws m on a.id_so_det = m.id_so_det
+        LEFT JOIN (
+            SELECT
+                fg_stok_bppb_id,
+                SUM(qty) AS qty_in
+            FROM packing_packing_in
+            GROUP BY fg_stok_bppb_id
+        ) p ON p.fg_stok_bppb_id = a.id
         where tgl_pengeluaran >= '$this->from' and tgl_pengeluaran <= '$this->to'
         order by tgl_pengeluaran desc,substr(no_trans_out,14) desc
         ");

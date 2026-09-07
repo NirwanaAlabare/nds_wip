@@ -1,8 +1,5 @@
-@extends('layouts.index', ['page' => 'dashboard-report-bc', 'containerFluid' => true])
 
-@section('title', 'Laporan Mutasi Bahan Baku - ' . strtoupper($kategoriBarang == 'all' ? 'Semua Kategori' : $kategoriBarang))
 
-@section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -158,9 +155,7 @@
             margin-left: auto;
         }
     </style>
-@endsection
 
-@section('content')
     <div class="card report-detail-card mutasi">
 
         <div class="card-header">
@@ -173,21 +168,17 @@
                     </span>
                 </h3>
             </div>
-            <div class="card-tools" style="text-align: right;">
-                <a href="{{ route('index-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Report BC
-                </a>
-                <a href="{{ route('dashboard-report-bc') }}" class="btn btn-sm btn-back">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
-                </a>
-            </div>
+
         </div>
 
         <div class="card-body">
 
             <form method="GET" action="" class="toolbar-panel">
-                <input type="hidden" name="from" value="{{ $fromDate }}">
-                <input type="hidden" name="to" value="{{ $toDate }}">
+                <input type="hidden" name="from" id="from" value="{{ $fromDate }}">
+                <input type="hidden" name="to" id="to" value="{{ $toDate }}">
+                <input type="hidden" name="jenis" id="jenis" value="{{ $jenis }}">
+                <input type="hidden" name="kategori" id="kategori" value="{{ $kategori }}">
+                <input type="hidden" name="kategoriBarang" id="kategoriBarang" value="{{ $kategoriBarang }}">
 
                 <div class="row align-items-center">
                     <div class="col-md-8 d-flex align-items-center">
@@ -219,14 +210,12 @@
                         <tr>
                             <th width="5%">No</th>
                             <th>ID Item</th>
-                            <th>Kode Barang</th>
                             <th>Nama Barang</th>
-                            <th>No WS</th>
+                            <th>Satuan</th>
                             <th>Saldo Awal</th>
                             <th>Pemasukan</th>
                             <th>Pengeluaran</th>
                             <th>Saldo Akhir</th>
-                            <th>Satuan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -235,14 +224,12 @@
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
                                     <td>{{ $row->id_item ?? '-' }}</td>
-                                    <td>{{ $row->goods_code ?? '-' }}</td>
                                     <td>{{ $row->itemdesc ?? '-' }}</td>
-                                    <td>{{ $row->kpno ?? '-' }}</td>
+                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
-                                    <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         @endif
@@ -251,9 +238,7 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('custom-script')
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
@@ -280,67 +265,109 @@
                 });
             }, 100);
 
+            // $('#btn-export-excel').on('click', function(e) {
+            //     e.preventDefault();
+
+            //     let btn = $(this);
+            //     let originalText = btn.html();
+            //     let form = btn.closest('form');
+            //     let url = window.location.href.split('?')[0];
+
+            //     let formData = form.serialize() + '&export=excel';
+
+            //     $('#loading-bg').removeClass('d-none');
+
+            //     btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...').prop('disabled', true);
+
+            //     $.ajax({
+            //         url: url,
+            //         type: 'GET',
+            //         data: formData,
+            //         xhrFields: {
+            //             responseType: 'blob'
+            //         },
+            //         success: function(response, status, xhr) {
+            //             let filename = "Laporan_Mutasi_Bahan_Baku.xls";
+            //             let disposition = xhr.getResponseHeader('Content-Disposition');
+            //             if (disposition && disposition.indexOf('attachment') !== -1) {
+            //                 let matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            //                 if (matches != null && matches[1]) {
+            //                     filename = matches[1].replace(/['"]/g, '');
+            //                 }
+            //             }
+
+            //             let blob = new Blob([response], { type: 'application/vnd.ms-excel' });
+            //             let downloadUrl = window.URL.createObjectURL(blob);
+            //             let a = document.createElement('a');
+            //             a.href = downloadUrl;
+            //             a.download = filename;
+            //             document.body.appendChild(a);
+            //             a.click();
+
+            //             a.remove();
+            //             window.URL.revokeObjectURL(downloadUrl);
+
+            //             $('#loading-bg').addClass('d-none');
+            //             btn.html(originalText).prop('disabled', false);
+            //         },
+            //         error: function() {
+            //             alert('Terjadi kesalahan saat mengunduh file Excel.');
+
+            //             $('#loading-bg').addClass('d-none');
+            //             btn.html(originalText).prop('disabled', false);
+            //         }
+            //     });
+            // });
+
             $('#btn-export-excel').on('click', function(e) {
-                e.preventDefault();
-
-                let btn = $(this);
-                let originalText = btn.html();
-                let form = btn.closest('form');
-                let url = window.location.href.split('?')[0];
-
-                let formData = form.serialize() + '&export=excel';
-
-                $('#loading-bg').removeClass('d-none');
-
-                btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...').prop('disabled', true);
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
 
                 $.ajax({
-                    url: url,
-                    type: 'GET',
-                    data: formData,
+                    type: "get",
+                    url: '{{ route('export_excel_mutasi_bahan_baku') }}',
+                    data: {
+                        from: $('#from').val(),
+                        to: $('#to').val(),
+                        filter_by: $('#filter_by').val(),
+                        jenis: $('#jenis').val(),
+                        kategori: $('#kategori').val(),
+                        kategoriBarang: $('#kategoriBarang').val(),
+                    },
                     xhrFields: {
                         responseType: 'blob'
                     },
-                    success: function(response, status, xhr) {
-                        let filename = "Laporan_Mutasi_Bahan_Baku.xls";
-                        let disposition = xhr.getResponseHeader('Content-Disposition');
-                        if (disposition && disposition.indexOf('attachment') !== -1) {
-                            let matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-                            if (matches != null && matches[1]) {
-                                filename = matches[1].replace(/['"]/g, '');
-                            }
+                    success: function(response) {
+                        {
+                            swal.close();
+                            Swal.fire({
+                                title: 'Data Sudah Di Export!',
+                                icon: "success",
+                                showConfirmButton: true,
+                                allowOutsideClick: false
+                            });
+                            var blob = new Blob([response]);
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Laporan Mutasi Bahan Baku " + $('#from').val() + " sampai " +
+                                $('#to').val() + ".xlsx";
+                            link.click();
+
                         }
-
-                        let blob = new Blob([response], { type: 'application/vnd.ms-excel' });
-                        let downloadUrl = window.URL.createObjectURL(blob);
-                        let a = document.createElement('a');
-                        a.href = downloadUrl;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-
-                        a.remove();
-                        window.URL.revokeObjectURL(downloadUrl);
-
-                        $('#loading-bg').addClass('d-none');
-                        btn.html(originalText).prop('disabled', false);
                     },
-                    error: function() {
-                        alert('Terjadi kesalahan saat mengunduh file Excel.');
-
-                        $('#loading-bg').addClass('d-none');
-                        btn.html(originalText).prop('disabled', false);
-                    }
                 });
             });
         });
     </script>
 
-    @push('scripts')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             document.title = "Laporan Mutasi Bahan Baku - {{ strtoupper($kategoriBarang == 'all' ? 'Semua Kategori' : $kategoriBarang) }}";
         });
     </script>
-    @endpush
-@endsection

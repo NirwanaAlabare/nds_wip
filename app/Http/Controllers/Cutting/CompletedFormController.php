@@ -9,6 +9,7 @@ use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
@@ -316,6 +317,17 @@ class CompletedFormController extends Controller
             where('id', $validatedRequest['current_id'])->
             first();
 
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -541,7 +553,13 @@ class CompletedFormController extends Controller
                 $firstId = $formCutDetail->id;
             }
 
-            $cuttingService->fixChainedQty($formCutDetail['id_roll'], $firstId);
+            $cuttingService->fixChainedQty($detail->id_roll, $firstId);
+
+            $cuttingService->fixChainedQty($request->current_id_roll_ori, null);
+
+            // generate form cut output
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             DB::commit();
 
@@ -565,6 +583,17 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
@@ -625,180 +654,13 @@ class CompletedFormController extends Controller
                     // Reorder Stocker
                     ini_set('max_execution_time', 360000);
 
-                    $formCutInputs = FormCutInput::selectRaw("
-                            marker_input.color,
-                            form_cut_input.id as id_form,
-                            form_cut_input.no_cut,
-                            form_cut_input.no_form as no_form
-                        ")->
-                        leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-                        leftJoin("part", "part.id", "=", "part_form.part_id")->
-                        leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-                        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                        leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
-                        leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
-                        leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-                        whereRaw("part_form.id is not null")->
-                        where("part.id", $partData->id)->
-                        where("marker_input.color", $formCutInputData->color)->
-                        where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
-                        groupBy("form_cut_input.id")->
-                        orderBy("marker_input.color", "asc")->
-                        orderBy("form_cut_input.waktu_selesai", "asc")->
-                        orderBy("form_cut_input.no_cut", "asc")->
-                        get();
-
-                    $rangeAwal = 0;
-                    $sizeRangeAkhir = collect();
-
-                    $currentColor = "";
-                    $currentNumber = 0;
-
-                    // Loop over all forms
-                    foreach ($formCutInputs as $formCut) {
-                        $modifySizeQty = ModifySizeQty::where("no_form", $formCut->no_form)->get();
-
-                        // Reset cumulative data on color switch
-                        if ($formCut->color != $currentColor) {
-                            $rangeAwal = 0;
-                            $sizeRangeAkhir = collect();
-
-                            $currentColor = $formCut->color;
-                            $currentNumber = 0;
-                        }
-
-                        // Adjust form data
-                        $currentNumber++;
-                        FormCutInput::where("id", $formCut->id_form)->update([
-                            "no_cut" => $currentNumber
-                        ]);
-
-                        // Adjust form cut detail data
-                        $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
-
-                        $currentGroup = "";
-                        $currentGroupNumber = 0;
-                        foreach ($formCutInputDetails as $formCutInputDetail) {
-                            if ($currentGroup != $formCutInputDetail->group_roll) {
-                                $currentGroup = $formCutInputDetail->group_roll;
-                                $currentGroupNumber += 1;
-                            }
-
-                            $formCutInputDetail->group_stocker = $currentGroupNumber;
-                            $formCutInputDetail->save();
-                        }
-
-                        // Adjust stocker data
-                        $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->whereNotNull("id_qr_stocker")->whereNull("stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
-
-                        $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
-                        $currentStockerSize = "";
-                        $currentStockerGroup = "initial";
-                        $currentStockerRatio = 0;
-
-                        foreach ($stockerForm as $key => $stocker) {
-                            $lembarGelaran = 1;
-                            if ($stocker->group_stocker) {
-                                $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
-                            } else {
-                                $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
-                            }
-
-                            if ($currentStockerPart == $stocker->part_detail_id) {
-                                if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                                    $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
-
-                                    if ($modifyThis) {
-                                        $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
-                                    }
-                                }
-
-                                if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
-                                    $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
-                                    $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
-
-                                    $currentStockerSize = $stocker->so_det_id;
-                                    $currentStockerGroup = $stocker->group_stocker;
-                                    $currentStockerRatio = $stocker->ratio;
-                                } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
-                                    $rangeAwal =  1;
-                                    $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
-                                }
-                            }
-
-                            $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
-                            $stocker->range_awal = $rangeAwal;
-                            $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
-                            $stocker->save();
-
-                            if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
-                                $stocker->delete();
-                            }
-                        }
-
-                        // Adjust numbering data
-                            // $numbers = StockerDetail::selectRaw("
-                            //         form_cut_id,
-                            //         act_costing_ws,
-                            //         color,
-                            //         panel,
-                            //         so_det_id,
-                            //         size,
-                            //         no_cut_size,
-                            //         MAX(number) number
-                            //     ")->
-                            //     where("form_cut_id", $formCut->id_form)->
-                            //     whereRaw("(cancel is null OR cancel = 'N')")->
-                            //     groupBy("form_cut_id", "size")->
-                            //     get();
-
-                            // foreach ($numbers as $number) {
-                            //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
-                            //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
-                            //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                            //                 where("size", $number->size)->
-                            //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
-                            //                 update([
-                            //                     "cancel" => "Y"
-                            //                 ]);
-                            //         } else {
-                            //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                            //                 where("size", $number->size)->
-                            //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
-                            //                 where("cancel", "Y")->
-                            //                 update([
-                            //                     "cancel" => "N"
-                            //                 ]);
-                            //         }
-
-                            //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
-                            //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
-                            //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
-
-                            //             $no = 0;
-                            //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
-                            //                 StockerDetail::create([
-                            //                     "kode" => "WIP-".($stockerDetailCount+$no),
-                            //                     "form_cut_id" => $number->form_cut_id,
-                            //                     "act_costing_ws" => $number->act_costing_ws,
-                            //                     "color" => $number->color,
-                            //                     "panel" => $number->panel,
-                            //                     "so_det_id" => $number->so_det_id,
-                            //                     "size" => $number->size,
-                            //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
-                            //                     "number" => $i+1
-                            //                 ]);
-
-                            //                 $no++;
-                            //             }
-                            //         }
-                            //     }
-                            // }
-                    }
+                    // $stockerService->reorderStockerNumbering($partData->id, $formCutInputData->color);
                 }
             }
+
+            // generate form cut output
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($id);
 
             return array(
                 "status" => 200,
@@ -832,6 +694,7 @@ class CompletedFormController extends Controller
             "l_act" => "required",
         ]);
 
+        // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
@@ -842,6 +705,17 @@ class CompletedFormController extends Controller
                 'table' => 'datatable',
                 'additional' => [],
             );
+        }
+
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
         }
 
         // Form Recalculate
@@ -866,6 +740,10 @@ class CompletedFormController extends Controller
 
                 $cuttingService->recalculateForm($validatedRequest['id']);
             }
+
+            // generate form cut output
+            $cuttingService = new CuttingService();
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -898,6 +776,7 @@ class CompletedFormController extends Controller
             "qty_ply" => "required"
         ]);
 
+        // // Check Stocker
         // $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
         // Log::channel("completedFormBypassStocker")->info($stockerForm);
         // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
@@ -908,6 +787,17 @@ class CompletedFormController extends Controller
         //         'table' => 'datatable',
         //         'additional' => [],
         //     );
+        // }
+
+        // // Check Form Cut Input Detail Output
+        // $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $validatedRequest['id'])->get();
+        // foreach ($formCutOutputs as $formCutOutput) {
+        //     if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+        //         return array(
+        //             "status" => 400,
+        //             "message" => "Form sudah ada transfer switching."
+        //         );
+        //     }
         // }
 
         // Form Recalculate
@@ -939,6 +829,10 @@ class CompletedFormController extends Controller
                 $formCutInput->edit_notes .= ($formCutInput->edit_notes ? " | " : "")."Edit Waktu Mulai to ".$formCutInput->waktu_mulai."  |  Edit Waktu Selesai to ".$formCutInput->waktu_selesai."  |  Edit Meja to ".$formCutInput->no_meja." by ".Auth::user()->username." on ".Carbon::now()->format("d/m/Y H:i:s");
                 $formCutInput->save();
             }
+
+            // generate form cut output
+            $cuttingService = new CuttingService();//
+            $cuttingService->generateFormCutOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -997,6 +891,19 @@ class CompletedFormController extends Controller
                         'table' => 'datatable',
                         'additional' => [],
                     );
+                }
+
+                // Check Form Cut Input Detail Output
+                $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $formCutDetail->form_cut_id)->get();
+                foreach ($formCutOutputs as $formCutOutput) {
+                    if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                        DB::rollBack();
+
+                        return array(
+                            "status" => 400,
+                            "message" => "Form sudah ada transfer switching."
+                        );
+                    }
                 }
 
                 // Update scanned item qty
@@ -1112,16 +1019,19 @@ class CompletedFormController extends Controller
                         }
 
                         // If the form has part form (delete part form & reorder)
-                        $partForm = PartForm::where('form_id', $formCutDetail->id)->first();
+                        $partForm = PartForm::where('form_id', $formCutDetail->form_cut_id)->first();
                         if ($partForm) {
                             // Delete part form
-                            $deletePartForm = PartForm::where('form_id', $formCutDetail->id)->delete();
+                            $deletePartForm = PartForm::where('form_id', $formCutDetail->form_cut_id)->delete();
 
                             if ($deletePartForm) {
                                 // Reorder part form group
                                 $stockerService->reorderStockerNumbering($partForm->part_id);
                             }
                         }
+
+                        // generate form cut output
+                        FormCutInputDetailOutput::where("form_cut_input_id", $formCutDetail->form_cut_id)->delete();
 
                         DB::commit();
 
@@ -1147,6 +1057,10 @@ class CompletedFormController extends Controller
                     //         'additional' => [],
                     //     );
                     // }
+
+                    // generate form cut output
+                    $cuttingService = new CuttingService();
+                    $cuttingService->generateFormCutOutput($formCutDetail->form_cut_id);
 
                     DB::commit();
 

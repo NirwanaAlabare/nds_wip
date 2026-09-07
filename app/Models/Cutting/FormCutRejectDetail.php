@@ -21,6 +21,6 @@ class FormCutRejectDetail extends Model
 
     public function soDet()
     {
-        return $this->belongsTo(SoDet::class, 'form_id', 'id');
+        return $this->belongsTo(SoDet::class, 'so_det_id', 'id');
     }
 }

@@ -74,7 +74,11 @@
                             <th>Size</th>
                             <th>Destination</th>
                             <th>QC</th>
+                            <th>QC At</th>
+                            <th>QC Finishing</th>
+                            <th>QC Finishing At</th>
                             <th>Packing</th>
+                            <th>Packing At</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -417,7 +421,23 @@
                     searchable: false
                 },
                 {
+                    data: 'qc_at',
+                    searchable: false
+                },
+                {
                     data: 'packing',
+                    searchable: false
+                },
+                {
+                    data: 'packing_at',
+                    searchable: false
+                },
+                {
+                    data: 'packing_po',
+                    searchable: false
+                },
+                {
+                    data: 'packing_po_at',
                     searchable: false
                 }
             ],

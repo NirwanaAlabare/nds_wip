@@ -1938,6 +1938,7 @@ class Bc30Service
                     'act_costing.kpno as ws',
                     'act_costing.styleno as style',
                     'mastersupplier.Supplier as buyer',
+                    'so_det.fob',
 
                     DB::raw("GROUP_CONCAT(DISTINCT so_det.size ORDER BY COALESCE(msz.urutan, 9999) SEPARATOR ', ') AS size"),
                     DB::raw("MAX(IF(a.bppbno LIKE '%FG%' OR a.bppbno_int LIKE '%FG%', ms.goods_code, mi.goods_code)) as goods_code"),
@@ -1951,13 +1952,14 @@ class Bc30Service
                 ->where(function ($query) use ($id) {
                     $query->where('a.bppbno', $id)->orWhere('a.bppbno_int', $id);
                 })
-                ->groupBy('act_costing.kpno')
+                ->groupBy('act_costing.kpno', 'so_det.fob')
                 ->get();
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
         $dokumens = !empty($dataDetail['dok']) ? $dataDetail['dok'] : [
             ['kode' => '', 'nomor' => '', 'tgl' => '']
         ];
+
 
 
         return view('export-import.dokumen-pabean.edit-trial-bc30', [

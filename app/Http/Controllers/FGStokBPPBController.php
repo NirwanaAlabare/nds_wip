@@ -23,28 +23,48 @@ class FGStokBPPBController extends Controller
         if ($request->ajax()) {
             $data_input = DB::select("
             select
-            a.id,
-            no_trans_out,
-            tgl_pengeluaran,
-            concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
-            ) tgl_pengeluaran_fix,
-            buyer,
-            ws,
-            brand,
-            styleno,
-            color,
-            size,
-            a.qty_out,
-            a.grade,
-            no_carton,
-            lokasi,
-            tujuan,
-            no_dok,
-            tujuan_pengeluaran,
-            a.created_by,
-            created_at
+                a.id,
+                no_trans_out,
+                tgl_pengeluaran,
+                concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
+                ) tgl_pengeluaran_fix,
+                buyer,
+                ws,
+                brand,
+                styleno,
+                color,
+                size,
+                a.qty_out,
+                a.grade,
+                no_carton,
+                lokasi,
+                tujuan,
+                no_dok,
+                tujuan_pengeluaran,
+                requester,
+                keterangan,
+                a.created_by,
+                created_at,
+                CASE
+                    WHEN tujuan = 'PACKING CENTRAL'
+                        AND COALESCE(p.qty_in, 0) >= a.qty_out
+                        THEN 'TERIMA'
+
+                    WHEN tujuan = 'PACKING CENTRAL'
+                        AND COALESCE(p.qty_in, 0) < a.qty_out
+                        THEN 'PENDING'
+
+                    ELSE 'KIRIM'
+                END AS status
             from fg_stok_bppb a
             left join master_sb_ws m on a.id_so_det = m.id_so_det
+            LEFT JOIN (
+                SELECT
+                    fg_stok_bppb_id,
+                    SUM(qty) AS qty_in
+                FROM packing_packing_in
+                GROUP BY fg_stok_bppb_id
+            ) p ON p.fg_stok_bppb_id = a.id
             where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
             order by tgl_pengeluaran desc,substr(no_trans_out,14) desc
             ");
@@ -57,16 +77,21 @@ class FGStokBPPBController extends Controller
 
     public function store(Request $request)
     {
-        $timestamp = Carbon::now();
-        $user = Auth::user()->name;
-        $JmlArray         = $_POST['txtqty'];
-        $id_so_detArray         = $_POST['id_so_det'];
-        $no_cartonArray         = $_POST['no_carton'];
+        $timestamp          = Carbon::now();
+        $user               = Auth::user()->name;
+        $JmlArray           = $_POST['txtqty'];
+        $id_so_detArray     = $_POST['id_so_det'];
+        $no_cartonArray     = $_POST['no_carton'];
         $gradeArray         = $_POST['grade'];
         $lokasi             = $request->cbolok;
-        $tgl_pengeluaran = $request->tgl_pengeluaran;
+        $tgl_pengeluaran    = $request->tgl_pengeluaran;
+        $requester          = $request->cborequester;
+        $tujuan             = $request->cbotuj;
+        $tujuan_pengeluaran = $request->cbotuj_pengeluaran;
+        $keterangan         = $request->keterangan;
 
         $validatedRequest = $request->validate([
+            "cborequester" => "required",
             "cbotuj" => "required",
             "cbotuj_pengeluaran" => "required",
         ]);
@@ -84,21 +109,15 @@ class FGStokBPPBController extends Controller
 
         $kode_trans = $kode . $no . '/' . $kodepay;
 
-        if($request->cbotuj == 'PACKING CENTRAL'){
-            $tujuan_pengeluaran = 'SWITCHING PPIC';
-        }else{
-            $tujuan_pengeluaran = $request->cbotuj_pengeluaran;
-        }
-
         foreach ($JmlArray as $key => $value) {
             if ($value != '0' && $value != '') {
                 $txtqty         = $JmlArray[$key];
                 $txtid_so_det   = $id_so_detArray[$key];
                 $txtno_carton   = $no_cartonArray[$key];
                 $txtgrade       = $gradeArray[$key]; {
-                    $insert_bppb =  DB::insert("
-                insert into fg_stok_bppb(no_trans_out,tgl_pengeluaran,id_so_det,qty_out,grade,no_carton,lokasi,tujuan,tujuan_pengeluaran,mutasi,cancel,created_by,created_at,updated_at)
-                values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi','" . $validatedRequest['cbotuj'] . "','$tujuan_pengeluaran','N','N','$user','$timestamp','$timestamp')");
+                $insert_bppb =  DB::insert("
+                    insert into fg_stok_bppb(no_trans_out,tgl_pengeluaran,id_so_det,qty_out,grade,no_carton,lokasi,tujuan,tujuan_pengeluaran,requester,keterangan,mutasi,cancel,created_by,created_at,updated_at)
+                    values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi','$tujuan','$tujuan_pengeluaran','$requester','$keterangan','N','N','$user','$timestamp','$timestamp')");
                 }
             }
         }
@@ -236,6 +255,8 @@ class FGStokBPPBController extends Controller
         $user = Auth::user()->name;
         $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok where cancel = 'N'");
         $data_out = DB::select("select tujuan isi , tujuan tampil from fg_stok_master_tujuan where cancel = 'N'");
+        $data_requester = DB::select("select nama isi , nama tampil from fg_stok_master_requester where cancel = 'N'");
+        $data_jenis_pengeluaran = DB::select("select nama isi , nama tampil from fg_stok_master_jenis_pengeluaran where cancel = 'N'");
 
         $data_buyer = DB::connection('mysql_sb')->select("select ms.supplier  isi, ms.supplier tampil
         from act_costing ac
@@ -256,6 +277,8 @@ class FGStokBPPBController extends Controller
             "data_buyer" => $data_buyer,
             "data_grade" => $data_grade,
             "data_out" => $data_out,
+            "data_requester" => $data_requester,
+            "data_jenis_pengeluaran" => $data_jenis_pengeluaran,
             "user" => $user
         ]);
     }

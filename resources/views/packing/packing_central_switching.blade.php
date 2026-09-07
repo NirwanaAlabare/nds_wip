@@ -501,7 +501,10 @@
                 processResults: function(data) {
                     return {
                         results: data.map(item => ({
-                            id: item.id_ppic_master_so ?? 0,
+                            // item FGS tidak punya id_ppic_master_so, jadi id select2
+                            // harus digabung dengan so_det_id supaya tetap unik
+                            id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id,
+                            ppic_id: item.id_ppic_master_so ?? 0,
                             text: item.po + ' | ' + item.color + ' | ' + item.size,
                             packing_packing_in_id: item.packing_packing_in_id,
                             so_det_id: item.so_det_id,
@@ -519,7 +522,7 @@
         $('#cbono').on('select2:select', function(e) {
             let data = e.params.data;
 
-            $('#asal_ppic_master_so_id').val(data.id);
+            $('#asal_ppic_master_so_id').val(data.ppic_id);
             $('#asal_so_det_id').val(data.so_det_id);
             $('#packing_packing_in_id').val(data.packing_packing_in_id);
 
@@ -538,7 +541,7 @@
             sourceSelected = !!data.packing_packing_in_id;
 
             updateBanner();
-            loadPreview(data.id, data.packing_packing_in_id);
+            loadPreview(data.ppic_id, data.packing_packing_in_id, data.so_det_id);
             checkSubmitReady();
         });
 
@@ -676,7 +679,7 @@
         }
 
         /* ── Load preview (simulasi — ganti dengan AJAX saat route siap) ── */
-        function loadPreview(noTrans, packing_packing_in_id) {
+        function loadPreview(noTrans, packing_packing_in_id, so_det_id) {
             const $body = $('#tbl-preview-body');
             if (!packing_packing_in_id) {
                 $body.html(`
@@ -702,7 +705,8 @@
                 type: "GET",
                 data: {
                     id_ppic_master_so: noTrans,
-                    packing_packing_in_id: packing_packing_in_id
+                    packing_packing_in_id: packing_packing_in_id,
+                    so_det_id: so_det_id
                 },
                 success: function(res) {
                     renderPreview(res);

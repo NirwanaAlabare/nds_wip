@@ -2153,27 +2153,23 @@ class PartController extends Controller
             }
 
             // Check Part Form
-            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
-                if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
-                    return array(
-                        'status' => 400,
-                        'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
-                        'redirect' => '',
-                        'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                        'additional' => [],
-                    );
-                }
+            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
             }
 
             // Cek apakah part sudah memiliki stocker (sudah print stocker)
-            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
-                $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
-                if ($stockerCount > 0) {
-                    return array(
-                        'status' => 400,
-                        'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
-                    );
-                }
+            $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
+            if ($stockerCount > 0) {
+                return array(
+                    'status' => 400,
+                    'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+                );
             }
 
             if ($partDetail->delete()) {
@@ -2188,6 +2184,7 @@ class PartController extends Controller
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     DB::table("part_detail")->where('id', $id)->get(),
                     DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
+                    DB::table("stocker_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),

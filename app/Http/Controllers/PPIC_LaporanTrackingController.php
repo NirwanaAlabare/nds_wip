@@ -25,9 +25,9 @@ class PPIC_LaporanTrackingController extends Controller
         $buyer = $request->buyer;
 
         $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
-where tgl_kirim >= '2024-01-01'
-group by buyer
-order by buyer asc");
+            where tgl_kirim >= '2024-01-01'
+            group by buyer
+            order by buyer asc");
 
         return view(
             'ppic.laporan_tracking',
@@ -350,939 +350,7 @@ order by buyer asc");
 
     public function show_lap_monitoring_order(Request $request)
     {
-        $user = Auth::user()->name;
-        $buyer = $request->buyer_filter;
-        $reff = $request->reff_filter;
-        $ws = $request->ws_filter;
-        $color = $request->color_filter;
-        $size = $request->size_filter;
-
-        $curdate = date('Y-m-d');
-        $prevdate = date('Y-m-d', strtotime($curdate . ' -7 day'));
-
-        if (!empty($reff)) {
-            $cond_reff = " and sd.reff_no = '" . $reff  . "'";
-            $cond_reff_nds = " and reff_no = '" . $reff  . "'";
-            $cond_reff_msb = " and master_sb_ws.reff_no = '" . $reff  . "'";
-        } else {
-            $cond_reff = "";
-            $cond_reff_nds = "";
-            $cond_reff_msb = "";
-        }
-        if (!empty($ws)) {
-            $cond_ws = " and ac.kpno = '" . $ws  . "'";
-            $cond_ws_nds = " and ws = '" . $ws  . "'";
-            $cond_ws_global = " and ws = '" . $ws  . "'";
-            $cond_ws_msb = " and master_sb_ws.ws = '" . $ws  . "'";
-        } else {
-            $cond_ws = "";
-            $cond_ws_nds = "";
-            $cond_ws_global = "";
-            $cond_ws_msb = "";
-        }
-        if (!empty($color)) {
-            $cond_color = " and sd.color = '" . $color  . "'";
-            $cond_color_nds = " and color = '" . $color  . "'";
-            $cond_color_global = " and color = '" . $color  . "'";
-            $cond_color_msb = " and master_sb_ws.color = '" . $color  . "'";
-        } else {
-            $cond_color = "";
-            $cond_color_nds = "";
-            $cond_color_global = "";
-            $cond_color_msb = "";
-        }
-        if (!empty($size)) {
-            $cond_size = " and sd.size = '" . $size  . "'";
-            $cond_size_nds = " and size = '" . $size  . "'";
-            $cond_size_global = " and size = '" . $size  . "'";
-            $cond_size_msb = " and master_sb_ws.size = '" . $size  . "'";
-        } else {
-            $cond_size = "";
-            $cond_size_nds = "";
-            $cond_size_global = "";
-            $cond_size_msb = "";
-        }
-
-
-        $data_monitoring_order = DB::select("WITH master_data AS
-(
-SELECT
-id_so_det,
-po,
-supplier buyer,
-kpno ws,
-color,
-size,
-styleno_prod,
-reff_no,
-tgl_shipment,
-sum(qty_po) qty_po
-FROM
-laravel_nds.ppic_master_so p
-INNER JOIN
-signalbit_erp.so_det sd ON p.id_so_det = sd.id
-INNER JOIN
-signalbit_erp.so so ON sd.id_so = so.id
-INNER JOIN
-signalbit_erp.act_costing ac ON so.id_cost = ac.id
-INNER JOIN
-signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-where sd.cancel = 'N' and so.cancel_h = 'N' and ms.supplier = '$buyer' $cond_reff_nds $cond_ws $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no, tgl_shipment
-ORDER BY
-tgl_shipment asc
-),
-sl_now as (
-SELECT
-		id_so_det id_so_det,
-		SUM(qty_loading) as qty_loading
-FROM (
-		SELECT
-				b.so_det_id AS id_so_det,
-				a.tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line a
-				LEFT JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
-		WHERE
-				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				b.so_det_id,
-				b.size,
-				b.form_cut_id,
-				b.group_stocker,
-				b.ratio,
-				b.stocker_reject,
-				tanggal_loading,
-				loading_plan_id
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_reject_id IS NOT NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				form_reject_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_piece_id IS NOT NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				form_piece_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_cut_id IS NULL AND form_reject_id IS NULL AND form_piece_id IS NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-) loading
-GROUP BY
-	id_so_det
-),
-sew_now as (
-                SELECT
-                so_det_id id_so_det,
-                COUNT(*) qty_sewing
-                from signalbit_erp.output_rfts a
-                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
-                group by so_det_id
-),
-fin_now as (
-								select
-                so_det_id id_so_det,
-                COUNT(*) qty_finishing
-                from signalbit_erp.output_rfts_packing a
-                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
-                group by so_det_id
-),
-pck_now as (
-								SELECT
-								so_det_id id_so_det,
-								COUNT(*) qty_rft_packing
-								FROM signalbit_erp.output_rfts_packing_po a
-								JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
-								GROUP BY so_det_id
-),
-finishing_proses_now as (
-    SELECT
-        so_det_id id_so_det,
-        COUNT(*) qty_fns_proses
-    FROM
-        signalbit_erp.output_secondary_out
-    INNER JOIN signalbit_erp.output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
-    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
-    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
-    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
-    AND output_secondary_out.`status` IN ('rft', 'rework')
-    GROUP BY so_det_id
-),
-finishing_proses_trigger_now as (
-    SELECT
-        so_det_id id_so_det,
-        COUNT(*) qty_fns_proses_trigger
-    FROM
-        signalbit_erp.output_secondary_in
-    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
-    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
-    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
-    GROUP BY so_det_id
-),
-cutt as (
-    -- 	CUTTING
-	SELECT
-		buyer,
-		ws,
-		color,
-		size,
-		styleno_prod,
-		reff_no,
-		id_so_det,
-		MIN(qty_cut) qty_cut
-	FROM (
-		SELECT
-			buyer,
-			ws,
-			color,
-			size,
-			styleno_prod,
-			reff_no,
-			id_so_det,
-			panel,
-			SUM(qty_cut) qty_cut
-		FROM (
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty_cut) as qty_cut
-				FROM
-				(
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						panel,
-						SUM(cutting.qty) as qty_cut
-					FROM
-					(
-							SELECT
-							marker_cutting.tgl_form_cut tanggal,
-							marker_cutting.panel,
-							marker_cutting.so_det_id,
-							SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) qty
-							FROM
-							(
-								-- FORM CUT
-								SELECT
-								form_cut.tgl_form_cut,
-								marker_input.panel,
-								marker_input_detail.so_det_id,
-								marker_input_detail.ratio,
-								COALESCE(marker_input.notes, form_cut.notes) notes,
-								marker_input.gelar_qty marker_gelar,
-								SUM(form_cut.qty_ply) spreading_gelar,
-								SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
-								SUM(modify_size_qty.difference_qty) diff
-								FROM
-								laravel_nds.marker_input
-								INNER JOIN
-								laravel_nds.marker_input_detail on marker_input_detail.marker_id = marker_input.id
-								INNER JOIN
-								laravel_nds.master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
-								INNER JOIN
-								(
-								SELECT
-								form_cut_input.no_meja id_meja,
-								meja.`name` meja,
-								COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
-								form_cut_input.id_marker,
-								form_cut_input.id,
-								form_cut_input.no_form,
-								form_cut_input.qty_ply,
-								form_cut_input.total_lembar,
-								form_cut_input.notes,
-								SUM(form_cut_input_detail.lembar_gelaran) detail
-								FROM
-								laravel_nds.form_cut_input
-								LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
-								INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-								WHERE
-								form_cut_input.`status` = 'SELESAI PENGERJAAN'
-								AND form_cut_input.waktu_mulai is not null
-								and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-01-01'
-								GROUP BY
-								form_cut_input.id
-								) form_cut on form_cut.id_marker = marker_input.kode
-								LEFT JOIN
-								laravel_nds.modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
-								where
-								(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-								AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
-								group by
-								marker_input.id,
-								marker_input_detail.id,
-								form_cut.id
-							union all
-								-- FORM CUT REJECT
-								SELECT
-								COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
-								form_cut_reject.panel,
-								form_cut_reject_detail.so_det_id,
-								1 as ratio,
-								COALESCE('REJECT') notes,
-								SUM(form_cut_reject_detail.qty) marker_gelar,
-								SUM(form_cut_reject_detail.qty) spreading_gelar,
-								SUM(form_cut_reject_detail.qty) form_gelar,
-								null diff
-								FROM
-								laravel_nds.`form_cut_reject`
-								LEFT JOIN laravel_nds.`form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
-								LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
-								WHERE
-								form_cut_reject_detail.`qty` > 0
-								AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-05-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-								GROUP BY
-								form_cut_reject.id,
-								form_cut_reject_detail.so_det_id
-							union all
-								-- FORM CUT PIECE
-								SELECT
-								COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
-								form_cut_piece.panel,
-								form_cut_piece_detail_size.so_det_id,
-								1 as ratio,
-								COALESCE(form_cut_piece.keterangan, 'PIECE') notes,
-								SUM(form_cut_piece_detail_size.qty) marker_gelar,
-								SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-								SUM(form_cut_piece_detail_size.qty) form_gelar,
-								null diff
-								FROM
-								laravel_nds.`form_cut_piece`
-								LEFT JOIN laravel_nds.`form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
-								LEFT JOIN laravel_nds.`form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
-								LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
-								WHERE
-								form_cut_piece.`status` = 'complete'
-								AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-								AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '2025-01-01'
-								AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-								GROUP BY
-								form_cut_piece.id,
-								form_cut_piece_detail_size.so_det_id
-						) marker_cutting
-							GROUP BY
-								marker_cutting.panel,
-								marker_cutting.so_det_id
-
-						UNION ALL
-
-							-- STOCKER ADDITIONAL
-							select
-									tgl_form_cut as tanggal,
-									panel,
-									id_so_det so_det_id,
-									SUM(qty_cut) qty
-							FROM (
-									SELECT
-											form_cut_input.tgl_form_cut,
-											stocker_ws_additional_detail.so_det_id AS id_so_det,
-											stocker_ws_additional.panel,
-											stocker_ws_additional_detail.ratio,
-											form_cut_input.total_lembar,
-											modify_size_qty.difference_qty,
-											CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut.detail) END AS qty_cut
-									FROM
-											laravel_nds.form_cut_input
-									INNER JOIN
-											(
-													SELECT
-															form_cut_input.no_meja id_meja,
-															meja.`name` meja,
-															COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai ),
-															DATE ( form_cut_input.tgl_input )) tgl_form_cut,
-															form_cut_input.id_marker,
-															form_cut_input.id,
-															form_cut_input.no_form,
-															form_cut_input.qty_ply,
-															form_cut_input.total_lembar,
-															form_cut_input.notes,
-															SUM( form_cut_input_detail.lembar_gelaran ) detail
-													FROM
-															laravel_nds.form_cut_input
-															LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
-															INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-													WHERE
-															form_cut_input.`status` = 'SELESAI PENGERJAAN'
-															AND form_cut_input.waktu_mulai IS NOT NULL
-															AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '2025-01-01'
-													GROUP BY
-															form_cut_input.id
-											) form_cut ON form_cut.id = form_cut_input.id
-									LEFT JOIN
-											laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-									LEFT JOIN
-											laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-									LEFT JOIN
-											laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-									LEFT JOIN
-											laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
-									WHERE
-											form_cut_input.status = 'SELESAI PENGERJAAN'
-											AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
-									GROUP BY
-											form_cut_input.id,
-											stocker_ws_additional.panel,
-											stocker_ws_additional_detail.id
-							) cutting_stocker_additional
-							group by
-									panel, id_so_det
-					) cutting
-					left join laravel_nds.master_sb_ws on master_sb_ws.id_so_det = cutting.so_det_id
-					group by
-						panel, ws, color, size,styleno_prod, reff_no
-				) cutting
-			group by
-				ws, color, size,styleno_prod, reff_no, panel
-			UNION ALL
-			-- 	ADJUSTMENT
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty_adjustment) qty
-			FROM (
-				SELECT
-					master_sb_ws.buyer,
-					master_sb_ws.ws,
-					master_sb_ws.color,
-					master_sb_ws.size,
-					master_sb_ws.styleno_prod,
-					master_sb_ws.reff_no,
-					master_sb_ws.id_so_det,
-					wip_adjustment.panel,
-					SUM(wip_adjustment.qty) as qty_adjustment
-				FROM
-					wip_adjustment
-					left join master_sb_ws on master_sb_ws.ws = wip_adjustment.no_ws and master_sb_ws.color = wip_adjustment.color and master_sb_ws.size = wip_adjustment.size
-				WHERE
-					type_report = 'CUTTING' and
-					status = 'Y' and
-					master_sb_ws.buyer = '$buyer'
-					$cond_ws_msb
-					$cond_color_msb
-					$cond_size_msb
-				GROUP BY
-					wip_adjustment.no_ws, wip_adjustment.style, wip_adjustment.color, wip_adjustment.size, wip_adjustment.panel, wip_adjustment.part
-			) wip_adjustment
-			GROUP BY
-				ws, styleno_prod, reff_no, color, size, panel
-			UNION ALL
-			-- 	SWITCHING
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty) qty
-			FROM (
-				SELECT
-					buyer,
-					ws,
-					color,
-					size,
-					styleno_prod,
-					reff_no,
-					id_so_det,
-					panel,
-					SUM(qty - from_qty) as qty
-				FROM (
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						wip_switching_adj.panel,
-						wip_switching_adj.part,
-						SUM(wip_switching_adj.qty) as qty,
-						0 from_qty
-					FROM
-						wip_switching_adj
-						left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.no_ws and master_sb_ws.color = wip_switching_adj.color and master_sb_ws.size = wip_switching_adj.size
-					WHERE
-						type_report = 'CUTTING' and
-						status = 'Y' and
-						master_sb_ws.buyer = '$buyer'
-                        $cond_ws_msb
-                        $cond_color_msb
-                        $cond_size_msb
-					GROUP BY
-						wip_switching_adj.no_ws, wip_switching_adj.style, wip_switching_adj.color, wip_switching_adj.size, wip_switching_adj.panel, wip_switching_adj.part
-					UNION ALL
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						wip_switching_adj.panel,
-						wip_switching_adj.part,
-						0 qty,
-						SUM(from_qty) as from_qty
-					FROM
-						wip_switching_adj
-						left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.from_no_ws and master_sb_ws.color = wip_switching_adj.from_color and master_sb_ws.size = wip_switching_adj.from_size
-					WHERE
-						type_report = 'CUTTING' and
-						status = 'Y' and
-						master_sb_ws.buyer = '$buyer'
-                        $cond_ws_msb
-                        $cond_color_msb
-                        $cond_size_msb
-					GROUP BY
-						wip_switching_adj.from_no_ws, wip_switching_adj.from_style, wip_switching_adj.from_color, wip_switching_adj.from_size, wip_switching_adj.from_panel, wip_switching_adj.from_part
-				) wip_switching
-				group by
-					ws, styleno_prod, reff_no, color, size, panel, part
-			) wip_switching
-			GROUP BY
-				ws, styleno_prod, reff_no, color, size, panel
-		) cutting
-		group by
-			ws, color, size,styleno_prod, reff_no, panel
-	) cutting
-	group by
-		ws, color, size, styleno_prod, reff_no
-),
-ps as (
-select
-m.buyer,
-m.ws,
-m.color,
-m.size,
-m.styleno_prod,
-m.reff_no,
--- tgl_shipment,
-total_scan as qty_scan
-from
-(
-SELECT
-    a.id_so_det,
-    COUNT(*) AS total_scan
-    -- ,ppic_master_so.tgl_shipment
-FROM laravel_nds.packing_packing_out_scan a
--- LEFT JOIN ppic_master_so on ppic_master_so.id = a.id_ppic 
-WHERE id_ppic is not null
-GROUP BY a.id_so_det
--- , tgl_shipment
-) a
-left join laravel_nds.master_sb_ws m on a.id_so_det = m.id_so_det
-where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
--- , tgl_shipment
-),
-fg as (
-select
-m.buyer,
-m.ws,
-m.color,
-m.size,
-m.styleno_prod,
-m.reff_no,
-bppb.id_so_det, sum(bppb.qty) qty_fg from signalbit_erp.bppb
-left join laravel_nds.master_sb_ws m on bppb.id_so_det = m.id_so_det
-where bppbno like '%FG%'  and cancel = 'N' and jenis_dok <> 'INHOUSE'
-and buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
-),
-mut_trans as (
-SELECT
-ws, color, size,styleno_prod, reff_no,
-SUM(qty_loading) qty_loading,
-SUM(qty_sewing) qty_sewing,
-SUM(qty_finishing) qty_finishing,
-SUM(qty_rft_packing) qty_rft_packing,
-SUM(qty_fns_proses) qty_fns_proses,
-SUM(qty_fns_proses_trigger) qty_fns_proses_trigger
-FROM
-	(
-		SELECT
-		id_so_det,
-		SUM(qty_loading) qty_loading,
-		SUM(qty_sewing) qty_sewing,
-		SUM(qty_finishing) qty_finishing,
-		SUM(qty_rft_packing) qty_rft_packing,
-        SUM(rft_sp + rework_sp) qty_fns_proses,
-        SUM(total_in_sp) qty_fns_proses_trigger
-		FROM signalbit_erp.mut_wip_tmp tmp
-		where tgl_trans < '$prevdate'
-		group by id_so_det
-		UNION ALL
-		SELECT
-		id_so_det,
-		qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM sl_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM sew_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM fin_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM pck_now
-        UNION ALL
-        SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM finishing_proses_now
-        UNION ALL
-        SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        qty_fns_proses_trigger
-		FROM finishing_proses_trigger_now
-	) mut
-LEFT JOIN laravel_nds.master_sb_ws m on mut.id_so_det = m.id_so_det
-where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
-),
-CTE AS (
-SELECT
-a.id_so_det,
-a.buyer,
-a.ws,
-a.color,
-a.size,
-a.styleno_prod,
-a.reff_no,
-a.tgl_shipment,
-a.qty_po,
-qty_cut,
-qty_loading,
-qty_sewing output_rfts,
-qty_finishing output_finishing,
-qty_rft_packing output_rfts_packing,
-qty_fns_proses output_fns_proses,
-qty_fns_proses_trigger output_fns_proses_trigger,
-qty_scan,
-qty_fg,
-ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
-SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
-qty_cut  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
-qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
-qty_sewing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
-qty_finishing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_finishing,
-qty_rft_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
-qty_fns_proses - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses,
-qty_fns_proses_trigger - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses_trigger,
-qty_scan - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_scan,
-qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_fg
-from master_data a
-left join mut_trans mt on a.ws = mt.ws and a.color = mt.color and a.size = mt.size and a.styleno_prod = mt.styleno_prod and a.reff_no = mt.reff_no
-left join cutt on a.ws = cutt.ws and a.color = cutt.color and a.size = cutt.size and a.styleno_prod = cutt.styleno_prod and a.reff_no = cutt.reff_no
-left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no
--- and a.tgl_shipment = ps.tgl_shipment
-left join fg on a.ws = fg.ws and a.color = fg.color and a.size = fg.size and a.styleno_prod = fg.styleno_prod and a.reff_no = fg.reff_no
-)
-
-SELECT
-id_so_det,
-buyer,
-CTE.ws,
-CTE.color,
-CTE.size,
-CTE.styleno_prod,
-CTE.reff_no,
-CTE.tgl_shipment,
-DATE_FORMAT(CTE.tgl_shipment, '%d-%m-%Y') tgl_shipment_fix,
-qty_po,
-coalesce(qty_cut,0) qty_cut,
-coalesce(case
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_cut,
-coalesce(case
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_cut,
-coalesce(qty_loading,0) qty_loading,
-coalesce(case
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_loading,
-coalesce(case
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_loading,
-
-coalesce(output_rfts,0) output_rfts,
-coalesce(case
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_rfts,
-coalesce(case
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_rfts,
-
-
-coalesce(output_finishing,0) output_finishing,
-coalesce(case
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_finishing,
-coalesce(case
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_finishing,
-
-
-coalesce(output_rfts_packing,0) output_rfts_packing,
-coalesce(case
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_rfts_packing,
-coalesce(case
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_rfts_packing,
-
-coalesce(output_fns_proses,0) output_fns_proses,
-coalesce(case
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_fns_proses,
-coalesce(case
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_fns_proses,
-
-coalesce(output_fns_proses_trigger,0) output_fns_proses_trigger,
-coalesce(case
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_fns_proses_trigger,
-coalesce(case
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_fns_proses_trigger,
-
-coalesce(qty_scan,0) qty_scan,
-coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
-coalesce(case
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_qty_scan,
-coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) - qty_po blc_qty_scan_po,
-coalesce(case
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_qty_scan,
-
-
-coalesce(qty_fg,0) qty_fg,
-coalesce(case
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_qty_fg,
-coalesce(case
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_qty_fg
-
-FROM CTE
-left join signalbit_erp.master_size_new msn on CTE.size = msn.size
-order by tgl_shipment asc, color asc, urutan asc
-
-        ");
+        $data_monitoring_order = DB::select($this->buildQueryMonitoringOrder($request));
 
         return DataTables::of($data_monitoring_order)->toJson();
     }
@@ -1690,7 +758,19 @@ order by tgl_shipment asc, color asc, urutan asc
 
     public function export_excel_monitoring_order(Request $request)
     {
-        $user = Auth::user()->name;
+        $data_monitoring_order = DB::select($this->buildQueryMonitoringOrder($request));
+
+        return response()->json($data_monitoring_order);
+    }
+
+    /**
+     * Query tunggal Laporan Monitoring Order.
+     *
+     * Dipakai bersama oleh show_lap_monitoring_order() dan export_excel_monitoring_order()
+     * supaya perubahan query cukup dilakukan di satu tempat.
+     */
+    private function buildQueryMonitoringOrder(Request $request)
+    {
         $buyer = $request->buyer_filter;
         $reff = $request->reff_filter;
         $ws = $request->ws_filter;
@@ -1743,1230 +823,920 @@ order by tgl_shipment asc, color asc, urutan asc
             $cond_size_msb = "";
         }
 
-        // deprecated
-        //         $data_monitoring_order = DB::select("WITH CTE AS (
-        // SELECT
-        // 			a.buyer,
-        // 			a.ws,
-        // 			a.color,
-        // 			a.size,
-        // 			a.styleno_prod,
-        // 			a.reff_no,
-        // 			a.tgl_shipment,
-        // 			a.qty_po,
-        // 			qty_cut,
-        // 			qty_loading,
-        // 			output_rfts,
-        // 			output_rfts_packing,
-        // 			ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
-        // 			SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
-        // 			SUM(qty_cut)  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
-        // 			qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
-        // 			output_rfts - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
-        // 			output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
-        // FROM
-        // (
-        // 			SELECT
-        //             supplier buyer,
-        //             kpno ws,
-        //             color,
-        //             size,
-        // 			styleno_prod,
-        // 			reff_no,
-        //             tgl_shipment,
-        //             sum(qty_po) qty_po
-        //         FROM
-        //             laravel_nds.ppic_master_so p
-        //         INNER JOIN
-        //             signalbit_erp.so_det sd ON p.id_so_det = sd.id
-        // 	      INNER JOIN
-        //             signalbit_erp.so so ON sd.id_so = so.id
-        // 	      INNER JOIN
-        //             signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        // 	      INNER JOIN
-        //             signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //             where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
-        // 				GROUP BY
-        // 				ws, color, size,styleno_prod, reff_no, tgl_shipment
-        // 				ORDER BY
-        //             tgl_shipment asc
-        // ) a
-        // LEFT JOIN
-        // (
-        // 				SELECT
-        // 						kpno ws,
-        // 						color,
-        // 						size,
-        // 						styleno_prod,
-        // 						reff_no,
-        //             SUM(qty_cut) AS qty_cut,
-        // 						SUM(qty_loading) AS qty_loading,
-        //             SUM(output_rfts) AS output_rfts,
-        //             SUM(output_rfts_packing) AS output_rfts_packing
-        //         FROM
-        //         (
-        // SELECT
-        // 	id_so_det,
-        // 	MIN(qty_cut) qty_cut,
-        // 	0 AS qty_loading,
-        // 	0 AS output_rfts,
-        // 	0 AS output_rfts_packing
-        // FROM (
-        // 		SELECT
-        // 			id_so_det,
-        // 			SUM(qty_cut) qty_cut
-        // 		FROM (
-        // 				SELECT
-        // 					marker_input_detail.so_det_id AS id_so_det,
-        // 					marker_input.panel,
-        // 					marker_input_detail.ratio,
-        // 					form_cut_input.total_lembar,
-        // 					modify_size_qty.difference_qty,
-        // 					CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
-        // 			FROM
-        // 					laravel_nds.form_cut_input
-        // 			LEFT JOIN
-        // 					laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-        // 			LEFT JOIN
-        // 					laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-        // 			LEFT JOIN
-        // 					laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        // 			LEFT JOIN
-        // 					laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
-        // 			WHERE
-        // 					COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-        // 					AND form_cut_input.status = 'SELESAI PENGERJAAN'
-        // 					AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
-        // 			GROUP BY
-        // 					form_cut_input.id,
-        // 					marker_input.panel,
-        // 					marker_input_detail.id
-        // 		) cutting
-        // 	group by
-        // 		panel,
-        // 		id_so_det
-        // ) cutting
-        // 	group by
-        // 		id_so_det
-        // UNION ALL
-        // 		SELECT
-        // 			id_so_det,
-        // 			MIN(qty_cut) qty_cut,
-        // 			0 AS qty_loading,
-        // 			0 AS output_rfts,
-        // 			0 AS output_rfts_packing
-        // 		FROM (
-        // 			SELECT
-        // 					so_det_id id_so_det,
-        // 					SUM(qty) as qty_cut
-        // 			FROM
-        // 					form_cut_reject_detail
-        // 					left join form_cut_reject on form_cut_reject.id = form_cut_reject_detail.form_id
-        // 			GROUP BY
-        // 					form_cut_reject.panel,
-        // 					so_det_id
-        // 		) form_reject
-        // 		group by id_so_det
-
-        // 		UNION ALL
-        // 		SELECT
-        // 				so_det_id AS id_so_det,
-        // 				0 AS qty_cut,
-        // 				MIN(qty) AS qty_loading,
-        // 				0 AS output_rfts,
-        // 				0 AS output_rfts_packing
-        // 		FROM
-        // 				laravel_nds.loading_line a
-        // 		INNER JOIN
-        // 				laravel_nds.stocker_input b ON a.stocker_id = b.id
-        // 		WHERE
-        // 				a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) and b.form_cut_id >
-        // 		GROUP BY
-        // 			b.so_det_id,
-        // 			b.form_cut_id,
-        // 			b.group_stocker,
-        // 			b.ratio
-        //             UNION ALL
-        //             SELECT
-        //                 so_det_id AS id_so_det,
-        //                 0 AS qty_cut,
-        //                 MIN(qty) AS qty_loading,
-        //                 0 AS output_rfts,
-        //                 0 AS output_rfts_packing
-        //             from laravel_nds.loading_line
-        //             LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-        //             where form_reject_id is not null
-        //             group by so_det_id, form_reject_id
-        //             UNION ALL
-        //             SELECT
-        //                 so_det_id AS id_so_det,
-        //                 0 AS qty_cut,
-        //                 0 AS qty_loading,
-        // 				COUNT(so_det_id) AS output_rfts,
-        //                 0 AS output_rfts_packing
-        //             FROM
-        //                 signalbit_erp.output_rfts a
-        //             WHERE
-        //                 a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
-        //             GROUP BY
-        //                 so_det_id
-        //             UNION ALL
-        //             SELECT
-        //                 so_det_id AS id_so_det,
-        //                  0 AS qty_cut,
-        //                 0 AS qty_loading,
-        //                 0 AS output_rfts,
-        //                 COUNT(so_det_id) AS output_rfts_packing
-        //             FROM
-        //                 signalbit_erp.output_rfts_packing a
-        //             WHERE
-        //                 a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
-        //             GROUP BY
-        //                 so_det_id
-        //         ) d
-        //         INNER JOIN
-        //             signalbit_erp.so_det sd ON d.id_so_det = sd.id
-        // 	      INNER JOIN
-        //             signalbit_erp.so so ON sd.id_so = so.id
-        // 	      INNER JOIN
-        //             signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        // 	      INNER JOIN
-        //             signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //             where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
-        // 				group by kpno, color, size
-        // ) b on a.ws = b.ws and a.color = b.color and a.size = b.size and a.styleno_prod = b.styleno_prod and a.reff_no = b.reff_no
-        // GROUP BY
-        // 				ws, color, size, tgl_shipment
-        // )
-        // SELECT
-        // buyer,
-        // CTE.ws,
-        // CTE.color,
-        // CTE.size,
-        // CTE.styleno_prod,
-        // CTE.reff_no,
-        // CTE.tgl_shipment,
-        // DATE_FORMAT(CTE.tgl_shipment, '%d-%m-%Y') tgl_shipment_fix,
-        // qty_po,
-        // coalesce(qty_cut,0) qty_cut,
-        // coalesce(case
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) as final_cut,
-        // coalesce(case
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) - qty_po blc_cut,
-        // coalesce(qty_loading,0) qty_loading,
-        // coalesce(case
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) as final_loading,
-        // coalesce(case
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) - qty_po blc_loading,
-        // coalesce(output_rfts,0) output_rfts,
-        // coalesce(case
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) as final_output_rfts,
-        // coalesce(case
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) - qty_po blc_output_rfts,
-        // coalesce(output_rfts_packing,0) output_rfts_packing,
-        // coalesce(case
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) as final_output_rfts_packing,
-        // coalesce(case
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-        // 					then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-        // 		when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-        // 					then '0'
-        // end,0) - qty_po blc_output_rfts_packing,
-        // coalesce(c.tot_scan,0) tot_scan,
-        // coalesce(c.tot_scan,0) - qty_po blc_tot_scan,
-        // coalesce(d.tot_fg_out,0) tot_fg_out,
-        // coalesce(d.tot_fg_out,0) - qty_po blc_tot_fg_out
-        // FROM CTE
-        // left join signalbit_erp.master_size_new msn on CTE.size = msn.size
-        // left join
-        // (
-        // 			select
-        // 			ac.kpno,
-        // 			sd.color,
-        // 			sd.size,
-        // 			sd.styleno_prod,
-        // 			sd.reff_no,
-        // 			sum(tot_scan) tot_scan,
-        // 			tgl_shipment
-        // 			from
-        // 			(
-        // 			select count(barcode) tot_scan, barcode, po, dest from laravel_nds.packing_packing_out_scan
-        // 			group by barcode, po
-        // 			) a
-        // 			inner join laravel_nds.ppic_master_so b on a.barcode = b.barcode and a.po = b.po and a.dest = b.dest
-        // 			inner join signalbit_erp.so_det sd on b.id_so_det = sd.id
-        // 			inner join signalbit_erp.so on sd.id_so = so.id
-        // 			inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-        // 			inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        // 			where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
-        // 			group by
-        // 			ac.kpno,
-        // 			sd.color,
-        // 			sd.size,
-        // 			sd.styleno_prod,
-        // 			sd.reff_no,
-        // 			b.tgl_shipment
-        // ) c on CTE.ws = c.kpno and CTE.color = c.color and CTE.size = c.size and CTE.styleno_prod = c.styleno_prod and CTE.reff_no = c.reff_no and CTE.tgl_shipment = c.tgl_shipment
-        // left join
-        // (
-        // 			select
-        // 			ac.kpno,
-        // 			sd.color,
-        // 			sd.size,
-        // 			sd.styleno_prod,
-        // 			sd.reff_no,
-        // 			sum(a.qty) tot_fg_out,
-        // 			tgl_shipment
-        // 			from laravel_nds.fg_fg_out a
-        // 			inner join laravel_nds.ppic_master_so b on a.id_ppic_master_so = b.id
-        // 			inner join signalbit_erp.so_det sd on b.id_so_det = sd.id
-        // 			inner join signalbit_erp.so on sd.id_so = so.id
-        // 			inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-        // 			inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        // 			where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
-        // 			group by
-        // 			ac.kpno,
-        // 			sd.color,
-        // 			sd.size,
-        // 			sd.styleno_prod,
-        // 			sd.reff_no,
-        // 			b.tgl_shipment
-        // ) d on CTE.ws = d.kpno and CTE.color = d.color and CTE.size = d.size and CTE.styleno_prod = d.styleno_prod and CTE.reff_no = d.reff_no and CTE.tgl_shipment = d.tgl_shipment
-        // order by tgl_shipment asc, CTE.color asc,urutan asc
-        //                     ");
-
-        $data_monitoring_order = DB::select("WITH master_data AS
-(
-SELECT
-id_so_det,
-po,
-supplier buyer,
-kpno ws,
-color,
-size,
-styleno_prod,
-reff_no,
-tgl_shipment,
-sum(qty_po) qty_po
-FROM
-laravel_nds.ppic_master_so p
-INNER JOIN
-signalbit_erp.so_det sd ON p.id_so_det = sd.id
-INNER JOIN
-signalbit_erp.so so ON sd.id_so = so.id
-INNER JOIN
-signalbit_erp.act_costing ac ON so.id_cost = ac.id
-INNER JOIN
-signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-where sd.cancel = 'N' and so.cancel_h = 'N' and ms.supplier = '$buyer' $cond_reff_nds $cond_ws $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no, tgl_shipment
-ORDER BY
-tgl_shipment asc
-),
-sl_now as (
-SELECT
-		id_so_det id_so_det,
-		SUM(qty_loading) as qty_loading
-FROM (
-		SELECT
-				b.so_det_id AS id_so_det,
-				a.tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line a
-				LEFT JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
-		WHERE
-				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				b.so_det_id,
-				b.size,
-				b.form_cut_id,
-				b.group_stocker,
-				b.ratio,
-				b.stocker_reject,
-				tanggal_loading,
-				loading_plan_id
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_reject_id IS NOT NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				form_reject_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_piece_id IS NOT NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				form_piece_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-	UNION ALL
-		SELECT
-				so_det_id AS id_so_det,
-				tanggal_loading,
-				MIN( qty ) AS qty_loading
-		FROM
-				laravel_nds.loading_line
-				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-		WHERE
-				form_cut_id IS NULL AND form_reject_id IS NULL AND form_piece_id IS NULL
-				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
-		GROUP BY
-				so_det_id,
-				group_stocker,
-				ratio,
-				stocker_reject,
-				tanggal_loading
-) loading
-GROUP BY
-	id_so_det
-),
-sew_now as (
+        return "WITH master_data AS
+            (
+            SELECT
+            id_so_det,
+            po,
+            supplier buyer,
+            kpno ws,
+            color,
+            size,
+            styleno_prod,
+            reff_no,
+            tgl_shipment,
+            sum(qty_po) qty_po
+            FROM
+            laravel_nds.ppic_master_so p
+            INNER JOIN
+            signalbit_erp.so_det sd ON p.id_so_det = sd.id
+            INNER JOIN
+            signalbit_erp.so so ON sd.id_so = so.id
+            INNER JOIN
+            signalbit_erp.act_costing ac ON so.id_cost = ac.id
+            INNER JOIN
+            signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+            where sd.cancel = 'N' and so.cancel_h = 'N' and ms.supplier = '$buyer' $cond_reff_nds $cond_ws $cond_color_nds $cond_size_nds
+            GROUP BY
+            ws, color, size,styleno_prod, reff_no, tgl_shipment
+            ORDER BY
+            tgl_shipment asc
+            ),
+            sl_now as (
+            SELECT
+                    id_so_det id_so_det,
+                    SUM(qty_loading) as qty_loading
+            FROM (
+                    SELECT
+                            b.so_det_id AS id_so_det,
+                            a.tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line a
+                            LEFT JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                    WHERE
+                            b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
+                    GROUP BY
+                            b.so_det_id,
+                            b.size,
+                            b.form_cut_id,
+                            b.group_stocker,
+                            b.ratio,
+                            b.stocker_reject,
+                            tanggal_loading,
+                            loading_plan_id
+                UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_reject_id IS NOT NULL
+                            and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
+                    GROUP BY
+                            so_det_id,
+                            form_reject_id,
+                            group_stocker,
+                            ratio,
+                            stocker_reject,
+                            tanggal_loading
+                UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_piece_id IS NOT NULL
+                            and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
+                    GROUP BY
+                            so_det_id,
+                            form_piece_id,
+                            group_stocker,
+                            ratio,
+                            stocker_reject,
+                            tanggal_loading
+                UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_cut_id IS NULL AND form_reject_id IS NULL AND form_piece_id IS NULL
+                            and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
+                    GROUP BY
+                            so_det_id,
+                            group_stocker,
+                            ratio,
+                            stocker_reject,
+                            tanggal_loading
+            ) loading
+            GROUP BY
+                id_so_det
+            ),
+            sew_now as (
+                            SELECT
+                            so_det_id id_so_det,
+                            COUNT(*) qty_sewing
+                            from signalbit_erp.output_rfts a
+                            inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                            where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
+                            group by so_det_id
+            ),
+            fin_now as (
+                                            select
+                            so_det_id id_so_det,
+                            COUNT(*) qty_finishing
+                            from signalbit_erp.output_rfts_packing a
+                            inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                            where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
+                            group by so_det_id
+            ),
+            pck_now as (
+                                            SELECT
+                                            so_det_id id_so_det,
+                                            COUNT(*) qty_rft_packing
+                                            FROM signalbit_erp.output_rfts_packing_po a
+                                            JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                                            WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
+                                            GROUP BY so_det_id
+            ),
+            finishing_proses_now as (
                 SELECT
-                so_det_id id_so_det,
-                COUNT(*) qty_sewing
-                from signalbit_erp.output_rfts a
-                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
-                group by so_det_id
-),
-fin_now as (
-								select
-                so_det_id id_so_det,
-                COUNT(*) qty_finishing
-                from signalbit_erp.output_rfts_packing a
-                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
-                group by so_det_id
-),
-pck_now as (
-								SELECT
-								so_det_id id_so_det,
-								COUNT(*) qty_rft_packing
-								FROM signalbit_erp.output_rfts_packing_po a
-								JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
-								GROUP BY so_det_id
-),
-finishing_proses_now as (
-    SELECT
-        so_det_id id_so_det,
-        COUNT(*) qty_fns_proses
-    FROM
-        signalbit_erp.output_secondary_out
-    INNER JOIN signalbit_erp.output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
-    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
-    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
-    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
-    AND output_secondary_out.`status` IN ('rft', 'rework')
-    GROUP BY so_det_id
-),
-finishing_proses_trigger_now as (
-    SELECT
-        so_det_id id_so_det,
-        COUNT(*) qty_fns_proses_trigger
-    FROM
-        signalbit_erp.output_secondary_in
-    INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
-    INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
-    WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
-    GROUP BY so_det_id
-),
-cutt as (
-    -- 	CUTTING
-	SELECT
-		buyer,
-		ws,
-		color,
-		size,
-		styleno_prod,
-		reff_no,
-		id_so_det,
-		MIN(qty_cut) qty_cut
-	FROM (
-		SELECT
-			buyer,
-			ws,
-			color,
-			size,
-			styleno_prod,
-			reff_no,
-			id_so_det,
-			panel,
-			SUM(qty_cut) qty_cut
-		FROM (
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty_cut) as qty_cut
-				FROM
-				(
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						panel,
-						SUM(cutting.qty) as qty_cut
-					FROM
-					(
-							SELECT
-							marker_cutting.tgl_form_cut tanggal,
-							marker_cutting.panel,
-							marker_cutting.so_det_id,
-							SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) qty
-							FROM
-							(
-								-- FORM CUT
-								SELECT
-								form_cut.tgl_form_cut,
-								marker_input.panel,
-								marker_input_detail.so_det_id,
-								marker_input_detail.ratio,
-								COALESCE(marker_input.notes, form_cut.notes) notes,
-								marker_input.gelar_qty marker_gelar,
-								SUM(form_cut.qty_ply) spreading_gelar,
-								SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
-								SUM(modify_size_qty.difference_qty) diff
-								FROM
-								laravel_nds.marker_input
-								INNER JOIN
-								laravel_nds.marker_input_detail on marker_input_detail.marker_id = marker_input.id
-								INNER JOIN
-								laravel_nds.master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
-								INNER JOIN
-								(
-								SELECT
-								form_cut_input.no_meja id_meja,
-								meja.`name` meja,
-								COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
-								form_cut_input.id_marker,
-								form_cut_input.id,
-								form_cut_input.no_form,
-								form_cut_input.qty_ply,
-								form_cut_input.total_lembar,
-								form_cut_input.notes,
-								SUM(form_cut_input_detail.lembar_gelaran) detail
-								FROM
-								laravel_nds.form_cut_input
-								LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
-								INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-								WHERE
-								form_cut_input.`status` = 'SELESAI PENGERJAAN'
-								AND form_cut_input.waktu_mulai is not null
-								and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-01-01'
-								GROUP BY
-								form_cut_input.id
-								) form_cut on form_cut.id_marker = marker_input.kode
-								LEFT JOIN
-								laravel_nds.modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
-								where
-								(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-								AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
-								group by
-								marker_input.id,
-								marker_input_detail.so_det_id,
-								form_cut.id
-							union all
-								-- FORM CUT REJECT
-								SELECT
-								COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
-								form_cut_reject.panel,
-								form_cut_reject_detail.so_det_id,
-								1 as ratio,
-								COALESCE('REJECT') notes,
-								SUM(form_cut_reject_detail.qty) marker_gelar,
-								SUM(form_cut_reject_detail.qty) spreading_gelar,
-								SUM(form_cut_reject_detail.qty) form_gelar,
-								null diff
-								FROM
-								laravel_nds.`form_cut_reject`
-								LEFT JOIN laravel_nds.`form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
-								LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
-								WHERE
-								form_cut_reject_detail.`qty` > 0
-								AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-05-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-								GROUP BY
-								form_cut_reject.id,
-								form_cut_reject_detail.so_det_id
-							union all
-								-- FORM CUT PIECE
-								SELECT
-								COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
-								form_cut_piece.panel,
-								form_cut_piece_detail_size.so_det_id,
-								1 as ratio,
-								COALESCE(form_cut_piece.keterangan, 'PIECE') notes,
-								SUM(form_cut_piece_detail_size.qty) marker_gelar,
-								SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-								SUM(form_cut_piece_detail_size.qty) form_gelar,
-								null diff
-								FROM
-								laravel_nds.`form_cut_piece`
-								LEFT JOIN laravel_nds.`form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
-								LEFT JOIN laravel_nds.`form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
-								LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
-								WHERE
-								form_cut_piece.`status` = 'complete'
-								AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-								AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '2025-01-01'
-								AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-								GROUP BY
-								form_cut_piece.id,
-								form_cut_piece_detail_size.so_det_id
-						) marker_cutting
-							GROUP BY
-								marker_cutting.panel,
-								marker_cutting.so_det_id
+                    so_det_id id_so_det,
+                    COUNT(*) qty_fns_proses
+                FROM
+                    signalbit_erp.output_secondary_out
+                INNER JOIN signalbit_erp.output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
+                WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
+                AND output_secondary_out.`status` IN ('rft', 'rework')
+                GROUP BY so_det_id
+            ),
+            finishing_proses_trigger_now as (
+                SELECT
+                    so_det_id id_so_det,
+                    COUNT(*) qty_fns_proses_trigger
+                FROM
+                    signalbit_erp.output_secondary_in
+                INNER JOIN signalbit_erp.output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                INNER JOIN signalbit_erp.master_plan on output_rfts.master_plan_id = master_plan.id
+                WHERE output_secondary_in.updated_at >= '$prevdate 00:00:00' AND output_secondary_in.updated_at <= '$curdate 23:59:59' AND master_plan.cancel = 'N'
+                GROUP BY so_det_id
+            ),
+            cutt as (
+                -- 	CUTTING
+                SELECT
+                    buyer,
+                    ws,
+                    color,
+                    size,
+                    styleno_prod,
+                    reff_no,
+                    id_so_det,
+                    MIN(qty_cut) qty_cut
+                FROM (
+                    SELECT
+                        buyer,
+                        ws,
+                        color,
+                        size,
+                        styleno_prod,
+                        reff_no,
+                        id_so_det,
+                        panel,
+                        SUM(qty_cut) qty_cut
+                    FROM (
+                        SELECT
+                            buyer,
+                            ws,
+                            color,
+                            size,
+                            styleno_prod,
+                            reff_no,
+                            id_so_det,
+                            panel,
+                            MIN(qty_cut) as qty_cut
+                            FROM
+                            (
+                                SELECT
+                                    master_sb_ws.buyer,
+                                    master_sb_ws.ws,
+                                    master_sb_ws.color,
+                                    master_sb_ws.size,
+                                    master_sb_ws.styleno_prod,
+                                    master_sb_ws.reff_no,
+                                    master_sb_ws.id_so_det,
+                                    panel,
+                                    SUM(cutting.qty) as qty_cut
+                                FROM
+                                (
+                                        SELECT
+                                        marker_cutting.tgl_form_cut tanggal,
+                                        marker_cutting.panel,
+                                        marker_cutting.so_det_id,
+                                        SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) qty
+                                        FROM
+                                        (
+                                            -- FORM CUT
+                                            SELECT
+                                            form_cut.tgl_form_cut,
+                                            marker_input.panel,
+                                            marker_input_detail.so_det_id,
+                                            1 ratio,
+                                            COALESCE(marker_input.notes, form_cut.notes) notes,
+                                            marker_input.gelar_qty marker_gelar,
+                                            SUM(form_cut.qty_ply) spreading_gelar,
+                                            SUM(
+                                                COALESCE(
+                                                    form_cut_output.qty_output_aktual,
+                                                    COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut.detail, form_cut.total_lembar)
+                                                )
+                                            ) form_gelar,
+                                            MAX(modify_size_qty.difference_qty) diff
+                                            FROM
+                                            laravel_nds.marker_input
+                                            INNER JOIN
+                                            laravel_nds.marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                                            INNER JOIN
+                                            laravel_nds.master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                                            INNER JOIN
+                                            (
+                                            SELECT
+                                            form_cut_input.no_meja id_meja,
+                                            meja.`name` meja,
+                                            COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
+                                            form_cut_input.id_marker,
+                                            form_cut_input.id,
+                                            form_cut_input.no_form,
+                                            form_cut_input.qty_ply,
+                                            form_cut_input.total_lembar,
+                                            form_cut_input.notes,
+                                            form_cut_input_detail.group_roll,
+                                            SUM(form_cut_input_detail.lembar_gelaran) detail
+                                            FROM
+                                            laravel_nds.form_cut_input
+                                            LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
+                                            INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                            WHERE
+                                            form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                            AND form_cut_input.waktu_mulai is not null
+                                            and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-01-01'
+                                            GROUP BY
+                                            form_cut_input.id,
+                                            form_cut_input_detail.group_roll
+                                            ) form_cut on form_cut.id_marker = marker_input.kode
+                                            LEFT JOIN
+                                            -- OUTPUT AKTUAL CUTTING (HASIL SWITCHING / PENYESUAIAN OUTPUT)
+                                            laravel_nds.form_cut_input_detail_output form_cut_output
+                                            ON form_cut_output.form_cut_input_id = form_cut.id
+                                            AND form_cut_output.marker_input_detail_id = marker_input_detail.id
+                                            AND form_cut_output.group_roll = form_cut.group_roll
+                                            LEFT JOIN
+                                            (
+                                            SELECT
+                                            form_cut_id,
+                                            so_det_id,
+                                            SUM(difference_qty) difference_qty
+                                            FROM
+                                            laravel_nds.modify_size_qty
+                                            GROUP BY
+                                            form_cut_id,
+                                            so_det_id
+                                            ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                                            where
+                                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                                            group by
+                                            marker_input.id,
+                                            marker_input_detail.id,
+                                            form_cut.id
+                                        union all
+                                            -- FORM CUT REJECT
+                                            SELECT
+                                            COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
+                                            form_cut_reject.panel,
+                                            form_cut_reject_detail.so_det_id,
+                                            1 as ratio,
+                                            COALESCE('REJECT') notes,
+                                            SUM(form_cut_reject_detail.qty) marker_gelar,
+                                            SUM(form_cut_reject_detail.qty) spreading_gelar,
+                                            SUM(form_cut_reject_detail.qty) form_gelar,
+                                            null diff
+                                            FROM
+                                            laravel_nds.`form_cut_reject`
+                                            LEFT JOIN laravel_nds.`form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
+                                            LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
+                                            WHERE
+                                            form_cut_reject_detail.`qty` > 0
+                                            AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-05-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                                            GROUP BY
+                                            form_cut_reject.id,
+                                            form_cut_reject_detail.so_det_id
+                                        union all
+                                            -- FORM CUT PIECE
+                                            SELECT
+                                            COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
+                                            form_cut_piece.panel,
+                                            form_cut_piece_detail_size.so_det_id,
+                                            1 as ratio,
+                                            COALESCE(form_cut_piece.keterangan, 'PIECE') notes,
+                                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                                            null diff
+                                            FROM
+                                            laravel_nds.`form_cut_piece`
+                                            LEFT JOIN laravel_nds.`form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
+                                            LEFT JOIN laravel_nds.`form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
+                                            LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
+                                            WHERE
+                                            form_cut_piece.`status` = 'complete'
+                                            AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
+                                            AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '2025-01-01'
+                                            AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                                            GROUP BY
+                                            form_cut_piece.id,
+                                            form_cut_piece_detail_size.so_det_id
+                                    ) marker_cutting
+                                        GROUP BY
+                                            marker_cutting.panel,
+                                            marker_cutting.so_det_id
 
-						UNION ALL
+                                    UNION ALL
 
-							-- STOCKER ADDITIONAL
-							select
-									tgl_form_cut as tanggal,
-									panel,
-									id_so_det so_det_id,
-									SUM(qty_cut) qty
-							FROM (
-									SELECT
-											form_cut_input.tgl_form_cut,
-											stocker_ws_additional_detail.so_det_id AS id_so_det,
-											stocker_ws_additional.panel,
-											stocker_ws_additional_detail.ratio,
-											form_cut_input.total_lembar,
-											modify_size_qty.difference_qty,
-											CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut.detail) END AS qty_cut
-									FROM
-											laravel_nds.form_cut_input
-									INNER JOIN
-											(
-													SELECT
-															form_cut_input.no_meja id_meja,
-															meja.`name` meja,
-															COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai ),
-															DATE ( form_cut_input.tgl_input )) tgl_form_cut,
-															form_cut_input.id_marker,
-															form_cut_input.id,
-															form_cut_input.no_form,
-															form_cut_input.qty_ply,
-															form_cut_input.total_lembar,
-															form_cut_input.notes,
-															SUM( form_cut_input_detail.lembar_gelaran ) detail
-													FROM
-															laravel_nds.form_cut_input
-															LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
-															INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-													WHERE
-															form_cut_input.`status` = 'SELESAI PENGERJAAN'
-															AND form_cut_input.waktu_mulai IS NOT NULL
-															AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '2025-01-01'
-													GROUP BY
-															form_cut_input.id
-											) form_cut ON form_cut.id = form_cut_input.id
-									LEFT JOIN
-											laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-									LEFT JOIN
-											laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-									LEFT JOIN
-											laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-									LEFT JOIN
-											laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
-									WHERE
-											form_cut_input.status = 'SELESAI PENGERJAAN'
-											AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
-									GROUP BY
-											form_cut_input.id,
-											stocker_ws_additional.panel,
-											stocker_ws_additional_detail.id
-							) cutting_stocker_additional
-							group by
-									panel, id_so_det
-					) cutting
-					left join laravel_nds.master_sb_ws on master_sb_ws.id_so_det = cutting.so_det_id
-					group by
-						panel, ws, color, size,styleno_prod, reff_no
-				) cutting
-			group by
-				ws, color, size,styleno_prod, reff_no, panel
-			UNION ALL
-			-- 	ADJUSTMENT
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty_adjustment) qty
-			FROM (
-				SELECT
-					master_sb_ws.buyer,
-					master_sb_ws.ws,
-					master_sb_ws.color,
-					master_sb_ws.size,
-					master_sb_ws.styleno_prod,
-					master_sb_ws.reff_no,
-					master_sb_ws.id_so_det,
-					wip_adjustment.panel,
-					SUM(wip_adjustment.qty) as qty_adjustment
-				FROM
-					wip_adjustment
-					left join master_sb_ws on master_sb_ws.ws = wip_adjustment.no_ws and master_sb_ws.color = wip_adjustment.color and master_sb_ws.size = wip_adjustment.size
-				WHERE
-					type_report = 'CUTTING' and
-					status = 'Y' and
-					master_sb_ws.buyer = '$buyer'
-					$cond_ws_msb
-					$cond_color_msb
-					$cond_size_msb
-				GROUP BY
-					wip_adjustment.no_ws, wip_adjustment.style, wip_adjustment.color, wip_adjustment.size, wip_adjustment.panel, wip_adjustment.part
-			) wip_adjustment
-			GROUP BY
-				ws, styleno_prod, reff_no, color, size, panel
-			UNION ALL
-			-- 	SWITCHING
-			SELECT
-				buyer,
-				ws,
-				color,
-				size,
-				styleno_prod,
-				reff_no,
-				id_so_det,
-				panel,
-				MIN(qty) qty
-			FROM (
-				SELECT
-					buyer,
-					ws,
-					color,
-					size,
-					styleno_prod,
-					reff_no,
-					id_so_det,
-					panel,
-					SUM(qty - from_qty) as qty
-				FROM (
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						wip_switching_adj.panel,
-						wip_switching_adj.part,
-						SUM(wip_switching_adj.qty) as qty,
-						0 from_qty
-					FROM
-						wip_switching_adj
-						left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.no_ws and master_sb_ws.color = wip_switching_adj.color and master_sb_ws.size = wip_switching_adj.size
-					WHERE
-						type_report = 'CUTTING' and
-						status = 'Y' and
-						master_sb_ws.buyer = '$buyer'
-                        $cond_ws_msb
-                        $cond_color_msb
-                        $cond_size_msb
-					GROUP BY
-						wip_switching_adj.no_ws, wip_switching_adj.style, wip_switching_adj.color, wip_switching_adj.size, wip_switching_adj.panel, wip_switching_adj.part
-					UNION ALL
-					SELECT
-						master_sb_ws.buyer,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size,
-						master_sb_ws.styleno_prod,
-						master_sb_ws.reff_no,
-						master_sb_ws.id_so_det,
-						wip_switching_adj.panel,
-						wip_switching_adj.part,
-						0 qty,
-						SUM(from_qty) as from_qty
-					FROM
-						wip_switching_adj
-						left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.from_no_ws and master_sb_ws.color = wip_switching_adj.from_color and master_sb_ws.size = wip_switching_adj.from_size
-					WHERE
-						type_report = 'CUTTING' and
-						status = 'Y' and
-						master_sb_ws.buyer = '$buyer'
-                        $cond_ws_msb
-                        $cond_color_msb
-                        $cond_size_msb
-					GROUP BY
-						wip_switching_adj.from_no_ws, wip_switching_adj.from_style, wip_switching_adj.from_color, wip_switching_adj.from_size, wip_switching_adj.from_panel, wip_switching_adj.from_part
-				) wip_switching
-				group by
-					ws, styleno_prod, reff_no, color, size, panel, part
-			) wip_switching
-			GROUP BY
-				ws, styleno_prod, reff_no, color, size, panel
-		) cutting
-		group by
-			ws, color, size,styleno_prod, reff_no, panel
-	) cutting
-	group by
-		ws, color, size, styleno_prod, reff_no
-),
-ps as (
-select
-m.buyer,
-m.ws,
-m.color,
-m.size,
-m.styleno_prod,
-m.reff_no,
--- tgl_shipment,
-total_scan as qty_scan
-from
-(
-SELECT
-    a.id_so_det,
-    COUNT(*) AS total_scan
-    -- ,ppic_master_so.tgl_shipment
-FROM laravel_nds.packing_packing_out_scan a
--- LEFT JOIN ppic_master_so on ppic_master_so.id = a.id_ppic 
-WHERE id_ppic is not null
-GROUP BY a.id_so_det
--- , tgl_shipment
-) a
-left join laravel_nds.master_sb_ws m on a.id_so_det = m.id_so_det
-where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
--- , tgl_shipment
-),
-fg as (
-select
-m.buyer,
-m.ws,
-m.color,
-m.size,
-m.styleno_prod,
-m.reff_no,
-bppb.id_so_det, sum(bppb.qty) qty_fg from signalbit_erp.bppb
-left join laravel_nds.master_sb_ws m on bppb.id_so_det = m.id_so_det
-where bppbno like '%FG%'  and cancel = 'N' and jenis_dok <> 'INHOUSE'
-and buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
-),
-mut_trans as (
-SELECT
-ws, color, size,styleno_prod, reff_no,
-SUM(qty_loading) qty_loading,
-SUM(qty_sewing) qty_sewing,
-SUM(qty_finishing) qty_finishing,
-SUM(qty_rft_packing) qty_rft_packing,
-SUM(qty_fns_proses) qty_fns_proses,
-SUM(qty_fns_proses_trigger) qty_fns_proses_trigger
-FROM
-	(
-		SELECT
-		id_so_det,
-		SUM(qty_loading) qty_loading,
-		SUM(qty_sewing) qty_sewing,
-		SUM(qty_finishing) qty_finishing,
-		SUM(qty_rft_packing) qty_rft_packing,
-        SUM(rft_sp + rework_sp) qty_fns_proses,
-        SUM(total_in_sp) qty_fns_proses_trigger
-		FROM signalbit_erp.mut_wip_tmp tmp
-		where tgl_trans < '$prevdate'
-		group by id_so_det
-		UNION ALL
-		SELECT
-		id_so_det,
-		qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM sl_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM sew_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM fin_now
-		UNION ALL
-		SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		qty_rft_packing,
-        0 qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM pck_now
-        UNION ALL
-        SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        qty_fns_proses,
-        0 qty_fns_proses_trigger
-		FROM finishing_proses_now
-        UNION ALL
-        SELECT
-		id_so_det,
-		0 qty_loading,
-		0 qty_sewing,
-		0 qty_finishing,
-		0 qty_rft_packing,
-        0 qty_fns_proses,
-        qty_fns_proses_trigger
-		FROM finishing_proses_trigger_now
-	) mut
-LEFT JOIN laravel_nds.master_sb_ws m on mut.id_so_det = m.id_so_det
-where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
-GROUP BY
-ws, color, size,styleno_prod, reff_no
-),
-CTE AS (
-SELECT
-a.id_so_det,
-a.buyer,
-a.ws,
-a.color,
-a.size,
-a.styleno_prod,
-a.reff_no,
-a.tgl_shipment,
-a.qty_po,
-qty_cut,
-qty_loading,
-qty_sewing output_rfts,
-qty_finishing output_finishing,
-qty_rft_packing output_rfts_packing,
-qty_fns_proses output_fns_proses,
-qty_fns_proses_trigger output_fns_proses_trigger,
-qty_scan,
-qty_fg,
-ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
-SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
-qty_cut  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
-qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
-qty_sewing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
-qty_finishing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_finishing,
-qty_rft_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
-qty_fns_proses - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses,
-qty_fns_proses_trigger - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses_trigger,
-qty_scan - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_scan,
-qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_fg
-from master_data a
-left join mut_trans mt on a.ws = mt.ws and a.color = mt.color and a.size = mt.size and a.styleno_prod = mt.styleno_prod and a.reff_no = mt.reff_no
-left join cutt on a.ws = cutt.ws and a.color = cutt.color and a.size = cutt.size and a.styleno_prod = cutt.styleno_prod and a.reff_no = cutt.reff_no
-left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no 
--- and a.tgl_shipment = ps.tgl_shipment
-left join fg on a.ws = fg.ws and a.color = fg.color and a.size = fg.size and a.styleno_prod = fg.styleno_prod and a.reff_no = fg.reff_no
-)
+                                        -- STOCKER ADDITIONAL
+                                        select
+                                                tgl_form_cut as tanggal,
+                                                panel,
+                                                id_so_det so_det_id,
+                                                SUM(qty_cut) qty
+                                        FROM (
+                                                SELECT
+                                                        form_cut_input.tgl_form_cut,
+                                                        stocker_ws_additional_detail.so_det_id AS id_so_det,
+                                                        stocker_ws_additional.panel,
+                                                        stocker_ws_additional_detail.ratio,
+                                                        form_cut_input.total_lembar,
+                                                        modify_size_qty.difference_qty,
+                                                        CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE COALESCE(MAX(form_cut_output.qty_output_aktual), SUM(stocker_ws_additional_detail.ratio * form_cut.detail)) END AS qty_cut
+                                                FROM
+                                                        laravel_nds.form_cut_input
+                                                INNER JOIN
+                                                        (
+                                                                SELECT
+                                                                        form_cut_input.no_meja id_meja,
+                                                                        meja.`name` meja,
+                                                                        COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai ),
+                                                                        DATE ( form_cut_input.tgl_input )) tgl_form_cut,
+                                                                        form_cut_input.id_marker,
+                                                                        form_cut_input.id,
+                                                                        form_cut_input.no_form,
+                                                                        form_cut_input.qty_ply,
+                                                                        form_cut_input.total_lembar,
+                                                                        form_cut_input.notes,
+                                                                        SUM( form_cut_input_detail.lembar_gelaran ) detail
+                                                                FROM
+                                                                        laravel_nds.form_cut_input
+                                                                        LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
+                                                                        INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                                                WHERE
+                                                                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                                                        AND form_cut_input.waktu_mulai IS NOT NULL
+                                                                        AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '2025-01-01'
+                                                                GROUP BY
+                                                                        form_cut_input.id
+                                                        ) form_cut ON form_cut.id = form_cut_input.id
+                                                LEFT JOIN
+                                                        laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                                                LEFT JOIN
+                                                        laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                                                LEFT JOIN
+                                                        (
+                                                            -- OUTPUT AKTUAL CUTTING (HASIL SWITCHING / PENYESUAIAN OUTPUT)
+                                                            SELECT
+                                                                form_cut_input_id,
+                                                                size_asal,
+                                                                SUM(qty_output_aktual) qty_output_aktual
+                                                            FROM
+                                                                laravel_nds.form_cut_input_detail_output
+                                                            GROUP BY
+                                                                form_cut_input_id,
+                                                                size_asal
+                                                        ) form_cut_output ON form_cut_output.form_cut_input_id = form_cut_input.id AND form_cut_output.size_asal = stocker_ws_additional_detail.size
+                                                LEFT JOIN
+                                                        laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                                                LEFT JOIN
+                                                        laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                                                WHERE
+                                                        form_cut_input.status = 'SELESAI PENGERJAAN'
+                                                        AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                                                GROUP BY
+                                                        form_cut_input.id,
+                                                        stocker_ws_additional.panel,
+                                                        stocker_ws_additional_detail.id
+                                        ) cutting_stocker_additional
+                                        group by
+                                                panel, id_so_det
+                                ) cutting
+                                left join laravel_nds.master_sb_ws on master_sb_ws.id_so_det = cutting.so_det_id
+                                group by
+                                    panel, ws, color, size,styleno_prod, reff_no
+                            ) cutting
+                        group by
+                            ws, color, size,styleno_prod, reff_no, panel
+                        UNION ALL
+                        -- 	ADJUSTMENT
+                        SELECT
+                            buyer,
+                            ws,
+                            color,
+                            size,
+                            styleno_prod,
+                            reff_no,
+                            id_so_det,
+                            panel,
+                            MIN(qty_adjustment) qty
+                        FROM (
+                            SELECT
+                                master_sb_ws.buyer,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                master_sb_ws.styleno_prod,
+                                master_sb_ws.reff_no,
+                                master_sb_ws.id_so_det,
+                                wip_adjustment.panel,
+                                SUM(wip_adjustment.qty) as qty_adjustment
+                            FROM
+                                wip_adjustment
+                                left join master_sb_ws on master_sb_ws.ws = wip_adjustment.no_ws and master_sb_ws.color = wip_adjustment.color and master_sb_ws.size = wip_adjustment.size
+                            WHERE
+                                type_report = 'CUTTING' and
+                                status = 'Y' and
+                                master_sb_ws.buyer = '$buyer'
+                                $cond_ws_msb
+                                $cond_color_msb
+                                $cond_size_msb
+                            GROUP BY
+                                wip_adjustment.no_ws, wip_adjustment.style, wip_adjustment.color, wip_adjustment.size, wip_adjustment.panel, wip_adjustment.part
+                        ) wip_adjustment
+                        GROUP BY
+                            ws, styleno_prod, reff_no, color, size, panel
+                        UNION ALL
+                        -- 	SWITCHING
+                        SELECT
+                            buyer,
+                            ws,
+                            color,
+                            size,
+                            styleno_prod,
+                            reff_no,
+                            id_so_det,
+                            panel,
+                            MIN(qty) qty
+                        FROM (
+                            SELECT
+                                buyer,
+                                ws,
+                                color,
+                                size,
+                                styleno_prod,
+                                reff_no,
+                                id_so_det,
+                                panel,
+                                SUM(qty - from_qty) as qty
+                            FROM (
+                                SELECT
+                                    master_sb_ws.buyer,
+                                    master_sb_ws.ws,
+                                    master_sb_ws.color,
+                                    master_sb_ws.size,
+                                    master_sb_ws.styleno_prod,
+                                    master_sb_ws.reff_no,
+                                    master_sb_ws.id_so_det,
+                                    wip_switching_adj.panel,
+                                    wip_switching_adj.part,
+                                    SUM(wip_switching_adj.qty) as qty,
+                                    0 from_qty
+                                FROM
+                                    wip_switching_adj
+                                    left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.no_ws and master_sb_ws.color = wip_switching_adj.color and master_sb_ws.size = wip_switching_adj.size
+                                WHERE
+                                    type_report = 'CUTTING' and
+                                    status = 'Y' and
+                                    master_sb_ws.buyer = '$buyer'
+                                    $cond_ws_msb
+                                    $cond_color_msb
+                                    $cond_size_msb
+                                GROUP BY
+                                    wip_switching_adj.no_ws, wip_switching_adj.style, wip_switching_adj.color, wip_switching_adj.size, wip_switching_adj.panel, wip_switching_adj.part
+                                UNION ALL
+                                SELECT
+                                    master_sb_ws.buyer,
+                                    master_sb_ws.ws,
+                                    master_sb_ws.color,
+                                    master_sb_ws.size,
+                                    master_sb_ws.styleno_prod,
+                                    master_sb_ws.reff_no,
+                                    master_sb_ws.id_so_det,
+                                    wip_switching_adj.panel,
+                                    wip_switching_adj.part,
+                                    0 qty,
+                                    SUM(from_qty) as from_qty
+                                FROM
+                                    wip_switching_adj
+                                    left join master_sb_ws on master_sb_ws.ws = wip_switching_adj.from_no_ws and master_sb_ws.color = wip_switching_adj.from_color and master_sb_ws.size = wip_switching_adj.from_size
+                                WHERE
+                                    type_report = 'CUTTING' and
+                                    status = 'Y' and
+                                    master_sb_ws.buyer = '$buyer'
+                                    $cond_ws_msb
+                                    $cond_color_msb
+                                    $cond_size_msb
+                                GROUP BY
+                                    wip_switching_adj.from_no_ws, wip_switching_adj.from_style, wip_switching_adj.from_color, wip_switching_adj.from_size, wip_switching_adj.from_panel, wip_switching_adj.from_part
+                            ) wip_switching
+                            group by
+                                ws, styleno_prod, reff_no, color, size, panel, part
+                        ) wip_switching
+                        GROUP BY
+                            ws, styleno_prod, reff_no, color, size, panel
+                    ) cutting
+                    group by
+                        ws, color, size,styleno_prod, reff_no, panel
+                ) cutting
+                group by
+                    ws, color, size, styleno_prod, reff_no
+            ),
+            ps as (
+            select
+            m.buyer,
+            m.ws,
+            m.color,
+            m.size,
+            m.styleno_prod,
+            m.reff_no,
+            -- tgl_shipment,
+            total_scan as qty_scan
+            from
+            (
+            SELECT
+                a.id_so_det,
+                COUNT(*) AS total_scan
+                -- ,ppic_master_so.tgl_shipment
+            FROM laravel_nds.packing_packing_out_scan a
+            -- LEFT JOIN ppic_master_so on ppic_master_so.id = a.id_ppic
+            WHERE id_ppic is not null
+            GROUP BY a.id_so_det
+            -- , tgl_shipment
+            ) a
+            left join laravel_nds.master_sb_ws m on a.id_so_det = m.id_so_det
+            where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
+            GROUP BY
+            ws, color, size,styleno_prod, reff_no
+            -- , tgl_shipment
+            ),
+            fg as (
+            select
+            m.buyer,
+            m.ws,
+            m.color,
+            m.size,
+            m.styleno_prod,
+            m.reff_no,
+            bppb.id_so_det, sum(bppb.qty) qty_fg from signalbit_erp.bppb
+            left join laravel_nds.master_sb_ws m on bppb.id_so_det = m.id_so_det
+            where bppbno like '%FG%'  and cancel = 'N' and jenis_dok <> 'INHOUSE'
+            and buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
+            GROUP BY
+            ws, color, size,styleno_prod, reff_no
+            ),
+            mut_trans as (
+            SELECT
+            ws, color, size,styleno_prod, reff_no,
+            SUM(qty_loading) qty_loading,
+            SUM(qty_sewing) qty_sewing,
+            SUM(qty_finishing) qty_finishing,
+            SUM(qty_rft_packing) qty_rft_packing,
+            SUM(qty_fns_proses) qty_fns_proses,
+            SUM(qty_fns_proses_trigger) qty_fns_proses_trigger
+            FROM
+                (
+                    SELECT
+                    id_so_det,
+                    SUM(qty_loading) qty_loading,
+                    SUM(qty_sewing) qty_sewing,
+                    SUM(qty_finishing) qty_finishing,
+                    SUM(qty_rft_packing) qty_rft_packing,
+                    SUM(rft_sp + rework_sp) qty_fns_proses,
+                    SUM(total_in_sp) qty_fns_proses_trigger
+                    FROM signalbit_erp.mut_wip_tmp tmp
+                    where tgl_trans < '$prevdate'
+                    group by id_so_det
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    qty_loading,
+                    0 qty_sewing,
+                    0 qty_finishing,
+                    0 qty_rft_packing,
+                    0 qty_fns_proses,
+                    0 qty_fns_proses_trigger
+                    FROM sl_now
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    0 qty_loading,
+                    qty_sewing,
+                    0 qty_finishing,
+                    0 qty_rft_packing,
+                    0 qty_fns_proses,
+                    0 qty_fns_proses_trigger
+                    FROM sew_now
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    0 qty_loading,
+                    0 qty_sewing,
+                    qty_finishing,
+                    0 qty_rft_packing,
+                    0 qty_fns_proses,
+                    0 qty_fns_proses_trigger
+                    FROM fin_now
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    0 qty_loading,
+                    0 qty_sewing,
+                    0 qty_finishing,
+                    qty_rft_packing,
+                    0 qty_fns_proses,
+                    0 qty_fns_proses_trigger
+                    FROM pck_now
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    0 qty_loading,
+                    0 qty_sewing,
+                    0 qty_finishing,
+                    0 qty_rft_packing,
+                    qty_fns_proses,
+                    0 qty_fns_proses_trigger
+                    FROM finishing_proses_now
+                    UNION ALL
+                    SELECT
+                    id_so_det,
+                    0 qty_loading,
+                    0 qty_sewing,
+                    0 qty_finishing,
+                    0 qty_rft_packing,
+                    0 qty_fns_proses,
+                    qty_fns_proses_trigger
+                    FROM finishing_proses_trigger_now
+                ) mut
+            LEFT JOIN laravel_nds.master_sb_ws m on mut.id_so_det = m.id_so_det
+            where buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
+            GROUP BY
+            ws, color, size,styleno_prod, reff_no
+            ),
+            CTE AS (
+            SELECT
+            a.id_so_det,
+            a.buyer,
+            a.ws,
+            a.color,
+            a.size,
+            a.styleno_prod,
+            a.reff_no,
+            a.tgl_shipment,
+            a.qty_po,
+            qty_cut,
+            qty_loading,
+            qty_sewing output_rfts,
+            qty_finishing output_finishing,
+            qty_rft_packing output_rfts_packing,
+            qty_fns_proses output_fns_proses,
+            qty_fns_proses_trigger output_fns_proses_trigger,
+            qty_scan,
+            qty_fg,
+            ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
+            SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
+            qty_cut  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
+            qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
+            qty_sewing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
+            qty_finishing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_finishing,
+            qty_rft_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
+            qty_fns_proses - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses,
+            qty_fns_proses_trigger - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_fns_proses_trigger,
+            qty_scan - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_scan,
+            qty_fg - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_qty_fg
+            from master_data a
+            left join mut_trans mt on a.ws = mt.ws and a.color = mt.color and a.size = mt.size and a.styleno_prod = mt.styleno_prod and a.reff_no = mt.reff_no
+            left join cutt on a.ws = cutt.ws and a.color = cutt.color and a.size = cutt.size and a.styleno_prod = cutt.styleno_prod and a.reff_no = cutt.reff_no
+            left join ps on a.ws = ps.ws and a.color = ps.color and a.size = ps.size and a.styleno_prod = ps.styleno_prod and a.reff_no = ps.reff_no
+            -- and a.tgl_shipment = ps.tgl_shipment
+            left join fg on a.ws = fg.ws and a.color = fg.color and a.size = fg.size and a.styleno_prod = fg.styleno_prod and a.reff_no = fg.reff_no
+            )
 
-SELECT
-id_so_det,
-buyer,
-CTE.ws,
-CTE.color,
-CTE.size,
-CTE.styleno_prod,
-CTE.reff_no,
-CTE.tgl_shipment,
-DATE_FORMAT(CTE.tgl_shipment, '%d-%m-%Y') tgl_shipment_fix,
-qty_po,
-coalesce(qty_cut,0) qty_cut,
-coalesce(case
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_cut,
-coalesce(case
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_cut,
-coalesce(qty_loading,0) qty_loading,
-coalesce(case
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_loading,
-coalesce(case
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_loading,
+            SELECT
+            id_so_det,
+            buyer,
+            CTE.ws,
+            CTE.color,
+            CTE.size,
+            CTE.styleno_prod,
+            CTE.reff_no,
+            CTE.tgl_shipment,
+            DATE_FORMAT(CTE.tgl_shipment, '%d-%m-%Y') tgl_shipment_fix,
+            qty_po,
+            coalesce(qty_cut,0) qty_cut,
+            coalesce(case
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_cut,
+            coalesce(case
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut >= qty_po then qty_po
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_cut <= qty_po then qty_cut
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_cut,
+            coalesce(qty_loading,0) qty_loading,
+            coalesce(case
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_loading,
+            coalesce(case
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading <= qty_po then qty_loading
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_loading and LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_loading,
 
-coalesce(output_rfts,0) output_rfts,
-coalesce(case
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_rfts,
-coalesce(case
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_rfts,
-
-
-coalesce(output_finishing,0) output_finishing,
-coalesce(case
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_finishing,
-coalesce(case
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_finishing,
+            coalesce(output_rfts,0) output_rfts,
+            coalesce(case
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_output_rfts,
+            coalesce(case
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts >= qty_po then qty_po
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts <= qty_po then output_rfts
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts and LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_output_rfts,
 
 
-coalesce(output_rfts_packing,0) output_rfts_packing,
-coalesce(case
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_rfts_packing,
-coalesce(case
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_rfts_packing,
-
-coalesce(output_fns_proses,0) output_fns_proses,
-coalesce(case
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_fns_proses,
-coalesce(case
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_fns_proses,
-
-coalesce(output_fns_proses_trigger,0) output_fns_proses_trigger,
-coalesce(case
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_output_fns_proses_trigger,
-coalesce(case
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_output_fns_proses_trigger,
-
-coalesce(qty_scan,0) qty_scan,
-coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
-coalesce(case
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_qty_scan,
-coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) - qty_po blc_qty_scan_po,
-coalesce(case
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_qty_scan,
+            coalesce(output_finishing,0) output_finishing,
+            coalesce(case
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_output_finishing,
+            coalesce(case
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_output_finishing,
 
 
-coalesce(qty_fg,0) qty_fg,
-coalesce(case
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) as final_qty_fg,
-coalesce(case
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
-then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
-then '0'
-end,0) - qty_po blc_qty_fg
+            coalesce(output_rfts_packing,0) output_rfts_packing,
+            coalesce(case
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_output_rfts_packing,
+            coalesce(case
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_output_rfts_packing,
 
-FROM CTE
-left join signalbit_erp.master_size_new msn on CTE.size = msn.size
-order by tgl_shipment asc, color asc, urutan asc
+            coalesce(output_fns_proses,0) output_fns_proses,
+            coalesce(case
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_output_fns_proses,
+            coalesce(case
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses >= qty_po then qty_po
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses <= qty_po then output_fns_proses
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses and LAG(balance_output_fns_proses) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_output_fns_proses,
 
-        ");
+            coalesce(output_fns_proses_trigger,0) output_fns_proses_trigger,
+            coalesce(case
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_output_fns_proses_trigger,
+            coalesce(case
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger >= qty_po then qty_po
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_fns_proses_trigger <= qty_po then output_fns_proses_trigger
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_fns_proses_trigger and LAG(balance_output_fns_proses_trigger) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_output_fns_proses_trigger,
 
-        return response()->json($data_monitoring_order);
+            coalesce(qty_scan,0) qty_scan,
+            coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) final_qty_scan_po,
+            coalesce(case
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_qty_scan,
+            coalesce(case when qty_scan >= qty_po then qty_po else qty_scan end, 0) - qty_po blc_qty_scan_po,
+            coalesce(case
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_qty_scan,
+
+
+            coalesce(qty_fg,0) qty_fg,
+            coalesce(case
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) as final_qty_fg,
+            coalesce(case
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+            then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+            when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+            then '0'
+            end,0) - qty_po blc_qty_fg
+
+            FROM CTE
+            left join signalbit_erp.master_size_new msn on CTE.size = msn.size
+            order by tgl_shipment asc, color asc, urutan asc
+
+        ";
     }
 }

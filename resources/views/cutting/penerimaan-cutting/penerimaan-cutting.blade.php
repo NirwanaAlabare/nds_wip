@@ -41,7 +41,7 @@
                 <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
-                            {{-- <th>Action</th> --}}
+                            <th>Action</th>
                             <th>Tanggal Terima</th>
                             <th>Barcode</th>
                             <th>Qty Out</th>
@@ -138,9 +138,9 @@
                 },
             },
             columns: [
-                // {
-                //     data: 'id'
-                // },
+                {
+                    data: 'id'
+                },
                 {
                     data: 'tanggal_terima'
                 },
@@ -203,16 +203,24 @@
                 }
             ],
             columnDefs: [
-                // {
-                //     targets: [0],
-                //     render: (data, type, row, meta) => {
-                //         let btnEdit = "<a href='{{ route('edit-penerimaan-cutting') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
-                //         let btnDelete = `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-penerimaan-cutting') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let isAdmin =  "{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
 
-                //         // return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
-                //         return `<div class='d-flex gap-1 justify-content-center'>` + btnDelete + `</div>`;
-                //     }
-                // },
+                        let btnEdit = "<a href='{{ route('edit-penerimaan-cutting') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                        let btnDelete = `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-penerimaan-cutting') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
+
+                        console.log(isAdmin);
+
+                        if (isAdmin > 0) {
+                            // return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
+                            return `<div class='d-flex gap-1 justify-content-center'>` + btnDelete + `</div>`;
+                        }
+
+                        return '<span class="text-center">-</span>';
+                    }
+                },
                 {
                     targets: '_all',
                     className: 'text-nowrap'

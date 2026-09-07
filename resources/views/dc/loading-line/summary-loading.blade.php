@@ -36,10 +36,10 @@
                     <button class="btn btn-success btn-sm" onclick="exportExcel(this);"><i class="fa fa-file-excel fa-sm"></i> Excel</button>
                 </div>
             </div>
-            <div id="active-filters" class="d-flex flex-wrap align-items-center gap-2 mb-3 d-none">
+            <div id="active-filters" class="flex-wrap align-items-center gap-2 mb-3" style="display: none;">
                 <small class="text-muted fw-bold">Filter aktif :</small>
                 <span id="active-filters-list" class="d-flex flex-wrap gap-2"></span>
-                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" onclick="clearAllFilters()"><i class="fa fa-times fa-sm"></i> Hapus Semua</button>
+                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" onclick="clearAllFilters()"><i class="fa fa-times fa-sm"></i> Bersihkan Filter</button>
             </div>
             <div class="table-responsive">
                 <table id="datatable-loading-line" class="table table-bordered table w-100">
@@ -252,7 +252,11 @@
                 });
             });
 
-            $('#active-filters').toggleClass('d-none', total < 1);
+            if (total > 0) {
+                $('#active-filters').css('display', 'flex');
+            } else {
+                $('#active-filters').css('display', 'none');
+            }
         }
 
         function removeFilterValue(id, value) {

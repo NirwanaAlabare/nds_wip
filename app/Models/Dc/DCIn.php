@@ -14,13 +14,11 @@ class DCIn extends Model
 
     protected $table = "dc_in_input";
 
-    protected $guarded = [];
-
-    //only the `deleted` event will get logged automatically
-    protected static $recordEvents = ['updated', 'deleted'];
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
 
     protected static $logAttributes = ['*'];
 
+    protected $guarded = [];
 
     /**
      * Get the stocker dc in.

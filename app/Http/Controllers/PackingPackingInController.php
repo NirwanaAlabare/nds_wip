@@ -157,18 +157,18 @@ class PackingPackingInController extends Controller
     {
         $user = Auth::user()->name;
 
-        $tahun = date('Y');
-        $no = date('my');
-        $kode = 'PO/FGS/OUT/';
-        $cek_nomor = DB::select("
-        select max(right(po,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "' and sumber = 'FGS'
-        ");
-        $nomor_tr = $cek_nomor[0]->nomor;
-        $urutan = (int)($nomor_tr);
-        $urutan++;
-        $kodepay = sprintf("%05s", $urutan);
+        // $tahun = date('Y');
+        // $no = date('my');
+        // $kode = 'PO/FGS/OUT/';
+        // $cek_nomor = DB::select("
+        // select max(right(po,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "' and sumber = 'FGS'
+        // ");
+        // $nomor_tr = $cek_nomor[0]->nomor;
+        // $urutan = (int)($nomor_tr);
+        // $urutan++;
+        // $kodepay = sprintf("%05s", $urutan);
 
-        $kode_trans = $kode . $no . '/' . $kodepay;
+        // $kode_trans = $kode . $no . '/' . $kodepay;
 
         if ($request->ajax()) {
 
@@ -227,11 +227,12 @@ class PackingPackingInController extends Controller
 			m.ws,
 			m.color,
 			m.size,
-			'-' barcode,
+			ppic_master_so.barcode,
 			'-' dest,
-			'$kode_trans' po,
+			'GUDANG STOK' po,
             'PCS' unit
             from fg_stok_bppb a
+            left join ppic_master_so ON ppic_master_so.id_so_det = a.id_so_det
             left join
                 (
                 select fg_stok_bppb_id,sum(qty) qty_in from packing_packing_in where sumber = 'FGS'
@@ -384,20 +385,37 @@ class PackingPackingInController extends Controller
                 $sourceTable,
                 $sumber,
                 $sumberFilter,
-                $status,
                 $po_fgsArray
             ) {
+                // $tahun = date('Y', strtotime($tgl_penerimaan));
+                // $no = date('my', strtotime($tgl_penerimaan));
+                // $kode = 'PCK/IN/';
+                // $cek_nomor = DB::select("
+                // select max(cast(SUBSTR(no_trans,13,5) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
+                // ");
+                // $nomor_tr = $cek_nomor[0]->nomor;
+                // $urutan = (int)($nomor_tr);
+                // $urutan++;
+                // $kode_cek = $urutan++;
+                // $kodepay = sprintf("%05s", $kode_cek);
+
+                // $kode_trans = $kode . $no . '/' . $kodepay;
+
                 $tahun = date('Y', strtotime($tgl_penerimaan));
                 $no = date('my', strtotime($tgl_penerimaan));
                 $kode = 'PCK/IN/';
+
                 $cek_nomor = DB::select("
-                select max(cast(SUBSTR(no_trans,13,5) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
+                    SELECT MAX(CAST(SUBSTR(no_trans, 13, 5) AS UNSIGNED)) AS nomor
+                    FROM packing_packing_in
+                    WHERE YEAR(tgl_penerimaan) = '$tahun'
                 ");
-                $nomor_tr = $cek_nomor[0]->nomor;
-                $urutan = (int)($nomor_tr);
+
+                $nomor_tr = $cek_nomor[0]->nomor ?? 0;
+                $urutan = (int) $nomor_tr;
                 $urutan++;
-                $kode_cek = $urutan++;
-                $kodepay = sprintf("%05s", $kode_cek);
+
+                $kodepay = sprintf("%05d", $urutan);
 
                 $kode_trans = $kode . $no . '/' . $kodepay;
 
@@ -409,12 +427,18 @@ class PackingPackingInController extends Controller
                     }
 
                     $txtqty = (float) $JmlArray[$key];
+
                     $txtid_trf_garment = $id_trf_garmentArray[$key];
                     // Row-lock the source transfer so concurrent submissions
                     // (different user/device, same no_trans) queue up instead
                     // of both reading a stale "sisa qty".
+
+                    $status = $_POST['status'][$key] ?? '';
+
                     if($status == 'FGS'){
-                        $cek = DB::select("select * from fg_stok_bppb where id = ? for update", [$txtid_trf_garment]);
+                        $cek = DB::select("select fg_stok_bppb.*, ppic_master_so.barcode, ppic_master_so.dest from fg_stok_bppb 
+                            left join ppic_master_so on ppic_master_so.id_so_det = fg_stok_bppb.id_so_det 
+                            where fg_stok_bppb.id = ? for update", [$txtid_trf_garment]);
                         if (empty($cek)) {
                             continue;
                         }
@@ -437,8 +461,8 @@ class PackingPackingInController extends Controller
                         $id_so_det = $cek->id_so_det;
                         $line = 'FGS';
                         $po = array_values($po_fgsArray)[0];
-                        $barcode = '-';
-                        $dest = '-';
+                        $barcode = $cek->barcode;
+                        $dest = $cek->dest;
 
                         DB::insert("
                         insert into packing_packing_in

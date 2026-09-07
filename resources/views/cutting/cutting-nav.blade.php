@@ -261,6 +261,14 @@
         </ul>
     </li>
 @endrole
+@role('cutting')
+<li class="nav-item">
+    <a href="{{ route('cutting-switching') }}"
+        class="nav-link {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
+        Switching
+    </a>
+</li>
+@endrole
 @role('superadmin')
     <li class="nav-item">
         <a href="{{ route('cutting-tools') }}"

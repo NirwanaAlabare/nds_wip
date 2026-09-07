@@ -1111,6 +1111,9 @@
                     url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                     type: 'get',
                     dataType: 'json',
+                    data: {
+                        "form_cut_detail_id": document.getElementById("current_id").value
+                    },
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
