@@ -288,7 +288,7 @@ class CuttingToolsController extends Controller
 
                     // Regenerate form cut detail output
                     $cuttingService = new CuttingService();
-                    $cuttingService->generateFormCutOutput($formCutInput->id);
+                    $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
 
                     return array(
                         "status" => 200,

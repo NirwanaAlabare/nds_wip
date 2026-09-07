@@ -1429,7 +1429,7 @@ class CuttingService
         DB::beginTransaction();
         try {
             $cuttingService = new CuttingService();
-            $cuttingService->generateFormCutOutput($formCutInput->id);
+            $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
 
             // Stored procedure tidak mengisi is_active, samakan dengan penulis output yang lain
             FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->update(["is_active" => 1]);

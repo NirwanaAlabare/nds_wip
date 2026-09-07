@@ -267,7 +267,7 @@ class importCuttingManual implements ToCollection, WithStartRow
                             if ($cuttingFormDetail) {
                                 // Generate Form Cut Output
                                 $cuttingService = new CuttingService();
-                                $cuttingService->generateFormCutOutput($formCutInput->id);
+                                $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
 
                                 \Log::channel("importCuttingManual")->info(["Success Import Cutting Manual :".$i, $cuttingForm, $cuttingFormDetail]);
                             } else {
