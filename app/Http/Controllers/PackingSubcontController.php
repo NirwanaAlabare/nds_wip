@@ -1475,6 +1475,7 @@ public function ApprovePackingInSubcont(Request $request)
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
             Journal::create([
@@ -1498,6 +1499,7 @@ public function ApprovePackingInSubcont(Request $request)
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
             if ($tax >= 1) {
@@ -1526,6 +1528,7 @@ public function ApprovePackingInSubcont(Request $request)
                     'approve_by' => Auth::user()->name,
                     'approve_date' => $timestamp,
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
             }
 
@@ -1552,6 +1555,7 @@ public function ApprovePackingInSubcont(Request $request)
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
                 Journal::create([
@@ -1575,6 +1579,7 @@ public function ApprovePackingInSubcont(Request $request)
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
                 'profit_center' => 'NAG',
+                'supplier' => $supp,
             ]);
 
                 if ($tax >= 1) {
@@ -1603,6 +1608,7 @@ public function ApprovePackingInSubcont(Request $request)
                     'approve_by' => Auth::user()->name,
                     'approve_date' => $timestamp,
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
             }
 
