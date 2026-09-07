@@ -279,6 +279,7 @@ class KonfPemasukanController extends Controller
                     'approve_by' => Auth::user()->name,
                     'approve_date' => $timestamp,
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
 
                 Journal::create([
@@ -300,6 +301,7 @@ class KonfPemasukanController extends Controller
                     'approve_by' => Auth::user()->name,
                     'approve_date' => $timestamp,
                     'profit_center' => 'NAG',
+                    'supplier' => $supp,
                 ]);
 
                 if ($tax >= 1) {
@@ -326,6 +328,7 @@ class KonfPemasukanController extends Controller
                         'approve_by' => Auth::user()->name,
                         'approve_date' => $timestamp,
                         'profit_center' => 'NAG',
+                        'supplier' => $supp,
                     ]);
                 }
 
@@ -350,6 +353,7 @@ class KonfPemasukanController extends Controller
                         'approve_by' => Auth::user()->name,
                         'approve_date' => $timestamp,
                         'profit_center' => 'NAG',
+                        'supplier' => $supp,
                     ]);
 
                     Journal::create([
@@ -371,6 +375,7 @@ class KonfPemasukanController extends Controller
                         'approve_by' => Auth::user()->name,
                         'approve_date' => $timestamp,
                         'profit_center' => 'NAG',
+                        'supplier' => $supp,
                     ]);
 
                     if ($tax >= 1) {
@@ -393,6 +398,7 @@ class KonfPemasukanController extends Controller
                             'approve_by' => Auth::user()->name,
                             'approve_date' => $timestamp,
                             'profit_center' => 'NAG',
+                            'supplier' => $supp,
                         ]);
                     }
                 }

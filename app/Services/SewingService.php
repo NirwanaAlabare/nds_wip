@@ -556,7 +556,7 @@ class SewingService
                             "cancel" => "N"
                         ]);
 
-                        array_push($success, [$mpPac, "change output master plan"]);
+                        array_push($success, [$mpPac, "change output master plan packing"]);
                     } else {
                         array_push($fails, [$mpPac, "change output master plan packing"]);
                     }
@@ -608,7 +608,7 @@ class SewingService
                             "cancel" => "N"
                         ]);
 
-                        array_push($success, [$mpDefPac, "change output master plan defect"]);
+                        array_push($success, [$mpDefPac, "change output master plan defect packing"]);
                     } else {
                         array_push($fails, [$mpDefPac, "change output master plan defect packing"]);
                     }
@@ -658,7 +658,7 @@ class SewingService
                             "cancel" => "N"
                         ]);
 
-                        array_push($success, [$mpRejPac, "change output master plan reject"]);
+                        array_push($success, [$mpRejPac, "change output master plan reject packing"]);
                     } else {
                         array_push($fails, [$mpRejPac, "change output master plan reject packing"]);
                     }

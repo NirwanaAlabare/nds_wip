@@ -7,6 +7,7 @@ use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
+use App\Models\Cutting\FormCutInputDetailOutputLog;
 use App\Models\Cutting\FormCutInputDetailDelete;
 use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
 use App\Models\Cutting\PenerimaanCutting;
@@ -899,9 +900,9 @@ class CuttingService
                 // Check Penerimaan
                 $penerimaan = null;
                 if ($index == 0) {
-                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();    
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
                     if ($penerimaan->count() < 1) {
-                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();    
+                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();
                     }
                 } else {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
@@ -1004,54 +1005,202 @@ class CuttingService
         }
     }
 
-    public function generateFormCutInputDetailOutput($formCutId) {
-        $formCut = FormCutInput::where("id", $formCutId)->first();
+    /**
+     * Regenerate isi form_cut_input_detail_output untuk seluruh Form Cut yang sudah selesai.
+     * Form pada periode yang sudah closing selalu dilewati, form yang punya transaksi
+     * switching output dilewati kecuali $force bernilai true.
+     *
+     * @param  bool  $force  lanjutkan walaupun form pernah dipakai switching output
+     */
+    public function generateFormCutInputDetailOutputAll($force = false) {
+        ini_set('max_execution_time', 3600);
 
-        if ($formCut) {
-            // Clear form cut input detail output when exist
-            $formCutDetailOutput = FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->delete();
+        // Query log menyimpan tiap query beserta binding-nya sepanjang request.
+        // Pada ribuan form, log inilah yang paling cepat menghabiskan memory.
+        DB::connection()->disableQueryLog();
 
-            $formCutDetail = $formCut->formCutInputDetails()->get();
+        // Debugbar (lokal / APP_DEBUG) punya collector query & model sendiri, jadi
+        // tidak ikut mati oleh disableQueryLog() di atas dan harus dimatikan terpisah
+        if (class_exists(\Barryvdh\Debugbar\LaravelDebugbar::class) && app()->bound(\Barryvdh\Debugbar\LaravelDebugbar::class)) {
+            app(\Barryvdh\Debugbar\LaravelDebugbar::class)->disable();
+        }
 
-            if ($formCutDetail) {
+        $total = 0;
+        $generated = 0;
+        $skippedClosing = 0;
+        $skippedSwitching = 0;
+        $failedCount = 0;
+        $failed = [];
 
-                if ($formCut->marker && $formCut->marker->markerDetails) {
+        // Tanggal closing diambil sekali saja, kalau lewat checkClosingDate akan
+        // ada satu query tambahan untuk tiap form yang diproses
+        $lastClosing = DB::table('data_locks')->where('is_locked', true)->orderBy('end_date', 'desc')->value('end_date');
 
-                    // Marker Detail
-                    $markerDetails = $formCut->marker->markerDetails;
+        // Query builder (bukan Eloquent) + kolom seperlunya, supaya tidak ada model
+        // beserta relasinya yang menumpuk di memory selama proses berjalan.
+        DB::table("form_cut_input")->
+            select("id", "no_form", "waktu_selesai")->
+            where("status", 'SELESAI PENGERJAAN')->
+            orderBy("id")->
+            chunkById(200, function ($formCuts) use ($force, $lastClosing, &$total, &$generated, &$skippedClosing, &$skippedSwitching, &$failedCount, &$failed) {
+                foreach ($formCuts as $formCut) {
+                    $total++;
 
-                    // Form Cut Detail Group
-                    $formCutDetailGroups = $formCutDetail->groupBy("group_roll");
+                    // Periode sudah ditutup, form tidak boleh diubah
+                    if ($lastClosing && $formCut->waktu_selesai && $lastClosing >= date('Y-m-d', strtotime($formCut->waktu_selesai))) {
+                        $skippedClosing++;
 
-                    // Form Cut Detail Output
-                    $formCutDetailOutput = [];
-                    foreach ($formCutDetailGroups as $detailGroup) {
-                        $currentGroup = $detailGroup->first()->group_roll;
-                        $currentGroupQty = $detailGroup->sum("lembar_gelaran");
+                        continue;
+                    }
 
-                        foreach ($markerDetails as $markerDetail) {
-                            array_push($formCutDetailOutput, [
-                                "form_cut_input_id" => $formCut->id,
-                                "group_roll" => $currentGroup,
-                                "marker_input_detail_id" => $markerDetail->id,
-                                "size_asal" => $markerDetail->size,
-                                "ratio" => $markerDetail->ratio,
-                                "total_lembar_gelaran" => $currentGroupQty,
-                                "qty_output_original" => $markerDetail->ratio * $currentGroupQty,
-                                "qty_output_aktual" => $markerDetail->ratio * $currentGroupQty,
-                                "is_active" => 1,
-                                "created_by" => Auth::user()->id,
-                                "created_at" => Carbon::now(),
-                                "updated_at" => Carbon::now()
-                            ]);
+                    $result = $this->generateFormCutInputDetailOutput($formCut->id, $force);
+
+                    $status = is_array($result) && isset($result['status']) ? $result['status'] : 400;
+
+                    if ($status == 200) {
+                        $generated++;
+                    } else if ($status == 409) {
+                        $skippedSwitching++;
+                    } else {
+                        $failedCount++;
+
+                        // Daftar form gagal dibatasi supaya tidak ikut membengkak
+                        if (count($failed) < 50) {
+                            $failed[] = $formCut->no_form." : ".(is_array($result) && isset($result['message']) ? $result['message'] : "Gagal generate output.");
                         }
                     }
 
-                    // Insert Form Cut Detail Output
-                    FormCutInputDetailOutput::upsert($formCutDetailOutput, ['form_cut_input_id', 'group_roll', 'marker_input_detail_id'], ['size_asal', 'ratio', 'total_lembar_gelaran', 'qty_output_original', 'qty_output_aktual', 'is_active', 'created_by', 'created_at', 'updated_at']);
+                    unset($result);
+                }
+
+                unset($formCuts);
+
+                gc_collect_cycles();
+            });
+
+        return [
+            'status' => 200,
+            'message' => "Generate output selesai. <b>".$generated."</b> dari <b>".$total."</b> form berhasil digenerate.".
+                ($skippedClosing > 0 ? "<br>".$skippedClosing." form dilewati (periode sudah closing)." : "").
+                ($skippedSwitching > 0 ? "<br>".$skippedSwitching." form dilewati (ada transaksi switching output)." : "").
+                ($failedCount > 0 ? "<br>".$failedCount." form gagal :<br>".implode("<br>", array_slice($failed, 0, 10)).($failedCount > 10 ? "<br>..." : "") : ""),
+            'additional' => [
+                'total' => $total,
+                'generated' => $generated,
+                'skipped_closing' => $skippedClosing,
+                'skipped_switching' => $skippedSwitching,
+                'failed' => $failedCount,
+                'failed_forms' => $failed,
+            ],
+        ];
+    }
+
+    /**
+     * @param  int   $formCutId  id form_cut_input
+     * @param  bool  $force      lanjutkan walaupun form pernah dipakai switching output
+     */
+    public function generateFormCutInputDetailOutput($formCutId, $force = false) {
+        $formCut = DB::table("form_cut_input")->select("id", "no_form", "id_marker")->where("id", $formCutId)->first();
+
+        if (!$formCut) {
+            return [
+                "status" => 400,
+                "message" => "Form Cut tidak ditemukan.",
+            ];
+        }
+
+        // Output hasil switching akan hangus karena generate mengisi ulang seluruh output form
+        if (!$force) {
+            $switchingCount = DB::table("form_cut_input_detail_output_logs")->
+                where("is_active", 1)->
+                where(function ($query) use ($formCutId) {
+                    $query->where("form_cut_input_id_asal", $formCutId)->orWhere("form_cut_input_id_tujuan", $formCutId);
+                })->
+                count();
+
+            if ($switchingCount > 0) {
+                return [
+                    "status" => 409,
+                    "message" => $formCut->no_form." sudah ada transfer switching.",
+                ];
+            }
+        }
+
+        // Group gelaran dihitung langsung di database, tidak perlu memuat seluruh detail gelaran
+        $formCutDetailGroups = DB::table("form_cut_input_detail")->
+            selectRaw("group_roll, SUM(lembar_gelaran) as total_lembar_gelaran")->
+            where("form_cut_id", $formCut->id)->
+            groupBy("group_roll")->
+            get();
+
+        if ($formCutDetailGroups->count() < 1) {
+            return [
+                "status" => 400,
+                "message" => "Form ".$formCut->no_form." belum memiliki detail gelaran.",
+            ];
+        }
+
+        // Marker Detail
+        $markerDetails = DB::table("marker_input_detail")->
+            select("marker_input_detail.id", "marker_input_detail.size", "marker_input_detail.ratio")->
+            join("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+            where("marker_input.kode", $formCut->id_marker)->
+            get();
+
+        if ($markerDetails->count() < 1) {
+            return [
+                "status" => 400,
+                "message" => "Marker / detail marker untuk form ".$formCut->no_form." tidak ditemukan.",
+            ];
+        }
+
+        $createdBy = Auth::user() ? Auth::user()->id : null;
+        $now = Carbon::now();
+
+        // Clear form cut input detail output when exist
+        FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->delete();
+
+        // Insert Form Cut Detail Output (ditulis per batch supaya array tidak menumpuk)
+        $formCutDetailOutput = [];
+        foreach ($formCutDetailGroups as $detailGroup) {
+            foreach ($markerDetails as $markerDetail) {
+                $formCutDetailOutput[] = [
+                    "form_cut_input_id" => $formCut->id,
+                    "group_roll" => $detailGroup->group_roll,
+                    "marker_input_detail_id" => $markerDetail->id,
+                    "size_asal" => $markerDetail->size,
+                    "ratio" => $markerDetail->ratio,
+                    "total_lembar_gelaran" => $detailGroup->total_lembar_gelaran,
+                    "qty_output_original" => $markerDetail->ratio * $detailGroup->total_lembar_gelaran,
+                    "qty_output_aktual" => $markerDetail->ratio * $detailGroup->total_lembar_gelaran,
+                    "is_active" => 1,
+                    "created_by" => $createdBy,
+                    "created_at" => $now,
+                    "updated_at" => $now
+                ];
+
+                if (count($formCutDetailOutput) >= 500) {
+                    $this->upsertFormCutInputDetailOutput($formCutDetailOutput);
+
+                    $formCutDetailOutput = [];
                 }
             }
         }
+
+        if (count($formCutDetailOutput) > 0) {
+            $this->upsertFormCutInputDetailOutput($formCutDetailOutput);
+        }
+
+        unset($formCutDetailOutput, $formCutDetailGroups, $markerDetails);
+
+        return [
+            "status" => 200,
+            "message" => $formCut->no_form." Berhasil digenerate",
+        ];
+    }
+
+    private function upsertFormCutInputDetailOutput($rows) {
+        FormCutInputDetailOutput::upsert($rows, ['form_cut_input_id', 'group_roll', 'marker_input_detail_id'], ['size_asal', 'ratio', 'total_lembar_gelaran', 'qty_output_original', 'qty_output_aktual', 'is_active', 'created_by', 'created_at', 'updated_at']);
     }
 
     public function finishProcess($id = null, $data = []) {
@@ -1279,7 +1428,7 @@ class CuttingService
 
         DB::beginTransaction();
         try {
-            FormCutInputDetailOutput::generateFormCutOutput($formCut->id);
+            $this->generateFormCutInputDetailOutput($formCutInput->id);
 
             // Stored procedure tidak mengisi is_active, samakan dengan penulis output yang lain
             FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->update(["is_active" => 1]);

@@ -682,7 +682,7 @@ function deleteData(e, type = null, additionalMessage = '') {
         Swal.fire({
             icon: 'error',
             title: type === 'cancel' ? 'Batalkan data?' : 'Hapus data?',
-            html: additionalMessage,
+            html: additionalMessage+"<br>"+(e.getAttribute('data-message') ?? ""),
             showCancelButton: true,
             showConfirmButton: true,
             confirmButtonText: type === 'cancel' ? 'Batalkan' : 'Hapus',
@@ -1054,3 +1054,10 @@ function exportExcelGlobal(elm, data) {
         }
     });
 }
+
+$(document).on('select2:open', () => {
+    let searchField = document.querySelector('.select2-container--open .select2-search__field');
+    if (searchField) {
+        searchField.focus();
+    }
+});

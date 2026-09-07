@@ -623,7 +623,7 @@
                                 <div class="col-12 col-md-4 mb-3">
                                     <label class="form-label"><small><b>Colors</b></small></label>
                                     @php
-                                        $colors = explode(", ", $part->color);
+                                        $colors = explode(",", $part->color);
                                     @endphp
                                     <select class="form-select select2bs4" name="part_custom_color" id="part_custom_color">
                                         <option selected="selected" value="">Pilih Color</option>

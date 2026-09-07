@@ -241,21 +241,13 @@ class PackingCentralSwitchingController extends Controller
 
             FROM combined
 
-            LEFT JOIN (
-                SELECT
-                    id_ppic_master_so,
-                    id_so_det,
-                    MIN(id) AS id,
-                    MAX(po) AS po,
-                    MAX(line) AS line,
-                    MAX(barcode) AS barcode
-                FROM packing_packing_in
-                GROUP BY
-                    id_ppic_master_so,
-                    id_so_det
-            ) packing_packing_in
-                ON packing_packing_in.id_ppic_master_so <=> combined.id_ppic_master_so
-                AND packing_packing_in.id_so_det <=> combined.so_det_id
+            LEFT JOIN packing_packing_in
+                ON packing_packing_in.id = (
+                    SELECT MIN(x.id)
+                    FROM packing_packing_in x
+                    WHERE x.id_ppic_master_so <=> combined.id_ppic_master_so
+                    AND x.id_so_det <=> combined.so_det_id
+                )
 
             LEFT JOIN master_sb_ws
                 ON master_sb_ws.id_so_det = combined.so_det_id
