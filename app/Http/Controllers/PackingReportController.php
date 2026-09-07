@@ -272,6 +272,16 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
     public function buildQueryMutasiPacking($tgl_awal, $tgl_akhir, $tanggal_saldo_awal){
 
+        $selisihHari = (strtotime($tgl_akhir) - strtotime($tgl_awal)) / 86400;
+
+        if ($selisihHari < 7) {
+            $tgl_akhir_before = date('Y-m-d', strtotime($tgl_awal . ' -1 day'));
+            $tgl_current_before = $tgl_awal;
+        } else {
+            $tgl_akhir_before = date('Y-m-d', strtotime($tgl_akhir . ' -7 days'));
+            $tgl_current_before = date('Y-m-d', strtotime($tgl_akhir_before . ' +1 day'));
+        }
+
         $query = DB::select("
             WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft_before, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
 
@@ -299,20 +309,23 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             /* ================= PACKING LINE SALDO AWAL MASUK (HISTORY) ================= */
                 SELECT
                     so_det_id,
-                    COUNT(*) AS pl_saldo_awal_masuk,
+                    SUM(qty) AS pl_saldo_awal_masuk,
                     0, 
                     SUM(
-                        type = 'RFT'
-                        AND updated_at >= '2026-05-01 00:00:00'
-                        AND updated_at < '{$tgl_awal} 00:00:00'
+                        IF(
+                            type = 'RFT'
+                            AND tgl_trans >= '2026-05-01'
+                            AND tgl_trans < '{$tgl_awal}',
+                            qty, 0
+                        )
                     ) AS pl_rft_before,
                     0, 0, 0, 0, 0, 0, 0, 0
                 FROM
-                    signalbit_erp.output_rfts_packing_po
+                    saldo_packing_line
                 WHERE
                     so_det_id IS NOT NULL
-                    AND updated_at >= '{$tanggal_saldo_awal} 00:00:00'
-                    AND updated_at < '{$tgl_awal} 00:00:00'
+                    AND tgl_trans >= '{$tanggal_saldo_awal}'
+                    AND tgl_trans < '{$tgl_awal}'
                 GROUP BY
                     so_det_id
 
@@ -340,6 +353,22 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SELECT
                     so_det_id,
                     0, 0, 0,
+                    SUM(IF(type = 'RFT', qty, 0)) AS pl_rft,
+                    SUM(IF(type = 'REJECT', qty, 0)) AS pl_reject,
+                    0, 0, 0, 0, 0, 0
+                FROM
+                    saldo_packing_line
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND tgl_trans BETWEEN '{$tgl_awal}' AND '{$tgl_akhir_before}'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+                SELECT
+                    so_det_id,
+                    0, 0, 0,
                     SUM( type = 'RFT' ) AS pl_rft,
                     SUM( type = 'REJECT' ) AS pl_reject,
                     0, 0, 0, 0, 0, 0
@@ -347,7 +376,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     signalbit_erp.output_rfts_packing_po
                 WHERE
                     so_det_id IS NOT NULL
-                    AND updated_at BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    AND updated_at BETWEEN '{$tgl_current_before} 00:00:00' AND '{$tgl_akhir} 23:59:59'
                 GROUP BY
                     so_det_id
 
@@ -516,40 +545,40 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             ),
 
             saldo_finishing as (
-                select
+                SELECT
                     so_det_id,
-                    mb.ws,
-                    mb.buyer,
-                    mb.styleno,
-                    mb.color,
-                    mb.size,
-                    date(updated_at) tgl_finishing,
-                    COUNT(*) as tpl_in_before,
-                    0 tpl_in
-                from signalbit_erp.output_rfts_packing a
-                INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                LEFT JOIN (
-                    SELECT
-                    sd.id as id_so_det,
-                    ac.kpno as ws,
-                    supplier as buyer,
+                    ws,
+                    buyer,
                     styleno,
                     color,
                     size,
-                    dest
-                    FROM signalbit_erp.so_det sd
-                    INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                    INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                    WHERE jd.cancel = 'N'
-                ) mb on a.so_det_id = mb.id_so_det
-                where 
-                updated_at >= '2026-05-01 00:00:00'
-                AND updated_at < '{$tgl_awal} 00:00:00'
-                and mp.cancel = 'N'
-                group by so_det_id, date(updated_at)
-            
+                    tgl_trans AS tgl_finishing,
+                    SUM(qty) AS tpl_in_before,
+                    0 tpl_in
+                FROM
+                    saldo_finishing_packing
+                WHERE
+                    tgl_trans >= '2026-05-01' AND tgl_trans < '{$tgl_awal}'
+                GROUP BY so_det_id, tgl_trans
+
+                UNION ALL
+
+                SELECT
+                    so_det_id,
+                    ws,
+                    buyer,
+                    styleno,
+                    color,
+                    size,
+                    tgl_trans AS tgl_finishing,
+                    0 tpl_in_before,
+                    SUM(qty) tpl_in
+                FROM
+                    saldo_finishing_packing
+                WHERE
+                    tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir_before'
+                GROUP BY so_det_id, tgl_trans
+
                 UNION ALL
 
                 select
@@ -580,7 +609,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
                     WHERE jd.cancel = 'N'
                 ) mb on a.so_det_id = mb.id_so_det
-                where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+                where updated_at >= '$tgl_current_before 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
                 group by so_det_id, date(updated_at)
             ),
 

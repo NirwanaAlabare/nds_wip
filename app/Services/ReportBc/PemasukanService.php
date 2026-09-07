@@ -210,7 +210,7 @@ class PemasukanService
         ";
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw("MAX(a.jenis_dok) as jenis_dokumen"),
+            DB::raw("a.jenis_dok as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
             DB::raw("a.bpbno_int as trans_no"),
@@ -260,7 +260,7 @@ class PemasukanService
                 "s.matclass",
                 "mcnt.id"
             ))
-            ->groupBy('mcnt.id');
+            ->groupBy('mcnt.id', 'a.unit');
         }
 
         if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
@@ -274,7 +274,7 @@ class PemasukanService
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    "MAX(a.jenis_dok) as jenis_dokumen",
+                    "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
                     "ac.kpno",
                     "s.itemname",
@@ -1509,7 +1509,7 @@ class PemasukanService
             'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
             'Nomor BPB',
             'Tanggal BPB',
-            'WS',
+            'ID Item',
             'Uraian Barang',
             'Jenis Satuan',
             'Jumlah Satuan',
@@ -1530,7 +1530,7 @@ class PemasukanService
             $rows = [
                 $no++,
                 $row->kode_kantor ?? '-',
-                $row->jenis_dokumen ?? $jenisDokumenFixed,
+                $row->jenis_dokumen ?? '-',
                 $row->kategori_barang ?? '-',
                 $row->nomor_daftar ?? '-',
                 ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',

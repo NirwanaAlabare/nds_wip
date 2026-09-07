@@ -559,7 +559,7 @@ class CompletedFormController extends Controller
 
             // generate form cut output
             $cuttingService = new CuttingService();
-            $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
+            $cuttingService->generateFormCutInputDetailOutput($formCutInput->id);
 
             DB::commit();
 
@@ -660,7 +660,7 @@ class CompletedFormController extends Controller
 
             // generate form cut output
             $cuttingService = new CuttingService();
-            $cuttingservice->generateFormCutInputDetailOutput($id);
+            $cuttingService->generateFormCutInputDetailOutput($id);
 
             return array(
                 "status" => 200,
@@ -743,7 +743,7 @@ class CompletedFormController extends Controller
 
             // generate form cut output
             $cuttingService = new CuttingService();
-            $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
+            $cuttingService->generateFormCutInputDetailOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -832,7 +832,7 @@ class CompletedFormController extends Controller
 
             // generate form cut output
             $cuttingService = new CuttingService();//
-            $cuttingservice->generateFormCutInputDetailOutput($formCutInput->id);
+            $cuttingService->generateFormCutInputDetailOutput($formCutInput->id);
 
             return array(
                 "status" => 200,
@@ -1060,7 +1060,7 @@ class CompletedFormController extends Controller
 
                     // generate form cut output
                     $cuttingService = new CuttingService();
-                    $cuttingservice->generateFormCutInputDetailOutput($formCutDetail->form_cut_id);
+                    $cuttingService->generateFormCutInputDetailOutput($formCutDetail->form_cut_id);
 
                     DB::commit();
 
