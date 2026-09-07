@@ -57,8 +57,8 @@
                                 <select class="form-select form-select-sm column-filter" data-column="6">
                                     <option value="">Semua</option>
                                     <option value="main">Main</option>
-                                    <option value="complement">Complement</option>
-                                    <option value="regular">Reqgular</option>
+                                    {{-- <option value="complement">Complement</option> --}}
+                                    <option value="regular">Regular</option>
                                 </select>
                             </th>
                             <th><input type="text" class="form-control form-control-sm column-filter" data-column="7" placeholder="Cari..."></th>
