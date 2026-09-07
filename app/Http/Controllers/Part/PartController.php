@@ -282,6 +282,14 @@ class PartController extends Controller
             "panel_status" => "required",
         ]);
 
+        if (!($request["main_part"]) || ($request["main_part"] && count($request["main_part"]) < 1)) {
+            return array(
+                    "status" => 400,
+                    "message" => "Harap tentukan satu main part",
+                    "additional" => [],
+                );
+        }
+
         // Check Remaining Panel
         $checkRemainingPanel = $partService->checkRemainingPanel($validatedRequest['ws_id'], $validatedRequest['panel_id'], $validatedRequest['panel'], $validatedRequest['panel_status']);
         if ($checkRemainingPanel && $checkRemainingPanel['status'] && $checkRemainingPanel['status'] != 200) {
