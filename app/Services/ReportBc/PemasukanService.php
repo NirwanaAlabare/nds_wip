@@ -188,6 +188,7 @@ class PemasukanService
 
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
+        // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
         $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
@@ -209,7 +210,7 @@ class PemasukanService
         ";
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw(str_replace('__ELSE_RULE__', $jenisDokElse, $caseJenisDokumen) . " as jenis_dokumen"),
+            DB::raw("a.jenis_dok as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
             DB::raw("a.bpbno_int as trans_no"),
@@ -259,7 +260,7 @@ class PemasukanService
                 "s.matclass",
                 "mcnt.id"
             ))
-            ->groupBy('mcnt.id', 'a.bpbno_int');
+            ->groupBy('mcnt.id');
         }
 
         if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
@@ -273,8 +274,8 @@ class PemasukanService
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    "a.jenis_dok",
-                    "IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate)",
+                    "a.jenis_dok as jenis_dokumen",
+                    "a.bcdate",
                     "ac.kpno",
                     "s.itemname",
                     "'BARANG JADI'",
@@ -282,6 +283,7 @@ class PemasukanService
                 ))
                 ->groupBy('ac.kpno', 'a.bpbno_int');
         }
+
 
         if ($queryBahanBaku && $queryBarangJadi) {
             $unionQuery = $queryBahanBaku->unionAll($queryBarangJadi);
