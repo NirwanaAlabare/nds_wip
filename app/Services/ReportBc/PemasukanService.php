@@ -260,7 +260,7 @@ class PemasukanService
                 "s.matclass",
                 "mcnt.id"
             ))
-            ->groupBy('mcnt.id');
+            ->groupBy('mcnt.id', 'a.unit');
         }
 
         if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
@@ -1509,7 +1509,7 @@ class PemasukanService
             'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
             'Nomor BPB',
             'Tanggal BPB',
-            'WS',
+            'ID Item',
             'Uraian Barang',
             'Jenis Satuan',
             'Jumlah Satuan',
