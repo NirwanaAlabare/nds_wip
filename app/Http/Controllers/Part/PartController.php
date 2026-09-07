@@ -2386,6 +2386,7 @@ class PartController extends Controller
                 $query->whereRaw("COALESCE(pcust.set_part_status, part_detail.part_status) = ?", [$request->part_status]);
             })->
             whereNotNull("part.act_costing_id")->
+            where("part_detail.part_status", "!=", "complement")->
             groupByRaw("
                 master_sb_ws.id_act_cost,
                 master_sb_ws.color,
