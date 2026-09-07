@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/update-part-secondary-complement', 'updatePartSecondaryComplement')->name('update-part-secondary-complement');
 
         // part detail
+        Route::get('/part-detail-list', 'partDetailList')->name('part-detail-list');
+        Route::post('/part-detail-list/export', 'exportPartDetailList')->name('export-part-detail-list');
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
         Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
         Route::put('/uncancel-part-detail/{id?}', 'uncancelPartDetail')->name('uncancel-part-detail');

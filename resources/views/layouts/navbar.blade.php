@@ -1322,6 +1322,13 @@
                                     Packing - Mutasi Packing (WIP)
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('part-detail-list') }}?page=accounting&subPage=part-detail-list" target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="dropdown-item {{ $subPage == 'part-detail-list' ? 'active' : '' }}">
+                                    Part Detail Status
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
