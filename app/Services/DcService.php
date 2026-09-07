@@ -4121,8 +4121,7 @@ class DcService
     {
         try {
             // Only rekap up to 30 days before today, leaving the most recent window untouched
-            // $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
-            $dateTo = '2026-07-31';
+            $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
 
             if (!$dateFrom) {
                 // Kursor dibaca dari tabel yang sama dengan tujuan INSERT di
