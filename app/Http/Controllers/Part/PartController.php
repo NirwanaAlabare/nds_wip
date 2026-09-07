@@ -888,11 +888,15 @@ class PartController extends Controller
                 part.act_costing_id,
                 part.act_costing_ws,
                 part.style,
-                part.color,
+                COALESCE(GROUP_CONCAT(DISTINCT COALESCE(marker_input.color, form_cut_piece.color)), part.color) color,
                 part.panel,
                 part.panel_status,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->
+            leftJoin("part_form", "part_form.part_id", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")->
+            leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
             leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->
             where("part.id", $id)->
