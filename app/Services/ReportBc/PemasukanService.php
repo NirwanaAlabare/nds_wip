@@ -1530,7 +1530,7 @@ class PemasukanService
             $rows = [
                 $no++,
                 $row->kode_kantor ?? '-',
-                $row->jenis_dokumen ?? $jenisDokumenFixed,
+                $row->jenis_dokumen ?? '-',
                 $row->kategori_barang ?? '-',
                 $row->nomor_daftar ?? '-',
                 ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
