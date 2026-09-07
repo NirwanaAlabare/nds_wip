@@ -2383,7 +2383,7 @@ class SecondaryInController extends Controller
         }
 
         $qtyAwal = $dataStocker->qty_ply_mod ?? $dataStocker->qty_ply;
-        $qtySecondaryIn = $dataSecondaryIn->qty_in;
+        $qtySecondaryIn = $dataSecondaryIn->qty_awal;
         $qtyRejectTotal = $dataSecondaryIn->qty_reject + $dataSecondaryInUpdate->sum("reject") + $qtyRejectNew;
         $qtyReplaceTotal = $dataSecondaryIn->qty_replace + $dataSecondaryInUpdate->sum("replace") + $qtyReplaceNew;
         $qtyInTotal = $qtySecondaryIn - $qtyRejectTotal + $qtyReplaceTotal;
