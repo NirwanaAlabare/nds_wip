@@ -1040,7 +1040,8 @@ class Bc30Service
                     ->where(function($query) use ($bppbs) {
                         $query->whereIn('a.bppbno', $bppbs)->orWhereIn('a.bppbno_int', $bppbs);
                     })
-                    ->groupBy('act_costing.kpno')
+                    // ->groupBy('act_costing.kpno')
+                    ->groupBy('a.id_item')
                     ->get();
 
         }
