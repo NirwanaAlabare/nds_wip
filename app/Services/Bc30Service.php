@@ -1852,7 +1852,7 @@ class Bc30Service
                 'barang'                => $payloadBarang,
             ];
 
-            $responseCeisa = $this->ceisaService->kirimDokumenBatchBc30($finalPayload);
+            $responseCeisa = $this->ceisaService->kirimDokumenBatch30($finalPayload);
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {
