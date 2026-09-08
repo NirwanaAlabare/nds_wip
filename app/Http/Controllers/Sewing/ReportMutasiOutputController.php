@@ -416,107 +416,209 @@ class ReportMutasiOutputController extends Controller
                                     ) os
                                     GROUP BY os.so_det_id, tgl_proses
             ),
+            -- secondary_proses_per_proses AS (
+            --     SELECT
+            --         os.so_det_id,
+            --         os.secondary_id,
+            --         tgl_proses,
+            --         SUM(COALESCE(os.total_in_before, 0)) AS total_in_before,
+            --         SUM(COALESCE(os.total_in, 0)) AS total_in,
+            --         SUM(COALESCE(os.rft_before, 0)) AS rft_before,
+            --         SUM(COALESCE(os.rft, 0)) AS rft,
+            --         SUM(COALESCE(os.defect_before, 0)) AS defect_before,
+            --         SUM(COALESCE(os.defect, 0)) AS defect,
+            --         SUM(COALESCE(os.rework_before, 0)) AS rework_before,
+            --         SUM(COALESCE(os.rework, 0)) AS rework,
+            --         SUM(COALESCE(os.reject_before, 0)) AS reject_before,
+            --         SUM(COALESCE(os.reject, 0)) AS reject,
+            --         SUM(COALESCE(os.reject_defect_before, 0)) AS reject_defect_before,
+            --         SUM(COALESCE(os.reject_defect, 0)) AS reject_defect
+            --     FROM (
+            --         /* TOTAL IN */
+            --         SELECT
+            --             r.so_det_id,
+            --             osi.secondary_id,
+            --             DATE(osi.updated_at) AS tgl_proses,
+            --             SUM(CASE WHEN DATE(osi.updated_at) >= '2026-03-01' AND DATE(osi.updated_at) <= '$prev_date' THEN 1 ELSE 0 END) AS total_in_before,
+            --             SUM(CASE WHEN DATE(osi.updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS total_in,
+            --             0 AS rft_before, 0 AS rft,
+            --             0 AS defect_before, 0 AS defect,
+            --             0 AS rework_before, 0 AS rework,
+            --             0 AS reject_before, 0 AS reject,
+            --             0 AS reject_defect_before, 0 AS reject_defect
+            --         FROM output_secondary_in osi
+            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+            --         WHERE osi.updated_at <= '$end_date 23:59:59'
+            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osi.updated_at)
+
+            --         UNION ALL
+
+            --         /* RFT & REWORK */
+            --         SELECT
+            --             r.so_det_id,
+            --             osi.secondary_id,
+            --             DATE(oso.updated_at) AS tgl_proses,
+            --             0 AS total_in_before, 0 AS total_in,
+            --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft_before,
+            --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft,
+            --             0 AS defect_before, 0 AS defect,
+            --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework_before,
+            --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework,
+            --             0 AS reject_before, 0 AS reject,
+            --             0 AS reject_defect_before, 0 AS reject_defect
+            --         FROM output_secondary_out oso
+            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+            --         WHERE oso.status NOT IN ('defect', 'reject')
+            --             AND oso.updated_at <= '$end_date 23:59:59'
+            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(oso.updated_at)
+
+            --         UNION ALL
+
+            --         /* DEFECT */
+            --         SELECT
+            --             r.so_det_id,
+            --             osi.secondary_id,
+            --             DATE(osod.created_at) AS tgl_proses,
+            --             0 AS total_in_before, 0 AS total_in,
+            --             0 AS rft_before, 0 AS rft,
+            --             SUM(CASE WHEN DATE(osod.created_at) >= '2026-03-01' AND DATE(osod.created_at) <= '$prev_date' THEN 1 ELSE 0 END) AS defect_before,
+            --             SUM(CASE WHEN DATE(osod.created_at) >= '$start_date' THEN 1 ELSE 0 END) AS defect,
+            --             0 AS rework_before, 0 AS rework,
+            --             0 AS reject_before, 0 AS reject,
+            --             0 AS reject_defect_before, 0 AS reject_defect
+            --         FROM output_secondary_out_defect osod
+            --         LEFT JOIN output_secondary_out oso ON oso.id = osod.secondary_out_id
+            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+            --         WHERE osod.created_at <= '$end_date 23:59:59'
+            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osod.created_at)
+
+            --         UNION ALL
+
+            --         /* REJECT */
+            --         SELECT
+            --             r.so_det_id,
+            --             osi.secondary_id,
+            --             DATE(osor.updated_at) AS tgl_proses,
+            --             0 AS total_in_before, 0 AS total_in,
+            --             0 AS rft_before, 0 AS rft,
+            --             0 AS defect_before, 0 AS defect,
+            --             0 AS rework_before, 0 AS rework,
+            --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject_before,
+            --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject,
+            --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect_before,
+            --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect
+            --         FROM output_secondary_out_reject osor
+            --         LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
+            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+            --         WHERE osor.updated_at <= '$end_date 23:59:59'
+            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osor.updated_at)
+            --     ) os
+            --     GROUP BY os.so_det_id, os.secondary_id, tgl_proses
+            -- ),
             secondary_proses_per_proses AS (
                 SELECT
-                    os.so_det_id,
-                    os.secondary_id,
-                    tgl_proses,
-                    SUM(COALESCE(os.total_in_before, 0)) AS total_in_before,
-                    SUM(COALESCE(os.total_in, 0)) AS total_in,
-                    SUM(COALESCE(os.rft_before, 0)) AS rft_before,
-                    SUM(COALESCE(os.rft, 0)) AS rft,
-                    SUM(COALESCE(os.defect_before, 0)) AS defect_before,
-                    SUM(COALESCE(os.defect, 0)) AS defect,
-                    SUM(COALESCE(os.rework_before, 0)) AS rework_before,
-                    SUM(COALESCE(os.rework, 0)) AS rework,
-                    SUM(COALESCE(os.reject_before, 0)) AS reject_before,
-                    SUM(COALESCE(os.reject, 0)) AS reject,
-                    SUM(COALESCE(os.reject_defect_before, 0)) AS reject_defect_before,
-                    SUM(COALESCE(os.reject_defect, 0)) AS reject_defect
-                FROM (
-                    /* TOTAL IN */
-                    SELECT
-                        r.so_det_id,
-                        osi.secondary_id,
-                        DATE(osi.updated_at) AS tgl_proses,
-                        SUM(CASE WHEN DATE(osi.updated_at) >= '2026-03-01' AND DATE(osi.updated_at) <= '$prev_date' THEN 1 ELSE 0 END) AS total_in_before,
-                        SUM(CASE WHEN DATE(osi.updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS total_in,
-                        0 AS rft_before, 0 AS rft,
-                        0 AS defect_before, 0 AS defect,
-                        0 AS rework_before, 0 AS rework,
-                        0 AS reject_before, 0 AS reject,
-                        0 AS reject_defect_before, 0 AS reject_defect
-                    FROM output_secondary_in osi
-                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
-                    WHERE osi.updated_at <= '$end_date 23:59:59'
-                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osi.updated_at)
-
-                    UNION ALL
-
-                    /* RFT & REWORK */
-                    SELECT
-                        r.so_det_id,
-                        osi.secondary_id,
-                        DATE(oso.updated_at) AS tgl_proses,
-                        0 AS total_in_before, 0 AS total_in,
-                        SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft_before,
-                        SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft,
-                        0 AS defect_before, 0 AS defect,
-                        SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework_before,
-                        SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework,
-                        0 AS reject_before, 0 AS reject,
-                        0 AS reject_defect_before, 0 AS reject_defect
-                    FROM output_secondary_out oso
-                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
-                    WHERE oso.status NOT IN ('defect', 'reject')
-                        AND oso.updated_at <= '$end_date 23:59:59'
-                    GROUP BY r.so_det_id, osi.secondary_id, DATE(oso.updated_at)
-
-                    UNION ALL
-
-                    /* DEFECT */
-                    SELECT
-                        r.so_det_id,
-                        osi.secondary_id,
-                        DATE(osod.created_at) AS tgl_proses,
-                        0 AS total_in_before, 0 AS total_in,
-                        0 AS rft_before, 0 AS rft,
-                        SUM(CASE WHEN DATE(osod.created_at) >= '2026-03-01' AND DATE(osod.created_at) <= '$prev_date' THEN 1 ELSE 0 END) AS defect_before,
-                        SUM(CASE WHEN DATE(osod.created_at) >= '$start_date' THEN 1 ELSE 0 END) AS defect,
-                        0 AS rework_before, 0 AS rework,
-                        0 AS reject_before, 0 AS reject,
-                        0 AS reject_defect_before, 0 AS reject_defect
-                    FROM output_secondary_out_defect osod
-                    LEFT JOIN output_secondary_out oso ON oso.id = osod.secondary_out_id
-                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
-                    WHERE osod.created_at <= '$end_date 23:59:59'
-                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osod.created_at)
-
-                    UNION ALL
-
-                    /* REJECT */
-                    SELECT
-                        r.so_det_id,
-                        osi.secondary_id,
-                        DATE(osor.updated_at) AS tgl_proses,
-                        0 AS total_in_before, 0 AS total_in,
-                        0 AS rft_before, 0 AS rft,
-                        0 AS defect_before, 0 AS defect,
-                        0 AS rework_before, 0 AS rework,
-                        SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject_before,
-                        SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject,
-                        SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect_before,
-                        SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect
-                    FROM output_secondary_out_reject osor
-                    LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
-                    LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-                    LEFT JOIN output_rfts r ON r.id = osi.rft_id
-                    WHERE osor.updated_at <= '$end_date 23:59:59'
-                    GROUP BY r.so_det_id, osi.secondary_id, DATE(osor.updated_at)
-                ) os
-                GROUP BY os.so_det_id, os.secondary_id, tgl_proses
+                    spp.so_det_id,
+                    spp.secondary_id,
+                    spp.tgl_trans tgl_proses,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.total_in
+                            ELSE 0
+                        END
+                    ) AS total_in_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.total_in
+                            ELSE 0
+                        END
+                    ) AS total_in,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.rft
+                            ELSE 0
+                        END
+                    ) AS rft_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.rft
+                            ELSE 0
+                        END
+                    ) AS rft,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.defect
+                            ELSE 0
+                        END
+                    ) AS defect_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.defect
+                            ELSE 0
+                        END
+                    ) AS defect,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.rework
+                            ELSE 0
+                        END
+                    ) AS rework_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.rework
+                            ELSE 0
+                        END
+                    ) AS rework,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.reject
+                            ELSE 0
+                        END
+                    ) AS reject_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.reject
+                            ELSE 0
+                        END
+                    ) AS reject,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '2026-03-01'
+                            AND spp.tgl_trans <= '$prev_date'
+                            THEN spp.reject_defect
+                            ELSE 0
+                        END
+                    ) AS reject_defect_before,
+                    SUM(
+                        CASE
+                            WHEN spp.tgl_trans >= '$start_date'
+                            THEN spp.reject_defect
+                            ELSE 0
+                        END
+                    ) AS reject_defect
+                FROM laravel_nds.secondary_proses_per_proses spp
+                WHERE spp.tgl_trans <= '$end_date' and spp.so_det_id != 0
+                GROUP BY
+                    spp.so_det_id,
+                    spp.secondary_id,
+                    spp.tgl_trans
             ),
             qc_reject as (
                                             SELECT
@@ -1034,28 +1136,35 @@ class ReportMutasiOutputController extends Controller
                 ) mut_sew
                 GROUP BY id_so_det
             ),
+            -- secondary_process_mapping_awal AS (
+            --     SELECT
+            --         r.so_det_id AS id_so_det,
+            --         CASE
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Pasang Kancing'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Bartack'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Heatseal'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Snap'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Embro'
+            --             ELSE 'TIDAK ADA MAPPING'
+            --         END AS secondary_process
+            --     FROM output_rfts r
+            --     INNER JOIN output_secondary_in osi
+            --         ON osi.rft_id = r.id
+            --     INNER JOIN output_secondary_master osm
+            --         ON osm.id = osi.secondary_id
+            --     GROUP BY r.so_det_id
+            -- ),
             secondary_process_mapping_awal AS (
                 SELECT
-                    r.so_det_id AS id_so_det,
-                    CASE
-                        WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
-                            THEN 'Pasang Kancing'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
-                            THEN 'Bartack'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
-                            THEN 'Heatseal'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
-                            THEN 'Snap'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
-                            THEN 'Embro'
-                        ELSE 'TIDAK ADA MAPPING'
-                    END AS secondary_process
-                FROM output_rfts r
-                INNER JOIN output_secondary_in osi
-                    ON osi.rft_id = r.id
-                INNER JOIN output_secondary_master osm
-                    ON osm.id = osi.secondary_id
-                GROUP BY r.so_det_id
+                    so_det_id AS id_so_det,
+                    secondary_process
+                FROM laravel_nds.secondary_proses_mapping
+                GROUP BY so_det_id
             ),
             saldo_awal AS (
                 SELECT
@@ -1408,86 +1517,6 @@ class ReportMutasiOutputController extends Controller
                     COALESCE(ss.qty_transit_terima_finishing_before, 0) AS qty_transit_terima_finishing_before,
                     COALESCE(ss.qty_transit_keluar_qc_reject_before, 0) AS qty_transit_keluar_qc_reject_before,
 
-                    -- (
-                    --     COALESCE(su.secondary_proses_pasang_kancing, 0)
-                    --     + COALESCE(sa.total_in_sp_pasang_kancing_awal, 0)
-                    --     + COALESCE(sa.rework_sp_pasang_kancing_awal, 0)
-                    --     + COALESCE(sa.reject_defect_sp_pasang_kancing_awal, 0)
-                    --     - COALESCE(sa.defect_sp_pasang_kancing_awal, 0)
-                    --     - (
-                    --         COALESCE(sa.reject_sp_pasang_kancing_awal, 0)
-                    --         + COALESCE(sa.reject_defect_sp_pasang_kancing_awal, 0)
-                    --     )
-                    --     - (
-                    --         COALESCE(sa.rft_sp_pasang_kancing_awal, 0)
-                    --         + COALESCE(sa.rework_sp_pasang_kancing_awal, 0)
-                    --     )
-                    -- ) AS saldo_awal_sp_pasang_kancing,
-
-                    -- (
-                    --     COALESCE(su.secondary_proses_bartack, 0)
-                    --     + COALESCE(sa.total_in_sp_bartack_awal, 0)
-                    --     + COALESCE(sa.rework_sp_bartack_awal, 0)
-                    --     + COALESCE(sa.reject_defect_sp_bartack_awal, 0)
-                    --     - COALESCE(sa.defect_sp_bartack_awal, 0)
-                    --     - (
-                    --         COALESCE(sa.reject_sp_bartack_awal, 0)
-                    --         + COALESCE(sa.reject_defect_sp_bartack_awal, 0)
-                    --     )
-                    --     - (
-                    --         COALESCE(sa.rft_sp_bartack_awal, 0)
-                    --         + COALESCE(sa.rework_sp_bartack_awal, 0)
-                    --     )
-                    -- ) AS saldo_awal_sp_bartack,
-
-                    -- (
-                    --     COALESCE(su.secondary_proses_heatseal, 0)
-                    --     + COALESCE(sa.total_in_sp_heatseal_awal, 0)
-                    --     + COALESCE(sa.rework_sp_heatseal_awal, 0)
-                    --     + COALESCE(sa.reject_defect_sp_heatseal_awal, 0)
-                    --     - COALESCE(sa.defect_sp_heatseal_awal, 0)
-                    --     - (
-                    --         COALESCE(sa.reject_sp_heatseal_awal, 0)
-                    --         + COALESCE(sa.reject_defect_sp_heatseal_awal, 0)
-                    --     )
-                    --     - (
-                    --         COALESCE(sa.rft_sp_heatseal_awal, 0)
-                    --         + COALESCE(sa.rework_sp_heatseal_awal, 0)
-                    --     )
-                    -- ) AS saldo_awal_sp_heatseal,
-
-                    -- (
-                    --     COALESCE(su.secondary_proses_snap, 0)
-                    --     + COALESCE(sa.total_in_sp_snap_awal, 0)
-                    --     + COALESCE(sa.rework_sp_snap_awal, 0)
-                    --     + COALESCE(sa.reject_defect_sp_snap_awal, 0)
-                    --     - COALESCE(sa.defect_sp_snap_awal, 0)
-                    --     - (
-                    --         COALESCE(sa.reject_sp_snap_awal, 0)
-                    --         + COALESCE(sa.reject_defect_sp_snap_awal, 0)
-                    --     )
-                    --     - (
-                    --         COALESCE(sa.rft_sp_snap_awal, 0)
-                    --         + COALESCE(sa.rework_sp_snap_awal, 0)
-                    --     )
-                    -- ) AS saldo_awal_sp_snap,
-
-                    -- (
-                    --     COALESCE(su.secondary_proses_embro, 0)
-                    --     + COALESCE(sa.total_in_sp_embro_awal, 0)
-                    --     + COALESCE(sa.rework_sp_embro_awal, 0)
-                    --     + COALESCE(sa.reject_defect_sp_embro_awal, 0)
-                    --     - COALESCE(sa.defect_sp_embro_awal, 0)
-                    --     - (
-                    --         COALESCE(sa.reject_sp_embro_awal, 0)
-                    --         + COALESCE(sa.reject_defect_sp_embro_awal, 0)
-                    --     )
-                    --     - (
-                    --         COALESCE(sa.rft_sp_embro_awal, 0)
-                    --         + COALESCE(sa.rework_sp_embro_awal, 0)
-                    --     )
-                    -- ) AS saldo_awal_sp_embro,
-
                     (
                         COALESCE(su.secondary_proses_pasang_kancing, 0)
                         + COALESCE(ss.saldo_awal_sp_pasang_kancing, 0)
@@ -1637,39 +1666,55 @@ class ReportMutasiOutputController extends Controller
                     reject_sp_embro = 0
                 )
             ),
+            -- secondary_process_mapping AS (
+            --     SELECT
+            --         msw.buyer,
+            --         msw.ws,
+            --         msw.styleno,
+            --         msw.color,
+            --         msw.size,
+            --         CASE
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Pasang Kancing'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Bartack'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Heatseal'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Snap'
+            --             WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
+            --                 THEN 'Embro'
+            --             ELSE 'TIDAK ADA MAPPING'
+            --         END AS secondary_process
+            --     FROM laravel_nds.master_sb_ws msw
+            --     INNER JOIN output_rfts r
+            --         ON r.so_det_id = msw.id_so_det
+            --     INNER JOIN output_secondary_in osi
+            --         ON osi.rft_id = r.id
+            --     INNER JOIN output_secondary_master osm
+            --         ON osm.id = osi.secondary_id
+            --     GROUP BY
+            --         msw.buyer,
+            --         msw.ws,
+            --         msw.styleno,
+            --         msw.color,
+            --         msw.size
+            -- ),
             secondary_process_mapping AS (
-                SELECT
-                    msw.buyer,
-                    msw.ws,
-                    msw.styleno,
-                    msw.color,
-                    msw.size,
-                    CASE
-                        WHEN MAX(CASE WHEN osm.secondary = 'Pasang Kancing' THEN 1 ELSE 0 END) = 1
-                            THEN 'Pasang Kancing'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Bartack' THEN 1 ELSE 0 END) = 1
-                            THEN 'Bartack'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Heatseal' THEN 1 ELSE 0 END) = 1
-                            THEN 'Heatseal'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Snap' THEN 1 ELSE 0 END) = 1
-                            THEN 'Snap'
-                        WHEN MAX(CASE WHEN osm.secondary = 'Embro' THEN 1 ELSE 0 END) = 1
-                            THEN 'Embro'
-                        ELSE 'TIDAK ADA MAPPING'
-                    END AS secondary_process
-                FROM laravel_nds.master_sb_ws msw
-                INNER JOIN output_rfts r
-                    ON r.so_det_id = msw.id_so_det
-                INNER JOIN output_secondary_in osi
-                    ON osi.rft_id = r.id
-                INNER JOIN output_secondary_master osm
-                    ON osm.id = osi.secondary_id
+                SELECT 
+                    buyer,
+                    ws,
+                    styleno,
+                    color,
+                    size,
+                    secondary_process
+                FROM laravel_nds.secondary_proses_mapping
                 GROUP BY
-                    msw.buyer,
-                    msw.ws,
-                    msw.styleno,
-                    msw.color,
-                    msw.size
+                    buyer,
+                    ws,
+                    styleno,
+                    color,
+                    size
             ),
             saldo_awal_inject as (
                 SELECT
@@ -4166,724 +4211,394 @@ class ReportMutasiOutputController extends Controller
         }
 
         $query = $this->buildQueryMutasiOutput($start_date, $end_date, $buyer);
-        $data = DB::connection('mysql_sb')->select($query);
-
-        // Create Excel file using FastExcel
-        $excel = FastExcel::create('data');
-        $sheet = $excel->getSheet();
-
-        // Title
-        $sheet->writeTo('A1', 'Report Mutasi WIP Sewing ' . Carbon::parse($start_date)->format('d-m-Y') . ' - ' . Carbon::parse($end_date)->format('d-m-Y'), ['font-size' => 12]);
-        if ($finishingOld) {
-            $sheet->mergeCells('A1:BI1');
-        } else {
-            $sheet->mergeCells('A1:CW1');
-        }
+        $data = DB::connection('mysql_sb')->cursor($query);
 
         // ======================================================
-        // MERGE HEADER
+        // BUAT FILE EXCEL (style mengikuti report mutasi packing)
         // ======================================================
+        $fileName = 'report-mutasi-wip-sewing';
 
-        $sheet->mergeCells('A2:E2');
-        $sheet->mergeCells('F2:T2');
-        $sheet->mergeCells('U2:AF2');
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Laporan Mutasi WIP Sewing'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . Carbon::parse($start_date)->format('d-m-Y') . ' s/d ' . Carbon::parse($end_date)->format('d-m-Y')],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        // ======================================================
+        // DEFINISI GROUP HEADER
+        // ======================================================
+        $groups = [
+            [
+                'text'  => 'Jenis Produk',
+                'color' => '#ADD8E6',
+                'cols'  => ['Buyer', 'WS', 'Style', 'Color', 'Size'],
+            ],
+            [
+                'text'  => 'Sewing',
+                'color' => '#FFF2CC',
+                'cols'  => [
+                    'Saldo Awal',
+                    'Terima Loading',
+                    'Terima Gudang Stok',
+                    'In Subcont',
+                    'Output Rework Sewing',
+                    'Output Rework Spotcleaning',
+                    'Output Rework Mending',
+                    'Defect Sewing',
+                    'Defect Spotcleaning',
+                    'Defect Mending',
+                    'Reject',
+                    'Output',
+                    'Out Subcont',
+                    'Adjustment',
+                    'Saldo Akhir',
+                ],
+            ],
+            [
+                'text'  => 'QC Finishing',
+                'color' => '#F4CCCC',
+                'cols'  => [
+                    'Saldo Awal',
+                    'Terima Sewing',
+                    'Output Rework Sewing',
+                    'Output Rework Spotcleaning',
+                    'Output Rework Mending',
+                    'Defect Sewing',
+                    'Defect Spotcleaning',
+                    'Defect Mending',
+                    'Reject',
+                    'Output',
+                    'Adjustment',
+                    'Saldo Akhir',
+                ],
+            ],
+        ];
+
+        $colsSecondary = ['Saldo Awal', 'Terima', 'Rework', 'Defect', 'Reject', 'Output', 'Adjustment', 'Saldo Akhir'];
+        $colsDefect    = ['Saldo Awal', 'Terima', 'Keluar', 'Adjustment', 'Saldo Akhir'];
+        $colsQcReject  = ['Saldo Awal', 'Terima', 'Keluar Sewing', 'Keluar Gudang Stok', 'Adjustment', 'Saldo Akhir'];
 
         if ($finishingOld) {
 
             // Sebelum 1 Juli 2026
-            $sheet->mergeCells('AG2:AN2'); // Finishing
-
-            $sheet->mergeCells('AO2:AS2'); // Defect Sewing
-            $sheet->mergeCells('AT2:AX2'); // Defect Spotcleaning
-            $sheet->mergeCells('AY2:BC2'); // Defect Mending
-            $sheet->mergeCells('BD2:BI2'); // QC Reject
+            $groups[] = ['text' => 'Finishing', 'color' => '#5DADE2', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Defect Sewing', 'color' => '#FFE5B4', 'cols' => $colsDefect];
+            $groups[] = ['text' => 'Defect Spotcleaning', 'color' => '#E6E6FA', 'cols' => $colsDefect];
+            $groups[] = ['text' => 'Defect Mending', 'color' => '#FFF2CC', 'cols' => $colsDefect];
+            $groups[] = ['text' => 'QC Reject', 'color' => '#F4CCCC', 'cols' => $colsQcReject];
 
         } else {
 
             // 1 Juli 2026 dan seterusnya
-            $sheet->mergeCells('AG2:AN2'); // Pasang Kancing
-            $sheet->mergeCells('AO2:AV2'); // Bartack
-            $sheet->mergeCells('AW2:BD2'); // Heatseal
-            $sheet->mergeCells('BE2:BL2'); // Snap
-            $sheet->mergeCells('BM2:BT2'); // Embro
-
-            $sheet->mergeCells('BU2:BY2'); // Defect Sewing
-            $sheet->mergeCells('BZ2:CD2'); // Defect Spotcleaning
-            $sheet->mergeCells('CE2:CI2'); // Defect Mending
-            $sheet->mergeCells('CJ2:CQ2'); // Transit
-            $sheet->mergeCells('CR2:CW2'); // QC Reject
-        }
-
-        // Isi value + apply bold + border
-        $headers = [
-            'A2:E2'  => ['text' => 'Jenis Produk', 'color' => '#ADD8E6'],
-            'F2:T2'  => ['text' => 'Sewing', 'color' => '#FFF2CC'],
-            'U2:AF2' => ['text' => 'QC Finishing', 'color' => '#F4CCCC'],
-        ];
-
-        if ($finishingOld) {
-            $headers += [
-                'AG2:AN2' => [
-                    'text' => 'Finishing',
-                    'color' => '#5DADE2'
-                ],
-
-                'AO2:AS2' => [
-                    'text' => 'Defect Sewing',
-                    'color' => '#FFE5B4'
-                ],
-
-                'AT2:AX2' => [
-                    'text' => 'Defect Spotcleaning',
-                    'color' => '#E6E6FA'
-                ],
-
-                'AY2:BC2' => [
-                    'text' => 'Defect Mending',
-                    'color' => '#FFF2CC'
-                ],
-
-                'BD2:BI2' => [
-                    'text' => 'QC Reject',
-                    'color' => '#F4CCCC'
+            $groups[] = ['text' => 'Finishing - Pasang Kancing', 'color' => '#90EE90', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Finishing - Bartack', 'color' => '#87CEEB', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Finishing - Heatseal', 'color' => '#D8BFD8', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Finishing - Snap', 'color' => '#5DADE2', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Finishing - Embro', 'color' => '#C8E6C9', 'cols' => $colsSecondary];
+            $groups[] = ['text' => 'Defect Sewing', 'color' => '#FFE5B4', 'cols' => $colsDefect];
+            $groups[] = ['text' => 'Defect Spotcleaning', 'color' => '#E6E6FA', 'cols' => $colsDefect];
+            $groups[] = ['text' => 'Defect Mending', 'color' => '#FFF2CC', 'cols' => $colsDefect];
+            $groups[] = [
+                'text'  => 'Transit Terima QC Reject',
+                'color' => '#FFA94D',
+                'cols'  => [
+                    'Saldo Awal',
+                    'Terima Sewing',
+                    'Terima QC Finishing',
+                    'Terima Finishing',
+                    'Keluar QC Reject',
+                    'Keluar Packing',
+                    'Adjustment',
+                    'Saldo Akhir',
                 ],
             ];
-
-        } else {
-
-            $headers += [
-                'AG2:AN2' => [
-                    'text' => 'Finishing - Pasang Kancing',
-                    'color' => '#90EE90'
-                ],
-
-                'AO2:AV2' => [
-                    'text' => 'Finishing - Bartack',
-                    'color' => '#87CEEB'
-                ],
-
-                'AW2:BD2' => [
-                    'text' => 'Finishing - Heatseal',
-                    'color' => '#D8BFD8'
-                ],
-
-                'BE2:BL2' => [
-                    'text' => 'Finishing - Snap',
-                    'color' => '#5DADE2'
-                ],
-
-                'BM2:BT2' => [
-                    'text' => 'Finishing - Embro',
-                    'color' => '#C8E6C9'
-                ],
-
-                'BU2:BY2' => [
-                    'text' => 'Defect Sewing',
-                    'color' => '#FFE5B4'
-                ],
-
-                'BZ2:CD2' => [
-                    'text' => 'Defect Spotcleaning',
-                    'color' => '#E6E6FA'
-                ],
-
-                'CE2:CI2' => [
-                    'text' => 'Defect Mending',
-                    'color' => '#FFF2CC'
-                ],
-
-                'CJ2:CQ2' => [
-                    'text' => 'Transit Terima QC Reject',
-                    'color' => '#FFA94D'
-                ],
-
-                'CR2:CW2' => [
-                    'text' => 'QC Reject',
-                    'color' => '#F4CCCC'
-                ],
-            ];
+            $groups[] = ['text' => 'QC Reject', 'color' => '#F4CCCC', 'cols' => $colsQcReject];
         }
 
-        foreach ($headers as $range => $value) {
-
-            // Ambil start & end cell dari merge
-            [$start, $end] = explode(':', $range);
-
-            // Konversi kolom huruf
-            $getColumn = function ($cell) {
-                return preg_replace('/[0-9]/', '', $cell);
-            };
-            $getRow = function ($cell) {
-                return preg_replace('/[A-Z]/i', '', $cell);
-            };
-
-            $startCol = $getColumn($start);
-            $endCol   = $getColumn($end);
-            $row      = $getRow($start);
-
-            // Konversi huruf kolom ke angka
-            $letterToNumber = function ($letters) {
-                $letters = strtoupper($letters);
-                $num = 0;
-                for ($i = 0; $i < strlen($letters); $i++) {
-                    $num = $num * 26 + (ord($letters[$i]) - 64);
-                }
-                return $num;
-            };
-
-            $numberToLetter = function ($num) {
-                $str = '';
-                while ($num > 0) {
-                    $mod = ($num - 1) % 26;
-                    $str = chr(65 + $mod) . $str;
-                    $num = intval(($num - 1) / 26);
-                }
-                return $str;
-            };
-
-            $startNum = $letterToNumber($startCol);
-            $endNum   = $letterToNumber($endCol);
-
-            // Loop semua kolom di range -> apply border & value hanya di start cell
-            for ($i = $startNum; $i <= $endNum; $i++) {
-                $col = $numberToLetter($i);
-                $cell = $col . $row;
-
-                if ($cell === $start) {
-                    $sheet->writeTo($cell, $value['text'], [
-                        'font-style'     => 'bold',
-                        'border'         => 'thin',
-                        'fill-color'     => $value['color'],
-                        'text-align'     => 'center',
-                        'vertical-align' => 'center',
-                    ]);
-                } else {
-                    $sheet->writeTo($cell, '', [
-                        'border'     => 'thin',
-                        'fill-color' => $value['color'],
-                    ]);
-                }
+        // Helper konversi nomor kolom -> huruf kolom (1 => A, 27 => AA)
+        $numberToLetter = function ($num) {
+            $str = '';
+            while ($num > 0) {
+                $mod = ($num - 1) % 26;
+                $str = chr(65 + $mod) . $str;
+                $num = intval(($num - 1) / 26);
             }
+            return $str;
+        };
+
+        // Hitung range tiap group + susun isi baris header
+        $headerTop = [];
+        $header    = [];
+        $colIndex  = 1;
+
+        foreach ($groups as $key => $group) {
+            $groups[$key]['start'] = $numberToLetter($colIndex);
+            $groups[$key]['end']   = $numberToLetter($colIndex + count($group['cols']) - 1);
+
+            foreach ($group['cols'] as $i => $col) {
+                $headerTop[] = $i === 0 ? $group['text'] : '';
+                $header[]    = $col;
+            }
+
+            $colIndex += count($group['cols']);
         }
 
-        // Merge semua range
-        foreach (array_keys($headers) as $range) {
+        // ======================================================
+        // HEADER GROUP (BARIS 4)
+        // ======================================================
+        $sheet->writeRow(
+            $headerTop,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        foreach ($groups as $group) {
+            $range = $group['start'] . '4:' . $group['end'] . '4';
+
             $sheet->mergeCells($range);
+
+            $sheet->setCellStyle($range, [
+                'fill'       => $group['color'],
+                'text-align' => 'center',
+            ]);
         }
 
-        $style = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#ADD8E6',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
+        // ======================================================
+        // HEADER KOLOM (BARIS 5)
+        // ======================================================
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+            ]
+        );
 
-        $sheet->writeTo('A3', 'Buyer', $style);
-        $sheet->writeTo('B3', 'WS', $style);
-        $sheet->writeTo('C3', 'Style', $style);
-        $sheet->writeTo('D3', 'Color', $style);
-        $sheet->writeTo('E3', 'Size', $style);
+        foreach ($groups as $group) {
+            $sheet->setCellStyle($group['start'] . '5:' . $group['end'] . '5', [
+                'fill'       => $group['color'],
+                'text-align' => 'center',
+            ]);
+        }
 
-        // SEWING (F:T = 15 kolom)
-        $styleLightYellow = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#FFF2CC',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
+        // ======================================================
+        // ISI DATA
+        // ======================================================
+        foreach ($data as $row) {
 
-        $sheet->writeTo('F3', 'Saldo Awal', $styleLightYellow);
-        $sheet->writeTo('G3', 'Terima Loading', $styleLightYellow);
-        $sheet->writeTo('H3', 'Terima Gudang Stok', $styleLightYellow);
-        $sheet->writeTo('I3', 'In Subcont', $styleLightYellow);
-        $sheet->writeTo('J3', 'Output Rework Sewing', $styleLightYellow);
-        $sheet->writeTo('K3', 'Output Rework Spotcleaning', $styleLightYellow);
-        $sheet->writeTo('L3', 'Output Rework Mending', $styleLightYellow);
-        $sheet->writeTo('M3', 'Defect Sewing', $styleLightYellow);
-        $sheet->writeTo('N3', 'Defect Spotcleaning', $styleLightYellow);
-        $sheet->writeTo('O3', 'Defect Mending', $styleLightYellow);
-        $sheet->writeTo('P3', 'Reject', $styleLightYellow);
-        $sheet->writeTo('Q3', 'Output', $styleLightYellow);
-        $sheet->writeTo('R3', 'Out Subcont', $styleLightYellow);
-        $sheet->writeTo('S3', 'Adjustment', $styleLightYellow);
-        $sheet->writeTo('T3', 'Saldo Akhir', $styleLightYellow);
+            $rows = [
+                $row->buyer ?? '',
+                $row->ws ?? '',
+                $row->styleno ?? '',
+                $row->color ?? '',
+                $row->size ?? '',
 
-        // QC FINISHING (U:AF = 12 kolom)
-        $stylePink = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#F4CCCC',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
+                // SEWING (15 kolom)
+                (float) ($row->saldo_awal_sewing ?? 0),
+                (float) ($row->qty_loading ?? 0),
+                (float) ($row->terima_gudang ?? 0),
+                (float) ($row->qty_in_subcont ?? 0),
+                (float) ($row->input_rework_sewing ?? 0),
+                (float) ($row->input_rework_spotcleaning ?? 0),
+                (float) ($row->input_rework_mending ?? 0),
+                (float) ($row->defect_sewing ?? 0),
+                (float) ($row->defect_spotcleaning ?? 0),
+                (float) ($row->defect_mending ?? 0),
+                (float) ($row->qty_sew_reject ?? 0),
+                (float) ($row->qty_sewing ?? 0),
+                (float) ($row->qty_out_subcont ?? 0),
+                (float) ($row->sewing_adjust ?? 0),
+                (float) ($row->saldo_akhir_sewing ?? 0),
 
-        $sheet->writeTo('U3', 'Saldo Awal', $stylePink);
-        $sheet->writeTo('V3', 'Terima Sewing', $stylePink);
-        $sheet->writeTo('W3', 'Output Rework Sewing', $stylePink);
-        $sheet->writeTo('X3', 'Output Rework Spotcleaning', $stylePink);
-        $sheet->writeTo('Y3', 'Output Rework Mending', $stylePink);
-        $sheet->writeTo('Z3', 'Defect Sewing', $stylePink);
-        $sheet->writeTo('AA3', 'Defect Spotcleaning', $stylePink);
-        $sheet->writeTo('AB3', 'Defect Mending', $stylePink);
-        $sheet->writeTo('AC3', 'Reject', $stylePink);
-        $sheet->writeTo('AD3', 'Output', $stylePink);
-        $sheet->writeTo('AE3', 'Adjustment', $stylePink);
-        $sheet->writeTo('AF3', 'Saldo Akhir', $stylePink);
-
-        $styleFinishing = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#5DADE2',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleLightGreen = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#90EE90',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleLightBlue = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#87CEEB',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $stylePurple = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#D8BFD8',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleSnap = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#5DADE2',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleEmbro = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#C8E6C9',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $stylePeach = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#FFE5B4',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleLavender = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#E6E6FA',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        $styleOrange = [
-            'font-style'     => 'bold',
-            'border'         => 'thin',
-            'fill-color'     => '#FFA94D',
-            'text-align'     => 'center',
-            'vertical-align' => 'center',
-        ];
-
-        if ($finishingOld) {
-
-            // ==========================================
-            // FINISHING LAMA AG:AN
-            // ==========================================
-
-            $styleFinishing = [
-                'font-style'     => 'bold',
-                'border'         => 'thin',
-                'fill-color'     => '#5DADE2',
-                'text-align'     => 'center',
-                'vertical-align' => 'center',
+                // QC FINISHING (12 kolom)
+                (float) ($row->saldo_awal_finishing ?? 0),
+                (float) ($row->qty_sewing ?? 0),
+                (float) ($row->input_rework_sewing_f ?? 0),
+                (float) ($row->input_rework_spotcleaning_f ?? 0),
+                (float) ($row->input_rework_mending_f ?? 0),
+                (float) ($row->defect_sewing_f ?? 0),
+                (float) ($row->defect_spotcleaning_f ?? 0),
+                (float) ($row->defect_mending_f ?? 0),
+                (float) ($row->qty_fin_reject ?? 0),
+                (float) ($row->qty_finishing ?? 0),
+                (float) ($row->qc_finishing_adjust ?? 0),
+                (float) ($row->saldo_akhir_finishing ?? 0),
             ];
 
-            $sheet->writeTo('AG3', 'Saldo Awal', $styleFinishing);
-            $sheet->writeTo('AH3', 'Terima', $styleFinishing);
-            $sheet->writeTo('AI3', 'Rework', $styleFinishing);
-            $sheet->writeTo('AJ3', 'Defect', $styleFinishing);
-            $sheet->writeTo('AK3', 'Reject', $styleFinishing);
-            $sheet->writeTo('AL3', 'Output', $styleFinishing);
-            $sheet->writeTo('AM3', 'Adjustment', $styleFinishing);
-            $sheet->writeTo('AN3', 'Saldo Akhir', $styleFinishing);
+            if ($finishingOld) {
 
+                $rows = array_merge($rows, [
 
-            // ==========================================
-            // DEFECT SEWING AO:AS
-            // ==========================================
+                    // FINISHING ALL
+                    (float) ($row->saldo_awal_secondary_proses ?? 0),
+                    (float) ($row->total_in_sp ?? 0),
+                    (float) ($row->rework_sp ?? 0),
+                    (float) ($row->defect_sp ?? 0),
+                    (float) ($row->reject_sp ?? 0),
+                    (float) ($row->rft_sp ?? 0),
+                    (float) ($row->finishing_adjust ?? 0),
+                    (float) ($row->saldo_akhir_secondary_proses ?? 0),
 
-            $sheet->writeTo('AO3', 'Saldo Awal', $stylePeach);
-            $sheet->writeTo('AP3', 'Terima', $stylePeach);
-            $sheet->writeTo('AQ3', 'Keluar', $stylePeach);
-            $sheet->writeTo('AR3', 'Adjustment', $stylePeach);
-            $sheet->writeTo('AS3', 'Saldo Akhir', $stylePeach);
+                    // DEFECT SEWING
+                    (float) ($row->saldo_awal_defect_sewing ?? 0),
+                    (float) ($row->total_defect_sewing ?? 0),
+                    (float) ($row->total_input_rework_sewing ?? 0),
+                    (float) ($row->defect_sewing_adjust ?? 0),
+                    (float) ($row->saldo_akhir_defect_sewing ?? 0),
 
+                    // DEFECT SPOTCLEANING
+                    (float) ($row->saldo_awal_defect_spotcleaning ?? 0),
+                    (float) ($row->total_defect_spotcleaning ?? 0),
+                    (float) ($row->total_input_rework_spotcleaning ?? 0),
+                    (float) ($row->defect_spotcleaning_adjust ?? 0),
+                    (float) ($row->saldo_akhir_defect_spotcleaning ?? 0),
 
-            // ==========================================
-            // DEFECT SPOTCLEANING AT:AX
-            // ==========================================
+                    // DEFECT MENDING
+                    (float) ($row->saldo_awal_defect_mending ?? 0),
+                    (float) ($row->total_defect_mending ?? 0),
+                    (float) ($row->total_input_rework_mending ?? 0),
+                    (float) ($row->defect_mending_adjust ?? 0),
+                    (float) ($row->saldo_akhir_mending ?? 0),
 
-            $sheet->writeTo('AT3', 'Saldo Awal', $styleLavender);
-            $sheet->writeTo('AU3', 'Terima', $styleLavender);
-            $sheet->writeTo('AV3', 'Keluar', $styleLavender);
-            $sheet->writeTo('AW3', 'Adjustment', $styleLavender);
-            $sheet->writeTo('AX3', 'Saldo Akhir', $styleLavender);
-
-
-            // ==========================================
-            // DEFECT MENDING AY:BC
-            // ==========================================
-
-            $sheet->writeTo('AY3', 'Saldo Awal', $styleLightYellow);
-            $sheet->writeTo('AZ3', 'Terima', $styleLightYellow);
-            $sheet->writeTo('BA3', 'Keluar', $styleLightYellow);
-            $sheet->writeTo('BB3', 'Adjustment', $styleLightYellow);
-            $sheet->writeTo('BC3', 'Saldo Akhir', $styleLightYellow);
-
-
-            // ==========================================
-            // QC REJECT BD:BI
-            // ==========================================
-
-            $sheet->writeTo('BD3', 'Saldo Awal', $stylePink);
-            $sheet->writeTo('BE3', 'Terima', $stylePink);
-            $sheet->writeTo('BF3', 'Keluar Sewing', $stylePink);
-            $sheet->writeTo('BG3', 'Keluar Gudang Stok', $stylePink);
-            $sheet->writeTo('BH3', 'Adjustment', $stylePink);
-            $sheet->writeTo('BI3', 'Saldo Akhir', $stylePink);
-        }else {
-
-            // ==========================================
-            // PASANG KANCING AG:AN
-            // ==========================================
-
-            $sheet->writeTo('AG3', 'Saldo Awal', $styleLightGreen);
-            $sheet->writeTo('AH3', 'Terima', $styleLightGreen);
-            $sheet->writeTo('AI3', 'Rework', $styleLightGreen);
-            $sheet->writeTo('AJ3', 'Defect', $styleLightGreen);
-            $sheet->writeTo('AK3', 'Reject', $styleLightGreen);
-            $sheet->writeTo('AL3', 'Output', $styleLightGreen);
-            $sheet->writeTo('AM3', 'Adjustment', $styleLightGreen);
-            $sheet->writeTo('AN3', 'Saldo Akhir', $styleLightGreen);
-
-
-            // BARTACK AO:AV
-            $sheet->writeTo('AO3', 'Saldo Awal', $styleLightBlue);
-            $sheet->writeTo('AP3', 'Terima', $styleLightBlue);
-            $sheet->writeTo('AQ3', 'Rework', $styleLightBlue);
-            $sheet->writeTo('AR3', 'Defect', $styleLightBlue);
-            $sheet->writeTo('AS3', 'Reject', $styleLightBlue);
-            $sheet->writeTo('AT3', 'Output', $styleLightBlue);
-            $sheet->writeTo('AU3', 'Adjustment', $styleLightBlue);
-            $sheet->writeTo('AV3', 'Saldo Akhir', $styleLightBlue);
-
-
-            // HEATSEAL AW:BD
-            $sheet->writeTo('AW3', 'Saldo Awal', $stylePurple);
-            $sheet->writeTo('AX3', 'Terima', $stylePurple);
-            $sheet->writeTo('AY3', 'Rework', $stylePurple);
-            $sheet->writeTo('AZ3', 'Defect', $stylePurple);
-            $sheet->writeTo('BA3', 'Reject', $stylePurple);
-            $sheet->writeTo('BB3', 'Output', $stylePurple);
-            $sheet->writeTo('BC3', 'Adjustment', $stylePurple);
-            $sheet->writeTo('BD3', 'Saldo Akhir', $stylePurple);
-
-
-            // SNAP BE:BL
-            $sheet->writeTo('BE3', 'Saldo Awal', $styleSnap);
-            $sheet->writeTo('BF3', 'Terima', $styleSnap);
-            $sheet->writeTo('BG3', 'Rework', $styleSnap);
-            $sheet->writeTo('BH3', 'Defect', $styleSnap);
-            $sheet->writeTo('BI3', 'Reject', $styleSnap);
-            $sheet->writeTo('BJ3', 'Output', $styleSnap);
-            $sheet->writeTo('BK3', 'Adjustment', $styleSnap);
-            $sheet->writeTo('BL3', 'Saldo Akhir', $styleSnap);
-
-
-            // EMBRO BM:BT
-            $sheet->writeTo('BM3', 'Saldo Awal', $styleEmbro);
-            $sheet->writeTo('BN3', 'Terima', $styleEmbro);
-            $sheet->writeTo('BO3', 'Rework', $styleEmbro);
-            $sheet->writeTo('BP3', 'Defect', $styleEmbro);
-            $sheet->writeTo('BQ3', 'Reject', $styleEmbro);
-            $sheet->writeTo('BR3', 'Output', $styleEmbro);
-            $sheet->writeTo('BS3', 'Adjustment', $styleEmbro);
-            $sheet->writeTo('BT3', 'Saldo Akhir', $styleEmbro);
-
-
-            // DEFECT SEWING BU:BY
-            $sheet->writeTo('BU3', 'Saldo Awal', $stylePeach);
-            $sheet->writeTo('BV3', 'Terima', $stylePeach);
-            $sheet->writeTo('BW3', 'Keluar', $stylePeach);
-            $sheet->writeTo('BX3', 'Adjustment', $stylePeach);
-            $sheet->writeTo('BY3', 'Saldo Akhir', $stylePeach);
-
-
-            // DEFECT SPOTCLEANING BZ:CD
-            $sheet->writeTo('BZ3', 'Saldo Awal', $styleLavender);
-            $sheet->writeTo('CA3', 'Terima', $styleLavender);
-            $sheet->writeTo('CB3', 'Keluar', $styleLavender);
-            $sheet->writeTo('CC3', 'Adjustment', $styleLavender);
-            $sheet->writeTo('CD3', 'Saldo Akhir', $styleLavender);
-
-
-            // DEFECT MENDING CE:CI
-            $sheet->writeTo('CE3', 'Saldo Awal', $styleLightYellow);
-            $sheet->writeTo('CF3', 'Terima', $styleLightYellow);
-            $sheet->writeTo('CG3', 'Keluar', $styleLightYellow);
-            $sheet->writeTo('CH3', 'Adjustment', $styleLightYellow);
-            $sheet->writeTo('CI3', 'Saldo Akhir', $styleLightYellow);
-
-
-            // TRANSIT CJ:CQ
-            $sheet->writeTo('CJ3', 'Saldo Awal', $styleOrange);
-            $sheet->writeTo('CK3', 'Terima Sewing', $styleOrange);
-            $sheet->writeTo('CL3', 'Terima QC Finishing', $styleOrange);
-            $sheet->writeTo('CM3', 'Terima Finishing', $styleOrange);
-            $sheet->writeTo('CN3', 'Keluar QC Reject', $styleOrange);
-            $sheet->writeTo('CO3', 'Keluar Packing', $styleOrange);
-            $sheet->writeTo('CP3', 'Adjustment', $styleOrange);
-            $sheet->writeTo('CQ3', 'Saldo Akhir', $styleOrange);
-
-
-            // QC REJECT CR:CW
-            $sheet->writeTo('CR3', 'Saldo Awal', $stylePink);
-            $sheet->writeTo('CS3', 'Terima', $stylePink);
-            $sheet->writeTo('CT3', 'Keluar Sewing', $stylePink);
-            $sheet->writeTo('CU3', 'Keluar Gudang Stok', $stylePink);
-            $sheet->writeTo('CV3', 'Adjustment', $stylePink);
-            $sheet->writeTo('CW3', 'Saldo Akhir', $stylePink);
-        }
-
-        $rowNumber = 4;
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber, $finishingOld) {
-            $sheet->writeAreas();
-
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $row->buyer ?? "-",
-                    $row->ws ?? "-",
-                    $row->styleno ?? "-",
-                    $row->color ?? "-",
-                    $row->size ?? "-",
-
-                    // SEWING (15 kolom)
-                    $row->saldo_awal_sewing ?? 0,
-                    $row->qty_loading ?? 0,
-                    $row->terima_gudang ?? 0,
-                    $row->qty_in_subcont ?? 0,
-                    $row->input_rework_sewing ?? 0,
-                    $row->input_rework_spotcleaning ?? 0,
-                    $row->input_rework_mending ?? 0,
-                    $row->defect_sewing ?? 0,
-                    $row->defect_spotcleaning ?? 0,
-                    $row->defect_mending ?? 0,
-                    $row->qty_sew_reject ?? 0,
-                    $row->qty_sewing ?? 0,
-                    $row->qty_out_subcont ?? 0,
-                    $row->sewing_adjust ?? 0,
-                    $row->saldo_akhir_sewing ?? 0,
-
-                    // QC FINISHING (12 kolom)
-                    $row->saldo_awal_finishing ?? 0,
-                    $row->qty_sewing ?? 0,
-                    $row->input_rework_sewing_f ?? 0,
-                    $row->input_rework_spotcleaning_f ?? 0,
-                    $row->input_rework_mending_f ?? 0,
-                    $row->defect_sewing_f ?? 0,
-                    $row->defect_spotcleaning_f ?? 0,
-                    $row->defect_mending_f ?? 0,
-                    $row->qty_fin_reject ?? 0,
-                    $row->qty_finishing ?? 0,
-                    $row->qc_finishing_adjust ?? 0,
-                    $row->saldo_akhir_finishing ?? 0,
-                ];
-
-                if ($finishingOld) {
-
-                    $rowArr = array_merge($rowArr, [
-
-                        // FINISHING ALL AG:AN
-                        $row->saldo_awal_secondary_proses ?? 0,
-                        $row->total_in_sp ?? 0,
-                        $row->rework_sp ?? 0,
-                        $row->defect_sp ?? 0,
-                        $row->reject_sp ?? 0,
-                        $row->rft_sp ?? 0,
-                        $row->finishing_adjust ?? 0,
-                        $row->saldo_akhir_secondary_proses ?? 0,
-
-                        // DEFECT SEWING AO:AS
-                        $row->saldo_awal_defect_sewing ?? 0,
-                        $row->total_defect_sewing ?? 0,
-                        $row->total_input_rework_sewing ?? 0,
-                        $row->defect_sewing_adjust ?? 0,
-                        $row->saldo_akhir_defect_sewing ?? 0,
-
-                        // DEFECT SPOTCLEANING AT:AX
-                        $row->saldo_awal_defect_spotcleaning ?? 0,
-                        $row->total_defect_spotcleaning ?? 0,
-                        $row->total_input_rework_spotcleaning ?? 0,
-                        $row->defect_spotcleaning_adjust ?? 0,
-                        $row->saldo_akhir_defect_spotcleaning ?? 0,
-
-                        // DEFECT MENDING AY:BC
-                        $row->saldo_awal_defect_mending ?? 0,
-                        $row->total_defect_mending ?? 0,
-                        $row->total_input_rework_mending ?? 0,
-                        $row->defect_mending_adjust ?? 0,
-                        $row->saldo_akhir_mending ?? 0,
-
-                        // QC REJECT BD:BI
-                        $row->saldo_awal_reject ?? 0,
-                        $row->qty_reject_in ?? 0,
-                        $row->qty_reworked ?? 0,
-                        $row->qty_rejected ?? 0,
-                        $row->qc_reject_adjust ?? 0,
-                        $row->saldo_akhir_qc_reject ?? 0,
-                    ]);
-
-                } else {
-
-                    $rowArr = array_merge($rowArr, [
-
-                        // PASANG KANCING AG:AN
-                        $row->saldo_awal_finishing_pasang_kancing ?? 0,
-                        $row->total_in_sp_pasang_kancing ?? 0,
-                        $row->rework_sp_pasang_kancing ?? 0,
-                        $row->defect_sp_pasang_kancing ?? 0,
-                        $row->reject_sp_pasang_kancing ?? 0,
-                        $row->rft_sp_pasang_kancing ?? 0,
-                        $row->finishing_adjust_pasang_kancing ?? 0,
-                        $row->saldo_akhir_finishing_pasang_kancing ?? 0,
-
-                        // BARTACK AO:AV
-                        $row->saldo_awal_finishing_bartack ?? 0,
-                        $row->total_in_sp_bartack ?? 0,
-                        $row->rework_sp_bartack ?? 0,
-                        $row->defect_sp_bartack ?? 0,
-                        $row->reject_sp_bartack ?? 0,
-                        $row->rft_sp_bartack ?? 0,
-                        $row->finishing_adjust_bartack ?? 0,
-                        $row->saldo_akhir_finishing_bartack ?? 0,
-
-                        // HEATSEAL AW:BD
-                        $row->saldo_awal_finishing_heatseal ?? 0,
-                        $row->total_in_sp_heatseal ?? 0,
-                        $row->rework_sp_heatseal ?? 0,
-                        $row->defect_sp_heatseal ?? 0,
-                        $row->reject_sp_heatseal ?? 0,
-                        $row->rft_sp_heatseal ?? 0,
-                        $row->finishing_adjust_heatseal ?? 0,
-                        $row->saldo_akhir_finishing_heatseal ?? 0,
-
-                        // SNAP BE:BL
-                        $row->saldo_awal_finishing_snap ?? 0,
-                        $row->total_in_sp_snap ?? 0,
-                        $row->rework_sp_snap ?? 0,
-                        $row->defect_sp_snap ?? 0,
-                        $row->reject_sp_snap ?? 0,
-                        $row->rft_sp_snap ?? 0,
-                        $row->finishing_adjust_snap ?? 0,
-                        $row->saldo_akhir_finishing_snap ?? 0,
-
-                        // EMBRO BM:BT
-                        $row->saldo_awal_finishing_embro ?? 0,
-                        $row->total_in_sp_embro ?? 0,
-                        $row->rework_sp_embro ?? 0,
-                        $row->defect_sp_embro ?? 0,
-                        $row->reject_sp_embro ?? 0,
-                        $row->rft_sp_embro ?? 0,
-                        $row->finishing_adjust_embro ?? 0,
-                        $row->saldo_akhir_finishing_embro ?? 0,
-
-                        // DEFECT SEWING BU:BY
-                        $row->saldo_awal_defect_sewing ?? 0,
-                        $row->total_defect_sewing ?? 0,
-                        $row->total_input_rework_sewing ?? 0,
-                        $row->defect_sewing_adjust ?? 0,
-                        $row->saldo_akhir_defect_sewing ?? 0,
-
-                        // DEFECT SPOTCLEANING BZ:CD
-                        $row->saldo_awal_defect_spotcleaning ?? 0,
-                        $row->total_defect_spotcleaning ?? 0,
-                        $row->total_input_rework_spotcleaning ?? 0,
-                        $row->defect_spotcleaning_adjust ?? 0,
-                        $row->saldo_akhir_defect_spotcleaning ?? 0,
-
-                        // DEFECT MENDING CE:CI
-                        $row->saldo_awal_defect_mending ?? 0,
-                        $row->total_defect_mending ?? 0,
-                        $row->total_input_rework_mending ?? 0,
-                        $row->defect_mending_adjust ?? 0,
-                        $row->saldo_akhir_mending ?? 0,
-
-                        // TRANSIT CJ:CQ
-                        $row->qty_transit_saldo_awal ?? 0,
-                        $row->qty_transit_terima_sewing ?? 0,
-                        $row->qty_transit_terima_qc_finishing ?? 0,
-                        $row->qty_transit_terima_finishing ?? 0,
-                        $row->qty_transit_keluar_qc_reject ?? 0,
-                        $row->qty_transit_keluar_packing ?? 0,
-                        $row->qty_transit_adjustment ?? 0,
-                        $row->qty_transit_keluar_saldo_akhir ?? 0,
-
-                        // QC REJECT CR:CW
-                        $row->saldo_awal_reject ?? 0,
-                        $row->qty_reject_in ?? 0,
-                        $row->qty_reworked ?? 0,
-                        $row->qty_rejected ?? 0,
-                        $row->qc_reject_adjust ?? 0,
-                        $row->saldo_akhir_qc_reject ?? 0,
-                    ]);
-                }
-
-                $sheet->writeRow($rowArr, [
-                    'border'     => 'thin',
-                    'text-align' => 'left'
+                    // QC REJECT
+                    (float) ($row->saldo_awal_reject ?? 0),
+                    (float) ($row->qty_reject_in ?? 0),
+                    (float) ($row->qty_reworked ?? 0),
+                    (float) ($row->qty_rejected ?? 0),
+                    (float) ($row->qc_reject_adjust ?? 0),
+                    (float) ($row->saldo_akhir_qc_reject ?? 0),
                 ]);
 
-                for ($col = 6; $col <= count($rowArr); $col++) {
-                    $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . $rowNumber;
+            } else {
 
-                    $val = $rowArr[$col - 1] ?? '';
+                $rows = array_merge($rows, [
 
-                    if (!is_scalar($val) || $val === null) {
-                        $val = '';
-                    }
+                    // PASANG KANCING
+                    (float) ($row->saldo_awal_finishing_pasang_kancing ?? 0),
+                    (float) ($row->total_in_sp_pasang_kancing ?? 0),
+                    (float) ($row->rework_sp_pasang_kancing ?? 0),
+                    (float) ($row->defect_sp_pasang_kancing ?? 0),
+                    (float) ($row->reject_sp_pasang_kancing ?? 0),
+                    (float) ($row->rft_sp_pasang_kancing ?? 0),
+                    (float) ($row->finishing_adjust_pasang_kancing ?? 0),
+                    (float) ($row->saldo_akhir_finishing_pasang_kancing ?? 0),
 
-                    $sheet->writeTo($cell, (float) $val, [
-                        'text-align'    => 'right',
-                        'number-format' => '#,##0'
-                    ]);
-                }
+                    // BARTACK
+                    (float) ($row->saldo_awal_finishing_bartack ?? 0),
+                    (float) ($row->total_in_sp_bartack ?? 0),
+                    (float) ($row->rework_sp_bartack ?? 0),
+                    (float) ($row->defect_sp_bartack ?? 0),
+                    (float) ($row->reject_sp_bartack ?? 0),
+                    (float) ($row->rft_sp_bartack ?? 0),
+                    (float) ($row->finishing_adjust_bartack ?? 0),
+                    (float) ($row->saldo_akhir_finishing_bartack ?? 0),
 
-                $rowNumber++;
+                    // HEATSEAL
+                    (float) ($row->saldo_awal_finishing_heatseal ?? 0),
+                    (float) ($row->total_in_sp_heatseal ?? 0),
+                    (float) ($row->rework_sp_heatseal ?? 0),
+                    (float) ($row->defect_sp_heatseal ?? 0),
+                    (float) ($row->reject_sp_heatseal ?? 0),
+                    (float) ($row->rft_sp_heatseal ?? 0),
+                    (float) ($row->finishing_adjust_heatseal ?? 0),
+                    (float) ($row->saldo_akhir_finishing_heatseal ?? 0),
+
+                    // SNAP
+                    (float) ($row->saldo_awal_finishing_snap ?? 0),
+                    (float) ($row->total_in_sp_snap ?? 0),
+                    (float) ($row->rework_sp_snap ?? 0),
+                    (float) ($row->defect_sp_snap ?? 0),
+                    (float) ($row->reject_sp_snap ?? 0),
+                    (float) ($row->rft_sp_snap ?? 0),
+                    (float) ($row->finishing_adjust_snap ?? 0),
+                    (float) ($row->saldo_akhir_finishing_snap ?? 0),
+
+                    // EMBRO
+                    (float) ($row->saldo_awal_finishing_embro ?? 0),
+                    (float) ($row->total_in_sp_embro ?? 0),
+                    (float) ($row->rework_sp_embro ?? 0),
+                    (float) ($row->defect_sp_embro ?? 0),
+                    (float) ($row->reject_sp_embro ?? 0),
+                    (float) ($row->rft_sp_embro ?? 0),
+                    (float) ($row->finishing_adjust_embro ?? 0),
+                    (float) ($row->saldo_akhir_finishing_embro ?? 0),
+
+                    // DEFECT SEWING
+                    (float) ($row->saldo_awal_defect_sewing ?? 0),
+                    (float) ($row->total_defect_sewing ?? 0),
+                    (float) ($row->total_input_rework_sewing ?? 0),
+                    (float) ($row->defect_sewing_adjust ?? 0),
+                    (float) ($row->saldo_akhir_defect_sewing ?? 0),
+
+                    // DEFECT SPOTCLEANING
+                    (float) ($row->saldo_awal_defect_spotcleaning ?? 0),
+                    (float) ($row->total_defect_spotcleaning ?? 0),
+                    (float) ($row->total_input_rework_spotcleaning ?? 0),
+                    (float) ($row->defect_spotcleaning_adjust ?? 0),
+                    (float) ($row->saldo_akhir_defect_spotcleaning ?? 0),
+
+                    // DEFECT MENDING
+                    (float) ($row->saldo_awal_defect_mending ?? 0),
+                    (float) ($row->total_defect_mending ?? 0),
+                    (float) ($row->total_input_rework_mending ?? 0),
+                    (float) ($row->defect_mending_adjust ?? 0),
+                    (float) ($row->saldo_akhir_mending ?? 0),
+
+                    // TRANSIT
+                    (float) ($row->qty_transit_saldo_awal ?? 0),
+                    (float) ($row->qty_transit_terima_sewing ?? 0),
+                    (float) ($row->qty_transit_terima_qc_finishing ?? 0),
+                    (float) ($row->qty_transit_terima_finishing ?? 0),
+                    (float) ($row->qty_transit_keluar_qc_reject ?? 0),
+                    (float) ($row->qty_transit_keluar_packing ?? 0),
+                    (float) ($row->qty_transit_adjustment ?? 0),
+                    (float) ($row->qty_transit_keluar_saldo_akhir ?? 0),
+
+                    // QC REJECT
+                    (float) ($row->saldo_awal_reject ?? 0),
+                    (float) ($row->qty_reject_in ?? 0),
+                    (float) ($row->qty_reworked ?? 0),
+                    (float) ($row->qty_rejected ?? 0),
+                    (float) ($row->qc_reject_adjust ?? 0),
+                    (float) ($row->saldo_akhir_qc_reject ?? 0),
+                ]);
             }
-        });
 
-        $filename = 'Laporan dc in  (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
 
-        return $excel->download($filename);
+        // ======================================================
+        // LEBAR KOLOM
+        // ======================================================
+        for ($i = 1; $i <= $colIndex - 1; $i++) {
+            $sheet->setColWidth($numberToLetter($i), 20);
+        }
+
+        return $excel->download();
     }
 }
