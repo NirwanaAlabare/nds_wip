@@ -204,8 +204,9 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="txtno_dokumen" class="form-label"><small><b>No. Dokumen</b></small></label>
-                            <input type="text" id="txtno_dokumen" name="no_dokumen"
-                                class="form-control form-control-sm">
+                            <textarea id="txtno_dokumen" name="no_dokumen" rows="2"
+                                class="form-control form-control-sm"
+                                placeholder="Pisahkan dengan koma jika lebih dari satu"></textarea>
                         </div>
                     </div>
                     <div class="row">
@@ -677,6 +678,7 @@
                 },
                 {
                     data: 'modul',
+                    className: 'text-wrap',
                     render: function(data, type, row) {
                         if (type !== 'display') {
                             return [data, row.no_dokumen].filter(Boolean).join(' ');

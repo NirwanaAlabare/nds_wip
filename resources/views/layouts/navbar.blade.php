@@ -104,8 +104,7 @@
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
     <div class="container">
         <!-- LEFT SECTION -->
-        <a href="{{ isset($brandRoute) ? route($brandRoute) : ($page != '' ? route($page) : '#') }}"
-            class="navbar-brand">
+        <a href="{{ isset($brandRoute) ? route($brandRoute) : ($page != '' ? route($page) : '#') }}" class="navbar-brand">
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
@@ -1323,8 +1322,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('part-detail-list') }}?page=accounting&subPage=part-detail-list" target="_blank"
-                                    rel="noopener noreferrer"
+                                <a href="{{ route('part-detail-list') }}?page=accounting&subPage=part-detail-list"
+                                    target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $subPage == 'part-detail-list' ? 'active' : '' }}">
                                     Part Detail Status
                                 </a>
@@ -1572,6 +1571,9 @@
                                         <a href="{{ route('asset_mesin_master') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_master' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Mesin</a>
+                                        <a href="{{ route('asset_mesin_opname') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_opname' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-clipboard-check"></i>Opname Mesin</a>
                                     </div>
 
                                     <div class="mega-dropdown-col">

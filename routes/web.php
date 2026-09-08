@@ -152,6 +152,7 @@ use App\Http\Controllers\AssetMesinPengeluaranController;
 use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
+use App\Http\Controllers\AssetMesinOpnameController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMasterTabController;
@@ -1634,6 +1635,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
         Route::get('/asset_mesin_master/export_excel', 'export_excel_master_mesin_detail')->name('export_excel_master_mesin_detail');
     });
+    // Master Asset Management Opname Mesin
+    Route::controller(AssetMesinOpnameController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_opname', 'asset_mesin_opname')->name('asset_mesin_opname');
+        Route::get('/asset_mesin_opname/create', 'create_asset_mesin_opname')->name('create_asset_mesin_opname');
+        Route::get('/asset_mesin_opname/list', 'getdata_asset_mesin_opname')->name('getdata_asset_mesin_opname');
+        Route::get('/asset_mesin_opname/export_excel', 'export_excel_asset_mesin_opname')->name('export_excel_asset_mesin_opname');
+        Route::post('/asset_mesin_opname/store', 'store_asset_mesin_opname')->name('store_asset_mesin_opname');
+        Route::delete('/asset_mesin_opname/delete', 'delete_asset_mesin_opname')->name('delete_asset_mesin_opname');
+    });
+
     // Master Asset Management Tambah Mesin (Sewa Mesin)
     Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_sewa', 'asset_mesin_sewa')->name('asset_mesin_sewa');
