@@ -25,7 +25,7 @@
         .section-header { background-color: #dbe4ee; color: #1f3a5f; text-align: center; font-weight: bold; }
         .label-col { width: 33%; vertical-align: top; }
         .sep-col { width: 2%; text-align: center; vertical-align: top; }
-        .value-col { vertical-align: top; }
+        .value-col { vertical-align: top; word-break: break-word; overflow-wrap: anywhere; }
 
         .sign-table td { border: 1px solid #000; padding: 6px; vertical-align: top; text-align: center; font-size: 11px; }
         .sign-header { background-color: #dbe4ee; color: #1f3a5f; font-weight: bold; }
