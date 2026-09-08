@@ -122,17 +122,15 @@
                             // (mulai detik ke-1). Kalau batas bawah & atas sama-sama inklusif,
                             // output yang jatuh tepat di jam bulat (mis. 09:00:00) terhitung 2x
                             // sehingga summary actual lebih besar dari Report Output.
-                            if ($i < 1) {
-                                $timeFrom = $date.' 00:00:00';
-                                $timeTo = $date.' '.$hours[$i].':00';
-                            }
-                            else if ($i == count($hours)-1) {
-                                $timeFrom = $date.' '.$hours[$i-1].':01';
-                                $timeTo = $date.' 23:59:59';
-                            }
-                            else {
-                                $timeFrom = $date.' '.$hours[$i-1].':01';
-                                $timeTo = $date.' '.$hours[$i].':00';
+                            if ($i == 0) {
+                                $timeFrom = $date . ' 00:00:00';
+                                $timeTo   = $date . ' ' . $hours[$i] . ':00';
+                            } elseif ($i == count($hours) - 1) {
+                                $timeFrom = $date . ' ' . $hours[$i - 1] . ':00';
+                                $timeTo   = $date . ' 23:59:59';
+                            } else {
+                                $timeFrom = $date . ' ' . $hours[$i - 1] . ':00';
+                                $timeTo   = $date . ' ' . $hours[$i] . ':00';
                             }
 
                             $jamKe = $i;
@@ -145,13 +143,17 @@
                             $minsAvail = 0;
 
                             foreach ($lineData as $line) {
-                                $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL');
+                                // $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL');
+                                $rft = $line->rfts->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('status', 'NORMAL');
                                 $totalRft += $rft->count();
-                                $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect');
+                                // $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect');
+                                $defect = $line->defects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('defect_status', 'defect');
                                 $totalDefect += $defect->count();
-                                $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked');
+                                // $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked');
+                                $rework = $line->defects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('defect_status', 'reworked');
                                 $totalRework += $rework->count();
-                                $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                                // $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                                $reject = $line->rejects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo);
                                 $totalReject += $reject->count();
                                 $totalActualThis = $rft->count() + $rework->count();
                                 $totalActual += $totalActualThis;
