@@ -253,7 +253,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Report Finishing "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.download = "Finishing - Report " + $("#kategori").val() + " " + $("#tgl-awal").val() + " - " + $("#tgl-akhir").val() + ".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {

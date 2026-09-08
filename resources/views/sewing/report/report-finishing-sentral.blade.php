@@ -199,7 +199,7 @@
                         return response.blob();
                     })
                     .then(blob => {
-                        let filename = `Report_${tipeText}_${start}_sd_${end}.xlsx`;
+                        let filename = `QC Finishing - Report_${tipeText}_${start}_sd_${end}.xlsx`;
                         let a = document.createElement('a');
                         a.href = URL.createObjectURL(blob);
                         a.download = filename;

@@ -12,7 +12,7 @@ class DcService
      * Tabel tujuan rekap. Dipakai bersama oleh buildRekapQuery() dan runRekap()
      * supaya kursor tanggal dan tujuan INSERT tidak pernah menunjuk tabel berbeda.
      */
-    protected $rekapTable = 'dc_report_rekap_test';
+    protected $rekapTable = 'dc_report_rekap';
 
     /**
      * Tanggal paling awal yang dianggap punya baris rekap valid. Dipakai sebagai

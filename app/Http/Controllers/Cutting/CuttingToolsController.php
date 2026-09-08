@@ -288,7 +288,7 @@ class CuttingToolsController extends Controller
 
                     // Regenerate form cut detail output
                     $cuttingService = new CuttingService();
-                    $cuttingService->generateFormCutInputDetailOutput($formCutInput->id);
+                    $cuttingService->generateFormCutInputDetailOutput($validatedRequest['modify_ratio_form_id']);
 
                     return array(
                         "status" => 200,

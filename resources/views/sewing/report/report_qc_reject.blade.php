@@ -232,7 +232,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Report QC Reject "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.download = "QC Reject - Report " + $("#kategori").val() + " " + $("#tgl-awal").val() + " - " + $("#tgl-akhir").val() + ".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {

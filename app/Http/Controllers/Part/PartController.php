@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 class PartController extends Controller
 {
@@ -280,6 +281,14 @@ class PartController extends Controller
             "style" => "required",
             "panel_status" => "required",
         ]);
+
+        if (!($request["main_part"]) || ($request["main_part"] && count($request["main_part"]) < 1)) {
+            return array(
+                    "status" => 400,
+                    "message" => "Harap tentukan satu main part",
+                    "additional" => [],
+                );
+        }
 
         // Check Remaining Panel
         $checkRemainingPanel = $partService->checkRemainingPanel($validatedRequest['ws_id'], $validatedRequest['panel_id'], $validatedRequest['panel'], $validatedRequest['panel_status']);
@@ -2225,5 +2234,169 @@ class PartController extends Controller
             'table' => 'datatable_list_part',
             'additional' => [],
         );
+    }
+
+    public function partDetailList(Request $request) {
+
+        if ($request->ajax()) {
+            $partDetails = $this->partDetailListQuery($request)->get();
+
+            return DataTables::of($partDetails)->toJson();
+        }
+
+        return view("marker.part.part-detail-list", [
+            "page" => $request->page ? $request->page : "dashboard-marker",
+            "subPageGroup" => $request->subPageGroup ? $request->subPageGroup : "proses-marker",
+            "subPage" => $request->subPage ? $request->subPage : "part",
+        ]);
+    }
+
+    public function exportPartDetailList(Request $request) {
+        ini_set("max_execution_time", 36000);
+        ini_set('memory_limit', '1024M');
+
+        $partDetails = $this->partDetailListQuery($request)->get();
+
+        $excel = FastExcel::create('list-part-detail');
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['List Part Detail'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $filterInfo = [];
+        foreach (["dateFrom" => "Tanggal Awal", "dateTo" => "Tanggal Akhir", "ws" => "No. WS", "color" => "Color", "panel" => "Panel", "part" => "Part", "part_status" => "Status Part"] as $key => $label) {
+            if ($request->filled($key)) {
+                $filterInfo[] = $label.' : '.$request->input($key);
+            }
+        }
+
+        $sheet->writeRow(
+            [count($filterInfo) > 0 ? implode('  |  ', $filterInfo) : 'Semua Data'],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow(
+            [
+                'No. WS',
+                'Style',
+                'Color',
+                'Panel',
+                'Status Panel',
+                'Part',
+                'Status Part',
+                'Proses',
+                'Created At',
+            ],
+            [
+                'font-style' => 'bold',
+                'fill-color' => '#DDEBF7',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        foreach ($partDetails as $partDetail) {
+            $sheet->writeRow(
+                [
+                    $partDetail->ws,
+                    $partDetail->styleno,
+                    $partDetail->color,
+                    $partDetail->panel,
+                    $partDetail->panel_status,
+                    $partDetail->nama_part,
+                    $partDetail->part_status,
+                    $partDetail->proses,
+                    $partDetail->created_at_text ?: '',
+                ],
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        foreach (range('A', 'I') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
+    /**
+     * Query bersama untuk datatable & export supaya isinya tidak bisa berbeda.
+     */
+    private function partDetailListQuery(Request $request) {
+        return PartDetail::selectRaw("
+                part_detail.id,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) panel,
+                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status,
+                master_part.nama_part,
+                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
+                COALESCE(GROUP_CONCAT(DISTINCT multi_master_secondary.proses ORDER BY multi_master_secondary.proses SEPARATOR ', '), master_secondary.proses) proses,
+                DATE_FORMAT(MIN(part_detail.created_at), '%Y-%m-%d %H:%i') created_at_text
+            ")->
+            leftJoin("part_detail as pd_com", "pd_com.id", "=", "part_detail.from_part_detail")->
+            leftJoin("part as p_com", "p_com.id", "=", "pd_com.part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_act_cost", "=", "part.act_costing_id")->
+            leftJoin("part_custom as pcust", function ($join) {
+                $join->on("pcust.part_id", "=", "part.id");
+                $join->on("pcust.part_detail_id", "=", "part_detail.id");
+                $join->on("pcust.color", "=", "part.color");
+            })->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+            leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+            leftJoin("master_secondary as multi_master_secondary", "multi_master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
+            when($request->dateFrom, function ($query) use ($request) {
+                // Dibandingkan langsung ke timestamp (bukan DATE(created_at)) supaya index created_at tetap terpakai
+                $query->where("part_detail.created_at", ">=", $request->dateFrom." 00:00:00");
+            })->
+            when($request->dateTo, function ($query) use ($request) {
+                $query->where("part_detail.created_at", "<=", $request->dateTo." 23:59:59");
+            })->
+            when($request->ws, function ($query) use ($request) {
+                $query->where("master_sb_ws.ws", "like", "%".$request->ws."%");
+            })->
+            when($request->color, function ($query) use ($request) {
+                $query->where("master_sb_ws.color", $request->color);
+            })->
+            when($request->panel, function ($query) use ($request) {
+                $query->whereRaw("( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) = ?", [$request->panel]);
+            })->
+            when($request->part, function ($query) use ($request) {
+                $query->where("master_part.nama_part", "like", "%".$request->part."%");
+            })->
+            when($request->part_status, function ($query) use ($request) {
+                $query->whereRaw("COALESCE(pcust.set_part_status, part_detail.part_status) = ?", [$request->part_status]);
+            })->
+            whereNotNull("part.act_costing_id")->
+            where("part_detail.part_status", "!=", "complement")->
+            groupByRaw("
+                master_sb_ws.id_act_cost,
+                master_sb_ws.color,
+                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ),
+                ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ),
+                master_part.nama_part,
+                COALESCE(pcust.set_part_status, part_detail.part_status)
+            ")->
+            orderBy("part_detail.created_at", "desc")->
+            orderBy("master_sb_ws.ws")->
+            orderBy("master_part.nama_part");
     }
 }
