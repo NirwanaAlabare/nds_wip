@@ -702,6 +702,8 @@
             for (let i = 0; i < isMainPartElements.length; i++) {
                 if (i != index) {
                     isMainPartElements[i].checked = false;
+                } else {
+                    isMainPartElements[i].checked = true;
                 }
             }
         }

@@ -9,6 +9,26 @@ use DB;
 class DcService
 {
     /**
+     * Tabel tujuan rekap. Dipakai bersama oleh buildRekapQuery() dan runRekap()
+     * supaya kursor tanggal dan tujuan INSERT tidak pernah menunjuk tabel berbeda.
+     */
+    protected $rekapTable = 'dc_report_rekap';
+
+    /**
+     * Tanggal paling awal yang dianggap punya baris rekap valid. Dipakai sebagai
+     * batas bawah pencarian rekap terakhir sekaligus titik mulai kalau tabel rekap
+     * masih kosong.
+     */
+    protected $rekapStartDate = '2026-01-01';
+
+    /**
+     * Batas akhir default runRekap(). Diisi null untuk memakai perilaku produksi
+     * (30 hari sebelum hari ini, menyisakan periode terbaru supaya tidak direkap
+     * selagi transaksinya masih berjalan).
+     */
+    protected $rekapEndDate = '2026-06-30';
+
+    /**
      * CTE dasar (dc_before_saldo, dc_current_saldo, dc_in_dump_before, dc_before_saldo_secondary)
      * yang dipakai bersama oleh buildQuery() dan runRekap().
      *
@@ -23,14 +43,14 @@ class DcService
                             dc_rekap AS (
                                     SELECT
                                             dc_report_rekap.*
-                                    FROM dc_report_rekap
+                                    FROM ".$this->rekapTable." dc_report_rekap
                                     INNER JOIN (
                                             SELECT
                                                     MAX(tanggal) tanggal
                                             FROM
-                                                    dc_report_rekap
+                                                    ".$this->rekapTable."
                                             WHERE
-                                                    tanggal >= '2026-01-01' and
+                                                    tanggal >= '".$this->rekapStartDate."' and
                                                     tanggal < '".$dateFrom."'
                                     ) tanggal_akhir_rekap on tanggal_akhir_rekap.tanggal = dc_report_rekap.tanggal
                             ),
@@ -1746,14 +1766,14 @@ class DcService
                             dc_rekap AS (
                                     SELECT
                                             dc_report_rekap.*
-                                    FROM dc_report_rekap
+                                    FROM ".$this->rekapTable." dc_report_rekap
                                     INNER JOIN (
                                             SELECT
                                                     MAX(tanggal) tanggal
                                             FROM
-                                                    dc_report_rekap
+                                                    ".$this->rekapTable."
                                             WHERE
-                                                    tanggal >= '2026-01-01' and
+                                                    tanggal >= '".$this->rekapStartDate."' and
                                                     tanggal < '".$dateFrom."'
                                     ) tanggal_akhir_rekap on tanggal_akhir_rekap.tanggal = dc_report_rekap.tanggal
                             ),
@@ -2703,14 +2723,19 @@ class DcService
                                             part_status,
                                             saldo_akhir saldo_awal,
                                             0 qty_in,
-                                            kirim_secondary_dalam,
-                                            terima_repaired_secondary_dalam,
-                                            terima_good_secondary_dalam,
-                                            kirim_secondary_luar,
-                                            CASE WHEN tanggal < '2026-07-01' THEN terima_repaired_secondary_luar ELSE 0 END AS terima_repaired_secondary_luar,
-                                            CASE WHEN tanggal < '2026-07-01' THEN terima_good_secondary_luar ELSE 0 END AS terima_good_secondary_luar,
-                                            CASE WHEN tanggal >= '2026-07-01' THEN terima_repaired_secondary_luar ELSE 0 END AS terima_repaired_secondary_luar_new,
-                                            CASE WHEN tanggal >= '2026-07-01' THEN terima_good_secondary_luar ELSE 0 END AS terima_good_secondary_luar_new,
+                                            -- Baris rekap hanya menyimpan mutasi PERIODE-nya sendiri, bukan mutasi
+                                            -- kumulatif. Kalau kolom mutasi itu yang dibawa, periode-periode sebelum
+                                            -- baris rekap terakhir ikut hilang dari saldo awal. Yang dibawa harus
+                                            -- saldo akhirnya, disalurkan lewat kolom kirim (saldo = kirim - terima),
+                                            -- sama seperti dc_before_saldo yang membawa saldo_akhir sebagai saldo_awal.
+                                            COALESCE(saldo_akhir_secondary_dalam, 0) kirim_secondary_dalam,
+                                            0 terima_repaired_secondary_dalam,
+                                            0 terima_good_secondary_dalam,
+                                            COALESCE(saldo_akhir_secondary_luar, 0) kirim_secondary_luar,
+                                            0 AS terima_repaired_secondary_luar,
+                                            0 AS terima_good_secondary_luar,
+                                            0 AS terima_repaired_secondary_luar_new,
+                                            0 AS terima_good_secondary_luar_new,
                                             0 loading_qty,
                                             0 saldo_akhir,
                                             CURRENT_TIMESTAMP() created_at,
@@ -3684,7 +3709,7 @@ class DcService
      */
     public function buildRekapQuery($dateFrom, $dateTo) {
         return "
-                INSERT INTO dc_report_rekap (
+                INSERT INTO ".$this->rekapTable." (
                         tanggal,
                         stockers,
                         buyer,
@@ -3716,259 +3741,346 @@ class DcService
 
                 WITH
                 " . $this->buildBaseCte($dateFrom, $dateTo) . "
-                        dc_saldo AS (
-                                        select
-                                                stockers,
-                                                buyer,
-                                                ws,
-                                                style,
-                                                UPPER(TRIM(color)) color,
-                                                id_so_det,
-                                                panel,
-                                                panel_status,
-                                                part_detail_id,
-                                                nama_part,
-                                                part_status,
-                                                SUM(current_saldo_awal) current_saldo_awal,
-                                                SUM(qty_in) qty_in,
-                                                SUM(kirim_secondary_dalam) kirim_secondary_dalam,
-                                                SUM(terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
-                                                SUM(terima_good_secondary_dalam) terima_good_secondary_dalam,
-                                                SUM(kirim_secondary_luar) kirim_secondary_luar,
-                                                SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
-                                                SUM(terima_good_secondary_luar) terima_good_secondary_luar,
-                                                SUM(loading) loading_qty,
-                                                SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir,
-                                                (
-                                                    CASE WHEN '".$dateFrom."' < '2026-06-01' THEN 0 ELSE (
-                                                        SUM(kirim_secondary_dalam_before)
-                                                        -
-                                                        SUM(terima_repaired_secondary_dalam_before)
-                                                        -
-                                                        SUM(terima_good_secondary_dalam_before)
-                                                    )
-                                                    END
-                                                ) saldo_awal_secondary_dalam,
-                                                (
-                                                    (
-                                                        CASE
-                                                        WHEN '".$dateFrom."' < '2026-06-01'
-                                                        THEN 0
-                                                        ELSE
-                                                            (
-                                                                SUM(kirim_secondary_dalam_before)
-                                                                -
-                                                                SUM(terima_repaired_secondary_dalam_before)
-                                                                -
-                                                                SUM(terima_good_secondary_dalam_before)
-                                                            )
-                                                        END
-                                                    )
-                                                    +
-                                                    SUM(kirim_secondary_dalam)
-                                                    -
-                                                    SUM(terima_repaired_secondary_dalam)
-                                                    -
-                                                    SUM(terima_good_secondary_dalam)
-                                                ) saldo_akhir_secondary_dalam,
-                                                (
-                                                    CASE
-                                                        WHEN '".$dateFrom."' < '2026-06-01'
-                                                        THEN 0
-                                                        ELSE
-                                                        (
-                                                            SUM(kirim_secondary_luar_before)
-                                                            -
-                                                            SUM(terima_repaired_secondary_luar_before)
-                                                            -
-                                                            SUM(terima_good_secondary_luar_before)
-                                                        )
-                                                    END
-                                                ) saldo_awal_secondary_luar,
-                                                (
-                                                    (
-                                                        CASE
-                                                        WHEN '".$dateFrom."' < '2026-06-01'
-                                                        THEN 0
-                                                        ELSE
-                                                            (
-                                                                SUM(kirim_secondary_luar_before)
-                                                                -
-                                                                SUM(terima_repaired_secondary_luar_before)
-                                                                -
-                                                                SUM(terima_good_secondary_luar_before)
-                                                            )
-                                                        END
-                                                    )
-                                                    +
-                                                    SUM(kirim_secondary_luar)
-                                                    -
-                                                    SUM(terima_repaired_secondary_luar)
-                                                    -
-                                                    SUM(terima_good_secondary_luar)
-                                                ) saldo_akhir_secondary_luar
-                                        from (
-                                                select
-                                                                GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
-                                                                dc_current_saldo.buyer,
-                                                                dc_current_saldo.ws,
-                                                                dc_current_saldo.style,
-                                                                dc_current_saldo.color,
-                                                                dc_current_saldo.size,
-                                                                GROUP_CONCAT(dc_current_saldo.id_so_det) id_so_det,
-                                                                dc_current_saldo.panel,
-                                                                dc_current_saldo.panel_status,
-                                                                dc_current_saldo.part_detail_id,
-                                                                GROUP_CONCAT(DISTINCT dc_current_saldo.nama_part) as nama_part,
-                                                                GROUP_CONCAT(DISTINCT dc_current_saldo.part_status) as part_status,
-                                                                0 as current_saldo_awal,
-                                                                sum(dc_current_saldo.qty_in) qty_in,
-                                                                sum(dc_current_saldo.kirim_secondary_dalam) kirim_secondary_dalam,
-                                                                sum(dc_current_saldo.terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
-                                                                sum(dc_current_saldo.terima_good_secondary_dalam) terima_good_secondary_dalam,
-                                                                sum(dc_current_saldo.kirim_secondary_luar) kirim_secondary_luar,
-                                                                sum(dc_current_saldo.terima_repaired_secondary_luar) terima_repaired_secondary_luar,
-                                                                sum(dc_current_saldo.terima_good_secondary_luar) terima_good_secondary_luar,
-                                                                sum(dc_current_saldo.loading_qty) loading,
-                                                                SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir,
-                                                                0 as kirim_secondary_dalam_before,
-                                                                0 as terima_repaired_secondary_dalam_before,
-                                                                0 as terima_good_secondary_dalam_before,
-                                                                0 as kirim_secondary_luar_before,
-                                                                0 as terima_repaired_secondary_luar_before,
-                                                                0 as terima_good_secondary_luar_before
-                                                from
-                                                                dc_current_saldo
-                                                GROUP BY
-                                                                dc_current_saldo.ws,
-                                                                dc_current_saldo.color,
-                                                                dc_current_saldo.size,
-                                                                dc_current_saldo.part_detail_id
-                                                UNION ALL
-                                                select
-                                                                GROUP_CONCAT(dc_before_saldo.stockers) as stockers,
-                                                                msb.buyer,
-                                                                msb.ws as act_costing_ws,
-                                                                msb.styleno as style,
-                                                                msb.color,
-                                                                msb.size,
-                                                                GROUP_CONCAT(dc_before_saldo.so_det_id) so_det_id,
-                                                                dc_before_saldo.panel,
-                                                                dc_before_saldo.panel_status,
-                                                                dc_before_saldo.part_detail_id,
-                                                                GROUP_CONCAT(DISTINCT dc_before_saldo.nama_part) as nama_part,
-                                                                GROUP_CONCAT(DISTINCT dc_before_saldo.part_status) as part_status,
-                                                                SUM(COALESCE(dc_before_saldo.saldo_akhir, 0)) as current_saldo_awal,
-                                                                0 qty_in,
-                                                                0 kirim_secondary_dalam,
-                                                                0 terima_repaired_secondary_dalam,
-                                                                0 terima_good_secondary_dalam,
-                                                                0 kirim_secondary_luar,
-                                                                0 terima_repaired_secondary_luar,
-                                                                0 terima_good_secondary_luar,
-                                                                0 loading,
-                                                                0 as current_saldo_akhir,
-                                                                0 kirim_secondary_dalam_before,
-                                                                0 terima_repaired_secondary_dalam_before,
-                                                                0 terima_good_secondary_dalam_before,
-                                                                0 kirim_secondary_luar_before,
-                                                                0 terima_repaired_secondary_luar_before,
-                                                                0 terima_good_secondary_luar_before
-                                                from
-                                                                dc_before_saldo
-                                                                left join master_sb_ws msb on msb.id_so_det = dc_before_saldo.so_det_id
-                                                GROUP BY
-                                                                msb.ws,
-                                                                msb.color,
-                                                                msb.size,
-                                                                dc_before_saldo.part_detail_id
-                                                HAVING
-                                                                current_saldo_awal != 0
-                                                UNION ALL
-                                                select
-                                                                GROUP_CONCAT(dc_before_saldo_secondary.stockers) as stockers,
-                                                                msb.buyer,
-                                                                msb.ws as act_costing_ws,
-                                                                msb.styleno as style,
-                                                                msb.color,
-                                                                msb.size,
-                                                                GROUP_CONCAT(dc_before_saldo_secondary.so_det_id) so_det_id,
-                                                                dc_before_saldo_secondary.panel,
-                                                                dc_before_saldo_secondary.panel_status,
-                                                                dc_before_saldo_secondary.part_detail_id,
-                                                                GROUP_CONCAT(DISTINCT dc_before_saldo_secondary.nama_part) as nama_part,
-                                                                GROUP_CONCAT(DISTINCT dc_before_saldo_secondary.part_status) as part_status,
-                                                                0 current_saldo_awal,
-                                                                0 qty_in,
-                                                                0 kirim_secondary_dalam,
-                                                                0 terima_repaired_secondary_dalam,
-                                                                0 terima_good_secondary_dalam,
-                                                                0 kirim_secondary_luar,
-                                                                0 terima_repaired_secondary_luar,
-                                                                0 terima_good_secondary_luar,
-                                                                0 loading,
-                                                                0 as current_saldo_akhir,
-                                                                SUM(kirim_secondary_dalam) as kirim_secondary_dalam_before,
-                                                                SUM(terima_repaired_secondary_dalam) as terima_repaired_secondary_dalam_before,
-                                                                SUM(terima_good_secondary_dalam) as terima_good_secondary_dalam_before,
-                                                                SUM(kirim_secondary_luar) as kirim_secondary_luar_before,
-                                                                SUM(terima_repaired_secondary_luar) as terima_repaired_secondary_luar_before,
-                                                                SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before
-                                                from
-                                                                dc_before_saldo_secondary
-                                                                left join master_sb_ws msb on msb.id_so_det = dc_before_saldo_secondary.so_det_id
-                                                GROUP BY
-                                                                msb.ws,
-                                                                msb.color,
-                                                                msb.size,
-                                                                dc_before_saldo_secondary.part_detail_id
-                                                HAVING
-                                                                (
-                                                                        kirim_secondary_dalam_before != 0 OR
-                                                                        terima_repaired_secondary_dalam_before != 0 OR
-                                                                        terima_good_secondary_dalam_before != 0 OR
-                                                                        kirim_secondary_luar_before != 0 OR
-                                                                        terima_repaired_secondary_luar_before != 0 OR
-                                                                        terima_good_secondary_luar_before != 0
-                                                                )
-                                        ) current_saldo
-                                        group by
-                                                ws,
-                                                color,
-                                                size,
-                                                part_detail_id
-                        )
-
+                dc_saldo AS (
+                    select
+                        stockers,
+                        ws,
+                        buyer,
+                        style,
+                        UPPER(TRIM(color)) color,
+                        size,
+                        id_so_det as so_det_id,
+                        panel,
+                        panel_status,
+                        nama_part,
+                        part_status,
+                        part_detail_id,
+                        SUM(current_saldo_awal) current_saldo_awal,
+                        SUM(qty_in) qty_in,
+                        SUM(kirim_secondary_dalam) kirim_secondary_dalam,
+                        SUM(terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
+                        SUM(terima_good_secondary_dalam) terima_good_secondary_dalam,
+                        SUM(kirim_secondary_luar) kirim_secondary_luar,
+                        SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
+                        SUM(terima_good_secondary_luar) terima_good_secondary_luar,
+                        SUM(loading) loading_qty,
+                        SUM(current_saldo_awal)+SUM(current_saldo_akhir) as current_saldo_akhir,
+                        -- placeholder, belum ada sumber datanya. Ditaruh di sini supaya
+                        -- rumus saldo secondary luar di bawah bisa memakainya (MySQL tidak
+                        -- mengizinkan alias dipakai oleh kolom lain dalam SELECT yang sama)
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar,
+                        SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
+                        SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
+                        SUM(terima_good_secondary_dalam_before) terima_good_secondary_dalam_before,
+                        SUM(kirim_secondary_luar_before) kirim_secondary_luar_before,
+                        SUM(terima_repaired_secondary_luar_before) terima_repaired_secondary_luar_before,
+                        SUM(terima_good_secondary_luar_before) terima_good_secondary_luar_before,
+                        SUM(terima_repaired_secondary_luar_before_new) terima_repaired_secondary_luar_before_new,
+                        SUM(terima_good_secondary_luar_before_new) terima_good_secondary_luar_before_new
+                    from (
                         select
-                            '".$dateTo."',
-                            stockers,
-                            buyer,
-                            ws,
-                            color,
-                            id_so_det,
-                            panel,
-                            panel_status,
-                            part_detail_id,
-                            nama_part,
-                            part_status,
-                            current_saldo_awal,
-                            qty_in,
-                            kirim_secondary_dalam,
-                            terima_repaired_secondary_dalam,
-                            terima_good_secondary_dalam,
-                            kirim_secondary_luar,
-                            terima_repaired_secondary_luar,
-                            terima_good_secondary_luar,
-                            loading_qty,
-                            current_saldo_akhir,
-                            saldo_awal_secondary_dalam,
-                            saldo_akhir_secondary_dalam,
-                            saldo_awal_secondary_luar,
-                            saldo_akhir_secondary_luar,
-                            CURRENT_TIMESTAMP,
-                            CURRENT_TIMESTAMP
+                                GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
+                                dc_current_saldo.buyer,
+                                dc_current_saldo.ws,
+                                dc_current_saldo.style,
+                                dc_current_saldo.color,
+                                dc_current_saldo.size,
+                                dc_current_saldo.id_so_det id_so_det,
+                                dc_current_saldo.panel,
+                                dc_current_saldo.panel_status,
+                                dc_current_saldo.part_detail_id,
+                                dc_current_saldo.nama_part as nama_part,
+                                dc_current_saldo.part_status as part_status,
+                                0 as current_saldo_awal,
+                                sum(dc_current_saldo.qty_in) qty_in,
+                                sum(dc_current_saldo.kirim_secondary_dalam) kirim_secondary_dalam,
+                                sum(dc_current_saldo.terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
+                                sum(dc_current_saldo.terima_good_secondary_dalam) terima_good_secondary_dalam,
+                                sum(dc_current_saldo.kirim_secondary_luar) kirim_secondary_luar,
+                                sum(dc_current_saldo.terima_repaired_secondary_luar) terima_repaired_secondary_luar,
+                                sum(dc_current_saldo.terima_good_secondary_luar) terima_good_secondary_luar,
+                                sum(dc_current_saldo.loading_qty) loading,
+                                SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir,
+                                0 as kirim_secondary_dalam_before,
+                                0 as terima_repaired_secondary_dalam_before,
+                                0 as terima_good_secondary_dalam_before,
+                                0 as kirim_secondary_luar_before,
+                                0 as terima_repaired_secondary_luar_before,
+                                0 as terima_good_secondary_luar_before,
+                                0 as terima_repaired_secondary_luar_before_new,
+                                0 as terima_good_secondary_luar_before_new
                         from
-                            dc_saldo
+                                dc_current_saldo
+                        GROUP BY
+                                dc_current_saldo.ws,
+                                dc_current_saldo.color,
+                                dc_current_saldo.size,
+                                dc_current_saldo.id_so_det,
+                                dc_current_saldo.part_detail_id
+                        UNION ALL
+                        select
+                                GROUP_CONCAT(dc_before_saldo.stockers) as stockers,
+                                msb.buyer,
+                                msb.ws as act_costing_ws,
+                                msb.styleno as style,
+                                msb.color,
+                                msb.size,
+                                dc_before_saldo.so_det_id id_so_det,
+                                dc_before_saldo.panel,
+                                dc_before_saldo.panel_status,
+                                dc_before_saldo.part_detail_id,
+                                dc_before_saldo.nama_part as nama_part,
+                                dc_before_saldo.part_status as part_status,
+                                SUM(COALESCE(dc_before_saldo.saldo_akhir, 0)) as current_saldo_awal,
+                                0 qty_in,
+                                0 kirim_secondary_dalam,
+                                0 terima_repaired_secondary_dalam,
+                                0 terima_good_secondary_dalam,
+                                0 kirim_secondary_luar,
+                                0 terima_repaired_secondary_luar,
+                                0 terima_good_secondary_luar,
+                                0 loading,
+                                0 as current_saldo_akhir,
+                                0 kirim_secondary_dalam_before,
+                                0 terima_repaired_secondary_dalam_before,
+                                0 terima_good_secondary_dalam_before,
+                                0 kirim_secondary_luar_before,
+                                0 terima_repaired_secondary_luar_before,
+                                0 terima_good_secondary_luar_before,
+                                0 terima_repaired_secondary_luar_before_new,
+                                0 terima_good_secondary_luar_before_new
+                        from
+                                dc_before_saldo
+                                left join master_sb_ws msb on msb.id_so_det = dc_before_saldo.so_det_id
+                        GROUP BY
+                                msb.ws,
+                                msb.color,
+                                msb.size,
+                                dc_before_saldo.so_det_id,
+                                dc_before_saldo.part_detail_id
+                        HAVING
+                                current_saldo_awal != 0
+                        UNION ALL
+                        select
+                                GROUP_CONCAT(dc_before_saldo_secondary.stockers) as stockers,
+                                msb.buyer,
+                                msb.ws as act_costing_ws,
+                                msb.styleno as style,
+                                msb.color,
+                                msb.size,
+                                dc_before_saldo_secondary.so_det_id id_so_det,
+                                dc_before_saldo_secondary.panel,
+                                dc_before_saldo_secondary.panel_status,
+                                dc_before_saldo_secondary.part_detail_id,
+                                dc_before_saldo_secondary.nama_part as nama_part,
+                                dc_before_saldo_secondary.part_status as part_status,
+                                0 current_saldo_awal,
+                                0 qty_in,
+                                0 kirim_secondary_dalam,
+                                0 terima_repaired_secondary_dalam,
+                                0 terima_good_secondary_dalam,
+                                0 kirim_secondary_luar,
+                                0 terima_repaired_secondary_luar,
+                                0 terima_good_secondary_luar,
+                                0 loading,
+                                0 as current_saldo_akhir,
+                                SUM(kirim_secondary_dalam) as kirim_secondary_dalam_before,
+                                SUM(terima_repaired_secondary_dalam) as terima_repaired_secondary_dalam_before,
+                                SUM(terima_good_secondary_dalam) as terima_good_secondary_dalam_before,
+                                SUM(kirim_secondary_luar) as kirim_secondary_luar_before,
+                                SUM(terima_repaired_secondary_luar) as terima_repaired_secondary_luar_before,
+                                SUM(terima_good_secondary_luar) as terima_good_secondary_luar_before,
+                                SUM(terima_repaired_secondary_luar_new) as terima_repaired_secondary_luar_before_new,
+                                SUM(terima_good_secondary_luar_new) as terima_good_secondary_luar_before_new
+                        from
+                                dc_before_saldo_secondary
+                                left join master_sb_ws msb on msb.id_so_det = dc_before_saldo_secondary.so_det_id
+                        GROUP BY
+                                msb.ws,
+                                msb.color,
+                                msb.size,
+                                dc_before_saldo_secondary.so_det_id,
+                                dc_before_saldo_secondary.part_detail_id
+                        HAVING
+                            (
+                                kirim_secondary_dalam_before != 0 OR
+                                terima_repaired_secondary_dalam_before != 0 OR
+                                terima_good_secondary_dalam_before != 0 OR
+                                kirim_secondary_luar_before != 0 OR
+                                terima_repaired_secondary_luar_before != 0 OR
+                                terima_good_secondary_luar_before != 0 OR
+                                terima_repaired_secondary_luar_before_new != 0 OR
+                                terima_good_secondary_luar_before_new != 0
+                            )
+                    ) current_saldo
+                    group by
+                        ws,
+                        color,
+                        size,
+                        id_so_det,
+                        part_detail_id
+                )
+
+                select 
+                    '".$dateTo."' tanggal,
+                    stockers,
+                    buyer,
+                    act_costing_ws,
+                    color,
+                    so_det_id,
+                    panel,
+                    panel_status,
+                    part_detail_id,
+                    nama_part,
+                    part_status,
+                    current_saldo_awal,
+                    qty_in,
+                    kirim_secondary_dalam,
+                    terima_repaired_secondary_dalam,
+                    terima_good_secondary_dalam,
+                    kirim_secondary_luar,
+                    terima_repaired_secondary_luar,
+                    terima_good_secondary_luar,
+                    loading_qty,
+                    current_saldo_akhir,
+                    saldo_awal_secondary_dalam,
+                    saldo_akhir_secondary_dalam,
+                    (CASE WHEN '".$dateFrom."' < '2026-07-01' THEN saldo_awal_secondary_luar ELSE new_saldo_awal_secondary_luar END) as saldo_awal_secondary_luar,
+                    (CASE WHEN '".$dateFrom."' < '2026-07-01' THEN saldo_akhir_secondary_luar ELSE new_saldo_akhir_secondary_luar END) as saldo_akhir_secondary_luar,
+                    created_at,
+                    updated_at
+                from (
+                    select
+                        stockers,
+                        ws as act_costing_ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        so_det_id,
+                        panel,
+                        NOW() created_at,
+                        NOW() updated_at,
+                        panel_status, 
+                        part_detail_id,
+                        nama_part,
+                        part_status,
+                        current_saldo_awal,
+                        qty_in,
+                        kirim_secondary_dalam,
+                        terima_repaired_secondary_dalam,
+                        terima_good_secondary_dalam,
+                        kirim_secondary_luar,
+                        terima_repaired_secondary_luar,
+                        terima_good_secondary_luar,
+                        loading_qty,
+                        current_saldo_akhir,
+                        kirim_secondary_dalam_before,
+                        terima_repaired_secondary_dalam_before,
+                        terima_good_secondary_dalam_before,
+                        (
+                            CASE
+                            WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                            ELSE
+                            (
+                                kirim_secondary_dalam_before
+                                - terima_repaired_secondary_dalam_before
+                                - terima_good_secondary_dalam_before
+                            )
+                            END
+                        ) saldo_awal_secondary_dalam,
+                        (
+                            (
+                                CASE
+                                WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                                ELSE
+                                    (
+                                    kirim_secondary_dalam_before
+                                    - terima_repaired_secondary_dalam_before
+                                    - terima_good_secondary_dalam_before
+                                    )
+                                END
+                            )
+                            + kirim_secondary_dalam
+                            - terima_repaired_secondary_dalam
+                            - terima_good_secondary_dalam
+                        ) saldo_akhir_secondary_dalam,
+                        kirim_secondary_luar_before,
+                        terima_repaired_secondary_luar_before,
+                        terima_good_secondary_luar_before,
+                        (
+                            CASE
+                            WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                            ELSE
+                            (
+                                kirim_secondary_luar_before
+                                - terima_repaired_secondary_luar_before
+                                - terima_good_secondary_luar_before
+                            )
+                            END
+                        ) AS saldo_awal_secondary_luar,
+                        (
+                            (
+                                CASE
+                                WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                                ELSE
+                                    (
+                                    kirim_secondary_luar_before
+                                    - terima_repaired_secondary_luar_before
+                                    - terima_good_secondary_luar_before
+                                    )
+                                END
+                            )
+                            + kirim_secondary_luar
+                            - terima_repaired_secondary_luar
+                            - terima_good_secondary_luar
+                            + qty_adjustment_secondary_luar
+                        ) saldo_akhir_secondary_luar,
+                        terima_repaired_secondary_luar_before_new,
+                        terima_good_secondary_luar_before_new,
+                        (
+                            CASE
+                            WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                            ELSE
+                            (
+                                kirim_secondary_luar_before
+                                - qty_transit_terima_secondary_luar_before
+                                - terima_repaired_secondary_luar_before
+                                - terima_good_secondary_luar_before
+                            )
+                            END
+                        ) AS new_saldo_awal_secondary_luar,
+                        (
+                            (
+                                CASE
+                                WHEN '".$dateFrom."' < '2026-06-01' THEN 0
+                                ELSE (
+                                    kirim_secondary_luar_before
+                                    - qty_transit_terima_secondary_luar_before
+                                    - terima_repaired_secondary_luar_before
+                                    - terima_good_secondary_luar_before
+                                )
+                                END
+                            )
+                            + kirim_secondary_luar
+                            - qty_transit_terima_secondary_luar
+                        ) AS new_saldo_akhir_secondary_luar,
+                        0 as qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 as switching_in_before,
+                        0 switching_in,
+                        0 as switching_out_before,
+                        0 switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar
+                    FROM
+                        dc_saldo
+                ) dc
 
                 ON DUPLICATE KEY UPDATE
                         stockers = VALUES(stockers),
@@ -3999,32 +4111,44 @@ class DcService
         ";
     }
 
-    public function runRekap(): array
+    /**
+     * @param  string|null  $dateTo    batas akhir periode, default $rekapEndDate
+     *                                 (atau H-30 kalau properti itu dikosongkan)
+     * @param  string|null  $dateFrom  isi hanya untuk rekap ulang periode tertentu,
+     *                                 default melanjutkan dari rekap terakhir
+     */
+    public function runRekap($dateTo = null, $dateFrom = null): array
     {
         try {
             // Only rekap up to 30 days before today, leaving the most recent window untouched
-            $dateTo = now()->subDays(30)->toDateString();
+            $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
 
-            $latestRekap = DB::select("
-                SELECT
-                    MAX(tanggal) tanggal
-                FROM
-                    dc_report_rekap
-                WHERE
-                    tanggal >= '2026-01-01' and
-                    tanggal < '".$dateTo."'
-            ");
+            if (!$dateFrom) {
+                // Kursor dibaca dari tabel yang sama dengan tujuan INSERT di
+                // buildRekapQuery(). Kalau keduanya beda tabel, dateFrom dihitung dari
+                // posisi tabel lain sehingga periode yang sudah ada bisa dihitung ulang
+                // atau justru terlewat.
+                $latestRekap = DB::selectOne("
+                    SELECT
+                        MAX(tanggal) tanggal
+                    FROM
+                        ".$this->rekapTable."
+                    WHERE
+                        tanggal >= ? and
+                        tanggal < ?
+                ", [$this->rekapStartDate, $dateTo]);
 
-            // Baris rekap terakhir sudah mencakup transaksi PADA tanggalnya, jadi
-            // periode berikutnya harus dimulai H+1. Kalau dimulai tepat di tanggal
-            // rekap terakhir, dc_rekap pada buildBaseCte (MAX(tanggal) < dateFrom)
-            // justru melewati baris tersebut, sehingga saldo_awal yang tersimpan
-            // adalah posisi H-1 dan tidak sama dengan saldo_akhir periode sebelumnya.
-            $lastRekapDate = $latestRekap[0]->tanggal ?? null;
+                // Baris rekap terakhir sudah mencakup transaksi PADA tanggalnya, jadi
+                // periode berikutnya harus dimulai H+1. Kalau dimulai tepat di tanggal
+                // rekap terakhir, dc_rekap pada buildBaseCte (MAX(tanggal) < dateFrom)
+                // justru melewati baris tersebut, sehingga saldo_awal yang tersimpan
+                // adalah posisi H-1 dan tidak sama dengan saldo_akhir periode sebelumnya.
+                $lastRekapDate = $latestRekap->tanggal ?? null;
 
-            $dateFrom = $lastRekapDate
-                ? Carbon::parse($lastRekapDate)->addDay()->toDateString()
-                : '2026-01-01';
+                $dateFrom = $lastRekapDate
+                    ? Carbon::parse($lastRekapDate)->addDay()->toDateString()
+                    : $this->rekapStartDate;
+            }
 
             if ($dateFrom > $dateTo) {
                 return [
@@ -4033,19 +4157,24 @@ class DcService
                 ];
             }
 
-            // Populate the dc_report_rekap table with aggregated data
+            // Populate the rekap table with aggregated data
             $query = $this->buildRekapQuery($dateFrom, $dateTo);
 
             DB::insert($query);
 
-            Log::channel('rekapDC')->info("Rekap DC berhasil diupdate.");
+            Log::channel('rekapDC')->info("Rekap DC ".$this->rekapTable." periode ".$dateFrom." s/d ".$dateTo." berhasil diupdate.");
             Log::channel('rekapDC')->info("Query yang dijalankan: \n" . $query);
 
             return [
                 'status' => 200,
-                'message' => 'Rekap DC berhasil diupdate.',
+                'message' => 'Rekap DC periode '.$dateFrom.' s/d '.$dateTo.' berhasil diupdate.',
+                'additional' => [
+                    'table' => $this->rekapTable,
+                    'date_from' => $dateFrom,
+                    'date_to' => $dateTo,
+                ],
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::channel('rekapDC')->error("Error saat mengupdate Rekap DC: " . $e->getMessage());
 
             return [
