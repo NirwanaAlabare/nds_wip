@@ -47,28 +47,32 @@
                                         $partDetailId = $partDetail->id;
 
                                         // Get Ratio Output List Array
-                                        $checkRatioOutputList = array_filter($ratioOutputList, function ($ratioOutput) use ($currentGroup, $ratio, $partDetailId) { return  $ratioOutput['currentGroupRoll'] === $currentGroup && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id && $ratioOutput['currentPartDetailId'] === $partDetailId; });
+                                        $checkRatioOutputList = array_filter($ratioOutputList->getArrayCopy(), function ($ratioOutput) use ($currentGroup, $ratio, $partDetailId) { return  $ratioOutput['currentGroupRoll'] === $currentGroup && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id && ($ratioOutput['currentPartDetailId'] ?? null) === $partDetailId; });
 
                                         // When Ratio Output List Exist
                                         if (isset($checkRatioOutputList) && count($checkRatioOutputList) > 0) {
                                             // When Found Ratio Output Qty is greater than current qty
-                                            $index = array_key_first($checkRatioOutputList);
-                                            if ($checkRatioOutputList[$index]['qty'] > (intval($ratio->ratio) * intval($currentTotal))) {
+                                            $foundIndex = array_key_first($checkRatioOutputList);
+                                            if ($checkRatioOutputList[$foundIndex]['qty'] > (intval($ratio->ratio) * intval($currentTotal))) {
                                                 $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
-                                                $checkRatioOutputList[$index]['qty'] = intval($checkRatioOutputList[$index]['qty']) - $currentOutputQty;
+                                                $checkRatioOutputList[$foundIndex]['qty'] = intval($checkRatioOutputList[$foundIndex]['qty']) - $currentOutputQty;
                                             }
                                             // When less
                                             else {
-                                                $currentOutputQty = $checkRatioOutputList[$index]['qty'];
-                                                $checkRatioOutputList[$index]['qty'] = 0;
+                                                $currentOutputQty = $checkRatioOutputList[$foundIndex]['qty'];
+                                                $checkRatioOutputList[$foundIndex]['qty'] = 0;
                                             }
 
                                             // Next Group Stocker
                                             $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroup)->where('group_stocker', '<', $currentGroupStocker)->first();
                                             if (!$checkNextGroupStocker) {
-                                                $currentOutputQty += $checkRatioOutputList[$index]['qty'];
-                                                $checkRatioOutputList[$index]['qty'] = 0;
+                                                $currentOutputQty += $checkRatioOutputList[$foundIndex]['qty'];
+                                                $checkRatioOutputList[$foundIndex]['qty'] = 0;
                                             }
+
+                                            // array_filter mengembalikan salinan, sisa qty-nya
+                                            // ditulis balik supaya group berikutnya ikut terbaca
+                                            $ratioOutputList[$foundIndex] = $checkRatioOutputList[$foundIndex];
                                         }
                                         // When Ratio Output List not Exist
                                         else {
@@ -96,12 +100,12 @@
                                                     $currentOutputStock = 0;
                                                 }
 
-                                                array_push($ratioOutputList, [
+                                                $ratioOutputList[] = [
                                                     "currentGroupRoll" => $currentGroup,
                                                     "currentMarkerDetailId" => $currentOutput["marker_detail_id"],
                                                     "currentPartDetailId" => $partDetailId,
                                                     "qty" => $currentOutputStock
-                                                ]);
+                                                ];
                                             }
                                         }
 

@@ -13,7 +13,7 @@
             @foreach ($dataRatio as $ratio)
                 @php
                 // Get Ratio Output List Array
-                    $checkRatioOutputList = array_filter($ratioOutputList, function ($ratioOutput) use ($currentGroupSeparate, $ratio) { return  $ratioOutput['currentGroupRoll'] === $currentGroupSeparate && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id; });
+                    $checkRatioOutputList = array_filter($ratioOutputList->getArrayCopy(), function ($ratioOutput) use ($currentGroupSeparate, $ratio) { return  $ratioOutput['currentGroupRoll'] === $currentGroupSeparate && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id; });
 
                     // When Ratio Output List Exist
                     if (isset($checkRatioOutputList) && count($checkRatioOutputList) > 0) {
@@ -35,6 +35,10 @@
                             $currentOutputQty += $checkRatioOutputList[$index]['qty'];
                             $checkRatioOutputList[$index]['qty'] = 0;
                         }
+
+                        // array_filter mengembalikan salinan, sisa qty-nya ditulis
+                        // balik supaya group berikutnya ikut terbaca
+                        $ratioOutputList[$index] = $checkRatioOutputList[$index];
                     }
                     // When Ratio Output List not Exist
                     else {
@@ -62,11 +66,12 @@
                                 $currentOutputStock = 0;
                             }
 
-                            array_push($ratioOutputList, [
+                            $ratioOutputList[] = [
                                 "currentGroupRoll" => $currentGroupSeparate,
                                 "currentMarkerDetailId" => $currentOutput["marker_detail_id"],
+                                "currentPartDetailId" => null,
                                 "qty" => $currentOutputStock
-                            ]);
+                            ];
                         }
                     }
 
