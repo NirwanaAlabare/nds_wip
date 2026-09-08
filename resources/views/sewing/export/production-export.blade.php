@@ -19,12 +19,19 @@
     </thead>
     <tbody>
         @php
+            // Pakai $lines langsung (sudah di-eager load & difilter tanggal di ProductionExport).
+            // Sebelumnya $lines->firstWhere(...) justru melempar query baru ke DB sehingga
+            // relasi yang sudah difilter hilang dan seluruh master plan/output ikut termuat.
+            $lineModel = $selectedLine != '' ? $lines : null;
+
             // Data untuk ACTUAL (tetap filter cancel = 'N')
-            $lineData = $selectedLine != '' ? $lines->firstWhere('username', $selectedLine)->masterPlans->where("cancel", 'N')->whereBetween('tgl_plan', [date('Y-m-d', strtotime('-7 days', strtotime($date))), $date]) : [];
+            // Tidak dibatasi rentang tgl_plan: semua master plan yang punya output di tanggal ini
+            // ikut dihitung, supaya total actual sama dengan Report Output.
+            $lineData = $lineModel ? $lineModel->masterPlans->where("cancel", 'N') : collect([]);
             $lineDataCurrent = $lineData->where('tgl_plan', $date);
 
             // Data untuk TARGET (tanpa filter cancel, ambil semua)
-            $lineDataTarget = $selectedLine != '' ? $lines->firstWhere('username', $selectedLine)->masterPlans->whereBetween('tgl_plan', [date('Y-m-d', strtotime('-7 days', strtotime($date))), $date]) : [];
+            $lineDataTarget = $lineModel ? $lineModel->masterPlans : collect([]);
             $lineDataTargetCurrent = $lineDataTarget->where('tgl_plan', $date);
 
             // jam_kerja di-sum, sesuai SQL sistem asli: COALESCE(sum(jam_kerja),0)
@@ -67,17 +74,18 @@
         @endphp
         @for ($i = 0; $i < count($hours); $i++)
             @php
-                if ($i < 1) {
-                    $timeFrom = $date.' 05:00:00';
-                    $timeTo = $date.' '.$hours[$i].':00';
-                }
-                else if ($i == count($hours)-1) {
-                    $timeFrom = $date.' '.$hours[$i-1].':00';
-                    $timeTo = $date.' 23:59:59';
-                }
-                else {
-                    $timeFrom = $date.' '.$hours[$i-1].':00';
-                    $timeTo = $date.' '.$hours[$i].':00';
+                // Batas bawah eksklusif (mulai detik ke-1) supaya rentang jam tidak tumpang tindih.
+                // Kalau batas bawah & atas sama-sama inklusif, output yang jatuh tepat di jam bulat
+                // (mis. 09:00:00) terhitung 2x dan summary actual jadi lebih besar dari Report Output.
+                if ($i == 0) {
+                    $timeFrom = $date . ' 00:00:00';
+                    $timeTo   = $date . ' ' . $hours[$i] . ':00';
+                } elseif ($i == count($hours) - 1) {
+                    $timeFrom = $date . ' ' . $hours[$i - 1] . ':00';
+                    $timeTo   = $date . ' 23:59:59';
+                } else {
+                    $timeFrom = $date . ' ' . $hours[$i - 1] . ':00';
+                    $timeTo   = $date . ' ' . $hours[$i] . ':00';
                 }
 
                 $jamKe = $i;
@@ -90,13 +98,17 @@
                 $minsAvail = 0;
 
                 foreach ($lineData as $line) {
-                    $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL');
+                    // $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL');
+                    $rft = $line->rfts->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('status', 'NORMAL');
                     $totalRft += $rft->count();
-                    $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect');
+                    // $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect');
+                    $defect = $line->defects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('defect_status', 'defect');
                     $totalDefect += $defect->count();
-                    $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked');
+                    // $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked');
+                    $rework = $line->defects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo)->where('defect_status', 'reworked');
                     $totalRework += $rework->count();
-                    $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                    // $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                    $reject = $line->rejects->where('updated_at', '>=', $timeFrom)->where('updated_at', '<', $timeTo);
                     $totalReject += $reject->count();
                     $totalActualThis = $rft->count() + $rework->count();
                     $totalActual += $totalActualThis;
@@ -159,160 +171,6 @@
             <td class="fs-5 fw-bold text-center">{{ num($cumulativeEfficiency) }} %</td>
         </tr>
     </tfoot>
-
-    {{-- DEPRECATED --}}
-    {{-- <tbody>
-        @php
-            $lineData = $selectedLine != '' ? $lines->firstWhere('username', $selectedLine)->masterPlans->where("cancel", 'N')->where('tgl_plan', $date) : [];
-            $manPower = count($lineData) > 0 ? $lineData->max('man_power') : 0;
-            // $jamKerja = count($lineData) > 0 ? round($lineData->sum('jam_kerja')) : 0;
-            $jamKerja = count($lineData) > 0 ? round(8) : 0;
-            $planTarget = count($lineData) > 0 ? $lineData->sum('plan_target') : 0;
-            $hourTarget = count($lineData) > 0 ? ($lineData->sum('jam_kerja') ? floor($planTarget/8) : 0) : 0;
-            $leftTarget = 0;
-            $summaryActual = 0;
-            $summaryTarget = 0;
-            $summaryMinsProd = 0;
-            $summaryMinsAvail = 0;
-
-            // Calculate realtime mins avail and real time target
-            if(strtotime(date('Y-m-d H:i:s')) <= strtotime($date.' 13:00:00')) {
-                $minsAvailNow = count($lineData) > 0 ? $lineData->max('man_power') * floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60 : 0;
-                $targetNow = count($lineData)  > 0 && $lineData->avg('smv') > 0 ? floor($lineData->max('man_power') * (floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60) / $lineData->avg('smv')) : 0;
-            } else {
-                $minsAvailNow = count($lineData) > 0 ? $lineData->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) : 0;
-                $targetNow = count($lineData)  > 0 && $lineData->avg('smv') > 0 ? floor($lineData->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) / $lineData->avg('smv')) : 0;
-            }
-        @endphp
-        @for ($i = 0; $i < count($hours); $i++)
-            @php
-                if ($i < 1) {
-                    $timeFrom = $date.' 07:00:00';
-                    $timeTo = $date.' '.$hours[$i];
-                } else if ($hours[$i] == '13:00') {
-                    $timeFrom = '-';
-                    $timeTo = '-';
-                } else if ($hours[$i] == '14:00') {
-                    $timeFrom = $date.' '.$hours[$i-2];
-                    $timeTo = $date.' '.$hours[$i];
-                } else if ($i == count($hours)-1) {
-                    $timeFrom = $date.' '.$hours[$i-1];
-                    $timeTo = $date.' 23:59:59';
-                } else {
-                    $timeFrom = $date.' '.$hours[$i-1];
-                    $timeTo = $date.' '.$hours[$i];
-                }
-
-                // Calculate output and mins prod
-                $jamKe = $i > 4 ? $i-1 : $i; //if jamKe > jam 12 (=break) ? jamKe-1 (=jamKe-break) : jamKe
-                $totalActual = 0;
-                $totalRft = 0;
-                $totalDefect = 0;
-                $totalRework = 0;
-                $totalReject = 0;
-                $minsProd = 0;
-                $minsAvail = $manPower * $jamKerja * 60;
-
-                // Loop for calculating output data
-                foreach ($lineData as $line) {
-                    $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL')->count();
-                    $totalRft += $rft;
-                    $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect')->count();
-                    $totalDefect += $defect;
-                    $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked')->count();
-                    $totalRework += $rework;
-                    $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo])->count();
-                    $totalReject += $reject;
-                    $totalActualThis = $rft + $rework;
-                    $totalActual += $totalActualThis;
-                    $minsProd += $totalActualThis * $line->smv;
-                }
-
-                // Sum output and mins prod
-                $summaryActual += $totalActual;
-                $summaryMinsProd += $minsProd;
-                $summaryTarget = $planTarget;
-
-                // Calculate mins avail summary and target summary
-                if (strtotime(date('Y-m-d H:i:s')) >= strtotime($date.' 16:00:00')) {
-                    $summaryMinsAvail = $minsAvail;
-                    // $summaryTarget = $planTarget;
-                } else {
-                    $summaryMinsAvail = $minsAvailNow;
-                    // $summaryTarget = $targetNow;
-                }
-
-                // Calculate Efficiency
-                $cumulativeEfficiency = $summaryMinsAvail > 0 ? round((($summaryMinsProd/$summaryMinsAvail) * 100), 2) : 0 ;
-
-                // Calculate Hour Target
-                if ($date >= date('Y-m-d')) {
-                    if ($jamKe > 0 && $hours[$jamKe-1] < date('H:i')) {
-                        if ($jamKe > 0 && $jamKe < $jamKerja) {
-                            $hourTarget = $jamKerja > $jamKe ? floor(($summaryTarget - ($summaryActual - $totalActual))/(round($jamKerja-$jamKe))) : 0;
-                            $leftTarget = $jamKerja > $jamKe ? ($summaryTarget - ($summaryActual - $totalActual))%(round(($jamKerja-$jamKe))) : 0;
-                        }
-                    }
-                } else {
-                    if ($jamKe > 0) {
-                        $hourTarget = $jamKerja > $jamKe ? floor(($summaryTarget - ($summaryActual - $totalActual))/(round($jamKerja-$jamKe))) : $hourTarget;
-                        $leftTarget = $jamKerja > $jamKe ? ($summaryTarget - ($summaryActual - $totalActual))%(round(($jamKerja-$jamKe))) : 0;
-                    }
-                }
-            @endphp
-            <tr wire:key="{{ $i }}">
-                <td class="text-center">
-                    @if ($hours[$i] == '13:00')
-                        {{ 'BREAK' }}
-                    @else
-                        {{ $i == count($hours)-1 ? 'OVERTIME' : sprintf("%02d", (intval(substr($hours[$i],0,2))-1)).":00 - ".$hours[$i] }}
-                    @endif
-                </td>
-                <td style="text-align: center;" data-format="0">{{ $totalRft }}</td>
-                <td style="text-align: center;" data-format="0">{{ $totalDefect }}</td>
-                <td style="text-align: center;" data-format="0">{{ $totalRework }}</td>
-                <td style="text-align: center;" data-format="0">{{ $totalReject }}</td>
-                <td style="text-align: center; font-weight: 800;" data-format="0">{{ $totalActual }}</td>
-                <td style="text-align: center; font-weight: 800;" data-format="0">
-                    @if($hours[$i] == "13:00" || $i == count($hours)-1)
-                        {{ 0 }}
-                    @else
-                        @php
-                            if ($hourTarget < 0) {
-                                echo 0;
-                            } else {
-                                if ($leftTarget > 0) {
-                                    echo $hourTarget+1;
-                                    $leftTarget--;
-                                } else {
-                                    echo $hourTarget;
-                                }
-                            }
-                        @endphp
-                    @endif
-                </td>
-                <td style="text-align: center; font-weight: 800;" data-format="0%">
-                    @if ($hours[$i] == "13:00")
-                        0 %
-                    @elseif ($i == count($hours)-1)
-                        {{ $hourTarget > 0 ? ($totalActual > 0 ? '+'.(round(($totalActual/$hourTarget) * 100, 2)) : 0) : 0 }} %
-                    @elseif ($i == (count($hours)-2))
-                        {{ $hourTarget > 0 ? ($totalActual > 0 ? (round(($totalActual/$hourTarget+$leftTarget) * 100, 2)) : 0) : 0 }} %
-                    @else
-                        {{ $hourTarget > 0 ? round(($totalActual/$hourTarget) * 100, 2) : 0 }} %
-                    @endif
-                </td>
-            </tr>
-        @endfor
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="5" style="text-align: center; font-weight: 800;" data-format="0">Summary</td>
-            <td style="text-align: center; font-weight: 800;" data-format="0">{{ $summaryActual }}</td>
-            <td style="text-align: center; font-weight: 800;" data-format="0">{{ $summaryTarget > 0 ? round($summaryTarget) : 0 }}</td>
-            <td style="text-align: center; font-weight: 800;" data-format="0%">{{ $cumulativeEfficiency }} %</td>
-        </tr>
-    </tfoot> --}}
 </table>
 
 <table>

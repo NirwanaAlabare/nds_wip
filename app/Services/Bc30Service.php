@@ -1040,7 +1040,8 @@ class Bc30Service
                     ->where(function($query) use ($bppbs) {
                         $query->whereIn('a.bppbno', $bppbs)->orWhereIn('a.bppbno_int', $bppbs);
                     })
-                    ->groupBy('act_costing.kpno')
+                    // ->groupBy('act_costing.kpno')
+                    ->groupBy('a.id_item')
                     ->get();
 
         }
@@ -1851,7 +1852,7 @@ class Bc30Service
                 'barang'                => $payloadBarang,
             ];
 
-            $responseCeisa = $this->ceisaService->kirimDokumenBatchBc30($finalPayload);
+            $responseCeisa = $this->ceisaService->kirimDokumenBatch30($finalPayload);
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {
