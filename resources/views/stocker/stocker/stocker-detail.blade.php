@@ -195,7 +195,7 @@
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
-                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                             </div>
                                             <div class="mb-3">
                                                 <label><small>Qty</small></label>
@@ -238,7 +238,7 @@
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
-                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
@@ -270,7 +270,7 @@
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
-                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
@@ -309,7 +309,7 @@
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
-                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                             </div>
                                             <div class="mb-3">
                                                 <label><small>Qty</small></label>
@@ -349,7 +349,7 @@
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
-                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
@@ -381,7 +381,7 @@
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
-                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label><small>Qty</small></label>
@@ -425,7 +425,7 @@
                                     <div class="d-flex gap-3">
                                         <div class="mb-3">
                                             <label><small>Group (Tambahan)</small></label>
-                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                            <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                         </div>
                                     </div>
 
@@ -1357,7 +1357,7 @@
                                                     <div class="d-flex gap-3">
                                                         <div class="mb-3">
                                                             <label><small>Group</small></label>
-                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                         </div>
                                                         <div class="mb-3">
                                                             <label><small>Qty</small></label>
@@ -1399,7 +1399,7 @@
                                                         <div class="d-flex gap-3">
                                                             <div class="mb-3">
                                                                 <label><small>Group</small></label>
-                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
@@ -1431,7 +1431,7 @@
                                                         <div class="d-flex gap-3">
                                                             <div class="mb-3">
                                                                 <label><small>Group</small></label>
-                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
@@ -1469,7 +1469,7 @@
                                                     <div class="d-flex gap-3">
                                                         <div class="mb-3">
                                                             <label><small>Group</small></label>
-                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                         </div>
                                                         <div class="mb-3">
                                                             <label><small>Qty</small></label>
@@ -1508,7 +1508,7 @@
                                                         <div class="d-flex gap-3">
                                                             <div class="mb-3">
                                                                 <label><small>Group</small></label>
-                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
@@ -1540,7 +1540,7 @@
                                                         <div class="d-flex gap-3">
                                                             <div class="mb-3">
                                                                 <label><small>Group</small></label>
-                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ preg_replace('/}/', '', $currentGroup) }}" readonly>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label><small>Qty</small></label>
