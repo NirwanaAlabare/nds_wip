@@ -183,8 +183,8 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Stock</label>
                                 <select class="form-select select2bs4filter" name="filter_tipe[]" id="filter_tipe" multiple="multiple">
-                                    @foreach ($loadingLines->groupBy("tipe")->keys() as $item)
-                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @foreach ($loadingLines->groupBy("part_status")->keys() as $item)
+                                        <option value="{{ strtoupper($item) }}">{{ strtoupper($item) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -313,13 +313,13 @@
                         currentUpdate = data[13];
                         currentUpdate > latestUpdate ? latestUpdate = currentUpdate : latestUpdate = latestUpdate;
 
-                        currentQty = Number(data[12]);
+                        currentQty = Number(data[14]);
 
                         totalQty += Number(currentQty);
                     } else {
-                        currentQty > Number(data[12]) ? totalQty = totalQty - currentQty + Number(data[12]) : totalQty = totalQty;
+                        currentQty > Number(data[14]) ? totalQty = totalQty - currentQty + Number(data[14]) : totalQty = totalQty;
 
-                        currentQty = Number(data[12]);
+                        currentQty = Number(data[14]);
                     }
                 });
 
@@ -339,9 +339,9 @@
                 const filter_no_bon = $('#filter_no_bon').val();
 
                 const no_form = data[3];
-                const size = data[4];
-                const group = data[6];
-                const tipe = data[10];
+                const size = data[5];
+                const group = data[7];
+                const tipe = data[12];
                 const no_bon = data[11];
 
                 const match_no_form = !filter_no_form || filter_no_form.length === 0 || filter_no_form.includes(no_form);

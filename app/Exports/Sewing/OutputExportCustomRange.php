@@ -71,26 +71,80 @@ class OutputExportCustomRange implements FromView, ShouldAutoSize
                 $join->on("output_employee_line.tanggal", "=", DB::raw("'".$leaderDate."'"));
             })->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            // join(DB::raw("(
+            //     SELECT
+            //         master_plan.id_ws,
+            //         output_rfts".($this->subtype).".master_plan_id,
+            //         COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
+            //     FROM
+            //         output_rfts".($this->subtype)."
+            //         ".($this->subtype != "_packing" ?
+            //         "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+            //         "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
+            //         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
+            //     WHERE
+            //         output_rfts".($this->subtype).".created_by IS NOT NULL
+            //         AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+            //     GROUP BY
+            //         output_rfts".($this->subtype).".master_plan_id,
+            //         COALESCE(userpassword.username, master_plan.sewing_line)
+            // ) as line"), function ($join) {
+            //     $join->on("line.master_plan_id", "=", "master_plan.id");
+            // })->
             join(DB::raw("(
                 SELECT
-                    master_plan.id_ws,
-                    output_rfts".($this->subtype).".master_plan_id,
-                    COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
-                FROM
-                    output_rfts".($this->subtype)."
+                    x.master_plan_id,
+                    x.sewing_line
+                FROM (
+
+                    SELECT
+                        r.master_plan_id,
+                        COALESCE(up.username, mp.sewing_line) AS sewing_line
+                    FROM output_rfts".$this->subtype." r
+                    INNER JOIN master_plan mp
+                        ON mp.id = r.master_plan_id
                     ".($this->subtype != "_packing" ?
-                    "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                    "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
-                    LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
-                WHERE
-                    output_rfts".($this->subtype).".created_by IS NOT NULL
-                    AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+                        "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                        LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                        "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                    WHERE r.created_by IS NOT NULL
+                    AND r.updated_at ".$outputFilter."
+
+                    UNION
+
+                    SELECT
+                        d.master_plan_id,
+                        COALESCE(up.username, mp.sewing_line) AS sewing_line
+                    FROM output_defects".$this->subtype." d
+                    INNER JOIN master_plan mp
+                        ON mp.id = d.master_plan_id
+                    ".($this->subtype != "_packing" ?
+                        "LEFT JOIN user_sb_wip usw ON usw.id = d.created_by
+                        LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                        "LEFT JOIN userpassword up ON up.username = d.created_by")."
+                    WHERE d.updated_at ".$outputFilter."
+
+                    UNION
+
+                    SELECT
+                        r.master_plan_id,
+                        COALESCE(up.username, mp.sewing_line) AS sewing_line
+                    FROM output_rejects".$this->subtype." r
+                    INNER JOIN master_plan mp
+                        ON mp.id = r.master_plan_id
+                    ".($this->subtype != "_packing" ?
+                        "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                        LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                        "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                    WHERE r.updated_at ".$outputFilter."
+
+                ) x
                 GROUP BY
-                    output_rfts".($this->subtype).".master_plan_id,
-                    COALESCE(userpassword.username, master_plan.sewing_line)
+                    x.master_plan_id,
+                    x.sewing_line
             ) as line"), function ($join) {
                 $join->on("line.master_plan_id", "=", "master_plan.id");
-            })->
+            })-> 
             // leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_rfts".$this->subtype." rfts inner join master_plan on master_plan.id = rfts.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = rfts.created_by")." where rfts.updated_at ".$outputFilter." and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("line.sewing_line", "=", "rfts.created_by"); } )->
             // leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defects inner join master_plan on master_plan.id = defects.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defects.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defects.created_by")." where defects.defect_status = 'defect' and defects.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("line.sewing_line", "=", "defects.created_by"); } )->
             // leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defrew inner join master_plan on master_plan.id = defrew.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defrew.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defrew.created_by")." where defrew.defect_status = 'reworked' and defrew.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as reworks"), function ($join) { $join->on("master_plan.id", "=", "reworks.master_plan_id"); $join->on("line.sewing_line", "=", "reworks.created_by"); } )->
@@ -463,26 +517,80 @@ class OutputExportCustomRange implements FromView, ShouldAutoSize
                     $join->on("so_det.id_so", "=", "so.id");
                     $join->on("so_det.color", "=", "master_plan.color");
                 })->
+                // join(DB::raw("(
+                //     SELECT
+                //         master_plan.id_ws,
+                //         output_rfts".($this->subtype).".master_plan_id,
+                //         COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
+                //     FROM
+                //         output_rfts".($this->subtype)."
+                //         ".($this->subtype != "_packing" ?
+                //         "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                //         "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
+                //         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
+                //     WHERE
+                //         output_rfts".($this->subtype).".created_by IS NOT NULL
+                //         AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+                //     GROUP BY
+                //         output_rfts".($this->subtype).".master_plan_id,
+                //         COALESCE(userpassword.username, master_plan.sewing_line)
+                // ) as line"), function ($join) {
+                //     $join->on("line.master_plan_id", "=", "master_plan.id");
+                // })->
                 join(DB::raw("(
                     SELECT
-                        master_plan.id_ws,
-                        output_rfts".($this->subtype).".master_plan_id,
-                        COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
-                    FROM
-                        output_rfts".($this->subtype)."
+                        x.master_plan_id,
+                        x.sewing_line
+                    FROM (
+
+                        SELECT
+                            r.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_rfts".$this->subtype." r
+                        INNER JOIN master_plan mp
+                            ON mp.id = r.master_plan_id
                         ".($this->subtype != "_packing" ?
-                        "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                        "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
-                        LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
-                    WHERE
-                        output_rfts".($this->subtype).".created_by IS NOT NULL
-                        AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+                            "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                        WHERE r.created_by IS NOT NULL
+                        AND r.updated_at ".$outputFilter."
+
+                        UNION
+
+                        SELECT
+                            d.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_defects".$this->subtype." d
+                        INNER JOIN master_plan mp
+                            ON mp.id = d.master_plan_id
+                        ".($this->subtype != "_packing" ?
+                            "LEFT JOIN user_sb_wip usw ON usw.id = d.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = d.created_by")."
+                        WHERE d.updated_at ".$outputFilter."
+
+                        UNION
+
+                        SELECT
+                            r.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_rejects".$this->subtype." r
+                        INNER JOIN master_plan mp
+                            ON mp.id = r.master_plan_id
+                        ".($this->subtype != "_packing" ?
+                            "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                        WHERE r.updated_at ".$outputFilter."
+
+                    ) x
                     GROUP BY
-                        output_rfts".($this->subtype).".master_plan_id,
-                        COALESCE(userpassword.username, master_plan.sewing_line)
+                        x.master_plan_id,
+                        x.sewing_line
                 ) as line"), function ($join) {
                     $join->on("line.master_plan_id", "=", "master_plan.id");
-                })->
+                })-> 
                 // leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_rfts".$this->subtype." rfts inner join master_plan on master_plan.id = rfts.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = rfts.created_by")." where rfts.updated_at ".$outputFilter."  and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("line.sewing_line", "=", "rfts.created_by"); } )->
                 // leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defects inner join master_plan on master_plan.id = defects.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defects.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defects.created_by")." where defects.defect_status = 'defect' and defects.updated_at ".$outputFilter."  GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("line.sewing_line", "=", "defects.created_by"); } )->
                 // leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defrew inner join master_plan on master_plan.id = defrew.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defrew.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defrew.created_by")." where defrew.defect_status = 'reworked' and defrew.updated_at ".$outputFilter."  GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as reworks"), function ($join) { $join->on("master_plan.id", "=", "reworks.master_plan_id"); $join->on("line.sewing_line", "=", "reworks.created_by"); } )->
@@ -848,26 +956,80 @@ class OutputExportCustomRange implements FromView, ShouldAutoSize
                     $join->on("so_det.id_so", "=", "so.id");
                     $join->on("so_det.color", "=", "master_plan.color");
                 })->
+                // join(DB::raw("(
+                //     SELECT
+                //         master_plan.id_ws,
+                //         output_rfts".($this->subtype).".master_plan_id,
+                //         COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
+                //     FROM
+                //         output_rfts".($this->subtype)."
+                //         ".($this->subtype != "_packing" ?
+                //         "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                //         "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
+                //         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
+                //     WHERE
+                //         output_rfts".($this->subtype).".created_by IS NOT NULL
+                //         AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+                //     GROUP BY
+                //         output_rfts".($this->subtype).".master_plan_id,
+                //         COALESCE(userpassword.username, master_plan.sewing_line)
+                // ) as line"), function ($join) {
+                //     $join->on("line.master_plan_id", "=", "master_plan.id");
+                // })->
                 join(DB::raw("(
                     SELECT
-                        master_plan.id_ws,
-                        output_rfts".($this->subtype).".master_plan_id,
-                        COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
-                    FROM
-                        output_rfts".($this->subtype)."
+                        x.master_plan_id,
+                        x.sewing_line
+                    FROM (
+
+                        SELECT
+                            r.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_rfts".$this->subtype." r
+                        INNER JOIN master_plan mp
+                            ON mp.id = r.master_plan_id
                         ".($this->subtype != "_packing" ?
-                        "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->subtype).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                        "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->subtype).".created_by")."
-                        LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
-                    WHERE
-                        output_rfts".($this->subtype).".created_by IS NOT NULL
-                        AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
+                            "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                        WHERE r.created_by IS NOT NULL
+                        AND r.updated_at ".$outputFilter."
+
+                        UNION
+
+                        SELECT
+                            d.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_defects".$this->subtype." d
+                        INNER JOIN master_plan mp
+                            ON mp.id = d.master_plan_id
+                        ".($this->subtype != "_packing" ?
+                            "LEFT JOIN user_sb_wip usw ON usw.id = d.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = d.created_by")."
+                        WHERE d.updated_at ".$outputFilter."
+
+                        UNION
+
+                        SELECT
+                            r.master_plan_id,
+                            COALESCE(up.username, mp.sewing_line) AS sewing_line
+                        FROM output_rejects".$this->subtype." r
+                        INNER JOIN master_plan mp
+                            ON mp.id = r.master_plan_id
+                        ".($this->subtype != "_packing" ?
+                            "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                            LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                            "LEFT JOIN userpassword up ON up.username = r.created_by")."
+                        WHERE r.updated_at ".$outputFilter."
+
+                    ) x
                     GROUP BY
-                        output_rfts".($this->subtype).".master_plan_id,
-                        COALESCE(userpassword.username, master_plan.sewing_line)
+                        x.master_plan_id,
+                        x.sewing_line
                 ) as line"), function ($join) {
                     $join->on("line.master_plan_id", "=", "master_plan.id");
-                })->
+                })-> 
                 // leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_rfts".$this->subtype." rfts inner join master_plan on master_plan.id = rfts.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = rfts.created_by")." where rfts.updated_at ".$outputFilter." and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("line.sewing_line", "=", "rfts.created_by"); } )->
                 // leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defects inner join master_plan on master_plan.id = defects.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defects.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defects.created_by")." where defects.defect_status = 'defect' and defects.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("line.sewing_line", "=", "defects.created_by"); } )->
                 // leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defrew inner join master_plan on master_plan.id = defrew.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defrew.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defrew.created_by")." where defrew.defect_status = 'reworked' and defrew.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as reworks"), function ($join) { $join->on("master_plan.id", "=", "reworks.master_plan_id"); $join->on("line.sewing_line", "=", "reworks.created_by"); } )->
