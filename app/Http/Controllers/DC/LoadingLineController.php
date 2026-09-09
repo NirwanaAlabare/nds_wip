@@ -527,9 +527,10 @@ class LoadingLineController extends Controller
                 loading_line_plan.style,
                 loading_line_plan.color,
                 loading_line_plan.line_id,
-                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
-                part_detail.part_status,
+                CONCAT( (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel, part.panel) ELSE part.panel END), ' - ', (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel_status, part.panel_status) ELSE part.panel_status END) ) panel,
+                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel_old,
+                CONCAT(master_part.nama_part, ' - ', COALESCE(pcust.set_part_status, part_detail.part_status)) nama_part,
+                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                 COALESCE(loading_line.no_bon, '-') no_bon,
                 COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                 COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
@@ -556,13 +557,14 @@ class LoadingLineController extends Controller
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                 LEFT JOIN users ON users.id = loading_line.created_by
+                left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = master_sb_ws.color
                 LEFT JOIN (
                     SELECT
                         s.id_qr_stocker,
                         COALESCE(
                             MIN(ll.qty) OVER (
                                 PARTITION BY
-                                    COALESCE(p_com.panel, p.panel),
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
                                     s.form_cut_id,
                                     s.form_reject_id,
                                     s.form_piece_id,
@@ -576,11 +578,13 @@ class LoadingLineController extends Controller
                         ) AS loading_qty
                     FROM loading_line ll
                     JOIN stocker_input s ON s.id = ll.stocker_id
+                    LEFT JOIN master_sb_ws msb on msb.id_so_det = s.so_det_id
                     LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
                     LEFT JOIN part p ON p.id = pd.part_id
                     LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
                         AND pd.part_status = 'complement'
                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                     WHERE
                         ll.tanggal_loading BETWEEN '".$dateFrom."' AND '".$dateTo."'
                         AND COALESCE(s.cancel, 'n') != 'y'
@@ -914,14 +918,13 @@ class LoadingLineController extends Controller
                 COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                 COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                 (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) type,
-                COALESCE(part_com.panel, part.panel) panel,
-                COALESCE(part_com.panel_status, part.panel_status) panel_status,
+                (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel, part.panel) ELSE part.panel END) panel,
+                (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel_status, part.panel_status) ELSE part.panel_status END) panel_status,
                 master_part.nama_part part,
-                part_detail.part_status part_status,
+                COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                 loading_line.no_bon,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
                 users.username AS user,
-                part_detail.part_status,
                 stocker_input.notes
             FROM
                 loading_line
@@ -929,8 +932,7 @@ class LoadingLineController extends Controller
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
                 LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
                 LEFT JOIN part ON part.id = part_detail.part_id
-                LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail
-                    AND part_detail.part_status = 'complement'
+                LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                 LEFT JOIN part part_com ON part_com.id = part_detail_com.part_id
                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
@@ -942,6 +944,7 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = master_sb_ws.color
                 LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                 LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
@@ -950,7 +953,7 @@ class LoadingLineController extends Controller
                         COALESCE(
                             MIN(ll.qty) OVER (
                                 PARTITION BY
-                                    COALESCE(p_com.panel, p.panel),
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
                                     s.form_cut_id,
                                     s.form_reject_id,
                                     s.form_piece_id,
@@ -964,11 +967,13 @@ class LoadingLineController extends Controller
                         ) AS loading_qty
                     FROM loading_line ll
                     JOIN stocker_input s ON s.id = ll.stocker_id
+                    LEFT JOIN master_sb_ws msb on msb.id_so_det = s.so_det_id
                     LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
                     LEFT JOIN part p ON p.id = pd.part_id
                     LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
                         AND pd.part_status = 'complement'
                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                     WHERE
                         ll.tanggal_loading BETWEEN '".$from."' AND '".$to."'
                         AND COALESCE(s.cancel, 'n') != 'y'
