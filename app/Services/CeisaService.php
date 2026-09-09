@@ -88,7 +88,7 @@ class CeisaService
 
     public function getToken($forceRefresh = false)
     {
-        $cacheKey = "ceisa_access_token_{$this->currentEnv}";
+        $cacheKey = "ceisa_access_token_{$this->currentEnv}_" . md5($this->username . $this->password);
 
         if ($forceRefresh) {
             Cache::forget($cacheKey);
@@ -118,8 +118,10 @@ class CeisaService
             'Accept'           => 'application/json',
         ];
 
+
         $timeout = (strtoupper($method) === 'GET') ? 3 : 15;
         $request = Http::timeout($timeout)->withoutVerifying()->withHeaders($headers);
+
 
         if (strtoupper($method) === 'GET') {
             $response = $request->get($url, $data);
@@ -129,6 +131,8 @@ class CeisaService
         }
 
         $body = $response->json();
+
+
 
         // Deteksi jika server CEISA merespon token invalid/expired
         $isInvalidToken = $response->status() === 401
@@ -423,11 +427,24 @@ class CeisaService
         ];
     }
 
-    function getPelabuhan($kata)
+    // function getPelabuhan($kata)
+    // {
+    //     $response = $this->requestWithRetry(
+    //         'GET',
+    //         "{$this->baseUrl}/openapi/pelabuhan/kata/{$kata}"
+    //     );
+
+    //     return $response->json();
+    // }
+
+    public function getPelabuhan($kodeKantor)
     {
+        $this->setEnv('live');
+        $this->useUserCredential();
+        $kodeKantorSend = $kodeKantor ?? '005000';
         $response = $this->requestWithRetry(
             'GET',
-            "{$this->baseUrl}/openapi/pelabuhan/kata/{$kata}"
+            "{$this->baseUrl}/referensi/pelabuhan-dalam-negeri/{$kodeKantorSend}"
         );
 
         return $response->json();
