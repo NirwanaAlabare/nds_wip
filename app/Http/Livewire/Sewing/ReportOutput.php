@@ -879,13 +879,17 @@ class ReportOutput extends Component
                                 x.master_plan_id,
                                 x.sewing_line
                             FROM (
+
                                 SELECT
                                     r.master_plan_id,
                                     COALESCE(up.username, mp.sewing_line) AS sewing_line
                                 FROM output_rfts".$this->qcType." r
-                                INNER JOIN master_plan mp ON mp.id = r.master_plan_id
-                                LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
-                                LEFT JOIN userpassword up ON up.line_id = usw.line_id
+                                INNER JOIN master_plan mp
+                                    ON mp.id = r.master_plan_id
+                                ".($this->qcType != "_packing" ?
+                                    "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                                    LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                                    "LEFT JOIN userpassword up ON up.username = r.created_by")."
                                 WHERE r.created_by IS NOT NULL
                                 AND r.updated_at ".$outputFilter."
 
@@ -895,9 +899,12 @@ class ReportOutput extends Component
                                     d.master_plan_id,
                                     COALESCE(up.username, mp.sewing_line) AS sewing_line
                                 FROM output_defects".$this->qcType." d
-                                INNER JOIN master_plan mp ON mp.id = d.master_plan_id
-                                LEFT JOIN user_sb_wip usw ON usw.id = d.created_by
-                                LEFT JOIN userpassword up ON up.line_id = usw.line_id
+                                INNER JOIN master_plan mp
+                                    ON mp.id = d.master_plan_id
+                                ".($this->qcType != "_packing" ?
+                                    "LEFT JOIN user_sb_wip usw ON usw.id = d.created_by
+                                    LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                                    "LEFT JOIN userpassword up ON up.username = d.created_by")."
                                 WHERE d.updated_at ".$outputFilter."
 
                                 UNION
@@ -906,17 +913,21 @@ class ReportOutput extends Component
                                     r.master_plan_id,
                                     COALESCE(up.username, mp.sewing_line) AS sewing_line
                                 FROM output_rejects".$this->qcType." r
-                                INNER JOIN master_plan mp ON mp.id = r.master_plan_id
-                                LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
-                                LEFT JOIN userpassword up ON up.line_id = usw.line_id
+                                INNER JOIN master_plan mp
+                                    ON mp.id = r.master_plan_id
+                                ".($this->qcType != "_packing" ?
+                                    "LEFT JOIN user_sb_wip usw ON usw.id = r.created_by
+                                    LEFT JOIN userpassword up ON up.line_id = usw.line_id" :
+                                    "LEFT JOIN userpassword up ON up.username = r.created_by")."
                                 WHERE r.updated_at ".$outputFilter."
+
                             ) x
                             GROUP BY
                                 x.master_plan_id,
                                 x.sewing_line
                         ) as line"), function ($join) {
                             $join->on("line.master_plan_id", "=", "master_plan.id");
-                        })->
+                        })-> 
                         leftJoin(DB::raw("
                             (
                                 SELECT
