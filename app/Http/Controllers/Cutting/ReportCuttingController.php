@@ -5389,7 +5389,8 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment,
                     0 saldo,
                     wip_adjustment_fabric.satuan,
-                    ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before,
+                    (CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP' THEN ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) ELSE ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01',wip_adjustment_fabric.qty,0)), 2) END) qty_adjustment_before,
+                    -- ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before_old,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                     COALESCE(
                     (
