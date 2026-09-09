@@ -175,7 +175,11 @@
                                 })->count();
 
                                 $groupStockerList = [];
-                                $ratioOutputList = [];
+
+                                // ArrayObject, bukan array biasa : @include melewatkan variabel
+                                // by value, jadi array biasa tidak akan membawa hasil push dari
+                                // partial kembali ke sini.
+                                $ratioOutputList = new \ArrayObject();
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
@@ -211,9 +215,9 @@
                                         @endphp
 
                                         @if ($currentModifySizeQty > 0)
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @else
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["ratioOutputList" => $ratioOutputList])
                                         @endif
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
@@ -253,7 +257,7 @@
                                                 array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -285,7 +289,7 @@
                                                 array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -325,9 +329,9 @@
                                         @endphp
 
                                         @if ($currentModifySizeQty > 0)
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @else
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["ratioOutputList" => $ratioOutputList])
                                         @endif
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
@@ -364,7 +368,7 @@
                                                 array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -396,7 +400,7 @@
                                                 array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                             @endphp
 
-                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -429,7 +433,7 @@
                                         </div>
                                     </div>
 
-                                    @include('stocker.stocker.stocker-detail-part-switching', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @include('stocker.stocker.stocker-detail-part-switching', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList, "orphanOutputs" => $outputs])
                                     @php
                                         $index += $dataRatio->count() * $dataPartDetail->count();
                                         $partIndex += $dataPartDetail->count();
@@ -521,9 +525,9 @@
                                             </div>
 
                                             @if ($currentModifySizeQtyAdditional > 0)
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @else
-                                                @include('stocker.stocker.stocker-detail-part-additional')
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["ratioOutputList" => $ratioOutputList])
                                             @endif
                                             @php
                                                 $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
@@ -557,7 +561,7 @@
                                                     </div>
                                                 </div>
 
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                 @php
                                                     $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
                                                     $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -586,7 +590,7 @@
                                                     </div>
                                                 </div>
 
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                 @php
                                                     $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
                                                     $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -623,9 +627,9 @@
                                             </div>
 
                                             @if ($currentModifySizeQtyAdditional > 0)
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                             @else
-                                                @include('stocker.stocker.stocker-detail-part-additional')
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["ratioOutputList" => $ratioOutputList])
                                             @endif
                                             @php
                                                 $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
@@ -659,7 +663,7 @@
                                                     </div>
                                                 </div>
 
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                 @php
                                                     $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
                                                     $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -688,7 +692,7 @@
                                                     </div>
                                                 </div>
 
-                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                 @php
                                                     $indexAdditional += $dataRatio->count() * $dataPartDetailAdditional->count();
                                                     $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -1047,7 +1051,7 @@
                                         </div>
                                     </div>
 
-                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                     @php
                                         $indexSeparate += $dataRatio->count();
                                     @endphp
@@ -1074,7 +1078,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1098,7 +1102,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1128,7 +1132,7 @@
                                         </div>
                                     </div>
 
-                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                     @php
                                         $indexSeparate += $dataRatio->count();
                                     @endphp
@@ -1155,7 +1159,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1179,7 +1183,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1373,9 +1377,9 @@
                                                     @endphp
 
                                                     @if ($currentModifySizeQty > 0)
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                     @else
-                                                        @include('stocker.stocker.stocker-detail-part-complement')
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["ratioOutputList" => $ratioOutputList])
                                                     @endif
                                                     @php
                                                         $index += $currentDataRatio->count() * $currentDataPartDetail->count();
@@ -1414,7 +1418,7 @@
                                                             array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @php
                                                             $index += $currentDataRatio->count() * $currentDataPartDetail->count();
                                                             $partIndex += $currentDataPartDetail->count();
@@ -1446,7 +1450,7 @@
                                                             array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @php
                                                             $index += $currentDataRatio->count() * $currentDataPartDetail->count();
                                                             $partIndex += $currentDataPartDetail->count();
@@ -1485,9 +1489,9 @@
                                                     @endphp
 
                                                     @if ($currentModifySizeQty > 0)
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                     @else
-                                                        @include('stocker.stocker.stocker-detail-part-complement')
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["ratioOutputList" => $ratioOutputList])
                                                     @endif
                                                     @php
                                                         $index += $currentDataRatio->count() * $currentDataPartDetail->count();
@@ -1523,7 +1527,7 @@
                                                             array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @php
                                                             $index += $currentDataRatio->count() * $currentDataPartDetail->count();
                                                             $partIndex += $currentDataPartDetail->count();
@@ -1555,7 +1559,7 @@
                                                             array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "group_roll" => $currentGroup, "qty" => $currentTotal]);
                                                         @endphp
 
-                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @php
                                                             $index += $currentDataRatio->count() * $currentDataPartDetail->count();
                                                             $partIndex += $currentDataPartDetail->count();
@@ -1650,9 +1654,9 @@
                                                         </div>
 
                                                         @if ($currentModifySizeQtyAdditional > 0)
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @else
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement')
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["ratioOutputList" => $ratioOutputList])
                                                         @endif
                                                         @php
                                                             $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
@@ -1686,7 +1690,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                             @php
                                                                 $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
                                                                 $partIndexAdditional += $currentDataPartDetailAdditional->count();
@@ -1715,7 +1719,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                             @php
                                                                 $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
                                                                 $partIndexAdditional += $currentDataPartDetailAdditional->count();
@@ -1752,9 +1756,9 @@
                                                         </div>
 
                                                         @if ($currentModifySizeQtyAdditional > 0)
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                         @else
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement')
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["ratioOutputList" => $ratioOutputList])
                                                         @endif
                                                         @php
                                                             $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
@@ -1788,7 +1792,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                             @php
                                                                 $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
                                                                 $partIndexAdditional += $currentDataPartDetailAdditional->count();
@@ -1817,7 +1821,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
                                                             @php
                                                                 $indexAdditional += $currentDataRatio->count() * $currentDataPartDetailAdditional->count();
                                                                 $partIndexAdditional += $currentDataPartDetailAdditional->count();
