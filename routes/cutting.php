@@ -8,6 +8,7 @@ use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPieceController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
 use App\Http\Controllers\Cutting\CuttingFormRejectController;
+use App\Http\Controllers\Cutting\CuttingFormScrapController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\CuttingToolsController;
 use App\Http\Controllers\Cutting\GantiRejectController;
@@ -248,6 +249,25 @@ Route::middleware('auth')->group(function () {
             Route::get("/total", "total")->name("total-piping-loading");
 
             Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
+        });
+
+        // Cutting Scrap
+        Route::controller(CuttingFormScrapController::class)->prefix("form-cut-scrap")->middleware("role:cutting")->group(function () {
+            Route::get('/', 'index')->name('cutting-scrap');
+            Route::get('/create', 'create')->name('create-cutting-scrap');
+            Route::get('/create-new', 'createNew')->name('create-new-cutting-scrap');
+            Route::get('/process/{id?}', 'process')->name('process-cutting-scrap');
+            Route::post('/store', 'store')->name('store-cutting-scrap');
+            Route::post('/finish-process', 'finishProcess')->name('finish-process-cutting-scrap');
+            Route::get('/edit/{id?}', 'edit')->name('edit-cutting-scrap');
+            Route::put('/update', 'update')->name('update-cutting-scrap')->middleware("role:superadmin");
+            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-scrap')->middleware("role:superadmin");
+            Route::delete('/delete/detail', 'deleteDetail')->name('delete-cutting-scrap-detail');
+            Route::post('/export/excel', 'exportExcel')->name('export-excel-cutting-scrap');
+
+            // add-on
+            Route::get('/get-parts', 'getParts')->name('get-parts-cutting-scrap');
+            Route::get('/get-roll', 'getRoll')->name('get-roll-cutting-scrap');
         });
 
         // Cutting Reject
