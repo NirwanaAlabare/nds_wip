@@ -17,22 +17,11 @@ class AssetMesinOpnameController extends Controller
     private const STATUS_MESIN = ['ACTIVE', 'IDLE', 'BREAKDOWN'];
     private const STATUS_MESIN_SEWA = ['ACTIVE', 'IDLE'];
 
+    // Daftar header opname (satu baris = satu No SO)
     public function asset_mesin_opname(Request $request)
     {
         if ($request->ajax()) {
-            $data = DB::select("
-                SELECT
-                    tgl_trans,
-                    DATE_FORMAT(tgl_trans, '%d %M %Y') AS tgl_opname,
-                    lokasi,
-                    COUNT(*) AS total_mesin
-                FROM asset_stok_opname_mesin
-                WHERE tgl_trans BETWEEN ? AND ?
-                GROUP BY tgl_trans, lokasi
-                ORDER BY tgl_trans DESC, lokasi ASC
-            ", [$request->tgl_awal, $request->tgl_akhir]);
-
-            return DataTables::of($data)->toJson();
+            return DataTables::of($this->getHeaderOpname($request))->toJson();
         }
 
         return view('asset_management.opname_mesin', [
@@ -43,47 +32,127 @@ class AssetMesinOpnameController extends Controller
         ]);
     }
 
+    // Header yang periodenya bersinggungan dengan rentang tanggal filter
+    private function getHeaderOpname(Request $request): array
+    {
+        $tglAwal = $request->tgl_awal ?: date('Y-m-01');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+
+        return DB::select("
+            SELECT
+                h.id,
+                h.no_so,
+                h.periode_tgl_awal,
+                h.periode_tgl_akhir,
+                DATE_FORMAT(h.periode_tgl_awal, '%d %M %Y') AS periode_awal,
+                DATE_FORMAT(h.periode_tgl_akhir, '%d %M %Y') AS periode_akhir,
+                h.ket,
+                h.created_by,
+                DATE_FORMAT(h.created_at, '%d %M %Y %H:%i') AS created_at,
+                (SELECT COUNT(*) FROM asset_stok_opname_mesin d WHERE d.id_so = h.id) AS total_mesin
+            FROM asset_stok_opname_header_mesin h
+            WHERE h.periode_tgl_awal <= ? AND h.periode_tgl_akhir >= ?
+            ORDER BY h.id DESC
+        ", [$tglAkhir, $tglAwal]);
+    }
+
+    // Simpan header baru dari modal "New". No SO dibuat otomatis di sini,
+    // supaya nomornya tidak pernah bentrok walau dua user membuka modalnya bersamaan.
+    public function store_header_asset_mesin_opname(Request $request)
+    {
+        $request->validate([
+            'periode_tgl_awal' => 'required|date',
+            'periode_tgl_akhir' => 'required|date|after_or_equal:periode_tgl_awal',
+            'ket' => 'nullable|string',
+        ]);
+
+        $timestamp = Carbon::now();
+
+        $id = DB::transaction(function () use ($request, $timestamp) {
+            return DB::table('asset_stok_opname_header_mesin')->insertGetId([
+                'no_so' => $this->generateNoSo(),
+                'periode_tgl_awal' => $request->periode_tgl_awal,
+                'periode_tgl_akhir' => $request->periode_tgl_akhir,
+                'ket' => $request->ket,
+                'created_by' => Auth::user()->name,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+        });
+
+        $header = DB::table('asset_stok_opname_header_mesin')->where('id', $id)->first();
+
+        return response()->json([
+            'id' => $id,
+            'no_so' => $header->no_so,
+            'redirect' => route('create_asset_mesin_opname', ['id_so' => $id]),
+        ]);
+    }
+
+    // Format nomor: SO/MSN/09001 - "09" bulan berjalan, "001" urutan yang direset tiap bulan.
+    private function generateNoSo(): string
+    {
+        $prefix = 'SO/MSN/' . date('m');
+
+        $last = DB::table('asset_stok_opname_header_mesin')
+            ->where('no_so', 'like', $prefix . '%')
+            ->whereYear('created_at', date('Y'))
+            ->orderByDesc('no_so')
+            ->value('no_so');
+
+        $urut = $last ? ((int) substr($last, -3)) + 1 : 1;
+
+        return $prefix . str_pad($urut, 3, '0', STR_PAD_LEFT);
+    }
+
     public function create_asset_mesin_opname(Request $request)
     {
+        // Halaman input selalu terikat ke satu header; tanpa header tidak ada yang bisa diisi
+        $header = DB::table('asset_stok_opname_header_mesin')->where('id', $request->id_so)->first();
+
+        if (!$header) {
+            return redirect()->route('asset_mesin_opname');
+        }
+
         $lokasiList = DB::select("SELECT lokasi isi, lokasi tampil FROM master_mesin_lokasi ORDER BY lokasi ASC");
 
-        // Dipanggil dari tombol "+" di list: lokasi & tanggalnya mengikuti baris opname yang dipilih
-        // dan tidak boleh diganti, supaya scan tambahan masuk ke opname yang sama.
         return view('asset_management.create_opname_mesin', [
             'page' => 'dashboard-asset',
             'subPageGroup' => 'asset-mesin',
             'subPage' => 'asset_mesin_opname',
             'containerFluid' => true,
             'lokasiList' => $lokasiList,
-            'lokasiTerkunci' => $request->lokasi,
-            'tglTerkunci' => $request->tgl,
+            'header' => $header,
         ]);
     }
 
-    // Daftar hasil scan pada satu tanggal & lokasi.
-    // Dipakai halaman input (default tanggal hari ini) dan modal View di list opname.
+    // Detail mesin milik satu header. Dipakai halaman input & modal View di list.
+    // Halaman input mengirim lokasi juga, supaya listnya menyempit ke lokasi yang sedang dikerjakan.
     public function getdata_asset_mesin_opname(Request $request)
     {
-        $tglTrans = $request->tgl ?: date('Y-m-d');
+        $where = 'o.id_so = ?';
+        $bindings = [$request->id_so];
 
-        $data = $this->getDetailOpname(
-            'o.tgl_trans = ? AND o.lokasi = ?',
-            [$tglTrans, $request->cbolok]
-        );
+        if ($request->cbolok) {
+            $where .= ' AND o.lokasi = ?';
+            $bindings[] = $request->cbolok;
+        }
+
+        $data = $this->getDetailOpname($where, $bindings);
 
         return DataTables::of($data)->toJson();
     }
 
-    // Export detail seluruh mesin yang diopname dalam rentang tanggal di halaman list
+    // Export detail seluruh mesin yang diopname, mengikuti filter periode di halaman list
     public function export_excel_asset_mesin_opname(Request $request)
     {
         $tglAwal = $request->tgl_awal ?: date('Y-m-01');
         $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
 
         $rows = $this->getDetailOpname(
-            'o.tgl_trans BETWEEN ? AND ?',
-            [$tglAwal, $tglAkhir],
-            'o.tgl_trans ASC, o.lokasi ASC, o.created_at ASC'
+            'h.periode_tgl_awal <= ? AND h.periode_tgl_akhir >= ?',
+            [$tglAkhir, $tglAwal],
+            'h.no_so ASC, o.lokasi ASC, o.created_at ASC'
         );
 
         $excel = FastExcel::create('Stok Opname Mesin');
@@ -95,7 +164,8 @@ class AssetMesinOpnameController extends Controller
 
         $sheet->writeRow([
             'No',
-            'Tgl. Opname',
+            'No SO',
+            'Tgl. Scan',
             'Lokasi',
             'Sumber',
             'Kode QR',
@@ -111,6 +181,7 @@ class AssetMesinOpnameController extends Controller
         foreach ($rows as $r) {
             $sheet->writeRow([
                 $no++,
+                $r->no_so ?? '',
                 $r->tgl_opname ?? '',
                 $r->lokasi ?? '',
                 $r->sumber ?? '',
@@ -142,6 +213,8 @@ class AssetMesinOpnameController extends Controller
         return DB::select("
             SELECT
                 o.id,
+                o.id_so,
+                h.no_so,
                 o.tgl_trans,
                 DATE_FORMAT(o.tgl_trans, '%d %M %Y') AS tgl_opname,
                 o.kode_qr,
@@ -154,6 +227,7 @@ class AssetMesinOpnameController extends Controller
                 u.tipe,
                 u.serial_number
             FROM asset_stok_opname_mesin o
+            INNER JOIN asset_stok_opname_header_mesin h ON o.id_so = h.id
             LEFT JOIN (" . $this->sqlUnitMesin() . ") u ON o.kode_qr = u.kode_qr
             WHERE $where
             ORDER BY $orderBy
@@ -164,19 +238,25 @@ class AssetMesinOpnameController extends Controller
     {
         $kodeQr = trim((string) $request->txtqr);
         $lokasi = $request->cbolok;
-
-        // Scan tambahan lewat tombol "+" masuk ke tanggal opname baris tersebut, bukan tanggal hari ini.
-        // Tanggal yang tidak berformat Y-m-d diabaikan supaya tidak masuk sebagai tanggal kosong.
+        $idSo = $request->id_so;
         $tglTrans = date('Y-m-d');
-        if ($request->tgl_trans && preg_match('/^\d{4}-\d{2}-\d{2}$/', $request->tgl_trans)) {
-            $tglTrans = $request->tgl_trans;
-        }
 
-        if ($kodeQr === '' || !$lokasi) {
+        if ($kodeQr === '' || !$lokasi || !$idSo) {
             return [
                 'icon' => 'error',
-                'msg' => 'Lokasi & Kode QR wajib diisi.',
+                'msg' => 'No SO, Lokasi & Kode QR wajib diisi.',
                 'timer' => 1500,
+                'prog' => false,
+            ];
+        }
+
+        $header = DB::table('asset_stok_opname_header_mesin')->where('id', $idSo)->first();
+
+        if (!$header) {
+            return [
+                'icon' => 'error',
+                'msg' => 'Header opname tidak ditemukan.',
+                'timer' => 2000,
                 'prog' => false,
             ];
         }
@@ -193,10 +273,10 @@ class AssetMesinOpnameController extends Controller
             ];
         }
 
-        // Satu unit cukup sekali per tanggal opname, supaya tidak dobel dihitung antar lokasi
+        // Satu unit cukup sekali dalam satu No SO, supaya tidak dobel dihitung antar lokasi
         $sudahScan = DB::table('asset_stok_opname_mesin')
             ->where('kode_qr', $kodeQr)
-            ->where('tgl_trans', $tglTrans)
+            ->where('id_so', $idSo)
             ->first();
 
         if ($sudahScan) {
@@ -204,7 +284,7 @@ class AssetMesinOpnameController extends Controller
                 'icon' => 'error',
                 'msg' => 'QR Sudah Di Scan di : ' . $sudahScan->lokasi,
                 'detail' => 'Kode QR ' . $kodeQr . ' sudah discan di lokasi <b>' . $sudahScan->lokasi . '</b>'
-                    . ' pada jam ' . date('H:i', strtotime($sudahScan->created_at))
+                    . ' pada ' . date('d-m-Y H:i', strtotime($sudahScan->created_at))
                     . ' oleh ' . ($sudahScan->created_by ?: '-') . '.',
                 'timer' => null,
                 'prog' => false,
@@ -214,6 +294,7 @@ class AssetMesinOpnameController extends Controller
         $timestamp = Carbon::now();
 
         DB::table('asset_stok_opname_mesin')->insert([
+            'id_so' => $idSo,
             'tgl_trans' => $tglTrans,
             'lokasi' => $lokasi,
             'kode_qr' => $kodeQr,

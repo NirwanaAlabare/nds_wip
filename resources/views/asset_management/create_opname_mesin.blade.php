@@ -49,30 +49,35 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-clipboard-check"></i> Opname Mesin</h5>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-clipboard-check"></i> Opname Mesin
+                <span class="badge bg-primary ms-1">{{ $header->no_so }}</span>
+            </h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
+                <small class="text-muted">
+                    Periode
+                    <b>{{ date('d-m-Y', strtotime($header->periode_tgl_awal)) }}</b>
+                    s/d
+                    <b>{{ date('d-m-Y', strtotime($header->periode_tgl_akhir)) }}</b>
+                    @if ($header->ket)
+                        &middot; {{ $header->ket }}
+                    @endif
+                </small>
+            </div>
+
+            <div class="mb-3">
                 <label for="cbolok" class="form-label"><small><b>Lokasi</b></small></label>
-                <select class="form-control form-control-sm select2bs4" id="cbolok" name="cbolok"
-                    @if ($lokasiTerkunci) disabled @endif>
-                    <option value="" selected disabled>-- Pilih Lokasi --</option>
+                <select class="form-control form-control-sm select2bs4" id="cbolok" name="cbolok">
+                    <option value="" selected>-- Semua Lokasi (lihat saja) --</option>
                     @foreach ($lokasiList as $row)
-                        <option value="{{ $row->isi }}" @if ($lokasiTerkunci == $row->isi) selected @endif>
-                            {{ $row->tampil }}</option>
+                        <option value="{{ $row->isi }}">{{ $row->tampil }}</option>
                     @endforeach
                 </select>
-                @if ($lokasiTerkunci)
-                    {{-- Dibuka dari tombol "+" di list opname: scan tambahan wajib masuk ke opname yang sama --}}
-                    <small class="text-muted">
-                        <i class="fas fa-lock"></i> Melanjutkan opname
-                        <b>{{ $lokasiTerkunci }}</b>
-                        @if ($tglTerkunci)
-                            tanggal <b>{{ date('d-m-Y', strtotime($tglTerkunci)) }}</b>
-                        @endif
-                        - lokasi tidak bisa diganti.
-                    </small>
-                @endif
+                <small class="text-muted">
+                    "Semua Lokasi" hanya untuk melihat seluruh isi No SO ini - untuk scan, pilih lokasinya dulu.
+                </small>
             </div>
 
             <div class="mb-3">
@@ -118,8 +123,8 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">
-                <i class="fas fa-list"></i> List Transaksi Mesin Hari Ini
-                <small class="text-muted" id="lokasiAktif"></small>
+                <i class="fas fa-list"></i> List Transaksi Mesin
+                <small class="text-muted">{{ $header->no_so }} <span id="lokasiAktif"></span></small>
             </h5>
         </div>
         <div class="card-body">
@@ -168,9 +173,8 @@
             width: 'resolve'
         });
 
-        // Diisi kalau halaman dibuka dari tombol "+" di list opname
-        const lokasiTerkunci = @json($lokasiTerkunci);
-        const tglTerkunci = @json($tglTerkunci);
+        // Semua scan di halaman ini masuk ke header (No SO) yang sedang dibuka
+        const idSo = @json($header->id);
 
         // onDone dipanggil setelah proses simpan selesai (sukses maupun gagal),
         // dipakai mode kamera untuk melanjutkan pembacaan QR berikutnya
@@ -187,7 +191,7 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Lokasi belum dipilih!',
-                    text: 'Silakan pilih lokasi terlebih dahulu sebelum scan.',
+                    text: 'Pilih lokasi dulu sebelum scan - "Semua Lokasi" hanya untuk melihat daftar.',
                 });
                 $('#txtqr').val('');
                 done();
@@ -202,21 +206,32 @@
                 data: {
                     txtqr: kodeQr,
                     cbolok: lokasi,
-                    tgl_trans: tglTerkunci,
+                    id_so: idSo,
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(res) {
                     dataTableReload();
-                    // Penolakan (mis. QR dobel) tidak diberi timer supaya user sempat baca
-                    // di lokasi mana QR itu sudah terhitung
-                    Swal.fire({
-                        icon: res.icon,
-                        title: res.msg,
-                        html: res.detail ?? '',
-                        showConfirmButton: true,
-                        timer: res.timer,
-                        timerProgressBar: res.prog
-                    });
+
+                    if (res.icon === 'success') {
+                        // Sukses cukup lewat toast singkat di pojok: tidak menutupi kamera
+                        // & tidak menahan scan berikutnya
+                        iziToast.success({
+                            title: 'Tersimpan',
+                            message: kodeQr,
+                            position: 'topCenter',
+                            timeout: 800,
+                            close: false,
+                            progressBar: false
+                        });
+                    } else {
+                        // Penolakan (mis. QR dobel) tetap menunggu OK supaya pesannya sempat dibaca
+                        Swal.fire({
+                            icon: res.icon,
+                            title: res.msg,
+                            html: res.detail ?? '',
+                            showConfirmButton: true
+                        });
+                    }
                     $('#txtqr').val('');
                     if (modeAktif() === 'manual') $('#txtqr').focus();
                     $('#btnSimpan').prop('disabled', false);
@@ -254,8 +269,8 @@
             ajax: {
                 url: '{{ route('getdata_asset_mesin_opname') }}',
                 data: function(d) {
+                    d.id_so = idSo;
                     d.cbolok = $('#cbolok').val();
-                    d.tgl = tglTerkunci;
                 }
             },
             columns: [
@@ -297,14 +312,7 @@
         });
 
         function dataTableReload() {
-            if ($('#cbolok').val()) datatable.ajax.reload(null, false);
-        }
-
-        // Lokasi sudah ditentukan dari list opname, jadi listnya langsung dimuat
-        if (lokasiTerkunci) {
-            $('#lokasiAktif').text('- ' + lokasiTerkunci);
-            datatable.ajax.reload();
-            $('#txtqr').focus();
+            datatable.ajax.reload(null, false);
         }
 
         $('#btnSimpan').on('click', function() {
@@ -319,9 +327,10 @@
             }
         });
 
-        // Ganti lokasi = tampilkan mesin apa saja yang sudah discan di lokasi itu hari ini
+        // Ganti lokasi = list transaksi ikut menampilkan isi lokasi tersebut pada No SO ini.
+        // Kosong berarti "Semua Lokasi": tabel menampilkan seluruh mesin di No SO ini.
         $('#cbolok').on('change', function() {
-            $('#lokasiAktif').text('- ' + $(this).val());
+            $('#lokasiAktif').text(this.value ? '- ' + this.value : '- Semua Lokasi');
             datatable.ajax.reload();
             if (modeAktif() === 'manual') $('#txtqr').focus();
         });
