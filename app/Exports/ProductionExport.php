@@ -32,7 +32,37 @@ class ProductionExport implements FromView, ShouldAutoSize, ShouldQueue, WithTit
     {
         ini_set('max_execution_time', 300);
 
-        $lines = UserLine::with('masterPlans')->where('username', $this->selectedLine)->first();
+        $timeFrom = $this->date.' 00:00:00';
+        $timeTo = $this->date.' 23:59:59';
+
+        // Sama dengan App\Http\Livewire\Sewing\ReportProduction: master plan yang tgl_plan-nya
+        // = tanggal terpilih (untuk target / man power) DITAMBAH master plan tanggal berapapun
+        // yang punya output di tanggal terpilih, supaya total actual sama dengan Report Output.
+        $lines = UserLine::with([
+            "masterPlans" => function ($query) use ($timeFrom, $timeTo) {
+                $query->where(function ($query) use ($timeFrom, $timeTo) {
+                    $query->where('master_plan.tgl_plan', $this->date)->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_rfts')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        })->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_defects')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        })->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_rejects')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        });
+                });
+            },
+            "masterPlans.rfts" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_rfts.updated_at', [$timeFrom, $timeTo]);
+            },
+            "masterPlans.defects" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_defects.updated_at', [$timeFrom, $timeTo]);
+            },
+            "masterPlans.rejects" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_rejects.updated_at', [$timeFrom, $timeTo]);
+            }
+        ])->where('username', $this->selectedLine)->first();
 
         $hours = array(
             "08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"

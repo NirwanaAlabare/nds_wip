@@ -205,8 +205,8 @@ class CeisaService
      */
     public function kirimDokumen($payload, $isFinal = 'false')
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
 
         if (is_array($payload) && !empty($this->idPlatform)) {
             $payload['idPlatform'] = $this->idPlatform;
@@ -291,8 +291,8 @@ class CeisaService
      */
     public function kirimDokumenBc27($payload, $isFinal = 'false')
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
 
         $response = $this->requestWithRetry(
             'POST',
@@ -312,8 +312,9 @@ class CeisaService
      */
     public function kirimDokumenBc30($payload, $isFinal = 'false', $isDev = true)
     {
+        $this->setEnv('live');
         $this->useUserCredential();
-        $this->setEnv($isDev ? 'dev' : 'live');
+
 
         $response = $this->requestWithRetry(
             'POST',
@@ -369,8 +370,8 @@ class CeisaService
     // kirim dokumen BC 2.6.2 ke CEISA
     public function kirimDokumenBc262($payload, $isFinal = 'false')
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
 
         $response = $this->requestWithRetry(
             'POST',
@@ -482,8 +483,8 @@ class CeisaService
      */
     public function getStatus($nomorAju)
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
 
         $response = $this->requestWithRetry(
             'GET',
@@ -539,8 +540,8 @@ class CeisaService
 
     public function kirimDokumenBatch40($payload, $isFinal = 'false')
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
 
         if (is_array($payload) && !empty($this->idPlatform)) {
             $payload['idPlatform'] = $this->idPlatform;
@@ -587,8 +588,9 @@ class CeisaService
     // fungsi kirim dokumen batch BC 2.3 ke CEISA
     public function kirimDokumenBatch27($payload, $isFinal = 'false')
     {
-        $this->useUserCredential();
         $this->setEnv('live');
+        $this->useUserCredential();
+
         if (is_array($payload) && !empty($this->idPlatform)) {
             $payload['idPlatform'] = $this->idPlatform;
         }
@@ -630,10 +632,11 @@ class CeisaService
     }
 
     // kirim dokumen batch BC 3.0 ke CEISA
-    public function kirimDokumenBatch30($payload, $isFinal = 'false'){
-
-        $this->useUserCredential();
+    public function kirimDokumenBatch30($payload, $isFinal = 'false')
+    {
         $this->setEnv('live');
+        $this->useUserCredential();
+
         if (is_array($payload) && !empty($this->idPlatform)) {
             $payload['idPlatform'] = $this->idPlatform;
         }
