@@ -40,18 +40,36 @@ class ReportProduction extends Component
     {
         $this->loadingLine = false;
 
+        $timeFrom = $this->date.' 00:00:00';
+        $timeTo = $this->date.' 23:59:59';
+
         $lines = UserLine::with([
-            "masterPlans" => function ($query) {
-                $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-7 days', strtotime($this->date))), $this->date]);
+            // Ambil master plan yang tgl_plan-nya = tanggal terpilih (dipakai untuk target / man power),
+            // DITAMBAH master plan tanggal berapapun yang punya output di tanggal terpilih.
+            // Sebelumnya dibatasi 7 hari ke belakang, sehingga output (terutama rework) dari
+            // master plan lama tidak ikut terhitung dan total actual beda dengan Report Output.
+            "masterPlans" => function ($query) use ($timeFrom, $timeTo) {
+                $query->where(function ($query) use ($timeFrom, $timeTo) {
+                    $query->where('master_plan.tgl_plan', $this->date)->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_rfts')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        })->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_defects')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        })->
+                        orWhereIn('master_plan.id', function ($sub) use ($timeFrom, $timeTo) {
+                            $sub->select('master_plan_id')->from('output_rejects')->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                        });
+                });
             },
-            "masterPlans.rfts" => function ($query) {
-                $query->whereRaw('output_rfts.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
+            "masterPlans.rfts" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_rfts.updated_at', [$timeFrom, $timeTo]);
             },
-            "masterPlans.defects" => function ($query) {
-                $query->whereRaw('output_defects.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
+            "masterPlans.defects" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_defects.updated_at', [$timeFrom, $timeTo]);
             },
-            "masterPlans.rejects" => function ($query) {
-                $query->whereRaw('output_rejects.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
+            "masterPlans.rejects" => function ($query) use ($timeFrom, $timeTo) {
+                $query->whereBetween('output_rejects.updated_at', [$timeFrom, $timeTo]);
             }
         ])->where('Groupp', 'SEWING')->whereRaw("(Locked != '1' OR Locked IS NULL)")->orderBy('FullName', 'asc')->get();
 
