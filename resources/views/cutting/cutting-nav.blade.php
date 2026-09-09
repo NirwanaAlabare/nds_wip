@@ -21,16 +21,16 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('cutting-piece') }}"
+                class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                Form Pieces <i class="fa-solid fa-shirt"></i>
+            </a>
+            <li>
                 <a href="{{ route('cutting-scrap') }}"
                     class="dropdown-item {{ $routeName == 'cutting-scrap' ? 'active' : '' }}">
-                    Form Scrap <i class="fa-solid fa-scissors"></i>
+                    Form Scrap <i class="fa-solid fa-bars-staggered"></i>
                 </a>
             </li>
-            <li>
-                <a href="{{ route('cutting-piece') }}"
-                    class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                    Form Pieces <i class="fa-solid fa-shirt"></i>
-                </a>
             </li>
             <li>
                 <a href="{{ route('form-cut-piping') }}"

@@ -9,7 +9,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-scissors"></i> Form Cut Scrap</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-bars-staggered"></i> Form Cut Scrap</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
