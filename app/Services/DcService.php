@@ -2734,8 +2734,8 @@ class DcService
                                             COALESCE(saldo_akhir_secondary_luar, 0) kirim_secondary_luar,
                                             0 AS terima_repaired_secondary_luar,
                                             0 AS terima_good_secondary_luar,
-                                            0 AS terima_repaired_secondary_luar_new,
-                                            0 AS terima_good_secondary_luar_new,
+                                            COALESCE(terima_repaired_secondary_luar, 0) AS terima_repaired_secondary_luar_new,
+                                            COALESCE(terima_good_secondary_luar, 0) AS terima_good_secondary_luar_new,
                                             0 loading_qty,
                                             0 saldo_akhir,
                                             CURRENT_TIMESTAMP() created_at,
@@ -3924,7 +3924,7 @@ class DcService
                         part_detail_id
                 )
 
-                select 
+                select
                     '".$dateTo."' tanggal,
                     stockers,
                     buyer,
@@ -3964,7 +3964,7 @@ class DcService
                         panel,
                         NOW() created_at,
                         NOW() updated_at,
-                        panel_status, 
+                        panel_status,
                         part_detail_id,
                         nama_part,
                         part_status,
