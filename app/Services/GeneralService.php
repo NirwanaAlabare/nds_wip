@@ -117,7 +117,7 @@ class GeneralService
                     inner join masteritem mi on mi.id_gen = bji.id_item
                 where
                     kpno = '".$ws."' AND
-                    mi.color = '".$color."' AND
+                    ".($color ? "mi.color = '".$color."' AND" : "")."
                     matclass = 'FABRIC' and
                     nama_panel like '%".$panel."%'
             ");

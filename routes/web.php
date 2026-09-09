@@ -1639,6 +1639,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(AssetMesinOpnameController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_opname', 'asset_mesin_opname')->name('asset_mesin_opname');
         Route::get('/asset_mesin_opname/create', 'create_asset_mesin_opname')->name('create_asset_mesin_opname');
+        Route::post('/asset_mesin_opname/header/store', 'store_header_asset_mesin_opname')->name('store_header_asset_mesin_opname');
         Route::get('/asset_mesin_opname/list', 'getdata_asset_mesin_opname')->name('getdata_asset_mesin_opname');
         Route::get('/asset_mesin_opname/export_excel', 'export_excel_asset_mesin_opname')->name('export_excel_asset_mesin_opname');
         Route::post('/asset_mesin_opname/store', 'store_asset_mesin_opname')->name('store_asset_mesin_opname');

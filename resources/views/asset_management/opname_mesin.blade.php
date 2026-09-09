@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style type="text/css">
         .form-control {
@@ -24,6 +27,16 @@
             min-width: 65px;
             padding-right: 24px;
         }
+
+        /* Modal list mesin dibuat lebar & tinggi supaya banyak baris terlihat sekaligus */
+        .modal-detail-opname {
+            max-width: 95vw;
+        }
+
+        .modal-detail-opname .modal-body {
+            max-height: 75vh;
+            overflow-y: auto;
+        }
     </style>
 @endsection
 
@@ -34,9 +47,9 @@
         </div>
         <div class="card-body">
             <div class="mb-3 d-flex justify-content-between align-items-center">
-                <a href="{{ route('create_asset_mesin_opname') }}" class="btn btn-primary btn-sm">
+                <button type="button" class="btn btn-primary btn-sm" id="btnNewHeader">
                     <i class="fas fa-plus"></i> New
-                </a>
+                </button>
             </div>
             <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
                 <div>
@@ -59,9 +72,12 @@
                 <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
                     <thead class="bg-sb">
                         <tr>
-                            <th scope="col" class="text-center align-middle">Tgl. Opname</th>
-                            <th scope="col" class="text-center align-middle">Lokasi</th>
+                            <th scope="col" class="text-center align-middle">No SO</th>
+                            <th scope="col" class="text-center align-middle">Periode</th>
+                            <th scope="col" class="text-center align-middle">Keterangan</th>
                             <th scope="col" class="text-center align-middle">Total Mesin</th>
+                            <th scope="col" class="text-center align-middle">Dibuat Oleh</th>
+                            <th scope="col" class="text-center align-middle">Waktu Dibuat</th>
                             <th scope="col" class="text-center align-middle">Act</th>
                         </tr>
                     </thead>
@@ -70,16 +86,73 @@
         </div>
     </div>
 
-    <!-- Modal List Mesin per tanggal & lokasi -->
+    <!-- Modal Header Opname Baru -->
+    <div class="modal fade" id="NewHeaderModal" tabindex="-1" aria-labelledby="NewHeaderModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title mb-0" id="NewHeaderModalLabel">Buat Opname Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><small><b>No SO</b></small></label>
+                        <input type="text" class="form-control form-control-sm" value="Dibuat otomatis saat disimpan"
+                            disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="periode_tgl_awal" class="form-label"><small><b>Periode Tgl Awal</b></small></label>
+                        <input type="date" id="periode_tgl_awal" class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-3">
+                        <label for="periode_tgl_akhir" class="form-label"><small><b>Periode Tgl Akhir</b></small></label>
+                        <input type="date" id="periode_tgl_akhir" class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-1">
+                        <label for="ket" class="form-label"><small><b>Keterangan</b></small></label>
+                        <textarea id="ket" class="form-control form-control-sm" rows="3"
+                            placeholder="Opsional..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSimpanHeader">
+                        <i class="fas fa-save"></i> Simpan & Mulai Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal List Mesin per No SO -->
     <div class="modal fade" id="DetailOpnameModal" tabindex="-1" aria-labelledby="DetailOpnameModalLabel"
         aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-fullscreen-lg-down modal-detail-opname">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
                     <h5 class="modal-title mb-0" id="DetailOpnameModalLabel">List Mesin</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <input type="text" id="detailSearch" class="form-control form-control-sm"
+                                placeholder="Cari kode QR / jenis / merk / serial number...">
+                        </div>
+                        <div class="col-md-3">
+                            <select id="detailFilterLokasi" class="form-control form-control-sm select2bs4">
+                                <option value="">Semua Lokasi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="detailFilterSumber" class="form-control form-control-sm select2bs4">
+                                <option value="">Semua Sumber</option>
+                                <option value="PEMBELIAN">Pembelian</option>
+                                <option value="SEWA">Sewa</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table id="detailTable" class="table table-bordered table-sm align-middle mb-0 w-100">
                             <thead class="bg-sb">
@@ -91,8 +164,9 @@
                                     <th scope="col">Merk</th>
                                     <th scope="col">Tipe</th>
                                     <th scope="col">Serial Number</th>
+                                    <th scope="col">Lokasi</th>
+                                    <th scope="col">Tgl. Scan</th>
                                     <th scope="col">User</th>
-                                    <th scope="col">Waktu Scan</th>
                                 </tr>
                             </thead>
                             <tbody id="detailTableBody"></tbody>
@@ -114,6 +188,7 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
         // Modul Asset: senyapkan alert bawaan DataTables saat ajax gagal, cukup dicatat di console
@@ -147,17 +222,26 @@
                 }
             },
             columns: [
-                { data: 'tgl_opname', className: 'text-center' }, // Tgl. Opname
-                { data: 'lokasi', defaultContent: '-' }, // Lokasi
+                { data: 'no_so', className: 'text-center' }, // No SO
+                {
+                    data: null,
+                    className: 'text-center',
+                    render: function(row) {
+                        return `${row.periode_awal ?? '-'} s/d ${row.periode_akhir ?? '-'}`;
+                    }
+                }, // Periode
+                { data: 'ket', defaultContent: '-' }, // Keterangan
                 { data: 'total_mesin', className: 'text-center' }, // Total Mesin
+                { data: 'created_by', defaultContent: '-' }, // Dibuat Oleh
+                { data: 'created_at', className: 'text-center' }, // Waktu Dibuat
                 {
                     data: null,
                     className: 'text-center',
                     orderable: false,
                     render: function(row) {
-                        // Tombol "+" membuka halaman input dengan lokasi & tanggal opname ini terkunci
-                        let urlTambah = '{{ route('create_asset_mesin_opname') }}' +
-                            `?lokasi=${encodeURIComponent(row.lokasi ?? '')}&tgl=${encodeURIComponent(row.tgl_trans ?? '')}`;
+                        // Tombol "+" melanjutkan scan pada No SO ini
+                        let urlTambah = '{{ route('create_asset_mesin_opname') }}?id_so=' +
+                            encodeURIComponent(row.id);
 
                         return `
                             <button type="button" class="btn btn-sm btn-primary btn-view" title="Lihat list mesin">
@@ -169,6 +253,64 @@
                     }
                 }, // Act
             ],
+        });
+
+        // ---- Buat header opname baru ----
+        $('#btnNewHeader').on('click', function() {
+            $('#periode_tgl_awal').val(todayStr);
+            $('#periode_tgl_akhir').val(todayStr);
+            $('#ket').val('');
+            $('#NewHeaderModal').modal('show');
+        });
+
+        $('#btnSimpanHeader').on('click', function() {
+            let btn = $(this);
+            let tglAwal = $('#periode_tgl_awal').val();
+            let tglAkhir = $('#periode_tgl_akhir').val();
+
+            if (!tglAwal || !tglAkhir) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Periode belum lengkap',
+                    text: 'Isi periode tanggal awal & akhir terlebih dahulu.',
+                });
+                return;
+            }
+
+            if (tglAkhir < tglAwal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Periode tidak valid',
+                    text: 'Tanggal akhir tidak boleh lebih awal dari tanggal awal.',
+                });
+                return;
+            }
+
+            btn.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store_header_asset_mesin_opname') }}',
+                data: {
+                    periode_tgl_awal: tglAwal,
+                    periode_tgl_akhir: tglAkhir,
+                    ket: $('#ket').val(),
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    // Langsung diarahkan ke halaman scan untuk No SO yang baru dibuat
+                    window.location.href = res.redirect;
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    btn.prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal menyimpan header opname.',
+                    });
+                }
+            });
         });
 
         // Export Excel mengikuti filter tanggal yang sedang aktif di tabel
@@ -222,12 +364,55 @@
             });
         }
 
-        // Lihat isi opname satu tanggal & lokasi (read-only)
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // dropdownParent diarahkan ke modalnya, karena modal Bootstrap 5 menahan focus
+        // sehingga dropdown yang nempel di <body> tidak bisa diketik
+        $('#detailFilterLokasi, #detailFilterSumber').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            dropdownParent: $('#DetailOpnameModal')
+        });
+        $('.select2-container--bootstrap4 .select2-selection--single').css({
+            'height': '30px',
+            'font-size': '12px',
+            'line-height': '30px'
+        });
+
+        let detailTable = null;
+
+        // Pencarian bebas di modal detail
+        $('#detailSearch').on('keyup', function() {
+            if (detailTable) detailTable.search(this.value).draw();
+        });
+
+        // Filter kolom Lokasi (index 7) & Sumber (index 1), dicocokkan persis
+        $('#detailFilterLokasi').on('change', function() {
+            if (detailTable) detailTable.column(7).search(this.value ? '^' + this.value + '$' : '', true, false).draw();
+        });
+
+        $('#detailFilterSumber').on('change', function() {
+            if (detailTable) detailTable.column(1).search(this.value).draw();
+        });
+
+        // Lihat isi satu No SO (read-only)
         $('#datatable').on('click', '.btn-view', function() {
             let row = datatable.row($(this).closest('tr')).data();
 
-            $('#DetailOpnameModalLabel').text(`List Mesin - ${row.tgl_opname} - ${row.lokasi ?? '-'}`);
+            $('#DetailOpnameModalLabel').text(`List Mesin - ${row.no_so ?? '-'}`);
             $('#detailTotal').text('');
+
+            // DataTables lama dibuang dulu supaya isi tbody bisa diganti untuk No SO yang baru dipilih
+            if ($.fn.DataTable.isDataTable('#detailTable')) {
+                $('#detailTable').DataTable().destroy();
+            }
+
+            $('#detailSearch').val('');
+            $('#detailFilterLokasi').val('').trigger('change.select2');
+            $('#detailFilterSumber').val('').trigger('change.select2');
 
             let $body = $('#detailTableBody').empty();
 
@@ -235,8 +420,7 @@
                 type: 'GET',
                 url: '{{ route('getdata_asset_mesin_opname') }}',
                 data: {
-                    cbolok: row.lokasi,
-                    tgl: row.tgl_trans
+                    id_so: row.id
                 },
                 success: function(res) {
                     let rows = res.data ?? [];
@@ -257,13 +441,44 @@
                                 <td>${r.nm_merk ?? '-'}</td>
                                 <td>${r.tipe ?? '-'}</td>
                                 <td>${r.serial_number ?? '-'}</td>
+                                <td>${r.lokasi ?? '-'}</td>
+                                <td>${r.tgl_opname ?? '-'}</td>
                                 <td>${r.created_by ?? '-'}</td>
-                                <td>${r.created_at ?? '-'}</td>
                             </tr>`);
                     });
 
-                    $('#detailTotal').text(
-                        `Total : ${rows.length} mesin (Pembelian : ${rows.length - sewa}, Sewa : ${sewa})`);
+                    // Isi dropdown lokasi dari data yang ada, jadi hanya lokasi terpakai yang muncul
+                    let daftarLokasi = [...new Set(rows.map(r => r.lokasi).filter(Boolean))].sort();
+                    let $lokasi = $('#detailFilterLokasi');
+                    $lokasi.find('option:gt(0)').remove();
+                    daftarLokasi.forEach(function(lok) {
+                        $lokasi.append(`<option value="${lok}">${lok}</option>`);
+                    });
+                    $lokasi.val('').trigger('change.select2');
+
+                    detailTable = $('#detailTable').DataTable({
+                        dom: 'rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+                        paging: true,
+                        pageLength: 25,
+                        lengthChange: false,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        autoWidth: false,
+                        drawCallback: function() {
+                            // Rekap mengikuti hasil filter yang sedang tampil
+                            let api = this.api();
+                            let data = api.rows({ search: 'applied' }).nodes().toArray();
+                            let tampil = data.length;
+                            let sewaTampil = data.filter(tr => $(tr).find('td:eq(1)').text().trim() === 'SEWA')
+                                .length;
+
+                            $('#detailTotal').text(
+                                `Tampil : ${tampil} dari ${rows.length} mesin (Pembelian : ${tampil - sewaTampil}, Sewa : ${sewaTampil})`
+                            );
+                        }
+                    });
+
                     $('#DetailOpnameModal').modal('show');
                 },
                 error: function(xhr) {
