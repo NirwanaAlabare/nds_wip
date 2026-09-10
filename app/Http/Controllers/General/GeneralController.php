@@ -946,6 +946,18 @@ class GeneralController extends Controller
         return null;
     }
 
+    public function getPartDetails($id = 0) {
+        $partDetails = PartDetail::selectRaw("
+                part_detail.id,
+                master_part.nama_part
+            ")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            where("part_id", $id)->
+            get();
+
+        return $partDetails;
+    }
+
     // Deprecated
     public function getScannedItem($id = 0, Request $request, CuttingService $cuttingService)
     {

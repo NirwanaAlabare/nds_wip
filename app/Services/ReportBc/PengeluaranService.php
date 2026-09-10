@@ -67,7 +67,7 @@ class PengeluaranService
     //                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
     //                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
     //             })
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
     //             ->whereRaw("a.cancel != 'Y'")
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -95,7 +95,7 @@ class PengeluaranService
     //                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
     //                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
     //             })
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereRaw("a.cancel != 'Y'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
@@ -213,7 +213,7 @@ class PengeluaranService
     //                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
     //                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
     //             })
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereRaw("a.cancel != 'Y'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select(array_merge(
@@ -269,7 +269,7 @@ class PengeluaranService
     //                 $query->where('a.jenis_dok', '!=', 'BC 2.7')
     //                     ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
     //             })
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
     //             ->whereRaw("a.cancel != 'Y'")
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -349,7 +349,7 @@ class PengeluaranService
                     WHERE so_det.id = a.id_so_det)";
 
         $selectData = fn ($kodeBrgExpr, $itemdescExpr, $idContentsExpr, $matclassExpr) => [
-            DB::raw("$caseJenisDokumen as jenis_dokumen"),
+            DB::raw("a.jenis_dok as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
             DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
@@ -538,7 +538,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectCommon(
     //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -683,7 +683,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select(array_merge(
     //                 $selectCommon(
@@ -877,7 +877,7 @@ class PengeluaranService
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select(array_merge(
                     $selectCommon(
@@ -1072,7 +1072,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectCommon(
     //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1217,7 +1217,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectCommon(
     //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1415,7 +1415,7 @@ class PengeluaranService
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -1613,7 +1613,7 @@ class PengeluaranService
     //             ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if ($kategori !== 'all') {
@@ -1634,7 +1634,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereRaw("SUBSTRING(a.bppbno, 4, 1) != 'P'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectCommon(
@@ -1746,7 +1746,7 @@ class PengeluaranService
     //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->whereRaw("SUBSTRING(a.bppbno, 4, 1) != 'P'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select(array_merge(
@@ -1811,7 +1811,7 @@ class PengeluaranService
     //             ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if ($kategori !== 'all') {
@@ -1919,7 +1919,7 @@ class PengeluaranService
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->whereRaw("SUBSTRING(a.bppbno, 4, 1) != 'P'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select(array_merge(
@@ -1985,7 +1985,7 @@ class PengeluaranService
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+                ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if ($kategori !== 'all') {
@@ -2086,7 +2086,7 @@ class PengeluaranService
     //             // ->where($baseFilter)
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->whereRaw("a.cancel != 'Y'")
-    //             ->where('a.bppbno', 'like', 'SJ-FG%')
+    //             ->where('a.bppbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectCommon(
     //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -2105,7 +2105,7 @@ class PengeluaranService
     //             // ->where($baseFilter)
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->whereRaw("a.cancel != 'Y'")
-    //             ->where('a.bppbno', 'not like', 'SJ-FG%')
+    //             ->where('a.bppbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if ($kategori !== 'all') {
@@ -2220,7 +2220,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->whereRaw("a.cancel != 'Y'")
-    //             ->where('a.bppbno', 'like', 'SJ-FG%')
+    //             ->where('a.bppbno_int', 'like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select(array_merge(
     //                 $selectCommon(
@@ -2285,7 +2285,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.jenis_dok', 'BC 2.7')
     //             ->whereRaw("a.cancel != 'Y'")
-    //             ->where('a.bppbno', 'not like', 'SJ-FG%')
+    //             ->where('a.bppbno_int', 'not like', 'FG%')
     //             ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //         if ($kategori !== 'all') {
@@ -2392,7 +2392,7 @@ class PengeluaranService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->whereRaw("a.cancel != 'Y'")
-                ->where('a.bppbno', 'like', 'SJ-FG%')
+                ->where('a.bppbno_int', 'like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -2457,7 +2457,7 @@ class PengeluaranService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->whereRaw("a.cancel != 'Y'")
-                ->where('a.bppbno', 'not like', 'SJ-FG%')
+                ->where('a.bppbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if ($kategori !== 'all') {
@@ -2559,7 +2559,7 @@ class PengeluaranService
     //         ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //         ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //         ->where($baseFilter)
-    //         ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+    //         ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
     //         ->whereBetween($dateField, [$fromDate, $toDate]);
 
     //     if ($kategori !== 'all') {
@@ -2672,7 +2672,7 @@ class PengeluaranService
             ->leftJoin('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
             ->where($baseFilter)
-            ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+            ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
             ->whereBetween($dateField, [$fromDate, $toDate]);
 
         if ($kategori !== 'all') {
@@ -2784,7 +2784,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'");
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'");
 
     //         if ($kategori !== 'all') {
     //             $searchTerm = '%' . $kategori . '%';
@@ -2806,7 +2806,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->select($selectCommon(
     //                 "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
     //                 "s.itemname",
@@ -2926,7 +2926,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'");
+    //             ->whereRaw("a.bppbno_int NOT LIKE 'FG%'");
 
     //         if ($kategori !== 'all') {
     //             $searchTerm = '%' . $kategori . '%';
@@ -2992,7 +2992,7 @@ class PengeluaranService
     //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where($baseFilter)
     //             ->whereBetween($dateField, [$fromDate, $toDate])
-    //             ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+    //             ->whereRaw("a.bppbno_int LIKE 'FG%'")
     //             ->select(array_merge(
     //                 $selectCommon(
     //                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -3115,7 +3115,7 @@ class PengeluaranService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
                 ->whereBetween($dateField, [$fromDate, $toDate])
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'");
+                ->whereRaw("a.bppbno_int NOT LIKE 'FG%'");
 
             if ($kategori !== 'all') {
                 $searchTerm = '%' . $kategori . '%';
@@ -3182,7 +3182,7 @@ class PengeluaranService
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
                 ->whereBetween($dateField, [$fromDate, $toDate])
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+                ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->select($selectCommon(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
                     "s.itemname",

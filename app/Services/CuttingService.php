@@ -919,6 +919,10 @@ class CuttingService
 
                 $formCut = $detail->formCutInput;
 
+                if (!$formCut)  {
+                    return "Form tidak ditemukan";
+                }
+
                 $detail->qty = $currentQty + $qtyPenerimaan;
 
                 // Recalculate :
@@ -1428,7 +1432,7 @@ class CuttingService
 
         DB::beginTransaction();
         try {
-            $this->generateFormCutInputDetailOutput($formCutInput->id);
+            $this->generateFormCutInputDetailOutput($formCut->id);
 
             // Stored procedure tidak mengisi is_active, samakan dengan penulis output yang lain
             FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->update(["is_active" => 1]);

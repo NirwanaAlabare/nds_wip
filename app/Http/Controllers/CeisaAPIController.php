@@ -39,38 +39,44 @@ class CeisaAPIController extends Controller
         }
     }
 
+    // public function getPelabuhan(Request $request)
+    // {
+    //     $kata = $request->input('q', '');
+    //     try {
+    //         if(strlen($kata) < 2) {
+    //             return response()->json(['results' => []]);
+    //         }
+
+    //         $result = $this->ceisaService->getPelabuhan($kata);
+
+    //         $formatted = [];
+    //         if(isset($result['data']) && is_array($result['data'])) {
+    //             foreach($result['data'] as $item) {
+    //                 $formatted[] = [
+    //                     'id' => $item['kodePelabuhan'],
+    //                     'text' => $item['kodePelabuhan'] . ' - ' . $item['namaPelabuhan']
+    //                 ];
+    //             }
+    //             return response()->json(['results' => $formatted]);
+    //         }
+
+    //         // Jika API sukses terhubung tetapi mengembalikan error internal / exception dari CEISA
+    //         if (isset($result['Exception']) || empty($result['data'])) {
+    //             return $this->getPelabuhanFallback($kata);
+    //         }
+
+    //         return response()->json(['results' => []]);
+
+    //     } catch (\Exception $e) {
+    //         // Jika API timeout / error koneksi, fallback ke list lokal
+    //         return $this->getPelabuhanFallback($kata);
+    //     }
+    // }
+
     public function getPelabuhan(Request $request)
     {
         $kata = $request->input('q', '');
-        try {
-            if(strlen($kata) < 2) {
-                return response()->json(['results' => []]);
-            }
-
-            $result = $this->ceisaService->getPelabuhan($kata);
-
-            $formatted = [];
-            if(isset($result['data']) && is_array($result['data'])) {
-                foreach($result['data'] as $item) {
-                    $formatted[] = [
-                        'id' => $item['kodePelabuhan'],
-                        'text' => $item['kodePelabuhan'] . ' - ' . $item['namaPelabuhan']
-                    ];
-                }
-                return response()->json(['results' => $formatted]);
-            }
-
-            // Jika API sukses terhubung tetapi mengembalikan error internal / exception dari CEISA
-            if (isset($result['Exception']) || empty($result['data'])) {
-                return $this->getPelabuhanFallback($kata);
-            }
-
-            return response()->json(['results' => []]);
-
-        } catch (\Exception $e) {
-            // Jika API timeout / error koneksi, fallback ke list lokal
-            return $this->getPelabuhanFallback($kata);
-        }
+        return $this->getPelabuhanIndoFallback($kata);
     }
 
     /**
@@ -82,13 +88,11 @@ class CeisaAPIController extends Controller
         $jsonFile = database_path('data/world_ports.json');
 
         if (!file_exists($jsonFile)) {
-            // Jika file JSON belum ada, kembalikan opsi custom saja
             return response()->json(['results' => [
                 ['id' => strtoupper($kata), 'text' => strtoupper($kata) . ' - (Custom / Manual Input)']
             ]]);
         }
 
-        // Load JSON (di-cache di memori PHP per-request, tidak re-read berkali-kali)
         $allPorts = json_decode(file_get_contents($jsonFile), true);
 
         if (!is_array($allPorts)) {
@@ -116,13 +120,57 @@ class CeisaAPIController extends Controller
             }
         }
 
-        // Jika tidak ada yang cocok, berikan opsi custom agar form bisa disubmit
         if (empty($formatted) && strlen($kata) >= 2) {
             $formatted[] = [
                 'id'   => strtoupper($kata),
                 'text' => strtoupper($kata) . ' - (Custom / Manual Input)'
             ];
         }
+
+        return response()->json(['results' => $formatted]);
+    }
+
+    private function getPelabuhanIndoFallback($kata)
+    {
+        $jsonFile = database_path('data/indo_ports.json');
+
+        if (!file_exists($jsonFile)) {
+            return response()->json(['results' => []]);
+        }
+
+        $allPorts = json_decode(file_get_contents($jsonFile), true);
+
+        if (!is_array($allPorts)) {
+            return response()->json(['results' => []]);
+        }
+
+        $formatted  = [];
+        $kataUpper  = strtoupper($kata);
+        $maxResults = 25;
+
+        foreach ($allPorts as $item) {
+            if (count($formatted) >= $maxResults) break;
+
+            $kode = $item['k'] ?? '';
+            $nama = $item['n'] ?? '';
+
+            if (
+                stripos($kode, $kataUpper) !== false ||
+                stripos($nama, $kataUpper) !== false
+            ) {
+                $formatted[] = [
+                    'id'   => $kode,
+                    'text' => $kode . ' - ' . $nama
+                ];
+            }
+        }
+
+        // if (empty($formatted) && strlen($kata) >= 2) {
+        //     $formatted[] = [
+        //         'id'   => strtoupper($kata),
+        //         'text' => strtoupper($kata) . ' - (Custom / Manual Input)'
+        //     ];
+        // }
 
         return response()->json(['results' => $formatted]);
     }
@@ -306,7 +354,7 @@ class CeisaAPIController extends Controller
 
         foreach ($commonTps as $item) {
             if (
-                stripos($item['id'], $kataUpper) !== false || 
+                stripos($item['id'], $kataUpper) !== false ||
                 stripos($item['text'], $kataUpper) !== false ||
                 (isset($item['kantor']) && $item['kantor'] === $kataUpper)
             ) {

@@ -1,7 +1,6 @@
 @role('cutting')
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Process</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Process</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('spreading') }}"
@@ -23,9 +22,15 @@
             </li>
             <li>
                 <a href="{{ route('cutting-piece') }}"
-                    class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                    Form Pieces <i class="fa-solid fa-shirt"></i>
+                class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                Form Pieces <i class="fa-solid fa-shirt"></i>
+            </a>
+            <li>
+                <a href="{{ route('cutting-scrap') }}"
+                    class="dropdown-item {{ $routeName == 'cutting-scrap' ? 'active' : '' }}">
+                    Form Scrap <i class="fa-solid fa-bars-staggered"></i>
                 </a>
+            </li>
             </li>
             <li>
                 <a href="{{ route('form-cut-piping') }}"
