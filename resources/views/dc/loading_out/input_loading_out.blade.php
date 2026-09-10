@@ -327,22 +327,23 @@
         });
 
 
-        $(document).on('keyup', function(e) {
+        $(document).on('keydown', '#txtno_stocker', function(e) {
 
-            // alert(e.keyCode);
             if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 9) {
-                const val = $('#txtno_stocker').val();
-                e.preventDefault();
-                e.stopPropagation();
-                if (val !== '') {
 
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                const val = $(this).val();
+
+                if (val !== '') {
                     scan_stocker();
                 } else {
                     iziToast.warning({
                         title: 'KOSONG',
                         message: 'Input stocker masih kosong',
                         position: 'topCenter',
-                        timeout: 800,
+                        timeout: 1500,
                         close: false,
                         pauseOnHover: false
                     });
@@ -437,7 +438,6 @@
             });
         }
 
-
         function scan_stocker() {
 
             let no_karung = $('#txtno_karung').val();
@@ -490,6 +490,17 @@
                 return;
             }
 
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu, stocker sedang diproses',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 type: "POST",
                 url: '{{ route('get_loading_out_stocker_info') }}',
@@ -503,33 +514,40 @@
                 success: function(res) {
 
                     if (res.result === 'N') {
+
+                        Swal.close();
+
                         iziToast.error({
                             title: 'Stocker Tidak Valid',
                             message: res.message || 'Stocker Tidak Valid',
-                            position: 'center',
-                            close: false, // jangan ada tombol close
-                            focus: false, // jangan ambil fokus
-                            pauseOnHover: false // jangan pause timer saat hover
+                            position: 'topCenter',
+                            timeout: 1500,
+                            close: false,
+                            focus: false,
+                            pauseOnHover: false
                         });
-                        $('#txtno_stocker').val('').focus(); // reset & fokus ulang
+
+                        $('#txtno_stocker').val('').focus();
                     } else {
-                        // Step berikutnya: simpan ke TMP
                         saveTmpStocker();
                     }
-
                 },
                 error: function() {
-                    alert('Gagal koneksi ke server');
-                },
-                complete: function() {
-                    // Bersihkan & fokus ulang (scanner friendly)
+                    Swal.close();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal koneksi ke server'
+                    });
+
                     $('#txtno_stocker').val('').focus();
                 }
             });
         }
 
-        function saveTmpStocker() {
 
+        function saveTmpStocker() {
             $.ajax({
                 type: "POST",
                 url: '{{ route('save_tmp_stocker_loading_out') }}',
@@ -537,19 +555,18 @@
                     _token: "{{ csrf_token() }}",
                     id_po: $('#cbo_po').val(),
                     no_karung: $('#txtno_karung').val().trim(),
-                    no_stocker: $('#txtno_stocker').val(),
-                    // data tambahan dari backend sebelumnya
-                    // item_id: data.item_id ?? null,
-                    // qty: data.qty ?? 1
+                    no_stocker: $('#txtno_stocker').val()
                 },
                 dataType: "json",
                 success: function(res) {
+
+                    Swal.close();
 
                     if (res.status === 'success') {
                         iziToast.success({
                             title: 'Berhasil',
                             message: res.message || 'Stocker berhasil disimpan',
-                            position: 'center',
+                            position: 'topCenter',
                             timeout: 1500,
                             close: false,
                             progressBar: true
@@ -563,6 +580,8 @@
                     }
                 },
                 error: function() {
+                    Swal.close();
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -570,13 +589,13 @@
                     });
                 },
                 complete: function() {
-                    // siap scan berikutnya
                     dataTableScanReload();
                     dataTablePOReload();
+
+                    $('#txtno_stocker').val('').focus();
                 }
             });
         }
-
 
         let datatable_scan = $('#datatable_scan').DataTable({
             ordering: false,
