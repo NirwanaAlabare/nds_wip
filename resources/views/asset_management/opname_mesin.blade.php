@@ -28,6 +28,11 @@
             padding-right: 24px;
         }
 
+        /* Nama lokasi disimpan uppercase, jadi ketikannya langsung ditampilkan uppercase juga */
+        #txtLokasiBaru {
+            text-transform: uppercase;
+        }
+
         /* Modal list mesin dibuat lebar & tinggi supaya banyak baris terlihat sekaligus */
         .modal-detail-opname {
             max-width: 95vw;
@@ -49,6 +54,9 @@
             <div class="mb-3 d-flex justify-content-between align-items-center">
                 <button type="button" class="btn btn-primary btn-sm" id="btnNewHeader">
                     <i class="fas fa-plus"></i> New
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnMasterLokasi">
+                    <i class="fas fa-map-marker-alt"></i> Lokasi
                 </button>
             </div>
             <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
@@ -175,6 +183,43 @@
                 </div>
                 <div class="modal-footer">
                     <small class="me-auto text-muted" id="detailTotal"></small>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Master Lokasi Mesin -->
+    <div class="modal fade" id="MasterLokasiModal" tabindex="-1" aria-labelledby="MasterLokasiModalLabel"
+        aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title mb-0" id="MasterLokasiModalLabel">Master Lokasi Mesin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" id="txtLokasiBaru" class="form-control form-control-sm"
+                            placeholder="Nama lokasi baru..." autocomplete="off" enterkeyhint="go">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnTambahLokasi">
+                            <i class="fas fa-plus"></i> Tambah
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="lokasiTable" class="table table-bordered table-sm align-middle mb-0 w-100">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th scope="col" class="text-center">No</th>
+                                    <th scope="col">Lokasi</th>
+                                    <th scope="col">Dibuat Oleh</th>
+                                    <th scope="col">Waktu Dibuat</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -382,6 +427,97 @@
             'line-height': '30px'
         });
 
+        // ---- Master lokasi mesin ----
+        // Tabelnya dibuat sekali saat modal pertama kali dibuka, berikutnya cukup di-reload
+        let lokasiTable = null;
+
+        $('#btnMasterLokasi').on('click', function() {
+            $('#txtLokasiBaru').val('');
+
+            if (!lokasiTable) {
+                lokasiTable = $('#lokasiTable').DataTable({
+                    dom: '<"d-flex justify-content-between align-items-center mb-2"lf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+                    processing: true,
+                    serverSide: false,
+                    ordering: false,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        [10, 25, 50, 'All']
+                    ],
+                    ajax: {
+                        url: '{{ route('getdata_lokasi_mesin') }}'
+                    },
+                    columns: [
+                        {
+                            data: null,
+                            className: 'text-center',
+                            render: function(data, type, row, meta) {
+                                return meta.row + 1;
+                            }
+                        }, // No
+                        { data: 'lokasi' }, // Lokasi
+                        { data: 'created_by', defaultContent: '-' }, // Dibuat Oleh
+                        { data: 'created_at', defaultContent: '-' }, // Waktu Dibuat
+                    ],
+                });
+            } else {
+                lokasiTable.ajax.reload();
+            }
+
+            $('#MasterLokasiModal').modal('show');
+        });
+
+        function tambahLokasi() {
+            let lokasi = $('#txtLokasiBaru').val().trim();
+
+            if (!lokasi) return;
+
+            $('#btnTambahLokasi').prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store_lokasi_mesin') }}',
+                data: {
+                    lokasi: lokasi,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    $('#txtLokasiBaru').val('').focus();
+                    lokasiTable.ajax.reload(null, false);
+                    iziToast.success({
+                        title: 'Tersimpan',
+                        message: res.message,
+                        position: 'topCenter',
+                        timeout: 1500,
+                        close: false,
+                        progressBar: false
+                    });
+                },
+                complete: function() {
+                    $('#btnTambahLokasi').prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let res = xhr.responseJSON;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: res?.message ?? 'Gagal menambahkan lokasi.',
+                    });
+                }
+            });
+        }
+
+        $('#btnTambahLokasi').on('click', tambahLokasi);
+
+        $('#txtLokasiBaru').on('keyup', function(e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                tambahLokasi();
+            }
+        });
+
         let detailTable = null;
 
         // Pencarian bebas di modal detail
@@ -457,10 +593,15 @@
                     $lokasi.val('').trigger('change.select2');
 
                     detailTable = $('#detailTable').DataTable({
-                        dom: 'rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+                        dom: '<"d-flex justify-content-between align-items-center mb-2"l>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
                         paging: true,
                         pageLength: 25,
-                        lengthChange: false,
+                        lengthChange: true,
+                        // -1 = tampilkan semua baris sekaligus
+                        lengthMenu: [
+                            [10, 25, 50, 100, -1],
+                            [10, 25, 50, 100, 'All']
+                        ],
                         searching: true,
                         ordering: true,
                         info: true,
