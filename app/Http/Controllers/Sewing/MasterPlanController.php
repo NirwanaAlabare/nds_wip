@@ -175,6 +175,7 @@ class MasterPlanController extends Controller
             where("tgl_plan", $date)->
             orderBy("cancel", "asc")->
             orderBy("smv", "desc")->
+            groupBy("master_plan.id")->
             get();
 
             return view("sewing.master-plan.master-plan-detail", [
