@@ -1259,7 +1259,6 @@ class MutasiService
             $whereCategory = "ms.kategori = 'KAIN'";
         }
 
-        // Filter INHOUSE HANYA untuk periode berjalan, TIDAK untuk baseline historic
         $inhouseFilterBpb = $filterInhouse ? "AND bpb.jenis_dok != 'INHOUSE'" : "";
         $inhouseFilterBppb = $filterInhouse ? "AND bppb.jenis_dok != 'INHOUSE'" : "";
 
@@ -1290,7 +1289,6 @@ class MutasiService
 
                         UNION ALL
 
-                        -- TIDAK ada filter INHOUSE di sini (baseline historic)
                         SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
                         FROM bpb
                         WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
@@ -1316,7 +1314,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- filter INHOUSE DIPAKAI di sini (periode berjalan)
                 SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
                 FROM bpb
                 WHERE bpbdate >= ? AND bpbdate <= ?
@@ -1326,7 +1323,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- filter INHOUSE DIPAKAI di sini (periode berjalan)
                 SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
                     MAX(act_costing.kpno) AS ws
                 FROM bppb
@@ -3307,7 +3303,7 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
-        $produksi = collect($this->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang, true))
+        $produksi = collect($this->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
                     'sumber'        => 'PRODUKSI',
@@ -3324,7 +3320,7 @@ class MutasiService
                 ];
             });
 
-        $gudang = collect($this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang, true))
+        $gudang = collect($this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
                     'sumber'        => 'GUDANG',
