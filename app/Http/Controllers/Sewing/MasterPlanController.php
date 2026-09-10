@@ -50,6 +50,7 @@ class MasterPlanController extends Controller
             where("tgl_plan", $tglPlan)->
             where("master_plan.cancel", "N")->
             orderBy("sewing_line", "asc")->
+            groupBy("master_plan.id")->
             get();
 
             return Datatables::of($masterPlan)->toJson();
