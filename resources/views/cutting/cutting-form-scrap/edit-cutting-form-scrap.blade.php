@@ -17,40 +17,36 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>Tanggal</small></label>
-                        <input type="date" class="form-control" name="tanggal" value="{{ $formCutScrap->tanggal }}" required readonly>
-                    </div>
-                    <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>No</small>. WS</label>
+                        <label class="form-label fw-bold">No. WS</label>
                         <input type="text" class="form-control" value="{{ $formCutScrap->act_costing_ws }}" readonly>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>Style</small></label>
+                        <label class="form-label fw-bold">Style</label>
                         <input type="text" class="form-control" value="{{ $formCutScrap->style }}" readonly>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>Color</small></label>
+                        <label class="form-label fw-bold">Color</label>
                         <input type="text" class="form-control" value="{{ $formCutScrap->color }}" readonly>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>Panel</small></label>
+                        <label class="form-label fw-bold">Panel</label>
                         <input type="text" class="form-control" value="{{ $formCutScrap->panel }}" readonly>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="form-label fw-bold"><small>Status</small></label>
-                        <select class="form-select" name="status">
-                            @foreach (['PROSES', 'SELESAI', 'BATAL'] as $status)
-                                <option value="{{ $status }}" {{ $formCutScrap->status == $status ? 'selected' : '' }}>{{ $status }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label fw-bold">Part</label>
+                        <input type="text" class="form-control" readonly value="{{ $formCutScrap->formCutScrapFormParts->pluck('nama_part')->implode(', ') ?: '-' }}">
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label fw-bold">Tanggal</label>
+                        <input type="date" class="form-control" name="tanggal" value="{{ $formCutScrap->tanggal }}" required readonly>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">Waktu Mulai</label>
+                        <input type="datetime" class="form-control" name="waktu_mulai" value="{{ $formCutScrap->waktu_mulai ? $formCutScrap->waktu_mulai : '' }}" readonly disabled>
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">Waktu Selesai</label>
-                        <input type="datetime-local" class="form-control" name="waktu_selesai" value="{{ $formCutScrap->waktu_selesai ? date('Y-m-d\TH:i', strtotime($formCutScrap->waktu_selesai)) : '' }}">
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <label class="form-label">Operator</label>
-                        <input type="text" class="form-control" name="operator" value="{{ $formCutScrap->operator }}">
+                        <input type="datetime" class="form-control" name="waktu_selesai" value="{{ $formCutScrap->waktu_selesai ? $formCutScrap->waktu_selesai : '' }}">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label">Keterangan</label>

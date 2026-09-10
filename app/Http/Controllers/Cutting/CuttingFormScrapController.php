@@ -692,16 +692,32 @@ class CuttingFormScrapController extends Controller
             );
         }
 
+        if ($formCutScrap->waktu_mulai > $request["waktu_selesai"]) {
+            return array(
+                "status" => 400,
+                "message" => "Waktu selesai tidak bisa kurang dari <br> '".$formCutScrap->waktu_mulai."'",
+                "additional" => [],
+            );
+        }
+
+        if (checkClosingDate($formCutScrap->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Periode sudah ditutup",
+                "additional" => [],
+            );
+        }
+
         DB::beginTransaction();
         try {
             $formCutScrap->update([
                 "tanggal" => $validatedRequest["tanggal"],
                 "waktu_selesai" => $request["waktu_selesai"] ?: $formCutScrap->waktu_selesai,
-                "status" => $request["status"] ?: $formCutScrap->status,
                 "operator" => $request["operator"],
                 "ket" => $request["ket"],
                 "edited_by" => Auth::user()->username,
                 "edited_by_id" => Auth::user()->id,
+                "edited_at" => Carbon::now(),
             ]);
 
             DB::commit();
@@ -730,6 +746,14 @@ class CuttingFormScrapController extends Controller
             return array(
                 "status" => 400,
                 "message" => "Form Cut Scrap tidak ditemukan.",
+                "additional" => [],
+            );
+        }
+
+        if (checkClosingDate($formCutScrap->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Periode sudah ditutup",
                 "additional" => [],
             );
         }
