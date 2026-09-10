@@ -42,6 +42,16 @@
             max-height: 75vh;
             overflow-y: auto;
         }
+
+        /* Tabel detail: hanya body tabel yang scroll, header tetap terlihat */
+        #detailTableWrapper {
+            overflow: visible;
+        }
+
+        #detailTableWrapper .dataTables_scrollHead th {
+            background-color: var(--sb-color);
+            color: var(--light-color);
+        }
     </style>
 @endsection
 
@@ -161,7 +171,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="table-responsive">
+                    <div class="table-responsive" id="detailTableWrapper">
                         <table id="detailTable" class="table table-bordered table-sm align-middle mb-0 w-100">
                             <thead class="bg-sb">
                                 <tr>
@@ -606,6 +616,9 @@
                         ordering: true,
                         info: true,
                         autoWidth: false,
+                        scrollY: '55vh',
+                        scrollX: true,
+                        scrollCollapse: true,
                         drawCallback: function() {
                             // Rekap mengikuti hasil filter yang sedang tampil
                             let api = this.api();
@@ -618,6 +631,11 @@
                                 `Tampil : ${tampil} dari ${rows.length} mesin (Pembelian : ${tampil - sewaTampil}, Sewa : ${sewaTampil})`
                             );
                         }
+                    });
+
+                    $('#DetailOpnameModal').one('shown.bs.modal', function() {
+                        // Lebar kolom baru bisa dihitung benar setelah modal tampil
+                        detailTable.columns.adjust();
                     });
 
                     $('#DetailOpnameModal').modal('show');
