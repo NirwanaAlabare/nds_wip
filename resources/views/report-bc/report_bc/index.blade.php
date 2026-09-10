@@ -272,6 +272,7 @@
                                 <option value="mutasi_bahan_baku">Laporan Mutasi Bahan Baku dan Penolong</option>
                                 <option value="mutasi_barang_jadi">Laporan Mutasi Barang Jadi</option>
                                 <option value="mutasi_barang_jadi_gudang">Laporan Mutasi Barang Jadi (Gudang Jadi)</option>
+                                <option value="mutasi_barang_jadi_merge">Laporan Mutasi Barang Jadi Merge</option>
                                 {{-- <option value="mutasi_wip">Laporan Mutasi WIP</option> --}}
                                 <option value="mutasi_mesin_sparepart">Laporan Mutasi Mesin & Sparepart</option>
                                 <option value="mutasi_barang_sisa">Laporan Mutasi Barang Sisa / Scrap</option>
@@ -385,7 +386,7 @@
                 let $optAccessories = $kategoriBarang.find('option[value="accesories"]');
                 let $optBarangJadi = $kategoriBarang.find('option[value="barang_jadi"]');
 
-                if (jenis === 'mutasi_barang_jadi' || jenis === 'mutasi_barang_jadi_gudang') {
+                if (jenis === 'mutasi_barang_jadi' || jenis === 'mutasi_barang_jadi_gudang' || jenis == 'mutasi_barang_jadi_merge') {
                     divKategoriDokumen.slideUp();
                     $dokumen.removeAttr('required');
 
@@ -505,7 +506,7 @@
                     return;
                 }
 
-                if (jenis === 'mutasi_barang_jadi' || jenis === 'mutasi_barang_jadi_gudang') {
+                if (jenis === 'mutasi_barang_jadi' || jenis === 'mutasi_barang_jadi_gudang' || jenis === 'mutasi_barang_jadi_merge') {
                     kategori = 'mutasi';
                     kategoriBarang = 'all';
                 } else if (jenis === 'mutasi_bahan_baku' || jenis === 'mutasi_mesin_sparepart' || jenis === 'mutasi_barang_sisa') {

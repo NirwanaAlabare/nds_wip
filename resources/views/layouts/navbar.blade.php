@@ -1654,6 +1654,12 @@
                                         Report BC <i class="fa-solid fa-file-alt fa-sm"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('dashboard-report-bc') }}"
+                                        class="dropdown-item {{ $subPage == 'form-bap' ? 'active' : '' }}">
+                                        Dashboard BC <i class="fa-solid fa-chart-line"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     @endif
