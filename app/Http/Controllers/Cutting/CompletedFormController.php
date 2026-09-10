@@ -531,19 +531,21 @@ class CompletedFormController extends Controller
             // Form Recalculate
             $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
 
-            if ($request->p_act != $formCutInput->p_act || $request->comma_act != $formCutInput->comma_p_act) {
+            if ($formCutInput) {
+                if ($request->p_act != $formCutInput->p_act || $request->comma_act != $formCutInput->comma_p_act) {
 
-                if ($request->p_act && $request->p_act != $formCutInput->p_act) {
-                    $formCutInput->p_act = $request->p_act;
+                    if ($request->p_act && $request->p_act != $formCutInput->p_act) {
+                        $formCutInput->p_act = $request->p_act;
+                    }
+
+                    if ($request->comma_act && $request->comma_act != $formCutInput->comma_p_act) {
+                        $formCutInput->comma_p_act = $request->comma_act;
+                    }
+
+                    $formCutInput->save();
+
+                    $cuttingService->recalculateForm($validatedRequest['id']);
                 }
-
-                if ($request->comma_act && $request->comma_act != $formCutInput->comma_p_act) {
-                    $formCutInput->comma_p_act = $request->comma_act;
-                }
-
-                $formCutInput->save();
-
-                $cuttingService->recalculateForm($validatedRequest['id']);
             }
 
             // Fix Chained Qty
@@ -553,9 +555,13 @@ class CompletedFormController extends Controller
                 $firstId = $formCutDetail->id;
             }
 
-            $cuttingService->fixChainedQty($detail->id_roll, $firstId);
+            if (!empty($detail->id_roll)) {
+                $cuttingService->fixChainedQty($detail->id_roll, $firstId);
+            }
 
-            $cuttingService->fixChainedQty($request->current_id_roll_ori, null);
+            if (!empty($request->current_id_roll_ori)) {
+                $cuttingService->fixChainedQty($request->current_id_roll_ori, null);
+            }
 
             // generate form cut output
             $cuttingService = new CuttingService();

@@ -1246,7 +1246,7 @@ class MutasiService
     //     ]);
     // }
 
-    public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang)
+    public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang, $filterInhouse = false)
     {
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -1258,6 +1258,9 @@ class MutasiService
         } elseif (strtolower($kategoriBarang) === 'kain') {
             $whereCategory = "ms.kategori = 'KAIN'";
         }
+
+        $inhouseFilterBpb = $filterInhouse ? "AND bpb.jenis_dok != 'INHOUSE'" : "";
+        $inhouseFilterBppb = $filterInhouse ? "AND bppb.jenis_dok != 'INHOUSE'" : "";
 
         $sql = "
             SELECT
@@ -1294,6 +1297,7 @@ class MutasiService
 
                         UNION ALL
 
+                        -- TIDAK ada filter INHOUSE di sini (baseline historic)
                         SELECT bppb.id_item, bppb.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(bppb.qty) AS pengeluaran,
                             MAX(act_costing.kpno) AS ws
                         FROM bppb
@@ -1314,6 +1318,7 @@ class MutasiService
                 FROM bpb
                 WHERE bpbdate >= ? AND bpbdate <= ?
                 AND bpbno LIKE 'FG%'
+                $inhouseFilterBpb
                 GROUP BY id_item, id_so_det
 
                 UNION ALL
@@ -1326,6 +1331,7 @@ class MutasiService
                 LEFT JOIN act_costing ON so.id_cost = act_costing.id
                 WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
                 AND bppb.bppbno LIKE 'SJ-FG%'
+                $inhouseFilterBppb
                 GROUP BY bppb.id_item, bppb.id_so_det
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
@@ -1777,7 +1783,7 @@ class MutasiService
     //         ];
     //     });
     // }
-    public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
+    public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang, $filterInhouse = false)
     {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', 120);
@@ -1785,6 +1791,8 @@ class MutasiService
         $tgl_awal = $fromDate;
         $tgl_akhir = $toDate;
         $saldo_awal = '2026-05-01';
+
+        $inhouseFilterBppb = $filterInhouse ? "AND bppb.jenis_dok != 'INHOUSE'" : "";
 
         $data_preview = DB::select("WITH
 
@@ -1924,7 +1932,7 @@ class MutasiService
                     LEFT JOIN signalbit_erp.so ON so.id = tmpjod.id_so
                     LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
-                    WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK'
+                    WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK' $inhouseFilterBppb
 
                     UNION ALL
 
@@ -2061,27 +2069,6 @@ class MutasiService
                         0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
                         0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
                         0 qty_adjustment_before, 0 qty_adjustment,
-                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
-                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
-                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
-                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
-                    FROM fg_stok_bpb_scan a
-                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
-                    WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
-
-                    UNION ALL
-
-                    SELECT
-                        m.buyer, m.ws, m.color, m.styleno, m.size,
-                        0 qty_saldo_awal_adjustment_before,
-                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
-                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
-                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
-                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
-                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
@@ -2180,7 +2167,6 @@ class MutasiService
                 GROUP BY x.buyer, x.ws, x.styleno
             )
 
-
             SELECT
                 ad.buyer,
                 ad.ws,
@@ -2235,40 +2221,28 @@ class MutasiService
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-        // if (strtolower($kategoriBarang) !== 'all') {
-        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-        //         return isset($row['product_group'])
-        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
-        //     });
-        // }
-
-        // 'ws'            => $row['ws'] ?? '-',
-        //         'styleno'       => $row['styleno'] ?? '-',
-        //         'product_group' => $row['product_group'] ?? '-',
-        //         'product_item'  => $row['product_item'] ?? '-',
-        //         'color'         => $row['color'] ?? '-',
-        //         'size'          => $row['size'] ?? '-',
-        //         'saldoawal'     => $row['qty_awal'] ?? 0,
-        //         'qtyterima'     => $row['qty_in'] ?? 0,
-        //         'qtykeluar'     => $row['qty_out'] ?? 0,
-        //         'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+        if (strtolower($kategoriBarang) !== 'all') {
+            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+                return isset($row['product_group'])
+                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
+            });
+        }
 
         return collect($rows)->map(function ($row) {
             return (object) [
-                'ws'               => $row['ws'] ?? '-',
-                'styleno'          => $row['styleno'] ?? '-',
-                'product_group'    => $row['product_group'] ?? '-',
-                'product_item'     => $row['product_item'] ?? '-',
-                'color'            => $row['color'] ?? '-',
-                'size'             => $row['size'] ?? '-',
-                'saldoawal'        => $row['saldo_awal'] ?? 0,
-                'qtyterima'        => ($row['terima_qc_reject'] ?? 0) + ($row['terima_ekspedisi'] ?? 0),
-                'qtykeluar'        => ($row['keluar_sewing'] ?? 0) + ($row['keluar_qa'] ?? 0) + ($row['keluar_ekspedisi'] ?? 0),
-                'saldoakhir'       => $row['saldo_akhir'] ?? 0,
+                'ws'            => $row['ws'] ?? '-',
+                'styleno'       => $row['styleno'] ?? '-',
+                'product_group' => $row['product_group'] ?? '-',
+                'product_item'  => $row['product_item'] ?? '-',
+                'color'         => $row['color'] ?? '-',
+                'size'          => $row['size'] ?? '-',
+                'saldoawal'     => $row['saldo_awal'] ?? 0,
+                'qtyterima'     => ($row['terima_qc_reject'] ?? 0) + ($row['terima_ekspedisi'] ?? 0),
+                'qtykeluar'     => ($row['keluar_sewing'] ?? 0) + ($row['keluar_qa'] ?? 0) + ($row['keluar_ekspedisi'] ?? 0),
+                'saldoakhir'    => $row['saldo_akhir'] ?? 0,
             ];
         });
     }
-
 
     // function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
 
@@ -3326,6 +3300,132 @@ class MutasiService
 
         return $excel->download();
     }
+
+    public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
+    {
+        $produksi = collect($this->getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang, false))
+            ->map(function ($row) {
+                return (object) [
+                    'sumber'        => 'PRODUKSI',
+                    'ws'            => $row->kpno,
+                    'styleno'       => $row->styleno,
+                    'color'         => $row->color,
+                    'size'          => $row->size,
+                    'product_group' => $row->product_group ?? '-',
+                    'product_item'  => $row->product_item ?? '-',
+                    'saldoawal'     => $row->saldoawal,
+                    'qtyterima'     => $row->qtyterima,
+                    'qtykeluar'     => $row->qtykeluar,
+                    'saldoakhir'    => $row->saldoakhir,
+                ];
+            });
+
+        $gudang = collect($this->getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang, false))
+            ->map(function ($row) {
+                return (object) [
+                    'sumber'        => 'GUDANG',
+                    'ws'            => $row->ws,
+                    'styleno'       => $row->styleno,
+                    'color'         => $row->color,
+                    'size'          => $row->size,
+                    'product_group' => $row->product_group,
+                    'product_item'  => $row->product_item,
+                    'saldoawal'     => $row->saldoawal,
+                    'qtyterima'     => $row->qtyterima,
+                    'qtykeluar'     => $row->qtykeluar,
+                    'saldoakhir'    => $row->saldoakhir,
+                ];
+            });
+
+        return $produksi->concat($gudang);
+    }
+
+     public function exportExcelBarangJadiMerge($fromDate, $toDate)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $data = $this->getDataMutasiBarangJadiMerge($fromDate, $toDate, 'all');
+
+        $fileName = 'laporan-mutasi-barang-jadi-merge';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG JADI MERGE'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
+            'No',
+            'No WS',
+            'Style',
+            'Product Group',
+            'Product Item',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pengeluaran',
+            'Saldo Akhir',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $no = 1;
+        foreach ($data as $row) {
+
+            $rows = [
+                $no++,
+                $row->ws ?? '-',
+                $row->styleno ?? '-',
+                $row->product_group ?? '-',
+                $row->product_item ?? '-',
+                $row->saldoawal ?? '-',
+                $row->qtyterima ?? '-',
+                $row->qtykeluar ?? '-',
+                $row->saldoakhir ?? '-',
+            ];
+
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
+
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
+
 
 
 }

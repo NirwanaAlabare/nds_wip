@@ -174,6 +174,9 @@ class ReportBcController extends Controller
         } elseif ($jenis === 'mutasi_barang_sisa') {
             $dataLaporan = $this->mutasiService->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
             $cleanKategori = 'barangsisa';
+        } elseif ($jenis === 'mutasi_barang_jadi_merge') {
+            $dataLaporan = $this->mutasiService->getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang);
+            $cleanKategori = 'barangjadi';
         } else {
             $service = ($jenis === 'pemasukan') ? $this->pemasukanService : $this->pengeluaranService;
             $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
@@ -414,6 +417,13 @@ class ReportBcController extends Controller
         $this->mutasiService->exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
     }
 
+    public function export_excel_mutasi_barang_jadi_merge(Request $request){
+        $fromDate = $request->from;
+        $toDate = $request->to;
+
+        $this->mutasiService->exportExcelBarangJadiMerge($fromDate, $toDate);
+    }
+
     public function pemasukan(Request $request, $kategori)
     {
         $fromDate = $request->input('from');
@@ -618,5 +628,5 @@ class ReportBcController extends Controller
     }
 
 
-    
+
 }

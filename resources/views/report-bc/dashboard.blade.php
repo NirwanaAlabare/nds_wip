@@ -500,7 +500,7 @@
                 <div class="d2-card-title">Nilai per Jenis BC <small>skala terhadap nilai tertinggi</small></div>
                 <div class="bar-legend">
                     <span><i style="background:#2563eb"></i><span id="legendYtd"></span></span>
-                    <span><i style="background:#94a3b8"></i><span id="legendBulan"></span></span>
+                    <span><i style="background:#082149"></i><span id="legendBulan"></span></span>
                 </div>
                 <div id="barList"></div>
             </div>

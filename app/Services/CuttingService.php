@@ -919,6 +919,10 @@ class CuttingService
 
                 $formCut = $detail->formCutInput;
 
+                if (!$formCut)  {
+                    return "Form tidak ditemukan";
+                }
+
                 $detail->qty = $currentQty + $qtyPenerimaan;
 
                 // Recalculate :
