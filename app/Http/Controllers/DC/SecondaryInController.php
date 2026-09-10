@@ -1962,6 +1962,17 @@ class SecondaryInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
+        $qtyIn = $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'];
+        if ($qtyIn < 1) {
+            return array(
+                'status' => 400,
+                'message' => 'Qty tidak bisa kurang dari 1',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+
         // Check stocker's availability on secondary in
         $checkSecondaryIn = SecondaryIn::where("id_qr_stocker", $request->txtno_stocker)->where('urutan', $request->txturutan)->first();
         if ($checkSecondaryIn) {
@@ -1997,7 +2008,7 @@ class SecondaryInController extends Controller
                     'nm_rak' => $request['cborak'],
                     'detail_rack_id' => $rak_data,
                     'stocker_id' => $request['txtno_stocker'],
-                    'qty_in' => $request['txtqtyin'],
+                    'qty_in' => $qtyIn,
                     'status' => 'active',
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
@@ -2071,7 +2082,7 @@ class SecondaryInController extends Controller
                 'qty_awal' => $request['txtqtyawal'],
                 'qty_reject' => $request['txtqtyreject'],
                 'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'qty_in' => $qtyIn,
                 'user' => Auth::user()->name,
                 'ket' => $request['txtket'],
                 'created_at' => $timestamp,
@@ -2377,7 +2388,7 @@ class SecondaryInController extends Controller
         if ($qtyRejectNew <= 0 && $qtyReplaceNew <= 0) {
             return array(
                 "status" => 400,
-                "message" => "Qty Reject atau Qty Replace baru harus diisi.",
+                "message" => "Qty Reject atau Qty Replace baru harus diisi minimal 0.",
                 "table" => "datatable-input",
             );
         }
