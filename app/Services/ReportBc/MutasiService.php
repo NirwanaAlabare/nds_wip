@@ -3632,12 +3632,12 @@ class MutasiService
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-        if (strtolower($kategoriBarang) !== 'all') {
-            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-                return isset($row['product_group'])
-                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
-            });
-        }
+        // if (strtolower($kategoriBarang) !== 'all') {
+        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+        //         return isset($row['product_group'])
+        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
+        //     });
+        // }
 
         return collect($rows)->map(function ($row) {
             return (object) [
