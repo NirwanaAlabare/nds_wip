@@ -3447,16 +3447,19 @@ class MutasiService
                         SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bpb
                         WHERE tgl_terima < '$saldo_awal'
+                        AND sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                         UNION ALL
                         SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bpb_scan
                         WHERE tgl_terima < '$saldo_awal'
+                        AND sumber_pemasukan NOT IN ('MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                         UNION ALL
                         SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bppb
                         WHERE tgl_pengeluaran < '$saldo_awal'
+                        AND tujuan NOT IN ('EKSPEDISI', 'MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                     ) sa
                     GROUP BY id_so_det, grade, lokasi, no_carton
