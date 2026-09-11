@@ -1780,7 +1780,7 @@ class MutasiService
     //     });
     // }
     
-    public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang, $filterInhouse = false)
+    public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
     {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', 120);
@@ -2064,6 +2064,27 @@ class MutasiService
                         0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
                         0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
                         0 qty_adjustment_before, 0 qty_adjustment,
+                        IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
+                        IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
+                        0 qty_terima_ekspedisi_before, 0 qty_terima_ekspedisi,
+                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before, 0 qty_keluar_qa,
+                        0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
+                    FROM fg_stok_bpb_scan a
+                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                    WHERE a.tgl_terima <= '$tgl_akhir'
+                    AND a.sumber_pemasukan IN ('SEWING', 'REJECT')
+
+                    UNION ALL
+
+                    SELECT
+                        m.buyer, m.ws, m.color, m.styleno, m.size,
+                        0 qty_saldo_awal_adjustment_before,
+                        0 qty_in_qc_reject_before, 0 qty_in_qc_reject,
+                        0 qty_in_ekspedisi_before, 0 qty_in_ekspedisi,
+                        0 qty_out_qc_reject_before, 0 qty_out_qc_reject,
+                        0 qty_out_ekspedisi_before, 0 qty_out_ekspedisi,
+                        0 qty_adjustment_before, 0 qty_adjustment,
                         0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_ekspedisi,
@@ -2162,6 +2183,7 @@ class MutasiService
                 GROUP BY x.buyer, x.ws, x.styleno
             )
 
+
             SELECT
                 ad.buyer,
                 ad.ws,
@@ -2216,25 +2238,36 @@ class MutasiService
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-        if (strtolower($kategoriBarang) !== 'all') {
-            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-                return isset($row['product_group'])
-                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
-            });
-        }
+        // if (strtolower($kategoriBarang) !== 'all') {
+        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+        //         return isset($row['product_group'])
+        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
+        //     });
+        // }
+
+        // 'ws'            => $row['ws'] ?? '-',
+        //         'styleno'       => $row['styleno'] ?? '-',
+        //         'product_group' => $row['product_group'] ?? '-',
+        //         'product_item'  => $row['product_item'] ?? '-',
+        //         'color'         => $row['color'] ?? '-',
+        //         'size'          => $row['size'] ?? '-',
+        //         'saldoawal'     => $row['qty_awal'] ?? 0,
+        //         'qtyterima'     => $row['qty_in'] ?? 0,
+        //         'qtykeluar'     => $row['qty_out'] ?? 0,
+        //         'saldoakhir'    => $row['saldo_akhir'] ?? 0,
 
         return collect($rows)->map(function ($row) {
             return (object) [
-                'ws'            => $row['ws'] ?? '-',
-                'styleno'       => $row['styleno'] ?? '-',
-                'product_group' => $row['product_group'] ?? '-',
-                'product_item'  => $row['product_item'] ?? '-',
-                'color'         => $row['color'] ?? '-',
-                'size'          => $row['size'] ?? '-',
-                'saldoawal'     => $row['saldo_awal'] ?? 0,
-                'qtyterima'     => ($row['terima_qc_reject'] ?? 0) + ($row['terima_ekspedisi'] ?? 0),
-                'qtykeluar'     => ($row['keluar_sewing'] ?? 0) + ($row['keluar_qa'] ?? 0) + ($row['keluar_ekspedisi'] ?? 0),
-                'saldoakhir'    => $row['saldo_akhir'] ?? 0,
+                'ws'               => $row['ws'] ?? '-',
+                'styleno'          => $row['styleno'] ?? '-',
+                'product_group'    => $row['product_group'] ?? '-',
+                'product_item'     => $row['product_item'] ?? '-',
+                'color'            => $row['color'] ?? '-',
+                'size'             => $row['size'] ?? '-',
+                'saldoawal'        => $row['saldo_awal'] ?? 0,
+                'qtyterima'        => ($row['terima_qc_reject'] ?? 0) + ($row['terima_ekspedisi'] ?? 0),
+                'qtykeluar'        => ($row['keluar_sewing'] ?? 0) + ($row['keluar_qa'] ?? 0) + ($row['keluar_ekspedisi'] ?? 0),
+                'saldoakhir'       => $row['saldo_akhir'] ?? 0,
             ];
         });
     }
@@ -3335,7 +3368,7 @@ class MutasiService
         return $produksi->concat($gudang);
     }
 
-     public function exportExcelBarangJadiMerge($fromDate, $toDate)
+    public function exportExcelBarangJadiMerge($fromDate, $toDate)
     {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
@@ -3447,19 +3480,19 @@ class MutasiService
                         SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bpb
                         WHERE tgl_terima < '$saldo_awal'
-                        AND sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                        -- AND sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                         UNION ALL
                         SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bpb_scan
                         WHERE tgl_terima < '$saldo_awal'
-                        AND sumber_pemasukan NOT IN ('MUTASI INTERNAL')
+                        -- AND sumber_pemasukan NOT IN ('MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                         UNION ALL
                         SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bppb
                         WHERE tgl_pengeluaran < '$saldo_awal'
-                        AND tujuan NOT IN ('EKSPEDISI', 'MUTASI INTERNAL')
+                        -- AND tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                     ) sa
                     GROUP BY id_so_det, grade, lokasi, no_carton
@@ -3599,12 +3632,12 @@ class MutasiService
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
 
-        if (strtolower($kategoriBarang) !== 'all') {
-            $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-                return isset($row['product_group'])
-                    && strtolower($row['product_group']) === strtolower($kategoriBarang);
-            });
-        }
+        // if (strtolower($kategoriBarang) !== 'all') {
+        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
+        //         return isset($row['product_group'])
+        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
+        //     });
+        // }
 
         return collect($rows)->map(function ($row) {
             return (object) [
