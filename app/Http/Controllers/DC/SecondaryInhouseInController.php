@@ -1175,7 +1175,7 @@ class SecondaryInhouseInController extends Controller
                     $row->tempat ?? "-",
                     $row->lokasi ?? "-",
                     $row->stocker_range ?? "-",
-                    $row->qty_in ?? "-",
+                    intval($row->qty_in) ?? 0,
                     $row->buyer ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
