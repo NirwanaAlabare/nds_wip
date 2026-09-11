@@ -272,6 +272,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
