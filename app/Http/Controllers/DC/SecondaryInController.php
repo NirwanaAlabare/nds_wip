@@ -2566,7 +2566,7 @@ class SecondaryInController extends Controller
                     a.reject qty_reject,
                     -- COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     a.replace qty_replace,
-                    (0 - COALESCE(a.reject, 0) + COALESCE(a.replace, 0)) qty_in,
+                    (0 - COALESCE(a.reject, 0)) qty_in,
                     mp.nama_part,
                     UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
                     a.created_at,
