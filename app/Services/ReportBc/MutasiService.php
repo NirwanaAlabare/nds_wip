@@ -3486,7 +3486,7 @@ class MutasiService
                         SELECT id_so_det, SUM(qty) AS qty_in, 0 AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bpb_scan
                         WHERE tgl_terima < '$saldo_awal'
-                        AND sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                        AND sumber_pemasukan NOT IN ('MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                         UNION ALL
                         SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out, grade, lokasi, no_carton
@@ -3541,7 +3541,7 @@ class MutasiService
                     LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
                     WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK' AND jenis_trans != 'Pengiriman ke Gudang Barang Jadi'
-
+                                        
                     UNION ALL
 
                     SELECT
@@ -3575,7 +3575,7 @@ class MutasiService
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '$tgl_akhir'
-                    AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                    AND a.sumber_pemasukan NOT IN ('MUTASI INTERNAL')
 
                     UNION ALL
 
