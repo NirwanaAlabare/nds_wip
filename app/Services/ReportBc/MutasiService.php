@@ -3492,7 +3492,7 @@ class MutasiService
                         SELECT id_so_det, 0 AS qty_in, SUM(qty_out) AS qty_out, grade, lokasi, no_carton
                         FROM fg_stok_bppb
                         WHERE tgl_pengeluaran < '$saldo_awal'
-                        AND tujuan NOT IN ('EKSPEDISI', 'MUTASI INTERNAL')
+                        AND tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                         GROUP BY id_so_det, grade, lokasi, no_carton
                     ) sa
                     GROUP BY id_so_det, grade, lokasi, no_carton
