@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\PenerimaanCutting;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Services\CuttingService;
@@ -1442,6 +1443,16 @@ class RollController extends Controller
                 $scannedItem->qty_stok = $newItem[0]->qty_stok;
                 $scannedItem->qty_in = $newItem[0]->qty;
                 $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+
+                // Checking new penerimaan after last input
+                $newPenerimaan = PenerimaanCutting::where("id_roll", $scannedItem->id_roll)->
+                    where("created_at", ">", $scannedItem->updated_at)->
+                    sum("qty_konv");
+
+                if ($newPenerimaan > 0) {
+                    $scannedItem->qty += $newPenerimaan;
+                }
+
                 $scannedItem->save();
 
                 return json_encode($scannedItem);

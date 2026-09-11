@@ -270,25 +270,75 @@ class CuttingToolsController extends Controller
                     ]);
                 }
 
-                $markerDetailStore = MarkerDetail::insert($markerDetailData);
+                // Ditulis per baris lewat model, bukan MarkerDetail::insert(), karena
+                // mass insert tidak memicu event Eloquent sehingga ratio barunya tidak
+                // pernah masuk activity log.
+                foreach ($markerDetailData as $markerDetailRow) {
+                    MarkerDetail::create($markerDetailRow);
+                }
+
+                $markerDetailStore = MarkerDetail::where("marker_id", $markerId)->count() == count($markerDetailData);
 
                 if ($markerStore && $markerDetailStore) {
-                    $updateFormCut = FormCutInput::where("id", $validatedRequest["modify_ratio_form_id"])->update([
+                    // Diambil sebagai instance model supaya update-nya memicu event
+                    // (FormCutInput::where(...)->update() tidak memicu apa pun)
+                    $formCutInput = FormCutInput::find($validatedRequest["modify_ratio_form_id"]);
+
+                    if (!$formCutInput) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Form Cut tidak ditemukan.",
+                            "additional" => [],
+                        );
+                    }
+
+                    $formCutInput->update([
                         "marker_id" => $markerId,
                         "id_marker" => $markerCode
                     ]);
 
+                    $oldMarkerDeleted = false;
                     if ($oldMarker->id) {
                         $oldMarkerForm = FormCutInput::where("marker_id", $oldMarker->id)->count();
 
                         if ($oldMarkerForm < 1) {
-                            $deleteOldMarker = Marker::where("id", $oldMarker->id)->delete();
+                            // Dihapus lewat instance, bukan Marker::where(...)->delete()
+                            $oldMarkerDeleted = (bool) $oldMarker->delete();
                         }
                     }
 
                     // Regenerate form cut detail output
                     $cuttingService = new CuttingService();
-                    $cuttingService->generateFormCutInputDetailOutput($validatedRequest['modify_ratio_form_id']);
+                    $generateOutput = $cuttingService->generateFormCutInputDetailOutput($validatedRequest['modify_ratio_form_id']);
+
+                    logHistory(
+                        $formCutInput->id,
+                        [
+                            "no_form" => $formCutInput->no_form,
+                            "marker_lama" => [
+                                "id" => $oldMarker->id,
+                                "kode" => $oldMarker->kode,
+                                "dihapus" => $oldMarkerDeleted,
+                            ],
+                            "marker_baru" => [
+                                "id" => $markerId,
+                                "kode" => $markerCode,
+                            ],
+                            "ratio" => $markerDetailData,
+                            "bypass_stocker" => isset($request['modify_ratio_bypass_stocker']),
+                            "generate_output" => $generateOutput,
+                        ]
+                    );
+
+                    // Ratio sudah berubah, jadi output yang gagal digenerate harus
+                    // dilaporkan dan tidak boleh lewat diam-diam seperti sebelumnya
+                    if (!is_array($generateOutput) || ($generateOutput['status'] ?? 400) != 200) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Ratio Form berhasil diubah, tetapi output form gagal digenerate : ".(is_array($generateOutput) && isset($generateOutput['message']) ? $generateOutput['message'] : "penyebab tidak diketahui"),
+                            "additional" => [],
+                        );
+                    }
 
                     return array(
                         "status" => 200,
