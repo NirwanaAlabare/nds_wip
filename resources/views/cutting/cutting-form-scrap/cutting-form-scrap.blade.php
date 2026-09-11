@@ -45,6 +45,7 @@
                             <th>Total Roll Qty</th>
                             <th>Size Qty</th>
                             <th>Status</th>
+                            <th>Notes</th>
                             <th>Operator</th>
                         </tr>
                     </thead>
@@ -84,7 +85,7 @@
             columns: [
                 { data: 'id' },
                 { data: 'no_form' },
-                { data: 'tanggal' },
+                { data: 'waktu_selesai' },
                 { data: 'act_costing_ws' },
                 { data: 'style' },
                 { data: 'color' },
@@ -94,7 +95,8 @@
                 { data: 'total_qty_roll' },
                 { data: 'size_qty' },
                 { data: 'status' },
-                { data: 'operator' },
+                { data: 'ket' },
+                { data: 'created_by' },
             ],
             columnDefs: [
                 {
@@ -104,6 +106,12 @@
                         let btnDelete = "<button class='btn btn-danger btn-sm' onclick='destroyData(" + row.id + ", \"" + row.no_form + "\")'><i class='fa fa-trash'></i></button>";
 
                         return "<div class='d-flex gap-1 justify-content-center'>" + btnEdit + btnDelete + "</div>";
+                    }
+                },
+                {
+                    targets: [2],
+                    render: (data, type, row) => {
+                        return (row.waktu_selesai ? row.waktu_selesai : (row.waktu_mulai ? row.waktu_mulai : row.tanggal));
                     }
                 },
                 {

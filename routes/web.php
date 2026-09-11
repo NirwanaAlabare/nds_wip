@@ -1644,6 +1644,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_opname/export_excel', 'export_excel_asset_mesin_opname')->name('export_excel_asset_mesin_opname');
         Route::post('/asset_mesin_opname/store', 'store_asset_mesin_opname')->name('store_asset_mesin_opname');
         Route::delete('/asset_mesin_opname/delete', 'delete_asset_mesin_opname')->name('delete_asset_mesin_opname');
+        Route::get('/asset_mesin_opname/lokasi', 'getdata_lokasi_mesin')->name('getdata_lokasi_mesin');
+        Route::post('/asset_mesin_opname/lokasi/store', 'store_lokasi_mesin')->name('store_lokasi_mesin');
     });
 
     // Master Asset Management Tambah Mesin (Sewa Mesin)

@@ -1962,6 +1962,17 @@ class SecondaryInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
+        $qtyIn = $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'];
+        if ($qtyIn < 1) {
+            return array(
+                'status' => 400,
+                'message' => 'Qty tidak bisa kurang dari 1',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+
         // Check stocker's availability on secondary in
         $checkSecondaryIn = SecondaryIn::where("id_qr_stocker", $request->txtno_stocker)->where('urutan', $request->txturutan)->first();
         if ($checkSecondaryIn) {
@@ -1997,7 +2008,7 @@ class SecondaryInController extends Controller
                     'nm_rak' => $request['cborak'],
                     'detail_rack_id' => $rak_data,
                     'stocker_id' => $request['txtno_stocker'],
-                    'qty_in' => $request['txtqtyin'],
+                    'qty_in' => $qtyIn,
                     'status' => 'active',
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
@@ -2071,7 +2082,7 @@ class SecondaryInController extends Controller
                 'qty_awal' => $request['txtqtyawal'],
                 'qty_reject' => $request['txtqtyreject'],
                 'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'qty_in' => $qtyIn,
                 'user' => Auth::user()->name,
                 'ket' => $request['txtket'],
                 'created_at' => $timestamp,
@@ -2377,7 +2388,7 @@ class SecondaryInController extends Controller
         if ($qtyRejectNew <= 0 && $qtyReplaceNew <= 0) {
             return array(
                 "status" => 400,
-                "message" => "Qty Reject atau Qty Replace baru harus diisi.",
+                "message" => "Qty Reject atau Qty Replace baru harus diisi minimal 0.",
                 "table" => "datatable-input",
             );
         }
@@ -2467,8 +2478,8 @@ class SecondaryInController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
-                    COALESCE(p_com.panel, p.panel) panel,
-                    COALESCE(p_com.panel_status, p.panel_status) panel_status,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
                     -- COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     -- COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
@@ -2542,8 +2553,8 @@ class SecondaryInController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
-                    COALESCE(p_com.panel, p.panel) panel,
-                    COALESCE(p_com.panel_status, p.panel_status) panel_status,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
+                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
                     -- COALESCE(mx.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) tujuan,
                     -- COALESCE(mx.proses, ms.proses, dc.lokasi) lokasi,
@@ -2655,9 +2666,9 @@ class SecondaryInController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    $row->panel ?? "-",
+                    $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
                     $row->panel_status ?? "-",
-                    $row->nama_part ?? "-",
+                    $row->nama_part ? preg_replace('/\s+/', ' ', $row->nama_part) : "-",
                     $row->part_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
@@ -2665,10 +2676,10 @@ class SecondaryInController extends Controller
                     $row->lokasi ?? "-",
                     $row->lokasi_rak ?? "-",
                     $row->stocker_range ?? "-",
-                    $row->qty_awal ?? "-",
-                    $row->qty_reject ?? "-",
-                    $row->qty_replace ?? "-",
-                    $row->qty_in ?? "-",
+                    intval($row->qty_awal) ?? 0,
+                    intval($row->qty_reject) ?? 0,
+                    intval($row->qty_replace) ?? 0,
+                    intval($row->qty_in) ?? 0,
                     $row->urutan ?? "-",
                     $row->buyer ?? "-",
                     $row->user ?? "-",

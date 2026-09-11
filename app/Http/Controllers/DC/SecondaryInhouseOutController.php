@@ -1232,13 +1232,24 @@ class SecondaryInhouseOutController extends Controller
             "txtqtyreplace" => "required"
         ]);
 
+        $qtyIn = $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'];
+        if ($qtyIn < 1) {
+            return array(
+                'status' => 400,
+                'message' => 'Qty In tidak bisa kurang dari 1',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+
         $saveinhouse = SecondaryInhouse::create([
             'tgl_trans' => $tgltrans,
             'id_qr_stocker' => $request['txtno_stocker'],
             'qty_awal' => $request['txtqtyawal'],
             'qty_reject' => $request['txtqtyreject'],
             'qty_replace' => $request['txtqtyreplace'],
-            'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+            'qty_in' => $qtyIn,
             'user' => Auth::user()->name,
             'urutan' => $request['txturutan'],
             'ket' => $request['txtket'],
@@ -1487,19 +1498,19 @@ class SecondaryInhouseOutController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    $row->nama_part ?? "-",
+                    $row->nama_part ? preg_replace('/\s+/', ' ', $row->nama_part) : "-",
                     $row->part_status ?? "-",
-                    $row->panel ?? "-",
+                    $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
                     $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
                     $row->tujuan ?? "-",
                     $row->lokasi ?? "-",
                     $row->stocker_range ?? "-",
-                    $row->qty_awal ?? "-",
-                    $row->qty_reject ?? "-",
-                    $row->qty_replace ?? "-",
-                    $row->qty_in ?? "-",
+                    intval($row->qty_awal) ?? 0,
+                    intval($row->qty_reject) ?? 0,
+                    intval($row->qty_replace) ?? 0,
+                    intval($row->qty_in) ?? 0,
                     $row->urutan ?? "-",
                     $row->buyer ?? "-",
                     $row->user ?? "-",

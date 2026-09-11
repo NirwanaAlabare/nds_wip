@@ -810,6 +810,13 @@ class CompletedFormController extends Controller
         $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
 
         if ($formCutInput) {
+            if ($request->finish < ($request->start ?? $formCutInput->waktu_mulai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Waktu selesai tidak bisa kurang dari Waktu Mulai : '".($request->start ?? $formCutInput->waktu_mulai)."'"
+                );
+            }
+
             if ($validatedRequest['no_meja'] != $formCutInput->no_meja || $validatedRequest['qty_ply'] != $formCutInput->qty_ply || ($request->start && $request->start != $formCutInput->waktu_mulai) || ($request->finish && $request->finish != $formCutInput->waktu_selesai)) {
 
                 if ($validatedRequest['no_meja'] && $validatedRequest['no_meja'] != $formCutInput->no_meja) {
