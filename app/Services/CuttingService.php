@@ -644,7 +644,7 @@ class CuttingService
                             $scannedItem
                         ]);
 
-                        if ($scannedItem->qty != $rollQty) {
+                        if ($qty && $scannedItem->qty != $rollQty) {
                             $scannedItem->qty = $rollQty;
                         } else {
                             $currentRoll = $roll->where("id_roll", $rollId)->first();
@@ -654,14 +654,14 @@ class CuttingService
                                     $scannedItem->qty = $currentRoll->sisa_kain;
                                 }
 
-                                // // Checking new penerimaan after last input
-                                // $newPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
-                                //     where("created_at", ">", $currentRoll->created_at)->
-                                //     sum("qty_konv");
+                                // Checking new penerimaan after last input
+                                $newPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
+                                    where("created_at", ">", $currentRoll->created_at)->
+                                    sum("qty_konv");
 
-                                // if ($newPenerimaan > 0) {
-                                //     $scannedItem->qty += $newPenerimaan;
-                                // }
+                                if ($newPenerimaan > 0) {
+                                    $scannedItem->qty += $newPenerimaan;
+                                }
                             }
                         }
 
