@@ -1779,7 +1779,7 @@ class MutasiService
     //         ];
     //     });
     // }
-    
+
     public function getDataMutasiBarangJadiGudang($fromDate, $toDate, $kategoriBarang)
     {
         ini_set('memory_limit', '1024M');
@@ -3334,7 +3334,7 @@ class MutasiService
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
-                    'sumber'        => 'PRODUKSI',
+                    'sumber'        => 'FG',
                     'ws'            => $row->kpno,
                     'styleno'       => $row->styleno,
                     'color'         => $row->color,
@@ -3351,7 +3351,7 @@ class MutasiService
         $gudang = collect($this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
-                    'sumber'        => 'GUDANG',
+                    'sumber'        => 'FG WAREHOUSE',
                     'ws'            => $row->ws,
                     'styleno'       => $row->styleno,
                     'color'         => $row->color,
@@ -3503,7 +3503,11 @@ class MutasiService
             ),
             all_data AS (
                 SELECT
-                    x.buyer, x.ws, x.color, x.styleno, x.size,
+                    x.buyer,
+                    x.ws,
+                    x.color,
+                    x.styleno,
+                    x.size,
                     SUM(x.qty_saldo_awal_adjustment_before) AS qty_saldo_awal_adjustment_before,
                     SUM(x.qty_adjustment_before) AS qty_adjustment_before,
                     SUM(x.qty_adjustment) AS qty_adjustment,
@@ -3515,24 +3519,41 @@ class MutasiService
                     SUM(x.qty_keluar_qa) AS qty_keluar_qa
                 FROM (
                     SELECT
-                        buyer, ws, color, styleno, size,
+                        buyer,
+                        ws,
+                        color,
+                        styleno,
+                        size,
                         saldo_awal.qty_awal AS qty_saldo_awal_adjustment_before,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 qty_terima_qc_reject_before,
+                        0 qty_terima_qc_reject,
+                        0 qty_keluar_sewing_before,
+                        0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa
+
                     FROM saldo_awal
 
                     UNION ALL
 
                     SELECT
-                        buyer.supplier AS buyer, act_costing.kpno ws, masterstyle.color, act_costing.styleno, masterstyle.size,
+                        buyer.supplier AS buyer,
+                        act_costing.kpno ws,
+                        masterstyle.color,
+                        act_costing.styleno,
+                        masterstyle.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_adjustment_before, 0 qty_adjustment,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
                         IF(bppbdate >= '$saldo_awal' AND bppbdate < '$tgl_awal', bppb.qty, 0) AS qty_terima_qc_reject_before,
                         IF(bppbdate >= '$tgl_awal', bppb.qty, 0) AS qty_terima_qc_reject,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa
+                        0 qty_keluar_sewing_before,
+                        0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa
+
                     FROM signalbit_erp.bppb
                     INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
                     INNER JOIN signalbit_erp.mastersupplier ON mastersupplier.Id_Supplier = bppb.id_supplier
@@ -3541,7 +3562,7 @@ class MutasiService
                     LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
                     WHERE MID(bppbno,4,2) IN ('FG') AND bppbdate <= '$tgl_akhir' AND mastersupplier.supplier = 'BARANG JADI STOCK' AND jenis_trans != 'Pengiriman ke Gudang Barang Jadi'
-                                        
+
                     UNION ALL
 
                     SELECT
@@ -3567,11 +3588,14 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_adjustment_before, 0 qty_adjustment,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
                         IF(a.tgl_terima >= '$saldo_awal' AND a.tgl_terima < '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject_before,
                         IF(a.tgl_terima >= '$tgl_awal', a.qty, 0) AS qty_terima_qc_reject,
-                        0 qty_keluar_sewing_before, 0 qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa
+                        0 qty_keluar_sewing_before,
+                        0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '$tgl_akhir'
@@ -3582,11 +3606,14 @@ class MutasiService
                     SELECT
                         m.buyer, m.ws, m.color, m.styleno, m.size,
                         0 qty_saldo_awal_adjustment_before,
-                        0 qty_adjustment_before, 0 qty_adjustment,
-                        0 qty_terima_qc_reject_before, 0 qty_terima_qc_reject,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 qty_terima_qc_reject_before,
+                        0 qty_terima_qc_reject,
                         IF(tgl_pengeluaran >= '$saldo_awal' AND tgl_pengeluaran < '$tgl_awal', a.qty_out, 0) AS qty_keluar_sewing_before,
                         IF(tgl_pengeluaran >= '$tgl_awal', a.qty_out, 0) AS qty_keluar_sewing,
-                        0 qty_keluar_qa_before, 0 qty_keluar_qa
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa
                     FROM fg_stok_bppb a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_pengeluaran <= '$tgl_akhir'
@@ -3595,7 +3622,11 @@ class MutasiService
                 GROUP BY x.buyer, x.ws, x.styleno
             )
             SELECT
-                ad.buyer, ad.ws, ad.styleno, ad.color, ad.size,
+                ad.buyer,
+                ad.ws,
+                ad.styleno,
+                ad.color,
+                ad.size,
                 MIN(m.product_group) AS product_group,
                 MIN(m.product_item) AS product_item,
                 (
@@ -3631,13 +3662,6 @@ class MutasiService
         ");
 
         $rows = collect($data_preview)->map(fn ($row) => (array) $row)->toArray();
-
-        // if (strtolower($kategoriBarang) !== 'all') {
-        //     $rows = array_filter($rows, function ($row) use ($kategoriBarang) {
-        //         return isset($row['product_group'])
-        //             && strtolower($row['product_group']) === strtolower($kategoriBarang);
-        //     });
-        // }
 
         return collect($rows)->map(function ($row) {
             return (object) [
@@ -3733,7 +3757,7 @@ class MutasiService
                 LEFT JOIN so ON so_det.id_so = so.id
                 LEFT JOIN act_costing ON so.id_cost = act_costing.id
                 WHERE bppb.bppbdate >= ? AND bppb.bppbdate <= ?
-                AND bppb.bppbno LIKE 'SJ-FG%' AND jenis_trans != 'Pengiriman ke Gudang Barang Jadi' 
+                AND bppb.bppbno LIKE 'SJ-FG%' AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
                 GROUP BY bppb.id_item, bppb.id_so_det
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
