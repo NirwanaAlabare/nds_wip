@@ -99,7 +99,7 @@ class PackingPackingInController extends Controller
         }
 
         $data_no_trans = DB::select("
-        select data_cek.no_trans isi , data_cek.no_trans tampil, data_cek.close_order
+        select data_cek.no_trans isi , data_cek.no_trans tampil, MAX(data_cek.close_order) AS close_order
         from
             (
             SELECT
