@@ -193,7 +193,9 @@
                         <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width:100%">
                             <option value="" disabled selected>-- Pilih Tujuan --</option>
                             @foreach ($data_tujuan as $d)
-                                <option value="{{ $d->isi }}">{{ $d->tampil }}</option>
+                                <option value="{{ $d->isi }}" {{ $loop->first ? 'selected' : '' }}>
+                                    {{ $d->tampil }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -291,7 +293,7 @@
                         <div class="row align-items-center">
                             <div class="col-7 col-md-8">
                                 <div class="input-group">
-                                    <input type="number" class="form-control qty-input" id="txtqty" name="txtqty"
+                                    <input type="number" class="form-control qty-input" id="txtqty" name="txtqty" step="1"
                                         min="0" autocomplete="off" placeholder="0" disabled>
                                     <div class="input-group-append">
                                         <span class="input-group-text font-weight-bold px-3">PCS</span>
@@ -456,6 +458,30 @@
         // Guard to prevent change-event loops when updating selects programmatically
         let updating = false;
 
+        // Nilai terakhir Line & PO — dipakai untuk membedakan
+        // "baru pertama kali dipilih" vs "diganti ke nilai lain"
+        let prevLine = '';
+        let prevPo = '';
+
+        function syncPrev() {
+            prevLine = $('#cboline').val() || '';
+            prevPo = $('#cbopo').val() || '';
+        }
+
+        // Set value kalau option-nya masih ada di list baru, kalau tidak → kosongkan.
+        // Return true kalau value berhasil dipertahankan.
+        function keepValue($sel, val) {
+            if (!val) {
+                $sel.val('');
+                return false;
+            }
+            const exists = $sel.find('option').filter(function() {
+                return this.value === val;
+            }).length > 0;
+            $sel.val(exists ? val : '');
+            return exists;
+        }
+
         // Cache semua garment dari server untuk filter clientside
         let allGarments = [];
 
@@ -469,54 +495,209 @@
             // ---- TUJUAN changed ----
             $('#cbotuj').on('change', function() {
                 updateStep2();
+                loadAllPo();
+                dataTableTmpReload();
             });
+            
+            // ---- LINE changed ----
+            // $('#cboline').on('change', function() {
+            //     if (updating) return;
+            //     const line = $(this).val();
+            //     const po = $('#cbopo').val();
+            //     if (line && !po) {
+            //         // Belum ada PO → filter PO berdasarkan line
+            //         filterPoByLine(line);
+            //         setFilterHint('Line <strong>' + line + '</strong> dipilih &mdash; sekarang pilih PO');
+            //     } else if (line && po) {
+            //         // Sudah ada PO → jangan reset PO, hanya update hint
+            //         setFilterHint('<i class="fas fa-check-circle text-success"></i> Line: <strong>' + line +
+            //             '</strong> &amp; PO: <strong>' + po + '</strong>');
+            //     } else if (!line && po) {
+            //         // Line dikosongkan, PO masih ada
+            //         setFilterHint('PO <strong>' + po + '</strong> dipilih &mdash; sekarang pilih Line');
+            //     } else {
+            //         // Dua-duanya kosong
+            //         loadAllPo();
+            //         setFilterHint('');
+            //     }
+            //     updateStep3();
+            //     reloadGarment();
+            // });
+
+            // ---- PO changed ----
+            // $('#cbopo').on('change', function() {
+            //     if (updating) return;
+            //     const po = $(this).val();
+            //     const line = $('#cboline').val();
+            //     if (po && !line) {
+            //         // Belum ada Line → filter Line berdasarkan PO
+            //         filterLineByPo(po);
+            //         setFilterHint('PO <strong>' + po + '</strong> dipilih &mdash; sekarang pilih Line');
+            //     } else if (po && line) {
+            //         // Sudah ada Line → jangan reset Line, hanya update hint
+            //         setFilterHint('<i class="fas fa-check-circle text-success"></i> Line: <strong>' + line +
+            //             '</strong> &amp; PO: <strong>' + po + '</strong>');
+            //     } else if (!po && line) {
+            //         // PO dikosongkan, Line masih ada
+            //         setFilterHint('Line <strong>' + line + '</strong> dipilih &mdash; sekarang pilih PO');
+            //     } else {
+            //         // Dua-duanya kosong
+            //         restoreAllLines();
+            //         setFilterHint('');
+            //     }
+            //     updateStep3();
+            //     reloadGarment();
+            // });
 
             // ---- LINE changed ----
             $('#cboline').on('change', function() {
                 if (updating) return;
+
                 const line = $(this).val();
                 const po = $('#cbopo').val();
-                if (line && !po) {
-                    // Belum ada PO → filter PO berdasarkan line
-                    filterPoByLine(line);
-                    setFilterHint('Line <strong>' + line + '</strong> dipilih &mdash; sekarang pilih PO');
-                } else if (line && po) {
-                    // Sudah ada PO → jangan reset PO, hanya update hint
-                    setFilterHint('<i class="fas fa-check-circle text-success"></i> Line: <strong>' + line +
-                        '</strong> &amp; PO: <strong>' + po + '</strong>');
-                } else if (!line && po) {
-                    // Line dikosongkan, PO masih ada
-                    setFilterHint('PO <strong>' + po + '</strong> dipilih &mdash; sekarang pilih Line');
+
+                // Line diganti (sebelumnya sudah ada Line lain)
+                const lineChanged = !!(prevLine && line && prevLine !== line);
+
+                if (line) {
+
+                    if (lineChanged && po) {
+                        // Line berubah → PO lama di-reset, list PO ikut Line baru
+                        filterPoByLine(line);
+
+                        setFilterHint(
+                            'Line <strong>' + line +
+                            '</strong> diubah &mdash; sekarang pilih PO'
+                        );
+
+                    } else if (po) {
+                        // Line baru dipilih padahal PO sudah ada
+                        // → PO dipertahankan kalau masih valid untuk Line ini
+                        filterPoByLine(line, po);
+
+                        if ($('#cbopo').val()) {
+                            setFilterHint(
+                                '<i class="fas fa-check-circle text-success"></i> Line: <strong>' +
+                                line +
+                                '</strong> &amp; PO: <strong>' +
+                                po +
+                                '</strong>'
+                            );
+                        } else {
+                            setFilterHint(
+                                'PO <strong>' + po +
+                                '</strong> tidak tersedia untuk Line <strong>' + line +
+                                '</strong> &mdash; silakan pilih PO lagi'
+                            );
+                        }
+
+                    } else {
+                        // Belum ada PO → filter PO berdasarkan Line
+                        filterPoByLine(line);
+
+                        setFilterHint(
+                            'Line <strong>' + line +
+                            '</strong> dipilih &mdash; sekarang pilih PO'
+                        );
+                    }
+
                 } else {
-                    // Dua-duanya kosong
-                    loadAllPo();
-                    setFilterHint('');
+
+                    if (po) {
+                        // Line dikosongkan, PO tetap
+                        // → list PO dikembalikan penuh, list Line difilter PO
+                        loadAllPo(po);
+                        filterLineByPo(po);
+
+                        setFilterHint(
+                            'PO <strong>' + po +
+                            '</strong> dipilih &mdash; sekarang pilih Line'
+                        );
+
+                    } else {
+                        // Keduanya kosong
+                        loadAllPo();
+                        setFilterHint('');
+                    }
                 }
+
                 updateStep3();
                 reloadGarment();
             });
 
+
             // ---- PO changed ----
             $('#cbopo').on('change', function() {
                 if (updating) return;
+
                 const po = $(this).val();
                 const line = $('#cboline').val();
-                if (po && !line) {
-                    // Belum ada Line → filter Line berdasarkan PO
-                    filterLineByPo(po);
-                    setFilterHint('PO <strong>' + po + '</strong> dipilih &mdash; sekarang pilih Line');
-                } else if (po && line) {
-                    // Sudah ada Line → jangan reset Line, hanya update hint
-                    setFilterHint('<i class="fas fa-check-circle text-success"></i> Line: <strong>' + line +
-                        '</strong> &amp; PO: <strong>' + po + '</strong>');
-                } else if (!po && line) {
-                    // PO dikosongkan, Line masih ada
-                    setFilterHint('Line <strong>' + line + '</strong> dipilih &mdash; sekarang pilih PO');
+
+                // PO diganti (sebelumnya sudah ada PO lain)
+                const poChanged = !!(prevPo && po && prevPo !== po);
+
+                if (po) {
+
+                    if (poChanged && line) {
+                        // PO berubah → Line di-reset mengikuti PO baru
+                        filterLineByPo(po);
+
+                        setFilterHint(
+                            'PO <strong>' + po +
+                            '</strong> diubah &mdash; sekarang pilih Line'
+                        );
+
+                    } else if (line) {
+                        // PO baru dipilih padahal Line sudah ada
+                        // → Line dipertahankan kalau masih valid untuk PO ini
+                        filterLineByPo(po, line);
+
+                        if ($('#cboline').val()) {
+                            setFilterHint(
+                                '<i class="fas fa-check-circle text-success"></i> Line: <strong>' +
+                                line +
+                                '</strong> &amp; PO: <strong>' +
+                                po +
+                                '</strong>'
+                            );
+                        } else {
+                            setFilterHint(
+                                'Line <strong>' + line +
+                                '</strong> tidak tersedia untuk PO <strong>' + po +
+                                '</strong> &mdash; silakan pilih Line lagi'
+                            );
+                        }
+
+                    } else {
+                        // Belum ada Line → filter Line berdasarkan PO
+                        filterLineByPo(po);
+
+                        setFilterHint(
+                            'PO <strong>' + po +
+                            '</strong> dipilih &mdash; sekarang pilih Line'
+                        );
+                    }
+
                 } else {
-                    // Dua-duanya kosong
-                    restoreAllLines();
-                    setFilterHint('');
+
+                    if (line) {
+                        // PO dikosongkan, Line tetap
+                        // → list Line dikembalikan penuh, list PO difilter Line
+                        restoreAllLines(line);
+                        filterPoByLine(line);
+
+                        setFilterHint(
+                            'Line <strong>' + line +
+                            '</strong> dipilih &mdash; sekarang pilih PO'
+                        );
+
+                    } else {
+                        // Keduanya kosong
+                        restoreAllLines();
+                        setFilterHint('');
+                    }
                 }
+
                 updateStep3();
                 reloadGarment();
             });
@@ -559,6 +740,10 @@
             // Enter on qty = Tambah
             $('#txtqty').on('keydown', function(e) {
                 if (e.key === 'Enter') tambah_data();
+
+                if (e.key === '.' || e.key === ',') {
+                    e.preventDefault();
+                }
             });
 
             // ---- Filter Color / Size (opsional) ----
@@ -647,58 +832,84 @@
             $('#filter-hint').html(msg || '');
         }
 
-        function loadAllPo() {
+        // keepPo (opsional): PO yang ingin dipertahankan setelah list di-refresh
+        function loadAllPo(keepPo) {
             updating = true;
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
                 data: {
-                    cbo_line: ''
+                    cbo_line: '',
+                    cbo_tujuan: $("#cbotuj").val()
                 },
                 async: false,
             }).responseText;
-            $('#cbopo').html(html).val('');
+            $('#cbopo').html(html);
+            keepValue($('#cbopo'), keepPo);
             initPoSelect2();
             updating = false;
+            syncPrev();
         }
 
-        function filterPoByLine(line) {
+        // keepPo (opsional): PO yang dipertahankan kalau masih valid untuk Line ini
+        function filterPoByLine(line, keepPo) {
             updating = true;
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
                 data: {
-                    cbo_line: line
+                    cbo_line: line,
+                    cbo_tujuan: $("#cbotuj").val()
                 },
                 async: false,
             }).responseText;
-            $('#cbopo').html(html).val('');
+            $('#cbopo').html(html);
+            keepValue($('#cbopo'), keepPo);
             initPoSelect2();
             updating = false;
+            syncPrev();
         }
 
-        function filterLineByPo(po) {
+        // keepLine (opsional): Line yang dipertahankan kalau masih valid untuk PO ini
+        function filterLineByPo(po, keepLine) {
             updating = true;
+            const tujuan = $("#cbotuj").val();
+
+            let so_det_id = '';
+
+            if (tujuan === 'Temporary Packing') {
+                so_det_id = $('#cbopo option:selected').data('so-det-id') || '';
+            }
+
             const html = $.ajax({
                 type: 'GET',
-                url: '{{ route('get_line_by_po') }}',
+                url: '{{ route("get_line_by_po") }}',
                 data: {
-                    cbo_po: po
+                    cbo_po: po,
+                    cbo_tujuan: tujuan,
+                    so_det_id: so_det_id
                 },
                 async: false,
             }).responseText;
-            $('#cboline').html(html).val('').trigger('change.select2');
+            $('#cboline').html(html);
+            keepValue($('#cboline'), keepLine);
+            $('#cboline').trigger('change.select2');
             updating = false;
+            syncPrev();
         }
 
-        function restoreAllLines() {
+        // keepLine (opsional): Line yang dipertahankan setelah list dikembalikan penuh
+        function restoreAllLines(keepLine) {
             updating = true;
             let html = '<option value="">-- Pilih Line --</option>';
             allLines.forEach(l => {
                 html += `<option value="${l.isi}">${l.tampil}</option>`;
             });
-            $('#cboline').html(html).val('').trigger('change.select2');
+            $('#cboline').html(html);
+            keepValue($('#cboline'), keepLine);
+            $('#cboline').trigger('change.select2');
             updating = false;
+            syncPrev();
         }
 
         function resetFilter() {
@@ -713,6 +924,13 @@
         function reloadGarment() {
             const line = $('#cboline').val();
             const po = $('#cbopo').val();
+            const tujuan = $("#cbotuj").val();
+
+            let so_det_id = '';
+
+            if (tujuan === 'Temporary Packing') {
+                so_det_id = $('#cbopo option:selected').data('so-det-id') || '';
+            }
 
             if (!line || !po) return;
 
@@ -721,7 +939,9 @@
                 url: '{{ route('get_garment') }}',
                 data: {
                     cbo_line: line,
-                    cbo_po: po
+                    cbo_po: po,
+                    so_det_id: so_det_id,
+                    cbo_tujuan: $("#cbotuj").val()
                 },
                 async: false,
             }).responseText;
@@ -740,6 +960,7 @@
                     color: $(this).data('color') ?? '',
                     size: $(this).data('size') ?? '',
                     dest: $(this).data('dest') ?? '',
+                    id_so_det: $(this).data('id_so_det') ?? '',
                     qty: $(this).data('qty') ?? 0,
                 });
             });
@@ -778,6 +999,7 @@
                     ` data-color="${g.color}"` +
                     ` data-size="${g.size}"` +
                     ` data-dest="${g.dest}"` +
+                    ` data-id_so_det="${g.id_so_det}"` +
                     ` data-qty="${g.qty}">` +
                     `${g.ws} / ${g.color} / ${g.size}</option>`;
             });
@@ -796,6 +1018,7 @@
             const cbopo = document.form_h.cbopo.value;
             const cbogarment = document.form_h.cbogarment.value;
             const txtqty = document.form_h.txtqty.value;
+            const id_so_det = $('#cbogarment option:selected').data('id_so_det') || '';
 
             if (!cboline) {
                 iziToast.warning({
@@ -847,7 +1070,8 @@
                     cboline,
                     cbopo,
                     cbogarment,
-                    txtqty
+                    txtqty,
+                    id_so_det
                 },
                 success: function(res) {
                     if (res.icon === 'salah') {
@@ -900,6 +1124,7 @@
                     dataSrc: 'data',
                     data: d => {
                         d.id = $('#id').val();
+                        d.cbo_tujuan = $("#cbotuj").val();
                     },
                 },
                 columns: [{
@@ -935,7 +1160,7 @@
 
         function clear_h() {
             updating = true;
-            $('#cbotuj').val('').trigger('change.select2');
+            // $('#cbotuj').val('').trigger('change.select2');
             $('#cboline').val('').trigger('change.select2');
             $('#cbopo').val('').trigger('change.select2');
             $('#cbogarment').html('<option value="">-- Pilih Line &amp; PO dulu --</option>').val('').trigger(

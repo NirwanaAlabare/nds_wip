@@ -49,10 +49,10 @@ class PackingPackingInController extends Controller
             concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
             ) tgl_penerimaan_fix,
             b.no_trans no_trf_garment,
-            'Temporary' line,
-            p.barcode,
-            p.po,
-            p.dest,
+            a.line,
+            a.barcode,
+            a.po,
+            a.dest,
             a.qty,
             m.ws,
             m.styleno,
@@ -61,10 +61,9 @@ class PackingPackingInController extends Controller
             a.created_at,
             a.created_by
             from packing_packing_in a
-            inner join packing_trf_garment_out_temporary b on a.id_trf_garment = b.id
-            inner join ppic_master_so p on a.id_ppic_master_so = p.id
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Temporary' and a.line = 'Temporary'
+            inner join packing_trf_garment_out_temporary b on a.packing_trf_garment_out_temporary_id = b.id
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'TEMPORARY PACKING' and a.line = 'TEMPORARY PACKING'
             union
             select
             a.no_trans,
@@ -119,9 +118,10 @@ class PackingPackingInController extends Controller
             from packing_trf_garment_out_temporary a
 		    left join
                 (
-                select id_trf_garment,sum(qty) qty_in from packing_packing_in
-                group by id_trf_garment
-                ) b on a.id = b.id_trf_garment
+                select packing_trf_garment_out_temporary_id,sum(qty) qty_in from packing_packing_in
+                group by packing_trf_garment_out_temporary_id
+            ) b on a.id = b.packing_trf_garment_out_temporary_id
+            where a.po = 'TEMPORARY PACKING'
             having a.qty - coalesce(b.qty_in,0) > '0'
             union
             SELECT
@@ -157,19 +157,6 @@ class PackingPackingInController extends Controller
     {
         $user = Auth::user()->name;
 
-        // $tahun = date('Y');
-        // $no = date('my');
-        // $kode = 'PO/FGS/OUT/';
-        // $cek_nomor = DB::select("
-        // select max(right(po,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "' and sumber = 'FGS'
-        // ");
-        // $nomor_tr = $cek_nomor[0]->nomor;
-        // $urutan = (int)($nomor_tr);
-        // $urutan++;
-        // $kodepay = sprintf("%05s", $urutan);
-
-        // $kode_trans = $kode . $no . '/' . $kodepay;
-
         if ($request->ajax()) {
 
             $data_preview = DB::select("
@@ -191,14 +178,14 @@ class PackingPackingInController extends Controller
                 select id_trf_garment,sum(qty) qty_in from packing_packing_in where sumber != 'Temporary'
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
-						inner join ppic_master_so  p on a.id_ppic_master_so = p.id
-						inner join master_sb_ws m on p.id_so_det = m.id_so_det
-						where a.no_trans = '" . $request->cbono . "'
+            inner join ppic_master_so  p on a.id_ppic_master_so = p.id
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            where a.no_trans = '" . $request->cbono . "'
             having a.qty - coalesce(b.qty_in,0) != '0'
 			union
             SELECT
             a.id,
-            'Temporary' line,
+            'TEMPORARY PACKING' line,
 			a.qty,
             b.qty_in,
 			m.ws,
@@ -206,17 +193,17 @@ class PackingPackingInController extends Controller
 			m.size,
 			p.barcode,
 			p.dest,
-			p.po,
+			a.po,
             'PCS' unit
             from packing_trf_garment_out_temporary a
             left join
                 (
-                select id_trf_garment,sum(qty) qty_in from packing_packing_in where sumber = 'Temporary'
-                group by id_trf_garment
-                ) b on a.id = b.id_trf_garment
-						inner join ppic_master_so  p on a.id_ppic_master_so = p.id
-						inner join master_sb_ws m on p.id_so_det = m.id_so_det
-						where a.no_trans = '" . $request->cbono . "'
+                select packing_trf_garment_out_temporary_id,sum(qty) qty_in from packing_packing_in
+                group by packing_trf_garment_out_temporary_id
+                ) b on a.id = b.packing_trf_garment_out_temporary_id
+            inner join ppic_master_so  p on a.id_so_det = p.id_so_det
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            where a.po = 'TEMPORARY PACKING' AND a.no_trans = '" . $request->cbono . "'
             having a.qty - coalesce(b.qty_in,0) != '0'
             union
             SELECT
@@ -468,7 +455,44 @@ class PackingPackingInController extends Controller
                         insert into packing_packing_in
                         (id_trf_garment,fg_stok_bppb_id,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
                         values(null,'$txtid_trf_garment','$kode_trans','$tgl_penerimaan',null,'$id_so_det','$txtqty','$line','$po','$barcode','$dest','FGS','$user','$timestamp','$timestamp')");
+
+                    }else if($status == 'TEMPORARY PACKING'){
+                        
+                        $cek = DB::select("select packing_trf_garment_out_temporary.*, ppic_master_so.barcode, ppic_master_so.dest from packing_trf_garment_out_temporary 
+                            left join ppic_master_so on ppic_master_so.id_so_det = packing_trf_garment_out_temporary.id_so_det 
+                            where packing_trf_garment_out_temporary.id = ? for update", [$txtid_trf_garment]);
+                        if (empty($cek)) {
+                            continue;
+                        }
+                        $cek = $cek[0];
+
+                        $qtyInRow = DB::selectOne("
+                            select coalesce(sum(qty),0) qty_in from packing_packing_in
+                            where packing_trf_garment_out_temporary_id = ? and sumber = 'TEMPORARY PACKING'
+                        ", [$txtid_trf_garment]);
+                        $sisa = (float) $cek->qty - (float) $qtyInRow->qty_in;
+    
+                        if ($txtqty > $sisa) {
+                            throw new \RuntimeException(
+                                'Qty untuk No. Transaksi sumber tidak lagi mencukupi (sisa: ' . $sisa . '). '
+                                . 'Kemungkinan data sudah diinput oleh user lain, silakan refresh dan coba lagi.'
+                            );
+                        }
+    
+                        $id_ppic_master_so = null;
+                        $id_so_det = $cek->id_so_det;
+                        $line = 'TEMPORARY PACKING';
+                        $po = array_values($po_fgsArray)[0];
+                        $barcode = $cek->barcode;
+                        $dest = $cek->dest;
+
+                        DB::insert("
+                        insert into packing_packing_in
+                        (id_trf_garment,packing_trf_garment_out_temporary_id,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+                        values(null,'$txtid_trf_garment','$kode_trans','$tgl_penerimaan',null,'$id_so_det','$txtqty','$line','$po','$barcode','$dest','TEMPORARY PACKING','$user','$timestamp','$timestamp')");
+
                     }else{
+
                         $cek = DB::select("select * from $sourceTable where id = ? for update", [$txtid_trf_garment]);
                         if (empty($cek)) {
                             continue;
