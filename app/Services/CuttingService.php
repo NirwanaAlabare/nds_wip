@@ -659,8 +659,20 @@ class CuttingService
                                     where("created_at", ">", $currentRoll->created_at)->
                                     sum("qty_konv");
 
+                                $newRetur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                    leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
+                                    where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
+                                    where("supplier", "LIKE", "Production - Cutting")->
+                                    where("whs_lokasi_inmaterial.no_barcode", $rollId)->
+                                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($currentRoll->created_at)))->
+                                    sum("whs_lokasi_inmaterial.qty_aktual");
+
                                 if ($newPenerimaan > 0) {
                                     $scannedItem->qty += $newPenerimaan;
+                                }
+
+                                if ($newRetur > 0) {
+                                    $scannedItem->qty -= $newRetur;
                                 }
                             }
                         }
@@ -905,12 +917,23 @@ class CuttingService
                 $penerimaan = null;
                 if ($index == 0) {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+
                     if ($penerimaan->count() < 1) {
                         $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();
                     }
                 } else {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
                 }
+
+                $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                        select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
+                        leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
+                        where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
+                        where("supplier", "LIKE", "Production - Cutting")->
+                        where("whs_lokasi_inmaterial.no_barcode", $detail->id_roll)->
+                        where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($createdBefore)))->
+                        where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($detail->created_at)))->
+                        get();
 
                 $qtyPenerimaan = 0;
                 if ($penerimaan) {
@@ -921,13 +944,20 @@ class CuttingService
                     }
                 }
 
+                $qtyRetur = 0;
+                if ($retur) {
+                    foreach ($retur as $r) {
+                        $qtyRetur += $r->qty_aktual;
+                    }
+                }
+
                 $formCut = $detail->formCutInput;
 
                 if (!$formCut)  {
                     return "Form tidak ditemukan";
                 }
 
-                $detail->qty = $currentQty + $qtyPenerimaan;
+                $detail->qty = $currentQty + $qtyPenerimaan - $qtyRetur;
 
                 // Recalculate :
                     // Sambungan Roll
