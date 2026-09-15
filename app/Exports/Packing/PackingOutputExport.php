@@ -72,6 +72,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                     master_plan.color,
                     userpassword.username sewing_line,
                     rfts.po_id,
+                    rfts.alokasi,
                     rfts.type
                     ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 FROM
@@ -100,7 +101,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
             act_costing.styleno style,
             rfts.color,
             COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line,
-            COALESCE(ppic_master_so.po, 'GUDANG STOK') as po,
+            (CASE WHEN rfts.alokasi = 'po' THEN COALESCE(ppic_master_so.po, 'PO tidak ditemukan') ELSE UPPER(rfts.alokasi) END) as po,
             COALESCE(rfts.type, 'rft') as type
             ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
         ")->
@@ -113,7 +114,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
         if ($this->color) $dailyOrderGroupSql->where('rfts.color', $this->color);
         if ($this->line) $dailyOrderGroupSql->where('rfts.sewing_line', $this->line);
         if ($this->groupBy == "size" && $this->size) $dailyOrderGroupSql->where('so_det.size', $this->size);
-        if ($this->po) $dailyOrderGroupSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->po);
+        if ($this->po) $dailyOrderGroupSql->where(DB::raw("(CASE WHEN rfts.alokasi = 'po' THEN COALESCE(ppic_master_so.po, 'PO tidak ditemukan') ELSE UPPER(rfts.alokasi) END)"), $this->po);
         if ($this->order) $dailyOrderGroupSql->where("act_costing.id", $this->order);
         $dailyOrderGroupSql->
             groupByRaw("rfts.id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.sewing_line, master_plan.sewing_line), ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
@@ -136,6 +137,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                     master_plan.color,
                     COALESCE ( userpassword.username, master_plan.sewing_line ) created_by,
                     rfts.po_id,
+                    rfts.alokasi,
                     rfts.type
                     ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 FROM
@@ -172,7 +174,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                 master_plan.man_power man_power,
                 master_plan.plan_target plan_target,
                 COALESCE ( rfts.last_rft, master_plan.tgl_plan ) latest_output,
-                COALESCE(ppic_master_so.po, 'GUDANG STOK') as po
+                (CASE WHEN rfts.alokasi = 'po' THEN COALESCE(ppic_master_so.po, 'PO tidak ditemukan') ELSE UPPER(rfts.alokasi) END) as po
             ")->
             leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id")->
             leftJoin("act_costing", "act_costing.id", "=", "rfts.id_ws")->
@@ -183,7 +185,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateTo) $dailyOrderOutputSql->whereRaw('rfts.tanggal <= "'.$this->dateTo.'"');
             if ($this->color) $dailyOrderOutputSql->where('rfts.color', $this->color);
             if ($this->line) $dailyOrderOutputSql->whereRaw('COALESCE(rfts.created_by, master_plan.sewing_line) = "'.$this->line.'"');
-            if ($this->po) $dailyOrderOutputSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->po);
+            if ($this->po) $dailyOrderOutputSql->where(DB::raw("(CASE WHEN rfts.alokasi = 'po' THEN COALESCE(ppic_master_so.po, 'PO tidak ditemukan') ELSE UPPER(rfts.alokasi) END)"), $this->po);
             if ($this->groupBy == "size" && $this->size) $dailyOrderOutputSql->where('so_det.size', $this->size);
             $dailyOrderOutputSql->
                 groupByRaw("rfts.id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal, ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
