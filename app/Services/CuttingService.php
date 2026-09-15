@@ -877,6 +877,10 @@ class CuttingService
     public function fixChainedQty($idRoll, $firstId) {
         DB::enableQueryLog();
 
+        if (empty($idRoll)) {
+            return false;
+        }
+
         $formCutDetail = FormCutInputDetail::where("id_roll", $idRoll)->orderBy("created_at", "asc")->get();
 
         if ($formCutDetail && $formCutDetail->count() > 0) {
