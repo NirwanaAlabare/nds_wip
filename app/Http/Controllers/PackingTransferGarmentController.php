@@ -131,7 +131,7 @@ order by isi asc");
     public function get_po(Request $request)
     {
         $line = $request->cbo_line;
-        $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-180 days'));
+        $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-360 days'));
         
         if ($line) {
             // Filter by line: only POs that have output from this line
