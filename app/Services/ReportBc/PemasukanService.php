@@ -320,7 +320,6 @@ class PemasukanService
                 ->groupBy('m.ws', 'a.no_trans');
         }
 
-        dd($queryFgStokScan);
 
         $unionQuery = null;
         foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokScan] as $q) {
