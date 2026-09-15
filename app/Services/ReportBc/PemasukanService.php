@@ -212,6 +212,7 @@ class PemasukanService
         $queryBahanBaku = null;
         $queryBarangJadi = null;
         $queryFgStok = null;
+        $queryFgStokScan = null;
 
         if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
             $queryBahanBaku = $mysql_sb->table('bpb as a')
@@ -289,7 +290,7 @@ class PemasukanService
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
-                ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
+                ->groupBy('m.ws', 'a.no_trans');
 
             $queryFgStokScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
@@ -316,13 +317,11 @@ class PemasukanService
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
-                ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
-
-            $queryFgStok = $queryFgStokBpb->unionAll($queryFgStokScan);
+                ->groupBy('m.ws', 'a.no_trans');
         }
 
         $unionQuery = null;
-        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStok] as $q) {
+        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStok, $queryFgStokScan] as $q) {
             if (!$q) continue;
             $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
         }
