@@ -286,7 +286,7 @@ class PemasukanService
                     DB::raw("0 as berat_kotor"),
                     DB::raw("'-' as nomor_aju"),
                     DB::raw("a.sumber_pemasukan as tujuan"),
-                    DB::raw("a.id_so_det as id_item"),
+                    DB::raw("m.ws as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
@@ -313,13 +313,12 @@ class PemasukanService
                     DB::raw("0 as berat_kotor"),
                     DB::raw("'-' as nomor_aju"),
                     DB::raw("a.sumber_pemasukan as tujuan"),
-                    DB::raw("a.id_so_det as id_item"),
+                    DB::raw("m.ws as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
                 ->groupBy('m.ws', 'a.no_trans');
         }
-
 
         $unionQuery = null;
         foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokScan] as $q) {
