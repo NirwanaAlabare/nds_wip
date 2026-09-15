@@ -669,15 +669,15 @@ class DokumenPabeanController extends Controller
 
             if ($responseCeisa['successful']) {
 
-                $data_kantor = $db->table('master_kantor')
-                                ->where('kode', $draft['kodeKantor'])
-                                ->get();
+                // $data_kantor = $db->table('master_kantor')
+                //                 ->where('kode', $draft['kodeKantor'])
+                //                 ->get();
 
-                //kode kantor bandung
-                $kantor = 60; 
-                if($data_kantor){
-                    $kantor = $data_kantor->id;
-                }
+                // //kode kantor bandung
+                // $kantor = 60; 
+                // if($data_kantor){
+                //     $kantor = $data_kantor->id;
+                // }
                 
                 $db->table('bpb')
                     ->where(function($query) use ($id) {
@@ -685,7 +685,7 @@ class DokumenPabeanController extends Controller
                     })
                     ->update([
                         'nomor_aju'   => $nomorAju,
-                        'kode_kantor'   => $kantor,
+                        // 'kode_kantor'   => $kantor,
                         'tanggal_aju' => $tanggalAju,
                         'bcdate' => $tanggalAju,
                     ]);
@@ -2034,15 +2034,15 @@ class DokumenPabeanController extends Controller
 
             if ($responseCeisa['successful']) {
 
-                $data_kantor = $db->table('master_kantor')
-                                ->where('kode', $draft['kodeKantor'])
-                                ->get();
+                // $data_kantor = $db->table('master_kantor')
+                //                 ->where('kode', $draft['kodeKantor'])
+                //                 ->get();
 
-                //kode kantor bandung
-                $kantor = 60; 
-                if($data_kantor){
-                    $kantor = $data_kantor->id;
-                }
+                // //kode kantor bandung
+                // $kantor = 60; 
+                // if($data_kantor){
+                //     $kantor = $data_kantor->id;
+                // }
 
                 $db->table('bpb')
                     ->where(function($query) use ($id) {
@@ -2052,7 +2052,7 @@ class DokumenPabeanController extends Controller
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $tanggalAju,
                         'bcdate' => $tanggalAju,
-                        'kode_kantor' => $kantor,
+                        // 'kode_kantor' => $kantor,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
@@ -2207,6 +2207,7 @@ class DokumenPabeanController extends Controller
     {
         return app(\App\Services\Bc41Service::class)->updateDraftBatchBc41($id, $request);
     }
+
 
 
     public function editBatchBc40($id, Request $request)
