@@ -303,6 +303,10 @@ class OutMaterialController extends Controller
 
         $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll, id_item, id_jo, kode_lok kode_rak, itemdesc, kode_lok raknya, no_lot lot_no, no_roll roll_no, sal_akhir qty_sisa, satuan unit from data_stock_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "'");
 
+        // Stok dari view bisa lebih besar dari aslinya bila ada transaksi backdate setelah copy saldo,
+        // jadi dibatasi dengan stok akurat per barcode.
+        $det_item = $this->capRowsToAvailableStock($det_item, 'qty_sisa');
+
         // $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join
         //         bpb_roll_h brh on br.id_h=brh.id
         //         inner join masteritem mi on brh.id_item = mi.id_item
@@ -385,7 +389,9 @@ class OutMaterialController extends Controller
 //                 inner join master_rak mr on br.id_rak_loc=mr.id where br.id in (" . $request->id_barcode . ") and br.id_rak_loc!=''
 //                 order by br.id) a where qty_sisa > 0");
 
-        $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select no_barcode id_roll, a.id_item, id_jo ,no_roll roll_no, no_lot lot_no, b.goods_code, b.itemdesc, sal_akhir sisa, satuan unit, kode_lok kode_rak, kpno from data_stock_fabric a INNER JOIN masteritem b on a.id_item = b.id_item where no_barcode in (" . $request->id_barcode . ") and sal_akhir > 0) a");
+        // Stok dari view bisa lebih besar dari aslinya bila ada transaksi backdate setelah copy saldo,
+        // jadi dibatasi dengan stok akurat per barcode.
+        $det_item = $this->capRowsToAvailableStock($det_item, 'sisa');
 
 //     $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
 // UNION
@@ -394,9 +400,7 @@ class OutMaterialController extends Controller
 //             inner join masteritem mi on brh.id_item = mi.id_item
 //             inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!=''
 //             order by br.id) a where qty_sisa > 0) a");
-        foreach ($sum_item as $sumitem) {
-            $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
-        }
+        $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.count($det_item).'" / readonly>';
 
         $html .= '<div class="table-responsive" style="max-height: 300px">
         <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
@@ -698,6 +702,11 @@ class OutMaterialController extends Controller
             return ['status' => 400, 'message' => "Tgl BPPB $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
         }
 
+        // Validasi akhir: total qty out per barcode di temp tidak boleh melebihi stok akurat saat disimpan
+        if ($stockError = $this->validateQtyOutAgainstStock($this->getTempQtyOutByBarcode())) {
+            return ['status' => 400, 'message' => $stockError, 'additional' => [], 'redirect' => ''];
+        }
+
         try {
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
@@ -868,6 +877,27 @@ class OutMaterialController extends Controller
 
             $qtyOutKeys = $qtyOut->keys();
 
+            // Qty out tidak boleh melebihi stok akurat barcode (termasuk qty barcode yg sama yang sudah ada di temp)
+            $requested = [];
+            foreach ($qtyOut as $key => $value) {
+                $idRoll = $request["id_roll"][$key] ?? null;
+                if ($idRoll && $value > 0) {
+                    $requested[$idRoll] = ($requested[$idRoll] ?? 0) + (float) $value;
+                }
+            }
+            $tempQty = $this->getTempQtyOutByBarcode();
+            foreach ($requested as $idRoll => $qty) {
+                $requested[$idRoll] = $qty + ($tempQty[$idRoll] ?? 0);
+            }
+            if ($stockError = $this->validateQtyOutAgainstStock($requested)) {
+                return array(
+                    "status" => 400,
+                    "message" => $stockError,
+                    "additional" => [],
+                    "redirect" => ''
+                );
+            }
+
             if (intval($request['t_roll']) > 0) {
                 $timestamp = Carbon::now();
                 $no_bppb = $request['m_no_bppb'];
@@ -950,6 +980,28 @@ class OutMaterialController extends Controller
             $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
 
             $bppbno_int = $Mattype1[0]->bppbno_int;
+
+            // Qty out tidak boleh melebihi stok akurat barcode (termasuk qty barcode yg sama yang sudah ada di temp)
+            $requested = [];
+            for ($i = 1; $i <= $request['tot_roll']; $i++) {
+                $idRoll = $request["id_roll"][$i] ?? null;
+                if ($idRoll && $request["qty_out"][$i] > 0) {
+                    $requested[$idRoll] = ($requested[$idRoll] ?? 0) + (float) $request["qty_out"][$i];
+                }
+            }
+            $tempQty = $this->getTempQtyOutByBarcode();
+            foreach ($requested as $idRoll => $qty) {
+                $requested[$idRoll] = $qty + ($tempQty[$idRoll] ?? 0);
+            }
+            if ($stockError = $this->validateQtyOutAgainstStock($requested)) {
+                return array(
+                    "status" => 400,
+                    "message" => $stockError,
+                    "additional" => [],
+                    "redirect" => ''
+                );
+            }
+
             // if (intval($request['m_qty_bal_h2']) >= 0) {
             $timestamp = Carbon::now();
             $no_bppb = $request['m_no_bppb2'];
@@ -1353,6 +1405,130 @@ public function pdfoutmaterial(Request $request, $id)
         return $html;
     }
 
+    // Stok akurat per barcode (semua lokasi dijumlah), dipakai untuk validasi pengeluaran.
+    // View data_stock_fabric memakai copy saldo (whs_sa_fabric_copy) periode awal bulan berjalan
+    // dan menganggap semua transaksi bertanggal sebelum periode itu sudah masuk ke copy. Padahal copy
+    // dibuat manual, sehingga transaksi backdate ke periode yang masih Open yang diinput SETELAH copy
+    // dibuat tidak terbaca (stok terlihat lebih besar). Di sini copy saldo yang dipakai dibatasi hanya
+    // sampai awal periode Open paling awal, lalu semua IN/OUT/mutasi sejak itu dihitung dari tabel.
+    // Return: [no_barcode => qty tersedia].
+    private function getAvailableQtyByBarcode(array $barcodes)
+    {
+        $barcodes = array_values(array_unique(array_filter(array_map('trim', $barcodes), 'strlen')));
+
+        if (empty($barcodes)) {
+            return [];
+        }
+
+        $periode = DB::connection('mysql_sb')->selectOne("
+            select max(tgl_periode) periode
+            from whs_sa_fabric_copy
+            where tgl_periode <= least(
+                date_format(curdate(), '%Y-%m-01'),
+                coalesce((select min(tgl_awal) from tbl_closing_periode_fabric_wh where status_closing = 'Open'), date_format(curdate(), '%Y-%m-01'))
+            )
+        ")->periode ?? '1900-01-01';
+
+        $in = implode(',', array_fill(0, count($barcodes), '?'));
+
+        $rows = DB::connection('mysql_sb')->select("
+            select no_barcode, sum(qty) qty from (
+                select no_barcode, qty from whs_sa_fabric_copy
+                where tgl_periode = ? and no_barcode in ($in)
+
+                union all
+                select b.no_barcode, b.qty_sj from whs_lokasi_inmaterial b
+                inner join whs_inmaterial_fabric a on a.no_dok = b.no_dok
+                where b.no_barcode in ($in) and a.tgl_dok >= ? and a.tgl_dok <= curdate() and a.status != 'Cancel' and b.status = 'Y'
+
+                union all
+                select b.no_barcode, b.qty_sj from whs_lokasi_inmaterial b
+                inner join whs_mut_lokasi_h a on a.no_mut = b.no_dok
+                where b.no_barcode in ($in) and a.tgl_mut >= ? and a.tgl_mut <= curdate() and a.status != 'Cancel' and b.status = 'Y'
+
+                union all
+                select b.id_roll, -coalesce(b.qty_out, 0) from whs_bppb_det b
+                inner join whs_bppb_h a on a.no_bppb = b.no_bppb
+                where b.id_roll in ($in) and a.tgl_bppb >= ? and a.status != 'Cancel' and b.status = 'Y'
+
+                union all
+                select b.id_roll, -coalesce(b.qty_out, 0) from whs_bppb_det b
+                inner join whs_mut_lokasi_h a on a.no_mut = b.no_bppb
+                where b.id_roll in ($in) and a.tgl_mut >= ? and a.status != 'Cancel' and b.status = 'Y'
+            ) x
+            group by no_barcode
+        ", array_merge(
+            [$periode], $barcodes,
+            $barcodes, [$periode],
+            $barcodes, [$periode],
+            $barcodes, [$periode],
+            $barcodes, [$periode]
+        ));
+
+        $available = array_fill_keys($barcodes, 0.0);
+        foreach ($rows as $row) {
+            $available[$row->no_barcode] = round((float) $row->qty, 2);
+        }
+
+        return $available;
+    }
+
+    // Batasi qty stok tiap baris dari view (per barcode+lokasi) dengan stok akurat per barcode. Bila satu barcode
+    // punya beberapa baris lokasi, stok akurat dialokasikan berurutan supaya totalnya tidak melebihi stok akurat.
+    // Baris yang stoknya habis dibuang.
+    private function capRowsToAvailableStock(array $rows, $qtyField)
+    {
+        $available = $this->getAvailableQtyByBarcode(array_map(fn($row) => $row->id_roll, $rows));
+        $result = [];
+
+        foreach ($rows as $row) {
+            $remaining = $available[$row->id_roll] ?? 0;
+            $qty = round(min((float) $row->$qtyField, $remaining), 2);
+
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $available[$row->id_roll] = $remaining - $qty;
+            $row->$qtyField = $qty;
+            $result[] = $row;
+        }
+
+        return $result;
+    }
+
+    // Total qty_out per barcode yang sudah masuk temp (belum disimpan) milik user yang login.
+    private function getTempQtyOutByBarcode()
+    {
+        return collect(DB::connection('mysql_sb')->select("
+            select id_roll, sum(coalesce(qty_out, 0)) qty_out
+            from whs_bppb_det_temp
+            where created_by = ?
+            group by id_roll
+        ", [Auth::user()->name]))->mapWithKeys(fn($row) => [$row->id_roll => (float) $row->qty_out])->all();
+    }
+
+    // Validasi qty out per barcode terhadap stok akurat. $requested = [no_barcode => qty yang mau keluar].
+    // Return pesan error (string) bila ada yang melebihi stok, atau null bila aman.
+    private function validateQtyOutAgainstStock(array $requested)
+    {
+        $available = $this->getAvailableQtyByBarcode(array_keys($requested));
+        $errors = [];
+
+        foreach ($requested as $barcode => $qty) {
+            if ((string) $barcode === '') {
+                continue;
+            }
+
+            $stok = $available[$barcode] ?? 0;
+            if ((float) $qty - $stok > 0.001) {
+                $errors[] = "Barcode " . $barcode . " stok tersedia hanya " . max($stok, 0) . ", tidak bisa keluar " . round((float) $qty, 2) . ".";
+            }
+        }
+
+        return $errors ? implode('<br>', $errors) : null;
+    }
+
     // qty_out di bppb_req adalah total qty yang sudah keluar untuk request ini,
     // jadi setiap kali qty di dokumen BPPB Out berubah (edit qty roll, tambah scan/manual,
     // cancel), qty_out di bppb_req harus disinkronkan ulang (dihitung dari total semua
@@ -1427,9 +1603,9 @@ public function pdfoutmaterial(Request $request, $id)
                 ], 400);
             }
 
-            $salAkhir = DB::connection('mysql_sb')->table('data_stock_fabric')->where('no_barcode', $idRoll)->value('sal_akhir');
+            $salAkhir = $this->getAvailableQtyByBarcode([$idRoll])[$idRoll] ?? 0;
 
-            $maxQty = (float) $salAkhir + (float) $oldQtyOut;
+            $maxQty = round((float) $salAkhir + (float) $oldQtyOut, 2);
 
             if ((float) $row['qty_out'] > $maxQty) {
                 return response()->json([
@@ -1634,6 +1810,22 @@ public function pdfoutmaterial(Request $request, $id)
                 }
             }
 
+            // Qty out tidak boleh melebihi stok akurat barcode
+            $requested = [];
+            foreach ($bppb_temp_det as $row) {
+                if ($row['id_roll']) {
+                    $requested[$row['id_roll']] = ($requested[$row['id_roll']] ?? 0) + (float) $row['qty_out'];
+                }
+            }
+            if ($stockError = $this->validateQtyOutAgainstStock($requested)) {
+                return array(
+                    "status" => 400,
+                    "message" => $stockError,
+                    "additional" => [],
+                    "redirect" => ''
+                );
+            }
+
             DB::connection('mysql_sb')->beginTransaction();
             $qtyReqChanged = false;
 
@@ -1756,6 +1948,22 @@ public function pdfoutmaterial(Request $request, $id)
 
                         $sumQty[$groupKey] += $request['qty_out'][$key];
                     }
+                }
+
+                // Qty out tidak boleh melebihi stok akurat barcode
+                $requested = [];
+                foreach ($bppb_temp_det as $row) {
+                    if ($row['id_roll']) {
+                        $requested[$row['id_roll']] = ($requested[$row['id_roll']] ?? 0) + (float) $row['qty_out'];
+                    }
+                }
+                if ($stockError = $this->validateQtyOutAgainstStock($requested)) {
+                    return array(
+                        "status" => 400,
+                        "message" => $stockError,
+                        "additional" => [],
+                        "redirect" => ''
+                    );
                 }
 
                 DB::connection('mysql_sb')->beginTransaction();
