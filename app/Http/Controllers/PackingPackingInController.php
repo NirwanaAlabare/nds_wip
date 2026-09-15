@@ -37,11 +37,13 @@ class PackingPackingInController extends Controller
             m.color,
             m.size,
             a.created_at,
-            a.created_by
+            a.created_by,
+            act.close_order
             from packing_packing_in a
             left join packing_trf_garment b on a.id_trf_garment = b.id
             left join ppic_master_so p on a.id_ppic_master_so = p.id
             left join master_sb_ws m on p.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
                 where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing', 'Switching')
             union
             select
@@ -59,10 +61,12 @@ class PackingPackingInController extends Controller
             m.color,
             m.size,
             a.created_at,
-            a.created_by
+            a.created_by,
+            act.close_order
             from packing_packing_in a
             inner join packing_trf_garment_out_temporary b on a.packing_trf_garment_out_temporary_id = b.id
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'TEMPORARY PACKING' and a.line = 'TEMPORARY PACKING'
             union
             select
@@ -80,10 +84,12 @@ class PackingPackingInController extends Controller
             m.color,
             m.size,
             a.created_at,
-            a.created_by
+            a.created_by,
+            act.close_order
             from packing_packing_in a
             inner join fg_stok_bppb b on a.fg_stok_bppb_id = b.id
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'FGS' and a.line = 'FGS'
             order by created_at desc
 
@@ -93,20 +99,23 @@ class PackingPackingInController extends Controller
         }
 
         $data_no_trans = DB::select("
-        select data_cek.no_trans isi , data_cek.no_trans tampil
+        select data_cek.no_trans isi , data_cek.no_trans tampil, data_cek.close_order
         from
             (
             SELECT
             a.id,
             a.no_trans,
             a.qty,
-            b.qty_in
+            b.qty_in,
+            act.close_order
             from packing_trf_garment a
             left join
                 (
                 select id_trf_garment,sum(qty) qty_in from packing_packing_in
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
+            left join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
                  where a.tujuan = 'Packing'
             having a.qty - coalesce(b.qty_in,0) > '0'
             union
@@ -114,13 +123,16 @@ class PackingPackingInController extends Controller
             a.id,
             a.no_trans,
             a.qty,
-            b.qty_in
+            b.qty_in,
+            act.close_order
             from packing_trf_garment_out_temporary a
 		    left join
                 (
                 select packing_trf_garment_out_temporary_id,sum(qty) qty_in from packing_packing_in
                 group by packing_trf_garment_out_temporary_id
             ) b on a.id = b.packing_trf_garment_out_temporary_id
+             left join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.po = 'TEMPORARY PACKING'
             having a.qty - coalesce(b.qty_in,0) > '0'
             union
@@ -128,13 +140,16 @@ class PackingPackingInController extends Controller
             a.id,
             a.no_trans_out as no_trans,
             a.qty_out as qty,
-            b.qty_in
+            b.qty_in,
+            act.close_order
             from fg_stok_bppb a
 		    left join
                 (
                 select fg_stok_bppb_id,sum(qty) qty_in from packing_packing_in
                 group by fg_stok_bppb_id
                 ) b on a.id = b.fg_stok_bppb_id
+            left join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where tujuan = 'PACKING CENTRAL'
             having a.qty_out - coalesce(b.qty_in,0) > '0'
             ) data_cek
@@ -180,7 +195,8 @@ class PackingPackingInController extends Controller
                 ) b on a.id = b.id_trf_garment
             inner join ppic_master_so  p on a.id_ppic_master_so = p.id
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            where a.no_trans = '" . $request->cbono . "'
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
+            where a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
             having a.qty - coalesce(b.qty_in,0) != '0'
 			union
             SELECT
@@ -203,7 +219,8 @@ class PackingPackingInController extends Controller
                 ) b on a.id = b.packing_trf_garment_out_temporary_id
             inner join ppic_master_so  p on a.id_so_det = p.id_so_det
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            where a.po = 'TEMPORARY PACKING' AND a.no_trans = '" . $request->cbono . "'
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
+            where a.po = 'TEMPORARY PACKING' AND a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
             having a.qty - coalesce(b.qty_in,0) != '0'
             union
             SELECT
@@ -226,7 +243,8 @@ class PackingPackingInController extends Controller
                 group by fg_stok_bppb_id
                 ) b on a.id = b.fg_stok_bppb_id
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where a.no_trans_out = '" . $request->cbono . "'
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
+            where a.no_trans_out = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
             HAVING qty != 0
             ");
 
