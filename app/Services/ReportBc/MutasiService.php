@@ -1426,29 +1426,58 @@ class MutasiService
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
-            ->keyBy(fn ($row) => $row->kpno . '|' . $row->styleno);
+            ->map(function ($row) {
+                return (object) [
+                    'sumber'        => 'FG',
+                    'ws'            => $row->kpno,
+                    'styleno'       => $row->styleno,
+                    'color'         => $row->color,
+                    'size'          => $row->size,
+                    'product_group' => $row->product_group ?? '-',
+                    'product_item'  => $row->product_item ?? '-',
+                    'saldoawal'     => $row->saldoawal,
+                    'qtyterima'     => $row->qtyterima,
+                    'qtykeluar'     => $row->qtykeluar,
+                    'saldoakhir'    => $row->saldoakhir,
+                ];
+            });
 
-        $gudang = collect($this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang))
-            ->keyBy(fn ($row) => $row->ws . '|' . $row->styleno);
+        $gudang = collect($this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang, false))
+            ->map(function ($row) {
+                return (object) [
+                    'sumber'        => 'FG WAREHOUSE',
+                    'ws'            => $row->ws,
+                    'styleno'       => $row->styleno,
+                    'color'         => $row->color,
+                    'size'          => $row->size,
+                    'product_group' => $row->product_group,
+                    'product_item'  => $row->product_item,
+                    'saldoawal'     => $row->saldoawal,
+                    'qtyterima'     => $row->qtyterima,
+                    'qtykeluar'     => $row->qtykeluar,
+                    'saldoakhir'    => $row->saldoakhir,
+                ];
+            });
 
-        $allKeys = $gudang->keys()->merge($produksi->keys())->unique();
+        return $produksi->concat($gudang)
+            ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno)
+            ->map(function ($rows) {
+                $first = $rows->first();
 
-        return $allKeys->map(function ($key) use ($gudang, $produksi) {
-            $data = $gudang->get($key) ?? $produksi->get($key);
-
-            return (object) [
-                'ws'            => $data->ws ?? $data->kpno,
-                'styleno'       => $data->styleno,
-                'color'         => $data->color ?? '-',
-                'size'          => $data->size ?? '-',
-                'product_group' => $data->product_group ?? '-',
-                'product_item'  => $data->product_item ?? '-',
-                'saldoawal'     => $data->saldoawal,
-                'qtyterima'     => $data->qtyterima,
-                'qtykeluar'     => $data->qtykeluar,
-                'saldoakhir'    => $data->saldoakhir,
-            ];
-        })->values();
+                return (object) [
+                    'ws'            => $first->ws,
+                    'styleno'       => $first->styleno,
+                    'color'         => $rows->pluck('color')->filter()->unique()->implode(', '),
+                    'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
+                    'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'saldoawal'     => $rows->sum('saldoawal'),   // dijumlah dari kedua sumber
+                    'qtyterima'     => $rows->sum('qtyterima'),
+                    'qtykeluar'     => $rows->sum('qtykeluar'),
+                    'saldoakhir'    => $rows->sum('saldoakhir'),
+                ];
+            })
+            ->values();
     }
 
 
@@ -1740,8 +1769,9 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, msw.ws AS ws
                 FROM bpb
+                LEFT JOIN laravel_nds.master_sb_ws msw ON bpb.id_so_det = msw.id_so_det
                 WHERE bpbdate >= ? AND bpbdate <= ?
                 AND bpbno LIKE 'FG%'
                 GROUP BY id_item, id_so_det
