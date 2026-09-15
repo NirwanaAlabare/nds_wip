@@ -187,7 +187,7 @@ class ReportCuttingController extends Controller
                         WHERE
                             form_cut_input.status = 'SELESAI PENGERJAAN' and
                             COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
-                            (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
+                            (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0) OR form_cut_input_detail_output.qty_output_aktual > 0)
                         GROUP BY
                             form_cut_input.id,
                             form_cut_input_detail.group_roll,
@@ -321,6 +321,7 @@ class ReportCuttingController extends Controller
                             AND (
                                 stocker_ws_additional_detail.ratio > 0
                                 OR modify_size_qty.difference_qty != 0
+                                OR form_cut_input_detail_output.qty_output_aktual > 0
                             )
                         GROUP BY
                             form_cut_input.id,
@@ -9767,7 +9768,7 @@ order by tanggal asc, no_form asc
                                                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
-                                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
+                                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ) OR form_cut_input_detail_output.qty_output_aktual > 0)
                                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                                         GROUP BY
                                                 form_cut_input.id,
@@ -9919,7 +9920,7 @@ order by tanggal asc, no_form asc
                                                     AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                                         WHERE
                                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
+                                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0  OR form_cut_input_detail_output.qty_output_aktual > 0)
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
                                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
@@ -10081,7 +10082,7 @@ order by tanggal asc, no_form asc
                                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-                                                        AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
+                                                        AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ) OR form_cut_input_detail_output.qty_output_aktual > 0)
                                                         AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                                         GROUP BY
                                                         form_cut_input.id,
@@ -10235,7 +10236,7 @@ order by tanggal asc, no_form asc
                                                     AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                                         WHERE
                                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
+                                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 OR form_cut_input_detail_output.qty_output_aktual > 0)
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
@@ -10705,77 +10706,6 @@ order by tanggal asc, no_form asc
                                 tanggal between '2026-07-01' and '".$end_date."'
                             GROUP BY
                                 ws, color, size, panel, part
-                        ),
-
-                        cutting_form_scrap as (
-                            SELECT
-                                buyer,
-                                ws,
-                                styleno,
-                                color,
-                                size,
-                                dest,
-                                part_id,
-                                panel,
-                                panel_status,
-                                part_detail_id,
-                                nama_part,
-                                part_status,
-                                SUM(saldo_awal) saldo_awal,
-                                SUM(qty_adjustment_before) adjustment_before,
-                                SUM(switching_in_before) switching_in_before,
-                                SUM(switching_out_before) switching_out_before,
-                                SUM(saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjustment,
-                                SUM(qty_cut) qty_cut,
-                                SUM(qty_dc_1) qty_dc_1,
-                                SUM(qty_dc) qty_dc,
-                                SUM(qty_replace) qty_replace,
-                                SUM(saldo_akhir) saldo_akhir,
-                                SUM(qty_adjustment) qty_adjustment,
-                                SUM(switching_in) switching_in,
-                                SUM(switching_out) switching_out,
-                                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adjustment,
-                                cancel,
-                                cancel_h,
-                                status
-                            FROM (
-                                SELECT
-                                    fcs.no_form,
-                                    DATE_FORMAT(fcs.waktu_selesai, '%Y-%m-%d %H:%i:%s') AS tanggal_selesai,
-                                    fcs.act_costing_ws AS ws,
-                                    fcs.style,
-                                    fcs.color,
-                                    fss.size,
-                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
-                                    mp.nama_part AS part,
-                                    fss.qty,
-                                    fcsd.itemdesc AS nama_item,
-                                    fcsd.id_item,
-                                    fcsd.id_roll,
-                                    fcsd.qty_roll,
-                                    fcsd.unit,
-                                    fcsd.lot,
-                                    fcsd.`group_roll`,
-                                    fcs.employee_nik,
-                                    fcs.employee_name,
-                                    fcs.status
-                                FROM form_cut_scrap fcs
-                                LEFT JOIN form_cut_scrap_detail fcsd ON fcs.id = fcsd.form_scrap_id
-                                LEFT JOIN form_cut_scrap_part fcsp ON fcsd.id = fcsp.form_scrap_detail_id
-                                LEFT JOIN part_detail pd ON fcsp.part_detail_id = pd.id
-                                left join part p on pd.part_id = p.id
-                                left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                                left join part p_com on p_com.id = pd_com.part_id
-                                LEFT JOIN master_part mp ON pd.master_part_id = mp.id
-                                LEFT JOIN form_cut_scrap_size fss ON fcsp.id = fss.form_scrap_part_id
-                                LEFT JOIN master_sb_ws msb on msb.id_so_det = fss.so_det_id
-                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-                                WHERE
-                                    fcs.status = 'complete' AND
-                                    fcs.waktu_selesai between '".$this->startDate." 00:00:00' AND '".$this->endDate." 23:59:59'
-                                GROUP BY
-                                    fss.id
-                            )
                         )
 
                         SELECT
