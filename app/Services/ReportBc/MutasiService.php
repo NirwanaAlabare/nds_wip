@@ -1425,7 +1425,6 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
-        
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
@@ -1436,10 +1435,10 @@ class MutasiService
                     'size'          => $row->size,
                     'product_group' => $row->product_group ?? '-',
                     'product_item'  => $row->product_item ?? '-',
-                    'saldoawal'     => $row->saldoawal,
-                    'qtyterima'     => $row->qtyterima,
-                    'qtykeluar'     => $row->qtykeluar,
-                    'saldoakhir'    => $row->saldoakhir,
+                    'saldoawal'     => (float) $row->saldoawal,
+                    'qtyterima'     => (float) $row->qtyterima,
+                    'qtykeluar'     => (float) $row->qtykeluar,
+                    'saldoakhir'    => (float) $row->saldoakhir,
                 ];
             });
 
@@ -1451,16 +1450,33 @@ class MutasiService
                     'styleno'       => $row->styleno,
                     'color'         => $row->color,
                     'size'          => $row->size,
-                    'product_group' => $row->product_group,
-                    'product_item'  => $row->product_item,
-                    'saldoawal'     => $row->saldoawal,
-                    'qtyterima'     => $row->qtyterima,
-                    'qtykeluar'     => $row->qtykeluar,
-                    'saldoakhir'    => $row->saldoakhir,
+                    'product_group' => $row->product_group ?? '-',
+                    'product_item'  => $row->product_item ?? '-',
+                    'saldoawal'     => (float) $row->saldoawal,
+                    'qtyterima'     => (float) $row->qtyterima,
+                    'qtykeluar'     => (float) $row->qtykeluar,
+                    'saldoakhir'    => (float) $row->saldoakhir,
                 ];
             });
 
         return $produksi->concat($gudang)
+            ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno . '|' . $row->color . '|' . $row->size)
+            ->map(function ($items) {
+                $first = $items->where('sumber', 'FG WAREHOUSE')->first() ?? $items->first();
+
+                return (object) [
+                    'ws'            => $first->ws,
+                    'styleno'       => $first->styleno,
+                    'color'         => $first->color,
+                    'size'          => $first->size,
+                    'product_group' => $first->product_group,
+                    'product_item'  => $first->product_item,
+                    'saldoawal'     => $items->max('saldoawal'),
+                    'qtyterima'     => $items->max('qtyterima'),
+                    'qtykeluar'     => $items->max('qtykeluar'),
+                    'saldoakhir'    => $items->max('saldoakhir'),
+                ];
+            })
             ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno)
             ->map(function ($rows) {
                 $first = $rows->first();
@@ -1472,7 +1488,7 @@ class MutasiService
                     'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
                     'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
                     'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
-                    'saldoawal'     => $rows->sum('saldoawal'),   // dijumlah dari kedua sumber
+                    'saldoawal'     => $rows->sum('saldoawal'),
                     'qtyterima'     => $rows->sum('qtyterima'),
                     'qtykeluar'     => $rows->sum('qtykeluar'),
                     'saldoakhir'    => $rows->sum('saldoakhir'),
