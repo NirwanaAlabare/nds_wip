@@ -260,7 +260,8 @@ class PemasukanService
                     "ac.kpno",
                     "s.itemname",
                     "'BARANG JADI'",
-                    "ac.kpno"
+                    "ac.kpno",
+                    "'-' AS buyer"
                 ))
                 ->groupBy('ac.kpno', 'a.bpbno_int');
 
@@ -270,7 +271,7 @@ class PemasukanService
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
                 ->whereNotIn('a.sumber_pemasukan', ['EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
-                    DB::raw("'FGS' as jenis_dokumen"),
+                    DB::raw("'INHOUSE' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
                     DB::raw("a.tgl_terima as bcdate"),
                     DB::raw("a.no_trans as trans_no"),
@@ -288,6 +289,7 @@ class PemasukanService
                     DB::raw("a.sumber_pemasukan as tujuan"),
                     DB::raw("a.id_so_det as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
+                    DB::raw("m.buyer as buyer"),
                     'a.id_so_det',
                 ])
                 ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
@@ -298,7 +300,7 @@ class PemasukanService
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
                 ->whereNotIn('a.sumber_pemasukan', ['EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
-                    DB::raw("'FGS' as jenis_dokumen"),
+                    DB::raw("'INHOUSE' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
                     DB::raw("a.tgl_terima as bcdate"),
                     DB::raw("a.no_trans as trans_no"),
@@ -316,6 +318,7 @@ class PemasukanService
                     DB::raw("a.sumber_pemasukan as tujuan"),
                     DB::raw("a.id_so_det as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
+                    DB::raw("m.buyer as buyer"),
                     'a.id_so_det',
                 ])
                 ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
