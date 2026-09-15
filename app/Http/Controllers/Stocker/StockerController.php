@@ -920,7 +920,8 @@ class StockerController extends Controller
                 ")->first();
 
                 // Stocker Spec
-                $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyGroup) + ($formDetailOutput->qty_output_aktual - ($ratio * $qtyPlyGroup))) : ($ratio < 1 ? 0 : $qtyPlyGroup);
+                // $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyGroup) + ($formDetailOutput->qty_output_aktual - ($ratio * $qtyPlyGroup))) : ($ratio < 1 ? 0 : $qtyPlyGroup);
+                $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyGroup)) : ($ratio < 1 ? 0 : $qtyPlyGroup);
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + ($ratio < 1 ? null : $qty);
