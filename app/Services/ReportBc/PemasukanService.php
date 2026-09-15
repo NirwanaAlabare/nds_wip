@@ -1557,7 +1557,7 @@ class PemasukanService
             'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
             'Nomor BPB',
             'Tanggal BPB',
-            'WS',
+            'No WS',
             'Uraian Barang',
             'Jenis Satuan',
             'Jumlah Satuan',
