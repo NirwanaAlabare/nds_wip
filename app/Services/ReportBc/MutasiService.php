@@ -1425,6 +1425,11 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
+
+        dd([
+            'produksi' => $this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false),
+            'gudang'   => $this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang),
+        ]);
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
