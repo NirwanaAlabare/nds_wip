@@ -227,7 +227,8 @@ class PemasukanService
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
             'a.tujuan',
             DB::raw("$idItemExpr as id_item"),
-            DB::raw("$matclassExpr as matclass")
+            DB::raw("$matclassExpr as matclass"),
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
@@ -272,6 +273,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
@@ -324,7 +326,8 @@ class PemasukanService
                 DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
                 'a.berat_bersih',
                 'a.berat_kotor',
-                'a.tujuan'
+                'a.tujuan',
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -481,6 +484,7 @@ class PemasukanService
             'a.satuan_bc',
             DB::raw("SUM(IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty)) as qty_bc"),
             DB::raw("$matclassExpr as matclass"),
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
@@ -529,6 +533,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.3')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->where($excludeInvno)
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
@@ -575,7 +580,8 @@ class PemasukanService
                 'a.curr as kode_valuta',
                 'a.nilai_barang',
                 DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -717,6 +723,7 @@ class PemasukanService
             DB::raw("$nilaiBarangExpr as nilai_barang"),
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
@@ -764,6 +771,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "ac.kpno",
@@ -812,7 +820,8 @@ class PemasukanService
                 'a.curr as kode_valuta',
                 'a.nilai_barang',
                 DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -985,6 +994,7 @@ class PemasukanService
             DB::raw("$idItemExpr as id_item"),
             'a.remark',
             DB::raw("$matclassExpr as matclass"),
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
@@ -1029,6 +1039,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 4.0')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
@@ -1075,7 +1086,8 @@ class PemasukanService
                 'a.nilai_barang',
                 DB::raw('COALESCE(mr.rate, 1) as kurs'),
                 DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
-                'a.remark'
+                'a.remark',
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -1247,6 +1259,7 @@ class PemasukanService
             DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty), 2) as nilai_barang"),
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
@@ -1293,6 +1306,7 @@ class PemasukanService
                 ->where('a.jenis_dok', 'BC 2.7')
                 ->where('a.tujuan', 'not regexp', 'SUBKON')
                 ->where('a.bpbno_int', 'like', 'FG%')
+                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     'ac.kpno',
@@ -1338,7 +1352,8 @@ class PemasukanService
                 'a.curr as kode_valuta',
                 'a.nilai_barang',
                 DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -1502,6 +1517,7 @@ class PemasukanService
         $sheet->writeRow([
             'No',
             'Kode Kantor',
+            'ID So Det',
             'Jenis Dokumen',
             'Kategori Barang',
             'Nomor Daftar',
@@ -1530,6 +1546,7 @@ class PemasukanService
             $rows = [
                 $no++,
                 $row->kode_kantor ?? '-',
+                $row->id_so_det ?? '-',
                 $row->jenis_dokumen ?? '-',
                 $row->kategori_barang ?? '-',
                 $row->nomor_daftar ?? '-',
@@ -1550,7 +1567,7 @@ class PemasukanService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

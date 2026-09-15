@@ -24,6 +24,7 @@ use App\Models\SignalBit\UserLine;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use App\Services\CuttingService;
 use Carbon\Carbon;
 use DB;
 use DateTime;
@@ -267,7 +268,7 @@ class importCuttingManual implements ToCollection, WithStartRow
                             if ($cuttingFormDetail) {
                                 // Generate Form Cut Output
                                 $cuttingService = new CuttingService();
-                                $cuttingService->generateFormCutInputDetailOutput($formCutInput->id);
+                                $cuttingService->generateFormCutInputDetailOutput($cuttingForm->id);
 
                                 \Log::channel("importCuttingManual")->info(["Success Import Cutting Manual :".$i, $cuttingForm, $cuttingFormDetail]);
                             } else {

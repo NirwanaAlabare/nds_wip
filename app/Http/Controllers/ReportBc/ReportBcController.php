@@ -487,6 +487,7 @@ class ReportBcController extends Controller
                 'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
                 'kurs' => number_format($row->kurs ?? 0, 2),
                 'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+                'id_so_det' => $row->id_so_det,
             ];
         });
 

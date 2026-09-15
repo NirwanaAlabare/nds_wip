@@ -346,8 +346,8 @@ class DcReportController extends Controller
                         $row->style,
                         $row->color,
                         $row->size,
-                        $row->panel,
-                        $row->nama_part,
+                        preg_replace('/\s+/', ' ', $row->panel),
+                        preg_replace('/\s+/', ' ', $row->nama_part),
 
                         (float) $saldoAwal,
                         (float) $masuk,

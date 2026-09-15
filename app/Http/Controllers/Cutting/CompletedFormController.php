@@ -481,6 +481,9 @@ class CompletedFormController extends Controller
                 first();
 
             if (!$lastFormCutDetailRoll || ($lastFormCutDetailRoll && $lastFormCutDetailRoll->id == $detail->id)) {
+                // Check penerimaan before updating
+                $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $validatedRequest['current_id_roll'])->where("created_at", ">", $detail->created_at)->sum("qty_konv");
+
                 // On exist ID Roll
                 ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
                     update([
@@ -489,11 +492,15 @@ class CompletedFormController extends Controller
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                        "qty" => $itemRemain,
+                        "qty" => $itemRemain+$penerimaan,
                         "unit" => $itemUnit,
                     ]);
+
             } else {
                 if ($lastFormCutDetailRoll) {
+                    // Check penerimaan before updating
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $validatedRequest['current_id_roll'])->where("created_at", ">", $lastFormCutDetailRoll->created_at)->sum("qty_konv");
+
                     ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
                         update([
                             "id_item" => $validatedRequest['current_id_item'],
@@ -501,7 +508,7 @@ class CompletedFormController extends Controller
                             "lot" => $request['current_lot'],
                             "roll" => $validatedRequest['current_roll'],
                             "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                            "qty" => $lastFormCutDetailRoll->sisa_kain,
+                            "qty" => $lastFormCutDetailRoll->sisa_kain+$penerimaan,
                             "unit" => $itemUnit,
                         ]);
                 }

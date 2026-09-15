@@ -984,7 +984,9 @@ class GeneralController extends Controller
 
             if ($currentFormCutDetail) {
                 $beforeFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', "<", $currentFormCutDetail->created_at)->orderBy("created_at", "desc")->first();
+                $afterFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', ">", $currentFormCutDetail->created_at)->orderBy("created_at", "asc")->first();
 
+                $currentQty = 0;
                 if (!$beforeFormCutDetail) {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");
                     if ($penerimaan < 1) {
@@ -996,6 +998,12 @@ class GeneralController extends Controller
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $beforeFormCutDetail->created_at)->where("created_at", "<=", $currentFormCutDetail->created_at)->sum("qty_konv");
 
                     $currentQty = ($beforeFormCutDetail->sisa_kain + $penerimaan ?? 0);
+                }
+
+                if (!$afterFormCutDetail) {
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $id)->where("created_at", ">", $currentFormCutDetail->created_at)->sum("qty_konv");
+
+                    $currentQty += $penerimaan;
                 }
 
                 $currentScannedItem = ScannedItem::selectRaw("
@@ -1228,7 +1236,6 @@ class GeneralController extends Controller
                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
 
                 if ($scannedItemUpdate) {
-
                     // dd($newItemQty, $scannedItem->qty_in, $scannedItem->qty);
 
                     // Update local stock qty & specs

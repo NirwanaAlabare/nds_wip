@@ -105,6 +105,49 @@ class AssetMesinOpnameController extends Controller
         return $prefix . str_pad($urut, 3, '0', STR_PAD_LEFT);
     }
 
+    // ---- Master lokasi mesin (modal "Lokasi" di halaman list opname) ----
+    public function getdata_lokasi_mesin()
+    {
+        $data = DB::select("
+            SELECT
+                l.id,
+                l.lokasi,
+                l.created_by,
+                DATE_FORMAT(l.created_at, '%d %M %Y %H:%i') AS created_at
+            FROM master_mesin_lokasi l
+            ORDER BY l.lokasi ASC
+        ");
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function store_lokasi_mesin(Request $request)
+    {
+        $request->validate([
+            'lokasi' => 'required|string|max:255',
+        ]);
+
+        $lokasi = strtoupper(trim($request->lokasi));
+
+        // Nama lokasi dipakai sebagai penanda di tabel opname, jadi tidak boleh kembar
+        $sudahAda = DB::table('master_mesin_lokasi')->where('lokasi', $lokasi)->exists();
+
+        if ($sudahAda) {
+            return response()->json(['message' => 'Lokasi ' . $lokasi . ' sudah ada.'], 422);
+        }
+
+        $timestamp = Carbon::now();
+
+        DB::table('master_mesin_lokasi')->insert([
+            'lokasi' => $lokasi,
+            'created_by' => Auth::user()->name,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+
+        return response()->json(['message' => 'Lokasi ' . $lokasi . ' ditambahkan.']);
+    }
+
     public function create_asset_mesin_opname(Request $request)
     {
         // Halaman input selalu terikat ke satu header; tanpa header tidak ada yang bisa diisi

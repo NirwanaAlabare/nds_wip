@@ -159,14 +159,14 @@ class StockerProcessRejectService
                 $storedStocker = Stocker::where("stocker_reject", $createStockerReject->id)->get();
 
                 $partDetailIds = $request->input('part_detail_id', []);
-                $formCutIds    = $request->input('form_cut_id', []);
+                $formCutId    = $request->input('form_cut_id');
                 $soDetIds      = $request->input('so_det_id', []);
                 $stockerIds    = $request->input('stocker_id', []);
 
-                $findStocker = function ($targetPartDetail, $targetFormCut, $targetSoDet) use ($partDetailIds, $formCutIds, $soDetIds, $stockerIds) {
-                    $key = collect($partDetailIds)->search(function ($value, $index) use ($formCutIds, $soDetIds, $targetPartDetail, $targetFormCut, $targetSoDet) {
+                $findStocker = function ($targetPartDetail, $targetFormCut, $targetSoDet) use ($partDetailIds, $formCutId, $soDetIds, $stockerIds) {
+                    $key = collect($partDetailIds)->search(function ($value, $index) use ($formCutId, $soDetIds, $targetPartDetail, $targetFormCut, $targetSoDet) {
                         return (string) $value === (string) $targetPartDetail
-                            && (string) ($formCutIds[$index] ?? null) === (string) $targetFormCut
+                            && (string) ($formCutId ?? null) === (string) $targetFormCut
                             && (string) ($soDetIds[$index] ?? null) === (string) $targetSoDet;
                     });
 
@@ -268,8 +268,13 @@ class StockerProcessRejectService
                                 // Current Secondary
                                 $currentSecondaryInhouse = SecondaryInhouse::where("id", $request['secondary_inhouse_id'])->first();
 
+                                // Similar Stocker
+                                $currentSimilar = $findStocker($stocker->part_detail_id, $stocker->form_cut_id, $stocker->so_det_id);
+                                $currentSimilarStocker = Stocker::where("id", $currentSimilar)->first();
+                                $currentSimilarIdQrStocker = $currentSimilarStocker ? $currentSimilarStocker->id_qr_stocker : null;
+
                                 // Copy DC
-                                $this->copyDcInTransaction($currentSecondaryInhouse->id_qr_stocker, $stocker->id_qr_stocker);
+                                $this->copyDcInTransaction($currentSimilarIdQrStocker, $stocker->id_qr_stocker);
                             }
                         }
 

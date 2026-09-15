@@ -928,6 +928,17 @@ class SecondaryInhouseInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
+        $qtyIn = $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'];
+        if ($qtyIn < 1) {
+            return array(
+                'status' => 400,
+                'message' => 'Qty In tidak bisa kurang dari 1',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+
         $saveinhouse = SecondaryInhouseIn::updateOrCreate(
             ['id_qr_stocker' => $request['txtno_stocker']],
             [
@@ -936,7 +947,7 @@ class SecondaryInhouseInController extends Controller
                 'qty_awal' => $request['txtqtyawal'],
                 'qty_reject' => $request['txtqtyreject'],
                 'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'qty_in' => $qtyIn,
                 'user' => Auth::user()->name,
                 'ket' => $request['txtket'],
                 'created_at' => $timestamp,
@@ -1154,9 +1165,9 @@ class SecondaryInhouseInController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    $row->nama_part ?? "-",
+                    $row->nama_part ? preg_replace('/\s+/', ' ', $row->nama_part) : "-",
                     $row->part_status ?? "-",
-                    $row->panel ?? "-",
+                    $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
                     $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
@@ -1164,7 +1175,7 @@ class SecondaryInhouseInController extends Controller
                     $row->tempat ?? "-",
                     $row->lokasi ?? "-",
                     $row->stocker_range ?? "-",
-                    $row->qty_in ?? "-",
+                    intval($row->qty_in) ?? 0,
                     $row->buyer ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
