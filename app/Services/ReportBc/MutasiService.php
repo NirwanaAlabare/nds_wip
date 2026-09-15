@@ -1459,7 +1459,25 @@ class MutasiService
                 ];
             });
 
-        return $produksi->concat($gudang);
+        return $produksi->concat($gudang)
+            ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno)
+            ->map(function ($rows) {
+                $first = $rows->first();
+
+                return (object) [
+                    'ws'            => $first->ws,
+                    'styleno'       => $first->styleno,
+                    'color'         => $rows->pluck('color')->filter()->unique()->implode(', '),
+                    'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
+                    'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'saldoawal'     => $rows->sum('saldoawal'),   // dijumlah dari kedua sumber
+                    'qtyterima'     => $rows->sum('qtyterima'),
+                    'qtykeluar'     => $rows->sum('qtykeluar'),
+                    'saldoakhir'    => $rows->sum('saldoakhir'),
+                ];
+            })
+            ->values();
     }
 
 
@@ -1856,7 +1874,6 @@ class MutasiService
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws sbws ON ms.kpno = sbws.ws AND ms.styleno = sbws.styleno AND ms.color = sbws.color AND ms.size = sbws.size
-            WHERE $whereCategory
             GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
             HAVING SUM(saldo_awal) != 0
                 OR SUM(penerimaan) != 0
