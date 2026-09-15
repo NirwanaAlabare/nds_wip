@@ -255,6 +255,7 @@
                         <tr>
                             <th>No</th>
                             <th>Kode Kantor</th>
+                            <th>ID So Det</th>
                             <th>Jenis Dokumen</th>
                             <th>Kategori Barang</th>
                             <th>Nomor Daftar</th>
@@ -306,6 +307,7 @@
                 "columns": [
                     { data: 'no' },
                     { data: 'kode_kantor' },
+                    { data: 'id_so_det' },
                     { data: 'jenis_dokumen' },
                     { data: 'kategori_barang' },
                     { data: 'nomor_daftar' },
