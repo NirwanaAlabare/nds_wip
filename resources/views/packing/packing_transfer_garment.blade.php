@@ -191,15 +191,12 @@
                     const badge = $('#badgeStokTemporary');
                     const total = parseInt(response.total_stok || 0);
 
-                    if (total > 0) {
-                        badge.text(total);
-                        badge.show();
-                    } else {
-                        badge.hide();
-                    }
+                    badge.text(total);
+                    badge.show();
                 },
                 error: function() {
-                    $('#badgeStokTemporary').hide();
+                    $('#badgeStokTemporary').text(0);
+                    $('#badgeStokTemporary').show();
                 }
             });
         }
