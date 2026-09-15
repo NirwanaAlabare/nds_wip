@@ -608,6 +608,15 @@ class Bc41Service
             $responseCeisa = $this->ceisaService->kirimDokumenBc41($finalPayload);
 
             if ($responseCeisa['successful']) {
+                $data_kantor = $db->table('master_kantor')
+                                ->where('kode', $draft['kodeKantor'])
+                                ->get();
+
+                //kode kantor bandung
+                $kantor = 60; 
+                if($data_kantor){
+                    $kantor = $data_kantor->id;
+                }
 
                 $db->table('bppb')
                     ->where(function($query) use ($id) {
@@ -617,6 +626,7 @@ class Bc41Service
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => date('Y-m-d'),
                         'bcdate' => date('Y-m-d'),
+                        'kode_kantor' => $kantor,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
@@ -964,10 +974,22 @@ class Bc41Service
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {
+
+                    $data_kantor = $db->table('master_kantor')
+                                    ->where('kode', $draft['kodeKantor'])
+                                    ->get();
+
+                    //kode kantor bandung
+                    $kantor = 60; 
+                    if($data_kantor){
+                        $kantor = $data_kantor->id;
+                    }
+
                     $db->table('bppb')->where('bppbno', $no_bppb)->orWhere('bppbno_int', $no_bppb)->update([
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => date('Y-m-d'),
                         'bcdate' => date('Y-m-d'),
+                        'kode_kantor' => $kantor,
                     ]);
 
                     $db->table('bpb_ceisa')->where('bpbno', $no_bppb)->update([

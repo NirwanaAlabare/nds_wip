@@ -1425,6 +1425,11 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
+
+        dd([
+            'produksi' => $this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false),
+            'gudang'   => $this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang),
+        ]);
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
@@ -1459,94 +1464,27 @@ class MutasiService
                 ];
             });
 
-        return $produksi->concat($gudang);
+        return $produksi->concat($gudang)
+            ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno)
+            ->map(function ($rows) {
+                $first = $rows->first();
+
+                return (object) [
+                    'ws'            => $first->ws,
+                    'styleno'       => $first->styleno,
+                    'color'         => $rows->pluck('color')->filter()->unique()->implode(', '),
+                    'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
+                    'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
+                    'saldoawal'     => $rows->sum('saldoawal'),   // dijumlah dari kedua sumber
+                    'qtyterima'     => $rows->sum('qtyterima'),
+                    'qtykeluar'     => $rows->sum('qtykeluar'),
+                    'saldoakhir'    => $rows->sum('saldoakhir'),
+                ];
+            })
+            ->values();
     }
 
-
-    public function exportExcelBarangJadiMerge($fromDate, $toDate)
-    {
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', '3600');
-
-        $data = $this->getDataMutasiBarangJadiMerge($fromDate, $toDate, 'all');
-
-        $fileName = 'laporan-mutasi-barang-jadi-merge';
-
-        $excel = FastExcel::create($fileName);
-
-        $sheet = $excel->sheet();
-
-        $sheet->writeRow(
-            ['PT NIRWANA ALABARE GARMENT'],
-            [
-                'font-style' => 'bold',
-                'font-size'  => 14,
-                'halign'     => 'center',
-                'valign'     => 'center',
-            ]
-        );
-
-        $sheet->writeRow(
-            ['LAPORAN MUTASI BARANG JADI MERGE'],
-            [
-                'font-style' => 'bold',
-                'font-size'  => 14,
-                'halign'     => 'center',
-                'valign'     => 'center',
-            ]
-        );
-
-        $sheet->writeRow(
-            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
-            [
-                'halign' => 'center',
-            ]
-        );
-
-        $sheet->writeRow(['']);
-
-
-        $sheet->writeRow([
-            'No',
-            'No WS',
-            'Style',
-            'Product Group',
-            'Product Item',
-            'Saldo Awal',
-            'Penerimaan',
-            'Pengeluaran',
-            'Saldo Akhir',
-        ], [
-            'font-style' => 'bold',
-            'border'     => 'thin',
-            'halign'     => 'center',
-            'valign'     => 'center',
-        ]);
-
-        $no = 1;
-        foreach ($data as $row) {
-
-            $rows = [
-                $no++,
-                $row->ws ?? '-',
-                $row->styleno ?? '-',
-                $row->product_group ?? '-',
-                $row->product_item ?? '-',
-                $row->saldoawal ?? '-',
-                $row->qtyterima ?? '-',
-                $row->qtykeluar ?? '-',
-                $row->saldoakhir ?? '-',
-            ];
-
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
-        }
-
-        foreach (range('A', 'K') as $col) {
-            $sheet->setColWidth($col, 20);
-        }
-
-        return $excel->download();
-    }
 
     public function getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang)
     {
@@ -1836,8 +1774,9 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT id_item, id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, NULL AS ws
+                SELECT id_item, bpb.id_so_det, 0 AS saldo_awal, SUM(bpb.qty) AS penerimaan, 0 AS pengeluaran, msw.ws AS ws
                 FROM bpb
+                LEFT JOIN laravel_nds.master_sb_ws msw ON bpb.id_so_det = msw.id_so_det
                 WHERE bpbdate >= ? AND bpbdate <= ?
                 AND bpbno LIKE 'FG%'
                 GROUP BY id_item, id_so_det
@@ -1856,7 +1795,6 @@ class MutasiService
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws sbws ON ms.kpno = sbws.ws AND ms.styleno = sbws.styleno AND ms.color = sbws.color AND ms.size = sbws.size
-            WHERE $whereCategory
             GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
             HAVING SUM(saldo_awal) != 0
                 OR SUM(penerimaan) != 0
@@ -1870,6 +1808,93 @@ class MutasiService
             $fromDate, $toDate,
             $fromDate, $toDate
         ]);
+    }
+    
+
+    
+    public function exportExcelBarangJadiMerge($fromDate, $toDate)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $data = $this->getDataMutasiBarangJadiMerge($fromDate, $toDate, 'all');
+
+        $fileName = 'laporan-mutasi-barang-jadi-merge';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['LAPORAN MUTASI BARANG JADI MERGE'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . date('Y-m-d', strtotime($fromDate)) . ' s/d ' . date('Y-m-d', strtotime($toDate))],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
+            'No',
+            'No WS',
+            'Style',
+            'Product Group',
+            'Product Item',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pengeluaran',
+            'Saldo Akhir',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $no = 1;
+        foreach ($data as $row) {
+
+            $rows = [
+                $no++,
+                $row->ws ?? '-',
+                $row->styleno ?? '-',
+                $row->product_group ?? '-',
+                $row->product_item ?? '-',
+                $row->saldoawal ?? '-',
+                $row->qtyterima ?? '-',
+                $row->qtykeluar ?? '-',
+                $row->saldoakhir ?? '-',
+            ];
+
+            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        }
+
+        foreach (range('A', 'K') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
     }
 
 

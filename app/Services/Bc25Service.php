@@ -912,6 +912,16 @@ class Bc25Service
 
             if ($responseCeisa['successful']) {
 
+                $data_kantor = $db->table('master_kantor')
+                                ->where('kode', $draft['kodeKantor'])
+                                ->get();
+
+                //kode kantor bandung
+                $kantor = 60; 
+                if($data_kantor){
+                    $kantor = $data_kantor->id;
+                }
+
                 $db->table('bppb')
                         ->where(function($query) use ($id) {
                             $query->where('bppbno', $id)->orWhere('bppbno_int', $id);
@@ -920,6 +930,7 @@ class Bc25Service
                             'nomor_aju'   => $nomorAju,
                             'tanggal_aju' => date('Y-m-d'),
                             'bcdate' => date('Y-m-d'),
+                            'kode_kantor' => $kantor,
                         ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->orWhere('bpbno_int', $id)->update([
@@ -1802,6 +1813,17 @@ class Bc25Service
             if ($responseCeisa['successful']) {
 
                 foreach ($bpbs as $no_bpb) {
+
+                    $data_kantor = $db->table('master_kantor')
+                                    ->where('kode', $draft['kodeKantor'])
+                                    ->get();
+
+                    //kode kantor bandung
+                    $kantor = 60; 
+                    if($data_kantor){
+                        $kantor = $data_kantor->id;
+                    }
+
                     $updated = $db->table('bppb')
                         ->where(function($q) use ($no_bpb) {
                             $q->where('bppbno', $no_bpb)->orWhere('bppbno_int', $no_bpb);
@@ -1810,6 +1832,7 @@ class Bc25Service
                             'nomor_aju'   => $nomorAju,
                             'tanggal_aju' => date('Y-m-d'),
                             'bcdate'      => date('Y-m-d'),
+                            'kode_kantor' => $kantor,
                         ]);
 
                     if ($updated === 0) {

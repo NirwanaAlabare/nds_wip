@@ -79,10 +79,12 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a class="btn btn-outline-secondary position-relative" data-bs-toggle="modal"
-                        data-bs-target="#exampleModalStokTemporary" onclick="dataTableStokTemporaryReload()">
+                    <a class="btn btn-outline-secondary position-relative" data-bs-toggle="modal" data-bs-target="#exampleModalStokTemporary" onclick="dataTableStokTemporaryReload()">
                         <i class="fas fa-box-open fa-sm"></i>
                         Stok Temporary
+                        <span id="badgeStokTemporary" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 14px; padding: 5px 8px;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
                     </a>
                 </div>
             </div>
@@ -96,6 +98,13 @@
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><small><b>Sumber</b></small></label>
+                    <select class="form-control form-control-sm select2bs4" id="sumber" name="sumber" style="width: 160px;" onchange="dataTableReload()">
+                        <option value="Packing Line" checked>Packing Line</option>
+                        <option value="Temporary Packing">Temporary Packing</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <a onclick="export_excel_trf_garment()" class="btn btn-outline-success position-relative btn-sm">
@@ -119,6 +128,7 @@
                             <th>Size</th>
                             <th>Qty</th>
                             <th>Tujuan</th>
+                            <th>Sumber</th>
                             <th>Status</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
@@ -130,9 +140,7 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
+                            <th colspan="4"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -143,6 +151,7 @@
 
 @section('custom-script')
     <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
@@ -155,7 +164,42 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
+            getStokTemporaryCount();
         });
+
+        // Initialize Select2 Elements
+        $('.select2').select2();
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            width: 'resolve' // Ensures it respects the 100% width from inline style or Bootstrap
+        });
+
+        // Now set height and font-size on the Select2 container after init
+        $('.select2-container--bootstrap4 .select2-selection--single').css({
+            'height': '30px', // your desired height
+            'font-size': '13px', // your desired font size
+            'line-height': '30px' // vertically center text
+        });
+
+        function getStokTemporaryCount() {
+            $.ajax({
+                url: "{{ route('get_stok_temporary_count') }}",
+                type: "GET",
+                success: function(response) {
+                    const badge = $('#badgeStokTemporary');
+                    const total = parseInt(response.total_stok || 0);
+
+                    badge.text(total);
+                    badge.show();
+                },
+                error: function() {
+                    $('#badgeStokTemporary').text(0);
+                    $('#badgeStokTemporary').show();
+                }
+            });
+        }
 
         function dataTableReload() {
             datatable.ajax.reload();
@@ -219,6 +263,7 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.sumber = $('#sumber').val();
                 },
             },
             columns: [{
@@ -250,6 +295,9 @@
                 },
                 {
                     data: 'tujuan'
+                },
+                {
+                    data: 'sumber'
                 },
                 {
                     data: 'status'
@@ -388,6 +436,7 @@
         function export_excel_trf_garment() {
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
+            let sumber = document.getElementById("sumber").value;
 
             Swal.fire({
                 title: 'Please Wait...',
@@ -403,7 +452,8 @@
                 url: '{{ route('export_excel_trf_garment') }}',
                 data: {
                     from: from,
-                    to: to
+                    to: to,
+                    sumber: sumber,
                 },
                 xhrFields: {
                     responseType: 'blob'

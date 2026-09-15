@@ -789,6 +789,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo_trf_garment_temporary', 'undo_trf_garment_temporary')->name('undo_trf_garment_temporary');
         Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
         Route::get('/stok_temporary_transfer_garment', 'stok_temporary_transfer_garment')->name('stok-temporary-transfer-garment');
+        Route::get('/get_stok_temporary_count', 'get_stok_temporary_count')->name('get_stok_temporary_count');
+        Route::post('/get_ws_trf_garment_temporary', 'get_ws_trf_garment_temporary')->name('get_ws_trf_garment_temporary');
+        Route::post('/get_color_trf_garment_temporary', 'get_color_trf_garment_temporary')->name('get_color_trf_garment_temporary');
+        Route::post('/get_size_trf_garment_temporary', 'get_size_trf_garment_temporary')->name('get_size_trf_garment_temporary');
+        Route::post('/get_qty_trf_garment_temporary', 'get_qty_trf_garment_temporary')->name('get_qty_trf_garment_temporary');
     });
 
     // Packing In
@@ -1862,6 +1867,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/send-bc262/{id}', 'sendCeisaBc262')->name('dokumen-pabean-send-bc262')->where('id', '.*');
         Route::get('/dokumen-pabean/edit-batch-bc262/{ids}', 'editBatchBc262')->name('dokumen-pabean-edit-batch-bc262');
         Route::put('/dokumen-pabean/update-draft-batch-bc262/{ids}', 'updateDraftBatchBc262')->name('dokumen-pabean-update_draft_batch_bc262');
+
+        Route::get('/master_kantor', 'master_kantor')->name('master_kantor');
+        Route::post('/master_kantor_store', 'master_kantor_store')->name('master_kantor_store');
+        Route::post('/master_kantor_update/{id}', 'master_kantor_update')->name('master_kantor_update');
+        Route::post('/master_kantor_delete/{id}', 'master_kantor_delete')->name('master_kantor_delete');
     });
 
     // WHS Soljer

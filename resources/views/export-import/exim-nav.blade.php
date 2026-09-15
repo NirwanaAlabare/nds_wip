@@ -18,6 +18,12 @@
                     Master CEISA Kredensial <i class="fa-solid fa-users-cog fa-sm"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('master_kantor') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'master-kantor') ? 'active' : '' }}">
+                    Master Kantor <i class="fa-solid fa-building fa-sm"></i>
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">
