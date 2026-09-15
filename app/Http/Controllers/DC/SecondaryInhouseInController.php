@@ -517,8 +517,9 @@ class SecondaryInhouseInController extends Controller
                                 left join master_part mp on p.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                             where
-                                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM' and (act.close_order is null or act.close_order != 'Y')
                         ");
                     }
                     // If there is urutan
@@ -587,10 +588,11 @@ class SecondaryInhouseInController extends Controller
                                                 left join master_secondary ms on pds.master_secondary_id = ms.id
                                                 left join marker_input mi on a.id_marker = mi.kode
                                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                                left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                             where
                                                 dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
                                                 ms.tujuan = 'SECONDARY DALAM' and
-                                                pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                                pds.urutan = '".$currentPartDetailSecondary->urutan."' and (act.close_order is null or act.close_order != 'Y')
                                         ");
                                     }
                                 }
@@ -640,10 +642,12 @@ class SecondaryInhouseInController extends Controller
                                             left join master_secondary ms on pds.master_secondary_id = ms.id
                                             left join marker_input mi on a.id_marker = mi.kode
                                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                            left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                         where
                                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
                                             ms.tujuan = 'SECONDARY DALAM' and
-                                            pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                            pds.urutan = '".$currentPartDetailSecondary->urutan."' and
+                                            (act.close_order is null or act.close_order != 'Y')
                                     ");
                                 }
                             } else {
@@ -672,9 +676,10 @@ class SecondaryInhouseInController extends Controller
                                         left join master_part mp on p.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                        left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                     where
                                         dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
-                                        dc.tujuan = 'SECONDARY DALAM'
+                                        dc.tujuan = 'SECONDARY DALAM' and (act.close_order is null or act.close_order != 'Y')
                                 ");
                             }
                         } else {
@@ -717,9 +722,10 @@ class SecondaryInhouseInController extends Controller
                             left join master_part mp on p.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                            left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                         where
                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "'
-                            and dc.tujuan = 'SECONDARY DALAM'
+                            and dc.tujuan = 'SECONDARY DALAM' and (act.close_order is null or act.close_order != 'Y')
                     ");
                 }
             } else {

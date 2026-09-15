@@ -91,20 +91,29 @@ group by buyer");
     public function getpo_fg_retur(Request $request)
     {
         $user = Auth::user()->name;
-        $data_po = DB::select("SELECT p.po isi, p.po tampil
-        from fg_fg_in a
-        inner join ppic_master_so p on a.id_ppic_master_so = p.id
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-		left join fg_fg_out b on a.id = b.id_fg_in
-        where m.buyer = '" . $request->cbobuyer . "' and a.status = 'NORMAL' and b.id_fg_in is null
-        group by p.po
-        order by p.po asc
+
+        $data_po = DB::select("
+            SELECT p.po isi, p.po tampil, act.close_order
+            FROM fg_fg_in a
+            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+            LEFT JOIN fg_fg_out b ON a.id = b.id_fg_in
+            LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+            WHERE m.buyer = '" . $request->cbobuyer . "'
+                AND a.status = 'NORMAL'
+                AND b.id_fg_in IS NULL
+            GROUP BY p.po
+            ORDER BY p.po ASC
         ");
 
         $html = "<option value=''>Pilih No PO</option>";
 
         foreach ($data_po as $datapo) {
-            $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+            if ($datapo->close_order === 'Y') {
+                $html .= " <option value='" . $datapo->isi . "' disabled style='color: #dc3545; font-weight: bold;'>" . $datapo->tampil . " (Close Order)</option> ";
+            } else {
+                $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+            }
         }
 
         return $html;

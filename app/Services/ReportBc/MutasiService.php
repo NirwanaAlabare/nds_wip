@@ -1462,7 +1462,7 @@ class MutasiService
         return $produksi->concat($gudang)
             ->groupBy(fn ($row) => strtoupper($row->ws) . '|' . strtoupper($row->styleno))
             ->map(function ($rows) {
-                $first = $rows->first();
+                $first = $rows->firstWhere('sumber', 'FG WAREHOUSE') ?? $rows->first();
 
                 return (object) [
                     'ws'            => $first->ws,
@@ -1471,11 +1471,10 @@ class MutasiService
                     'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
                     'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
                     'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
-                    // Penjumlahan Murni
-                    'saldoawal'     => $rows->sum('saldoawal'),
-                    'qtyterima'     => $rows->sum('qtyterima'),
-                    'qtykeluar'     => $rows->sum('qtykeluar'),
-                    'saldoakhir'    => $rows->sum('saldoakhir'),
+                    'saldoawal'     => $rows->max('saldoawal'),
+                    'qtyterima'     => $rows->max('qtyterima'),
+                    'qtykeluar'     => $rows->max('qtykeluar'),
+                    'saldoakhir'    => $rows->max('saldoakhir'),
                 ];
             })
             ->values();
@@ -1750,11 +1749,6 @@ class MutasiService
                         FROM bpb
                         WHERE bpbdate >= '2022-10-01' AND bpbdate < ?
                         AND bpbno LIKE 'FG%'
-                        AND id_so_det NOT IN (
-                            SELECT id_so_det FROM laravel_nds.fg_stok_bpb WHERE id_so_det IS NOT NULL
-                            UNION
-                            SELECT id_so_det FROM laravel_nds.fg_stok_bpb_scan WHERE id_so_det IS NOT NULL
-                        )
                         GROUP BY id_item, id_so_det
 
                         UNION ALL
@@ -1780,11 +1774,6 @@ class MutasiService
                 LEFT JOIN laravel_nds.master_sb_ws msw ON bpb.id_so_det = msw.id_so_det
                 WHERE bpbdate >= ? AND bpbdate <= ?
                 AND bpbno LIKE 'FG%'
-                AND bpb.id_so_det NOT IN (
-                    SELECT id_so_det FROM laravel_nds.fg_stok_bpb WHERE id_so_det IS NOT NULL
-                    UNION
-                    SELECT id_so_det FROM laravel_nds.fg_stok_bpb_scan WHERE id_so_det IS NOT NULL
-                )
                 GROUP BY id_item, id_so_det
 
                 UNION ALL
@@ -1801,7 +1790,6 @@ class MutasiService
             ) mutasi
             INNER JOIN masterstyle ms ON mutasi.id_item = ms.id_item AND mutasi.id_so_det = ms.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws sbws ON ms.kpno = sbws.ws AND ms.styleno = sbws.styleno AND ms.color = sbws.color AND ms.size = sbws.size
-            WHERE $whereCategory
             GROUP BY ms.kpno, ms.goods_code, ms.itemname, ms.styleno
             HAVING SUM(saldo_awal) != 0
                 OR SUM(penerimaan) != 0
