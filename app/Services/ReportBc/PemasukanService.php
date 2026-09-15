@@ -274,7 +274,7 @@ class PemasukanService
                     DB::raw("a.tgl_terima as bcdate"),
                     DB::raw("a.no_trans as trans_no"),
                     DB::raw("a.tgl_terima as bpbdate"),
-                    DB::raw("m.buyer as supplier"),
+                    DB::raw("PRODUCTION-SEWING as supplier"),
                     DB::raw("m.styleno as kode_brg"),
                     DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
                     DB::raw("'PCS' as unit"),
@@ -286,7 +286,7 @@ class PemasukanService
                     DB::raw("'-' as nomor_aju"),
                     DB::raw("a.sumber_pemasukan as tujuan"),
                     DB::raw("a.id_so_det as id_item"),
-                    DB::raw("'BARANG JADI FGS' as matclass"),
+                    DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
                 ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
@@ -301,7 +301,7 @@ class PemasukanService
                     DB::raw("a.tgl_terima as bcdate"),
                     DB::raw("a.no_trans as trans_no"),
                     DB::raw("a.tgl_terima as bpbdate"),
-                    DB::raw("m.buyer as supplier"),
+                    DB::raw("PRODUCTION-SEWING as supplier"),
                     DB::raw("m.styleno as kode_brg"),
                     DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
                     DB::raw("'PCS' as unit"),
@@ -313,7 +313,7 @@ class PemasukanService
                     DB::raw("'-' as nomor_aju"),
                     DB::raw("a.sumber_pemasukan as tujuan"),
                     DB::raw("a.id_so_det as id_item"),
-                    DB::raw("'BARANG JADI FGS' as matclass"),
+                    DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
                 ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
