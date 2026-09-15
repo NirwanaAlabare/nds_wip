@@ -295,7 +295,7 @@ class PemasukanService
             $queryFgStokScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->where('a.cancel', '!=', 'Y')
-                ->where('a.tgl_terima <', $toDate)
+                ->where('a.tgl_terima', '<' , $toDate)
                 ->whereNotIn('a.sumber_pemasukan', ['EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'INHOUSE' as jenis_dokumen"),
