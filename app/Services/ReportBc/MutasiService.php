@@ -1769,7 +1769,7 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT id_item, bpb.id_so_det, 0 AS saldo_awal, SUM(qty) AS penerimaan, 0 AS pengeluaran, msw.ws AS ws
+                SELECT id_item, bpb.id_so_det, 0 AS saldo_awal, SUM(bpb.qty) AS penerimaan, 0 AS pengeluaran, msw.ws AS ws
                 FROM bpb
                 LEFT JOIN laravel_nds.master_sb_ws msw ON bpb.id_so_det = msw.id_so_det
                 WHERE bpbdate >= ? AND bpbdate <= ?
