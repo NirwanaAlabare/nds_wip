@@ -289,8 +289,9 @@ class PemasukanService
                     DB::raw("a.id_so_det as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
-                ]);
-                
+                ])
+                ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
+
             $queryFgStokScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->where('a.cancel', '!=', 'Y')
@@ -316,7 +317,8 @@ class PemasukanService
                     DB::raw("a.id_so_det as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
-                ]);
+                ])
+                ->groupBy('a.id_so_det', 'a.no_trans', 'a.tgl_terima', 'm.buyer', 'm.styleno', 'm.color', 'a.sumber_pemasukan');
 
             $queryFgStok = $queryFgStokBpb->unionAll($queryFgStokScan);
         }
