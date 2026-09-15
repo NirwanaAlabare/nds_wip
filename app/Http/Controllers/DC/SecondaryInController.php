@@ -1163,8 +1163,8 @@ class SecondaryInController extends Controller
                                 left join master_part mp on pd.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
-                                left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
-                            where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+                                left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
+                            where s.id_qr_stocker = '" . $request->txtqrstocker . "' and (act.close_order is null or act.close_order != 'Y')
                         ");
 
                         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1274,10 +1274,12 @@ class SecondaryInController extends Controller
                                                         group by
                                                             part_detail_id
                                                     ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                    left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
                                                     pds.urutan = '".$multiSecondaryCurrentSecondary->urutan."'
+                                                    and (act.close_order is null or act.close_order != 'Y')
                                             ");
 
                                             return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1335,10 +1337,12 @@ class SecondaryInController extends Controller
                                                     group by
                                                         part_detail_id
                                                 ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                 left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                             where
                                                 s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                 ms.tujuan = 'SECONDARY DALAM' and
                                                 pds.urutan = '".$multiSecondaryCurrentSecondary->urutan."'
+                                                and (act.close_order is null or act.close_order != 'Y')
                                         ");
 
                                         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1431,10 +1435,12 @@ class SecondaryInController extends Controller
                                                             group by
                                                                 part_detail_id
                                                         ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                         left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY LUAR' and
                                                         pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                                        and (act.close_order is null or act.close_order != 'Y')
                                                 ");
 
                                                 return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1489,10 +1495,12 @@ class SecondaryInController extends Controller
                                                             group by
                                                                 part_detail_id
                                                         ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                         left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY DALAM' and
                                                         pds.urutan = '".$multiSecondaryBefore->urutan."'
+                                                        and (act.close_order is null or act.close_order != 'Y')
                                                 ");
 
                                                 return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1558,10 +1566,12 @@ class SecondaryInController extends Controller
                                                         group by
                                                             part_detail_id
                                                     ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                     left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY LUAR' and
                                                     pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                                    (act.close_order is null or act.close_order != 'Y')
                                             ");
 
                                             return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1629,7 +1639,8 @@ class SecondaryInController extends Controller
                                             left join marker_input mi on a.id_marker = mi.kode
                                             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
-                                        where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+                                            left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
+                                        where s.id_qr_stocker = '" . $request->txtqrstocker . "' and (act.close_order is null or act.close_order != 'Y')
                                     ");
 
                                     return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1712,10 +1723,12 @@ class SecondaryInController extends Controller
                                                         group by
                                                             part_detail_id
                                                     ) max_urutan on max_urutan.part_detail_id = pd.id
+                                                     left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
                                                     pds.urutan = '".$multiSecondaryBefore->urutan."'
+                                                    (act.close_order is null or act.close_order != 'Y')
                                             ");
 
                                             return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1794,7 +1807,8 @@ class SecondaryInController extends Controller
                                         left join marker_input mi on a.id_marker = mi.kode
                                         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
-                                    where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+                                        left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
+                                    where s.id_qr_stocker = '" . $request->txtqrstocker . "' and (act.close_order is null or act.close_order != 'Y')
                                 ");
 
                                 return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1849,7 +1863,8 @@ class SecondaryInController extends Controller
                             left join marker_input mi on a.id_marker = mi.kode
                             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
-                        where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+                            left join signalbit_erp.act_costing act on msb.id_act_cost = act.id
+                        where s.id_qr_stocker = '" . $request->txtqrstocker . "' and (act.close_order is null or act.close_order != 'Y')
                     ");
 
                     return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
