@@ -626,7 +626,7 @@ class PackingCentralSwitchingController extends Controller
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
                 LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.sumber IN ('Sewing','FGS') AND a.id_ppic_master_so IS NULL OR YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
+                WHERE a.sumber IN ('Sewing','FGS', 'TEMPORARY PACKING') AND a.id_ppic_master_so IS NULL OR YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
                 group by id_ppic_master_so,a.id_so_det
             ),
             
@@ -1404,7 +1404,7 @@ class PackingCentralSwitchingController extends Controller
                     SUM(a.qty) AS qty_pck_in
                 from packing_packing_in a
                     LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                    WHERE a.sumber IN ('Sewing','FGS')
+                    WHERE a.sumber IN ('Sewing','FGS', 'TEMPORARY PACKING')
                         AND (
                             a.id_ppic_master_so IS NULL
                             OR YEAR(p.tgl_shipment) >= 2026
@@ -1656,7 +1656,7 @@ class PackingCentralSwitchingController extends Controller
                 SUM(a.qty) AS qty_pck_in
             from packing_packing_in a
                 LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.sumber IN ('Sewing','FGS')
+                WHERE a.sumber IN ('Sewing','FGS','TEMPORARY PACKING')
                     AND (
                         a.id_ppic_master_so IS NULL
                         OR YEAR(p.tgl_shipment) >= 2026

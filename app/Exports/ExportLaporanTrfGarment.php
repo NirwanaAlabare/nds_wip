@@ -32,55 +32,109 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
     use Exportable;
 
 
-    protected $from, $to;
+    protected $from, $to, $sumber;
 
-    public function __construct($from, $to)
+    public function __construct($from, $to, $sumber)
     {
 
         $this->from = $from;
         $this->to = $to;
+        $this->sumber = $sumber;
         $this->rowCount = 0;
     }
 
 
     public function view(): View
-
     {
         $data = DB::select("
-                SELECT
-                a.no_trans,
-                concat((DATE_FORMAT(tgl_trans,  '%d')), '-', left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')
-                ) tgl_trans_fix,
-                a.line,
-                a.po,
-                m.ws,
-                m.styleno,
-                m.color,
-                m.size,
-                a.qty,
-                if(a.qty - c.qty_in = '0','Full','-') status,
-                a.id,
-                a.created_at,
-                a.created_by
-                from packing_trf_garment a
-                inner join ppic_master_so p on a.id_ppic_master_so = p.id
-                inner join master_sb_ws m on a.id_so_det = m.id_so_det
-                left join
-                    (
-                    select id_trf_garment, sum(qty) qty_in from packing_packing_in group by 							id_trf_garment
-                    ) c on a.id = c.id_trf_garment
-                where tgl_trans >= '$this->from' and tgl_trans <= '$this->to'
-                order by a.created_at desc
+            SELECT *
+                FROM (
+                    SELECT
+                        a.no_trans,
+                        CONCAT(
+                            DATE_FORMAT(tgl_trans, '%d'), '-',
+                            LEFT(DATE_FORMAT(tgl_trans, '%M'), 3), '-',
+                            DATE_FORMAT(tgl_trans, '%Y')
+                        ) AS tgl_trans_fix,
+                        a.line,
+                        UPPER(a.po) AS po,
+                        m.ws,
+                        m.color,
+                        m.size,
+                        m.styleno,
+                        a.qty,
+                        IF(a.qty - c.qty_in = 0, 'Full', '-') AS status,
+                        a.id,
+                        UPPER(
+                            CASE
+                                WHEN a.tujuan = 'Packing' THEN 'Packing Central'
+                                ELSE a.tujuan
+                            END
+                        ) AS tujuan,
+                        'PACKING LINE' AS sumber,
+                        a.created_at,
+                        a.created_by
+                    FROM packing_trf_garment a
+                    LEFT JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+                    INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                    LEFT JOIN (
+                        SELECT
+                            id_trf_garment,
+                            SUM(qty) AS qty_in
+                        FROM packing_packing_in
+                        WHERE sumber = 'Sewing'
+                        GROUP BY id_trf_garment
+                    ) c ON a.id = c.id_trf_garment
+                    WHERE tgl_trans >= '$this->from'
+                    AND tgl_trans <= '$this->to'
+
+                    UNION
+
+                    SELECT
+                        a.no_trans,
+                        CONCAT(
+                            DATE_FORMAT(tgl_trans, '%d'), '-',
+                            LEFT(DATE_FORMAT(tgl_trans, '%M'), 3), '-',
+                            DATE_FORMAT(tgl_trans, '%Y')
+                        ) AS tgl_trans_fix,
+                        'TEMPORARY PACKING' AS line,
+                        UPPER(a.po) AS po,
+                        m.ws,
+                        m.color,
+                        m.size,
+                        m.styleno,
+                        a.qty,
+                        IF(a.qty - c.qty_in = 0, 'Full', '-') AS status,
+                        a.id,
+                        'PACKING CENTRAL' AS tujuan,
+                        'TEMPORARY PACKING' AS sumber,
+                        a.created_at,
+                        a.created_by
+                    FROM packing_trf_garment_out_temporary a
+                    INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                    LEFT JOIN (
+                        SELECT
+                            packing_trf_garment_out_temporary_id,
+                            SUM(qty) AS qty_in
+                        FROM packing_packing_in
+                        WHERE sumber = 'TEMPORARY PACKING'
+                        GROUP BY packing_trf_garment_out_temporary_id
+                    ) c ON a.id = c.packing_trf_garment_out_temporary_id
+                    WHERE tgl_trans >= '$this->from'
+                    AND tgl_trans <= '$this->to'
+                ) x
+                WHERE x.sumber = '" . strtoupper($this->sumber) . "'
+                ORDER BY x.created_at DESC
         ");
 
-
-        $this->rowCount = count($data) + 4;
+        $this->rowCount = count($data) + 5;
 
 
         return view('packing.export_excel_trf_garment', [
             'data' => $data,
             'from' => $this->from,
-            'to' => $this->to
+            'to' => $this->to,
+            'sumber' => $this->sumber,
         ]);
     }
 
@@ -97,7 +151,7 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:M' . $event->getConcernable()->rowCount,
+            'A5:O' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

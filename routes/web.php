@@ -789,6 +789,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo_trf_garment_temporary', 'undo_trf_garment_temporary')->name('undo_trf_garment_temporary');
         Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
         Route::get('/stok_temporary_transfer_garment', 'stok_temporary_transfer_garment')->name('stok-temporary-transfer-garment');
+        Route::get('/get_stok_temporary_count', 'get_stok_temporary_count')->name('get_stok_temporary_count');
+        Route::post('/get_ws_trf_garment_temporary', 'get_ws_trf_garment_temporary')->name('get_ws_trf_garment_temporary');
+        Route::post('/get_color_trf_garment_temporary', 'get_color_trf_garment_temporary')->name('get_color_trf_garment_temporary');
+        Route::post('/get_size_trf_garment_temporary', 'get_size_trf_garment_temporary')->name('get_size_trf_garment_temporary');
+        Route::post('/get_qty_trf_garment_temporary', 'get_qty_trf_garment_temporary')->name('get_qty_trf_garment_temporary');
     });
 
     // Packing In
