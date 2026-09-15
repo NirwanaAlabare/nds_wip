@@ -668,12 +668,24 @@ class DokumenPabeanController extends Controller
             $responseCeisa = $this->ceisaService->kirimDokumen($payload, 'false');
 
             if ($responseCeisa['successful']) {
+
+                $data_kantor = $db->table('master_kantor')
+                                ->where('kode', $draft['kodeKantor'])
+                                ->get();
+
+                //kode kantor bandung
+                $kantor = 60; 
+                if($data_kantor){
+                    $kantor = $data_kantor->id;
+                }
+                
                 $db->table('bpb')
                     ->where(function($query) use ($id) {
                         $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
                     })
                     ->update([
                         'nomor_aju'   => $nomorAju,
+                        'kode_kantor'   => $kantor,
                         'tanggal_aju' => $tanggalAju,
                         'bcdate' => $tanggalAju,
                     ]);
@@ -2022,6 +2034,16 @@ class DokumenPabeanController extends Controller
 
             if ($responseCeisa['successful']) {
 
+                $data_kantor = $db->table('master_kantor')
+                                ->where('kode', $draft['kodeKantor'])
+                                ->get();
+
+                //kode kantor bandung
+                $kantor = 60; 
+                if($data_kantor){
+                    $kantor = $data_kantor->id;
+                }
+
                 $db->table('bpb')
                     ->where(function($query) use ($id) {
                         $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
@@ -2030,6 +2052,7 @@ class DokumenPabeanController extends Controller
                         'nomor_aju'   => $nomorAju,
                         'tanggal_aju' => $tanggalAju,
                         'bcdate' => $tanggalAju,
+                        'kode_kantor' => $kantor,
                     ]);
 
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
@@ -2345,5 +2368,129 @@ class DokumenPabeanController extends Controller
         }
         $headerPungutan[$key]["nilaiPungutan"] += $nilai;
     }
+
+
+    public function master_kantor(Request $request)
+    {
+
+        $mysql_sb = DB::connection('mysql_sb');
+
+
+        $data = $mysql_sb->table('master_kantor')
+            ->where('cancel' , 'N')
+            ->get();
+
+        return view('export-import.dokumen-pabean.master_kantor', [
+            "page"           => "dashboard-export-import",
+            "subPageGroup"   => "export-import",
+            "subPage"        => "master-kantor",
+            "containerFluid" => true,
+            "data"             => $data,
+        ]);
+    }
+
+
+    public function master_kantor_store(Request $request){
+        try {
+
+            $username = $request->username ?? auth()->user()->username;
+
+            $request->validate([
+                'kode' => 'required',
+                'nama' => 'required',
+            ]);
+
+            $mysql_sb = DB::connection('mysql_sb');
+
+            $mysql_sb->table('master_kantor')->insert([
+                'kode'          => $request->kode,
+                'nama'          => $request->nama,
+                'created_at'    => now(),
+                'created_by'    => $username,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data berhasil ditambahkan!'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => implode('<br>', $e->validator->errors()->all())
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function master_kantor_update(Request $request, $id){
+        try {
+
+            $username = $request->username ?? auth()->user()->username;
+
+            $request->validate([
+                'kode' => 'required',
+                'nama' => 'required',
+            ]);
+
+            $mysql_sb = DB::connection('mysql_sb');
+
+            $mysql_sb->table('master_kantor')->where('id', $id)
+                ->update([
+                'kode'          => $request->kode,
+                'nama'          => $request->nama,
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data berhasil diubah!'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => implode('<br>', $e->validator->errors()->all())
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function master_kantor_delete(Request $request, $id){
+        try {
+
+            $username = $request->username ?? auth()->user()->username;
+
+            $mysql_sb = DB::connection('mysql_sb');
+
+            $mysql_sb->table('master_kantor')->where('id', $id)
+                ->update([
+                'cancel' => 'Y',
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Data berhasil dihapus!'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => implode('<br>', $e->validator->errors()->all())
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+
 }
 

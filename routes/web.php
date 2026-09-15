@@ -1867,6 +1867,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/send-bc262/{id}', 'sendCeisaBc262')->name('dokumen-pabean-send-bc262')->where('id', '.*');
         Route::get('/dokumen-pabean/edit-batch-bc262/{ids}', 'editBatchBc262')->name('dokumen-pabean-edit-batch-bc262');
         Route::put('/dokumen-pabean/update-draft-batch-bc262/{ids}', 'updateDraftBatchBc262')->name('dokumen-pabean-update_draft_batch_bc262');
+
+        Route::get('/master_kantor', 'master_kantor')->name('master_kantor');
+        Route::post('/master_kantor_store', 'master_kantor_store')->name('master_kantor_store');
+        Route::post('/master_kantor_update/{id}', 'master_kantor_update')->name('master_kantor_update');
+        Route::post('/master_kantor_delete/{id}', 'master_kantor_delete')->name('master_kantor_delete');
     });
 
     // WHS Soljer

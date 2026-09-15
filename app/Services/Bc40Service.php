@@ -624,6 +624,16 @@ class Bc40Service
             if ($responseCeisa['successful']) {
                 foreach ($bpbs as $no_bpb) {
 
+                    $data_kantor = $db->table('master_kantor')
+                                    ->where('kode', $draft['kodeKantor'])
+                                    ->get();
+
+                    //kode kantor bandung
+                    $kantor = 60; 
+                    if($data_kantor){
+                        $kantor = $data_kantor->id;
+                    }
+
                     $updated = $db->table('bpb')
                         ->where(function($q) use ($no_bpb) {
                             $q->where('bpbno', $no_bpb)->orWhere('bpbno_int', $no_bpb);
@@ -632,6 +642,7 @@ class Bc40Service
                             'nomor_aju'   => $nomorAju,
                             'tanggal_aju' => date('Y-m-d'),
                             'bcdate'      => date('Y-m-d'),
+                            'kode_kantor' => $kantor,
                         ]);
 
                     if ($updated === 0) {
