@@ -187,7 +187,7 @@ class TrackPackingOutput extends Component
                     act_costing.styleno style,
                     rfts.color,
                     COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line,
-                    COALESCE(ppic_master_so.po, 'GUDANG STOK') as po,
+                    COALESCE(ppic_master_so.po, 'TEMPORARY PACKING') as po,
                     COALESCE(rfts.type, 'rft') as type
                     ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
                 ")->
@@ -198,7 +198,7 @@ class TrackPackingOutput extends Component
                 if ($this->dateFromFilter) $orderFilterSql->where('rfts.tanggal', '>=', $this->dateFromFilter);
                 if ($this->dateToFilter) $orderFilterSql->where('rfts.tanggal', '<=', $this->dateToFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
-                if ($this->groupBy == "size" && $this->poFilter) $orderFilterSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), 'like', '%'.$this->poFilter.'%');
+                if ($this->groupBy == "size" && $this->poFilter) $orderFilterSql->where(DB::raw("COALESCE(ppic_master_so.po, 'TEMPORARY PACKING')"), 'like', '%'.$this->poFilter.'%');
                 if ($this->selectedOrder) $orderFilterSql->where("act_costing.id", $this->selectedOrder);
                 $orderFilterSql->
                     groupByRaw("rfts.id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.sewing_line, master_plan.sewing_line), ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
@@ -249,7 +249,7 @@ class TrackPackingOutput extends Component
                     act_costing.styleno style,
                     rfts.color,
                     COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line,
-                    COALESCE(ppic_master_so.po, 'GUDANG STOK') as po,
+                    COALESCE(ppic_master_so.po, 'TEMPORARY PACKING') as po,
                     COALESCE(rfts.type, 'rft') as type
                     ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
                 ")->
@@ -262,7 +262,7 @@ class TrackPackingOutput extends Component
                 if ($this->colorFilter) $dailyOrderGroupSql->where('rfts.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $dailyOrderGroupSql->where('so_det.size', $this->sizeFilter);
-                if ($this->poFilter) $dailyOrderGroupSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->poFilter);
+                if ($this->poFilter) $dailyOrderGroupSql->where(DB::raw("COALESCE(ppic_master_so.po, 'TEMPORARY PACKING')"), $this->poFilter);
                 if ($this->selectedOrder) $dailyOrderGroupSql->where("act_costing.id", $this->selectedOrder);
                 $dailyOrderGroupSql->
                     groupByRaw("rfts.id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.sewing_line, master_plan.sewing_line), ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
@@ -321,7 +321,7 @@ class TrackPackingOutput extends Component
                     master_plan.man_power man_power,
                     master_plan.plan_target plan_target,
                     COALESCE ( rfts.last_rft, master_plan.tgl_plan ) latest_output,
-                    COALESCE(ppic_master_so.po, 'GUDANG STOK') as po
+                    COALESCE(ppic_master_so.po, 'TEMPORARY PACKING') as po
                 ")->
                 leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id")->
                 leftJoin("act_costing", "act_costing.id", "=", "rfts.id_ws")->
@@ -332,7 +332,7 @@ class TrackPackingOutput extends Component
                 if ($this->dateToFilter) $dailyOrderOutputSql->whereRaw('rfts.tanggal <= "'.$this->dateToFilter.'"');
                 if ($this->colorFilter) $dailyOrderOutputSql->where('rfts.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderOutputSql->whereRaw('COALESCE(rfts.created_by, master_plan.sewing_line) = "'.$this->lineFilter.'"');
-                if ($this->poFilter) $dailyOrderOutputSql->where(DB::raw("COALESCE(ppic_master_so.po, 'GUDANG STOK')"), $this->poFilter);
+                if ($this->poFilter) $dailyOrderOutputSql->where(DB::raw("COALESCE(ppic_master_so.po, 'TEMPORARY PACKING')"), $this->poFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $dailyOrderOutputSql->where('so_det.size', $this->sizeFilter);
                 $dailyOrderOutputSql->
                     groupByRaw("rfts.id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal, ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->

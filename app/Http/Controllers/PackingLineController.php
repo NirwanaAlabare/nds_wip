@@ -109,6 +109,22 @@ class PackingLineController extends Controller
                   AND a.po = '$po_esc'
                   AND a.line = '$line_esc'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
+
+                UNION ALL
+                
+                SELECT
+                    a.id_ppic_master_so,
+                    UPPER(a.po) AS po,
+                    a.line,
+                    a.id_so_det         AS so_det_id,
+                    SUM(a.qty)          AS qty_trf_gmt
+                FROM laravel_nds.packing_trf_garment a
+                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
+                WHERE a.tgl_trans = '$today'
+                    AND a.po = '$po_esc'
+                    AND a.line = '$line_esc'
+                    AND a.tujuan = 'Temporary Packing'
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
                 SELECT
@@ -181,6 +197,19 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
+
+                UNION ALL
+                
+                SELECT
+                    a.id_ppic_master_so,
+                    UPPER(a.po) AS po,
+                    a.line,
+                    a.id_so_det         AS so_det_id,
+                    SUM(a.qty)          AS qty_trf_gmt
+                FROM laravel_nds.packing_trf_garment a
+                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
+                WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
@@ -285,6 +314,20 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
+
+                UNION ALL
+                
+                SELECT
+                    a.id_ppic_master_so,
+                    UPPER(a.po) AS po,
+                    a.tgl_trans AS tgl_shipment,
+                    a.line,
+                    a.id_so_det         AS so_det_id,
+                    SUM(a.qty)          AS qty_trf_gmt
+                FROM laravel_nds.packing_trf_garment a
+                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
+                WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
