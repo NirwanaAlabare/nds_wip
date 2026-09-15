@@ -268,6 +268,7 @@ class PemasukanService
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->where('a.cancel', '!=', 'Y')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
+                ->whereNotIn('a.sumber_pemasukan', ['EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'FGS' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
@@ -295,6 +296,7 @@ class PemasukanService
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->where('a.cancel', '!=', 'Y')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
+                ->whereNotIn('a.sumber_pemasukan', ['EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'FGS' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
