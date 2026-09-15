@@ -316,6 +316,7 @@ class PenerimaanCuttingController extends Controller
             ->leftJoin('laravel_nds.penerimaan_cutting', 'penerimaan_cutting.whs_bppb_det_id', '=', 'whs_bppb_det.id')
             ->where('whs_bppb_det.id_roll', $id)
             ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
+            ->where("whs_bppb_h.tujuan", 'Production - Cutting')
             ->whereNull('penerimaan_cutting.id')
             ->orderBy('whs_bppb_det.id', 'DESC')
             ->first();
