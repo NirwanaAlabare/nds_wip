@@ -226,6 +226,23 @@
                 },
                 cache: true,
             },
+            templateResult: function(data) {
+                if (!data.id) {
+                    return data.text;
+                }
+
+                var result_value = $('<span></span>').text(data.text);
+
+                if (data.close_order === 'Y') {
+                    result_value.append(' <span style="font-weight:bold;">(Close Order)</span>');
+                    result_value.css({
+                        'color': '#dc3545',
+                        'cursor': 'not-allowed'
+                    });
+                }
+
+                return result_value;
+            }
         }).on('change', function() {
             dataTablePreviewReload();
         });

@@ -199,7 +199,7 @@ class GeneralController extends Controller
     public function getOrders(Request $request)
     {
         // Get Costing List (From act_costing SB) by Buyer
-        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR ) group by id_act_cost");
+        $orders = DB::select("select id_act_cost, ws from master_sb_ws left join signalbit_erp.act_costing on act_costing.id = master_sb_ws.id_act_cost where buyer = '" . $request->buyer . "' and tgl_kirim >= DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR ) and act_costing.close_order = 'N' group by id_act_cost");
 
         return $orders ? $orders : null;
     }

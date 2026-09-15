@@ -383,7 +383,8 @@ class MasterPlanController extends Controller
                     LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 WHERE
                     act_costing.kpno = '".$row[2]."' and
-                    so_det.color LIKE '%".$row[3]."%'
+                    so_det.color LIKE '%".$row[3]."%' and
+                    act_costing.close_order != 'Y'
                 GROUP BY
                     act_costing.id
                 LIMIT 1

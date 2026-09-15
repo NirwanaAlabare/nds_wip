@@ -62,14 +62,17 @@ order by o.created_at desc
 
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
 
-        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest) tampil
-from
-(
-select id, po, dest from ppic_master_so
-where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '$tgl_skrg_min_sebulan'
-group by po	, dest
-) p
-group by p.po, p.dest");
+        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest) tampil, p.close_order
+                                from
+                                (
+                                select ppic_master_so.id, po, ppic_master_so.dest, act.close_order from ppic_master_so
+                                LEFT JOIN master_sb_ws m on ppic_master_so.id_so_det = m.id_so_det
+                                LEFT JOIN signalbit_erp.act_costing act on m.id_act_cost = act.id
+                                where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '$tgl_skrg_min_sebulan'
+                                group by po	, dest
+                                ) p
+                                group by p.po, p.dest"
+                            );
 
 
         return view('packing.create_packing_needle_check', [

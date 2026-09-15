@@ -44,9 +44,15 @@
                         onchange="dataTablePreviewReload()">
                         <option selected="selected" value="" disabled="true">Pilih No. Transaksi</option>
                         @foreach ($data_no_trans as $datanotrans)
-                            <option value="{{ $datanotrans->isi }}">
-                                {{ $datanotrans->tampil }}
-                            </option>
+                            @if($datanotrans->close_order === 'Y')
+                                <option value="{{ $datanotrans->isi }}" disabled style="color: #dc3545; font-weight: bold;">
+                                    {{ $datanotrans->tampil }} (Close Order)
+                                </option>
+                            @else
+                                <option value="{{ $datanotrans->isi }}">
+                                    {{ $datanotrans->tampil }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                 </div>

@@ -40,9 +40,19 @@
                                         style="width: 100%;" onchange="getpo();getno_carton();dataTableHistoryReload();">
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
-                                            <option value="{{ $datapo->isi }}">
+                                            {{-- <option value="{{ $datapo->isi }}">
                                                 {{ $datapo->tampil }}
+                                            </option> --}}
+
+                                            @if($datapo->close_order === 'Y')
+                                            <option value="{{ $datapo->isi }}" disabled style="color: #dc3545; font-weight: bold;">
+                                                {{ $datapo->tampil }} (Close Order)
                                             </option>
+                                            @else
+                                                <option value="{{ $datapo->isi }}">
+                                                    {{ $datapo->tampil }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>

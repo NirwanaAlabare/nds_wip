@@ -488,21 +488,17 @@
         $('#cbono').select2({
             theme: 'bootstrap4',
             placeholder: 'Pilih No. Transaksi',
-            minimumInputLength: 3, // baru search setelah 3 karakter
+            minimumInputLength: 3,
             ajax: {
                 url: '{{ route('getDataAsalPo_packing_central_switching') }}',
                 dataType: 'json',
                 delay: 300,
                 data: function(params) {
-                    return {
-                        search: params.term
-                    };
+                    return { search: params.term };
                 },
                 processResults: function(data) {
                     return {
                         results: data.map(item => ({
-                            // item FGS tidak punya id_ppic_master_so, jadi id select2
-                            // harus digabung dengan so_det_id supaya tetap unik
                             id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id,
                             ppic_id: item.id_ppic_master_so ?? 0,
                             text: item.po + ' | ' + item.color + ' | ' + item.size,
@@ -512,10 +508,21 @@
                             ws: item.ws,
                             color: item.color,
                             size: item.size,
-                            qty: item.qty_sisa
+                            qty: item.qty_sisa,
+                            close_order: item.close_order,
+                            disabled: item.close_order === 'Y'
                         }))
                     };
                 }
+            },
+            templateResult: function(data) {
+                if (!data.id) return data.text;
+                var $result = $('<span></span>').text(data.text);
+                if (data.close_order === 'Y') {
+                    $result.text(data.text + ' (Close Order)');
+                    $result.css({ color: '#dc3545', fontWeight: 'bold' });
+                }
+                return $result;
             }
         });
 
@@ -603,10 +610,23 @@
                             color: item.color,
                             size: item.size,
                             qty: item.qty_po,
-                            text: item.po + ' | ' + item.color + ' | ' + item.size
+                            text: item.po + ' | ' + item.color + ' | ' + item.size,
+                            close_order: item.close_order,
+                            disabled: item.close_order === 'Y'
                         }))
                     };
                 }
+            },
+            templateResult: function(data) {
+                    console.log(data);
+
+                if (!data.id) return data.text;
+                var $result = $('<span></span>').text(data.text);
+                if (data.close_order === 'Y') {
+                    $result.text(data.text + ' (Close Order)');
+                    $result.css({ color: '#dc3545', fontWeight: 'bold' });
+                }
+                return $result;
             }
         });
 
@@ -804,7 +824,7 @@
         $('#form-switching').on('submit', function (e) {
             e.preventDefault();
             const form = this;
-            
+
             Swal.fire({
                 title: 'Simpan Switching?',
                 html: `Pindahkan item ke <b>${$('#cbo_tujuan option:selected').text()}</b>?`,
