@@ -211,7 +211,7 @@ class PemasukanService
 
         $queryBahanBaku = null;
         $queryBarangJadi = null;
-        $queryFgStok = null;
+        $queryFgStokBpb = null;
         $queryFgStokScan = null;
 
         if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
@@ -320,8 +320,10 @@ class PemasukanService
                 ->groupBy('m.ws', 'a.no_trans');
         }
 
+        dd($queryFgStokScan);
+
         $unionQuery = null;
-        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStok, $queryFgStokScan] as $q) {
+        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokScan] as $q) {
             if (!$q) continue;
             $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
         }
