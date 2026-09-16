@@ -1006,6 +1006,16 @@ class GeneralController extends Controller
                     $currentQty += $penerimaan;
                 }
 
+                $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                    select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
+                    leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
+                    where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
+                    where("supplier", "LIKE", "Production - Cutting")->
+                    where("whs_lokasi_inmaterial.no_barcode", $detail->id_roll)->
+                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($beforeFormCutDetail->created_at)))->
+                    where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentFormCutDetail->created_at)))->
+                    get();
+
                 $currentScannedItem = ScannedItem::selectRaw("
                         scanned_item.id,
                         scanned_item.id_roll,
