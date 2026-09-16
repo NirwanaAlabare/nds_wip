@@ -146,8 +146,9 @@ class SpreadingController extends Controller
 
         // $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f' group by act_costing_id");
 
-        $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
+        $data_ws = DB::select("select act_costing_id, act_costing_ws ws , act.close_order from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
+        left join signalbit_erp.act_costing act on a.act_costing_id = act.id
         where a.cancel = 'N' and ((a.gelar_qty_balance is null and b.id_marker is null) or a.gelar_qty_balance > 0)
         group by act_costing_id");
 
