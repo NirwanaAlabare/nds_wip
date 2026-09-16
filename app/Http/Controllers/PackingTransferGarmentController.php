@@ -141,11 +141,9 @@ order by isi asc");
                          'Temporary Packing' AS isi,
                         GROUP_CONCAT(output_rfts_packing_po.so_det_id) AS so_det_id,
                         master_sb_ws.styleno,
-                        master_sb_ws.styleno_prod,
-                        act.close_order
+                        master_sb_ws.styleno_prod
                     FROM signalbit_erp.output_rfts_packing_po
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = output_rfts_packing_po.so_det_id
-                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
                     WHERE output_rfts_packing_po.alokasi = 'temporary packing'
                     AND output_rfts_packing_po.created_by_line = '$line'
                     GROUP BY master_sb_ws.styleno, master_sb_ws.styleno_prod
@@ -155,12 +153,10 @@ order by isi asc");
                     SELECT
                         p.po AS isi,
                         m.styleno,
-                        m.styleno_prod,
-                        act.close_order
+                        m.styleno_prod
                     FROM signalbit_erp.output_rfts_packing_po o
                     INNER JOIN ppic_master_so p ON o.po_id = p.id
                     INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
-                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
                     WHERE o.created_by_line = '$line'
                     AND p.tgl_shipment >= '$tgl_shipment_min_setahun'
                     GROUP BY p.po, m.styleno, m.styleno_prod
@@ -206,19 +202,19 @@ order by isi asc");
                     . "Temporary Packing"
                     . "</option>";
             } else {
-                if ($datapo->close_order === 'Y') {
-                    $html .= "<option value='{$datapo->isi}' disabled style='color: #dc3545; font-weight: bold;'"
-                        . " data-styleno='{$styleno}'"
-                        . " data-stylenoprod='{$stylenoProd}'>"
-                        . "{$datapo->isi} (Close Order)"
-                        . "</option>";
-                } else {
+                // if ($datapo->close_order === 'Y') {
+                //     $html .= "<option value='{$datapo->isi}' disabled style='color: #dc3545; font-weight: bold;'"
+                //         . " data-styleno='{$styleno}'"
+                //         . " data-stylenoprod='{$stylenoProd}'>"
+                //         . "{$datapo->isi} (Close Order)"
+                //         . "</option>";
+                // } else {
                     $html .= "<option value='{$datapo->isi}'"
                         . " data-styleno='{$styleno}'"
                         . " data-stylenoprod='{$stylenoProd}'>"
                         . "{$datapo->isi}"
                         . "</option>";
-                }
+                // }
             }
         }
 
