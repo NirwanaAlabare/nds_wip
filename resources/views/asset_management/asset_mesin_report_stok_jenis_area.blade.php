@@ -3,7 +3,7 @@
 @section('custom-link')
     <style type="text/css">
         .hbar-list {
-            max-height: 300px;
+            max-height: 340px;
             overflow-y: auto;
             padding-right: 6px;
         }
@@ -18,11 +18,8 @@
         }
 
         .hbar-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 6px;
             margin: 0 -6px;
             border-radius: 6px;
             transition: background-color .15s ease-in-out;
@@ -33,11 +30,22 @@
         }
 
         .hbar-row+.hbar-row {
-            margin-top: 8px;
+            margin-top: 6px;
+        }
+
+        /* Label & angka ditaruh sebaris di ATAS bar, bukan di sampingnya. Waktu masih
+           bersebelahan, label cuma kebagian 110px sehingga nama yang berawalan sama
+           ("GEDUNG 1 - LINE ...") terpotong jadi kelihatan identik semua. */
+        .hbar-head {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 5px;
         }
 
         .hbar-label {
-            flex: 0 0 110px;
+            flex: 1 1 auto;
+            min-width: 0;
             font-size: 12.5px;
             color: #495363;
             white-space: nowrap;
@@ -46,7 +54,7 @@
         }
 
         .hbar-track {
-            flex: 1 1 auto;
+            width: 100%;
             height: 8px;
             border-radius: 4px;
             background-color: #eef0f3;
@@ -56,12 +64,141 @@
         .hbar-fill {
             height: 100%;
             border-radius: 4px;
+            min-width: 2px;
         }
 
         .hbar-value {
-            flex: 0 0 28px;
-            text-align: right;
+            flex: 0 0 auto;
+            margin-left: auto;
             font-size: 12.5px;
+            font-weight: 700;
+            color: #1e2b3c;
+        }
+
+        /* Mesin yang belum didata lokasinya dipisah dari daftar bar. Jumlahnya jauh lebih
+           besar dari area mana pun, jadi kalau ikut diadu di skala yang sama semua bar
+           area lain jadi rata-rata kelihatan kosong. */
+        .hbar-note {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            border: 1px dashed #d7dce3;
+            border-radius: 6px;
+            background-color: #fbfcfd;
+            color: #8a94a6;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: background-color .15s ease-in-out, color .15s ease-in-out;
+        }
+
+        .hbar-note:hover {
+            background-color: #f2f5f9;
+            color: #1e2b3c;
+        }
+
+        .hbar-note b {
+            margin-left: auto;
+            color: #1e2b3c;
+        }
+
+        /* Toolbar cari + urutkan di kartu daftar (Area & Jenis Mesin) */
+        .hbar-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .hbar-toolbar .hbar-search {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .hbar-sort {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .hbar-empty {
+            display: none;
+            padding: 10px 0;
+            color: #8a94a6;
+            font-size: 12.5px;
+        }
+
+        /* ---- Kartu Status Mesin ---- */
+        .stat-hero {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .stat-hero-value {
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1;
+            color: #1e2b3c;
+        }
+
+        .stat-hero-label {
+            font-size: 12.5px;
+            color: #8a94a6;
+        }
+
+        /* Semua status dalam satu bar, jadi komposisinya kebaca sekali lihat */
+        .stat-stack {
+            display: flex;
+            height: 10px;
+            border-radius: 5px;
+            background-color: #eef0f3;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .stat-stack-seg {
+            height: 100%;
+            cursor: pointer;
+            transition: opacity .15s ease-in-out;
+        }
+
+        .stat-stack-seg:hover {
+            opacity: .75;
+        }
+
+        .stat-split {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #eef0f3;
+        }
+
+        .stat-chip {
+            flex: 1 1 0;
+            padding: 8px 10px;
+            border: 1px solid #eef0f3;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+        }
+
+        .stat-chip:hover {
+            background-color: #f7f9fc;
+            border-color: #d7dce3;
+        }
+
+        .stat-chip-label {
+            font-size: 11px;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: #8a94a6;
+        }
+
+        .stat-chip-value {
+            font-size: 18px;
             font-weight: 700;
             color: #1e2b3c;
         }
@@ -79,7 +216,7 @@
         }
 
         .status-row+.status-row {
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
         .status-dot {
@@ -264,30 +401,50 @@
                 </div>
                 <div class="card-body">
                     @php
-                        $maxLokasi = collect($tot_per_lokasi)->max('total') ?: 1;
+                        // id_lokasi 0 = belum didata. Dipisah dari daftar bar & tidak ikut
+                        // menentukan skala, supaya area yang sudah didata tetap terbaca.
+                        $lokasiBelum = collect($tot_per_lokasi)->first(fn($r) => (int) $r->id_lokasi === 0);
+                        $lokasiTerdata = collect($tot_per_lokasi)->filter(fn($r) => (int) $r->id_lokasi !== 0)->values();
+                        $maxLokasi = $lokasiTerdata->max('total') ?: 1;
                     @endphp
 
-                    <div class="hbar-list">
-                        @forelse ($tot_per_lokasi as $row)
+                    @if ($lokasiBelum)
+                        <div class="hbar-note" data-id-lokasi="0">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Belum didata lokasinya</span>
+                            <b>{{ $lokasiBelum->total }}</b>
+                        </div>
+                    @endif
+
+                    <div class="hbar-toolbar">
+                        <input type="text" class="form-control form-control-sm hbar-search"
+                            data-target="#listArea" placeholder="Cari area...">
+                        <button type="button" class="btn btn-sm btn-outline-secondary hbar-sort"
+                            data-target="#listArea" data-mode="qty" title="Urutkan: Qty terbanyak">
+                            <i class="fas fa-sort-amount-down"></i>
+                        </button>
+                    </div>
+
+                    <div class="hbar-list" id="listArea">
+                        @forelse ($lokasiTerdata as $row)
                             @php
                                 $percent = round(($row->total / $maxLokasi) * 100);
-                                // lokasi NULL di DB (unit belum diisi lokasi) diberi key & label sendiri,
-                                // supaya saat diklik backend bisa filter "lokasi IS NULL", bukan malah tanpa filter
-                                $lokasiKey = $row->lokasi ?? '__NULL__';
-                                $lokasiLabel = $row->lokasi ?? '(Tanpa Lokasi)';
                             @endphp
-                            <div class="hbar-row" data-lokasi="{{ $lokasiKey }}">
-                                <div class="hbar-label" title="{{ $lokasiLabel }}">{{ $lokasiLabel }}</div>
+                            <div class="hbar-row" data-id-lokasi="{{ $row->id_lokasi }}">
+                                <div class="hbar-head">
+                                    <div class="hbar-label" title="{{ $row->lokasi }}">{{ $row->lokasi }}</div>
+                                    <div class="hbar-value">{{ $row->total }}</div>
+                                </div>
                                 <div class="hbar-track">
                                     <div class="hbar-fill" style="width: {{ $percent }}%; background-color: #238380;">
                                     </div>
                                 </div>
-                                <div class="hbar-value">{{ $row->total }}</div>
                             </div>
                         @empty
-                            <p class="text-muted mb-0">Tidak ada data.</p>
+                            <p class="text-muted mb-0">Belum ada mesin yang lokasinya terdata.</p>
                         @endforelse
                     </div>
+                    <div class="hbar-empty" data-for="#listArea">Tidak ada area yang cocok.</div>
                 </div>
             </div>
         </div>
@@ -302,23 +459,36 @@
                         $maxTotal = collect($tot_jenis)->max('total') ?: 1;
                     @endphp
 
-                    <div class="hbar-list">
+                    <div class="hbar-toolbar">
+                        <input type="text" class="form-control form-control-sm hbar-search"
+                            data-target="#listJenis" placeholder="Cari jenis mesin...">
+                        <button type="button" class="btn btn-sm btn-outline-secondary hbar-sort"
+                            data-target="#listJenis" data-mode="qty" title="Urutkan: Qty terbanyak">
+                            <i class="fas fa-sort-amount-down"></i>
+                        </button>
+                    </div>
+
+                    <div class="hbar-list" id="listJenis">
                         @forelse ($tot_jenis as $row)
                             @php
                                 $percent = round(($row->total / $maxTotal) * 100);
                             @endphp
                             <div class="hbar-row" data-jenis="{{ $row->nm_jenis }}">
-                                <div class="hbar-label" title="{{ $row->nm_jenis }}">{{ $row->nm_jenis }}</div>
+                                <div class="hbar-head">
+                                    <div class="hbar-label" title="{{ $row->nm_jenis ?: '(Tanpa Jenis)' }}">
+                                        {{ $row->nm_jenis ?: '(Tanpa Jenis)' }}</div>
+                                    <div class="hbar-value">{{ $row->total }}</div>
+                                </div>
                                 <div class="hbar-track">
                                     <div class="hbar-fill" style="width: {{ $percent }}%; background-color: #3987e5;">
                                     </div>
                                 </div>
-                                <div class="hbar-value">{{ $row->total }}</div>
                             </div>
                         @empty
                             <p class="text-muted mb-0">Tidak ada data.</p>
                         @endforelse
                     </div>
+                    <div class="hbar-empty" data-for="#listJenis">Tidak ada jenis mesin yang cocok.</div>
                 </div>
             </div>
         </div>
@@ -339,7 +509,29 @@
                         $sortedStatus = collect($tot_per_status)->sortBy(
                             fn($row) => $statusMeta[$row->status]['order'] ?? 99,
                         );
+                        $kepemilikan = collect($tot_per_kepemilikan)->keyBy('kepemilikan');
                     @endphp
+
+                    <div class="stat-hero">
+                        <span class="stat-hero-value">{{ number_format(collect($tot_per_status)->sum('total'), 0, ',', '.') }}</span>
+                        <span class="stat-hero-label">mesin tercatat di pabrik</span>
+                    </div>
+
+                    {{-- Komposisi seluruh status dalam satu bar, tiap segmen bisa diklik.
+                         Kalau statusnya cuma satu, bar ini cuma jadi duplikat bar di bawahnya. --}}
+                    @if ($sortedStatus->count() > 1)
+                        <div class="stat-stack">
+                            @foreach ($sortedStatus as $row)
+                                @php
+                                    $meta = $statusMeta[$row->status] ?? ['label' => $row->status, 'color' => '#8a94a6'];
+                                @endphp
+                                <div class="stat-stack-seg" data-status="{{ $row->status }}"
+                                    title="{{ $meta['label'] }} : {{ $row->total }}"
+                                    style="width: {{ ($row->total / $grandTotal) * 100 }}%; background-color: {{ $meta['color'] }};">
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
 
                     @forelse ($sortedStatus as $row)
                         @php
@@ -365,6 +557,17 @@
                     @empty
                         <p class="text-muted mb-0">Tidak ada data.</p>
                     @endforelse
+
+                    <div class="stat-split">
+                        <div class="stat-chip" data-kepemilikan="PEMBELIAN" title="Lihat detail mesin pembelian">
+                            <div class="stat-chip-label">Pembelian</div>
+                            <div class="stat-chip-value">{{ number_format($kepemilikan['PEMBELIAN']->total ?? 0, 0, ',', '.') }}</div>
+                        </div>
+                        <div class="stat-chip" data-kepemilikan="SEWA" title="Lihat detail mesin sewa">
+                            <div class="stat-chip-label">Sewa</div>
+                            <div class="stat-chip-value">{{ number_format($kepemilikan['SEWA']->total ?? 0, 0, ',', '.') }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -379,7 +582,7 @@
         <div class="card-body p-0">
             @php
                 $matrixJenisCols = collect($tot_jenis)->pluck('nm_jenis');
-                $matrixCells = collect($tot_area_x_jenis_mesin)->groupBy('lokasi');
+                $matrixCells = collect($tot_area_x_jenis_mesin)->groupBy('id_lokasi');
             @endphp
 
             <div class="matrix-wrap">
@@ -388,7 +591,7 @@
                         <tr>
                             <th data-key="0" data-type="text">Area <span class="sort-icon"></span></th>
                             @foreach ($matrixJenisCols as $i => $nmJenis)
-                                <th data-key="{{ $i + 1 }}" data-type="number">{{ $nmJenis }} <span
+                                <th data-key="{{ $i + 1 }}" data-type="number">{{ $nmJenis ?: '(Tanpa Jenis)' }} <span
                                         class="sort-icon"></span></th>
                             @endforeach
                             <th class="matrix-total" data-key="{{ $matrixJenisCols->count() + 1 }}" data-type="number">
@@ -399,21 +602,21 @@
                         @forelse ($tot_per_lokasi as $lokasiRow)
                             @php
                                 $rowCells = $matrixCells
-                                    ->get($lokasiRow->lokasi, collect())
+                                    ->get($lokasiRow->id_lokasi ?? 0, collect())
                                     ->pluck('total', 'nm_jenis');
-                                $lokasiKey = $lokasiRow->lokasi ?? '__NULL__';
-                                $lokasiLabel = $lokasiRow->lokasi ?? '(Tanpa Lokasi)';
+                                $lokasiKey = $lokasiRow->id_lokasi ?? 0;
+                                $lokasiLabel = $lokasiRow->lokasi ?? '(Belum Didata)';
                             @endphp
-                            <tr data-lokasi="{{ $lokasiKey }}">
+                            <tr data-id-lokasi="{{ $lokasiKey }}">
                                 <th>{{ $lokasiLabel }}</th>
                                 @foreach ($matrixJenisCols as $nmJenis)
                                     @php $cellTotal = $rowCells->get($nmJenis, 0); @endphp
                                     <td
-                                        @if ($cellTotal) class="matrix-cell-clickable" data-lokasi="{{ $lokasiKey }}"
+                                        @if ($cellTotal) class="matrix-cell-clickable" data-id-lokasi="{{ $lokasiKey }}"
                                         data-jenis="{{ $nmJenis }}" @endif>
                                         {{ $cellTotal ?: '-' }}</td>
                                 @endforeach
-                                <td class="matrix-total" data-lokasi="{{ $lokasiKey }}">{{ $lokasiRow->total }}
+                                <td class="matrix-total" data-id-lokasi="{{ $lokasiKey }}">{{ $lokasiRow->total }}
                                 </td>
                             </tr>
                         @empty
@@ -477,20 +680,23 @@
 
 @section('custom-script')
     <script>
-        function openAreaJenisUnitModal(lokasi, nmJenis, status, titleText) {
+        function openAreaJenisUnitModal(idLokasi, nmJenis, status, titleText, kepemilikan) {
             $('#areaJenisUnitModalLabel').text(titleText);
             $('#areaJenisUnitSearch').val('');
+            // Tombol kepemilikan di dalam modal ikut disetel, biar sejalan dengan yang diklik
             $('#areaJenisUnitKepemilikanFilter button').removeClass('active');
-            $('#areaJenisUnitKepemilikanFilter button[data-kepemilikan="ALL"]').addClass('active');
+            $('#areaJenisUnitKepemilikanFilter button[data-kepemilikan="' + (kepemilikan || 'ALL') + '"]')
+                .addClass('active');
             let $body = $('#areaJenisUnitTableBody').empty();
 
             $.ajax({
                 type: 'GET',
                 url: '{{ route('asset_mesin_report_area_jenis_unit') }}',
                 data: {
-                    lokasi: lokasi,
+                    id_lokasi: idLokasi,
                     nm_jenis: nmJenis,
-                    status: status
+                    status: status,
+                    kepemilikan: kepemilikan
                 },
                 success: function(units) {
                     if (!units.length) {
@@ -546,11 +752,75 @@
             applyAreaJenisUnitFilters();
         });
 
+        // Klik segmen di bar komposisi status -> sama dengan klik baris status-nya
+        $('.stat-stack-seg[data-status]').on('click', function() {
+            let status = $(this).data('status');
+            openAreaJenisUnitModal(null, null, status, `Status ${status} - Semua Mesin`);
+        });
+
+        // Klik kartu Pembelian / Sewa -> detail unit menurut kepemilikan
+        $('.stat-chip[data-kepemilikan]').on('click', function() {
+            let kepemilikan = $(this).data('kepemilikan');
+            let label = $(this).find('.stat-chip-label').text();
+            openAreaJenisUnitModal(null, null, null, `Mesin ${label} - Semua Area`, kepemilikan);
+        });
+
+        // Cari di daftar bar (Area / Jenis Mesin). Pencocokan pakai teks label.
+        $('.hbar-search').on('keyup', function() {
+            let keyword = $(this).val().toLowerCase();
+            let target = $(this).data('target');
+            let cocok = 0;
+
+            $(target).find('.hbar-row').each(function() {
+                let label = $(this).find('.hbar-label').text().trim().toLowerCase();
+                let tampil = label.indexOf(keyword) !== -1;
+
+                $(this).toggleClass('d-none', !tampil);
+                if (tampil) cocok++;
+            });
+
+            $(`.hbar-empty[data-for="${target}"]`).toggle(cocok === 0);
+        });
+
+        // Urutkan daftar bar: qty terbanyak <-> nama A-Z.
+        // data-mode = urutan yang akan dipakai kalau tombol diklik, jadi isinya selalu sama
+        // dengan tooltip & ikon yang sedang tampil.
+        $('.hbar-sort').on('click', function() {
+            let btn = $(this);
+            let target = btn.data('target');
+            let mode = btn.data('mode');
+            let modeBerikutnya = mode === 'qty' ? 'nama' : 'qty';
+
+            btn.data('mode', modeBerikutnya);
+            btn.attr('title', modeBerikutnya === 'qty' ? 'Urutkan: Qty terbanyak' : 'Urutkan: Nama A-Z');
+            btn.find('i').attr('class',
+                modeBerikutnya === 'qty' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-down');
+
+            let $list = $(target);
+            let $rows = $list.find('.hbar-row').get();
+
+            $rows.sort(function(a, b) {
+                if (mode === 'qty') {
+                    return Number($(b).find('.hbar-value').text()) - Number($(a).find('.hbar-value').text());
+                }
+                return $(a).find('.hbar-label').text().trim()
+                    .localeCompare($(b).find('.hbar-label').text().trim());
+            });
+
+            $list.append($rows);
+        });
+
+        // Klik baris "Belum didata lokasinya" -> detail mesin yang id_lokasi-nya masih kosong
+        $('.hbar-note[data-id-lokasi]').on('click', function() {
+            openAreaJenisUnitModal($(this).data('id-lokasi'), null, null,
+                'Belum Didata Lokasinya - Semua Jenis Mesin');
+        });
+
         // Klik bar di "Report Qty per Area" -> detail semua jenis mesin di area tersebut
-        $('.hbar-row[data-lokasi]').on('click', function() {
-            let lokasi = $(this).data('lokasi');
+        $('.hbar-row[data-id-lokasi]').on('click', function() {
+            let idLokasi = $(this).data('id-lokasi');
             let label = $(this).find('.hbar-label').text();
-            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
+            openAreaJenisUnitModal(idLokasi, null, null, `${label} - Semua Jenis Mesin`);
         });
 
         // Klik bar di "Report per Jenis Mesin" -> detail semua area untuk jenis tersebut
@@ -568,17 +838,17 @@
 
         // Klik cell matrix (area x jenis) -> detail kombinasi spesifik
         $('#matrixTable').on('click', 'td.matrix-cell-clickable', function() {
-            let lokasi = $(this).data('lokasi');
+            let idLokasi = $(this).data('id-lokasi');
             let nmJenis = $(this).data('jenis');
             let label = $(this).closest('tr').find('th').first().text();
-            openAreaJenisUnitModal(lokasi, nmJenis, null, `${label} - ${nmJenis}`);
+            openAreaJenisUnitModal(idLokasi, nmJenis, null, `${label} - ${nmJenis}`);
         });
 
         // Klik kolom Total per baris -> detail semua jenis mesin di area itu
         $('#matrixTable').on('click', 'td.matrix-total', function() {
-            let lokasi = $(this).data('lokasi');
+            let idLokasi = $(this).data('id-lokasi');
             let label = $(this).closest('tr').find('th').first().text();
-            openAreaJenisUnitModal(lokasi, null, null, `${label} - Semua Jenis Mesin`);
+            openAreaJenisUnitModal(idLokasi, null, null, `${label} - Semua Jenis Mesin`);
         });
 
         // Search di dalam modal detail unit: filter baris yang sudah dimuat
@@ -589,7 +859,7 @@
         // Search: filter baris matrix berdasarkan nama Area
         $('#matrixSearch').on('keyup', function() {
             let keyword = $(this).val().toLowerCase();
-            $('#matrixTable tbody tr[data-lokasi]').each(function() {
+            $('#matrixTable tbody tr[data-id-lokasi]').each(function() {
                 let lokasi = $(this).find('th').first().text().toLowerCase();
                 $(this).toggleClass('d-none', lokasi.indexOf(keyword) === -1);
             });
@@ -605,7 +875,7 @@
             $('#matrixTable thead th').removeClass('sort-asc sort-desc');
             $th.addClass(asc ? 'sort-asc' : 'sort-desc');
 
-            let $rows = $('#matrixTable tbody tr[data-lokasi]').get();
+            let $rows = $('#matrixTable tbody tr[data-id-lokasi]').get();
 
             $rows.sort(function(a, b) {
                 let cellA = $(a).find('th, td').eq(key).text().trim();

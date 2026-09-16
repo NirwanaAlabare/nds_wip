@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style type="text/css">
         input[type=file]::file-selector-button {
@@ -143,10 +145,11 @@
                 </div>
                 <div class="col-md-2">
                     <label for="cbolokasi"><small><b>Lokasi :</b></small></label>
-                    <select id="cbolokasi" class="form-control form-control-sm">
+                    <select id="cbolokasi" class="form-control form-control-sm select2bs4">
                         <option value="">Semua Lokasi</option>
+                        <option value="0">(Belum Didata)</option>
                         @foreach ($lokasiList as $row)
-                            <option value="{{ $row->lokasi }}">{{ $row->lokasi }}</option>
+                            <option value="{{ $row->id }}">{{ $row->nama }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -249,6 +252,26 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <script>
+        // Daftar lokasi ratusan baris, jadi dropdown-nya dibikin bisa diketik
+        $(function () {
+            $('#cbolokasi').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+            });
+            $('.select2-container--bootstrap4 .select2-selection--single').css({
+                'height': '30px',
+                'font-size': '12px',
+                'line-height': '30px'
+            });
+        });
+
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+    </script>
 
     <script>
         // Modul Asset: senyapkan alert bawaan DataTables saat ajax gagal, cukup dicatat di console
@@ -368,7 +391,7 @@
                         d.kd_jenis = $('#cbojenis').val();
                         d.kd_merk = $('#cbomerk').val();
                         d.id_supplier = $('#cbosupplier').val();
-                        d.lokasi = $('#cbolokasi').val();
+                        d.id_lokasi = $('#cbolokasi').val();
                     }
                 },
                 columns: mode === 'detail' ? detailColumns : groupColumns,
@@ -406,7 +429,7 @@
                     kd_jenis: $('#cbojenis').val(),
                     kd_merk: $('#cbomerk').val(),
                     id_supplier: $('#cbosupplier').val(),
-                    lokasi: $('#cbolokasi').val()
+                    id_lokasi: $('#cbolokasi').val()
                 },
                 xhrFields: {
                     responseType: 'blob'

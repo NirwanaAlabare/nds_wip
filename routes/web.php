@@ -1647,6 +1647,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_opname/header/store', 'store_header_asset_mesin_opname')->name('store_header_asset_mesin_opname');
         Route::get('/asset_mesin_opname/list', 'getdata_asset_mesin_opname')->name('getdata_asset_mesin_opname');
         Route::get('/asset_mesin_opname/export_excel', 'export_excel_asset_mesin_opname')->name('export_excel_asset_mesin_opname');
+        Route::get('/asset_mesin_opname/apply/preview', 'preview_apply_asset_mesin_opname')->name('preview_apply_asset_mesin_opname');
+        Route::post('/asset_mesin_opname/apply', 'apply_asset_mesin_opname')->name('apply_asset_mesin_opname');
         Route::post('/asset_mesin_opname/store', 'store_asset_mesin_opname')->name('store_asset_mesin_opname');
         Route::delete('/asset_mesin_opname/delete', 'delete_asset_mesin_opname')->name('delete_asset_mesin_opname');
         Route::get('/asset_mesin_opname/lokasi', 'getdata_lokasi_mesin')->name('getdata_lokasi_mesin');
