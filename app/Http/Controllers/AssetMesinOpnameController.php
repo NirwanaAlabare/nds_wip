@@ -17,12 +17,18 @@ class AssetMesinOpnameController extends Controller
     private const STATUS_MESIN = ['ACTIVE', 'IDLE', 'BREAKDOWN'];
     private const STATUS_MESIN_SEWA = ['ACTIVE', 'IDLE'];
 
+    // Menerapkan hasil opname ke master mesin mengubah lokasi ribuan unit sekaligus,
+    // jadi dibatasi ke user tertentu saja.
+    public const USER_APPLY_OPNAME = ['reza', 'admin_01'];
+
     // Label lokasi: main_lokasi - sub_lokasi, ditambah alias (kolom `status`) kalau terisi.
     // Butuh join asset_master_lokasi_det AS a dan asset_master_main_lokasi AS b.
     // NULLIF di luar: CONCAT_WS mengembalikan string kosong (bukan NULL) kalau semua bagiannya
     // kosong, padahal lokasi yang tidak ketemu lebih tepat dianggap NULL supaya di tampilan
     // jatuh ke fallback '-' dan bukan sel kosong.
-    private const SQL_NAMA_LOKASI = "NULLIF(CONCAT_WS(' - ', NULLIF(b.main_lokasi, ''), NULLIF(a.sub_lokasi, ''), NULLIF(a.status, '')), '')";
+    // Tiap bagian di-TRIM: data master banyak yang menyisakan spasi di ujung, dan spasi itu
+    // bikin filter exact-match di sisi DataTables meleset (DataTables men-trim isi sel).
+    private const SQL_NAMA_LOKASI = "NULLIF(TRIM(CONCAT_WS(' - ', NULLIF(TRIM(b.main_lokasi), ''), NULLIF(TRIM(a.sub_lokasi), ''), NULLIF(TRIM(a.status), ''))), '')";
 
     // Daftar header opname (satu baris = satu No SO)
     public function asset_mesin_opname(Request $request)
@@ -36,7 +42,24 @@ class AssetMesinOpnameController extends Controller
             'subPageGroup' => 'asset-mesin',
             'subPage' => 'asset_mesin_opname',
             'containerFluid' => true,
+            'idSoTerbaru' => $this->idSoTerbaru(),
         ], $this->getMasterLokasiData()));
+    }
+
+    // Hanya SO terbaru yang boleh diterapkan ke master mesin. Menerapkan SO lama sesudah SO
+    // baru akan menimpa lokasi dengan data yang sudah usang.
+    // Sengaja tidak mengikuti filter tanggal di halaman list: kalau user memfilter ke periode
+    // lama, SO teratas di layar bukan berarti SO terbaru yang sebenarnya.
+    private function idSoTerbaru(): ?int
+    {
+        $row = DB::selectOne("
+            SELECT id
+            FROM asset_stok_opname_header_mesin
+            ORDER BY periode_tgl_akhir DESC, id DESC
+            LIMIT 1
+        ");
+
+        return $row ? (int) $row->id : null;
     }
 
     // Data untuk modal Master Lokasi (partial asset_management.partials.master_lokasi_*)
@@ -220,6 +243,107 @@ class AssetMesinOpnameController extends Controller
         $data = $this->getDetailOpname($where, $bindings);
 
         return DataTables::of($data)->toJson();
+    }
+
+    // Ringkasan dampak sebelum hasil opname diterapkan, dipakai isi modal konfirmasi
+    public function preview_apply_asset_mesin_opname(Request $request)
+    {
+        $request->validate(['id_so' => 'required']);
+
+        $this->pastikanBolehApply($request->id_so);
+
+        $ringkasan = DB::selectOne("
+            SELECT
+                COUNT(*) AS total_scan,
+                SUM(o.id_lokasi IS NULL) AS tanpa_lokasi,
+                SUM(pm.kode_qr IS NOT NULL) AS cocok_beli,
+                SUM(ps.kode_qr IS NOT NULL) AS cocok_sewa,
+                SUM(pm.kode_qr IS NULL AND ps.kode_qr IS NULL) AS tidak_ketemu,
+                SUM(o.id_lokasi IS NOT NULL AND (
+                    (pm.kode_qr IS NOT NULL AND NOT (pm.id_lokasi <=> o.id_lokasi))
+                    OR (ps.kode_qr IS NOT NULL AND NOT (ps.id_lokasi <=> o.id_lokasi))
+                )) AS akan_berubah
+            FROM asset_stok_opname_mesin o
+            LEFT JOIN asset_penerimaan_mesin pm ON pm.kode_qr = o.kode_qr
+            LEFT JOIN asset_penerimaan_mesin_sewa ps ON ps.kode_qr = o.kode_qr
+            WHERE o.id_so = ?
+        ", [$request->id_so]);
+
+        return response()->json([
+            'total_scan' => (int) ($ringkasan->total_scan ?? 0),
+            'tanpa_lokasi' => (int) ($ringkasan->tanpa_lokasi ?? 0),
+            'cocok_beli' => (int) ($ringkasan->cocok_beli ?? 0),
+            'cocok_sewa' => (int) ($ringkasan->cocok_sewa ?? 0),
+            'tidak_ketemu' => (int) ($ringkasan->tidak_ketemu ?? 0),
+            'akan_berubah' => (int) ($ringkasan->akan_berubah ?? 0),
+        ]);
+    }
+
+    // Terapkan hasil opname: lokasi hasil scan pada No SO ini dijadikan lokasi resmi mesin
+    // di master (asset_penerimaan_mesin & asset_penerimaan_mesin_sewa).
+    public function apply_asset_mesin_opname(Request $request)
+    {
+        $request->validate(['id_so' => 'required']);
+
+        $this->pastikanBolehApply($request->id_so);
+
+        $header = DB::table('asset_stok_opname_header_mesin')->where('id', $request->id_so)->first();
+
+        if (!$header) {
+            return response()->json([
+                'icon' => 'error',
+                'msg' => 'Header opname tidak ditemukan.',
+            ], 404);
+        }
+
+        $timestamp = Carbon::now();
+
+        // Dua penyaring penting:
+        // - o.id_lokasi IS NOT NULL : hasil scan yang tidak lengkap tidak boleh malah
+        //   mengosongkan lokasi mesin yang sudah benar.
+        // - NOT (a.id_lokasi <=> o.id_lokasi) : baris yang lokasinya sudah sama tidak ikut
+        //   disentuh, supaya updated_at tidak berubah percuma & jumlah yang dilaporkan
+        //   benar-benar berarti "lokasinya pindah".
+        $hasil = DB::transaction(function () use ($request, $timestamp) {
+            $beli = DB::update("
+                UPDATE asset_penerimaan_mesin a
+                INNER JOIN asset_stok_opname_mesin o ON o.kode_qr = a.kode_qr
+                SET a.id_lokasi = o.id_lokasi, a.updated_at = ?
+                WHERE o.id_so = ?
+                    AND o.id_lokasi IS NOT NULL
+                    AND NOT (a.id_lokasi <=> o.id_lokasi)
+            ", [$timestamp, $request->id_so]);
+
+            $sewa = DB::update("
+                UPDATE asset_penerimaan_mesin_sewa a
+                INNER JOIN asset_stok_opname_mesin o ON o.kode_qr = a.kode_qr
+                SET a.id_lokasi = o.id_lokasi, a.updated_at = ?
+                WHERE o.id_so = ?
+                    AND o.id_lokasi IS NOT NULL
+                    AND NOT (a.id_lokasi <=> o.id_lokasi)
+            ", [$timestamp, $request->id_so]);
+
+            return ['beli' => $beli, 'sewa' => $sewa];
+        });
+
+        return response()->json([
+            'icon' => 'success',
+            'msg' => 'Lokasi mesin berhasil diupdate sesuai hasil ' . $header->no_so . '.',
+            'beli' => $hasil['beli'],
+            'sewa' => $hasil['sewa'],
+            'total' => $hasil['beli'] + $hasil['sewa'],
+        ]);
+    }
+
+    private function pastikanBolehApply($idSo = null): void
+    {
+        if (!in_array(Auth::user()->username ?? '', self::USER_APPLY_OPNAME, true)) {
+            abort(403, 'Anda tidak punya akses untuk menerapkan hasil opname.');
+        }
+
+        if ($idSo !== null && (int) $idSo !== $this->idSoTerbaru()) {
+            abort(403, 'Hanya hasil opname terbaru yang bisa diterapkan ke lokasi mesin.');
+        }
     }
 
     // Export detail seluruh mesin yang diopname, mengikuti filter periode di halaman list

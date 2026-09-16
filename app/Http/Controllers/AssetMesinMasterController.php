@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Log;
 
 class AssetMesinMasterController extends Controller
 {
+    // Nama lokasi selalu gabungan main - sub - status. Tiap bagian di-TRIM karena data
+    // master banyak yang menyisakan spasi di ujung, dan spasi itu bikin filter meleset.
+    // Dipakai bareng blok JOIN lok_det / lok_main di query-query bawah.
+    private const SQL_NAMA_LOKASI = "NULLIF(TRIM(CONCAT_WS(' - ', NULLIF(TRIM(lok_main.main_lokasi), ''), NULLIF(TRIM(lok_det.sub_lokasi), ''), NULLIF(TRIM(lok_det.status), ''))), '')";
+
     public function asset_mesin_master(Request $request)
     {
         $jenisList = DB::table('asset_master_kd_jenis')->select('kd_jenis', 'nm_jenis')->orderBy('nm_jenis', 'ASC')->get();
@@ -26,13 +31,15 @@ class AssetMesinMasterController extends Controller
             INNER JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
             ORDER BY ms.Supplier ASC
         ");
-        $lokasiList = DB::table('asset_penerimaan_mesin')
-            ->select('lokasi')
-            ->whereNotNull('lokasi')
-            ->where('lokasi', '<>', '')
-            ->distinct()
-            ->orderBy('lokasi', 'ASC')
-            ->get();
+        // Diambil dari master lokasi, bukan dari data mesin, supaya isi dropdown tetap lengkap
+        // walaupun id_lokasi di tabel penerimaan belum banyak yang terisi
+        $lokasiList = DB::select("
+            SELECT lok_det.id, " . self::SQL_NAMA_LOKASI . " AS nama
+            FROM asset_master_lokasi_det lok_det
+            LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
+            HAVING nama IS NOT NULL
+            ORDER BY nama ASC
+        ");
 
         if ($request->ajax()) {
             $whereBeli = 'WHERE 1=1';
@@ -50,13 +57,22 @@ class AssetMesinMasterController extends Controller
                 $whereBeli .= ' AND bpb.id_supplier = ?';
                 $bindingsBeli[] = $request->id_supplier;
             }
-            if ($request->lokasi) {
-                $whereBeli .= ' AND a.lokasi = ?';
-                $bindingsBeli[] = $request->lokasi;
-            }
-
             $whereSewa = 'WHERE 1=1';
             $bindingsSewa = [];
+
+            // Filter lokasi berlaku untuk mesin beli & sewa, karena keduanya sekarang
+            // punya id_lokasi. Nilai 0 berarti "belum didata" (id_lokasi masih NULL).
+            if ($request->filled('id_lokasi')) {
+                if ((int) $request->id_lokasi === 0) {
+                    $whereBeli .= ' AND a.id_lokasi IS NULL';
+                    $whereSewa .= ' AND a.id_lokasi IS NULL';
+                } else {
+                    $whereBeli .= ' AND a.id_lokasi = ?';
+                    $bindingsBeli[] = $request->id_lokasi;
+                    $whereSewa .= ' AND a.id_lokasi = ?';
+                    $bindingsSewa[] = $request->id_lokasi;
+                }
+            }
 
             $bindings = array_merge($bindingsBeli, $bindingsSewa);
 
@@ -88,14 +104,14 @@ class AssetMesinMasterController extends Controller
                     '-' as id_jenis,
                     '-' as kd_jenis,
                     '-' as kd_merk,
-                    nm_jenis,
-                    tipe,
-                    nm_merk,
+                    a.nm_jenis,
+                    a.tipe,
+                    a.nm_merk,
                     COUNT(*) AS total_unit,
                     'SEWA' AS sumber
-                FROM asset_penerimaan_mesin_sewa
+                FROM asset_penerimaan_mesin_sewa a
                 $whereSewa
-                GROUP BY nm_jenis, nm_merk, tipe
+                GROUP BY a.nm_jenis, a.nm_merk, a.tipe
 
                 ORDER BY nm_jenis ASC
             ", $bindings);
@@ -140,13 +156,16 @@ class AssetMesinMasterController extends Controller
                     a.kode_qr,
                     a.serial_number,
                     a.foto,
-                    a.lokasi,
+                    a.id_lokasi,
+                    " . self::SQL_NAMA_LOKASI . " AS lokasi,
                     a.bpbno_int,
                     a.status,
                     ms.supplier
                 FROM asset_penerimaan_mesin_sewa a
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
                 LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+                LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
                 WHERE a.nm_jenis <=> ? AND a.nm_merk <=> ? AND a.tipe <=> ?
                 ORDER BY a.id DESC
             ", [$request->nm_jenis, $request->nm_merk, $request->tipe]);
@@ -157,13 +176,16 @@ class AssetMesinMasterController extends Controller
                     a.kode_qr,
                     a.serial_number,
                     a.foto,
-                    a.lokasi,
+                    a.id_lokasi,
+                    " . self::SQL_NAMA_LOKASI . " AS lokasi,
                     a.bpbno_int,
                     a.status,
                     ms.supplier
                 FROM asset_penerimaan_mesin a
                 LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
                 LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+                LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
                 WHERE a.id_jenis = ?
                 ORDER BY a.id DESC
             ", [$request->id_jenis]);
@@ -250,13 +272,21 @@ class AssetMesinMasterController extends Controller
             $whereBeli .= ' AND bpb.id_supplier = ?';
             $bindingsBeli[] = $request->id_supplier;
         }
-        if ($request->lokasi) {
-            $whereBeli .= ' AND a.lokasi = ?';
-            $bindingsBeli[] = $request->lokasi;
-        }
-
         $whereSewa = 'WHERE 1=1';
         $bindingsSewa = [];
+
+        // Nilai 0 berarti "belum didata" (id_lokasi masih NULL)
+        if ($request->filled('id_lokasi')) {
+            if ((int) $request->id_lokasi === 0) {
+                $whereBeli .= ' AND a.id_lokasi IS NULL';
+                $whereSewa .= ' AND a.id_lokasi IS NULL';
+            } else {
+                $whereBeli .= ' AND a.id_lokasi = ?';
+                $bindingsBeli[] = $request->id_lokasi;
+                $whereSewa .= ' AND a.id_lokasi = ?';
+                $bindingsSewa[] = $request->id_lokasi;
+            }
+        }
 
         return DB::select("
             SELECT
@@ -267,7 +297,8 @@ class AssetMesinMasterController extends Controller
                 m.tipe,
                 a.serial_number,
                 a.kode_qr,
-                a.lokasi,
+                a.id_lokasi,
+                " . self::SQL_NAMA_LOKASI . " AS lokasi,
                 ms.Supplier AS supplier,
                 a.bpbno_int,
                 a.status
@@ -277,6 +308,8 @@ class AssetMesinMasterController extends Controller
             INNER JOIN asset_master_kd_merk k ON m.kd_merk = k.kd_merk
             LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
             LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+            LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+            LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
             $whereBeli
 
             UNION ALL
@@ -289,13 +322,16 @@ class AssetMesinMasterController extends Controller
                 a.tipe,
                 a.serial_number,
                 a.kode_qr,
-                a.lokasi,
+                a.id_lokasi,
+                " . self::SQL_NAMA_LOKASI . " AS lokasi,
                 ms.supplier AS supplier,
                 a.bpbno_int,
                 a.status
             FROM asset_penerimaan_mesin_sewa a
             LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
             LEFT JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+            LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+            LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
             $whereSewa
 
             ORDER BY nm_jenis ASC

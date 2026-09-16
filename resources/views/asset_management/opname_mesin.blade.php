@@ -194,6 +194,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Konfirmasi Terapkan Hasil SO ke Lokasi Mesin -->
+    <div class="modal fade" id="ApplyOpnameModal" tabindex="-1" aria-labelledby="ApplyOpnameModalLabel"
+        aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title mb-0" id="ApplyOpnameModalLabel">Terapkan Hasil Opname</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">
+                        Lokasi mesin di master akan <b>diupdate mengikuti hasil scan</b> pada
+                        <b id="applyNoSo">-</b>.
+                    </p>
+
+                    <div id="applyRingkasan" class="small text-muted mb-3">
+                        Menghitung dampak...
+                    </div>
+
+                    <div class="alert alert-warning py-2 mb-0 small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Perubahan ini tidak bisa dibatalkan. Lanjutkan?
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-warning btn-sm" id="btnApplyConfirm" disabled>
+                        <i class="fas fa-check"></i> Ya, Update
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -211,6 +245,14 @@
         };
     </script>
     <script>
+        // Menerapkan hasil opname mengubah lokasi ribuan mesin sekaligus, jadi tombolnya
+        // hanya untuk user tertentu. Backend tetap mengecek ulang, ini sekadar sembunyikan UI.
+        const bolehApply = @json(in_array(auth()->user()->username ?? '', App\Http\Controllers\AssetMesinOpnameController::USER_APPLY_OPNAME, true));
+
+        // Cuma SO terbaru yang boleh diterapkan; menerapkan SO lama akan menimpa lokasi
+        // dengan data yang sudah usang. Backend mengecek ulang hal yang sama.
+        const idSoTerbaru = @json($idSoTerbaru);
+
         // Default filter: awal bulan berjalan s.d. hari ini
         let todayStr = new Date().toISOString().slice(0, 10);
         $('#txttgl_awal').val(todayStr.slice(0, 8) + '01');
@@ -257,13 +299,22 @@
                         let urlTambah = '{{ route('create_asset_mesin_opname') }}?id_so=' +
                             encodeURIComponent(row.id);
 
+                        // Tombol "terapkan": cuma user yang berhak, dan cuma di baris SO terbaru
+                        let btnApply = (bolehApply && Number(row.id) === Number(idSoTerbaru)) ?
+                            `<button type="button" class="btn btn-sm btn-warning btn-apply"
+                                title="Terapkan hasil SO ke lokasi mesin">
+                                <i class="fas fa-check"></i>
+                            </button>` :
+                            '';
+
                         return `
                             <button type="button" class="btn btn-sm btn-primary btn-view" title="Lihat list mesin">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <a href="${urlTambah}" class="btn btn-sm btn-success" title="Tambah / kurangi mesin">
                                 <i class="fas fa-plus"></i>
-                            </a>`;
+                            </a>
+                            ${btnApply}`;
                     }
                 }, // Act
             ],
@@ -409,11 +460,25 @@
             if (detailTable) detailTable.search(this.value).draw();
         });
 
-        // Filter kolom Lokasi (index 7) & Sumber (index 1), dicocokkan persis
-        $('#detailFilterLokasi').on('change', function() {
-            if (detailTable) detailTable.column(7).search(this.value ? '^' + this.value + '$' : '', true, false).draw();
+        // Filter lokasi dicocokkan lewat id_lokasi yang ditempel di <tr>, bukan lewat teks kolom
+        // Lokasi. Nama lokasi hasil gabungan main - sub - status rawan beda spasi / karakter
+        // regex, sedangkan id-nya pasti unik & persis.
+        let filterLokasiId = '';
+
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            if (settings.nTable.id !== 'detailTable' || filterLokasiId === '') return true;
+
+            let tr = settings.aoData[dataIndex].nTr;
+
+            return tr ? String($(tr).attr('data-lokasi-id')) === String(filterLokasiId) : true;
         });
 
+        $('#detailFilterLokasi').on('change', function() {
+            filterLokasiId = this.value || '';
+            if (detailTable) detailTable.draw();
+        });
+
+        // Filter kolom Sumber (index 1), dicocokkan persis
         $('#detailFilterSumber').on('change', function() {
             if (detailTable) detailTable.column(1).search(this.value).draw();
         });
@@ -431,6 +496,7 @@
             }
 
             $('#detailSearch').val('');
+            filterLokasiId = '';
             $('#detailFilterLokasi').val('').trigger('change.select2');
             $('#detailFilterSumber').val('').trigger('change.select2');
 
@@ -453,7 +519,7 @@
                             '<span class="badge bg-secondary">-</span>';
 
                         $body.append(`
-                            <tr>
+                            <tr data-lokasi-id="${r.id_lokasi ?? ''}">
                                 <td class="text-center">${i + 1}</td>
                                 <td class="text-center">${badge}</td>
                                 <td>${r.kode_qr ?? '-'}</td>
@@ -467,12 +533,20 @@
                             </tr>`);
                     });
 
-                    // Isi dropdown lokasi dari data yang ada, jadi hanya lokasi terpakai yang muncul
-                    let daftarLokasi = [...new Set(rows.map(r => r.lokasi).filter(Boolean))].sort();
+                    // Isi dropdown lokasi dari data yang ada, jadi hanya lokasi terpakai yang muncul.
+                    // Value-nya id_lokasi, teksnya nama lokasi.
+                    let petaLokasi = new Map();
+                    rows.forEach(function(r) {
+                        if (r.id_lokasi != null && !petaLokasi.has(String(r.id_lokasi))) {
+                            petaLokasi.set(String(r.id_lokasi), (r.lokasi || '-').trim());
+                        }
+                    });
+
+                    let daftarLokasi = [...petaLokasi.entries()].sort((a, b) => a[1].localeCompare(b[1]));
                     let $lokasi = $('#detailFilterLokasi');
                     $lokasi.find('option:gt(0)').remove();
-                    daftarLokasi.forEach(function(lok) {
-                        $lokasi.append(`<option value="${lok}">${lok}</option>`);
+                    daftarLokasi.forEach(function([id, nama]) {
+                        $lokasi.append(`<option value="${id}">${nama}</option>`);
                     });
                     $lokasi.val('').trigger('change.select2');
 
@@ -520,6 +594,93 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'Gagal memuat list mesin.',
+                    });
+                }
+            });
+        });
+
+        // ---- Terapkan hasil opname ke lokasi mesin ----
+        let applyIdSo = null;
+
+        $('#datatable').on('click', '.btn-apply', function() {
+            let row = datatable.row($(this).closest('tr')).data();
+
+            applyIdSo = row.id;
+            $('#applyNoSo').text(row.no_so ?? '-');
+            $('#applyRingkasan').html('<i class="fas fa-spinner fa-spin"></i> Menghitung dampak...');
+            $('#btnApplyConfirm').prop('disabled', true);
+            $('#ApplyOpnameModal').modal('show');
+
+            // Ringkasan dihitung dulu supaya user tahu persis berapa unit yang akan berubah
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('preview_apply_asset_mesin_opname') }}',
+                data: {
+                    id_so: applyIdSo
+                },
+                success: function(res) {
+                    let baris = [
+                        `Hasil scan : <b>${res.total_scan}</b> mesin`,
+                        `Cocok di master : <b>${res.cocok_beli}</b> pembelian, <b>${res.cocok_sewa}</b> sewa`,
+                        `Lokasi akan berubah : <b>${res.akan_berubah}</b> mesin`,
+                    ];
+
+                    if (res.tidak_ketemu) {
+                        baris.push(
+                            `<span class="text-danger">Tidak ketemu di master : <b>${res.tidak_ketemu}</b> (dilewati)</span>`
+                        );
+                    }
+                    if (res.tanpa_lokasi) {
+                        baris.push(
+                            `<span class="text-danger">Scan tanpa lokasi : <b>${res.tanpa_lokasi}</b> (dilewati)</span>`
+                        );
+                    }
+
+                    $('#applyRingkasan').html(baris.join('<br>'));
+                    $('#btnApplyConfirm').prop('disabled', res.total_scan === 0);
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    $('#applyRingkasan').html(
+                        '<span class="text-danger">Gagal menghitung dampak.</span>');
+                }
+            });
+        });
+
+        $('#btnApplyConfirm').on('click', function() {
+            let btn = $(this);
+
+            btn.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('apply_asset_mesin_opname') }}',
+                data: {
+                    id_so: applyIdSo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    $('#ApplyOpnameModal').modal('hide');
+                    btn.prop('disabled', false);
+
+                    Swal.fire({
+                        icon: res.icon ?? 'success',
+                        title: 'Berhasil',
+                        html: `${res.msg}<br><small class="text-muted">${res.total} mesin diupdate (${res.beli} pembelian, ${res.sewa} sewa)</small>`,
+                    });
+
+                    dataTableReload();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    btn.prop('disabled', false);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.status === 403 ?
+                            'Anda tidak punya akses untuk menerapkan hasil opname.' :
+                            'Gagal menerapkan hasil opname.',
                     });
                 }
             });
