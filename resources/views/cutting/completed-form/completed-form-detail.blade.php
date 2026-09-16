@@ -1122,10 +1122,11 @@
                         if (res && res.qty > 0) {
                             setSpreadingForm(res, true, null, true);
                         } else {
+                            let message = res && res.message ? res.message : 'Roll tidak tersedia atau sudah habis.';
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: 'Roll tidak tersedia atau sudah habis.',
+                                html: message,
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
@@ -2558,7 +2559,7 @@
                                     await getSummary(true);
 
                                     await finishProcess();
-                                    
+
                                 } else if (res.status == 201) {
 
                                     document.getElementById("loading").classList.add("d-none");
@@ -2585,7 +2586,7 @@
                                         });
                                     }
                                 }
-                            }, 
+                            },
                             error: function (jqXHR) {
                                 document.getElementById("loading").classList.add("d-none");
 
