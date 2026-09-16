@@ -78,7 +78,7 @@ class PipingController extends Controller
     }
 
     public function create() {
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('close_order', 'N')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view('cutting.piping.create-piping', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping"]);
     }
@@ -165,7 +165,7 @@ class PipingController extends Controller
 
     public function update(Request $request) {
 
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_piping")->where("id", $request->edit_id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
             return array(
@@ -306,7 +306,7 @@ class PipingController extends Controller
     public function destroy($id = 0) {
         if ($id) {
 
-            // Check Closing 
+            // Check Closing
             $dataCheckClosing = DB::table("form_cut_piping")->where("id", $id)->first();
             if (checkClosingDate($dataCheckClosing->tanggal_piping)) {
                 return array(

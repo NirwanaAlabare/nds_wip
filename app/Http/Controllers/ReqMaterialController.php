@@ -93,7 +93,6 @@ class ReqMaterialController extends Controller
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
         $kode_gr = DB::connection('mysql_sb')->select("select CONCAT('RQ-F', IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0))) kode, IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)) nomor FROM bppb_req WHERE LEFT(bppbno,4) = 'RQ-F'");
-
         $tipe_ws = DB::connection('mysql_sb')->select("select type_ws isi, type_ws tampil from act_costing group by type_ws order by
             case type_ws when 'STD' then '1'
             when 'DTH' then '2'
@@ -157,7 +156,7 @@ class ReqMaterialController extends Controller
           from jo a inner join jo_det s on a.id=s.id_jo
           inner join  so on s.id_so=so.id
           inner join act_costing ac on so.id_cost=ac.id
-          where ac.type_ws = '" . $request->tipe_ws . "'
+          where ac.type_ws = '" . $request->tipe_ws . "' and ac.close_order = 'N'
           group by a.id ");
 
         $html = "<option value=''>Pilih WS</option>";
@@ -176,7 +175,7 @@ class ReqMaterialController extends Controller
             inner join  so on s.id_so=so.id
             inner join act_costing ac on so.id_cost=ac.id
             inner join (select id_jo from bom_jo_item group by id_jo)   k on s.id_jo = k.id_jo
-            where ac.type_ws = 'STD'
+            where ac.type_ws = 'STD' and ac.close_order = 'N'
             group by a.id");
 
         $html = "<option value=''>Pilih WS</option>";
@@ -195,7 +194,7 @@ class ReqMaterialController extends Controller
             inner join  so on s.id_so=so.id
             inner join act_costing ac on so.id_cost=ac.id
             inner join (select id_jo from bom_jo_item group by id_jo)   k on s.id_jo = k.id_jo
-            where ac.kpno = '" . $request->no_ws . "'
+            where ac.kpno = '" . $request->no_ws . "' and ac.close_order = 'N'
             group by a.id");
 
         return $style_aktual;

@@ -65,9 +65,11 @@ order by a.created_at desc
         $data = DB::select("
             SELECT
                 concat(a.po,'_',a.dest) AS id,
-                concat(a.po, ' - ', a.dest, ' - ', m.buyer) AS text
+                concat(a.po, ' - ', a.dest, ' - ', m.buyer) AS text,
+                act_costing.close_order
             FROM ppic_master_so a
             INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+            LEFT JOIN signalbit_erp.act_costing ON m.id_act_cost = signalbit_erp.act_costing.id
             WHERE a.po IS NOT NULL
                 AND a.tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
                 AND (a.po LIKE ? OR m.buyer LIKE ?)
@@ -75,6 +77,11 @@ order by a.created_at desc
             ORDER BY a.po ASC
             LIMIT 50
         ", ["%{$term}%", "%{$term}%"]);
+
+        $results = collect($data)->map(function ($row) {
+            $row->disabled = $row->close_order === 'Y';
+            return $row;
+        });
 
         return response()->json(['results' => $data]);
     }

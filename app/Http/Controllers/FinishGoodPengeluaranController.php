@@ -84,19 +84,25 @@ group by no_sb
     public function getpo_fg_out(Request $request)
     {
         $user = Auth::user()->name;
-        $data_po = DB::select("SELECT p.po isi, p.po tampil
+        $data_po = DB::select("SELECT p.po isi, p.po tampil , act.close_order
         from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        left join signalbit_erp.act_costing act on m.id_act_cost = act.id
         where buyer = '" . $request->cbobuyer . "'
         group by p.po
         order by p.po asc
         ");
 
+
         $html = "<option value=''>Pilih No PO</option>";
 
         foreach ($data_po as $datapo) {
-            $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+            if ($datapo->close_order === 'Y') {
+                $html .= " <option value='" . e($datapo->isi) . "' disabled style='color: #dc3545; font-weight: bold;'>" . e($datapo->tampil) . " (Close Order)</option> ";
+            } else {
+                $html .= " <option value='" . e($datapo->isi) . "'>" . e($datapo->tampil) . "</option> ";
+            }
         }
 
         return $html;

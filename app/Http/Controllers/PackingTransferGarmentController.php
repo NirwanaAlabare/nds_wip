@@ -131,7 +131,7 @@ order by isi asc");
     public function get_po(Request $request)
     {
         $line = $request->cbo_line;
-        $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-180 days'));
+        $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-360 days'));
         
         if ($line) {
             // Filter by line: only POs that have output from this line
@@ -202,11 +202,19 @@ order by isi asc");
                     . "Temporary Packing"
                     . "</option>";
             } else {
-                $html .= "<option value='{$datapo->isi}'"
-                    . " data-styleno='{$styleno}'"
-                    . " data-stylenoprod='{$stylenoProd}'>"
-                    . "{$datapo->isi}"
-                    . "</option>";
+                // if ($datapo->close_order === 'Y') {
+                //     $html .= "<option value='{$datapo->isi}' disabled style='color: #dc3545; font-weight: bold;'"
+                //         . " data-styleno='{$styleno}'"
+                //         . " data-stylenoprod='{$stylenoProd}'>"
+                //         . "{$datapo->isi} (Close Order)"
+                //         . "</option>";
+                // } else {
+                    $html .= "<option value='{$datapo->isi}'"
+                        . " data-styleno='{$styleno}'"
+                        . " data-stylenoprod='{$stylenoProd}'>"
+                        . "{$datapo->isi}"
+                        . "</option>";
+                // }
             }
         }
 

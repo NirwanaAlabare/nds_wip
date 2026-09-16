@@ -145,9 +145,9 @@ class FGStokBPBController extends Controller
         // order by buyer asc");
 
         // $data_buyer = DB::select("
-        //     select 
-        //         buyer isi, 
-        //         buyer tampil 
+        //     select
+        //         buyer isi,
+        //         buyer tampil
         //     from master_sb_ws
         //     INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
         //     INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
@@ -181,9 +181,9 @@ class FGStokBPBController extends Controller
             order by buyer asc");
         }else{
             $data_buyer = DB::select("
-                select 
-                    buyer isi, 
-                    buyer tampil 
+                select
+                    buyer isi,
+                    buyer tampil
                 from master_sb_ws
                 INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
                 INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
@@ -210,7 +210,9 @@ class FGStokBPBController extends Controller
         if($cbosumber != 'QC REJECT'){
             $data_ws = DB::select("
                 select a.ws isi, a.ws tampil
-                from master_sb_ws a where a.buyer = '" . $request->cbobuyer . "'
+                from master_sb_ws a
+                left join signalbit_erp.act_costing act on a.id_act_cost = act.id
+                where a.buyer = '" . $request->cbobuyer . "' AND (act.close_order is null or act.close_order != 'Y')
                 group by ws
                 order by ws desc
             ");
@@ -223,8 +225,10 @@ class FGStokBPBController extends Controller
                 INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
                 INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
                 INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                LEFT JOIN signalbit_erp.act_costing act ON master_sb_ws.id_act_cost = act.id
                 WHERE master_sb_ws.buyer = '".$request->cbobuyer."'
                 AND output_reject_in.kode_numbering IS NULL
+                AND (act.close_order IS NULL OR act.close_order != 'Y')
                 GROUP BY master_sb_ws.ws
                 ORDER BY master_sb_ws.ws DESC
             ");
@@ -319,7 +323,7 @@ class FGStokBPBController extends Controller
             and a.size like '%" . $request->cbosize . "%'");
 
             $html = "<option value=''>Pilih Product</option>";
-    
+
             foreach ($data_product as $dataproduct) {
                 $html .= " <option value='" . $dataproduct->isi . "'>" . $dataproduct->tampil . "</option> ";
             }
@@ -371,7 +375,7 @@ class FGStokBPBController extends Controller
             ");
 
             $html = "<option value=''>Pilih Product</option>";
-    
+
             foreach ($data_product as $dataproduct) {
                 $html .= "
                     <option

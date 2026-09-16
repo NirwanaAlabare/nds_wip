@@ -143,7 +143,7 @@ class FGStokLokasiScanBPBController extends Controller
             return array(
                 "status" => 400,
                 "message" => "Terjadi Kesalahan",
-                "messages" => $e->getMessage(), 
+                "messages" => $e->getMessage(),
                 "additional" => [],
             );
         }
@@ -160,9 +160,9 @@ class FGStokLokasiScanBPBController extends Controller
                 concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')) tgl_terima_fix,
                 buyer,
                 ws,
-                brand,
-                styleno,
-                color,
+                m.brand,
+                m.styleno,
+                m.color,
                 size,
                 a.qty,
                 a.grade,
@@ -174,7 +174,9 @@ class FGStokLokasiScanBPBController extends Controller
                 a.qr_code
             from fg_stok_bpb_scan a
             left join master_sb_ws m on a.id_so_det = m.id_so_det
-            where DATE(tgl_terima) = ?
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
+            where (act.close_order is null or act.close_order != 'Y')
+            and DATE(tgl_terima) = ?
             and no_carton = ?
             and (a.no_trans is null or a.no_trans = '')
             order by id desc

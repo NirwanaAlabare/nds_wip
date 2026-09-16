@@ -118,32 +118,41 @@ class MasterPipingController extends Controller
 
     public function list(Request $request) {
         $data = null;
+
         switch ($request->data) {
             case 'buyer' :
-                $data = MasterPiping::select("buyer_id", "buyer")->
-                    groupBy("buyer_id")->
-                    get();
+                $data = MasterPiping::select("buyer_id", "buyer")
+                    ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
+                    ->where("act_costing.close_order", "N")
+                    ->groupBy("buyer_id")
+                    ->get();
 
                 break;
             case 'worksheet' :
-                $data = MasterPiping::select("act_costing_id", "act_costing_ws")->
-                    where("buyer_id", $request->buyer_id)->
-                    groupBy("act_costing_id")->
-                    get();
+                $data = MasterPiping::select("act_costing_id", "act_costing_ws")
+                    ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
+                    ->where("buyer_id", $request->buyer_id)
+                    ->where("act_costing.close_order", "N")
+                    ->groupBy("act_costing_id")
+                    ->get();
 
                 break;
             case 'color' :
-                $data = MasterPiping::select("color")->
-                    where("act_costing_id", $request->act_costing_id)->
-                    groupBy("act_costing_id", "color")->
-                    first();
+                $data = MasterPiping::select("color")
+                    ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
+                    ->where("act_costing_id", $request->act_costing_id)
+                    ->where("act_costing.close_order", "N")
+                    ->groupBy("act_costing_id", "color")
+                    ->first();
 
                 break;
             case 'part' :
-                $data = MasterPiping::select("id", "part")->
-                    where("act_costing_id", $request->act_costing_id)->
-                    groupBy("act_costing_id", "color", "part")->
-                    get();
+                $data = MasterPiping::select("id", "part")
+                    ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
+                    ->where("act_costing_id", $request->act_costing_id)
+                    ->where("act_costing.close_order", "N")
+                    ->groupBy("act_costing_id", "color", "part")
+                    ->get();
 
                 break;
             default :

@@ -619,60 +619,77 @@ class PackingCentralSwitchingController extends Controller
 
         $data = DB::select("
             WITH a AS (
-
-            SELECT
-                a.id_ppic_master_so,
-                a.id_so_det AS so_det_id,
-                SUM(a.qty) AS qty_pck_in
-            from packing_packing_in a
-                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.sumber IN ('Sewing','FGS', 'TEMPORARY PACKING') AND a.id_ppic_master_so IS NULL OR YEAR(p.tgl_shipment) >= 2026 OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK' OR p.po = '61297671' OR p.po = '61297673'
-                group by id_ppic_master_so,a.id_so_det
+                SELECT
+                    a.id_ppic_master_so,
+                    a.id_so_det AS so_det_id,
+                    SUM(a.qty) AS qty_pck_in,
+                    MAX(act.close_order) AS close_order
+                FROM packing_packing_in a
+                    LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                    LEFT JOIN signalbit_erp.so_det s ON a.id_so_det = s.id
+                    LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
+                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                WHERE (
+                        (a.sumber IN ('Sewing','FGS') AND a.id_ppic_master_so IS NULL)
+                        OR YEAR(p.tgl_shipment) >= 2026
+                        OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                        OR p.po = '61297671'
+                        OR p.po = '61297673'
+                    )
+                GROUP BY a.id_ppic_master_so, a.id_so_det
             ),
-            
+
             p AS (
                 SELECT
-                    id_ppic,
-                    id_so_det,
-                    COUNT(*) AS qty_scan
-                FROM packing_packing_out_scan
-                GROUP BY
-                    id_ppic,
-                    id_so_det
+                    pos.id_ppic,
+                    pos.id_so_det,
+                    COUNT(*) AS qty_scan,
+                    MAX(act.close_order) AS close_order
+                FROM packing_packing_out_scan pos
+                    LEFT JOIN signalbit_erp.so_det s ON pos.id_so_det = s.id
+                    LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
+                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                GROUP BY pos.id_ppic, pos.id_so_det
             ),
 
             s AS (
                 SELECT
-                    asal_ppic_master_so_id,
-                    asal_so_det_id,
-                    SUM(qty_switch) AS qty_switch
-                FROM packing_central_switching
-                GROUP BY
-                    asal_ppic_master_so_id,
-                    asal_so_det_id
+                    pcs.asal_ppic_master_so_id,
+                    pcs.asal_so_det_id,
+                    SUM(pcs.qty_switch) AS qty_switch,
+                    MAX(act.close_order) AS close_order
+                FROM packing_central_switching pcs
+                    LEFT JOIN signalbit_erp.so_det s ON pcs.asal_so_det_id = s.id
+                    LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
+                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                GROUP BY pcs.asal_ppic_master_so_id, pcs.asal_so_det_id
             ),
 
             t AS (
                 SELECT
-                    tujuan_ppic_master_so_id AS id_ppic_master_so,
-                    tujuan_so_det_id AS so_det_id,
-                    SUM(qty_switch) AS qty_switch_masuk
-                FROM packing_central_switching
-                GROUP BY
-                    tujuan_ppic_master_so_id,
-                    tujuan_so_det_id
+                    pcs.tujuan_ppic_master_so_id AS id_ppic_master_so,
+                    pcs.tujuan_so_det_id AS so_det_id,
+                    SUM(pcs.qty_switch) AS qty_switch_masuk,
+                    MAX(act.close_order) AS close_order
+                FROM packing_central_switching pcs
+                    LEFT JOIN signalbit_erp.so_det s ON pcs.tujuan_so_det_id = s.id
+                    LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
+                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                GROUP BY pcs.tujuan_ppic_master_so_id, pcs.tujuan_so_det_id
             ),
 
             r AS (
                 SELECT
-                    id_ppic_master_so,
-                    id_so_det,
-                    qty
-                FROM fg_fg_out 
-                WHERE status = 'RETUR'
-                GROUP BY
-                    id_ppic_master_so,
-                    id_so_det
+                    fo.id_ppic_master_so,
+                    fo.id_so_det,
+                    SUM(fo.qty) AS qty,
+                    MAX(act.close_order) AS close_order
+                FROM fg_fg_out fo
+                    LEFT JOIN signalbit_erp.so_det s ON fo.id_so_det = s.id
+                    LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
+                    LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                WHERE fo.status = 'RETUR'
+                GROUP BY fo.id_ppic_master_so, fo.id_so_det
             ),
 
             combined AS (
@@ -683,7 +700,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty_scan,
                     0 AS qty_switch,
                     0 AS qty_switch_masuk,
-                    0 AS qty_retur
+                    0 AS qty_retur,
+                    close_order
                 FROM a
 
                 UNION ALL
@@ -695,7 +713,8 @@ class PackingCentralSwitchingController extends Controller
                     qty_scan,
                     0 AS qty_switch,
                     0 AS qty_switch_masuk,
-                    0 AS qty_retur
+                    0 AS qty_retur,
+                    close_order
                 FROM p
 
                 UNION ALL
@@ -707,7 +726,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty_scan,
                     qty_switch,
                     0 AS qty_switch_masuk,
-                    0 AS qty_retur
+                    0 AS qty_retur,
+                    close_order
                 FROM s
 
                 UNION ALL
@@ -719,7 +739,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty_scan,
                     0 AS qty_switch,
                     qty_switch_masuk,
-                    0 AS qty_retur
+                    0 AS qty_retur,
+                    close_order
                 FROM t
 
                 UNION ALL
@@ -731,7 +752,8 @@ class PackingCentralSwitchingController extends Controller
                     0 AS qty_scan,
                     0 AS qty_switch,
                     0 AS qty_switch_masuk,
-                    qty AS qty_retur
+                    qty AS qty_retur,
+                    close_order
                 FROM r
             )
 
@@ -773,7 +795,8 @@ class PackingCentralSwitchingController extends Controller
                         - SUM(combined.qty_switch)
                     ) > 0 THEN 'Tersedia'
                     ELSE 'Kosong'
-                END AS status
+                END AS status,
+                MAX(combined.close_order) AS close_order
             FROM combined
             LEFT JOIN (
                 SELECT
@@ -782,9 +805,7 @@ class PackingCentralSwitchingController extends Controller
                     MIN(id) AS id,
                     MAX(po) AS po
                 FROM packing_packing_in
-                GROUP BY
-                    id_ppic_master_so,
-                    id_so_det
+                GROUP BY id_ppic_master_so, id_so_det
             ) packing_packing_in
                 ON packing_packing_in.id_ppic_master_so <=> combined.id_ppic_master_so
                 AND packing_packing_in.id_so_det <=> combined.so_det_id
@@ -798,10 +819,7 @@ class PackingCentralSwitchingController extends Controller
                     OR ppic_master_so.po = '61297671'
                     OR ppic_master_so.po = '61297673'
                 )
-                AND COALESCE(
-                    ppic_master_so.po,
-                    packing_packing_in.po
-                ) LIKE ?
+                AND COALESCE(ppic_master_so.po, packing_packing_in.po) LIKE ?
             GROUP BY
                 combined.id_ppic_master_so,
                 combined.so_det_id,
@@ -812,9 +830,7 @@ class PackingCentralSwitchingController extends Controller
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest
-
-            HAVING
-                qty_sisa > 0
+            HAVING qty_sisa > 0
         ", ["%{$search}%"]);
 
         return response()->json($data);

@@ -210,13 +210,15 @@ class StockerRejectController extends Controller
                     $join->on("stocker_input.ratio", "=", "similar_stocker.ratio");
                     $join->on("stocker_input.id_qr_stocker", "!=", "similar_stocker.id_qr_stocker");
                     $join->whereRaw("similar_stocker.stocker_reject IS NULL");
-                })->
-                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-                leftJoin("part", "part.id", "=", "part_detail.part_id")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                where("stocker_input.id_qr_stocker", $request->id_qr_stocker)->
-                groupBy("stocker_input.id")->
-                first();
+                })
+                ->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")
+                ->leftJoin("part", "part.id", "=", "part_detail.part_id")
+                ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
+                ->leftJoin("signalbit_erp.act_costing", "master_sb_ws.id_act_cost", "=", "signalbit_erp.act_costing.id")
+                ->where("stocker_input.id_qr_stocker", $request->id_qr_stocker)
+                ->where("signalbit_erp.act_costing.close_order", "!=", "Y")
+                ->groupBy("stocker_input.id")
+                ->first();
 
             if ($stocker) {
                 $stockerProcessDc = DcIn::selectRaw("id_qr_stocker, (qty_reject+qty_replace) qty_reject, 'dc_in' as process")->whereRaw("id_qr_stocker in (".addQuotesAround(str_replace(",", "\n", $request->id_qr_stocker)).")");

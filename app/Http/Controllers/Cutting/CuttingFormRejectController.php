@@ -71,7 +71,7 @@ class CuttingFormRejectController extends Controller
      */
     public function create()
     {
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('close_order', '=', 'N')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("cutting.cutting-form-reject.create-cutting-form-reject", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-reject", "subPage" => "cutting-reject", "orders" => $orders]);
     }
@@ -227,7 +227,7 @@ class CuttingFormRejectController extends Controller
      */
     public function update(Request $request, FormCutReject $formCutReject)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_reject")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal)) {
             return array(
@@ -255,7 +255,7 @@ class CuttingFormRejectController extends Controller
 
         if ($totalStocker < 1) {
             if ($validatedRequest) {
-                // DEPRECATED BACKUP 
+                // DEPRECATED BACKUP
 
                 // $updateFormCutReject = FormCutReject::where("id", $validatedRequest["id"])->update([
                 //     "no_form" => $validatedRequest["no_form"],
@@ -432,7 +432,7 @@ class CuttingFormRejectController extends Controller
      */
     public function destroy(FormCutReject $formCutReject, $id)
     {
-        // Check Closing 
+        // Check Closing
         $dataCheckClosing = DB::table("form_cut_reject")->where("id", $id)->first();
         if (checkClosingDate($dataCheckClosing->tanggal)) {
             return array(

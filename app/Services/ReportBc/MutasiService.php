@@ -1425,25 +1425,20 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
-
-        dd([
-            'produksi' => $this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false),
-            'gudang'   => $this->getDataMutasiBarangJadiGudangNew($fromDate, $toDate, $kategoriBarang),
-        ]);
         $produksi = collect($this->getDataMutasiBarangJadiNew($fromDate, $toDate, $kategoriBarang, false))
             ->map(function ($row) {
                 return (object) [
                     'sumber'        => 'FG',
-                    'ws'            => $row->kpno,
-                    'styleno'       => $row->styleno,
-                    'color'         => $row->color,
-                    'size'          => $row->size,
+                    'ws'            => trim($row->kpno ?? ''),
+                    'styleno'       => trim($row->styleno ?? ''),
+                    'color'         => trim($row->color ?? ''),
+                    'size'          => trim($row->size ?? ''),
                     'product_group' => $row->product_group ?? '-',
                     'product_item'  => $row->product_item ?? '-',
-                    'saldoawal'     => $row->saldoawal,
-                    'qtyterima'     => $row->qtyterima,
-                    'qtykeluar'     => $row->qtykeluar,
-                    'saldoakhir'    => $row->saldoakhir,
+                    'saldoawal'     => (float) $row->saldoawal,
+                    'qtyterima'     => (float) $row->qtyterima,
+                    'qtykeluar'     => (float) $row->qtykeluar,
+                    'saldoakhir'    => (float) $row->saldoakhir,
                 ];
             });
 
@@ -1451,23 +1446,23 @@ class MutasiService
             ->map(function ($row) {
                 return (object) [
                     'sumber'        => 'FG WAREHOUSE',
-                    'ws'            => $row->ws,
-                    'styleno'       => $row->styleno,
-                    'color'         => $row->color,
-                    'size'          => $row->size,
-                    'product_group' => $row->product_group,
-                    'product_item'  => $row->product_item,
-                    'saldoawal'     => $row->saldoawal,
-                    'qtyterima'     => $row->qtyterima,
-                    'qtykeluar'     => $row->qtykeluar,
-                    'saldoakhir'    => $row->saldoakhir,
+                    'ws'            => trim($row->ws ?? ''),
+                    'styleno'       => trim($row->styleno ?? ''),
+                    'color'         => trim($row->color ?? ''),
+                    'size'          => trim($row->size ?? ''),
+                    'product_group' => $row->product_group ?? '-',
+                    'product_item'  => $row->product_item ?? '-',
+                    'saldoawal'     => (float) $row->saldoawal,
+                    'qtyterima'     => (float) $row->qtyterima,
+                    'qtykeluar'     => (float) $row->qtykeluar,
+                    'saldoakhir'    => (float) $row->saldoakhir,
                 ];
             });
 
         return $produksi->concat($gudang)
-            ->groupBy(fn ($row) => $row->ws . '|' . $row->styleno)
+            ->groupBy(fn ($row) => strtoupper($row->ws) . '|' . strtoupper($row->styleno))
             ->map(function ($rows) {
-                $first = $rows->first();
+                $first = $rows->firstWhere('sumber', 'FG WAREHOUSE') ?? $rows->first();
 
                 return (object) [
                     'ws'            => $first->ws,
@@ -1476,10 +1471,10 @@ class MutasiService
                     'size'          => $rows->pluck('size')->filter()->unique()->implode(', '),
                     'product_group' => $rows->pluck('product_group')->first(fn ($v) => $v && $v !== '-') ?? '-',
                     'product_item'  => $rows->pluck('product_item')->first(fn ($v) => $v && $v !== '-') ?? '-',
-                    'saldoawal'     => $rows->sum('saldoawal'),   // dijumlah dari kedua sumber
-                    'qtyterima'     => $rows->sum('qtyterima'),
-                    'qtykeluar'     => $rows->sum('qtykeluar'),
-                    'saldoakhir'    => $rows->sum('saldoakhir'),
+                    'saldoawal'     => $rows->max('saldoawal'),
+                    'qtyterima'     => $rows->max('qtyterima'),
+                    'qtykeluar'     => $rows->max('qtykeluar'),
+                    'saldoakhir'    => $rows->max('saldoakhir'),
                 ];
             })
             ->values();

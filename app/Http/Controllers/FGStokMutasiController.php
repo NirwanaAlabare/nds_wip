@@ -157,8 +157,8 @@ class FGStokMutasiController extends Controller
                 $txtid_so_det   = $id_so_detArray[$key];
                 $txtno_carton   = $no_cartonArray[$key];
                 $txtgrade       = $gradeArray[$key];
-                $source_table = $sourceTableArray[$key]; 
-                
+                $source_table = $sourceTableArray[$key];
+
                 $insert_mut =  DB::insert("
                 insert into fg_stok_mutasi_log(no_mut,tgl_mut,id_so_det,qty_mut,grade,lokasi_asal,no_carton_asal,lokasi_tujuan,no_carton_tujuan,cancel,created_by,created_at,updated_at)
                 values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$lokasi_asal','$txtno_carton','$lokasi_tuj','$no_carton_tuj','N','$user','$timestamp','$timestamp')");
@@ -268,6 +268,8 @@ class FGStokMutasiController extends Controller
 
             ) s
             INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
+            LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+            WHERE (act.close_order IS NULL OR act.close_order != 'Y')
             GROUP BY no_carton
             HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
         ");
@@ -362,6 +364,8 @@ class FGStokMutasiController extends Controller
                     GROUP BY no_carton, a.id_so_det, a.grade
                 ) s
                 INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
+                LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
+                WHERE (act.close_order IS NULL OR act.close_order != 'Y')
                 GROUP BY no_carton, s.id_so_det, s.grade
                 HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
             ");

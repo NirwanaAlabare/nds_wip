@@ -331,7 +331,7 @@ class PackingPackingOutController extends Controller
         $cbono_carton = $request->cbono_carton;
         $dest = $request->txtdest;
 
-        // STOK GUDANG (FGS) 
+        // STOK GUDANG (FGS)
         if ($po === 'GUDANG STOK') {
             return $this->showSummaryGudangStok($po, $dest, $cbono_carton);
         }
@@ -537,9 +537,12 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
 
         $data_po = DB::select("SELECT
             a.id_ppic_master_so isi,
-            concat(a.po, ' - ', a.dest, ' ( ', count(distinct(a.no_carton)), ' ) ') tampil
+            concat(a.po, ' - ', a.dest, ' ( ', count(distinct(a.no_carton)), ' ) ') tampil,
+            act.close_order
             from packing_master_packing_list a
             inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            LEFT JOIN master_sb_ws m on p.id_so_det = m.id_so_det
+            LEFT JOIN signalbit_erp.act_costing act on m.id_act_cost = act.id
             where p.tgl_shipment >= '$tgl_skrg_4_bln'
             group by a.po, a.dest
 
