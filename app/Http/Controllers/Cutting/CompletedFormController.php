@@ -12,6 +12,7 @@ use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\PenerimaanCutting;
 use App\Models\Part\Part;
 use App\Models\Part\PartForm;
 use App\Models\Auth\User;
@@ -340,6 +341,30 @@ class CompletedFormController extends Controller
                 'additional' => [],
             );
         }
+
+        // Check Penerimaan
+        // Current Form Detail
+        $detailBefore = FormCutInputDetail::selectRaw("form_cut_input_detail.*")
+            ->where('form_cut_id', $validatedRequest['id'])
+            ->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])
+            ->where('id', $validatedRequest['current_id'])
+            ->first();
+
+        if ($detailBefore && !empty($validatedRequest['current_id_roll']) && $detailBefore->id_roll != $validatedRequest['current_id_roll']) {
+            // FIX: Menggunakan key spesifik 'current_id_roll' dari array $validatedRequest
+            $checkPenerimaan = PenerimaanCutting::where("id_roll", $validatedRequest['current_id_roll'])->min("created_at");
+
+            if ($checkPenerimaan && $checkPenerimaan > $detailBefore->created_at) {
+                return [
+                    'status' => 400,
+                    'message' => "Roll ".$validatedRequest['current_id_roll']." belum ada penerimaan pada tanggal : ".$detailBefore->created_at."<br><br> Penerimaan pertama : ".$checkPenerimaan,
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                ];
+            }
+        }
+
         DB::beginTransaction();
 
         try {
