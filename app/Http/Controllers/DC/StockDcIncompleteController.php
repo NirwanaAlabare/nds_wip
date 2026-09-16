@@ -175,6 +175,10 @@ class StockDcIncompleteController extends Controller
                 stocker_input.shade DESC
         ");
 
+        if (count($stockDcIncomplete) == 0) {
+            return redirect()->route('stock-dc-incomplete')->with('error', 'Data tidak ditemukan.');
+        }
+
         return view('dc.stok-dc.stok-dc-incomplete.stok-dc-incomplete-detail', ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-incomplete", "stockDcIncomplete" => $stockDcIncomplete]);
     }
 
