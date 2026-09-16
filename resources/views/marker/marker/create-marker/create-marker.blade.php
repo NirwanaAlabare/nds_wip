@@ -38,8 +38,13 @@
                                 <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
                                     <option selected="selected" value="">Pilih WS</option>
                                     @foreach ($orders as $order)
-                                        <option value="{{ $order->id }}" {{ $order->close_order == 'Y' ? 'disabled' : '' }}>
-                                            {{ $order->kpno }} {{ $order->close_order == 'Y' ? ' (Close Order)' : '' }}
+                                        @php
+                                            $isClosed = $order->close_order == 'Y';
+                                        @endphp
+                                        <option value="{{ $order->id }}" 
+                                            {{ $isClosed ? 'disabled' : '' }}
+                                            style="{{ $isClosed ? 'color: #dc3545; font-weight: bold;' : '' }}">
+                                            {{ $order->kpno }}{{ $isClosed ? ' (Close Order)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>

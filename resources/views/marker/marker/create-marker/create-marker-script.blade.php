@@ -46,8 +46,29 @@
     // Initialize Select2BS4 Elements
     $('.select2bs4').select2({
         theme: 'bootstrap4',
-        containerCssClass: 'form-control-sm'
-    })
+        containerCssClass: 'form-control-sm',
+        templateResult: function (data) {
+            if (!data.id) return data.text;
+
+            var $element = $(data.element);
+            if ($element.is(':disabled')) {
+                return $(
+                    '<div style="' +
+                        'background-color: #f8d7da; ' +
+                        'color: #dc3545; ' +
+                        'font-weight: bold; ' +
+                        'margin: -6px -12px; ' +
+                        'padding: 6px 12px; ' +
+                        'border-radius: 2px;' +
+                    '">' + 
+                        data.text + 
+                    '</div>'
+                );
+            }
+
+            return data.text;
+        }
+    });
 
     // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )
     async function getTotalCutQty(wsId, color, panel) {
