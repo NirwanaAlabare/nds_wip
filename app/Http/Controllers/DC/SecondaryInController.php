@@ -1571,7 +1571,7 @@ class SecondaryInController extends Controller
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY LUAR' and
                                                     pds.urutan = '".$currentPartDetailSecondary->urutan."'
-                                                    (act.close_order is null or act.close_order != 'Y')
+                                                    and (act.close_order is null or act.close_order != 'Y')
                                             ");
 
                                             return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1727,7 +1727,7 @@ class SecondaryInController extends Controller
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
-                                                    pds.urutan = '".$multiSecondaryBefore->urutan."'
+                                                    pds.urutan = '".$multiSecondaryBefore->urutan."' and
                                                     (act.close_order is null or act.close_order != 'Y')
                                             ");
 
