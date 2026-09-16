@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-penerimaan-cutting');
         Route::post('/store', 'store')->name('store-penerimaan-cutting');
         Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
-        Route::post('/update', 'update')->name('update-penerimaan-cutting');
+        Route::put('/update', 'update')->name('update-penerimaan-cutting');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting')->middleware("role:superadmin");
         Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
         Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');

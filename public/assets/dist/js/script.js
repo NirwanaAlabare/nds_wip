@@ -317,7 +317,6 @@ function submitForm(e, evt) {
     evt.preventDefault();
 
     clearModified();
-
     $.ajax({
         url: e.getAttribute('action'),
         type: e.getAttribute('method'),
@@ -617,14 +616,24 @@ function submitForm(e, evt) {
                 )
             };
 
-            if (res.message && res.message.includes("Duplicate")) {
-                message += "Data sudah ada"
+            if (res.message) {
+                if (res.message.includes("Duplicate")) {
+                    message += "Data sudah ada";
+                } else {
+                    message += res.message;
+                }
             }
 
             iziToast.error({
                 title: 'Error',
                 message: (message ? message : "Terjadi Kesalahan."),
                 position: 'topCenter'
+            });
+
+            Swal.fire({
+                icon: 'error',
+                title: "Gagal",
+                html: message,
             });
         }
     });
