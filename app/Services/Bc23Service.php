@@ -598,7 +598,7 @@ class Bc23Service
 
                     $data_kantor = $db->table('master_kantor')
                                     ->where('kode', $draft['kodeKantor'])
-                                    ->get();
+                                    ->get()->first();
 
                     //kode kantor bandung
                     $kantor = 60; 

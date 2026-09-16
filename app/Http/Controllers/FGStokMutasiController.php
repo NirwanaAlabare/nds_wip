@@ -269,7 +269,6 @@ class FGStokMutasiController extends Controller
             ) s
             INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
             LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
-            WHERE (act.close_order IS NULL OR act.close_order != 'Y')
             GROUP BY no_carton
             HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
         ");
@@ -365,7 +364,6 @@ class FGStokMutasiController extends Controller
                 ) s
                 INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
                 LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
-                WHERE (act.close_order IS NULL OR act.close_order != 'Y')
                 GROUP BY no_carton, s.id_so_det, s.grade
                 HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
             ");
