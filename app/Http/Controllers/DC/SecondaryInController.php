@@ -1093,9 +1093,16 @@ class SecondaryInController extends Controller
 
     public function cek_data_stocker_in(Request $request)
     {
-        $stocker = Stocker::where('id_qr_stocker', $request->txtqrstocker)->first();
+        $stocker = Stocker::where('id_qr_stocker', $request->txtqrstocker)->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+            first();
 
         if ($stocker) {
+            // Check Close Order
+            if (checkCloseOrder($stocker->id_act_cost)) {
+                return "WS '".$stocker->ws."' sudah close order.";
+            }
+
             // Check Part Detail
             $partDetail = $stocker->partDetail;
             if ($partDetail) {

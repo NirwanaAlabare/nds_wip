@@ -759,6 +759,7 @@ class DCInController extends Controller
     {
         $data_header = DB::select("
             SELECT
+                msb.id_act_cost act_costing_id,
                 COALESCE(msb.ws, a.act_costing_ws) act_costing_ws,
                 COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
                 COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
@@ -798,6 +799,16 @@ class DCInController extends Controller
             GROUP BY
                 a.id
         ");
+
+        if ($data_header && $data_header[0]) {
+            // Check Close Order
+            if (checkCloseOrder($data_header[0]->act_costing_id)) {
+                return array(
+                    "status" => 400,
+                    "message" => "WS '".$data_header[0]->act_costing_ws."' sudah close order."
+                );
+            }
+        }
 
         return json_encode($data_header ? $data_header[0] : null);
     }
