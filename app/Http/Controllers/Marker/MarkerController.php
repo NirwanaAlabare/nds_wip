@@ -163,8 +163,7 @@ class MarkerController extends Controller
         }
 
 
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('act_costing.id', 'act_costing.kpno')->leftJoin("so", "so.id_cost", "=", "act_costing.id")->leftJoin("so_det", "so_det.id_so", "=", "so.id")->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('so_det.qty', '>', 0)->where('act_costing.close_order', 'N')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->havingRaw("SUM(so_det.qty) > 0")->get();
-
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('act_costing.id', 'act_costing.kpno', 'act_costing.close_order')->leftJoin("so", "so.id_cost", "=", "act_costing.id")->leftJoin("so_det", "so_det.id_so", "=", "so.id")->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('so_det.qty', '>', 0)->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->havingRaw("SUM(so_det.qty) > 0")->get();
         return view('marker.marker.create-marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 

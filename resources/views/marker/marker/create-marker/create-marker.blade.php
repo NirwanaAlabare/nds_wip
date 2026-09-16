@@ -38,8 +38,8 @@
                                 <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
                                     <option selected="selected" value="">Pilih WS</option>
                                     @foreach ($orders as $order)
-                                        <option value="{{ $order->id }}">
-                                            {{ $order->kpno }}
+                                        <option value="{{ $order->id }}" {{ $order->close_order == 'Y' ? 'disabled' : '' }}>
+                                            {{ $order->kpno }} {{ $order->close_order == 'Y' ? ' (Close Order)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
