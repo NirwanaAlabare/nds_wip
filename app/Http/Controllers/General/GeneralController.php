@@ -22,6 +22,7 @@ use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\PenerimaanCutting;
 use App\Models\Stocker\Stocker;
 use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\MasterPlan;
@@ -983,6 +984,21 @@ class GeneralController extends Controller
             $currentFormCutDetail = FormCutInputDetail::where("id", $request->form_cut_detail_id)->first();
 
             if ($currentFormCutDetail) {
+                if (!empty($id) && $currentFormCutDetail->id_roll != $id) {
+                    // FIX: Menggunakan key spesifik 'current_id_roll' dari array $validatedRequest
+                    $checkPenerimaan = PenerimaanCutting::where("id_roll", $id)->min("created_at");
+
+                    if ($checkPenerimaan && $checkPenerimaan > $currentFormCutDetail->created_at) {
+                        return [
+                            'status' => 400,
+                            'message' => "Roll ".$id." belum ada penerimaan pada : ".$currentFormCutDetail->created_at."<br><br> Penerimaan pertama : ".$checkPenerimaan,
+                            'redirect' => '',
+                            'table' => 'datatable',
+                            'additional' => [],
+                        ];
+                    }
+                }
+
                 $beforeFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', "<", $currentFormCutDetail->created_at)->orderBy("created_at", "desc")->first();
                 $afterFormCutDetail = FormCutInputDetail::where("id_roll", $id)->where('created_at', ">", $currentFormCutDetail->created_at)->orderBy("created_at", "asc")->first();
 
@@ -1006,14 +1022,16 @@ class GeneralController extends Controller
                     $currentQty += $penerimaan;
                 }
 
-                $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                $returQuery = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
                     select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
                     leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                     where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                     where("supplier", "LIKE", "Production - Cutting")->
-                    where("whs_lokasi_inmaterial.no_barcode", $detail->id_roll)->
-                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($beforeFormCutDetail->created_at)))->
-                    where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentFormCutDetail->created_at)))->
+                    where("whs_lokasi_inmaterial.no_barcode", $currentFormCutDetail->id_roll);
+                    if ($beforeFormCutDetail) {
+                        $returQuery->where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($beforeFormCutDetail->created_at)));
+                    }
+                $retur = $returQuery->where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentFormCutDetail->created_at)))->
                     get();
 
                 $currentScannedItem = ScannedItem::selectRaw("

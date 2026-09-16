@@ -759,7 +759,7 @@ class Bc261Service
 
                 $data_kantor = $db->table('master_kantor')
                                 ->where('kode', $draft['kodeKantor'])
-                                ->get();
+                                ->get()->first();
 
                 //kode kantor bandung
                 $kantor = 60; 
@@ -1616,7 +1616,7 @@ class Bc261Service
 
                     $data_kantor = $db->table('master_kantor')
                                     ->where('kode', $draft['kodeKantor'])
-                                    ->get();
+                                    ->get()->first();
 
                     //kode kantor bandung
                     $kantor = 60; 

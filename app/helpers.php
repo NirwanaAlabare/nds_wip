@@ -210,3 +210,11 @@ function periodeClosing()
         ? Carbon::parse($lastClosing)->translatedFormat('d F Y')
         : '-';
 }
+
+function checkCloseOrder($id)
+{
+    return DB::connection("mysql_sb")->table('act_costing')
+        ->where('id', $id)
+        ->where('close_order', 'Y')
+        ->exists();
+}
