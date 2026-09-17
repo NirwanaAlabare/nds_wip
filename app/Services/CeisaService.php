@@ -86,6 +86,7 @@ class CeisaService
         }
     }
 
+
     public function getToken($forceRefresh = false)
     {
         $cacheKey = "ceisa_access_token_{$this->currentEnv}_" . md5($this->username . $this->password);
@@ -93,7 +94,7 @@ class CeisaService
         if ($forceRefresh) {
             Cache::forget($cacheKey);
         }
-
+        dd($this->username, $this->password, $cacheKey);
         return Cache::remember($cacheKey, 3500, function () {
             $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
                 'username' => $this->username,
