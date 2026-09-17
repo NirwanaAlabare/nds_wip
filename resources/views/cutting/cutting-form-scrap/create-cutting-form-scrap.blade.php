@@ -328,8 +328,8 @@
                             'margin: -6px -12px; ' +
                             'padding: 6px 12px; ' +
                             'border-radius: 2px;' +
-                        '">' + 
-                            data.text + 
+                        '">' +
+                            data.text +
                         '</div>'
                     );
                 }
@@ -356,24 +356,18 @@
         $('#act_costing_id').on('change', function() {
             $('#act_costing_ws').val($('#act_costing_id option:selected').text());
 
-            if (this.value) {
-                updateOrderInfo();
-                updateColorList();
-            }
+            updateOrderInfo();
+            updateColorList();
         });
 
         $('#color').on('change', function() {
-            if (this.value) {
-                updatePanelList();
-                updateSizeList();
-            }
+            updatePanelList();
+            updateSizeList();
         });
 
         $('#panel').on('change', function() {
-            if (this.value) {
-                updatePartList();
-                updateItemList();
-            }
+            updatePartList();
+            updateItemList();
         });
 
         $('#id_item').on('change', function() {
@@ -397,7 +391,7 @@
                 select.appendChild(option);
             });
 
-            $('#' + id).val(null).trigger('change.select2');
+            $('#' + id).val(null).trigger('change');
         }
 
         function updateOrderInfo() {
