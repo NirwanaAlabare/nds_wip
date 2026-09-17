@@ -98,6 +98,26 @@ class CuttingToolsController extends Controller
                 $message = 'Data dengan ID ' . $modelId . ' berhasil dikembalikan ke kondisi sebelum diupdate (dari log #' . $log->id . ').';
             }
 
+            if (in_array($modelClass, ["App\Models\Cutting\FormCutInputDetail", "App\Models\Cutting\Piping", "App\Models\Cutting\FormCutAlokasiGantiRejectPanel"])) {
+                $model = $modelClass::find($log->subject_id);
+
+                $column = "id_roll";
+                switch ($modelClass) {
+                    case "App\Models\Cutting\FormCutInputDetail":
+                        $column = "id_roll";
+                        break;
+                    case "App\Models\Cutting\Piping":
+                        $column = "id_roll";
+                        break;
+                    case "App\Models\Cutting\FormCutAlokasiGantiRejectPanel":
+                        $column = "barcode";
+                        break;
+                }
+
+                $cuttingService = new CuttingService();
+                $cuttingService->fixChainedQty($model[$column], null);
+            }
+
             return response()->json(['message' => $message]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);

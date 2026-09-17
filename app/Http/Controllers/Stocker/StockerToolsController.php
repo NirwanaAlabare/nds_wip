@@ -441,32 +441,31 @@ class StockerToolsController extends Controller
 
     public function importStockerManual(Request $request)
     {
-        // validasi
         $this->validate($request, [
             'file' => 'required|mimes:csv,xls,xlsx'
         ]);
 
         $file = $request->file('file');
+        $nama_file = rand() . $file->getClientOriginalName();
+        $file->move('file_upload', $nama_file);
 
-        $nama_file = rand().$file->getClientOriginalName();
+        try {
+            DB::transaction(function () use ($nama_file) {
+                Excel::import(new ImportStockerManual, public_path('/file_upload/' . $nama_file));
+            });
 
-        $file->move('file_upload',$nama_file);
-
-        $import = Excel::import(new ImportStockerManual, public_path('/file_upload/'.$nama_file));
-
-        if ($import) {
-            return array(
+            return [
                 "status" => 200,
                 "message" => 'Data Berhasil Di Upload',
                 "additional" => [],
-            );
+            ];
+        } catch (\Throwable $e) {
+            return [
+                "status" => 400,
+                "message" => 'Terjadi Kesalahan',
+                "additional" => [],
+            ];
         }
-
-        return array(
-            "status" => 400,
-            "message" => 'Terjadi Kesalahan',
-            "additional" => [],
-        );
     }
 
     function rearrangeGroups(Request $request) {

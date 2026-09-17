@@ -166,7 +166,7 @@ class CuttingService
                         $formCutDetail->sambungan = $sambungan;
                         $formCutDetail->sisa_kain = $sisaKain;
                         $formCutDetail->short_roll = $shortRoll;
-                        \Log::info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty, currentSambungan : $currentSambungan");
+                        Log::channel("fixChainedQty")->info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty, currentSambungan : $currentSambungan");
                         $formCutDetail->save();
 
                         $totalLembar += $formCutDetail->lembar_gelaran;
@@ -893,10 +893,51 @@ class CuttingService
             return false;
         }
 
-        $formCutDetail = FormCutInputDetail::where("id_roll", $idRoll)->orderBy("created_at", "asc")->get();
+        $formCutDetail = FormCutInputDetail::selectRaw("
+                id,
+                id_roll,
+                ROUND(qty, 2) qty,
+                ROUND(
+                    CASE
+                        WHEN status IN ('extension','extension complete')
+                            THEN qty - total_pemakaian_roll
+                        ELSE sisa_kain
+                    END,
+                    2
+                ) AS sisa_kain,
+                COALESCE(created_at, updated_at) created_at,
+                'form_cut_input_detail' AS type
+            ")
+            ->where('id_roll', $idRoll);
 
-        if ($formCutDetail && $formCutDetail->count() > 0) {
+        $piping = Piping::selectRaw("
+                id,
+                id_roll,
+                ROUND(qty, 2) AS qty,
+                ROUND(qty_sisa, 2) AS sisa_kain,
+                created_at,
+                'form_cut_piping' AS type
+            ")
+            ->where('id_roll', $idRoll);
 
+        $formCutAlokasiGantiRejectPanel = FormCutAlokasiGantiRejectPanel::selectRaw("
+                id,
+                barcode AS id_roll,
+                ROUND(qty_roll, 2) AS qty,
+                ROUND(sisa_kain, 2) AS sisa_kain,
+                created_at,
+                'form_cut_alokasi_gr_panel_barcode' AS type
+            ")
+            ->where('barcode', $idRoll);
+
+        // Gabungkan query dengan union (atau unionAll) dan tambahkan orderBy di akhir
+        $pemakaian = $formCutDetail
+            ->union($piping)
+            ->union($formCutAlokasiGantiRejectPanel)
+            ->orderBy('created_at') // Menggunakan alias 'ts' (atau 'created_at' jika subquery disamakan nama aliasnya)
+            ->get();
+
+        if ($pemakaian && $pemakaian->count() > 0) {
             // Check first Qty
             if ($firstId) {
                 $firstFormCutDetail = FormCutInputDetail::where("id_roll", $idRoll)->where("id", $firstId)->first();
@@ -905,14 +946,13 @@ class CuttingService
                     $firstFormCutDetail = DB::table("form_cut_input_detail_delete")->where("old_id", $firstId)->first();
                 }
             } else {
-                $firstFormCutDetail = $formCutDetail->first();
+                $firstFormCutDetail = $pemakaian->first();
             }
 
             $currentPenerimaan = [];
             $currentQty = null;
             $createdBefore = null;
-            foreach ($formCutDetail as $index => $detail) {
-
+            foreach ($pemakaian as $index => $detail) {
                 // Check Penerimaan
                 $penerimaan = null;
                 if ($index == 0) {
@@ -920,6 +960,11 @@ class CuttingService
 
                     if ($penerimaan->count() < 1) {
                         $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();
+                    }
+
+                    // when there is no penerimaan on first roll
+                    if ($penerimaan->count() < 1) {
+                        $currentQty = $firstFormCutDetail ? $firstFormCutDetail->qty : null;
                     }
                 } else {
                     $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
@@ -951,89 +996,92 @@ class CuttingService
                     }
                 }
 
-                $formCut = $detail->formCutInput;
+                if ($detail->type == "form_cut_input_detail") {
+                    // Ganti where()->first() menjadi find()
+                    $currentDetail = FormCutInputDetail::find($detail->id);
+                    if (!$currentDetail) {
+                        continue;
+                    }
 
-                if (!$formCut)  {
-                    return "Form tidak ditemukan";
-                }
+                    $formCut = $currentDetail->formCutInput;
+                    if (!$formCut) {
+                        continue;
+                    }
 
-                $detail->qty = $currentQty + $qtyPenerimaan - $qtyRetur;
+                    $currentDetail->qty = $currentQty + $qtyPenerimaan - $qtyRetur;
 
-                // Recalculate :
-                    // Sambungan Roll
-                    // $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
-                    $sambunganRoll = $detail->sambungan_roll;
-
-                    // Check Qty
-                    $qty = $detail->qty;
+                    // Recalculate :
+                    $sambunganRoll = $currentDetail->sambungan_roll;
+                    $qty = $currentDetail->qty;
 
                     // Panjang Act
-                    $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
-
-                    if ($detail->berat_amparan > 0) {
-                        $pAct = $detail->berat_amparan;
+                    $pAct = $formCut->p_act + ($formCut->comma_p_act / 100);
+                    if ($currentDetail->berat_amparan > 0) {
+                        $pAct = $currentDetail->berat_amparan;
                     }
 
                     // Normal
-                    if ($detail->sambungan == 0) {
-                        // Sambungan
+                    if ($currentDetail->sambungan == 0) {
                         $sambungan = 0;
-
-                        // Est. Ampar
                         $estAmpar = $pAct > 0 ? $qty / $pAct : 0;
+                        $pemakaianLembar = ($pAct * $currentDetail->lembar_gelaran) + $sambunganRoll + $currentDetail->sisa_gelaran;
+                        $totalPemakaian = (($pAct * $currentDetail->lembar_gelaran) + $currentDetail->sisa_gelaran + $currentDetail->kepala_kain + $currentDetail->sisa_tidak_bisa + $currentDetail->reject + $currentDetail->piping + $sambunganRoll);
+                        $shortRoll = (($pAct * $currentDetail->lembar_gelaran) + $currentDetail->sambungan + $currentDetail->sisa_gelaran + $currentDetail->kepala_kain + $currentDetail->sisa_tidak_bisa + $currentDetail->reject + $currentDetail->piping + $currentDetail->sisa_kain + $sambunganRoll) - $qty;
+                        $sisaKain = $currentDetail->sisa_kain;
 
-                        // Pemakaian Lembar
-                        $pemakaianLembar = ($pAct * $detail->lembar_gelaran) + $sambunganRoll + $detail->sisa_gelaran;
-
-                        // Total Pemakaian
-                        $totalPemakaian = (($pAct * $detail->lembar_gelaran) + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $sambunganRoll);
-
-                        // Short Roll
-                        $shortRoll = (($pAct * $detail->lembar_gelaran) + $detail->sambungan + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $detail->sisa_kain + $sambunganRoll) - $qty;
-
-                        // Sisa Kain
-                        $sisaKain = $detail->sisa_kain;
-
-                        // Reset Qty
                         $currentQty = $sisaKain;
-                        $currentIdRoll = $detail->id_roll;
-                    // Sambungan
-                    } else {
-                        // Sambungan
-                        $sambungan = $detail->sambungan;
-
-                        // Est. Ampar
-                        $estAmpar = $qty / $pAct;
-
-                        // Pemakaian Lembar
-                        $pemakaianLembar = ($sambungan * $detail->lembar_gelaran) + $sambunganRoll + $detail->sisa_gelaran;
-
-                        // Total Pemakaian
-                        $totalPemakaian = (($sambungan * $detail->lembar_gelaran) + $detail->sisa_gelaran + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping + $sambunganRoll);
-
-                        // Short Roll
+                        $currentIdRoll = $currentDetail->id_roll;
+                    } else { // Sambungan
+                        $sambungan = $currentDetail->sambungan;
+                        $estAmpar = $pAct > 0 ? $qty / $pAct : 0; // Proteksi division by zero
+                        $pemakaianLembar = ($sambungan * $currentDetail->lembar_gelaran) + $sambunganRoll + $currentDetail->sisa_gelaran;
+                        $totalPemakaian = (($sambungan * $currentDetail->lembar_gelaran) + $currentDetail->sisa_gelaran + $currentDetail->kepala_kain + $currentDetail->sisa_tidak_bisa + $currentDetail->reject + $currentDetail->piping + $sambunganRoll);
                         $shortRoll = 0;
-
-                        // Sisa Kain
                         $sisaKain = 0;
-
                         $currentStatus = 'extension complete';
 
-                        // Reset Qty
-                        $currentQty = $qty - (($sambungan * $detail->lembar_gelaran) + $detail->kepala_kain + $detail->sisa_tidak_bisa + $detail->reject + $detail->piping);
-                        $currentIdRoll = $detail->id_roll;
+                        $currentQty = $qty - (($sambungan * $currentDetail->lembar_gelaran) + $currentDetail->kepala_kain + $currentDetail->sisa_tidak_bisa + $currentDetail->reject + $currentDetail->piping);
+                        $currentIdRoll = $currentDetail->id_roll;
                     }
 
                     // Save Detail
-                    $detail->est_amparan = $estAmpar;
-                    $detail->pemakaian_lembar = $pemakaianLembar;
-                    $detail->total_pemakaian_roll = $totalPemakaian;
-                    $detail->sambungan = $sambungan;
-                    $detail->sisa_kain = $sisaKain;
-                    $detail->short_roll = $shortRoll;
-                    \Log::info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                    $detail->save();
-                // End of Recalculate
+                    $currentDetail->est_amparan = round($estAmpar, 2);
+                    $currentDetail->pemakaian_lembar = round($pemakaianLembar, 2);
+                    $currentDetail->total_pemakaian_roll = round($totalPemakaian, 2);
+                    $currentDetail->sambungan = round($sambungan, 2);
+                    $currentDetail->sisa_kain = round($sisaKain, 2);
+                    $currentDetail->short_roll = round($shortRoll, 2);
+                    Log::channel("fixChainedQty")->info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
+                    $currentDetail->save();
+                }
+
+                if ($detail->type == "form_cut_piping") {
+                    // Ganti find()
+                    $currentDetail = Piping::find($detail->id);
+                    if ($currentDetail) {
+                        $currentDetail->qty = $currentQty + $qtyPenerimaan - $qtyRetur;
+                        $currentDetail->short_roll = $currentDetail->qty - $currentDetail->piping + $currentDetail->qty_sisa;
+
+                        $currentQty = $currentDetail->qty_sisa;
+                        $currentIdRoll = $currentDetail->id_roll;
+                        Log::channel("fixChainedQty")->info("Detail Value = piping : {$currentDetail->piping}, sisakain : {$currentDetail->qty_sisa}, shortroll : {$currentDetail->short_roll}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
+                        $currentDetail->save();
+                    }
+                }
+
+                if ($detail->type == "form_cut_alokasi_gr_panel_barcode") {
+                    // Ganti find()
+                    $currentDetail = FormCutAlokasiGantiRejectPanel::find($detail->id);
+                    if ($currentDetail) {
+                        $currentDetail->qty_roll = $currentQty + $qtyPenerimaan - $qtyRetur;
+                        $currentDetail->sisa_kain = $currentDetail->qty_roll - $currentDetail->qty_pakai;
+
+                        $currentQty = $currentDetail->sisa_kain;
+                        $currentIdRoll = $currentDetail->id_roll;
+                        Log::channel("fixChainedQty")->info("Detail Value = reject : {$currentDetail->qty_pakai}, sisakain : {$currentDetail->sisa_kain}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
+                        $currentDetail->save();
+                    }
+                }
 
                 $createdBefore = $detail->created_at;
             }
@@ -1493,5 +1541,60 @@ class CuttingService
 
             return ['status' => 400, 'message' => $th->getMessage()];
         }
+    }
+
+    public function takeSimilarFormCutDetailBef($idRoll, $createdAt) {
+        if (!$idRoll || !$createdAt) {
+            return "Parameter tidak valid";
+        }
+
+        $formCutDetailUsage = FormCutInputDetail::selectRaw("
+                id,
+                id_roll,
+                ROUND(qty, 2) qty,
+                ROUND(
+                    CASE
+                        WHEN status IN ('extension','extension complete')
+                            THEN qty - total_pemakaian_roll
+                        ELSE sisa_kain
+                    END,
+                    2
+                ) AS sisa_kain,
+                COALESCE(created_at, updated_at) created_at,
+                'form_cut_input_detail' AS type
+            ")
+            ->where('id_roll', $idRoll)
+            ->where('created_at', '<', $createdAt);
+
+        $piping = Piping::selectRaw("
+                id,
+                id_roll,
+                ROUND(qty, 2) AS qty,
+                ROUND(qty_sisa, 2) AS sisa_kain,
+                created_at,
+                'form_cut_piping' AS type
+            ")
+            ->where('id_roll', $idRoll)
+            ->where('created_at', '<', $createdAt);
+
+        $formCutAlokasiGantiRejectPanel = FormCutAlokasiGantiRejectPanel::selectRaw("
+                id,
+                barcode AS id_roll,
+                ROUND(qty_roll, 2) AS qty,
+                ROUND(sisa_kain, 2) AS sisa_kain,
+                created_at,
+                'form_cut_alokasi_gr_panel_barcode' AS type
+            ")
+            ->where('barcode', $idRoll)
+            ->where('created_at', '<', $createdAt);
+
+        // Gabungkan query dengan union (atau unionAll) dan tambahkan orderBy di akhir
+        $similarFormCutDetailBef = $formCutDetailUsage
+            ->union($piping)
+            ->union($formCutAlokasiGantiRejectPanel)
+            ->orderBy('created_at')
+            ->first();
+
+        return $similarFormCutDetailBef;
     }
 }

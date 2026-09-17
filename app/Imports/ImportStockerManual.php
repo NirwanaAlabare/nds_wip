@@ -327,9 +327,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
                             $createdWipOutId = DB::table('wip_out')->insertGetId([
                                 'no_form' => $noForm,
                                 'tgl_form' => $formattedDateWipOut,
-                                'ket' => "STOCKER INJECT",
+                                'ket' => $stockerNotes ?? "STOCKER INJECT",
                                 'created_by' => Auth::user()->id,
-                                'created_at' => Carbon::now(),
+                                'created_at' => Carbon::instance(dateConvert($tanggalStocker))->format('Y-m-d')." 01:00:00",
                                 'updated_at' => Carbon::now()
                             ]);
 
@@ -339,6 +339,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                     'id_wip_out' => $createdWipOutId,
                                     'id_qr_stocker' => $stockerId,
                                     'qty' => $wipOutQty,
+                                    'created_at' => Carbon::instance(dateConvert($tanggalStocker))->format('Y-m-d')." 01:00:00",
+                                    'updated_at' => Carbon::now(),
                                 ]);
 
                                 \Log::channel("importStockerManual")->info(["Success Create WIP OUT ROW :".$i, $createStocker]);

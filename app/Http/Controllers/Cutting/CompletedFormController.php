@@ -11,6 +11,8 @@ use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
+use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
+use App\Models\Cutting\Piping;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\PenerimaanCutting;
 use App\Models\Part\Part;
@@ -580,9 +582,9 @@ class CompletedFormController extends Controller
                 }
             }
 
-            // Fix Chained Qty
+            // Check if first usage
             $firstId = null;
-            $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $detail->form_cut_id)->where("created_at", "<", $detail->created_at)->first();
+            $similarFormCutDetailBef = $cuttingService->takeSimilarFormCutDetailBef($formCutDetail->id_roll, $formCutDetail->created_at);
             if (!$similarFormCutDetailBef) {
                 $firstId = $formCutDetail->id;
             }
@@ -613,10 +615,11 @@ class CompletedFormController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return array(
+            return response()->json([
                 "status" => 400,
                 "message" => $e->getMessage(),
-            );
+                "details" => $e
+            ], 400);
         }
     }
 
@@ -1009,7 +1012,7 @@ class CompletedFormController extends Controller
 
                 // Check if first usage
                 $firstId = null;
-                $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where("created_at", "<", $formCutDetail->created_at)->first();
+                $similarFormCutDetailBef = $cuttingService->takeSimilarFormCutDetailBef($formCutDetail->id_roll, $formCutDetail->created_at);
                 if (!$similarFormCutDetailBef) {
                     $firstId = $formCutDetail->id;
                 }
@@ -1125,10 +1128,11 @@ class CompletedFormController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return array(
+            return response()->json([
                 "status" => 400,
-                "message" => $e->getMessage()
-            );
+                "message" => $e->getMessage(),
+                "details" => $e
+            ], 400);
         }
 
         return array(
