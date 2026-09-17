@@ -37,14 +37,34 @@ class AssetMesinMutasiController extends Controller
     // ---- Dashboard ----
     // Halaman utama mutasi: ringkasan sebaran mesin per lokasi, dikelompokkan per main lokasi.
     // Inputannya sendiri ada di halaman terpisah (tombol "Mutasi Baru").
+    // Halaman bisa dibuka dari menu Asset Management atau dari tile home.
+    // Dari tile home, $page dibuat tidak dikenal navbar sehingga yang tampil cuma logo + home,
+    // dan link antar halaman (dashboard <-> create) tetap di jalur yang sama.
+    private function navHalaman(): array
+    {
+        if (request()->routeIs('mutasi_mesin', 'create_mutasi_mesin')) {
+            return [
+                'page' => 'mutasi-mesin',
+                'brandRoute' => 'mutasi_mesin',
+                'routeDashboard' => 'mutasi_mesin',
+                'routeCreate' => 'create_mutasi_mesin',
+            ];
+        }
+
+        return [
+            'page' => 'dashboard-asset',
+            'subPageGroup' => 'asset-mesin',
+            'subPage' => 'asset_mesin_mutasi',
+            'routeDashboard' => 'asset_mesin_mutasi',
+            'routeCreate' => 'create_asset_mesin_mutasi',
+        ];
+    }
+
     public function asset_mesin_mutasi()
     {
         $sebaran = $this->getSebaranPerLokasi();
 
-        return view('asset_management.mutasi_mesin', [
-            'page' => 'dashboard-asset',
-            'subPageGroup' => 'asset-mesin',
-            'subPage' => 'asset_mesin_mutasi',
+        return view('asset_management.mutasi_mesin', $this->navHalaman() + [
             'containerFluid' => true,
             'ringkasan' => $this->getRingkasan($sebaran),
             'grupLokasi' => $this->groupPerMainLokasi($sebaran),
@@ -350,10 +370,7 @@ class AssetMesinMutasiController extends Controller
     // terutama saat dipakai di HP.
     public function create_asset_mesin_mutasi()
     {
-        return view('asset_management.create_mutasi_mesin', [
-            'page' => 'dashboard-asset',
-            'subPageGroup' => 'asset-mesin',
-            'subPage' => 'asset_mesin_mutasi',
+        return view('asset_management.create_mutasi_mesin', $this->navHalaman() + [
             'containerFluid' => true,
             'lokasiList' => $this->getLokasiList(),
         ]);

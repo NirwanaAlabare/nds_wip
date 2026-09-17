@@ -391,12 +391,140 @@
                 padding-right: 16px;
             }
         }
+
+        /* ---- Tampilan HP (di bawah 768px) ---- */
+        @media (max-width: 767.98px) {
+            .kartu .card-body {
+                padding: .75rem;
+            }
+
+            /* Tabel mesin di lokasi: tiap baris jadi satu kartu, tidak perlu geser ke samping.
+               Scroll tabel DataTables dimatikan untuk HP (lihat isHp di script). */
+            #tabelMesin,
+            #tabelMesin tbody {
+                display: block;
+                width: 100% !important;
+                border: 0;
+            }
+
+            #tabelMesin thead {
+                display: none;
+            }
+
+            #tabelMesin tbody tr {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: .4rem .75rem;
+                margin-bottom: .6rem;
+                padding: .7rem .8rem;
+                background: #fff;
+                border: 1px solid #e9ecef;
+                border-left: 4px solid #082149;
+                border-radius: 10px;
+                box-shadow: 0 1px 2px rgba(8, 33, 73, .05);
+            }
+
+            #tabelMesin tbody tr:hover td {
+                background: transparent;
+            }
+
+            #tabelMesin tbody td {
+                display: block;
+                padding: 0;
+                border: 0;
+                white-space: normal;
+                word-break: break-word;
+                text-align: left !important;
+                font-size: .85rem;
+            }
+
+            /* Label kecil di atas nilai */
+            #tabelMesin tbody td.kolom-merk::before,
+            #tabelMesin tbody td.kolom-tipe::before,
+            #tabelMesin tbody td.kolom-sn::before {
+                display: block;
+                font-size: .68rem;
+                font-weight: 400;
+                color: #6c757d;
+                text-transform: uppercase;
+                letter-spacing: .3px;
+            }
+
+            #tabelMesin tbody td.kolom-merk::before { content: 'Merk'; }
+            #tabelMesin tbody td.kolom-tipe::before { content: 'Tipe'; }
+            #tabelMesin tbody td.kolom-sn::before { content: 'Serial Number'; }
+
+            /* Urutan isi kartu: QR | Status, Jenis, Merk | Tipe, SN | Sumber */
+            #tabelMesin tbody td.kolom-qr { order: 1; font-size: .95rem; }
+            #tabelMesin tbody td.kolom-status { order: 2; text-align: right !important; }
+            #tabelMesin tbody td.kolom-jenis {
+                order: 3;
+                grid-column: 1 / -1;
+                font-weight: 600;
+                padding-bottom: .35rem;
+                border-bottom: 1px dashed #e9ecef;
+            }
+            #tabelMesin tbody td.kolom-merk { order: 4; }
+            #tabelMesin tbody td.kolom-tipe { order: 5; }
+            #tabelMesin tbody td.kolom-sn { order: 6; }
+            #tabelMesin tbody td.kolom-sumber {
+                order: 7;
+                align-self: end;
+                text-align: right !important;
+            }
+
+            #tabelMesin tbody td.dataTables_empty {
+                grid-column: 1 / -1;
+                text-align: center !important;
+                color: #adb5bd;
+            }
+
+            /* Kotak cari DataTables selebar layar */
+            #isiMesin .dataTables_filter {
+                text-align: left;
+                margin-bottom: .5rem;
+            }
+
+            #isiMesin .dataTables_filter label {
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+                width: 100%;
+                margin: 0;
+            }
+
+            #isiMesin .dataTables_filter input {
+                flex: 1 1 auto;
+                width: auto;
+                margin-left: 0 !important;
+            }
+
+            /* History: nama mesin turun ke baris sendiri supaya tidak terpotong habis */
+            .history-item .baris1 {
+                flex-wrap: wrap;
+                row-gap: 0;
+            }
+
+            .history-item .waktu {
+                margin-left: auto;
+            }
+
+            .history-item .mesin {
+                order: 3;
+                flex-basis: 100%;
+                white-space: normal;
+            }
+
+            .history-item .baris2 {
+                line-height: 1.5;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
     <div class="d-flex justify-content-end mb-2">
-        <a href="{{ route('asset_mesin_mutasi') }}" class="btn btn-secondary btn-sm">
+        <a href="{{ route($routeDashboard) }}" class="btn btn-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
     </div>
@@ -708,6 +836,10 @@
         // Catatan: jangan pakai variabel datatable di dalam callback DataTables (drawCallback dsb),
         // karena callback-nya jalan saat konstruktor masih berjalan & variabelnya belum ter-assign.
         // Pakai this.api() seperti di bawah.
+        // Di HP baris tabel tampil sebagai kartu (lihat CSS), jadi scroll & header DataTables
+        // tidak dipakai; kartunya cukup ikut scroll halaman.
+        var isHp = window.matchMedia('(max-width: 767.98px)').matches;
+
         var tabelMesin = $('#tabelMesin').DataTable({
             ordering: false,
             processing: true,
@@ -718,9 +850,9 @@
             paging: false,
             lengthChange: false,
             info: false,
-            scrollY: '420px',
-            scrollX: true,
-            scrollCollapse: true,
+            scrollY: isHp ? '' : '420px',
+            scrollX: !isHp,
+            scrollCollapse: !isHp,
             // Tabelnya baru berarti setelah ada lokasi yang dipilih
             deferLoading: 0,
             ajax: {
@@ -730,13 +862,14 @@
                 }
             },
             columns: [
-                { data: 'kode_qr', defaultContent: '-' }, // Kode QR
-                { data: 'sumber', className: 'text-center', defaultContent: '-', render: badgeSumber }, // Sumber
-                { data: 'nm_jenis', defaultContent: '-' }, // Jenis
-                { data: 'nm_merk', defaultContent: '-' }, // Merk
-                { data: 'tipe', defaultContent: '-' }, // Tipe
-                { data: 'serial_number', defaultContent: '-' }, // Serial Number
-                { data: 'status', className: 'text-center', defaultContent: '-', render: badgeStatus }, // Status
+                // className kolom-* dipakai CSS tampilan kartu di HP
+                { data: 'kode_qr', className: 'kolom-qr', defaultContent: '-' }, // Kode QR
+                { data: 'sumber', className: 'text-center kolom-sumber', defaultContent: '-', render: badgeSumber }, // Sumber
+                { data: 'nm_jenis', className: 'kolom-jenis', defaultContent: '-' }, // Jenis
+                { data: 'nm_merk', className: 'kolom-merk', defaultContent: '-' }, // Merk
+                { data: 'tipe', className: 'kolom-tipe', defaultContent: '-' }, // Tipe
+                { data: 'serial_number', className: 'kolom-sn', defaultContent: '-' }, // Serial Number
+                { data: 'status', className: 'text-center kolom-status', defaultContent: '-', render: badgeStatus }, // Status
             ],
             language: {
                 emptyTable: 'Pilih lokasi tujuan dulu untuk melihat isinya.',

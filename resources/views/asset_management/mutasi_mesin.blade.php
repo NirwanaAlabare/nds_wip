@@ -414,7 +414,7 @@
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
         <h5 class="fw-bold mb-0">Mutasi Mesin</h5>
-        <a href="{{ route('create_asset_mesin_mutasi') }}" class="btn btn-primary btn-sm">
+        <a href="{{ route($routeCreate) }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Mutasi Baru
         </a>
     </div>

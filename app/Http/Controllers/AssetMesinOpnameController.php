@@ -429,12 +429,18 @@ class AssetMesinOpnameController extends Controller
                 u.nm_jenis,
                 u.nm_merk,
                 u.tipe,
-                u.serial_number
+                u.serial_number,
+                u.id_lokasi AS id_lokasi_aktual,
+                " . str_replace(['a.', 'b.'], ['la.', 'lb.'], self::SQL_NAMA_LOKASI) . " AS lokasi_aktual
             FROM asset_stok_opname_mesin o
             INNER JOIN asset_stok_opname_header_mesin h ON o.id_so = h.id
             LEFT JOIN asset_master_lokasi_det a ON a.id = o.id_lokasi
             LEFT JOIN asset_master_main_lokasi b ON b.id = a.id_main_lokasi
             LEFT JOIN (" . $this->sqlUnitMesin() . ") u ON o.kode_qr = u.kode_qr
+            -- Lokasi aktual = lokasi yang tercatat di master penerimaan mesin (beli / sewa),
+            -- sebagai pembanding lokasi hasil scan opname
+            LEFT JOIN asset_master_lokasi_det la ON la.id = u.id_lokasi
+            LEFT JOIN asset_master_main_lokasi lb ON lb.id = la.id_main_lokasi
             WHERE $where
             ORDER BY $orderBy
         ", $bindings);
@@ -555,7 +561,8 @@ class AssetMesinOpnameController extends Controller
                 k.nm_merk,
                 m.tipe,
                 a.serial_number,
-                a.status
+                a.status,
+                a.id_lokasi
             FROM asset_penerimaan_mesin a
             INNER JOIN asset_master_jenis_mesin m ON a.id_jenis = m.id_jenis
             INNER JOIN asset_master_kd_jenis j ON m.kd_jenis = j.kd_jenis
@@ -571,7 +578,8 @@ class AssetMesinOpnameController extends Controller
                 a.nm_merk,
                 a.tipe,
                 a.serial_number,
-                a.status
+                a.status,
+                a.id_lokasi
             FROM asset_penerimaan_mesin_sewa a
             WHERE a.kode_qr IS NOT NULL AND a.kode_qr <> '' AND a.status IN ($statusSewa)
         ";
