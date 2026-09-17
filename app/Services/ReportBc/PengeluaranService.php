@@ -384,6 +384,7 @@ class PengeluaranService
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
+                ->whereRaw("d.Supplier != 'BARANG JADI STOCK'")
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
                 ->whereRaw("a.cancel != 'Y'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
