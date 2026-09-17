@@ -98,7 +98,9 @@
                                 <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}" disabled>
                                     <option value="">Pilih Worksheet</option>
                                     @foreach ($orders as $order)
-                                        <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                        <option value="{{ $order->id }}" {{ $order->close_order == 'Y' ? 'disabled' : '' }}>
+                                            {{ $order->kpno }} {{ $order->close_order == 'Y' ? ' (Close Order)' : '' }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" id="act_costing_ws" name="act_costing_ws" readonly>
@@ -515,6 +517,28 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+
+                var $element = $(data.element);
+                if ($element.is(':disabled')) {
+                    return $(
+                        '<div style="' +
+                            'background-color: #f8d7da; ' +
+                            'color: #dc3545; ' +
+                            'font-weight: bold; ' +
+                            'margin: -6px -12px; ' +
+                            'padding: 6px 12px; ' +
+                            'border-radius: 2px;' +
+                        '">' + 
+                            data.text + 
+                        '</div>'
+                    );
+                }
+
+                return data.text;
+            }
         })
 
         function startProcess() {

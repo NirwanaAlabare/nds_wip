@@ -84,8 +84,7 @@ class CuttingFormPieceController extends Controller
         if (session('currentFormCutPiece')) {
             return redirect()->route('process-cutting-piece', ["id" => session('currentFormCutPiece')]);
         }
-
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'close_order')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("cutting.cutting-form-piece.create-cutting-form-piece", ["orders" => $orders, "page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
@@ -99,7 +98,7 @@ class CuttingFormPieceController extends Controller
 
             return redirect()->route('create-cutting-piece');
         }
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'close_order')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('close_order', '=', 'N')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'close_order')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view('cutting.cutting-form-piece.create-cutting-form-piece', ['cuttingFormPiece' => $cuttingFormPiece, 'orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
