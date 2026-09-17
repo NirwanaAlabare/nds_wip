@@ -834,7 +834,7 @@ class CuttingFormScrapController extends Controller
         // Sama seperti CuttingFormPieceController::create() : WS dimuat langsung tanpa
         // perlu memilih buyer dulu, style/color/panel didapat dari WS-nya.
         return DB::connection("mysql_sb")->table("act_costing")->
-            select("id", "kpno")->
+            select("id", "kpno", "close_order")->
             where("status", "!=", "CANCEL")->
             where("cost_date", ">=", "2023-01-01")->
             where("type_ws", "STD")->
