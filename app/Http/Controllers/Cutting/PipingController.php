@@ -78,7 +78,7 @@ class PipingController extends Controller
     }
 
     public function create() {
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->where('close_order', 'N')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'close_order')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view('cutting.piping.create-piping', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping"]);
     }

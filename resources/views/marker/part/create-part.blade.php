@@ -56,8 +56,13 @@
                                 <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
                                     <option selected="selected" value="">Pilih WS</option>
                                     @foreach ($orders as $order)
-                                        <option value="{{ $order->id }}">
-                                            {{ $order->kpno }}
+                                         @php
+                                            $isClosed = $order->close_order == 'Y';
+                                        @endphp
+                                        <option value="{{ $order->id }}" 
+                                            {{ $isClosed ? 'disabled' : '' }}
+                                            style="{{ $isClosed ? 'color: #dc3545; font-weight: bold;' : '' }}">
+                                            {{ $order->kpno }}{{ $isClosed ? ' (Close Order)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -372,7 +377,29 @@
 
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
-            theme: 'bootstrap4'
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+
+                var $element = $(data.element);
+                if ($element.is(':disabled')) {
+                    return $(
+                        '<div style="' +
+                            'background-color: #f8d7da; ' +
+                            'color: #dc3545; ' +
+                            'font-weight: bold; ' +
+                            'margin: -6px -12px; ' +
+                            'padding: 6px 12px; ' +
+                            'border-radius: 2px;' +
+                        '">' + 
+                            data.text + 
+                        '</div>'
+                    );
+                }
+
+                return data.text;
+            }
         });
 
         $('.select2bs4multi').select2({

@@ -759,6 +759,7 @@ class DCInController extends Controller
     {
         $data_header = DB::select("
             SELECT
+                msb.id_act_cost act_costing_id,
                 COALESCE(msb.ws, a.act_costing_ws) act_costing_ws,
                 COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
                 COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
@@ -775,7 +776,10 @@ class DCInController extends Controller
                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
                 COALESCE(ms.tujuan, ms_old.tujuan) tujuan,
                 CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', a.lokasi, ms_old.proses)) ELSE (IF(ms.tujuan = 'non secondary', '-', ms.proses)) END lokasi,
-                CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', ms_old.proses, '-')) ELSE (IF(ms.tujuan = 'non secondary', ms.proses, '-')) END tempat
+                CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', ms_old.proses, '-')) ELSE (IF(ms.tujuan = 'non secondary', ms.proses, '-')) END tempat,
+                a.stocker_reject,
+                a.id_qr_stocker,
+                dc.id dc_id
             FROM
                 `stocker_input` a
                 left join master_sb_ws msb on msb.id_so_det = a.so_det_id
@@ -791,6 +795,7 @@ class DCInController extends Controller
                 left join master_part mp on mp.id = pd.master_part_id
                 left join master_secondary ms on pds.master_secondary_id = ms.id
                 left join master_secondary ms_old on pd.master_secondary_id = ms_old.id
+                left join dc_in_input dc on dc.id_qr_stocker = a.id_qr_stocker
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
                 and (a.cancel != 'y' or a.cancel IS NULL)
@@ -798,6 +803,24 @@ class DCInController extends Controller
             GROUP BY
                 a.id
         ");
+
+        if ($data_header && $data_header[0]) {
+            // Check Close Order
+            if (checkCloseOrder($data_header[0]->act_costing_id)) {
+                return array(
+                    "status" => 400,
+                    "message" => "WS '".$data_header[0]->act_costing_ws."' sudah close order."
+                );
+            }
+
+            // Cannot Rescan on Stocker Reject
+            if ($data_header[0]->stocker_reject && $data_header[0]->dc_id) {
+                return array(
+                    "status" => 400,
+                    "message" => "Stocker reject tidak dapat discan ulang."
+                );
+            }
+        }
 
         return json_encode($data_header ? $data_header[0] : null);
     }

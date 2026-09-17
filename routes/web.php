@@ -152,6 +152,7 @@ use App\Http\Controllers\AssetMesinPengeluaranController;
 use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
+use App\Http\Controllers\AssetMesinMutasiController;
 use App\Http\Controllers\AssetMesinOpnameController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
@@ -1655,10 +1656,30 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_mesin_opname/header/store', 'store_header_asset_mesin_opname')->name('store_header_asset_mesin_opname');
         Route::get('/asset_mesin_opname/list', 'getdata_asset_mesin_opname')->name('getdata_asset_mesin_opname');
         Route::get('/asset_mesin_opname/export_excel', 'export_excel_asset_mesin_opname')->name('export_excel_asset_mesin_opname');
+        Route::get('/asset_mesin_opname/apply/preview', 'preview_apply_asset_mesin_opname')->name('preview_apply_asset_mesin_opname');
+        Route::post('/asset_mesin_opname/apply', 'apply_asset_mesin_opname')->name('apply_asset_mesin_opname');
         Route::post('/asset_mesin_opname/store', 'store_asset_mesin_opname')->name('store_asset_mesin_opname');
         Route::delete('/asset_mesin_opname/delete', 'delete_asset_mesin_opname')->name('delete_asset_mesin_opname');
         Route::get('/asset_mesin_opname/lokasi', 'getdata_lokasi_mesin')->name('getdata_lokasi_mesin');
         Route::post('/asset_mesin_opname/lokasi/store', 'store_lokasi_mesin')->name('store_lokasi_mesin');
+    });
+
+    // Master Asset Management Mutasi Mesin
+    Route::controller(AssetMesinMutasiController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_mutasi', 'asset_mesin_mutasi')->name('asset_mesin_mutasi');
+        Route::get('/asset_mesin_mutasi/create', 'create_asset_mesin_mutasi')->name('create_asset_mesin_mutasi');
+    });
+    // Pintu masuk dari tile home "Mutasi Mesin": halaman sama, navbar hanya logo + home.
+    // Endpoint data ikut dibuka untuk role machine karena dipakai kedua halaman.
+    Route::controller(AssetMesinMutasiController::class)->middleware('role:asset,machine')->group(function () {
+        Route::get('/mutasi_mesin', 'asset_mesin_mutasi')->name('mutasi_mesin');
+        Route::get('/mutasi_mesin/create', 'create_asset_mesin_mutasi')->name('create_mutasi_mesin');
+        Route::get('/asset_mesin_mutasi/lokasi', 'getdata_mesin_per_lokasi')->name('getdata_mesin_per_lokasi');
+        Route::get('/asset_mesin_mutasi/history', 'getdata_history_mutasi')->name('getdata_history_mutasi');
+        Route::get('/asset_mesin_mutasi/history/mesin', 'getdata_history_mesin')->name('getdata_history_mesin');
+        Route::get('/asset_mesin_mutasi/cek_qr', 'cek_qr_asset_mesin_mutasi')->name('cek_qr_asset_mesin_mutasi');
+        Route::get('/asset_mesin_mutasi/list', 'getdata_asset_mesin_mutasi')->name('getdata_asset_mesin_mutasi');
+        Route::post('/asset_mesin_mutasi/store', 'store_asset_mesin_mutasi')->name('store_asset_mesin_mutasi');
     });
 
     // Master Asset Management Tambah Mesin (Sewa Mesin)

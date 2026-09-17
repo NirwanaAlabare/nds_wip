@@ -16,14 +16,23 @@ use Illuminate\Support\Facades\Log;
 
 class AssetMesinSewaController extends Controller
 {
+    // Nama lokasi selalu gabungan main - sub - status. Tiap bagian di-TRIM karena data
+    // master banyak yang menyisakan spasi di ujung, dan spasi itu bikin filter meleset.
+    // Dipakai bareng blok JOIN lok_det / lok_main di query-query bawah.
+    private const SQL_NAMA_LOKASI = "NULLIF(TRIM(CONCAT_WS(' - ', NULLIF(TRIM(lok_main.main_lokasi), ''), NULLIF(TRIM(lok_det.sub_lokasi), ''), NULLIF(TRIM(lok_det.status), ''))), '')";
+
     public function get_notif_mesin_sewa(Request $request)
     {
         $items = DB::select("
-            SELECT id, bpbno_int, nm_jenis, nm_merk, tipe, serial_number, lokasi,
-                   masa_kontrak, tgl_awal_kontrak, tgl_akhir_kontrak,
-                   DATEDIFF(tgl_akhir_kontrak, CURDATE()) AS sisa_hari
-            FROM asset_penerimaan_mesin_sewa
-            WHERE status <> 'CUTT OFF'
+            SELECT a.id, a.bpbno_int, a.nm_jenis, a.nm_merk, a.tipe, a.serial_number,
+                   a.id_lokasi,
+                   " . self::SQL_NAMA_LOKASI . " AS lokasi,
+                   a.masa_kontrak, a.tgl_awal_kontrak, a.tgl_akhir_kontrak,
+                   DATEDIFF(a.tgl_akhir_kontrak, CURDATE()) AS sisa_hari
+            FROM asset_penerimaan_mesin_sewa a
+            LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+            LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
+            WHERE a.status <> 'CUTT OFF'
                 AND tgl_akhir_kontrak BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)
             ORDER BY tgl_akhir_kontrak ASC
         ");

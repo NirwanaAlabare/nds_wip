@@ -214,8 +214,8 @@
                         console.log(isAdmin);
 
                         if (isAdmin > 0) {
-                            // return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
-                            return `<div class='d-flex gap-1 justify-content-center'>` + btnDelete + `</div>`;
+                            return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
+                            // return `<div class='d-flex gap-1 justify-content-center'>` + btnDelete + `</div>`;
                         }
 
                         return '<span class="text-center">-</span>';

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class PenerimaanCuttingController extends Controller
 {
@@ -213,7 +214,58 @@ class PenerimaanCuttingController extends Controller
      */
     public function edit($id)
     {
-        //
+        $data = DB::connection("mysql_sb")
+            ->table('laravel_nds.penerimaan_cutting')
+            ->select(
+                'penerimaan_cutting.id',
+                'penerimaan_cutting.tanggal_terima',
+                'penerimaan_cutting.id_roll AS barcode',
+                'penerimaan_cutting.whs_bppb_det_id',
+                'penerimaan_cutting.qty_konv',
+                'penerimaan_cutting.unit_konv',
+                'whs_bppb_h.tgl_bppb',
+                'whs_bppb_h.no_req',
+                'whs_bppb_det.no_bppb',
+                'whs_bppb_h.tgl_bppb AS tanggal_bppb',
+                'whs_bppb_h.tujuan',
+                'whs_bppb_h.no_ws',
+                'whs_bppb_h.no_ws_aktual AS no_ws_act',
+                'whs_bppb_det.qty_out',
+                'whs_bppb_det.satuan AS unit',
+                'whs_bppb_det.no_lot',
+                'whs_bppb_det.no_roll',
+                'whs_bppb_det.no_roll_buyer',
+                'whs_bppb_det.id_item',
+                'whs_bppb_det.item_desc AS nama_barang',
+                'buyer_ws.styleno AS style',
+                'masteritem.color AS warna'
+            )
+            // Join ke whs_bppb_det
+            ->leftJoin('whs_bppb_det', 'penerimaan_cutting.whs_bppb_det_id', '=', 'whs_bppb_det.id')
+            ->leftJoin('whs_bppb_h', 'whs_bppb_h.no_bppb', '=', 'whs_bppb_det.no_bppb')
+            ->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_bppb_det.id_item')
+            ->leftJoinSub(
+                DB::table('signalbit_erp.act_costing as ac')
+                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                'buyer_ws',
+                function ($join) {
+                    // DIPERBAIKI: Hapus prefix 'signalbit_erp.' agar tidak error SQL
+                    $join->on('buyer_ws.id_jo', '=', 'whs_bppb_det.id_jo');
+                }
+            )
+            // DIPERBAIKI: Mengambil data berdasarkan penerimaan_cutting.id atau id_roll yang di-edit
+            ->where(function ($query) use ($id) {
+                $query->where('penerimaan_cutting.id', $id)
+                    ->orWhere('penerimaan_cutting.id_roll', $id);
+            })
+            // DIPERBAIKI: whereNull('penerimaan_cutting.id') DIHAPUS karena ini mode edit data yang sudah ada
+            ->orderBy('penerimaan_cutting.id', 'DESC')
+            ->first();
+
+        return view("cutting.penerimaan-cutting.edit-penerimaan-cutting", ["data" => $data]);
     }
 
     /**
@@ -223,9 +275,84 @@ class PenerimaanCuttingController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        // Cutting service
+        $cuttingService = new CuttingService();
+
+        // 1. Validasi Request Data menggunakan Validator::make
+        $validator = Validator::make($request->all(), [
+            'id'         => 'required',
+            'tgl_terima' => 'required|date',
+        ], [
+            'id.required'         => 'ID Penerimaan tidak ditemukan.',
+            'tgl_terima.required' => 'Tanggal terima wajib diisi.',
+            'tgl_terima.date'     => 'Format tanggal terima tidak valid.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 400,
+                'message' => 'Validasi gagal.',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $user = Auth::user();
+        $now  = Carbon::now();
+        $tglTerimaBaru = $request->tgl_terima;
+
+        // 2. Cari Data Penerimaan Cutting
+        $penerimaanCutting = PenerimaanCutting::where('id', $request->id)
+            ->orWhere('whs_bppb_det_id', $request->whs_bppb_det_id)
+            ->first();
+
+        if (!$penerimaanCutting) {
+            return response()->json([
+                'status'  => 404,
+                'message' => 'Data Penerimaan Fabric Cutting tidak ditemukan.'
+            ], 404);
+        }
+
+        // Cek jika sudah ada pemakaian (menggunakan id_roll dari database/request)
+        $idRoll = $request->id_roll ?? $penerimaanCutting->id_roll;
+        if ($cuttingService->isRollUsed($idRoll)) {
+            return response()->json([
+                'status'     => 400,
+                'message'    => 'Roll sudah digunakan, data tidak dapat diubah.',
+                'table'      => 'datatable',
+                'additional' => [],
+            ], 400);
+        }
+
+        // 3. Cek perubahan & susun catatan perubahan (notes)
+        $tglTerimaLama = $penerimaanCutting->tanggal_terima;
+        $message = "Edit Penerimaan";
+
+        if ($tglTerimaLama != $tglTerimaBaru) {
+            $message .= " Dari " . $tglTerimaLama . " ke " . $tglTerimaBaru;
+        }
+
+        // 4. Update Data Model
+        $penerimaanCutting->tanggal_terima = $tglTerimaBaru;
+        $penerimaanCutting->edited_notes   = $message;
+        $penerimaanCutting->edited_by      = $user->id;
+        $penerimaanCutting->edited_at      = $now;
+
+        // Simpan Perubahan ke Database
+        if ($penerimaanCutting->save()) {
+            return response()->json([
+                'status'     => 200,
+                'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.',
+                'table'      => 'datatable',
+                'data'       => $penerimaanCutting
+            ], 200);
+        }
+
+        return response()->json([
+            'status'  => 500,
+            'message' => 'Gagal memperbarui data penerimaan.'
+        ], 500);
     }
 
     /**

@@ -121,6 +121,13 @@ return [
             'days' => 30,
         ],
 
+        'fixChainedQty' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/fixChainedQty/fixChainedQty.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
         'resetStockerForm' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),

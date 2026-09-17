@@ -1574,6 +1574,11 @@
                                         <a href="{{ route('asset_mesin_opname') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_opname' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-clipboard-check"></i>Opname Mesin</a>
+
+                                        <div class="mega-dropdown-col-title">Mutasi</div>
+                                        <a href="{{ route('asset_mesin_mutasi') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_mutasi' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-right-left"></i>Mutasi Mesin</a>
                                     </div>
 
                                     <div class="mega-dropdown-col">

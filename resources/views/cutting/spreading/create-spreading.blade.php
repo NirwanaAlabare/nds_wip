@@ -34,8 +34,8 @@
                                     <select class="form-control select2bs4" id="cbows" name="cbows" onchange='getno_marker();' style="width: 100%;">
                                         <option selected="selected" value="">Pilih WS</option>
                                         @foreach ($data_ws as $dataws)
-                                            <option value="{{ $dataws->act_costing_id }}">
-                                                {{ $dataws->ws }}
+                                            <option value="{{ $dataws->act_costing_id }}" {{ $dataws->close_order == 'Y' ? 'disabled' : '' }}>
+                                                {{ $dataws->ws }} {{ $dataws->close_order == 'Y' ? ' (Close Order)' : '' }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -391,7 +391,29 @@
 
         $('.select2').select2()
         $('.select2bs4').select2({
-            theme: 'bootstrap4'
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+
+                var $element = $(data.element);
+                if ($element.is(':disabled')) {
+                    return $(
+                        '<div style="' +
+                            'background-color: #f8d7da; ' +
+                            'color: #dc3545; ' +
+                            'font-weight: bold; ' +
+                            'margin: -6px -12px; ' +
+                            'padding: 6px 12px; ' +
+                            'border-radius: 2px;' +
+                        '">' + 
+                            data.text + 
+                        '</div>'
+                    );
+                }
+
+                return data.text;
+            }
         })
         $('#cbows').val("").trigger("change");
         $("#cbomarker").prop("disabled", true);

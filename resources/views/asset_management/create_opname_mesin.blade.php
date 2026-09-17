@@ -180,14 +180,14 @@
         // dipakai mode kamera untuk melanjutkan pembacaan QR berikutnya
         function simpanQr(kodeQr, onDone) {
             let done = typeof onDone === 'function' ? onDone : function() {};
-            let lokasi = $('#cbolok').val();
+            let idLokasi = $('#cbolok').val();
 
             if (!kodeQr) {
                 done();
                 return;
             }
 
-            if (!lokasi) {
+            if (!idLokasi) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Lokasi belum dipilih!',
@@ -205,7 +205,7 @@
                 url: '{{ route('store_asset_mesin_opname') }}',
                 data: {
                     txtqr: kodeQr,
-                    cbolok: lokasi,
+                    cbolok: idLokasi,
                     id_so: idSo,
                     _token: '{{ csrf_token() }}'
                 },
@@ -291,7 +291,7 @@
                 { data: 'nm_merk', defaultContent: '-' }, // Merk
                 { data: 'tipe', defaultContent: '-' }, // Tipe
                 { data: 'serial_number', defaultContent: '-' }, // Serial Number
-                { data: 'lokasi' }, // Lokasi
+                { data: 'lokasi', defaultContent: '-' }, // Lokasi
                 { data: 'created_by', defaultContent: '-' }, // User
                 { data: 'created_at' }, // Waktu Scan
                 {
@@ -330,7 +330,9 @@
         // Ganti lokasi = list transaksi ikut menampilkan isi lokasi tersebut pada No SO ini.
         // Kosong berarti "Semua Lokasi": tabel menampilkan seluruh mesin di No SO ini.
         $('#cbolok').on('change', function() {
-            $('#lokasiAktif').text(this.value ? '- ' + this.value : '- Semua Lokasi');
+            // value = id_lokasi, jadi nama lokasinya dibaca dari teks option yang terpilih
+            let namaLokasi = $(this).find('option:selected').text();
+            $('#lokasiAktif').text(this.value ? '- ' + namaLokasi : '- Semua Lokasi');
             datatable.ajax.reload();
             if (modeAktif() === 'manual') $('#txtqr').focus();
         });

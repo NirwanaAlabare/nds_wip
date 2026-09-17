@@ -152,17 +152,17 @@ class ReqMaterialController extends Controller
 
     public function getWSReq(Request $request)
     {
-        $nomorws = DB::connection('mysql_sb')->select("select a.id isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil
+        $nomorws = DB::connection('mysql_sb')->select("select a.id isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil , ac.close_order
           from jo a inner join jo_det s on a.id=s.id_jo
           inner join  so on s.id_so=so.id
           inner join act_costing ac on so.id_cost=ac.id
-          where ac.type_ws = '" . $request->tipe_ws . "' and ac.close_order = 'N'
+          where ac.type_ws = '" . $request->tipe_ws . "'
           group by a.id ");
 
         $html = "<option value=''>Pilih WS</option>";
 
         foreach ($nomorws as $ws) {
-            $html .= " <option value='" . $ws->isi . "'>" . $ws->tampil . "</option> ";
+             $html .= " <option value='" . $ws->isi . "' " . ($ws->close_order == 'Y' ? 'disabled' : '') . ">" . $ws->tampil . ($ws->close_order == 'Y' ? ' (Close Order)' : '') . "</option> ";
         }
 
         return $html;
@@ -170,18 +170,18 @@ class ReqMaterialController extends Controller
 
     public function getWSact(Request $request)
     {
-        $nomorwsact = DB::connection('mysql_sb')->select("select ac.kpno isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil
+        $nomorwsact = DB::connection('mysql_sb')->select("select ac.kpno isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil , ac.close_order
             from jo a inner join jo_det s on a.id=s.id_jo
             inner join  so on s.id_so=so.id
             inner join act_costing ac on so.id_cost=ac.id
             inner join (select id_jo from bom_jo_item group by id_jo)   k on s.id_jo = k.id_jo
-            where ac.type_ws = 'STD' and ac.close_order = 'N'
+            where ac.type_ws = 'STD'
             group by a.id");
 
         $html = "<option value=''>Pilih WS</option>";
 
         foreach ($nomorwsact as $wsact) {
-            $html .= " <option value='" . $wsact->isi . "'>" . $wsact->tampil . "</option> ";
+            $html .= " <option value='" . $wsact->isi . "' " . ($wsact->close_order == 'Y' ? 'disabled' : '') . ">" . $wsact->tampil . ($wsact->close_order == 'Y' ? ' (Close Order)' : '') . "</option> ";
         }
 
         return $html;

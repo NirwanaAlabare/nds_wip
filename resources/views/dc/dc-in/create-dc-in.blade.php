@@ -447,7 +447,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (response) {
+                    if (response && response.status != '400') {
                         document.getElementById('txtws').value = response.act_costing_ws;
                         document.getElementById('txtbuyer').value = response.buyer;
                         document.getElementById('txtstyle').value = response.styleno;
@@ -495,10 +495,11 @@
                             document.getElementById("loading").classList.add("d-none");
                         }
 
+                        let message = response && response.message ? response.message : 'Stocker Tidak Ditemukan.';
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: 'Stocker Tidak Ditemukan',
+                            html: message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -888,7 +889,7 @@
                     message: 'Qty akhir tidak boleh kurang dari 0.',
                     position: 'bottomCenter'
                 });
-                
+
                 document.getElementById('txtqtyreject').value = txtqtyply;
                 document.getElementById('txtqtyreplace').value = txtqtyreject;
 

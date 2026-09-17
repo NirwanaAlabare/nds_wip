@@ -11,7 +11,10 @@ use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputLostTime;
+use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
+use App\Models\Cutting\Piping;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\PenerimaanCutting;
 use App\Models\Part\Part;
 use App\Models\Part\PartForm;
 use App\Models\Auth\User;
@@ -340,6 +343,30 @@ class CompletedFormController extends Controller
                 'additional' => [],
             );
         }
+
+        // Check Penerimaan
+        // Current Form Detail
+        $detailBefore = FormCutInputDetail::selectRaw("form_cut_input_detail.*")
+            ->where('form_cut_id', $validatedRequest['id'])
+            ->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])
+            ->where('id', $validatedRequest['current_id'])
+            ->first();
+
+        if ($detailBefore && !empty($validatedRequest['current_id_roll']) && $detailBefore->id_roll != $validatedRequest['current_id_roll']) {
+            // FIX: Menggunakan key spesifik 'current_id_roll' dari array $validatedRequest
+            $checkPenerimaan = PenerimaanCutting::where("id_roll", $validatedRequest['current_id_roll'])->min("created_at");
+
+            if ($checkPenerimaan && $checkPenerimaan > $detailBefore->created_at) {
+                return [
+                    'status' => 400,
+                    'message' => "Roll ".$validatedRequest['current_id_roll']." belum ada penerimaan pada tanggal : ".$detailBefore->created_at."<br><br> Penerimaan pertama : ".$checkPenerimaan,
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                ];
+            }
+        }
+
         DB::beginTransaction();
 
         try {
@@ -555,9 +582,9 @@ class CompletedFormController extends Controller
                 }
             }
 
-            // Fix Chained Qty
+            // Check if first usage
             $firstId = null;
-            $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $detail->form_cut_id)->where("created_at", "<", $detail->created_at)->first();
+            $similarFormCutDetailBef = $cuttingService->takeSimilarFormCutDetailBef($formCutDetail->id_roll, $formCutDetail->created_at);
             if (!$similarFormCutDetailBef) {
                 $firstId = $formCutDetail->id;
             }
@@ -588,10 +615,11 @@ class CompletedFormController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return array(
+            return response()->json([
                 "status" => 400,
                 "message" => $e->getMessage(),
-            );
+                "details" => $e
+            ], 400);
         }
     }
 
@@ -984,7 +1012,7 @@ class CompletedFormController extends Controller
 
                 // Check if first usage
                 $firstId = null;
-                $similarFormCutDetailBef = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where("created_at", "<", $formCutDetail->created_at)->first();
+                $similarFormCutDetailBef = $cuttingService->takeSimilarFormCutDetailBef($formCutDetail->id_roll, $formCutDetail->created_at);
                 if (!$similarFormCutDetailBef) {
                     $firstId = $formCutDetail->id;
                 }
@@ -1100,10 +1128,11 @@ class CompletedFormController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return array(
+            return response()->json([
                 "status" => 400,
-                "message" => $e->getMessage()
-            );
+                "message" => $e->getMessage(),
+                "details" => $e
+            ], 400);
         }
 
         return array(
