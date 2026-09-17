@@ -203,10 +203,11 @@ class PemasukanService
             'a.berat_bersih',
             'a.berat_kotor',
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.jenis_trans as tujuan',
+            'a.tujuan',
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det'
+            'a.id_so_det',
+            'a.jenis_trans'
         ];
 
         $queryBahanBaku = null;
@@ -289,6 +290,7 @@ class PemasukanService
                     DB::raw("m.ws as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
+                     DB::raw("'-' as jenis_trans"),
                 ])
                 ->groupBy('m.ws', 'a.no_trans');
 
@@ -316,6 +318,7 @@ class PemasukanService
                     DB::raw("m.ws as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
+                    DB::raw("'-' as jenis_trans"),
                 ])
                 ->groupBy('m.ws', 'a.no_trans');
         }
@@ -358,7 +361,8 @@ class PemasukanService
                 'a.berat_bersih',
                 'a.berat_kotor',
                 'a.tujuan',
-                'a.id_so_det'
+                'a.id_so_det',
+                'a.jenis_trans',
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -1564,7 +1568,8 @@ class PemasukanService
             'Nilai Barang',
             'Kurs',
             'Nilai Barang IDR',
-            'Sumber'
+            'Sumber',
+            'Jenis Trans',
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1595,12 +1600,13 @@ class PemasukanService
                 (float) ($row->kurs ?? 0),
                 (float) ($row->nilai_barang_idr ?? 0),
                 $row->tujuan,
+                $row->jenis_trans,
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'M') as $col) {
+        foreach (range('A', 'N') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
