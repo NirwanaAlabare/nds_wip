@@ -39,6 +39,13 @@
                         Baru Scan
                     </a>
                 </div>
+                <div class="mb-3">
+                    <a href="{{ route('create_packing_out_kirim_gudang_stok') }}"
+                        class="btn btn-outline-warning position-relative">
+                        <i class="fas fa-warehouse"></i>
+                        Kirim Gudang Stok
+                    </a>
+                </div>
                 {{-- <div class="mb-3">
                     <a href="{{ route('create-packing-out') }}" class="btn btn-outline-secondary position-relative">
                         <i class="fas fa-plus"></i>
@@ -63,6 +70,13 @@
                         placeholder="Masukkan PO (Opsional)">
                 </div>
                 <div class="mb-3">
+                    <label class="form-label"><small><b>Tujuan</b></small></label>
+                    <select class="form-control form-control-sm select2bs4" id="tujuan" name="tujuan" style="width: 160px;">
+                        <option value="Ekspedisi" checked>Ekspedisi</option>
+                        <option value="Gudang Stok">Gudang Stok</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
                         <i class="fas fa-search"></i> Search
                     </button>
@@ -75,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive" id="wrap-ekspedisi">
                 <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
@@ -90,6 +104,8 @@
                             <th>Size</th>
                             <th>Dest</th>
                             <th>Total</th>
+                            <th>Sumber</th>
+                            <th>Tujuan</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
                         </tr>
@@ -99,11 +115,45 @@
                             <th colspan="10"></th>
                             <th></th>
                             <th>PCS</th>
-                            <th></th>
+                            <th colspan="3"></th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
+
+            <div class="table-responsive d-none" id="wrap-gudangstok">
+                <table id="datatable-gudangstok" class="table table-bordered table-striped w-100 text-nowrap">
+                    <thead class="table-warning">
+                        <tr style='text-align:center; vertical-align:middle'>
+                            <th>No Transaksi</th>
+                            <th>Tanggal</th>
+                            <th>No. Carton</th>
+                            <th>PO</th>
+                            <th>WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Qty</th>
+                            <th>Grade</th>
+                            <th>Sumber</th>
+                            <th>Tujuan</th>
+                            <th>User</th>
+                            <th>Tgl. Input</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="8"></th>
+                            <th></th>
+                            <th>PCS</th>
+                            <th colspan="5"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            
         </div>
     </div>
 @endsection
@@ -129,6 +179,13 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4',
         });
+
+        // Now set height and font-size on the Select2 container after init
+        $('.select2-container--bootstrap4 .select2-selection--single').css({
+            'height': '30px', // your desired height
+            'font-size': '13px', // your desired font size
+            'line-height': '30px' // vertically center text
+        });
     </script>
     <script>
         function notif() {
@@ -143,7 +200,18 @@
 
 
         function dataTableReload() {
-            datatable.ajax.reload();
+            // Default Ekspedisi, hanya Gudang Stok yang pakai datatable sendiri
+            if ($('#tujuan').val() == 'Gudang Stok') {
+                $('#wrap-ekspedisi').addClass('d-none');
+                $('#wrap-gudangstok').removeClass('d-none');
+                datatableGudangStok.ajax.reload();
+                datatableGudangStok.columns.adjust();
+            } else {
+                $('#wrap-gudangstok').addClass('d-none');
+                $('#wrap-ekspedisi').removeClass('d-none');
+                datatable.ajax.reload();
+                datatable.columns.adjust();
+            }
         }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
@@ -201,6 +269,7 @@
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
                     d.txtpo = $('#txtpo').val();
+                    d.tujuan = 'Ekspedisi';
                 },
             },
             columns: [{
@@ -238,10 +307,128 @@
                     data: 'tot'
                 },
                 {
+                    data: 'sumber'
+                },
+                {
+                    data: 'tujuan'
+                },
+                {
                     data: 'created_by'
                 },
                 {
                     data: 'tgl_akt_input'
+                },
+            ],
+            columnDefs: [{
+                "className": "dt-center",
+                "targets": "_all"
+            }, ]
+
+
+        }, );
+
+        $('#datatable-gudangstok thead tr').clone(true).appendTo('#datatable-gudangstok thead');
+        $('#datatable-gudangstok thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatableGudangStok.column(i).search() !== this.value) {
+                    datatableGudangStok
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatableGudangStok = $("#datatable-gudangstok").DataTable({
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+
+                var intVal = function(i) {
+                    return typeof i === 'string'
+                        ? i.replace(/[\$,]/g, '') * 1
+                        : typeof i === 'number'
+                        ? i
+                        : 0;
+                };
+
+                // Total sesuai search dan page saat ini
+                var sumTotal = api
+                    .column(8, {
+                        search: 'applied',
+                        page: 'current'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(8).footer()).html(sumTotal.toLocaleString('id-ID'));
+            },
+            ordering: false,
+            processing: true,
+            serverSide: false,
+            paging: true,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            deferRender: true,
+            ajax: {
+                url: '{{ route('packing-out') }}',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                    d.txtpo = $('#txtpo').val();
+                    d.tujuan = 'Gudang Stok';
+                },
+            },
+            columns: [{
+                    data: 'no_trans'
+                },
+                {
+                    data: 'tanggal'
+                },
+                {
+                    data: 'no_karton'
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'grade'
+                },
+                {
+                    data: 'sumber'
+                },
+                {
+                    data: 'tujuan'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'tgl_akt_input'
+                },
+                {
+                    data: 'status'
                 },
             ],
             columnDefs: [{
@@ -301,6 +488,10 @@
             let txtpo = $('#txtpo').val();
             let dateFrom = $('#tgl-awal').val();
             let dateTo = $('#tgl-akhir').val();
+            let tujuan = $('#tujuan').val();
+
+            // Default Ekspedisi, hanya Gudang Stok yang pakai layout sendiri
+            const isGudangStok = tujuan == 'Gudang Stok';
 
             const startTime = new Date().getTime();
 
@@ -317,7 +508,8 @@
                 data: {
                     dateFrom,
                     dateTo,
-                    txtpo
+                    txtpo,
+                    tujuan
                 },
 
                 success: async function(data) {
@@ -325,12 +517,30 @@
                     // ==========================================
                     // CREATE EXCEL
                     // ==========================================
+                    const judul = isGudangStok ?
+                        "Laporan Packing Out Gudang Stok" :
+                        "Laporan Packing Scan";
+
+                    // Header
+                    const headers = isGudangStok ? [
+                        "No", "No Transaksi", "Tanggal", "No. Carton", "PO",
+                        "WS", "Style", "Color", "Size", "Qty", "Grade",
+                        "Sumber", "Tujuan", "User", "Tgl. Input", "Status"
+                    ] : [
+                        "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
+                        "WS", "Style", "Color", "Size", "Dest", "Tgl. Shipment",
+                        "Total", "User", "Tgl. Input"
+                    ];
+
+                    // Kolom terakhir buat merge judul, ikut jumlah header
+                    const lastCol = String.fromCharCode(64 + headers.length);
+
                     const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet("Laporan Packing");
+                    const worksheet = workbook.addWorksheet(judul.substring(0, 31));
 
                     // Title
-                    worksheet.mergeCells('A1:N1');
-                    worksheet.getCell('A1').value = "Laporan Packing Scan";
+                    worksheet.mergeCells(`A1:${lastCol}1`);
+                    worksheet.getCell('A1').value = judul;
                     worksheet.getCell('A1').font = {
                         size: 14,
                         bold: true
@@ -339,20 +549,13 @@
                         horizontal: 'center'
                     };
 
-                    worksheet.mergeCells('A2:N2');
+                    worksheet.mergeCells(`A2:${lastCol}2`);
                     worksheet.getCell('A2').value = `Tgl Transaksi: ${dateFrom} - ${dateTo}`;
                     worksheet.getCell('A2').alignment = {
                         horizontal: 'center'
                     };
 
                     worksheet.addRow([]);
-
-                    // Header
-                    const headers = [
-                        "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
-                        "WS", "Style", "Color", "Size", "Dest", "Tgl. Shipment",
-                        "Total", "User", "Tgl. Input"
-                    ];
 
                     const headerRow = worksheet.addRow(headers);
 
@@ -381,7 +584,24 @@
 
                     // Data
                     data.forEach((row, index) => {
-                        worksheet.addRow([
+                        worksheet.addRow(isGudangStok ? [
+                            index + 1,
+                            row.no_trans,
+                            row.tanggal,
+                            row.no_karton,
+                            row.po,
+                            row.ws,
+                            row.styleno,
+                            row.color,
+                            row.size,
+                            row.qty,
+                            row.grade,
+                            row.sumber,
+                            row.tujuan,
+                            row.created_by,
+                            row.tgl_akt_input,
+                            row.status
+                        ] : [
                             index + 1,
                             row.tgl_trans_fix,
                             row.no_carton,
@@ -414,7 +634,9 @@
 
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
-                    link.download = "Laporan_Packing_Scan.xlsx";
+                    link.download = isGudangStok ?
+                        "Laporan_Packing_Out_Gudang_Stok.xlsx" :
+                        "Laporan_Packing_Scan.xlsx";
                     link.click();
 
                     // ==========================================
