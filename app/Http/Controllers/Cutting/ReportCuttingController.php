@@ -10706,6 +10706,70 @@ order by tanggal asc, no_form asc
                                 tanggal between '2026-07-01' and '".$end_date."'
                             GROUP BY
                                 ws, color, size, panel, part
+                        ),
+
+                        scrap_awal as (
+                            SELECT
+                                DATE_FORMAT(fcs.waktu_selesai, '%Y-%m-%d') AS tanggal,
+                                fcs.no_form,
+                                msb.ws,
+                                msb.buyer,
+                                msb.styleno AS style,
+                                msb.color,
+                                msb.size,
+                                msb.dest,
+                                p.id as part_id,
+                                pd.id as part_detail_id,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
+                                mp.nama_part AS nama_part,
+                                pd.part_status AS part_status,
+                                fss.qty,
+                                fcs.status
+                            FROM form_cut_scrap fcs
+                            LEFT JOIN form_cut_scrap_detail fcsd ON fcs.id = fcsd.form_scrap_id
+                            LEFT JOIN form_cut_scrap_part fcsp ON fcsd.id = fcsp.form_scrap_detail_id
+                            LEFT JOIN part_detail pd ON fcsp.part_detail_id = pd.id
+                            left join part p on pd.part_id = p.id
+                            left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                            left join part p_com on p_com.id = pd_com.part_id
+                            LEFT JOIN master_part mp ON pd.master_part_id = mp.id
+                            LEFT JOIN form_cut_scrap_size fss ON fcsp.id = fss.form_scrap_part_id
+                            LEFT JOIN master_sb_ws msb on msb.id_so_det = fss.so_det_id
+                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                            WHERE fcs.status = 'complete' and fcs.waktu_selesai < '".$start_date." 00:00:00'
+                        ),
+
+                        scrap_in as (
+                            SELECT
+                                DATE_FORMAT(fcs.waktu_selesai, '%Y-%m-%d') AS tanggal,
+                                fcs.no_form,
+                                msb.ws,
+                                msb.buyer,
+                                msb.styleno AS style,
+                                msb.color,
+                                msb.size,
+                                msb.dest,
+                                p.id as part_id,
+                                pd.id as part_detail_id,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
+                                mp.nama_part AS nama_part,
+                                pd.part_status AS part_status,
+                                fss.qty,
+                                fcs.status
+                            FROM form_cut_scrap fcs
+                            LEFT JOIN form_cut_scrap_detail fcsd ON fcs.id = fcsd.form_scrap_id
+                            LEFT JOIN form_cut_scrap_part fcsp ON fcsd.id = fcsp.form_scrap_detail_id
+                            LEFT JOIN part_detail pd ON fcsp.part_detail_id = pd.id
+                            left join part p on pd.part_id = p.id
+                            left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                            left join part p_com on p_com.id = pd_com.part_id
+                            LEFT JOIN master_part mp ON pd.master_part_id = mp.id
+                            LEFT JOIN form_cut_scrap_size fss ON fcsp.id = fss.form_scrap_part_id
+                            LEFT JOIN master_sb_ws msb on msb.id_so_det = fss.so_det_id
+                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                            WHERE fcs.status = 'complete' and fcs.waktu_selesai between '".$start_date." 00:00:00' and '".$end_date." 23:59:59'
                         )
 
                         SELECT
@@ -10725,50 +10789,53 @@ order by tanggal asc, no_form asc
                             SUM(qty_adjustment_before) adjustment_before,
                             SUM(switching_in_before) switching_in_before,
                             SUM(switching_out_before) switching_out_before,
-                            SUM(saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjustment,
+                            SUM(saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) + SUM(scrap_before) saldo_awal_adjustment,
                             SUM(qty_cut) qty_cut,
                             SUM(qty_dc_1) qty_dc_1,
                             SUM(qty_dc) qty_dc,
                             SUM(qty_replace) qty_replace,
+                            SUM(scrap) qty_scrap,
                             SUM(saldo_akhir) saldo_akhir,
                             SUM(qty_adjustment) qty_adjustment,
                             SUM(switching_in) switching_in,
                             SUM(switching_out) switching_out,
-                            (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adjustment,
+                            (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + (SUM(scrap_before)) + SUM(saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) + (SUM(scrap)) saldo_akhir_adjustment,
                             cancel,
                             cancel_h,
                             status
                         FROM (
                             SELECT
-                                    buyer,
-                                    ws,
-                                    styleno,
-                                    color,
-                                    size,
-                                    dest,
-                                    part_id,
-                                    panel,
-                                    panel_status,
-                                    part_detail_id,
-                                    nama_part,
-                                    part_status,
-                                    saldo_awal,
-                                    qty_cut,
-                                    qty_dc_1,
-                                    qty_dc,
-                                    qty_replace,
-                                    saldo_akhir,
-                                    0 as qty_adjustment_before,
-                                    0 qty_adjustment,
-                                    0 as switching_in_before,
-                                    0 switching_in,
-                                    0 as switching_out_before,
-                                    0 switching_out,
-                                    cancel,
-                                    cancel_h,
-                                    status
+                                buyer,
+                                ws,
+                                styleno,
+                                color,
+                                size,
+                                dest,
+                                part_id,
+                                panel,
+                                panel_status,
+                                part_detail_id,
+                                nama_part,
+                                part_status,
+                                saldo_awal,
+                                qty_cut,
+                                qty_dc_1,
+                                qty_dc,
+                                qty_replace,
+                                saldo_akhir,
+                                0 as qty_adjustment_before,
+                                0 qty_adjustment,
+                                0 as switching_in_before,
+                                0 switching_in,
+                                0 as switching_out_before,
+                                0 switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
+                                cancel,
+                                cancel_h,
+                                status
                             FROM
-                                    saldo
+                                saldo
                             UNION ALL
                             SELECT
                                 buyer,
@@ -10794,7 +10861,9 @@ order by tanggal asc, no_form asc
                                 0 as switching_in_before,
                                 0 switching_in,
                                 0 as switching_out_before,
-                                0 switching_out,
+                                0 as switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
                                 cancel,
                                 cancel_h,
                                 status
@@ -10825,10 +10894,76 @@ order by tanggal asc, no_form asc
                                 0 switching_in,
                                 0 as switching_out_before,
                                 0 switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
                                 cancel,
                                 cancel_h,
                                 status
                             FROM inject_in
+                            UNION ALL
+                            SELECT
+                                buyer,
+                                ws,
+                                style,
+                                color,
+                                size,
+                                dest,
+                                part_id,
+                                panel,
+                                panel_status,
+                                part_detail_id,
+                                nama_part,
+                                part_status,
+                                0 saldo_awal,
+                                0 qty_cut,
+                                0 qty_dc_1,
+                                0 qty_dc,
+                                0 qty_replace,
+                                0 saldo_akhir,
+                                0 as qty_adjustment_before,
+                                0 qty_adjustment,
+                                0 as switching_in_before,
+                                0 switching_in,
+                                0 as switching_out_before,
+                                0 switching_out,
+                                qty as scrap_before,
+                                0 as scrap,
+                                null cancel,
+                                null cancel_h,
+                                null status
+                            FROM scrap_awal
+                            UNION ALL
+                            SELECT
+                                buyer,
+                                ws,
+                                style,
+                                color,
+                                size,
+                                dest,
+                                part_id,
+                                panel,
+                                panel_status,
+                                part_detail_id,
+                                nama_part,
+                                part_status,
+                                0 saldo_awal,
+                                0 qty_cut,
+                                0 qty_dc_1,
+                                0 qty_dc,
+                                0 qty_replace,
+                                0 saldo_akhir,
+                                0 as qty_adjustment_before,
+                                0 qty_adjustment,
+                                0 as switching_in_before,
+                                0 switching_in,
+                                0 as switching_out_before,
+                                0 switching_out,
+                                0 as scrap_before,
+                                qty as scrap,
+                                null cancel,
+                                null cancel_h,
+                                null status
+                            FROM scrap_in
                             UNION ALL
                             SELECT
                                 buyer,
@@ -10855,6 +10990,8 @@ order by tanggal asc, no_form asc
                                 0 as switching_in,
                                 0 as switching_out_before,
                                 0 as switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
                                 null cancel,
                                 null cancel_h,
                                 null status
@@ -10893,6 +11030,8 @@ order by tanggal asc, no_form asc
                                 0 as switching_in,
                                 SUM(IF(from_tgl_saldo < '".$start_date."',qty,0)) switching_out_before,
                                 SUM(IF(from_tgl_saldo >= '".$start_date."',qty,0)) as switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
                                 null cancel,
                                 null cancel_h,
                                 null status
@@ -10931,6 +11070,8 @@ order by tanggal asc, no_form asc
                                 SUM(IF(tgl_saldo >= '".$start_date."',qty,0)) as switching_in,
                                 0 as switching_out_before,
                                 0 as switching_out,
+                                0 as scrap_before,
+                                0 as scrap,
                                 null cancel,
                                 null cancel_h,
                                 null status
@@ -10984,6 +11125,7 @@ order by tanggal asc, no_form asc
                         0 qty_dc_1,
                         0 qty_dc,
                         0 qty_replace,
+                        0 qty_scrap,
                         0 saldo_akhir,
                         0 qty_adjustment,
                         0 switching_in,
@@ -11026,6 +11168,7 @@ order by tanggal asc, no_form asc
                     SUM(a.qty_dc_1) qty_dc_1,
                     SUM(a.qty_dc) qty_dc,
                     SUM(a.qty_replace) qty_replace,
+                    SUM(a.qty_scrap) qty_scrap,
                     SUM(a.saldo_akhir) saldo_akhir,
                     SUM(a.qty_adjustment) qty_adjustment,
                     SUM(a.switching_in) switching_in,
@@ -13047,6 +13190,7 @@ order by tanggal asc, no_form asc
             'Saldo Awal',
             'In',
             'Replacement',
+            'Scrap',
             'Out',
             'Switching Out',
             'Switching In',
@@ -13075,6 +13219,7 @@ order by tanggal asc, no_form asc
                 (float) $row->saldo_awal_adjustment,
                 (float) $row->qty_cut,
                 (float) $row->qty_replace,
+                (float) $row->qty_scrap,
                 (float) $row->qty_dc,
                 (float) $row->switching_out,
                 (float) $row->switching_in,
