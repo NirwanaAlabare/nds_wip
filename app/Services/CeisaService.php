@@ -89,23 +89,16 @@ class CeisaService
 
     public function getToken($forceRefresh = false)
     {
-        $cacheKey = "ceisa_access_token_{$this->currentEnv}_" . md5($this->username . $this->password);
-
-        if ($forceRefresh) {
-            Cache::forget($cacheKey);
+       
+        $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
+            'username' => $this->username,
+            'password' => $this->password,
+        ]);
+        if ($response->successful()) {
+            return $response->json()['item']['access_token'];
         }
-        dd($this->username, $this->password, $cacheKey);
-        return Cache::remember($cacheKey, 3500, function () {
-            $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
-                'username' => $this->username,
-                'password' => $this->password,
-            ]);
-            if ($response->successful()) {
-                return $response->json()['item']['access_token'];
-            }
 
-            throw new \Exception('Gagal mendapatkan token: ' . $response->body());
-        });
+        throw new \Exception('Gagal mendapatkan token: ' . $response->body());
     }
 
     protected function requestWithRetry($method, $url, $data = [], $retry = true)
