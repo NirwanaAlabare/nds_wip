@@ -203,7 +203,7 @@ class PemasukanService
             'a.berat_bersih',
             'a.berat_kotor',
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.tujuan',
+            'a.jenis_trans as tujuan',
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
             'a.id_so_det'
