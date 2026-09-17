@@ -328,7 +328,7 @@ order by isi asc");
                     SELECT id_ppic_master_so, line, SUM(qty_tmp_trf_garment) AS qty_trf_gmt
                     FROM packing_trf_garment_tmp a
                     INNER JOIN ppic_master_so p on a.id_ppic_master_so = p.id
-                    WHERE created_by = '$user' and line = '$line'
+                    WHERE a.created_by = '$user' and line = '$line'
                     GROUP BY id_ppic_master_so, line
                 ),
                 c AS (
