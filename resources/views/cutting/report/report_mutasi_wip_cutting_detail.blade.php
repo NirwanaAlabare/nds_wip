@@ -87,6 +87,7 @@
                             <th class="text-center align-middle">Saldo Awal</th>
                             <th class="text-center align-middle">In</th>
                             <th class="text-center align-middle">Replacement</th>
+                            <th class="text-center align-middle">Scrap</th>
                             <th class="text-center align-middle">Out</th>
                             <th class="text-center align-middle">Switching OUT</th>
                             <th class="text-center align-middle">Switching IN</th>
@@ -222,6 +223,10 @@
                     },
                     {
                         data: 'qty_replace',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_scrap',
                         className: 'text-end'
                     },
                     {
