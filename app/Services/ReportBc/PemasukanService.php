@@ -268,7 +268,7 @@ class PemasukanService
             $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
-                ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
+                // ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'INHOUSE' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
@@ -295,7 +295,7 @@ class PemasukanService
             $queryFgStokScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
-                ->whereNotIn('a.sumber_pemasukan', ['MUTASI INTERNAL'])
+                // ->whereNotIn('a.sumber_pemasukan', ['MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'INHOUSE' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
@@ -1563,7 +1563,8 @@ class PemasukanService
             'Kode Valuta',
             'Nilai Barang',
             'Kurs',
-            'Nilai Barang IDR'
+            'Nilai Barang IDR',
+            'Sumber'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1593,12 +1594,13 @@ class PemasukanService
                 (float) ($row->nilai_barang ?? 0),
                 (float) ($row->kurs ?? 0),
                 (float) ($row->nilai_barang_idr ?? 0),
+                $row->tujuan,
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'L') as $col) {
+        foreach (range('A', 'M') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
