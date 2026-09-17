@@ -508,22 +508,22 @@
                             ws: item.ws,
                             color: item.color,
                             size: item.size,
-                            qty: item.qty_sisa,
-                            close_order: item.close_order,
-                            disabled: item.close_order === 'Y'
+                            qty: item.qty_sisa
+                            // close_order: item.close_order
+                            // disabled: item.close_order === 'Y'
                         }))
                     };
                 }
             },
-            templateResult: function(data) {
-                if (!data.id) return data.text;
-                var $result = $('<span></span>').text(data.text);
-                if (data.close_order === 'Y') {
-                    $result.text(data.text + ' (Close Order)');
-                    $result.css({ color: '#dc3545', fontWeight: 'bold' });
-                }
-                return $result;
-            }
+            // templateResult: function(data) {
+            //     if (!data.id) return data.text;
+            //     var $result = $('<span></span>').text(data.text);
+            //     if (data.close_order === 'Y') {
+            //         $result.text(data.text + ' (Close Order)');
+            //         $result.css({ color: '#dc3545', fontWeight: 'bold' });
+            //     }
+            //     return $result;
+            // }
         });
 
         $('#cbono').on('select2:select', function(e) {
@@ -610,24 +610,24 @@
                             color: item.color,
                             size: item.size,
                             qty: item.qty_po,
-                            text: item.po + ' | ' + item.color + ' | ' + item.size,
-                            close_order: item.close_order,
-                            disabled: item.close_order === 'Y'
+                            text: item.po + ' | ' + item.color + ' | ' + item.size
+                            // close_order: item.close_order
+                            // disabled: item.close_order === 'Y'
                         }))
                     };
                 }
             },
-            templateResult: function(data) {
-                    console.log(data);
+            // templateResult: function(data) {
+            //         console.log(data);
 
-                if (!data.id) return data.text;
-                var $result = $('<span></span>').text(data.text);
-                if (data.close_order === 'Y') {
-                    $result.text(data.text + ' (Close Order)');
-                    $result.css({ color: '#dc3545', fontWeight: 'bold' });
-                }
-                return $result;
-            }
+            //     if (!data.id) return data.text;
+            //     var $result = $('<span></span>').text(data.text);
+            //     if (data.close_order === 'Y') {
+            //         $result.text(data.text + ' (Close Order)');
+            //         $result.css({ color: '#dc3545', fontWeight: 'bold' });
+            //     }
+            //     return $result;
+            // }
         });
 
         $('#cbo_tujuan').on('select2:select', function(e) {
