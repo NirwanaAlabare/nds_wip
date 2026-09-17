@@ -250,20 +250,20 @@ public function getqtyupload(Request $request)
 
 public function getPOList(Request $request)
 {
-    $nomorpo = DB::connection('mysql_sb')->select("select * from (select pono isi, pono tampil, ms.supplier,sum(pi.qty) qty
+    $nomorpo = DB::connection('mysql_sb')->select("select * from (select pono isi, pono tampil, ms.supplier,sum(pi.qty) qty, ac.close_order
       from po_header ph
       inner join po_item pi on ph.id = pi.id_po
       inner join jo_det jd on pi.id_jo = jd.id_jo
       inner join so on jd.id_so = so.id
       inner join act_costing ac on so.id_cost = ac.id
       inner join mastersupplier ms on ms.id_supplier = ph.id_supplier
-      where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ac.close_order = 'N' and ms.id_supplier = '" . $request->txt_supp . "' group by ph.id) a left join (select b.no_po,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_po != '' GROUP BY b.no_po) b on b.no_po = a.isi");
+      where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.id_supplier = '" . $request->txt_supp . "' group by ph.id) a left join (select b.no_po,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_po != '' GROUP BY b.no_po) b on b.no_po = a.isi");
   //where (qty - COALESCE(qty_bpb,0)) > 0
 
     $html = "<option value=''>Pilih PO</option>";
 
     foreach ($nomorpo as $nopo) {
-        $html .= " <option value='" . $nopo->isi . "'>" . $nopo->tampil . "</option> ";
+        $html .= " <option value='" . $nopo->isi . "' " . ($nopo->close_order == 'Y' ? 'disabled' : '') . ">" . $nopo->tampil . ($nopo->close_order == 'Y' ? ' (Close Order)' : '') . "</option> ";
     }
 
     return $html;
