@@ -385,14 +385,13 @@
                 $(api.column(7).footer()).html(sumTotal);
             },
 
-
             ordering: false,
             processing: true,
             serverSide: true,
             paging: false,
             searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
+            scrollY: true,
+            scrollX: true,
             scrollCollapse: true,
             ajax: {
                 url: '{{ route('stok-temporary-transfer-garment') }}',

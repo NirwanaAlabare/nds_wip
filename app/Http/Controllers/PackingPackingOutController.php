@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Exports\ExportLaporanPackingOut;
+use App\Models\PackingOutGudangStok;
 use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanPackingOut;
+use Yajra\DataTables\Facades\DataTables;
 
 class PackingPackingOutController extends Controller
 {
@@ -26,7 +27,15 @@ class PackingPackingOutController extends Controller
             $po_text = "where po = '$po'";
         }
         $user = Auth::user()->name;
+        $tujuan = $request->tujuan;
         if ($request->ajax()) {
+
+            // Tujuan Gudang Stok punya sumber data sendiri (packing_out_gudang_stok),
+            // selain itu (default) tetap pakai data scan ke ekspedisi.
+            if ($tujuan == 'Gudang Stok') {
+                return $this->getDataPackingOutGudangStok($tgl_awal, $tgl_akhir, $po);
+            }
+
             $additionalQuery = '';
             $data_input = DB::select("WITH
                 o as (
@@ -65,7 +74,9 @@ class PackingPackingOutController extends Controller
                     reff_no,
                     dest,
                     tgl_shipment,
-                    created_by
+                    created_by,
+                    'PACKING CENTRAL' AS sumber,
+                    'EKSPEDISI' AS tujuan
                 FROM (
                     select
                         o.tot ,
@@ -132,6 +143,51 @@ class PackingPackingOutController extends Controller
                 "subPage" => "packing-out"
             ]
         );
+    }
+
+    private function getDataPackingOutGudangStok($tgl_awal, $tgl_akhir, $po)
+    {
+        return DataTables::of($this->queryPackingOutGudangStok($tgl_awal, $tgl_akhir, $po))->toJson();
+    }
+
+    private function queryPackingOutGudangStok($tgl_awal, $tgl_akhir, $po)
+    {
+        $binding = [$tgl_awal, $tgl_akhir];
+
+        $po_text = '';
+        if ($po !== null && $po !== '') {
+            $po_text = 'AND a.po = ?';
+            $binding[] = $po;
+        }
+
+        $data = DB::select("
+            SELECT
+                a.no_trans,
+                DATE_FORMAT(a.created_at, '%d-%m-%Y') AS tanggal,
+                a.no_karton,
+                a.po,
+                w.ws,
+                w.styleno,
+                w.color,
+                w.size,
+                a.qty,
+                a.grade,
+                UPPER(a.lokasi_asal) AS sumber,
+                UPPER(a.tujuan) AS tujuan,
+                a.created_by_username AS created_by,
+                DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+                '-' AS status
+            FROM packing_out_gudang_stok a
+            LEFT JOIN master_sb_ws w ON w.id_so_det = a.so_det_id
+            WHERE DATE(a.created_at) >= ? AND DATE(a.created_at) <= ?
+            $po_text
+            ORDER BY
+                a.created_at DESC,
+                a.po ASC,
+                a.no_karton ASC
+        ", $binding);
+
+        return $data;
     }
 
     public function getno_carton(Request $request)
@@ -1450,6 +1506,12 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $po = $request->txtpo;
+        $tujuan = $request->tujuan;
+
+        if ($tujuan == 'Gudang Stok') {
+            return response()->json($this->queryPackingOutGudangStok($tgl_awal, $tgl_akhir, $po));
+        }
+
         if ($po == null or $po == '') {
             $po_text = '';
         } else {
@@ -1574,5 +1636,648 @@ group by po, no_carton, notes
         ");
 
         return json_encode($data_kapasitas_karton ? $data_kapasitas_karton[0] : null);
+    }
+
+    public function create_packing_out_kirim_gudang_stok(){
+
+        return view("packing.packing_out_kirim_gudang_stok", [
+            "page" => "dashboard-packing",
+            "subPageGroup" => "packing-packing-out",
+            "subPage" => "packing-out"
+        ]);
+    }
+
+    public function store_packing_out_kirim_gudang_stok(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $no_trans = DB::selectOne("
+                SELECT
+                    CONCAT('PCK/OUT/', DATE_FORMAT(CURRENT_DATE(), '%Y')) AS Mattype,
+                    IF(
+                        MAX(no_trans) IS NULL,
+                        '00001',
+                        LPAD(MAX(RIGHT(no_trans, 5)) + 1, 5, 0)
+                    ) AS nomor,
+                    CONCAT(
+                        'PCK/OUT/',
+                        DATE_FORMAT(CURRENT_DATE(), '%m'),
+                        DATE_FORMAT(CURRENT_DATE(), '%y'),
+                        '/',
+                        IF(
+                            MAX(no_trans) IS NULL,
+                            '00001',
+                            LPAD(MAX(RIGHT(no_trans, 5)) + 1, 5, 0)
+                        )
+                    ) AS kode
+                FROM packing_out_gudang_stok
+                WHERE
+                    MONTH(created_at) = MONTH(CURRENT_DATE())
+                    AND YEAR(created_at) = YEAR(CURRENT_DATE())
+                    AND LEFT(no_trans, 3) = 'PCK'
+            ");
+
+            $items = json_decode($request->items, true);
+
+            foreach ($items as $item) {
+
+                PackingOutGudangStok::create([
+                    'no_trans'                => $no_trans->kode,
+                    'no_karton'               => $item['no_karton'],
+                    'lokasi_asal'             => strtoupper($item['lokasi_asal']),
+                    'po'                      => $item['po'],
+                    'ppic_master_so_id'       => $item['ppic_master_so_id'] ?: null,
+                    'so_det_id'               => $item['so_det_id'],
+                    'tujuan'                  => $request->tujuan,
+                    'grade'                   => $request->grade,
+                    'qty'                     => $item['qty'],
+                    'created_by'              => auth()->user()->id,
+                    'created_by_username'     => auth()->user()->username,
+                    'created_at'              => date('Y-m-d H:i:s'),
+                ]);
+
+            }
+
+            DB::commit();
+
+            return array(
+                "status" => 200,
+                "message" => "Data Pengeluaran Packing ke Gudang Stok berhasil disimpan.",
+                "additional" => [],
+            );
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return array(
+                "status" => 500,
+                "message" => "Terjadi kesalahan saat menyimpan data: " . $e->getMessage(),
+                "additional" => [],
+            );
+        }
+    }
+
+    public function getpo_packing_out_kirim_gudang_stok(Request $request)
+    {
+        if ($request->lokasi_asal == 'Packing Central') {
+            $data = DB::select("
+                WITH a AS (
+
+                SELECT
+                    a.id_ppic_master_so,
+                    a.id_so_det AS so_det_id,
+                    SUM(a.qty) AS qty_pck_in
+                from packing_packing_in a
+                    LEFT JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                    WHERE a.sumber IN ('Sewing','FGS', 'TEMPORARY PACKING')
+                        AND (
+                            a.id_ppic_master_so IS NULL
+                            OR YEAR(p.tgl_shipment) >= 2026
+                            OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                            OR p.po = '61297671'
+                            OR p.po = '61297673'
+                        )
+                    group by id_ppic_master_so,a.id_so_det
+                ),
+
+                p AS (
+                    SELECT
+                        id_ppic,
+                        id_so_det,
+                        COUNT(*) AS qty_scan
+                    FROM packing_packing_out_scan
+                    WHERE id_so_det IS NOT NULL
+                    GROUP BY
+                        id_ppic,
+                        id_so_det
+                ),
+
+                s AS (
+                    SELECT
+                        asal_ppic_master_so_id,
+                        asal_so_det_id,
+                        SUM(qty_switch) AS qty_switch
+                    FROM packing_central_switching
+                    GROUP BY
+                        asal_ppic_master_so_id,
+                        asal_so_det_id
+                ),
+
+                t AS (
+                    SELECT
+                        tujuan_ppic_master_so_id AS id_ppic_master_so,
+                        tujuan_so_det_id AS so_det_id,
+                        SUM(qty_switch) AS qty_switch_masuk
+                    FROM packing_central_switching
+                    GROUP BY
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id
+                ),
+
+                r AS (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        qty
+                    FROM fg_fg_out
+                    WHERE status = 'RETUR'
+                    GROUP BY
+                        id_ppic_master_so,
+                        id_so_det
+                ),
+
+                g AS (
+                    SELECT
+                        ppic_master_so_id AS id_ppic_master_so,
+                        so_det_id,
+                        SUM(qty) AS qty_out_gudang
+                    FROM packing_out_gudang_stok
+                    WHERE lokasi_asal = 'PACKING CENTRAL'
+                    GROUP BY
+                        ppic_master_so_id,
+                        so_det_id
+                ),
+
+                combined AS (
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        qty_pck_in AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur,
+                        0 AS qty_out_gudang
+                    FROM a
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic AS id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur,
+                        0 AS qty_out_gudang
+                    FROM p
+
+                    UNION ALL
+
+                    SELECT
+                        asal_ppic_master_so_id AS id_ppic_master_so,
+                        asal_so_det_id AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        qty_switch,
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur,
+                        0 AS qty_out_gudang
+                    FROM s
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        qty_switch_masuk,
+                        0 AS qty_retur,
+                        0 AS qty_out_gudang
+                    FROM t
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det AS so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        qty AS qty_retur,
+                        0 AS qty_out_gudang
+                    FROM r
+
+                    UNION ALL
+
+                    SELECT
+                        id_ppic_master_so,
+                        so_det_id,
+                        0 AS qty,
+                        0 AS qty_scan,
+                        0 AS qty_switch,
+                        0 AS qty_switch_masuk,
+                        0 AS qty_retur,
+                        qty_out_gudang
+                    FROM g
+                ),
+
+                result AS (
+                    SELECT
+                        combined.id_ppic_master_so,
+                        COALESCE(ppic_master_so.po, packing_packing_in.po) AS po,
+                        combined.so_det_id,
+                        SUM(combined.qty)
+                            + SUM(combined.qty_retur)
+                            + SUM(combined.qty_switch_masuk)
+                            - SUM(combined.qty_scan)
+                            - SUM(combined.qty_switch)
+                            - SUM(combined.qty_out_gudang) AS qty_sisa
+                    FROM combined
+                    LEFT JOIN (
+                        SELECT
+                            id_ppic_master_so,
+                            id_so_det,
+                            MIN(id) AS id,
+                            MAX(po) AS po,
+                            MAX(tgl_penerimaan) AS tgl_penerimaan
+                        FROM packing_packing_in
+                        GROUP BY
+                            id_ppic_master_so,
+                            id_so_det
+                    ) packing_packing_in
+                        ON packing_packing_in.id_ppic_master_so <=> combined.id_ppic_master_so
+                        AND packing_packing_in.id_so_det <=> combined.so_det_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = combined.so_det_id
+                    LEFT JOIN ppic_master_so ON ppic_master_so.id = combined.id_ppic_master_so
+                    WHERE 1=1
+                        AND (
+                            combined.id_ppic_master_so IS NULL
+                            OR YEAR(ppic_master_so.tgl_shipment) >= 2026
+                            OR ppic_master_so.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
+                            OR ppic_master_so.po = '61297671'
+                            OR ppic_master_so.po = '61297673'
+                        )
+                    GROUP BY
+                        combined.id_ppic_master_so,
+                        combined.so_det_id,
+                        COALESCE(ppic_master_so.po, packing_packing_in.po)
+                )
+
+                SELECT DISTINCT po
+                FROM result
+                WHERE qty_sisa >= 1 AND po LIKE '%$request->search%'
+                ORDER BY po
+            ");
+
+        }else{
+
+            $data = DB::select("
+                SELECT
+                    stok.po
+                FROM (" . $this->sqlStokTemporaryPacking(false) . ") stok
+                GROUP BY stok.po
+                ORDER BY stok.po
+            ");
+
+        }
+
+        return response()->json($data);
+    }
+
+    private function sqlStokPackingCentralPerPo(): string
+    {
+        return "
+            SELECT
+                stok.id_ppic_master_so,
+                stok.id_so_det,
+                stok.qty_sisa
+            FROM (
+                SELECT
+                    pin.id_ppic_master_so,
+                    pin.id_so_det,
+                    (
+                        pin.qty_in +
+                        COALESCE(retur.qty, 0) +
+                        COALESCE(switch_in.qty, 0) -
+                        COALESCE(switch_out.qty, 0) -
+                        COALESCE(scan.qty_scan, 0) -
+                        COALESCE(out_gudang_stok.qty, 0)
+                    ) AS qty_sisa
+                FROM (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        SUM(qty) AS qty_in
+                    FROM packing_packing_in
+                    WHERE sumber IN ('Sewing', 'FGS', 'TEMPORARY PACKING')
+                        AND po = ?
+                    GROUP BY id_ppic_master_so, id_so_det
+                ) pin
+                LEFT JOIN (
+                    SELECT
+                        id_ppic_master_so,
+                        id_so_det,
+                        qty
+                    FROM fg_fg_out
+                    WHERE status = 'RETUR'
+                    GROUP BY id_ppic_master_so, id_so_det
+                ) retur
+                    ON retur.id_so_det = pin.id_so_det
+                    AND retur.id_ppic_master_so = pin.id_ppic_master_so
+                LEFT JOIN (
+                    SELECT
+                        asal_ppic_master_so_id,
+                        asal_so_det_id,
+                        SUM(qty_switch) AS qty
+                    FROM packing_central_switching
+                    GROUP BY asal_ppic_master_so_id, asal_so_det_id
+                ) switch_out
+                    ON switch_out.asal_so_det_id = pin.id_so_det
+                    AND switch_out.asal_ppic_master_so_id = pin.id_ppic_master_so
+                LEFT JOIN (
+                    SELECT
+                        tujuan_ppic_master_so_id,
+                        tujuan_so_det_id,
+                        SUM(qty_switch) AS qty
+                    FROM packing_central_switching
+                    GROUP BY tujuan_ppic_master_so_id, tujuan_so_det_id
+                ) switch_in
+                    ON switch_in.tujuan_so_det_id = pin.id_so_det
+                    AND switch_in.tujuan_ppic_master_so_id = pin.id_ppic_master_so
+                LEFT JOIN (
+                    SELECT
+                        id_ppic,
+                        id_so_det,
+                        COUNT(*) AS qty_scan
+                    FROM packing_packing_out_scan
+                    WHERE id_so_det IS NOT NULL
+                    GROUP BY id_ppic, id_so_det
+                ) scan
+                    ON scan.id_so_det = pin.id_so_det
+                    AND scan.id_ppic = pin.id_ppic_master_so
+                LEFT JOIN (
+                    SELECT
+                        ppic_master_so_id,
+                        so_det_id,
+                        SUM(qty) AS qty
+                    FROM packing_out_gudang_stok
+                    WHERE lokasi_asal = 'PACKING CENTRAL'
+                    GROUP BY ppic_master_so_id, so_det_id
+                ) out_gudang_stok
+                    ON out_gudang_stok.so_det_id = pin.id_so_det
+                    AND out_gudang_stok.ppic_master_so_id = pin.id_ppic_master_so
+            ) stok
+            WHERE stok.qty_sisa >= 1
+        ";
+    }
+
+    private function sqlStokTemporaryPacking(bool $perPo = true): string
+    {
+        $filterPo = $perPo ? 'AND stok.po = ?' : '';
+
+        return "
+            SELECT
+                stok.po,
+                stok.id_ppic_master_so,
+                stok.id_so_det,
+                stok.qty
+                    - COALESCE(out_gudang_stok.qty, 0)
+                    - COALESCE(out_temporary.qty, 0) AS qty_sisa
+            FROM packing_trf_garment stok
+            LEFT JOIN (
+                SELECT
+                    po,
+                    so_det_id,
+                    SUM(qty) AS qty
+                FROM packing_out_gudang_stok
+                WHERE lokasi_asal = 'TEMPORARY PACKING'
+                GROUP BY po, so_det_id
+            ) out_gudang_stok
+                ON out_gudang_stok.so_det_id = stok.id_so_det
+                AND out_gudang_stok.po = stok.po
+            LEFT JOIN (
+                SELECT
+                    po,
+                    id_so_det,
+                    SUM(qty) AS qty
+                FROM packing_trf_garment_out_temporary
+                GROUP BY po, id_so_det
+            ) out_temporary
+                ON out_temporary.id_so_det = stok.id_so_det
+                AND out_temporary.po = stok.po
+            WHERE stok.tujuan = 'TEMPORARY PACKING'
+            {$filterPo}
+            GROUP BY
+                stok.po,
+                stok.id_so_det
+            HAVING qty_sisa >= 1
+        ";
+    }
+
+    public function getws_packing_out_kirim_gudang_stok(Request $request)
+    {
+        $lokasi_asal = $request->lokasi_asal;
+        $po = $request->po;
+
+        if ($lokasi_asal == 'Packing Central') {
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.ws,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokPackingCentralPerPo() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                GROUP BY master_sb_ws.ws
+                ORDER BY master_sb_ws.ws
+            ", [$po]);
+
+        }else{
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.ws,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokTemporaryPacking() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                GROUP BY master_sb_ws.ws
+                ORDER BY master_sb_ws.ws
+            ", [$po]);
+
+        }
+
+        return response()->json($data);
+    }
+
+    public function getstyle_packing_out_kirim_gudang_stok(Request $request)
+    {
+        $lokasi_asal = $request->lokasi_asal;
+        $po = $request->po;
+        $ws = $request->ws;
+
+        if ($lokasi_asal == 'Packing Central') {
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.styleno AS style,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokPackingCentralPerPo() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                GROUP BY master_sb_ws.styleno
+                ORDER BY master_sb_ws.styleno
+            ", [$po, $ws]);
+
+        }else {
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.styleno AS style,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokTemporaryPacking() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                GROUP BY master_sb_ws.styleno
+                ORDER BY master_sb_ws.styleno
+            ", [$po, $ws]);
+
+        }
+
+        return response()->json($data);
+    }
+
+    public function getcolor_packing_out_kirim_gudang_stok(Request $request)
+    {
+        $lokasi_asal = $request->lokasi_asal;
+        $po = $request->po;
+        $ws = $request->ws;
+        $style = $request->style;
+
+        if ($lokasi_asal == 'Packing Central') {
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.color,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokPackingCentralPerPo() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                GROUP BY master_sb_ws.color
+                ORDER BY master_sb_ws.color
+            ", [$po, $ws, $style]);
+
+        }else{
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.color,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokTemporaryPacking() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                GROUP BY master_sb_ws.color
+                ORDER BY master_sb_ws.color
+            ", [$po, $ws, $style]);
+
+        }
+
+        return response()->json($data);
+    }
+
+    public function getsize_packing_out_kirim_gudang_stok(Request $request)
+    {
+        $lokasi_asal = $request->lokasi_asal;
+        $po = $request->po;
+        $ws = $request->ws;
+        $style = $request->style;
+        $color = $request->color;
+
+        if ($lokasi_asal == 'Packing Central') {
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.size,
+                    master_sb_ws.id_so_det,
+                    stok.id_ppic_master_so,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokPackingCentralPerPo() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                    AND master_sb_ws.color = ?
+                GROUP BY
+                    master_sb_ws.size,
+                    master_sb_ws.id_so_det,
+                    stok.id_ppic_master_so
+                ORDER BY master_sb_ws.size
+            ", [$po, $ws, $style, $color]);
+
+        }else{
+
+            $data = DB::select("
+                SELECT
+                    master_sb_ws.size,
+                    master_sb_ws.id_so_det,
+                    stok.id_ppic_master_so,
+                    SUM(stok.qty_sisa) AS qty
+                FROM (" . $this->sqlStokTemporaryPacking() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                    AND master_sb_ws.color = ?
+                GROUP BY
+                    master_sb_ws.size,
+                    master_sb_ws.id_so_det,
+                    stok.id_ppic_master_so
+                ORDER BY master_sb_ws.size
+            ", [$po, $ws, $style, $color]);
+
+        }
+
+        return response()->json($data);
+    }
+
+    public function getqty_packing_out_kirim_gudang_stok(Request $request)
+    {
+        $lokasi_asal = $request->lokasi_asal;
+        $po = $request->po;
+        $ws = $request->ws;
+        $style = $request->style;
+        $color = $request->color;
+        $size = $request->size;
+        $so_det_id = $request->so_det_id;
+
+        if ($lokasi_asal == 'Packing Central') {
+
+            $data = DB::select("
+                SELECT
+                    COALESCE(SUM(stok.qty_sisa), 0) AS qty
+                FROM (" . $this->sqlStokPackingCentralPerPo() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                    AND master_sb_ws.color = ?
+                    AND master_sb_ws.size = ?
+                    AND (? IS NULL OR stok.id_so_det = ?)
+            ", [$po, $ws, $style, $color, $size, $so_det_id, $so_det_id]);
+
+        }else{
+
+            $data = DB::select("
+                SELECT
+                    COALESCE(SUM(stok.qty_sisa), 0) AS qty
+                FROM (" . $this->sqlStokTemporaryPacking() . ") stok
+                INNER JOIN master_sb_ws ON master_sb_ws.id_so_det = stok.id_so_det
+                WHERE master_sb_ws.ws = ?
+                    AND master_sb_ws.styleno = ?
+                    AND master_sb_ws.color = ?
+                    AND master_sb_ws.size = ?
+                    AND (? IS NULL OR stok.id_so_det = ?)
+            ", [$po, $ws, $style, $color, $size, $so_det_id, $so_det_id]);
+
+        }
+
+        return response()->json([
+            'qty' => $data[0]->qty ?? 0
+        ]);
     }
 }

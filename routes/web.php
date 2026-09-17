@@ -833,6 +833,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
         Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
         Route::get('/show_sum_max_carton', 'show_sum_max_carton')->name('show_sum_max_carton');
+        Route::get('/create_packing_out_kirim_gudang_stok', 'create_packing_out_kirim_gudang_stok')->name('create_packing_out_kirim_gudang_stok');
+        Route::post('/store_packing_out_kirim_gudang_stok', 'store_packing_out_kirim_gudang_stok')->name('store_packing_out_kirim_gudang_stok');
+        Route::post('/getpo_packing_out_kirim_gudang_stok', 'getpo_packing_out_kirim_gudang_stok')->name('getpo_packing_out_kirim_gudang_stok');
+        Route::post('/getws_packing_out_kirim_gudang_stok', 'getws_packing_out_kirim_gudang_stok')->name('getws_packing_out_kirim_gudang_stok');
+        Route::post('/getstyle_packing_out_kirim_gudang_stok', 'getstyle_packing_out_kirim_gudang_stok')->name('getstyle_packing_out_kirim_gudang_stok');
+        Route::post('/getcolor_packing_out_kirim_gudang_stok', 'getcolor_packing_out_kirim_gudang_stok')->name('getcolor_packing_out_kirim_gudang_stok');
+        Route::post('/getsize_packing_out_kirim_gudang_stok', 'getsize_packing_out_kirim_gudang_stok')->name('getsize_packing_out_kirim_gudang_stok');
+        Route::post('/getqty_packing_out_kirim_gudang_stok', 'getqty_packing_out_kirim_gudang_stok')->name('getqty_packing_out_kirim_gudang_stok');
     });
 
     Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
