@@ -94,6 +94,19 @@ class PackingLineController extends Controller
                   AND p.po = '$po_esc'
                   AND a.created_by_line = '$line_esc'
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
+
+                UNION ALL
+
+                SELECT
+                    a.po_id,
+                    'TEMPORARY PACKING' AS po,
+                    a.created_by_line   AS line,
+                    a.so_det_id         AS so_det_id,
+                    COUNT(*)            AS qty_packing_line
+                FROM output_rfts_packing_po a
+                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
+                  AND a.created_by_line = '$line_esc'
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -119,7 +132,6 @@ class PackingLineController extends Controller
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
                 FROM laravel_nds.packing_trf_garment a
-                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
                 WHERE a.tgl_trans = '$today'
                     AND a.po = '$po_esc'
                     AND a.line = '$line_esc'
@@ -133,7 +145,17 @@ class PackingLineController extends Controller
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND a.po = '$po_esc' AND a.line = '$line_esc'
+                  AND a.po = '$po_esc' AND a.line = '$line_esc' AND a.po != 'TEMPORARY PACKING'
+                UNION ALL
+                SELECT
+                    a.po,
+                    a.line,
+                    a.so_det_id,
+                    a.selisih           AS sa,
+                    0                   AS qty_packing_line,
+                    0                   AS qty_trf_gmt
+                FROM mut_packing_line_to_trf_gmt a
+                WHERE a.line = '$line_esc' AND a.po = 'TEMPORARY PACKING'
                 UNION ALL
                 SELECT po, line, so_det_id, 0, qty_packing_line, 0 FROM m
                 UNION ALL
@@ -185,6 +207,18 @@ class PackingLineController extends Controller
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
+
+                UNION ALL
+
+                SELECT
+                    a.po_id,
+                    'TEMPORARY PACKING' AS po,
+                    a.created_by_line   AS line,
+                    a.so_det_id         AS so_det_id,
+                    COUNT(*)            AS qty_packing_line
+                FROM output_rfts_packing_po a
+                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -208,7 +242,6 @@ class PackingLineController extends Controller
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
                 FROM laravel_nds.packing_trf_garment a
-                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
                 WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
@@ -223,7 +256,18 @@ class PackingLineController extends Controller
                     0                   AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
+                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth AND a.po != 'TEMPORARY PACKING'
+                UNION ALL
+                SELECT
+                    a.id_ppic_master_so,
+                    a.po,
+                    a.line,
+                    a.so_det_id,
+                    a.selisih           AS sa,
+                    0                   AS qty_packing_line,
+                    0                   AS qty_trf_gmt
+                FROM mut_packing_line_to_trf_gmt a
+                WHERE a.po = 'TEMPORARY PACKING'
                 UNION ALL
                 SELECT
                     po_id               AS id_ppic_master_so,
@@ -301,6 +345,19 @@ class PackingLineController extends Controller
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
+                
+                UNION ALL
+
+                SELECT
+                    a.po_id,
+                    'TEMPORARY PACKING' AS po,
+                    DATE(a.created_at)  AS tgl_shipment,
+                    a.created_by_line   AS line,
+                    a.so_det_id         AS so_det_id,
+                    COUNT(*)            AS qty_packing_line
+                FROM output_rfts_packing_po a
+                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -326,7 +383,6 @@ class PackingLineController extends Controller
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
                 FROM laravel_nds.packing_trf_garment a
-                LEFT JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
                 WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
@@ -337,7 +393,27 @@ class PackingLineController extends Controller
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
+                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth AND a.po != 'TEMPORARY PACKING'
+                UNION ALL
+                SELECT
+                    a.id_ppic_master_so,
+                    a.po,
+                    a.line,
+                    a.so_det_id,
+                    (
+                        SELECT DATE(o.created_at)
+                        FROM output_rfts_packing_po o
+                        WHERE o.created_by_line = a.line
+                            AND o.so_det_id = a.so_det_id
+                            AND UPPER(o.alokasi) = a.po
+                        ORDER BY o.created_at ASC
+                        LIMIT 1
+                    ) AS tgl_shipment,
+                    a.selisih           AS sa,
+                    0                   AS qty_packing_line,
+                    0                   AS qty_trf_gmt
+                FROM mut_packing_line_to_trf_gmt a
+                WHERE a.po = 'TEMPORARY PACKING'
                 UNION ALL
                 SELECT po_id, po, line, so_det_id, tgl_shipment, 0, qty_packing_line, 0 FROM m
                 UNION ALL
