@@ -492,7 +492,7 @@
         @endrole
 
         @role('machine')
-        <a href="{{ route('dashboard-mut-mesin') }}" class="menu-card">
+        <a href="{{ route('mutasi_mesin') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/mut_mesin.png') }}" alt="machine"></div>
             <span class="menu-label">Mutasi Mesin</span>
         </a>
