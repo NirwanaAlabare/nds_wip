@@ -49,7 +49,9 @@
                             @else
                                 <option value="">Pilih WS</option>
                                 @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    <option value="{{ $order->id }}" {{ $order->close_order == 'Y' ? 'disabled' : '' }}>
+                                            {{ $order->kpno }} {{ $order->close_order == 'Y' ? ' (Close Order)' : '' }}
+                                    </option>
                                 @endforeach
                             @endif
                         </select>
@@ -312,7 +314,28 @@
 
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            containerCssClass: ' rounded'
+            containerCssClass: ' rounded',
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+
+                var $element = $(data.element);
+                if ($element.is(':disabled')) {
+                    return $(
+                        '<div style="' +
+                            'background-color: #f8d7da; ' +
+                            'color: #dc3545; ' +
+                            'font-weight: bold; ' +
+                            'margin: -6px -12px; ' +
+                            'padding: 6px 12px; ' +
+                            'border-radius: 2px;' +
+                        '">' + 
+                            data.text + 
+                        '</div>'
+                    );
+                }
+
+                return data.text;
+            }
         });
 
         // Cegah submit saat menekan enter
