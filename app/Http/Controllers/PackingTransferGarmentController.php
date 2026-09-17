@@ -895,7 +895,7 @@ order by msn.urutan asc
                 m.styleno,
                 m.color,
                 m.size,
-                p.dest,
+                m.dest,
                 a.stok
             FROM (
                 SELECT
@@ -935,7 +935,6 @@ order by msn.urutan asc
                 ) data_mut
                 GROUP BY id_so_det
             ) a
-            INNER JOIN ppic_master_so p ON a.id_so_det = p.id_so_det
             INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
             LEFT JOIN master_size_new msn ON m.size = msn.size
             WHERE a.stok > 0
