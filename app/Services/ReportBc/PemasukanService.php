@@ -165,27 +165,11 @@ class PemasukanService
     //         ->get();
     // }
 
-   public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
+    public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
-
-        $caseJenisDokumen = "
-            CASE
-                WHEN a.jenis_dok = '2.3' AND a.invno LIKE '%PJT%' THEN 'BC 2.3 IMPOR PJT'
-                WHEN a.jenis_dok = '2.3' AND a.invno NOT LIKE '%PJT%' AND a.invno NOT LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.3 IMPOR'
-                WHEN a.jenis_dok = '2.6.2' THEN 'BC 2.6.2 MASUK'
-                WHEN a.jenis_dok = '2.7' THEN 'BC 2.7 MASUK'
-                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) NOT LIKE '%SUBKON%' THEN 'BC 4.0'
-                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) LIKE '%SEWA%' THEN 'BC 4.0 (SEWA)'
-                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.0 SUBKON'
-                WHEN d.area = 'I' AND a.invno LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.0 IMPOR PIB'
-                WHEN d.area = 'I' AND a.invno LIKE '%PIBK%' THEN 'BC 2.1 IMPOR PIBK'
-                WHEN d.status_kb = 'KITTE' AND d.area = 'L' THEN 'BC 2.4 KITTE'
-                ELSE __ELSE_RULE__
-            END
-        ";
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
             DB::raw("a.jenis_dok as jenis_dokumen"),
@@ -244,23 +228,27 @@ class PemasukanService
         }
 
         if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
-            
+
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
+                ->join('so', 'sod.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
-                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
-                    "msw.styleno", 
-                    "CONCAT(msw.styleno, ' - ', IFNULL(msw.color,'-'))",
+                    "IFNULL(msw.styleno, ac.styleno)",
+                    "CONCAT(IFNULL(msw.styleno, ac.styleno), ' - ', IFNULL(msw.color, s.color))",
                     "'BARANG JADI'",
-                    "msw.ws" 
+                    "IFNULL(msw.ws, ac.kpno)"
                 ))
-                ->groupBy('msw.ws', 'a.bpbno_int');
+                ->groupBy('ac.kpno', 'a.bpbno_int');
 
             $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
@@ -280,8 +268,8 @@ class PemasukanService
                     DB::raw("a.no_trans as trans_no"),
                     DB::raw("a.tgl_terima as bpbdate"),
                     DB::raw("'PRODUCTION-SEWING' as supplier"),
-                    DB::raw("m.styleno as kode_brg"),
-                    DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
+                    DB::raw("IFNULL(m.styleno, ac.styleno) as kode_brg"),
+                    DB::raw("CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc"),
                     DB::raw("'PCS' as unit"),
                     DB::raw("SUM(a.qty) as qty"),
                     DB::raw("'-' as curr"),
@@ -290,11 +278,11 @@ class PemasukanService
                     DB::raw("0 as berat_kotor"),
                     DB::raw("'-' as nomor_aju"),
                     DB::raw("a.sumber_pemasukan as tujuan"),
-                    DB::raw("m.ws as id_item"),
+                    DB::raw("IFNULL(m.ws, ac.kpno) as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
-                ->groupBy('m.ws', 'a.no_trans');
+                ->groupBy('ac.kpno', 'a.no_trans');
         }
 
         $unionQuery = null;
