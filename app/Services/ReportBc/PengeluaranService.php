@@ -467,29 +467,36 @@ class PengeluaranService
 
             // ===== FG STOK BPPB (INHOUSE, pengeluaran gudang barang jadi) =====
             $queryFgStokBppb = $mysql_sb->table('laravel_nds.fg_stok_bppb as a')
-                ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
-                ->whereBetween('a.tgl_pengeluaran', [$fromDate, $toDate])
-                ->whereNotIn('a.tujuan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
-                ->select([
-                    DB::raw("'INHOUSE' as jenis_dokumen"),
-                    DB::raw("'-' as bcno"),
-                    DB::raw("a.tgl_pengeluaran as bcdate"),
-                    DB::raw("a.no_trans_out as trans_no"),
-                    DB::raw("a.tgl_pengeluaran as bpbdate"),
-                    DB::raw("'PRODUCTION-SEWING' as supplier"),
-                    DB::raw("m.styleno as kode_brg"),
-                    DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
-                    DB::raw("'PCS' as unit"),
-                    DB::raw("SUM(a.qty_out) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("'-' as nomor_aju"),
-                    DB::raw("a.tujuan"),
-                    DB::raw("a.id_so_det as id_contents"),
-                    DB::raw("'BARANG JADI' as matclass"),
-                    DB::raw("m.ws as ws"),
-                ])
-                ->groupBy('m.ws', 'a.no_trans_out');
+                            ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                            ->join('so as so', 'sd.id_so', '=', 'so.id')
+                            ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                            ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+                            ->whereBetween('a.tgl_pengeluaran', [$fromDate, $toDate])
+                            ->where('a.cancel', 'N')
+                            ->where('sd.cancel', 'N')
+                            ->where('so.cancel_h', 'N')
+                            ->where('ac.aktif', 'Y')
+                            ->whereNotIn('a.tujuan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
+                            ->select([
+                                DB::raw("'INHOUSE' as jenis_dokumen"),
+                                DB::raw("'-' as bcno"),
+                                DB::raw("a.tgl_pengeluaran as bcdate"),
+                                DB::raw("a.no_trans_out as trans_no"),
+                                DB::raw("a.tgl_pengeluaran as bpbdate"),
+                                DB::raw("'PRODUCTION-SEWING' as supplier"),
+                                DB::raw("m.styleno as kode_brg"),
+                                DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
+                                DB::raw("'PCS' as unit"),
+                                DB::raw("SUM(a.qty_out) as qty"),
+                                DB::raw("'-' as curr"),
+                                DB::raw("0 as nilai_barang"),
+                                DB::raw("'-' as nomor_aju"),
+                                DB::raw("a.tujuan"),
+                                DB::raw("a.id_so_det as id_contents"),
+                                DB::raw("'BARANG JADI' as matclass"),
+                                DB::raw("m.ws as ws"),
+                            ])
+                            ->groupBy('m.ws', 'a.no_trans_out');
 
             $fgStokBppbDetail = $mysql_sb->table(DB::raw("({$queryFgStokBppb->toSql()}) as a"))
                 ->mergeBindings($queryFgStokBppb)

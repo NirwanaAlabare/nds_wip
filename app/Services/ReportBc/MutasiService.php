@@ -2003,10 +2003,17 @@ class MutasiService
 
                 SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
+                INNER JOIN so_det sd ON a.id_so_det = sd.id
+                INNER JOIN so ON sd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
                 AND a.bppbno LIKE 'SJ-FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+                AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
                 GROUP BY a.id_so_det
 
                 UNION ALL
@@ -2043,7 +2050,14 @@ class MutasiService
 
                 SELECT a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
+                INNER JOIN so_det sd ON a.id_so_det = sd.id
+                INNER JOIN so ON sd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_pengeluaran < ?
+                AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
@@ -2094,20 +2108,33 @@ class MutasiService
 
                 UNION ALL
 
-                
                 SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty) AS pengeluaran
                 FROM bppb a
+                INNER JOIN so_det sd ON a.id_so_det = sd.id
+                INNER JOIN so ON sd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
                 AND a.bppbno LIKE 'SJ-FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+                AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
                 GROUP BY a.id_so_det
 
                 UNION ALL
 
                 SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty_out) AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
+                INNER JOIN so_det sd ON a.id_so_det = sd.id
+                INNER JOIN so ON sd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
+                AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
