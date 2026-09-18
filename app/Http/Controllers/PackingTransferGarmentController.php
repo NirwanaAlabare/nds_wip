@@ -837,7 +837,11 @@ order by msn.urutan asc
                 '$timestamp',
                 '$timestamp'
                 from packing_trf_garment_tmp_out_temporary a
-                inner join ppic_master_so p on a.id_so_det = p.id_so_det
+                inner join (
+                    select id_so_det, max(barcode) barcode, max(dest) dest
+                    from ppic_master_so
+                    group by id_so_det
+                ) p on a.id_so_det = p.id_so_det
                 where a.created_by = '$user'
                 "
             );

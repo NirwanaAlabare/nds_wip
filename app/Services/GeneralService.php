@@ -113,11 +113,12 @@ class GeneralService
                     inner join so on ac.id = so.id_cost
                     inner join jo_det jod on so.id = jod.id_so
                     inner join bom_jo_item bji on bji.id_jo = jod.id_jo
+                    inner join so_det sd on sd.id = bji.id_so_det
                     inner join masterpanel mp on bji.id_panel = mp.id
                     inner join masteritem mi on mi.id_gen = bji.id_item
                 where
                     kpno = '".$ws."' AND
-                    ".($color ? "mi.color = '".$color."' AND" : "")."
+                    ".($color ? "(mi.color LIKE '%".$color."%' OR sd.color = '".$color."') AND" : "")."
                     matclass = 'FABRIC' and
                     nama_panel like '%".$panel."%'
             ");
