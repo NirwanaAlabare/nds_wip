@@ -38,7 +38,7 @@ class KonfPemasukanController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' GROUP BY b.id) a left JOIN
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok >= '2026-01-01' GROUP BY b.id) a left JOIN
                 (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where status = 'Pending' order by no_dok asc");
 
 
