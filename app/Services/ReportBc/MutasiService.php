@@ -2007,7 +2007,7 @@ class MutasiService
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
-                AND a.bppbno LIKE 'SJ-FG%'
+                AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
                 AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 AND a.cancel = 'N'
@@ -2114,7 +2114,7 @@ class MutasiService
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
-                AND a.bppbno LIKE 'SJ-FG%'
+                AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
                 AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 AND a.cancel = 'N'
