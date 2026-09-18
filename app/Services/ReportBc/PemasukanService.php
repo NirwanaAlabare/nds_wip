@@ -240,6 +240,7 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
+                ->where('sod.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
