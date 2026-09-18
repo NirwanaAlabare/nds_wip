@@ -165,6 +165,7 @@ class PemasukanService
     //         ->get();
     // }
 
+
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $dateField = 'a.bpbdate';
@@ -231,7 +232,7 @@ class PemasukanService
 
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+                ->leftJoin('masterstyle as s', 'a.id_item', '=', 's.id_item') 
                 ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
@@ -244,11 +245,11 @@ class PemasukanService
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
                     "IFNULL(msw.styleno, ac.styleno)",
-                    "CONCAT(IFNULL(msw.styleno, ac.styleno), ' - ', IFNULL(msw.color, s.color))",
+                    "CONCAT(IFNULL(msw.styleno, ac.styleno), ' - ', IFNULL(msw.color, IFNULL(s.color, '-')))",
                     "'BARANG JADI'",
                     "IFNULL(msw.ws, ac.kpno)"
                 ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+                ->groupBy('ac.kpno', 'a.bpbno_int', 'a.id_so_det'); 
 
             $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
@@ -282,7 +283,7 @@ class PemasukanService
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
                 ])
-                ->groupBy('ac.kpno', 'a.no_trans');
+                ->groupBy('ac.kpno', 'a.no_trans', 'a.id_so_det'); 
         }
 
         $unionQuery = null;
