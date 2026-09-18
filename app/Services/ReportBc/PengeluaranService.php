@@ -366,20 +366,6 @@ class PengeluaranService
         $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
-        $caseJenisDokumen = "
-            CASE
-                WHEN a.jenis_dok = 'BC 3.0' THEN 'BC 3.0'
-                WHEN a.jenis_dok = 'BC 2.6.1' AND a.bcno != '-' THEN 'BC 2.6.1 KELUAR'
-                WHEN a.jenis_dok = 'BC 2.7' AND a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN') THEN 'BC 2.7'
-                WHEN a.jenis_dok = 'BC 2.5' THEN 'BC 2.5'
-                WHEN a.jenis_dok = 'BC 3.3' THEN 'BC 3.3'
-                WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.remark) LIKE '%SEWA%' THEN 'BC 4.1 SEWA'
-                WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.1 SUBKON'
-                WHEN a.jenis_dok = 'BC 4.1' THEN 'BC 4.1 LOKAL'
-                ELSE a.jenis_dok
-            END
-        ";
-
         $wsExpr = "(SELECT act_costing.kpno
                     FROM so_det
                     LEFT JOIN so ON so_det.id_so = so.id
@@ -412,19 +398,24 @@ class PengeluaranService
         $kategori = strtolower($kategoriBarang);
         $result = collect();
 
-        // ===== BARANG JADI (FG): grouped by ws =====
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->leftJoin('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->leftJoin('so as so', 'sd.id_so', '=', 'so.id')
+                ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1', 'INHOUSE', 'BC 2.5'])
                 ->where(function ($query) {
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
-                ->whereRaw("d.Supplier != 'BARANG JADI STOCK'")
-                ->whereRaw("a.bppbno_int LIKE 'FG%'")
-                ->whereRaw("a.cancel != 'Y'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
+                ->where('a.bppbno_int', 'LIKE', 'FG%') // Filter bppbno_int
+                ->where('a.cancel', 'N')
+                ->where('sd.cancel', 'N')
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
@@ -465,10 +456,16 @@ class PengeluaranService
 
             $result = $result->concat($barangJadiDetail);
 
-            // ===== FG STOK BPPB (INHOUSE, pengeluaran gudang barang jadi) =====
             $queryFgStokBppb = $mysql_sb->table('laravel_nds.fg_stok_bppb as a')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so as so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->whereBetween('a.tgl_pengeluaran', [$fromDate, $toDate])
+                ->where('a.cancel', 'N')
+                ->where('sd.cancel', 'N')
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
                 ->whereNotIn('a.tujuan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'INHOUSE' as jenis_dokumen"),
@@ -477,8 +474,8 @@ class PengeluaranService
                     DB::raw("a.no_trans_out as trans_no"),
                     DB::raw("a.tgl_pengeluaran as bpbdate"),
                     DB::raw("'PRODUCTION-SEWING' as supplier"),
-                    DB::raw("m.styleno as kode_brg"),
-                    DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
+                    DB::raw("IFNULL(m.styleno, ac.styleno) as kode_brg"),
+                    DB::raw("CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc"),
                     DB::raw("'PCS' as unit"),
                     DB::raw("SUM(a.qty_out) as qty"),
                     DB::raw("'-' as curr"),
@@ -487,9 +484,9 @@ class PengeluaranService
                     DB::raw("a.tujuan"),
                     DB::raw("a.id_so_det as id_contents"),
                     DB::raw("'BARANG JADI' as matclass"),
-                    DB::raw("m.ws as ws"),
+                    DB::raw("IFNULL(m.ws, ac.kpno) as ws"),
                 ])
-                ->groupBy('m.ws', 'a.no_trans_out');
+                ->groupBy('ws', 'a.no_trans_out');
 
             $fgStokBppbDetail = $mysql_sb->table(DB::raw("({$queryFgStokBppb->toSql()}) as a"))
                 ->mergeBindings($queryFgStokBppb)
@@ -523,7 +520,6 @@ class PengeluaranService
             $result = $result->concat($fgStokBppbDetail);
         }
 
-        // ===== BAHAN BAKU / FABRIC / ACCESORIES (non-FG): grouped by mastercontents.id + ws =====
         if (in_array($kategori, ['all', 'fabric', 'accesories'])) {
             $queryBahanBaku = $mysql_sb->table('bppb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
@@ -539,8 +535,8 @@ class PengeluaranService
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
-                ->whereRaw("a.bppbno_int NOT LIKE 'FG%'")
-                ->whereRaw("a.cancel != 'Y'")
+                ->where('a.bppbno_int', 'NOT LIKE', 'FG%')
+                ->where('a.cancel', 'N')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
             if ($kategori !== 'all') {
