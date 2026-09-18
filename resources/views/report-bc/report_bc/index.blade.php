@@ -339,6 +339,22 @@
     <script>
         $(document).ready(function() {
 
+             $('#from_date').on('change', function() {
+                let fromDateVal = $(this).val();
+                
+                $('#to_date').attr('min', fromDateVal);
+                
+                let toDateVal = $('#to_date').val();
+                if (toDateVal && toDateVal < fromDateVal) {
+                    $('#to_date').val('');
+                }
+            });
+
+            $('#to_date').on('change', function() {
+                let toDateVal = $(this).val();
+                $('#from_date').attr('max', toDateVal);
+            });
+
             $('.select2').select2({
                 theme: 'bootstrap4',
                 width: '100%'
@@ -454,10 +470,16 @@
                     $kategoriBarang.append(new Option('Scrap Import', 'import'));
                     $kategoriBarang.append(new Option('Scrap Lokal', 'lokal'));
 
-                }else {
+                } else {
+
                     // Untuk Pemasukan / Pengeluaran
                     divKategoriDokumen.slideDown();
                     $dokumen.attr('required', true).prop('disabled', false);
+
+                    // Tampilkan kembali div kategori barang yang sebelumnya ter-slideUp
+                    divKategoriBarang.slideDown();
+                    $kategoriBarang.attr('required', true).prop('disabled', false);
+                    // -------------------------
 
                     // Isi opsi dokumen berdasarkan Jenis Laporan (Pemasukan/Pengeluaran)
                     if (docOptions[jenis]) {
