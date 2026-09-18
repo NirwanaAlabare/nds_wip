@@ -165,7 +165,7 @@ class PemasukanService
     //         ->get();
     // }
 
-    public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
+   public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $dateField = 'a.bpbdate';
 
@@ -206,14 +206,12 @@ class PemasukanService
             'a.tujuan',
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det',
-            'a.jenis_trans'
+            'a.id_so_det'
         ];
 
         $queryBahanBaku = null;
         $queryBarangJadi = null;
         $queryFgStokBpb = null;
-        $queryFgStokScan = null;
 
         if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
             $queryBahanBaku = $mysql_sb->table('bpb as a')
@@ -246,12 +244,10 @@ class PemasukanService
         }
 
         if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
+            
             $queryBarangJadi = $mysql_sb->table('bpb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
-                ->join('so', 'sod.id_so', '=', 'so.id')
-                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->where('d.supplier', '!=', 'BARANG JADI STOCK')
@@ -259,17 +255,24 @@ class PemasukanService
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
-                    "ac.kpno",
-                    "s.itemname",
+                    "msw.styleno", 
+                    "CONCAT(msw.styleno, ' - ', IFNULL(msw.color,'-'))",
                     "'BARANG JADI'",
-                    "ac.kpno"
+                    "msw.ws" 
                 ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+                ->groupBy('msw.ws', 'a.bpbno_int');
 
             $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->where('a.cancel', 'N')
+                ->where('sd.cancel', 'N')
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
-                // ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
+                ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
                     DB::raw("'INHOUSE' as jenis_dokumen"),
                     DB::raw("'-' as bcno"),
@@ -290,41 +293,12 @@ class PemasukanService
                     DB::raw("m.ws as id_item"),
                     DB::raw("'BARANG JADI' as matclass"),
                     'a.id_so_det',
-                     DB::raw("'-' as jenis_trans"),
-                ])
-                ->groupBy('m.ws', 'a.no_trans');
-
-            $queryFgStokScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
-                ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
-                ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
-                // ->whereNotIn('a.sumber_pemasukan', ['MUTASI INTERNAL'])
-                ->select([
-                    DB::raw("'INHOUSE' as jenis_dokumen"),
-                    DB::raw("'-' as bcno"),
-                    DB::raw("a.tgl_terima as bcdate"),
-                    DB::raw("a.no_trans as trans_no"),
-                    DB::raw("a.tgl_terima as bpbdate"),
-                    DB::raw("'PRODUCTION-SEWING' as supplier"),
-                    DB::raw("m.styleno as kode_brg"),
-                    DB::raw("CONCAT(m.styleno, ' - ', IFNULL(m.color,'-')) as itemdesc"),
-                    DB::raw("'PCS' as unit"),
-                    DB::raw("SUM(a.qty) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("0 as berat_bersih"),
-                    DB::raw("0 as berat_kotor"),
-                    DB::raw("'-' as nomor_aju"),
-                    DB::raw("a.sumber_pemasukan as tujuan"),
-                    DB::raw("m.ws as id_item"),
-                    DB::raw("'BARANG JADI' as matclass"),
-                    'a.id_so_det',
-                    DB::raw("'-' as jenis_trans"),
                 ])
                 ->groupBy('m.ws', 'a.no_trans');
         }
 
         $unionQuery = null;
-        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokScan] as $q) {
+        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb] as $q) {
             if (!$q) continue;
             $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
         }
@@ -361,8 +335,7 @@ class PemasukanService
                 'a.berat_bersih',
                 'a.berat_kotor',
                 'a.tujuan',
-                'a.id_so_det',
-                'a.jenis_trans',
+                'a.id_so_det'
             )
             ->orderBy('a.bcdate', 'ASC')
             ->orderBy('a.bcno', 'ASC')
@@ -1567,9 +1540,7 @@ class PemasukanService
             'Kode Valuta',
             'Nilai Barang',
             'Kurs',
-            'Nilai Barang IDR',
-            'Sumber',
-            'Jenis Trans',
+            'Nilai Barang IDR'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1599,14 +1570,12 @@ class PemasukanService
                 (float) ($row->nilai_barang ?? 0),
                 (float) ($row->kurs ?? 0),
                 (float) ($row->nilai_barang_idr ?? 0),
-                $row->tujuan,
-                $row->jenis_trans,
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'N') as $col) {
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
