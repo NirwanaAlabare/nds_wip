@@ -217,7 +217,11 @@ class PackingPackingInController extends Controller
                 select packing_trf_garment_out_temporary_id,sum(qty) qty_in from packing_packing_in
                 group by packing_trf_garment_out_temporary_id
                 ) b on a.id = b.packing_trf_garment_out_temporary_id
-            inner join ppic_master_so  p on a.id_so_det = p.id_so_det
+            inner join (
+                select id_so_det, max(barcode) barcode, max(dest) dest
+                from ppic_master_so
+                group by id_so_det
+            ) p on a.id_so_det = p.id_so_det
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.po = 'TEMPORARY PACKING' AND a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
@@ -231,12 +235,16 @@ class PackingPackingInController extends Controller
 			m.ws,
 			m.color,
 			m.size,
-			ppic_master_so.barcode,
+			p.barcode,
 			'-' dest,
 			'GUDANG STOK' po,
             'PCS' unit
             from fg_stok_bppb a
-            left join ppic_master_so ON ppic_master_so.id_so_det = a.id_so_det
+            inner join (
+                select id_so_det, max(barcode) barcode, max(dest) dest
+                from ppic_master_so
+                group by id_so_det
+            ) p on a.id_so_det = p.id_so_det
             left join
                 (
                 select fg_stok_bppb_id,sum(qty) qty_in from packing_packing_in where sumber = 'FGS'
@@ -442,7 +450,11 @@ class PackingPackingInController extends Controller
 
                     if($status == 'FGS'){
                         $cek = DB::select("select fg_stok_bppb.*, ppic_master_so.barcode, ppic_master_so.dest from fg_stok_bppb 
-                            left join ppic_master_so on ppic_master_so.id_so_det = fg_stok_bppb.id_so_det 
+                            inner join (
+                                select id_so_det, max(barcode) barcode, max(dest) dest
+                                from ppic_master_so
+                                group by id_so_det
+                            ) ppic_master_so on fg_stok_bppb.id_so_det = ppic_master_so.id_so_det
                             where fg_stok_bppb.id = ? for update", [$txtid_trf_garment]);
                         if (empty($cek)) {
                             continue;
@@ -477,7 +489,11 @@ class PackingPackingInController extends Controller
                     }else if($status == 'TEMPORARY PACKING'){
                         
                         $cek = DB::select("select packing_trf_garment_out_temporary.*, ppic_master_so.barcode, ppic_master_so.dest from packing_trf_garment_out_temporary 
-                            left join ppic_master_so on ppic_master_so.id_so_det = packing_trf_garment_out_temporary.id_so_det 
+                            inner join (
+                                select id_so_det, max(barcode) barcode, max(dest) dest
+                                from ppic_master_so
+                                group by id_so_det
+                            ) ppic_master_so on packing_trf_garment_out_temporary.id_so_det = ppic_master_so.id_so_det
                             where packing_trf_garment_out_temporary.id = ? for update", [$txtid_trf_garment]);
                         if (empty($cek)) {
                             continue;
