@@ -1960,7 +1960,7 @@ class MutasiService
     //     ]);
     // }
 
-    public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $filterBy, $kategoriBarang)
+    public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
         $mysql_sb = DB::connection('mysql_sb');
 
