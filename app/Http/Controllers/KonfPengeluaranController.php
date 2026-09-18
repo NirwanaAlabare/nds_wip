@@ -38,7 +38,7 @@ class KonfPengeluaranController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb where a.status = 'Pending' GROUP BY a.no_bppb order by no_bppb asc");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb where a.status = 'Pending' and a.tgl_bppb >= '2026-01-01' GROUP BY a.no_bppb order by no_bppb asc");
 
 
             return DataTables::of($data_inmaterial)->toJson();
