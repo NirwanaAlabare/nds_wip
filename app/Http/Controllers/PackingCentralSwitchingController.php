@@ -630,7 +630,7 @@ class PackingCentralSwitchingController extends Controller
                     LEFT JOIN master_sb_ws m ON s.id = m.id_so_det
                     LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
                 WHERE (
-                        (a.sumber IN ('Sewing','FGS') AND a.id_ppic_master_so IS NULL)
+                        (a.sumber IN ('Sewing','FGS','TEMPORARY PACKING') AND a.id_ppic_master_so IS NULL)
                         OR YEAR(p.tgl_shipment) >= 2026
                         OR p.po = 'HGL.CMT/X/2025/039/SGT/1025/165/BLACK'
                         OR p.po = '61297671'
