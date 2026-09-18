@@ -474,7 +474,7 @@
                 dataType: 'json',
                 data: {
                     act_costing_ws: $('#act_costing_ws').val(),
-                    // color: $('#color').val(),
+                    color: $('#color').val(),
                     panel: $('#panel').val()
                 },
                 success: function(res) {
