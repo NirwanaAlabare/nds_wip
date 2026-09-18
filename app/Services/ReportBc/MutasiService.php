@@ -1962,74 +1962,79 @@ class MutasiService
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
-
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', 120);
 
         $mysql_sb = DB::connection('mysql_sb');
+        $baselineDate = '2022-10-01';
 
         $sql = "
-            SELECT 
-                IFNULL(msw.styleno, 'BARANG JADI') as kode_brg,
-                CONCAT(IFNULL(msw.styleno, ''), ' - ', IFNULL(msw.color, '-')) as itemdesc,
-                'PCS' as unit,
-                SUM(mutasi.saldo_awal) as saldoawal,
-                SUM(mutasi.penerimaan) as qtyterima,
-                SUM(mutasi.pengeluaran) as qtykeluar,
-                (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) as saldoakhir,
-                mutasi.ws as id_item
+            SELECT
+                IFNULL(msw.ws, ac.kpno) AS ws,
+                IFNULL(msw.styleno, ac.styleno) AS styleno,
+                IFNULL(msw.color, s.color) AS color,
+                IFNULL(msw.product_group, '-') AS product_group,
+                IFNULL(msw.product_item, '-') AS product_item,
+                SUM(mutasi.saldo_awal) AS saldoawal,
+                SUM(mutasi.penerimaan) AS qtyterima,
+                SUM(mutasi.pengeluaran) AS qtykeluar,
+                (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
             FROM (
+
                 -- ========================================================
-                -- 1. SALDO AWAL (Sebelum fromDate)
+                -- 1. SALDO AWAL (sebelum fromDate)
                 -- ========================================================
-                
-                -- A. Saldo Awal ERP (Snapshot Table saldoawal_fg)
+
+                -- A. Saldo awal snapshot ERP
                 SELECT id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM saldoawal_fg
-                WHERE periode = '2022-10-01'
+                WHERE periode = ?
 
                 UNION ALL
 
-                -- B. Saldo Awal Pemasukan BPB (ERP In)
+                -- B. Saldo awal - Penerimaan BPB (ERP In), divalidasi via SO
                 SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
-                WHERE a.bpbdate >= '2022-10-01' AND a.bpbdate < ?
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                WHERE a.bpbdate >= ? AND a.bpbdate < ?
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
-                AND d.supplier != 'BARANG JADI STOCK'
+                AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
                 GROUP BY a.id_so_det
 
                 UNION ALL
 
-                -- C. Saldo Awal Pengeluaran BPPB (ERP Out - Saldo Minus)
+                -- C. Saldo awal - Pengeluaran BPPB (ERP Out, jadi minus)
                 SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
-                WHERE a.bppbdate >= '2022-10-01' AND a.bppbdate < ?
-                AND a.bppbno LIKE 'SJ-FG%' 
+                WHERE a.bppbdate >= ? AND a.bppbdate < ?
+                AND a.bppbno LIKE 'SJ-FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
                 AND a.cancel = 'N'
                 GROUP BY a.id_so_det
 
                 UNION ALL
 
-                -- D. Saldo Awal Pemasukan FG STOK BPB (WMS In)
+                -- D. Saldo awal - Penerimaan FG STOK BPB (WMS In), divalidasi via SO
                 SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_terima < ?
-                AND a.cancel = 'N' 
-                AND sd.cancel = 'N' 
-                AND so.cancel_h = 'N' 
+                AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
-                UNION ALL 
+                UNION ALL
 
-                -- E. Saldo Awal Pengeluaran FG STOK BPPB (WMS Out - Saldo Minus)
+                -- E. Saldo awal - Pengeluaran FG STOK BPPB (WMS Out, jadi minus)
                 SELECT a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 WHERE a.tgl_pengeluaran < ?
@@ -2039,31 +2044,34 @@ class MutasiService
                 UNION ALL
 
                 -- ========================================================
-                -- 2. PENERIMAAN BERJALAN (Antara fromDate & toDate)
+                -- 2. PENERIMAAN BERJALAN (fromDate s/d toDate)
                 -- ========================================================
-                
-                -- F. Penerimaan Berjalan BPB (ERP In)
+
+                -- F. Penerimaan berjalan BPB (ERP In), divalidasi via SO
                 SELECT a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.bpbdate >= ? AND a.bpbdate <= ?
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
-                AND d.supplier != 'BARANG JADI STOCK'
+                AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
                 GROUP BY a.id_so_det
 
                 UNION ALL
 
-                -- G. Penerimaan Berjalan FG STOK BPB (WMS In)
+                -- G. Penerimaan berjalan FG STOK BPB (WMS In), divalidasi via SO
                 SELECT a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
-                AND a.cancel = 'N' 
-                AND sd.cancel = 'N' 
-                AND so.cancel_h = 'N' 
+                AND a.cancel = 'N'
+                AND sd.cancel = 'N'
+                AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
@@ -2071,10 +2079,10 @@ class MutasiService
                 UNION ALL
 
                 -- ========================================================
-                -- 3. PENGELUARAN BERJALAN (Antara fromDate & toDate)
+                -- 3. PENGELUARAN BERJALAN (fromDate s/d toDate)
                 -- ========================================================
-                
-                -- H. Pengeluaran Berjalan BPPB (ERP Out)
+
+                -- H. Pengeluaran berjalan BPPB (ERP Out)
                 SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty) AS pengeluaran
                 FROM bppb a
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
@@ -2085,33 +2093,57 @@ class MutasiService
 
                 UNION ALL
 
-                -- I. Pengeluaran Berjalan FG STOK BPPB (WMS Out)
+                -- I. Pengeluaran berjalan FG STOK BPPB (WMS Out)
                 SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty_out) AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
-            ) as mutasi
+            ) AS mutasi
+            INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
+            INNER JOIN so so2 ON sod2.id_so = so2.id
+            INNER JOIN act_costing ac ON so2.id_cost = ac.id
+            LEFT JOIN masterstyle s ON mutasi.id_so_det = s.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
-            GROUP BY mutasi.ws, mutasi.id_so_det
+            GROUP BY IFNULL(msw.ws, ac.kpno)
+            HAVING SUM(mutasi.saldo_awal) != 0
+                OR SUM(mutasi.penerimaan) != 0
+                OR SUM(mutasi.pengeluaran) != 0
+                OR (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) != 0
+            ORDER BY ws ASC
         ";
 
-        // Pastikan urutan parameter sama dengan tanda tanya (?) di query (Total: 12)
         $bindings = [
-            $fromDate,           // 1. Saldo Awal BPB (< fromDate)
-            $fromDate,           // 2. Saldo Awal BPPB (< fromDate)
-            $fromDate,           // 3. Saldo Awal WMS FG STOK BPB (< fromDate)
-            $fromDate,           // 4. Saldo Awal WMS FG STOK BPPB (< fromDate)
-            
-            $fromDate, $toDate,  // 5. & 6. Penerimaan Berjalan BPB
-            $fromDate, $toDate,  // 7. & 8. Penerimaan Berjalan WMS FG STOK BPB
-            
-            $fromDate, $toDate,  // 9. & 10. Pengeluaran Berjalan BPPB
-            $fromDate, $toDate   // 11. & 12. Pengeluaran Berjalan WMS FG STOK BPPB
+            $baselineDate,                  // periode saldoawal_fg
+
+            $baselineDate, $fromDate,       // Saldo awal BPB (< fromDate)
+            $baselineDate, $fromDate,       // Saldo awal BPPB (< fromDate)
+            $fromDate,                      // Saldo awal FG STOK BPB (< fromDate)
+            $fromDate,                      // Saldo awal FG STOK BPPB (< fromDate)
+
+            $fromDate, $toDate,             // Penerimaan berjalan BPB
+            $fromDate, $toDate,             // Penerimaan berjalan FG STOK BPB
+
+            $fromDate, $toDate,             // Pengeluaran berjalan BPPB
+            $fromDate, $toDate,             // Pengeluaran berjalan FG STOK BPPB
         ];
 
-        return $mysql_sb->select($sql, $bindings);
+        $rows = $mysql_sb->select($sql, $bindings);
+
+        return collect($rows)->map(function ($row) {
+            return (object) [
+                'ws'            => $row->ws,
+                'styleno'       => $row->styleno,
+                'color'         => $row->color,
+                'product_group' => $row->product_group,
+                'product_item'  => $row->product_item,
+                'saldoawal'     => (float) $row->saldoawal,
+                'qtyterima'     => (float) $row->qtyterima,
+                'qtykeluar'     => (float) $row->qtykeluar,
+                'saldoakhir'    => (float) $row->saldoakhir,
+            ];
+        })->values();
     }
     
 
