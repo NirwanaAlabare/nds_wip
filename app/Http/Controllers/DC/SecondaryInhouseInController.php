@@ -1244,7 +1244,7 @@ class SecondaryInhouseInController extends Controller
                 left join master_part mp on mp.id = pd.master_part_id
                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             where
-                dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
+                dc.tujuan = 'SECONDARY DALAM' and (s.cancel IS NULL OR s.cancel != 'y') ".$additionalQuery."
             group by
                 sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno, s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi
         ");
