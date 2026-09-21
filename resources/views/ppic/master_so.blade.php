@@ -624,6 +624,7 @@
                             <th>Qty Packing Out</th>
                             <th>User</th>
                             <th>Tgl. Upload</th>
+                            <th>Status</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -638,6 +639,7 @@
                                     id = 'total_qty_p_in'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_p_out'> </th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -1231,11 +1233,27 @@
                     data: 'created_at'
                 },
                 {
+                    data: 'close_order',
+                    render: (data, type, row, meta) => {
+
+                        if (row.close_order == 'Y') {
+                            return `
+                               <span class="badge badge-danger">Close</span>
+                            `;
+                        } else {
+                            return `
+                               <span class="badge badge-success">Open</span>
+                            `;
+                        }
+
+                    }
+                },
+                {
                     data: 'id'
                 },
             ],
             columnDefs: [{
-                    targets: [18],
+                    targets: [19],
                     render: (data, type, row, meta) => {
                         return `
                 <div
