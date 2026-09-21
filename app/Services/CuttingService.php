@@ -22,7 +22,7 @@ use Carbon\Carbon;
 
 class CuttingService
 {
-    public function isRollUsed($idRoll) {
+    public function isRollUsed($idRoll, $time = false) {
         $isRollUsed = FormCutInputDetail::where("id_roll", $idRoll)->exists() ||
                     Piping::where("id_roll", $idRoll)->exists() ||
                     PipingProcessDetail::where("id_roll", $idRoll)->exists() ||

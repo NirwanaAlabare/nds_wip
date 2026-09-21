@@ -1727,7 +1727,11 @@ class Marketing_SOController extends Controller
 
         $details = $mysql_sb->table('so_det')
             ->leftJoin('master_size_new', 'so_det.id_size', '=', 'master_size_new.id')
-            ->select('so_det.*', 'master_size_new.urutan as size_urutan')
+            ->select(
+                'so_det.*', 
+                'master_size_new.urutan as size_urutan',
+                DB::raw('(SELECT COUNT(so_det_id) FROM laravel_nds.marker_input_detail WHERE so_det_id = so_det.id) AS cek_marker')
+            )
             ->where('so_det.id_so', $id)
             ->get();
 
