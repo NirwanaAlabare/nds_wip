@@ -60,7 +60,7 @@ class PPIC_MasterSOController extends Controller
                 $condition_tgl
                 ),
                 gmt as (
-                select sd.id as id_so_det,id_jo,kpno,styleno, sd.*, Supplier buyer, product_group from signalbit_erp.so_det sd
+                select sd.id as id_so_det,id_jo,kpno,styleno, sd.*, Supplier buyer, product_group, ac.close_order from signalbit_erp.so_det sd
                 inner join signalbit_erp.so on sd.id_so = so.id
                 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                 inner join signalbit_erp.jo_det jd on so.id = jd.id_so
@@ -116,7 +116,8 @@ class PPIC_MasterSOController extends Controller
                 COALESCE(pck_in.qty_pck_in, 0) + COALESCE(switching_in.qty_switch_in, 0) - COALESCE(switching_out.qty_switch_out, 0) AS qty_packing_in,
                 coalesce(pck_out.qty_pck_out,0) qty_packing_out,
                 p.created_by,
-                p.created_at
+                p.created_at,
+                gmt.close_order
                 from ppic p
                 inner join gmt on p.id_so_det = gmt.id_so_det
                 left join pck_trf_gmt on p.id = pck_trf_gmt.id_ppic_master_so

@@ -931,7 +931,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                     INNER JOIN ppic_master_so
                         ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
 
-                    WHERE packing_packing_in.barcode = '$barcode'
+                    WHERE packing_packing_in.barcode IN ('$barcode', '0')
                     AND ppic_master_so.po = '$cek_dest_po'
                     AND ppic_master_so.dest = '$dest'
                     AND packing_packing_in.sumber = 'Sewing'
