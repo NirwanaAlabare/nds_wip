@@ -335,6 +335,7 @@ class PenerimaanCuttingController extends Controller
 
         // 4. Update Data Model
         $penerimaanCutting->tanggal_terima = $tglTerimaBaru;
+        $penerimaanCutting->created_at     = $tglTerimaBaru." 00:00:00";
         $penerimaanCutting->edited_notes   = $message;
         $penerimaanCutting->edited_by      = $user->id;
         $penerimaanCutting->edited_at      = $now;
