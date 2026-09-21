@@ -674,7 +674,7 @@
                     <div class="col-md-7 mb-3 mb-md-0">
                         <div class="section-card">
                             <div class="section-card-header section-toggle" data-target="#body-list-qty">
-                                <h6><i class="fas fa-list"></i> List Detail Qty</h6>
+                                <h6><i class="fas fa-list"></i> List Detail Qty <span class="text-danger">(Data SO Tidak Bisa di Hapus/Cancel Ketika Sudah ada di Marker)</span></h6>
                                 <div class="section-card-header-right">
                                     <span class="badge-total-qty" id="total_qty_badge">
                                         <i class="fas fa-boxes"></i> Total: <span id="total_qty_value">0</span>
@@ -1035,6 +1035,8 @@
                     let isCanceled = (item.cancel === 'Y');
                     let isLocked = (item.is_locked === true || item.is_locked === 1);
 
+                    let isUsedInMarker = (item.cek_marker > 0);
+
                     let readonly = isCanceled ? 'readonly' : '';
                     let bgClass = isCanceled ? 'bg-light text-muted' : '';
 
@@ -1042,9 +1044,16 @@
                     let destClass = isLocked ? 'bg-light text-muted' : '';
                     let destTitle = isLocked ? 'title="Sudah ada di PPIC Master SO, tidak bisa diedit"' : '';
 
-                    let actionBtn = isCanceled
-                        ? `<button type="button" class="btn btn-sm btn-info" onclick="toggleCancelRestoreSO(${detail_id}, 'restore')"><i class="fas fa-undo"></i> Restore</button>`
-                        : `<button type="button" class="btn btn-sm btn-danger" onclick="toggleCancelRestoreSO(${detail_id}, 'cancel')"><i class="fas fa-times"></i> Cancel</button>`;
+                    let actionBtn = '';
+                    if (isCanceled) {
+                        actionBtn = `<button type="button" class="btn btn-sm btn-info" onclick="toggleCancelRestoreSO(${detail_id}, 'restore')"><i class="fas fa-undo"></i> Restore</button>`;
+                    } else {
+                        if (isUsedInMarker) {
+                            actionBtn = `<button type="button" class="btn btn-sm btn-secondary" disabled title="Data sudah ada di marker, tidak bisa di-cancel"><i class="fas fa-times"></i> Cancel</button>`;
+                        } else {
+                            actionBtn = `<button type="button" class="btn btn-sm btn-danger" onclick="toggleCancelRestoreSO(${detail_id}, 'cancel')"><i class="fas fa-times"></i> Cancel</button>`;
+                        }
+                    }
 
                     rows += `<tr class="${bgClass}">
                         <td class="align-middle">${item.color || '-'}</td>
