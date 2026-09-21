@@ -650,6 +650,15 @@ class CuttingService
                             $currentRoll = $roll->where("id_roll", $rollId)->first();
 
                             if ($currentRoll) {
+                                // Set Qty IN
+                                $currentPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
+                                    where("created_at", "<", $scannedItem->updated_at)->
+                                    sum("qty_konv");
+                                if ($scannedItem->qty_in != $currentPenerimaan) {
+                                    $scannedItem->qty_in = $currentPenerimaan;
+                                }
+
+                                // Set Current Qty
                                 if ($scannedItem->qty != $currentRoll->sisa_kain) {
                                     $scannedItem->qty = $currentRoll->sisa_kain;
                                 }
@@ -659,13 +668,14 @@ class CuttingService
                                     where("created_at", ">", $currentRoll->created_at)->
                                     sum("qty_konv");
 
-                                $newRetur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                $newReturQuery = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                    selectRaw("whs_lokasi_inmaterial.id, ROUND((CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END), 2) qty_aktual_konv")->
                                     leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                                     where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                                     where("supplier", "LIKE", "Production - Cutting")->
                                     where("whs_lokasi_inmaterial.no_barcode", $rollId)->
-                                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($currentRoll->created_at)))->
-                                    sum("whs_lokasi_inmaterial.qty_aktual");
+                                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($currentRoll->created_at)))->get();
+                                $newRetur = $newReturQuery->sum("whs_lokasi_inmaterial.qty_aktual");
 
                                 if ($newPenerimaan > 0) {
                                     $scannedItem->qty += $newPenerimaan;
@@ -971,7 +981,7 @@ class CuttingService
                 }
 
                 $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
-                        select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
+                        selectRaw("whs_lokasi_inmaterial.id, ROUND((CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END), 2) qty_aktual_konv")->
                         leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                         where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                         where("supplier", "LIKE", "Production - Cutting")->
@@ -992,7 +1002,7 @@ class CuttingService
                 $qtyRetur = 0;
                 if ($retur) {
                     foreach ($retur as $r) {
-                        $qtyRetur += $r->qty_aktual;
+                        $qtyRetur += $r->qty_aktual_konv;
                     }
                 }
 
