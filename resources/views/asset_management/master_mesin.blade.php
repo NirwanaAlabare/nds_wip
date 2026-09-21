@@ -106,6 +106,216 @@
         .filter-row th {
             padding: 4px;
         }
+
+        /* Samakan tinggi semua kontrol di baris filter: select2, input, dan btn-group */
+        .filter-bar .form-control-sm,
+        .filter-bar .btn-group-sm > .btn,
+        .filter-bar .btn-group-sm > .btn-check + .btn {
+            height: 31px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 8px;
+        }
+
+        .filter-bar .select2-container--bootstrap4 .select2-selection--single {
+            height: 31px;
+            font-size: 12px;
+            border: 1.5px solid #ced4da;
+            border-radius: 8px;
+        }
+
+        .filter-bar .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            line-height: 28px;
+            padding-left: 10px;
+        }
+
+        .filter-bar .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+            height: 29px;
+        }
+
+        .filter-bar .select2-container--bootstrap4.select2-container--focus .select2-selection,
+        .filter-bar .select2-container--bootstrap4.select2-container--open .select2-selection {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
+
+        .filter-bar label {
+            margin-bottom: 2px;
+        }
+
+        .filter-bar .btn-group-sm > .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-bar .btn-group > .btn:not(:first-of-type) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .filter-bar .btn-group > .btn:not(:last-of-type) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        /* Panel filter: dipisah visual dari zona tabel */
+        .filter-panel {
+            background: #f7f8fa;
+            border: 1px solid #e6e8eb;
+            border-radius: 10px;
+            padding: 12px 14px 14px;
+        }
+
+        /* Kartu statistik ringkasan di atas tabel */
+        .stat-card {
+            border: 1px solid #e6e8eb;
+            border-left: 4px solid var(--sb-color);
+            border-radius: 10px;
+            background: #fff;
+            padding: 8px 14px;
+            min-width: 140px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #6c757d;
+            line-height: 1.2;
+        }
+
+        .stat-card .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--sb-color);
+            line-height: 1.2;
+        }
+
+        /* Input pencarian per kolom di header tabel */
+        .filter-row th {
+            background: #f7f8fa;
+        }
+
+        .filter-row .col-filter {
+            height: 28px;
+            font-size: 11px;
+            font-weight: 400;
+            border-radius: 6px;
+        }
+
+        /* Pil lembut, bukan badge pekat - supaya tabel tidak ramai warna.
+           Konvensi & warna disamakan dengan create_mutasi_mesin.blade.php */
+        .pil {
+            display: inline-block;
+            font-size: .68rem;
+            font-weight: 600;
+            letter-spacing: .3px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .pil-beli {
+            color: #1d4ed8;
+            background: #e8eefc;
+        }
+
+        .pil-sewa {
+            color: #8a5a00;
+            background: #fbf0dc;
+        }
+
+        .pil-active {
+            color: #1b7c50;
+            background: #e4f4ec;
+        }
+
+        .pil-idle {
+            color: #8a5a00;
+            background: #fbf0dc;
+        }
+
+        .pil-breakdown {
+            color: #b42318;
+            background: #fce9e7;
+        }
+
+        .pil-lain {
+            color: #6b7280;
+            background: #f1f3f5;
+        }
+
+        /* Sel tanpa isi dibedakan dari data terisi */
+        .sel-kosong {
+            color: #adb5bd;
+            font-style: italic;
+        }
+
+        /* Zebra + hover: bantu mata mengikuti baris di tabel yang perlu scroll horizontal */
+        #datatable tbody tr:nth-of-type(odd) > td {
+            background-color: #fbfcfd;
+        }
+
+        #datatable tbody tr:hover > td {
+            background-color: #eef4ff;
+        }
+
+        /* Toolbar bawaan DataTables diselaraskan dengan panel filter */
+        #datatable_wrapper .dataTables_length,
+        #datatable_wrapper .dataTables_filter,
+        #datatable_wrapper .dataTables_info,
+        #datatable_wrapper .dataTables_paginate {
+            font-size: 12px;
+        }
+
+        #datatable_wrapper .dataTables_filter input,
+        #datatable_wrapper .dataTables_length select {
+            height: 31px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: 1.5px solid #ced4da;
+        }
+
+        #datatable_wrapper .dataTables_filter {
+            text-align: right;
+        }
+
+        #datatable_wrapper .dataTables_filter label {
+            margin-bottom: 0;
+        }
+
+        #datatable_wrapper .paginate_button {
+            font-size: 12px;
+        }
+
+        /* Header (judul kolom + baris "Cari...") ada di .dataTables_scrollHead yang terpisah dari
+           body, jadi otomatis diam saat body di-scroll. Diberi background sendiri supaya baris
+           yang lewat di bawahnya tidak menembus. */
+        #datatable_wrapper .dataTables_scrollHead {
+            background: #fff;
+        }
+
+        #datatable_wrapper .dataTables_scrollHead table {
+            margin-bottom: 0 !important;
+        }
+
+        #datatable_wrapper .dataTables_scrollBody {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        /* Kartu statistik mengecil di layar sempit supaya tetap sebaris */
+        @media (max-width: 575.98px) {
+            .stat-card {
+                min-width: 110px;
+                padding: 6px 10px;
+            }
+
+            .stat-card .stat-value {
+                font-size: 16px;
+            }
+        }
     </style>
 @endsection
 
@@ -115,94 +325,129 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list-alt"></i> Master Mesin</h5>
         </div>
         <div class="card-body">
-            <div class="row mb-3 align-items-end">
-                <div class="col-md-2">
-                    <label for="cbojenis"><small><b>Jenis :</b></small></label>
-                    <select id="cbojenis" class="form-control form-control-sm">
-                        <option value="">Semua Jenis</option>
-                        @foreach ($jenisList as $row)
-                            <option value="{{ $row->kd_jenis }}">{{ $row->nm_jenis }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="cbomerk"><small><b>Merk :</b></small></label>
-                    <select id="cbomerk" class="form-control form-control-sm">
-                        <option value="">Semua Merk</option>
-                        @foreach ($merkList as $row)
-                            <option value="{{ $row->kd_merk }}">{{ $row->nm_merk }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="cbosupplier"><small><b>Supplier :</b></small></label>
-                    <select id="cbosupplier" class="form-control form-control-sm">
-                        <option value="">Semua Supplier</option>
-                        @foreach ($supplierList as $row)
-                            <option value="{{ $row->id_supplier }}">{{ $row->Supplier }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="cbolokasi"><small><b>Lokasi :</b></small></label>
-                    <select id="cbolokasi" class="form-control form-control-sm select2bs4">
-                        <option value="">Semua Lokasi</option>
-                        <option value="0">(Belum Didata)</option>
-                        @foreach ($lokasiList as $row)
-                            <option value="{{ $row->id }}">{{ $row->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="d-block"><small><b>Tampilan :</b></small></label>
-                    <div class="btn-group btn-group-sm w-100" role="group">
-                        <input type="radio" class="btn-check" name="viewMode" id="viewModeGroup" value="group"
-                            autocomplete="off" checked>
-                        <label class="btn btn-outline-primary" for="viewModeGroup">Per Jenis</label>
-                        <input type="radio" class="btn-check" name="viewMode" id="viewModeDetail" value="detail"
-                            autocomplete="off">
-                        <label class="btn btn-outline-primary" for="viewModeDetail">List Detail</label>
+            <div class="filter-panel mb-3">
+                <div class="row g-2 align-items-end filter-bar">
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbosumber"><small><b>Sumber :</b></small></label>
+                        <select id="cbosumber" class="form-control form-control-sm select2bs4">
+                            <option value="">Semua Sumber</option>
+                            <option value="PEMBELIAN">Pembelian</option>
+                            <option value="SEWA">Sewa</option>
+                        </select>
                     </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbojenis"><small><b>Jenis :</b></small></label>
+                        <select id="cbojenis" class="form-control form-control-sm select2bs4">
+                            <option value="">Semua Jenis</option>
+                            @foreach ($jenisList as $row)
+                                <option value="{{ $row->nama }}">{{ $row->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbomerk"><small><b>Merk :</b></small></label>
+                        <select id="cbomerk" class="form-control form-control-sm select2bs4">
+                            <option value="">Semua Merk</option>
+                            @foreach ($merkList as $row)
+                                <option value="{{ $row->nama }}">{{ $row->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbosupplier"><small><b>Supplier :</b></small></label>
+                        <select id="cbosupplier" class="form-control form-control-sm select2bs4">
+                            <option value="">Semua Supplier</option>
+                            @foreach ($supplierList as $row)
+                                <option value="{{ $row->id_supplier }}">{{ $row->Supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbolokasi"><small><b>Lokasi :</b></small></label>
+                        <select id="cbolokasi" class="form-control form-control-sm select2bs4">
+                            <option value="">Semua Lokasi</option>
+                            <option value="0">(Belum Didata)</option>
+                            @foreach ($lokasiList as $row)
+                                <option value="{{ $row->id }}">{{ $row->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label for="cbostatus"><small><b>Status :</b></small></label>
+                        {{-- Isi option diisi refreshStatusOptions() karena daftarnya ikut pilihan Sumber --}}
+                        <select id="cbostatus" class="form-control form-control-sm select2bs4"></select>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mt-2 filter-bar">
+                    <div>
+                        <label class="d-block"><small><b>Tampilan :</b></small></label>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="viewMode" id="viewModeGroup" value="group"
+                                autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="viewModeGroup">Per Jenis</label>
+                            <input type="radio" class="btn-check" name="viewMode" id="viewModeDetail" value="detail"
+                                autocomplete="off">
+                            <label class="btn btn-outline-primary" for="viewModeDetail">List Detail</label>
+                        </div>
+                    </div>
+                    <button type="button" id="btnResetFilter" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-undo"></i> Reset Filter
+                    </button>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Unit</div>
+                        <div class="stat-value" id="statTotalUnit">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Jenis</div>
+                        <div class="stat-value" id="statTotalJenis">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Merk</div>
+                        <div class="stat-value" id="statTotalMerk">-</div>
+                    </div>
+                </div>
                 <button type="button" id="btnExportDetail" class="btn btn-success btn-sm d-none"
                     onclick="exportMasterMesinDetail();">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>
             </div>
 
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
-                    <thead class="bg-sb">
-                        <tr>
-                            <th scope="col" class="text-center align-middle">Sumber</th>
-                            <th scope="col" class="text-center align-middle">Kode Jenis</th>
-                            <th scope="col" class="text-center align-middle">Jenis</th>
-                            <th scope="col" class="text-center align-middle">Kode Merk</th>
-                            <th scope="col" class="text-center align-middle">Merk</th>
-                            <th scope="col" class="text-center align-middle">Tipe</th>
-                            <th scope="col" class="text-center align-middle">Total Unit</th>
-                            <th scope="col" class="text-center align-middle">Act</th>
-                        </tr>
-                        <tr class="filter-row">
-                            <th><input type="text" class="form-control form-control-sm col-filter" data-col="0"
-                                    placeholder="Cari..."></th>
-                            <th></th>
-                            <th><input type="text" class="form-control form-control-sm col-filter" data-col="2"
-                                    placeholder="Cari..."></th>
-                            <th></th>
-                            <th><input type="text" class="form-control form-control-sm col-filter" data-col="4"
-                                    placeholder="Cari..."></th>
-                            <th><input type="text" class="form-control form-control-sm col-filter" data-col="5"
-                                    placeholder="Cari..."></th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+            {{-- Tanpa .table-responsive: DataTables sudah bikin area scroll sendiri lewat scrollX/scrollY.
+                 Dua lapis overflow bikin header hasil clone ikut tergeser saat tabel di-scroll. --}}
+            <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                <thead class="bg-sb">
+                    <tr>
+                        <th scope="col" class="text-center align-middle">Sumber</th>
+                        <th scope="col" class="text-center align-middle">Kode Jenis</th>
+                        <th scope="col" class="text-center align-middle">Jenis</th>
+                        <th scope="col" class="text-center align-middle">Kode Merk</th>
+                        <th scope="col" class="text-center align-middle">Merk</th>
+                        <th scope="col" class="text-center align-middle">Tipe</th>
+                        <th scope="col" class="text-center align-middle">Total Unit</th>
+                        <th scope="col" class="text-center align-middle">Act</th>
+                    </tr>
+                    <tr class="filter-row">
+                        <th><input type="text" class="form-control form-control-sm col-filter" data-col="0"
+                                placeholder="Cari..."></th>
+                        <th></th>
+                        <th><input type="text" class="form-control form-control-sm col-filter" data-col="2"
+                                placeholder="Cari..."></th>
+                        <th></th>
+                        <th><input type="text" class="form-control form-control-sm col-filter" data-col="4"
+                                placeholder="Cari..."></th>
+                        <th><input type="text" class="form-control form-control-sm col-filter" data-col="5"
+                                placeholder="Cari..."></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 
@@ -257,16 +502,44 @@
     <script>
         // Daftar lokasi ratusan baris, jadi dropdown-nya dibikin bisa diketik
         $(function () {
-            $('#cbolokasi').select2({
+            // Option Status diisi dulu supaya select2 tidak dipasang ke <select> yang masih kosong
+            refreshStatusOptions();
+
+            $('#cbojenis, #cbomerk, #cbosupplier, #cbolokasi').select2({
                 theme: 'bootstrap4',
                 width: '100%',
             });
-            $('.select2-container--bootstrap4 .select2-selection--single').css({
-                'height': '30px',
-                'font-size': '12px',
-                'line-height': '30px'
+            // Sumber & Status cuma sedikit pilihannya, kotak pencariannya cuma bikin ramai
+            $('#cbosumber, #cbostatus').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                minimumResultsForSearch: Infinity,
             });
         });
+
+        // Tabel sewa tidak mengenal BREAKDOWN/SERVICE, jadi isi dropdown Status menyesuaikan
+        // pilihan Sumber. Kunci '' dipakai saat Sumber masih "Semua".
+        const statusPerSumber = @json($statusPerSumber);
+
+        function refreshStatusOptions() {
+            const daftar = statusPerSumber[$('#cbosumber').val()] ?? statusPerSumber[''];
+            const terpilih = $('#cbostatus').val() ?? '';
+            // Pilihan lama dipertahankan kalau masih berlaku di sumber yang baru; kalau tidak,
+            // dikosongkan supaya tidak menghasilkan tabel kosong tanpa sebab yang jelas
+            const masihBerlaku = terpilih === '' || terpilih === 'KOSONG' || daftar.includes(terpilih);
+
+            const $status = $('#cbostatus').empty()
+                .append(new Option('Semua Status', ''))
+                .append(new Option('(Belum Didata)', 'KOSONG'));
+            daftar.forEach(function(nilai) {
+                $status.append(new Option(nilai, nilai));
+            });
+
+            // change.select2 cuma menyegarkan tampilan select2, tidak memicu handler change
+            // di bawah - reload datatable-nya diurus pemanggil
+            $status.val(masihBerlaku ? terpilih : '').trigger('change.select2');
+        }
+
 
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
@@ -333,17 +606,51 @@
                 <th><input type="text" class="form-control form-control-sm col-filter" data-col="9" placeholder="Cari..."></th>
             </tr>`;
 
+        // Dipakai kedua mode. Konvensi pil & warnanya disamakan dengan create_mutasi_mesin.blade.php
+        function badgeSumber(sumber) {
+            if (!sumber) return '<span class="pil pil-lain">-</span>';
+            return `<span class="pil ${sumber === 'SEWA' ? 'pil-sewa' : 'pil-beli'}">${sumber}</span>`;
+        }
+
+        function badgeStatus(status) {
+            let kelas = {
+                ACTIVE: 'pil-active',
+                IDLE: 'pil-idle',
+                BREAKDOWN: 'pil-breakdown',
+            }[status] ?? 'pil-lain';
+            return `<span class="pil ${kelas}">${status || '-'}</span>`;
+        }
+
+        // Nilai kosong ditampilkan redup supaya kebedaan dengan data yang benar-benar terisi.
+        // Dibungkus sebagai render agar hanya memengaruhi tampilan, bukan nilai yang difilter/diurut.
+        function teksAtauKosong(data, type) {
+            if (type !== 'display') return data;
+            if (data === null || data === undefined || String(data).trim() === '') {
+                return '<span class="sel-kosong">-</span>';
+            }
+            return $('<div>').text(data).html();
+        }
+
         const groupColumns = [
-            { data: 'sumber' }, // Sumber
-            { data: 'kd_jenis' }, // Kode Jenis
+            { data: 'sumber', className: 'text-center', width: '110px', render: function(d, t) { return t === 'display' ? badgeSumber(d) : d; } }, // Sumber
+            { data: 'kd_jenis', className: 'text-center', width: '90px' }, // Kode Jenis
             { data: 'nm_jenis' }, // Jenis
-            { data: 'kd_merk' }, // Kode Merk
+            { data: 'kd_merk', className: 'text-center', width: '90px' }, // Kode Merk
             { data: 'nm_merk' }, // Merk
             { data: 'tipe' }, // Tipe
-            { data: 'total_unit', className: 'text-center' }, // Total Unit
+            {
+                data: 'total_unit',
+                className: 'text-end',
+                width: '100px',
+                render: function(data, type) {
+                    if (type !== 'display') return data;
+                    return Number(data || 0).toLocaleString('id-ID');
+                }
+            }, // Total Unit
             {
                 data: null,
                 className: 'text-center',
+                width: '100px',
                 render: function() {
                     return `
                 <button type="button" class="btn btn-sm btn-primary btn-detail-unit">
@@ -356,19 +663,37 @@
         ];
 
         const detailColumns = [
-            { data: 'sumber' }, // Sumber
-            { data: 'nm_jenis', defaultContent: '-' }, // Jenis
-            { data: 'nm_merk', defaultContent: '-' }, // Merk
-            { data: 'tipe', defaultContent: '-' }, // Tipe
-            { data: 'serial_number', defaultContent: '-' }, // Serial Number
-            { data: 'kode_qr', defaultContent: '-' }, // Kode QR
-            { data: 'lokasi', defaultContent: '-' }, // Lokasi
-            { data: 'supplier', defaultContent: '-' }, // Supplier
-            { data: 'bpbno_int', defaultContent: '-' }, // No BPB
-            { data: 'status', defaultContent: '-' }, // Status
+            { data: 'sumber', className: 'text-center', width: '110px', render: function(d, t) { return t === 'display' ? badgeSumber(d) : d; } }, // Sumber
+            { data: 'nm_jenis', defaultContent: '-', render: teksAtauKosong }, // Jenis
+            { data: 'nm_merk', defaultContent: '-', render: teksAtauKosong }, // Merk
+            { data: 'tipe', defaultContent: '-', render: teksAtauKosong }, // Tipe
+            { data: 'serial_number', defaultContent: '-', render: teksAtauKosong }, // Serial Number
+            { data: 'kode_qr', defaultContent: '-', render: teksAtauKosong }, // Kode QR
+            { data: 'lokasi', defaultContent: '-', render: teksAtauKosong }, // Lokasi
+            { data: 'supplier', defaultContent: '-', render: teksAtauKosong }, // Supplier
+            { data: 'bpbno_int', defaultContent: '-', render: teksAtauKosong }, // No BPB
+            { data: 'status', className: 'text-center', defaultContent: '-', render: function(d, t) { return t === 'display' ? badgeStatus(d) : d; } }, // Status
         ];
 
         let datatable;
+
+        // Ringkasan dihitung dari baris yang lolos filter (serverSide: false, jadi semua data
+        // sudah ada di client). Mode "group" punya kolom total_unit, mode "detail" 1 baris = 1 unit.
+        function updateStatCards(api, mode) {
+            const jenisSet = new Set();
+            const merkSet = new Set();
+            let totalUnit = 0;
+
+            api.rows({ search: 'applied' }).data().each(function(row) {
+                totalUnit += mode === 'detail' ? 1 : (parseInt(row.total_unit, 10) || 0);
+                if (row.nm_jenis) jenisSet.add(String(row.nm_jenis).trim().toUpperCase());
+                if (row.nm_merk) merkSet.add(String(row.nm_merk).trim().toUpperCase());
+            });
+
+            $('#statTotalUnit').text(totalUnit.toLocaleString('id-ID'));
+            $('#statTotalJenis').text(jenisSet.size.toLocaleString('id-ID'));
+            $('#statTotalMerk').text(merkSet.size.toLocaleString('id-ID'));
+        }
 
         function initDataTable(mode) {
             $('#datatable thead').html(mode === 'detail' ? theadDetail : theadGroup);
@@ -380,7 +705,8 @@
                 serverSide: false,
                 paging: true,
                 searching: true,
-                scrollY: true,
+                // DataTables butuh tinggi CSS (bukan boolean); 55vh bikin header tetap terlihat saat body di-scroll
+                scrollY: '55vh',
                 scrollX: true,
                 scrollCollapse: false,
                 orderCellsTop: true,
@@ -388,13 +714,21 @@
                     url: '{{ route('asset_mesin_master') }}',
                     data: function(d) {
                         d.mode = mode;
-                        d.kd_jenis = $('#cbojenis').val();
-                        d.kd_merk = $('#cbomerk').val();
+                        d.sumber = $('#cbosumber').val();
+                        d.nm_jenis = $('#cbojenis').val();
+                        d.nm_merk = $('#cbomerk').val();
                         d.id_supplier = $('#cbosupplier').val();
                         d.id_lokasi = $('#cbolokasi').val();
+                        d.status = $('#cbostatus').val();
                     }
                 },
                 columns: mode === 'detail' ? detailColumns : groupColumns,
+                // Length & Search sebaris di atas, Info & pagination sebaris di bawah
+                dom: '<"d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2"lf>rt' +
+                    '<"d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2"ip>',
+                drawCallback: function() {
+                    updateStatCards(this.api(), mode);
+                },
             });
         }
 
@@ -411,7 +745,7 @@
             $('#btnExportDetail').toggleClass('d-none', currentViewMode !== 'detail');
         });
 
-        // Export Excel List Detail mengikuti filter (Jenis/Merk/Supplier/Lokasi) yang sedang aktif
+        // Export Excel List Detail mengikuti filter (Sumber/Jenis/Merk/Supplier/Lokasi/Status) yang sedang aktif
         function exportMasterMesinDetail() {
             Swal.fire({
                 title: 'Please Wait,',
@@ -426,10 +760,12 @@
                 type: 'get',
                 url: '{{ route('export_excel_master_mesin_detail') }}',
                 data: {
-                    kd_jenis: $('#cbojenis').val(),
-                    kd_merk: $('#cbomerk').val(),
+                    sumber: $('#cbosumber').val(),
+                    nm_jenis: $('#cbojenis').val(),
+                    nm_merk: $('#cbomerk').val(),
                     id_supplier: $('#cbosupplier').val(),
-                    id_lokasi: $('#cbolokasi').val()
+                    id_lokasi: $('#cbolokasi').val(),
+                    status: $('#cbostatus').val()
                 },
                 xhrFields: {
                     responseType: 'blob'
@@ -469,8 +805,22 @@
             datatable.column($(this).data('col')).search(this.value).draw();
         });
 
-        // Filter dropdown (Jenis, Merk, Supplier, Lokasi) memuat ulang data dari server sesuai pilihan
-        $('#cbojenis, #cbomerk, #cbosupplier, #cbolokasi').on('change', function() {
+        // Filter dropdown (Sumber, Jenis, Merk, Supplier, Lokasi, Status) memuat ulang data dari server sesuai pilihan
+        $('#cbosumber, #cbojenis, #cbomerk, #cbosupplier, #cbolokasi, #cbostatus').on('change', function() {
+            if (this.id === 'cbosumber') {
+                refreshStatusOptions();
+            }
+            dataTableReload();
+        });
+
+        // Reset semua filter sekaligus: 6 dropdown atas + pencarian per kolom + search bawaan datatable.
+        // Dropdown di-reset tanpa trigger change satu-satu supaya ajax reload cuma jalan sekali.
+        $('#btnResetFilter').on('click', function() {
+            $('#cbosumber, #cbojenis, #cbomerk, #cbosupplier, #cbolokasi, #cbostatus').val('').trigger('change.select2');
+            refreshStatusOptions();
+            $('.col-filter').val('');
+            datatable.columns().search('');
+            datatable.search('');
             dataTableReload();
         });
 
@@ -524,11 +874,11 @@
                         <td class="text-center align-middle">${i + 1}</td>
                         <td class="text-center align-middle">${fotoCell}</td>
                         <td class="text-center align-middle">${qrCell}</td>
-                        <td class="align-middle">${unit.serial_number ?? '-'}</td>
-                        <td class="align-middle">${unit.lokasi ?? '-'}</td>
-                        <td class="align-middle">${unit.supplier ?? '-'}</td>
-                        <td class="align-middle">${unit.bpbno_int ?? '-'}</td>
-                        <td class="align-middle">${unit.status ?? '-'}</td>
+                        <td class="align-middle">${teksAtauKosong(unit.serial_number, 'display')}</td>
+                        <td class="align-middle">${teksAtauKosong(unit.lokasi, 'display')}</td>
+                        <td class="align-middle">${teksAtauKosong(unit.supplier, 'display')}</td>
+                        <td class="align-middle">${teksAtauKosong(unit.bpbno_int, 'display')}</td>
+                        <td class="text-center align-middle">${badgeStatus(unit.status)}</td>
                     </tr>`);
                     });
 
