@@ -490,10 +490,10 @@ class DcToolsController extends Controller
                 // Get Stocker
                 $stocker = Stocker::where("id_qr_stocker", $idQrStocker)->first();
 
-                if (!$stocker) {
-                    $errors[] = $idQrStocker . " - Stocker tidak ditemukan";
-                    continue;
-                }
+                // if (!$stocker) {
+                //     $errors[] = $idQrStocker . " - Stocker tidak ditemukan";
+                //     continue;
+                // }
 
                 // Check SecondaryInhouse
                 if (SecondaryInhouse::where("id_qr_stocker", $idQrStocker)->exists()) {
@@ -507,16 +507,18 @@ class DcToolsController extends Controller
                     continue;
                 }
 
-                // Check TrolleyStocker
-                if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
-                    $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
-                    continue;
-                }
+                if ($stocker) {
+                    // Check TrolleyStocker
+                    if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
+                        $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
+                        continue;
+                    }
 
-                // Check LoadingLine
-                if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
-                    $errors[] = $idQrStocker . " - Loading Line sudah ada";
-                    continue;
+                    // Check LoadingLine
+                    if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
+                        $errors[] = $idQrStocker . " - Loading Line sudah ada";
+                        continue;
+                    }
                 }
 
                 $validStockers[] = $idQrStocker;
