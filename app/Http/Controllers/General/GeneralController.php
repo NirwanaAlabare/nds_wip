@@ -1023,16 +1023,17 @@ class GeneralController extends Controller
                 }
 
                 $returQuery = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
-                    select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
+                    selectRaw("whs_lokasi_inmaterial.id, (CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END) qty_aktual_konv")->
                     leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                     where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                     where("supplier", "LIKE", "Production - Cutting")->
-                    where("whs_lokasi_inmaterial.no_barcode", $currentFormCutDetail->id_roll);
+                    where("whs_lokasi_inmaterial.no_barcode", $id);
                     if ($beforeFormCutDetail) {
                         $returQuery->where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($beforeFormCutDetail->created_at)));
                     }
-                $retur = $returQuery->where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentFormCutDetail->created_at)))->
-                    get();
+                $retur = $returQuery->where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentFormCutDetail->created_at)))->get();
+
+                $currentQty -= $retur->sum("qty_aktual_konv") ?? 0;
 
                 $currentScannedItem = ScannedItem::selectRaw("
                         scanned_item.id,

@@ -240,7 +240,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         $formattedDate = Carbon::instance($convertedDate)->format('Y-m-d');
 
                         // DC Qty
-                        if ($dcQty > 0) {
+                        if ($dcQty != 0) {
                             DCIn::create([
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
                                 "tujuan" => $partDetailInfo[0]->tujuan,
@@ -258,7 +258,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         // Secondary Inhouse IN Qty
-                        if ($secInhouseInQty > 0) {
+                        if ($secInhouseInQty != 0) {
                             SecondaryInhouseIn::create([
                                 "tgl_trans" => $formattedDate,
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
@@ -270,7 +270,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         // Secondary Inhouse OUT Qty
-                        if ($secInhouseOutQty > 0) {
+                        if ($secInhouseOutQty != 0) {
                             SecondaryInhouse::create([
                                 "tgl_trans" => $formattedDate,
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
@@ -285,7 +285,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         // Secondary In
-                        if ($secInQty > 0) {
+                        if ($secInQty != 0) {
                             SecondaryIn::create([
                                 "tgl_trans" => $formattedDate,
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
@@ -300,7 +300,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         // WIP Out
-                        if ($wipOutQty > 0) {
+                        if ($wipOutQty != 0) {
                             // Date
                             $convertedDateWipOut = dateConvert($wipOutTanggal);
 
@@ -348,7 +348,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         // Loading Line
-                        if ($loadingQty > 0) {
+                        if ($loadingQty != 0) {
 
                             // Date
                             $convertedDateLoading = dateConvert($loadingTanggal);

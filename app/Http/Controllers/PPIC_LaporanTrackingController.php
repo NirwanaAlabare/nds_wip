@@ -1243,7 +1243,7 @@ class PPIC_LaporanTrackingController extends Controller
                                                     form_cut.id,
                                                     stocker_ws_additional.panel,
                                                     stocker_ws_additional_detail.id
-                                                
+
                                                 -- QUERY OLD
                                                 -- SELECT
                                                 --         form_cut_input.tgl_form_cut,
