@@ -20,17 +20,140 @@ class AssetMesinMasterController extends Controller
     // Dipakai bareng blok JOIN lok_det / lok_main di query-query bawah.
     private const SQL_NAMA_LOKASI = "NULLIF(TRIM(CONCAT_WS(' - ', NULLIF(TRIM(lok_main.main_lokasi), ''), NULLIF(TRIM(lok_det.sub_lokasi), ''), NULLIF(TRIM(lok_det.status), ''))), '')";
 
+    // Filter dibangun di satu tempat karena dipakai bareng listing "Per Jenis", "List Detail"
+    // & export Excel-nya. Sebelumnya logikanya disalin di dua method dan cabang SEWA cuma
+    // kebagian filter lokasi, jadi baris sewa selalu ikut terbawa walau Jenis/Merk/Supplier dipilih.
+    private function buildFilters(Request $request): array
+    {
+        $whereBeli = 'WHERE 1=1';
+        $bindingsBeli = [];
+        $whereSewa = 'WHERE 1=1';
+        $bindingsSewa = [];
+
+        // Nama dibandingkan setelah TRIM+UPPER karena data master & data sewa banyak yang
+        // beda spasi/kapitalisasi untuk nilai yang sebenarnya sama
+        if ($request->nm_jenis) {
+            $whereBeli .= ' AND TRIM(UPPER(j.nm_jenis)) = TRIM(UPPER(?))';
+            $bindingsBeli[] = $request->nm_jenis;
+
+            $whereSewa .= ' AND TRIM(UPPER(a.nm_jenis)) = TRIM(UPPER(?))';
+            $bindingsSewa[] = $request->nm_jenis;
+        }
+        if ($request->nm_merk) {
+            $whereBeli .= ' AND TRIM(UPPER(k.nm_merk)) = TRIM(UPPER(?))';
+            $bindingsBeli[] = $request->nm_merk;
+
+            $whereSewa .= ' AND TRIM(UPPER(a.nm_merk)) = TRIM(UPPER(?))';
+            $bindingsSewa[] = $request->nm_merk;
+        }
+        // Nilai "KOSONG" dipakai untuk unit yang statusnya belum diisi. Kolomnya enum & nullable,
+        // dan di data ada dua bentuk kosong sekaligus: NULL (pembelian) dan string kosong (sewa).
+        if ($request->status) {
+            if ($request->status === 'KOSONG') {
+                $whereBeli .= " AND (a.status IS NULL OR a.status = '')";
+                $whereSewa .= " AND (a.status IS NULL OR a.status = '')";
+            } else {
+                $whereBeli .= ' AND a.status = ?';
+                $bindingsBeli[] = $request->status;
+
+                $whereSewa .= ' AND a.status = ?';
+                $bindingsSewa[] = $request->status;
+            }
+        }
+        if ($request->id_supplier) {
+            $whereBeli .= ' AND bpb.id_supplier = ?';
+            $bindingsBeli[] = $request->id_supplier;
+
+            $whereSewa .= ' AND bpb.id_supplier = ?';
+            $bindingsSewa[] = $request->id_supplier;
+        }
+
+        // Filter lokasi berlaku untuk mesin beli & sewa, karena keduanya sekarang
+        // punya id_lokasi. Nilai 0 berarti "belum didata" (id_lokasi masih NULL).
+        if ($request->filled('id_lokasi')) {
+            if ((int) $request->id_lokasi === 0) {
+                $whereBeli .= ' AND a.id_lokasi IS NULL';
+                $whereSewa .= ' AND a.id_lokasi IS NULL';
+            } else {
+                $whereBeli .= ' AND a.id_lokasi = ?';
+                $bindingsBeli[] = $request->id_lokasi;
+                $whereSewa .= ' AND a.id_lokasi = ?';
+                $bindingsSewa[] = $request->id_lokasi;
+            }
+        }
+
+        // Filter sumber: cabang UNION yang tidak dipilih dimatikan lewat 1=0 supaya
+        // bentuk query (dan urutan bindings) tetap sama untuk semua kombinasi filter.
+        if ($request->sumber === 'PEMBELIAN') {
+            $whereSewa .= ' AND 1=0';
+        } elseif ($request->sumber === 'SEWA') {
+            $whereBeli .= ' AND 1=0';
+        }
+
+        return [$whereBeli, $bindingsBeli, $whereSewa, $bindingsSewa];
+    }
+
+    // $utama = status yang biasa dipakai (urutannya dijaga); sisanya diambil dari data
+    // tabel bersangkutan supaya status lama yang terlanjur terisi tetap bisa difilter.
+    private function daftarStatus(array $utama, string $tabel): array
+    {
+        $dariData = array_column(DB::select("
+            SELECT DISTINCT TRIM(status) AS status
+            FROM $tabel
+            WHERE NULLIF(TRIM(status), '') IS NOT NULL
+            ORDER BY status ASC
+        "), 'status');
+
+        return array_values(array_unique(array_merge($utama, $dariData)));
+    }
+
     public function asset_mesin_master(Request $request)
     {
-        $jenisList = DB::table('asset_master_kd_jenis')->select('kd_jenis', 'nm_jenis')->orderBy('nm_jenis', 'ASC')->get();
-        $merkList = DB::table('asset_master_kd_merk')->select('kd_merk', 'nm_merk')->orderBy('nm_merk', 'ASC')->get();
+        // Jenis, Merk & Supplier digabung (UNION) dari data pembelian + sewa jadi satu daftar.
+        // Penamaan di tabel sewa tidak mengacu ke master, jadi pencocokannya lewat nama - bukan
+        // kode - supaya satu pilihan di dropdown berlaku untuk kedua sumber sekaligus.
+        $jenisList = DB::select("
+            SELECT DISTINCT nama FROM (
+                SELECT TRIM(nm_jenis) AS nama FROM asset_master_kd_jenis
+                UNION
+                SELECT TRIM(nm_jenis) AS nama FROM asset_penerimaan_mesin_sewa
+            ) x
+            WHERE NULLIF(nama, '') IS NOT NULL
+            ORDER BY nama ASC
+        ");
+        $merkList = DB::select("
+            SELECT DISTINCT nama FROM (
+                SELECT TRIM(nm_merk) AS nama FROM asset_master_kd_merk
+                UNION
+                SELECT TRIM(nm_merk) AS nama FROM asset_penerimaan_mesin_sewa
+            ) x
+            WHERE NULLIF(nama, '') IS NOT NULL
+            ORDER BY nama ASC
+        ");
+        // Supplier sebelumnya cuma diambil dari mesin pembelian, jadi supplier yang
+        // hanya punya mesin sewa tidak pernah muncul di dropdown
         $supplierList = DB::select("
             SELECT DISTINCT ms.Id_Supplier AS id_supplier, ms.Supplier AS Supplier
-            FROM asset_penerimaan_mesin a
-            INNER JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
-            INNER JOIN signalbit_erp.mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+            FROM signalbit_erp.mastersupplier ms
+            INNER JOIN signalbit_erp.bpb bpb ON bpb.id_supplier = ms.Id_Supplier
+            WHERE bpb.id IN (SELECT id_bpb FROM asset_penerimaan_mesin)
+               OR bpb.id IN (SELECT id_bpb FROM asset_penerimaan_mesin_sewa)
             ORDER BY ms.Supplier ASC
         ");
+        // Status yang dipakai sehari-hari saja, bukan seluruh isi enum (pembelian punya 8 nilai,
+        // sewa 3, sebagian besar tidak pernah terpakai). Daftarnya beda per sumber karena tabel
+        // sewa memang tidak mengenal BREAKDOWN/SERVICE. Status lain yang terlanjur ada di data
+        // tetap ditambahkan di belakang supaya tidak ada unit yang tidak bisa difilter.
+        $statusPerSumber = [
+            'PEMBELIAN' => $this->daftarStatus(['ACTIVE', 'IDLE', 'BREAKDOWN', 'SERVICE'], 'asset_penerimaan_mesin'),
+            'SEWA' => $this->daftarStatus(['ACTIVE', 'IDLE', 'CUT OFF'], 'asset_penerimaan_mesin_sewa'),
+        ];
+        // Pilihan saat Sumber belum dipilih: gabungan keduanya, urutan tetap dipertahankan
+        $statusPerSumber[''] = array_values(array_unique(array_merge(
+            $statusPerSumber['PEMBELIAN'],
+            $statusPerSumber['SEWA']
+        )));
+
         // Diambil dari master lokasi, bukan dari data mesin, supaya isi dropdown tetap lengkap
         // walaupun id_lokasi di tabel penerimaan belum banyak yang terisi
         $lokasiList = DB::select("
@@ -42,37 +165,7 @@ class AssetMesinMasterController extends Controller
         ");
 
         if ($request->ajax()) {
-            $whereBeli = 'WHERE 1=1';
-            $bindingsBeli = [];
-
-            if ($request->kd_jenis) {
-                $whereBeli .= ' AND m.kd_jenis = ?';
-                $bindingsBeli[] = $request->kd_jenis;
-            }
-            if ($request->kd_merk) {
-                $whereBeli .= ' AND m.kd_merk = ?';
-                $bindingsBeli[] = $request->kd_merk;
-            }
-            if ($request->id_supplier) {
-                $whereBeli .= ' AND bpb.id_supplier = ?';
-                $bindingsBeli[] = $request->id_supplier;
-            }
-            $whereSewa = 'WHERE 1=1';
-            $bindingsSewa = [];
-
-            // Filter lokasi berlaku untuk mesin beli & sewa, karena keduanya sekarang
-            // punya id_lokasi. Nilai 0 berarti "belum didata" (id_lokasi masih NULL).
-            if ($request->filled('id_lokasi')) {
-                if ((int) $request->id_lokasi === 0) {
-                    $whereBeli .= ' AND a.id_lokasi IS NULL';
-                    $whereSewa .= ' AND a.id_lokasi IS NULL';
-                } else {
-                    $whereBeli .= ' AND a.id_lokasi = ?';
-                    $bindingsBeli[] = $request->id_lokasi;
-                    $whereSewa .= ' AND a.id_lokasi = ?';
-                    $bindingsSewa[] = $request->id_lokasi;
-                }
-            }
+            [$whereBeli, $bindingsBeli, $whereSewa, $bindingsSewa] = $this->buildFilters($request);
 
             $bindings = array_merge($bindingsBeli, $bindingsSewa);
 
@@ -110,6 +203,7 @@ class AssetMesinMasterController extends Controller
                     COUNT(*) AS total_unit,
                     'SEWA' AS sumber
                 FROM asset_penerimaan_mesin_sewa a
+                LEFT JOIN signalbit_erp.bpb bpb ON a.id_bpb = bpb.id
                 $whereSewa
                 GROUP BY a.nm_jenis, a.nm_merk, a.tipe
 
@@ -128,6 +222,7 @@ class AssetMesinMasterController extends Controller
             'jenisList' => $jenisList,
             'merkList' => $merkList,
             'supplierList' => $supplierList,
+            'statusPerSumber' => $statusPerSumber,
             'lokasiList' => $lokasiList,
         ]);
     }
@@ -254,39 +349,10 @@ class AssetMesinMasterController extends Controller
     }
 
     // Query unit mesin per baris (tanpa grouping), dipakai bareng oleh listing "List Detail" & export Excel-nya
-    // supaya filter (Jenis/Merk/Supplier/Lokasi) & hasil selalu konsisten antara keduanya.
+    // supaya filter (Sumber/Jenis/Merk/Supplier/Lokasi/Status) & hasil selalu konsisten antara keduanya.
     private function getDetailUnits(Request $request): array
     {
-        $whereBeli = 'WHERE 1=1';
-        $bindingsBeli = [];
-
-        if ($request->kd_jenis) {
-            $whereBeli .= ' AND m.kd_jenis = ?';
-            $bindingsBeli[] = $request->kd_jenis;
-        }
-        if ($request->kd_merk) {
-            $whereBeli .= ' AND m.kd_merk = ?';
-            $bindingsBeli[] = $request->kd_merk;
-        }
-        if ($request->id_supplier) {
-            $whereBeli .= ' AND bpb.id_supplier = ?';
-            $bindingsBeli[] = $request->id_supplier;
-        }
-        $whereSewa = 'WHERE 1=1';
-        $bindingsSewa = [];
-
-        // Nilai 0 berarti "belum didata" (id_lokasi masih NULL)
-        if ($request->filled('id_lokasi')) {
-            if ((int) $request->id_lokasi === 0) {
-                $whereBeli .= ' AND a.id_lokasi IS NULL';
-                $whereSewa .= ' AND a.id_lokasi IS NULL';
-            } else {
-                $whereBeli .= ' AND a.id_lokasi = ?';
-                $bindingsBeli[] = $request->id_lokasi;
-                $whereSewa .= ' AND a.id_lokasi = ?';
-                $bindingsSewa[] = $request->id_lokasi;
-            }
-        }
+        [$whereBeli, $bindingsBeli, $whereSewa, $bindingsSewa] = $this->buildFilters($request);
 
         return DB::select("
             SELECT
