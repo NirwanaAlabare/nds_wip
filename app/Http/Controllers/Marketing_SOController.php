@@ -4068,42 +4068,53 @@ class Marketing_SOController extends Controller
                     }
 
                     $cost_details = $mysql_sb->table('act_costing_detail_new')->where('id_costing', $costing->id)->get();
-                    $mat_items = []; $mfg_items = []; $oth_items = [];
+
+                    $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->delete();
+                    $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->delete();
+                    $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->delete();
 
                     foreach ($cost_details as $det) {
                         $price = $det->price != 0 ? $det->price : ($jenis_rate_val == 'J' ? ($det->value_usd ?? 0) : ($det->value_idr ?? 0));
 
-                        if (in_array($det->type, ['Fabric', 'Accessories Sewing', 'Accessories Packing']) && !in_array($det->item_id, $mat_items)) {
-                            $mysql_sb->table('act_costing_mat')->updateOrInsert(
-                                ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
-                                ['price' => $price, 'cons' => $det->cons ?? 0, 'unit' => $det->unit ?? '', 'allowance' => $det->allowance ?? 0, 'material_source' => $det->origin ?? 'LOKAL', 'jenis_rate' => $jenis_rate_val]
-                            );
-                            $mat_items[] = $det->item_id;
+                        if (in_array($det->type, ['Fabric', 'Accessories Sewing', 'Accessories Packing'])) {
+                            $mysql_sb->table('act_costing_mat')->insert([
+                                'id_act_cost'     => $so->id_cost, 
+                                'id_item'         => $det->item_id,
+                                'price'           => $price, 
+                                'cons'            => $det->cons ?? 0, 
+                                'unit'            => $det->unit ?? '', 
+                                'allowance'       => $det->allowance ?? 0, 
+                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'jenis_rate'      => $jenis_rate_val
+                            ]);
                         }
-                        elseif ($det->type == 'Manufacturing' && !in_array($det->item_id, $mfg_items)) {
-                            $mysql_sb->table('act_costing_mfg')->updateOrInsert(
-                                ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
-                                ['smv' => null, 'price' => $price, 'cons' => $det->cons ?? 1, 'unit' => $det->unit ?? 'PCS', 'allowance' => $det->allowance ?? 0, 'material_source' => $det->origin ?? 'LOKAL', 'jenis_rate' => $jenis_rate_val]
-                            );
-                            $mfg_items[] = $det->item_id;
+                        elseif ($det->type == 'Manufacturing') {
+                            $mysql_sb->table('act_costing_mfg')->insert([
+                                'id_act_cost'     => $so->id_cost, 
+                                'id_item'         => $det->item_id,
+                                'smv'             => null, 
+                                'price'           => $price, 
+                                'cons'            => $det->cons ?? 1, 
+                                'unit'            => $det->unit ?? 'PCS', 
+                                'allowance'       => $det->allowance ?? 0, 
+                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'jenis_rate'      => $jenis_rate_val
+                            ]);
                         }
-                        elseif ($det->type == 'Other Cost' && !in_array($det->item_id, $oth_items)) {
-                            $mysql_sb->table('act_costing_oth')->updateOrInsert(
-                                ['id_act_cost' => $so->id_cost, 'id_item' => $det->item_id],
-                                ['smv' => null, 'price' => $price, 'cons' => $det->cons ?? null, 'unit' => $det->unit ?? null, 'allowance' => $det->allowance ?? null, 'material_source' => null, 'jenis_rate' => $jenis_rate_val]
-                            );
-                            $oth_items[] = $det->item_id;
+                        elseif ($det->type == 'Other Cost') {
+                            $mysql_sb->table('act_costing_oth')->insert([
+                                'id_act_cost'     => $so->id_cost, 
+                                'id_item'         => $det->item_id,
+                                'smv'             => null, 
+                                'price'           => $price, 
+                                'cons'            => $det->cons ?? null, 
+                                'unit'            => $det->unit ?? null, 
+                                'allowance'       => $det->allowance ?? null, 
+                                'material_source' => null, 
+                                'jenis_rate'      => $jenis_rate_val
+                            ]);
                         }
                     }
-
-                    if (empty($mat_items)) $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->delete();
-                    else $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $mat_items)->delete();
-
-                    if (empty($mfg_items)) $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->delete();
-                    else $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $mfg_items)->delete();
-
-                    if (empty($oth_items)) $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->delete();
-                    else $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $oth_items)->delete();
                 }
             }
 

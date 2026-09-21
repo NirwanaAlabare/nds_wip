@@ -376,7 +376,7 @@ class LoadingLineController extends Controller
      */
     public function create()
     {
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'close_order')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
 
         return view("dc.loading-line.create-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', 'lines' => $lines, 'orders' => $orders]);
@@ -855,6 +855,7 @@ class LoadingLineController extends Controller
                     ".$generalFilter."
                 GROUP BY
                     loading_line_plan.id
+
                 ORDER BY
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
@@ -985,16 +986,52 @@ class LoadingLineController extends Controller
                 ".$innerDetailDateFilter."
             GROUP BY
                 stocker_input.id_qr_stocker
+            UNION ALL
+            SELECT
+                tanggal,
+                null loading_plan_id,
+                'INJECT' nama_line,
+                qty qty_old,
+                qty qty_old_1,
+                qty qty,
+                null trolley_id,
+                null nama_trolley,
+                null id_qr_stocker,
+                null so_det_id,
+                size,
+                null dest,
+                null shade,
+                null group_stocker,
+                null range_awal,
+                null range_akhir,
+                null act_costing_id,
+                ws act_costing_ws,
+                buyer,
+                style,
+                color,
+                null line_id,
+                'INJECT' no_form,
+                null no_cut,
+                null type,
+                panel,
+                null panel_status,
+                part,
+                null part_status,
+                'INJECT' no_bon,
+                null waktu_loading,
+                'INJECT' user,
+                'INJECT' notes
+            FROM
+                dc_loading_inject
+            WHERE
+                tanggal between '".$from."' and '".$to."'
+            GROUP BY
+                ws, color, size, panel, part
             ORDER BY
-                loading_line_plan.id,
-                loading_line.tanggal_loading,
-                stocker_input.form_cut_id,
-                stocker_input.form_reject_id,
-                stocker_input.form_piece_id,
-                stocker_input.so_det_id,
-                stocker_input.size,
-                stocker_input.range_awal,
-                FIELD(part_detail.part_status, 'main', 'regular', 'complement')
+                tanggal_loading,
+                act_costing_ws,
+                color,
+                size
         ");
 
         // Create Excel file using FastExcel
@@ -1606,13 +1643,10 @@ class LoadingLineController extends Controller
                 loading_stock.size
                 ".$dateFilter."
             ORDER BY
-                loading_stock.tanggal_loading,
-                loading_line_plan.line_id,
-                loading_line_plan.act_costing_ws,
-                loading_line_plan.color,
-                loading_stock.so_det_id,
-                loading_stock.size,
-                loading_stock.urutan
+                tanggal,
+                ws,
+                color,
+                size
         ");
 
         // Create Excel file using FastExcel
