@@ -107,6 +107,15 @@ class ExportLaporanFGStokMutasiInternal implements FromView, WithEvents, ShouldA
                     FROM fg_stok_bpb_scan
                     WHERE cancel = 'N'
                         AND mutasi = 'Y'
+
+                    UNION ALL
+                        
+                    SELECT
+                        no_mutasi,
+                        no_trans
+                    FROM fg_stok_penerimaan_packing
+                    WHERE cancel = 'N'
+                        AND mutasi = 'Y'
                 ) bpb_all
 
                 GROUP BY no_mutasi, no_trans

@@ -428,7 +428,14 @@
                     data: 'tgl_akt_input'
                 },
                 {
-                    data: 'status'
+                    data: 'status',
+                    render: function(data, type, row) {
+                        if (data === 'PENDING') {
+                            return `<span class="badge bg-warning text-dark" style="width:55px; display:inline-block;">${data}</span>`;
+                        } else if (data === 'TERIMA') {
+                            return `<span class="badge bg-success" style="width:55px; display:inline-block;">${data}</span>`;
+                        }
+                    }
                 },
             ],
             columnDefs: [{
