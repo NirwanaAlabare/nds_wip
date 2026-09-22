@@ -518,6 +518,28 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm',
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+
+                var $element = $(data.element);
+                if ($element.is(':disabled')) {
+                    return $(
+                        '<div style="' +
+                            'background-color: #f8d7da; ' +
+                            'color: #dc3545; ' +
+                            'font-weight: bold; ' +
+                            'margin: -6px -12px; ' +
+                            'padding: 6px 12px; ' +
+                            'border-radius: 2px;' +
+                        '">' + 
+                            data.text + 
+                        '</div>'
+                    );
+                }
+
+                return data.text;
+            }
         })
 
         // Init
@@ -685,9 +707,12 @@
                                 let selectElement = document.getElementById("act_costing_id");
 
                                 for (let i = 0; i < response.length; i++) {
+                                    let isClosed = (response[i].close_order === 'Y'); 
+
                                     let newOption = document.createElement("option");
                                     newOption.value = response[i].act_costing_id;
-                                    newOption.innerHTML = response[i].act_costing_ws;
+                                    newOption.innerHTML = response[i].act_costing_ws + (isClosed ? ' (Close Order)' : '');
+                                    newOption.disabled = isClosed; 
 
                                     selectElement.prepend(newOption);
                                 }
