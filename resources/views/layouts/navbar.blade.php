@@ -1579,6 +1579,9 @@
                                         <a href="{{ route('asset_mesin_mutasi') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_mutasi' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-right-left"></i>Mutasi Mesin</a>
+                                        <a href="{{ route('asset_mesin_requirement') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_requirement' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list-check"></i>Machine Requirement</a>
                                     </div>
 
                                     <div class="mega-dropdown-col">
