@@ -2558,7 +2558,7 @@ class SecondaryInController extends Controller
                 left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
                 where
-                    a.tgl_trans is not null
+                    a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     -- AND (
                     --    a.urutan IS NULL
                     --    OR a.urutan = mx.max_urutan
@@ -2635,6 +2635,7 @@ class SecondaryInController extends Controller
                 left join secondary_inhouse_input sii on b.id_qr_stocker = sii.id_qr_stocker
                 where
                     b.tgl_trans is not null
+                    and (s.cancel IS NULL OR s.cancel != 'y')
                     -- AND (
                     --    b.urutan IS NULL
                     --    OR b.urutan = mx.max_urutan
@@ -2745,7 +2746,7 @@ class SecondaryInController extends Controller
                 left join master_sb_ws m on s.so_det_id = m.id_so_det
                 left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
             where
-                dc.tujuan = 'SECONDARY LUAR'
+                dc.tujuan = 'SECONDARY LUAR' and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
             group
                 by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
@@ -2759,7 +2760,7 @@ class SecondaryInController extends Controller
                 left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                 left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
             where
-                dc.tujuan = 'SECONDARY DALAM'
+                dc.tujuan = 'SECONDARY DALAM' and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
             group by
                 m.ws,m.buyer,m.styleno,m.color,dc.lokasi

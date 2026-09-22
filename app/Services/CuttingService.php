@@ -22,13 +22,139 @@ use Carbon\Carbon;
 
 class CuttingService
 {
-    public function isRollUsed($idRoll) {
+    public function isRollUsed($idRoll, $time = false) {
         $isRollUsed = FormCutInputDetail::where("id_roll", $idRoll)->exists() ||
-              Piping::where("id_roll", $idRoll)->exists() ||
-              PipingProcessDetail::where("id_roll", $idRoll)->exists() ||
-              DB::table("form_cut_alokasi_gr_panel_barcode")->where("barcode", $idRoll)->exists();
+                    Piping::where("id_roll", $idRoll)->exists() ||
+                    PipingProcessDetail::where("id_roll", $idRoll)->exists() ||
+                    DB::table("form_cut_alokasi_gr_panel_barcode")->where("barcode", $idRoll)->exists();
 
         if ($isRollUsed) {
+            if ($time) {
+                // FIX 1: Ubah $rollId jadi $idRoll
+                if ($idRoll) {
+                    // FIX 2: Gunakan Parameter Binding untuk keamanan & efisiensi
+                    $query = "
+                        WITH latest_input AS (
+                            SELECT
+                                id_roll,
+                                ROUND(
+                                    CASE
+                                        WHEN status IN ('extension', 'extension complete') THEN qty - total_pemakaian_roll
+                                        ELSE sisa_kain
+                                    END,
+                                    2
+                                ) AS sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts,
+                                ROW_NUMBER() OVER (
+                                    PARTITION BY id_roll
+                                    ORDER BY COALESCE(created_at, updated_at) ASC
+                                ) AS rn
+                            FROM form_cut_input_detail
+                            WHERE id_roll = ?
+                        ),
+                        latest_piping AS (
+                            SELECT
+                                id_roll,
+                                qty,
+                                qty_sisa AS sisa_kain,
+                                created_at AS ts,
+                                ROW_NUMBER() OVER (
+                                    PARTITION BY id_roll
+                                    ORDER BY created_at ASC
+                                ) AS rn
+                            FROM form_cut_piping
+                            WHERE id_roll = ?
+                        ),
+                        latest_gr_panel AS (
+                            SELECT
+                                barcode AS id_roll,
+                                sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts,
+                                ROW_NUMBER() OVER (
+                                    PARTITION BY barcode
+                                    ORDER BY COALESCE(created_at, updated_at) ASC
+                                ) AS rn
+                            FROM form_cut_alokasi_gr_panel_barcode
+                            WHERE barcode = ?
+                        ),
+                        agg AS (
+                            SELECT id_roll, MIN(DATE(created_at)) created_at, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty
+                            FROM (
+                                SELECT
+                                    id_roll,
+                                    created_at,
+                                    MAX(qty) AS max_qty,
+                                    SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty
+                                FROM form_cut_input_detail
+                                WHERE id_roll = ?
+                                GROUP BY id_roll, created_at
+
+                                UNION ALL
+
+                                SELECT
+                                    id_roll,
+                                    created_at,
+                                    MAX(qty) AS max_qty,
+                                    SUM(piping) AS total_pakai_qty
+                                FROM form_cut_piping
+                                WHERE id_roll = ?
+                                GROUP BY id_roll, created_at
+
+                                UNION ALL
+
+                                SELECT
+                                    barcode AS id_roll,
+                                    created_at,
+                                    MAX(qty_roll) AS max_qty,
+                                    SUM(qty_pakai) AS total_pakai_qty
+                                FROM form_cut_alokasi_gr_panel_barcode
+                                WHERE barcode = ?
+                                GROUP BY barcode, created_at
+                            ) form
+                            GROUP BY id_roll
+                        ),
+                        combined_latest AS (
+                            SELECT id_roll, sisa_kain, ts FROM latest_input WHERE rn = 1
+                            UNION ALL
+                            SELECT id_roll, sisa_kain, ts FROM latest_piping WHERE rn = 1
+                            UNION ALL
+                            SELECT id_roll, sisa_kain, ts FROM latest_gr_panel WHERE rn = 1
+                        ),
+                        latest_sisa_overall AS (
+                            SELECT id_roll, ts, sisa_kain
+                            FROM (
+                                SELECT *,
+                                    ROW_NUMBER() OVER (
+                                        PARTITION BY id_roll
+                                        ORDER BY ts ASC
+                                    ) AS rn
+                                FROM combined_latest
+                            ) t
+                            WHERE rn = 1
+                        )
+                        SELECT
+                            si.id_roll,
+                            si.qty_in,
+                            si.qty,
+                            agg.total_pakai_qty,
+                            latest_sisa_overall.sisa_kain,
+                            COALESCE(latest_sisa_overall.ts, agg.created_at) as created_at
+                        FROM scanned_item si
+                        LEFT JOIN agg ON si.id_roll = agg.id_roll
+                        INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
+                        WHERE si.id_roll = ?
+                    ";
+
+                    $roll = collect(DB::select($query, [
+                        $idRoll, $idRoll, $idRoll, $idRoll, $idRoll, $idRoll, $idRoll
+                    ]));
+
+                    if ($roll->isNotEmpty()) {
+                        return $roll->first()->created_at;
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -650,6 +776,24 @@ class CuttingService
                             $currentRoll = $roll->where("id_roll", $rollId)->first();
 
                             if ($currentRoll) {
+                                // Set Qty IN
+                                $currentPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
+                                    where("created_at", "<", $scannedItem->updated_at)->
+                                    sum("qty_konv");
+                                $currentReturQuery = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                    selectRaw("whs_lokasi_inmaterial.id, ROUND((CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END), 2) qty_aktual_konv")->
+                                    leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
+                                    where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
+                                    where("supplier", "LIKE", "Production - Cutting")->
+                                    where("whs_lokasi_inmaterial.no_barcode", $rollId)->
+                                    where("whs_inmaterial_fabric.tgl_dok", "<", date("Y-m-d", strtotime($scannedItem->updated_at)))->get();
+                                $currentRetur = $currentReturQuery->sum("qty_aktual_konv");
+                                $currentQtyIn = ($currentPenerimaan ?? 0) - ($currentRetur ?? 0);
+                                if ($scannedItem->qty_in != $currentQtyIn) {
+                                    $scannedItem->qty_in = $currentQtyIn;
+                                }
+
+                                // Set Current Qty
                                 if ($scannedItem->qty != $currentRoll->sisa_kain) {
                                     $scannedItem->qty = $currentRoll->sisa_kain;
                                 }
@@ -659,13 +803,14 @@ class CuttingService
                                     where("created_at", ">", $currentRoll->created_at)->
                                     sum("qty_konv");
 
-                                $newRetur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                $newReturQuery = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
+                                    selectRaw("whs_lokasi_inmaterial.id, ROUND((CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END), 2) qty_aktual_konv")->
                                     leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                                     where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                                     where("supplier", "LIKE", "Production - Cutting")->
                                     where("whs_lokasi_inmaterial.no_barcode", $rollId)->
-                                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($currentRoll->created_at)))->
-                                    sum("whs_lokasi_inmaterial.qty_aktual");
+                                    where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($currentRoll->created_at)))->get();
+                                $newRetur = $newReturQuery->sum("qty_aktual_konv");
 
                                 if ($newPenerimaan > 0) {
                                     $scannedItem->qty += $newPenerimaan;
@@ -971,7 +1116,7 @@ class CuttingService
                 }
 
                 $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
-                        select("whs_lokasi_inmaterial.id", "whs_lokasi_inmaterial.qty_aktual")->
+                        selectRaw("whs_lokasi_inmaterial.id, ROUND((CASE WHEN whs_lokasi_inmaterial.satuan = 'YARD' OR whs_lokasi_inmaterial.satuan = 'YRD' THEN whs_lokasi_inmaterial.qty_aktual * 0.9144 ELSE whs_lokasi_inmaterial.qty_aktual END), 2) qty_aktual_konv")->
                         leftJoin("whs_inmaterial_fabric", "whs_inmaterial_fabric.no_dok", "=", "whs_lokasi_inmaterial.no_dok")->
                         where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                         where("supplier", "LIKE", "Production - Cutting")->
@@ -992,7 +1137,7 @@ class CuttingService
                 $qtyRetur = 0;
                 if ($retur) {
                     foreach ($retur as $r) {
-                        $qtyRetur += $r->qty_aktual;
+                        $qtyRetur += $r->qty_aktual_konv;
                     }
                 }
 

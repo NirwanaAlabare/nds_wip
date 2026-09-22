@@ -2433,9 +2433,9 @@ class DcService
                                             left join master_secondary mms on mms.id = pds.master_secondary_id
                                             left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                                     WHERE
-                                            si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                            si.tgl_trans < '".$dateFrom."' AND
-                                            si.tgl_trans >= '2026-05-01' AND
+                                            siu.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
+                                            siu.tgl_trans < '".$dateFrom."' AND
+                                            siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -3021,7 +3021,7 @@ class DcService
                     SUM(qty_adjustment_before) adjustment_before,
                     SUM(switching_in_before) switching_in_before,
                     SUM(switching_out_before) switching_out_before,
-                    SUM(current_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) current_saldo_awal_adjustment,
+                    SUM(current_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) - SUM(COALESCE(loading_qty_inject_before, 0)) current_saldo_awal_adjustment,
                     SUM(qty_in) qty_in,
                     SUM(kirim_secondary_dalam) kirim_secondary_dalam,
                     SUM(terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
@@ -3029,7 +3029,7 @@ class DcService
                     SUM(kirim_secondary_luar) kirim_secondary_luar,
                     SUM(terima_repaired_secondary_luar) terima_repaired_secondary_luar,
                     SUM(terima_good_secondary_luar) terima_good_secondary_luar,
-                    SUM(loading_qty) loading_qty,
+                    SUM(loading_qty) + SUM(COALESCE(loading_qty_inject, 0)) loading_qty,
                     SUM(current_saldo_akhir) current_saldo_akhir,
                     SUM(kirim_secondary_dalam_before) kirim_secondary_dalam_before,
                     SUM(terima_repaired_secondary_dalam_before) terima_repaired_secondary_dalam_before,
@@ -3042,7 +3042,7 @@ class DcService
                     SUM(qty_adjustment) adjustment,
                     SUM(switching_in) switching_in,
                     SUM(switching_out) switching_out,
-                    (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment,
+                    (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) - (SUM(loading_qty_inject_before) - SUM(loading_qty_inject)) current_saldo_akhir_adjustment,
                     SUM(qty_adjustment_secondary_dalam_before) qty_adjustment_secondary_dalam_before,
                     SUM(qty_adjustment_secondary_dalam) qty_adjustment_secondary_dalam,
                     SUM(qty_adjustment_secondary_luar_before) qty_adjustment_secondary_luar_before,
@@ -3092,7 +3092,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         dc_saldo
                     UNION ALL
@@ -3103,7 +3105,7 @@ class DcService
                         style,
                         color,
                         size,
-                        panel,
+                        COALESCE(panel, '-') panel,
                         part nama_part,
                         0 current_saldo_awal,
                         0 qty_in,
@@ -3136,7 +3138,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_adjustment
                     WHERE
@@ -3185,7 +3189,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_switching_adj
                     where
@@ -3234,7 +3240,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_switching_adj
                     WHERE
@@ -3250,7 +3258,7 @@ class DcService
                         style,
                         color,
                         size,
-                        panel,
+                        COALESCE(panel, '-') panel,
                         part nama_part,
                         0 current_saldo_awal,
                         0 qty_in,
@@ -3283,7 +3291,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_adjustment
                     WHERE
@@ -3299,7 +3309,7 @@ class DcService
                         style,
                         color,
                         size,
-                        panel,
+                        COALESCE(panel, '-') panel,
                         part nama_part,
                         0 current_saldo_awal,
                         0 qty_in,
@@ -3332,7 +3342,9 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_adjustment
                     WHERE
@@ -3348,7 +3360,7 @@ class DcService
                         style,
                         color,
                         size,
-                        panel,
+                        COALESCE(panel, '-') panel,
                         part nama_part,
                         0 current_saldo_awal,
                         0 qty_in,
@@ -3381,7 +3393,9 @@ class DcService
                         SUM(IF(tgl_saldo < '".$dateFrom."',qty,0)) as qty_adjustment_transit_terima_secondary_luar_before,
                         SUM(IF(tgl_saldo >= '".$dateFrom."',qty,0)) as qty_adjustment_transit_terima_secondary_luar,
                         0 as qty_transit_terima_secondary_luar_before,
-                        0 as qty_transit_terima_secondary_luar
+                        0 as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         wip_adjustment
                     WHERE
@@ -3397,7 +3411,7 @@ class DcService
                         style,
                         color,
                         size,
-                        panel,
+                        COALESCE(panel, '-') panel,
                         part nama_part,
                         0 current_saldo_awal,
                         0 qty_in,
@@ -3430,12 +3444,64 @@ class DcService
                         0 as qty_adjustment_transit_terima_secondary_luar_before,
                         0 as qty_adjustment_transit_terima_secondary_luar,
                         SUM(IF(tanggal < '".$dateFrom."',qty,0)) as qty_transit_terima_secondary_luar_before,
-                        SUM(IF(tanggal >= '".$dateFrom."',qty,0)) as qty_transit_terima_secondary_luar
+                        SUM(IF(tanggal >= '".$dateFrom."',qty,0)) as qty_transit_terima_secondary_luar,
+                        0 as loading_qty_inject_before,
+                        0 as loading_qty_inject
                     FROM
                         inject_mutasi_dc
                     WHERE
                         tanggal <= '$dateTo' and
                         type_report = 'SECONDARY_LUAR'
+                    GROUP BY
+                        ws, color, size, panel, part
+                    UNION ALL
+                    select
+                        null stockers,
+                        ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        COALESCE(panel, '-') panel,
+                        part nama_part,
+                        0 current_saldo_awal,
+                        0 qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading_qty,
+                        0 current_saldo_akhir,
+                        0 kirim_secondary_dalam_before,
+                        0 terima_repaired_secondary_dalam_before,
+                        0 terima_good_secondary_dalam_before,
+                        0 kirim_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before,
+                        0 terima_good_secondary_luar_before,
+                        0 terima_repaired_secondary_luar_before_new,
+                        0 terima_good_secondary_luar_before_new,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as qty_adjustment_secondary_dalam_before,
+                        0 as qty_adjustment_secondary_dalam,
+                        0 as qty_adjustment_secondary_luar_before,
+                        0 as qty_adjustment_secondary_luar,
+                        0 as qty_adjustment_transit_terima_secondary_luar_before,
+                        0 as qty_adjustment_transit_terima_secondary_luar,
+                        0 as qty_transit_terima_secondary_luar_before,
+                        0 as qty_transit_terima_secondary_luar,
+                        SUM(IF(tanggal < '".$dateFrom."',qty,0)) as loading_qty_inject_before,
+                        SUM(IF(tanggal >= '".$dateFrom."',qty,0)) as loading_qty_inject
+                    FROM
+                        dc_loading_inject
+                    WHERE
+                        tanggal <= '$dateTo'
                     GROUP BY
                         ws, color, size, panel, part
                 ) dc
@@ -4122,7 +4188,8 @@ class DcService
         try {
             // Only rekap up to 30 days before today, leaving the most recent window untouched
             $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
-
+            $dateFrom = '2026-07-01';
+            $dateTo = '2026-07-31';
             if (!$dateFrom) {
                 // Kursor dibaca dari tabel yang sama dengan tujuan INSERT di
                 // buildRekapQuery(). Kalau keduanya beda tabel, dateFrom dihitung dari

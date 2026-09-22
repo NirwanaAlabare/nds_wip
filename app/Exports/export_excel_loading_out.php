@@ -60,6 +60,7 @@ from wip_out a
 left join wip_out_det b on a.id = b.id_wip_out
 left join signalbit_erp.po_header ph on a.id_po = ph.id
 left join stocker_input si on b.id_qr_stocker = si.id_qr_stocker
+left join wip_out_hide_item wohi on wohi.id_qr_stocker = b.id_qr_stocker
 left join part_detail p on si.part_detail_id = p.id
 left join part prt on prt.id = p.part_id
 LEFT JOIN part_detail pd_com ON pd_com.id = p.from_part_detail AND p.part_status = 'complement'
@@ -68,14 +69,14 @@ LEFT JOIN part_custom pcust ON pcust.part_id = prt.id and pcust.part_detail_id =
 left join master_part mp on p.master_part_id = mp.id
 left join part_detail_item pdi on p.id = pdi.part_detail_id
 left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
-left join signalbit_erp.masteritem mi on k.id_item = mi.id_item
+left join signalbit_erp.masteritem mi on k.id_item = mi.id_item and wohi.id is null
 left join signalbit_erp.mastersupplier ms on ph.id_supplier = ms.Id_Supplier
 left join signalbit_erp.so_det sd on si.so_det_id = sd.id
 left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
 left join signalbit_erp.mastersupplier mb on ac.id_buyer = mb.id_supplier
 where tgl_form >= '$start_date' and tgl_form <= '$end_date'
-group by no_form, b.id_qr_stocker
+group by no_form, b.id
 order by no_form asc, tgl_form asc, a.created_at desc
     ");
 

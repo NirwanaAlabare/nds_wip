@@ -1454,6 +1454,7 @@ class SecondaryInhouseOutController extends Controller
             ) dc ON a.id_qr_stocker = dc.id_qr_stocker
             WHERE
                 a.tgl_trans IS NOT NULL
+                and (s.cancel IS NULL OR s.cancel != 'y')
                 -- AND (
                 --  a.urutan IS NULL
                 --  OR a.urutan = mx.max_urutan
