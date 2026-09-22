@@ -923,7 +923,7 @@ class StockerController extends Controller
                 $qtyPlyAct = floor(($qtyCut / $ratio));
                 $qtyPlyActMod = round(($qtyCut % $ratio));
 
-                $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyAct + $qtyPlyActMod)) : ($ratio < 1 ? 0 : $qtyPlyAct);
+                $qty = ($i == ($ratio - 1) && $groupStocker == $minGroupStocker && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyAct + $qtyPlyActMod)) : ($ratio < 1 ? 0 : $qtyPlyAct);
                 $maxGroupStocker = FormCutInputDetail::where("form_cut_id", $formCutId)->where("group_roll", $groupRoll)->max("group_stocker");
 
                 // $qty = ($i == ($ratio - 1) && $groupStocker == $minGroupStocker && $formDetailOutput) ? (($ratio < 1 ? 0 : ($qtyPlyGroup)) + ($formDetailOutput->qty_output_aktual - ($ratio * $qtyPlyGroup))) : ($ratio < 1 ? 0 : $qtyPlyGroup);

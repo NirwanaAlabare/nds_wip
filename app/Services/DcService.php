@@ -3592,7 +3592,7 @@ class DcService
                             left join master_part mp on mp.id = part_detail.master_part_id
                             left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = dc.color
                     where
-                            part.panel_status != 'COMPLEMENT' AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                            (part.panel_status IS NULL OR part.panel_status != 'COMPLEMENT') AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                     group by
                             dc.ws, dc.color, dc.size, part.panel, COALESCE(mp.nama_part, '')
             )
