@@ -1993,6 +1993,7 @@ class MutasiService
                 INNER JOIN so_det sod ON a.id_so_det = sod.id
                 INNER JOIN so ON sod.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
                   AND a.bpbno_int LIKE 'FG%'
                   AND a.cancel = 'N'
@@ -2007,6 +2008,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
                   AND a.bppbno_int LIKE 'FG%'
                   AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
