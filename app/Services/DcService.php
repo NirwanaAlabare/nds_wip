@@ -2433,9 +2433,9 @@ class DcService
                                             left join master_secondary mms on mms.id = pds.master_secondary_id
                                             left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                                     WHERE
-                                            si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                            si.tgl_trans < '".$dateFrom."' AND
-                                            si.tgl_trans >= '2026-05-01' AND
+                                            siu.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
+                                            siu.tgl_trans < '".$dateFrom."' AND
+                                            siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -4188,7 +4188,8 @@ class DcService
         try {
             // Only rekap up to 30 days before today, leaving the most recent window untouched
             $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
-
+            $dateFrom = '2026-07-01';
+            $dateTo = '2026-07-31';
             if (!$dateFrom) {
                 // Kursor dibaca dari tabel yang sama dengan tujuan INSERT di
                 // buildRekapQuery(). Kalau keduanya beda tabel, dateFrom dihitung dari
