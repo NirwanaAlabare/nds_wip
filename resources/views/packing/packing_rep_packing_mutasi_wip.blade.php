@@ -109,8 +109,9 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="5" style="background-color: yellow; text-align:center;">Transit Terima Packing Line</th>
-                            <th colspan="8" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            <th colspan="9" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
+                            <th colspan="9" style="background-color: lightgreen; text-align:center;">Packing Line</th>
+                            <th colspan="5" style="background-color: #85C1E9; text-align:center;">Packing Temporary</th>
+                            <th colspan="11" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th style="background-color: lightblue;">WS</th>
@@ -128,17 +129,26 @@
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Good</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
-                            <th style="background-color: lightgreen;">Keluar</th>
+                            <th style="background-color: lightgreen;">Keluar Packing Central</th>
+                            <th style="background-color: lightgreen;">Keluar Temporary Packing</th>
                             <th style="background-color: lightgreen;">Switching OUT</th>
                             <th style="background-color: lightgreen;">Switching IN</th>
                             <th style="background-color: lightgreen;">Adjustment</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
 
+                            <th style="background-color: #85C1E9;">Saldo Awal</th>
+                            <th style="background-color: #85C1E9;">Terima</th>
+                            <th style="background-color: #85C1E9;">Keluar Gudang Stok</th>
+                            <th style="background-color: #85C1E9;">Keluar Packing Central</th>
+                            <th style="background-color: #85C1E9;">Saldo Akhir</th>
+
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
-                            <th style="background-color: lightgoldenrodyellow;">Terima</th>
+                            <th style="background-color: lightgoldenrodyellow;">Terima Packing Line</th>
+                            <th style="background-color: lightgoldenrodyellow;">Terima Temporary Packing</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima Gudang Stok</th>
                             <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
+                            <th style="background-color: lightgoldenrodyellow;">Keluar Gudang Stok</th>
                             <th style="background-color: lightgoldenrodyellow;">Switching OUT</th>
                             <th style="background-color: lightgoldenrodyellow;">Switching IN</th>
                             <th style="background-color: lightgoldenrodyellow;">Adjustment</th>
@@ -329,28 +339,36 @@
                     { data: 'style' },
                     { data: 'color' },
                     { data: 'size' },
-                    { data: 'tpl_saldo_awal' },
-                    { data: 'tpl_in' },
-                    { data: 'tpl_out' },
-                    { data: 'tpl_adjustment' },
-                    { data: 'tpl_saldo_akhir' },
-                    { data: 'saldo_awal_adjusment' },
-                    { data: 'pl_rft' },
-                    { data: 'pl_reject' },
-                    { data: 'pl_keluar' },
-                    { data: 'switching_out' },
-                    { data: 'switching_in' },
-                    { data: 'qty_adjustment' },
-                    { data: 'saldo_akhir_adj' },
-                    { data: 'pc_saldo_awal_adjusment' },
-                    { data: 'pc_terima' },
-                    { data: 'pc_terima_return' },
-                    { data: 'pc_terima_gudang_stok' },
-                    { data: 'pc_fg_in' },
-                    { data: 'pc_switching_out' },
-                    { data: 'pc_switching_in' },
-                    { data: 'pc_qty_adjustment' },
-                    { data: 'pc_saldo_akhir_adj' }
+                    { data: 'tpl_saldo_awal', className: 'text-end'},
+                    { data: 'tpl_in', className: 'text-end'},
+                    { data: 'tpl_out', className: 'text-end'},
+                    { data: 'tpl_adjustment', className: 'text-end'},
+                    { data: 'tpl_saldo_akhir', className: 'text-end'},
+                    { data: 'saldo_awal_adjusment', className: 'text-end'},
+                    { data: 'pl_rft', className: 'text-end'},
+                    { data: 'pl_reject', className: 'text-end'},
+                    { data: 'pl_keluar', className: 'text-end'},
+                    { data: 'pl_keluar_temporary', className: 'text-end'},
+                    { data: 'switching_out', className: 'text-end'},
+                    { data: 'switching_in', className: 'text-end'},
+                    { data: 'qty_adjustment', className: 'text-end'},
+                    { data: 'saldo_akhir_adj', className: 'text-end'},
+                    { data: 'saldo_awal_packing_temporary', className: 'text-end'},
+                    { data: 'terima_packing_temporary', className: 'text-end'},
+                    { data: 'keluar_gudang_stok_temporary', className: 'text-end'},
+                    { data: 'keluar_packing_central_temporary', className: 'text-end'},
+                    { data: 'saldo_akhir_packing_temporary', className: 'text-end'},
+                    { data: 'pc_saldo_awal_adjusment', className: 'text-end'},
+                    { data: 'pc_terima', className: 'text-end'},
+                    { data: 'pc_terima_temporary', className: 'text-end'},
+                    { data: 'pc_terima_return', className: 'text-end'},
+                    { data: 'pc_terima_gudang_stok', className: 'text-end'},
+                    { data: 'pc_fg_in', className: 'text-end'},
+                    { data: 'pc_keluar_gudang_stok', className: 'text-end'},
+                    { data: 'pc_switching_out', className: 'text-end'},
+                    { data: 'pc_switching_in', className: 'text-end'},
+                    { data: 'pc_qty_adjustment', className: 'text-end'},
+                    { data: 'pc_saldo_akhir_adj', className: 'text-end'}
                 ],
                 columnDefs: [{
                     "className": "align-middle",

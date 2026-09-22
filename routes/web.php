@@ -167,6 +167,7 @@ use App\Http\Controllers\BAPFormController;
 use App\Http\Controllers\MaintenanceACFormController;
 use App\Http\Controllers\ReportBc\ReportBcController;
 use App\Http\Controllers\ReportBc\DashboardReportBcController;
+use App\Http\Controllers\FGStokPenerimaanPackingController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -683,6 +684,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-bpb-fg-stock-lokasi-scan');
         Route::get('/getDataStockScan', 'getDataStockScan')->name('get-data-stok-scan-bpb-fg-stock-lokasi-scan');
         Route::get('/export_excel_bpb_fg_stok_lokasi_scan', 'export_excel_bpb_fg_stok_lokasi_scan')->name('export_excel_bpb_fg_stok_lokasi_scan');
+    });
+
+    Route::controller(FGStokPenerimaanPackingController::class)->prefix("bpb-fg-stok-penerimaan-packing")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('bpb-fg-stok-penerimaan-packing');
+        Route::get('/create', 'create')->name('create-bpb-fg-stok-penerimaan-packing');
+        Route::post('/store', 'store')->name('store-bpb-fg-stok-penerimaan-packing');
+        Route::get('/getNoTransaksi', 'getNoTransaksi')->name('get-no-transaksi-bpb-fg-stok-penerimaan-packing');
+        Route::get('/getNoKarton', 'getNoKarton')->name('get-no-karton-bpb-fg-stok-penerimaan-packing');
+        Route::get('/getDetailBarang', 'getDetailBarang')->name('get-detail-barang-bpb-fg-stok-penerimaan-packing');
+        Route::get('/export_excel_bpb_fg_stok_penerimaan_packing', 'export_excel_bpb_fg_stok_penerimaan_packing')->name('export_excel_bpb_fg_stok_penerimaan_packing');
     });
 
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {

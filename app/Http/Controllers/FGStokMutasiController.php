@@ -80,6 +80,15 @@ class FGStokMutasiController extends Controller
                         WHERE cancel = 'N'
                             AND mutasi = 'Y'
 
+                        UNION ALL
+
+                        SELECT
+                            no_mutasi,
+                            no_trans
+                        FROM fg_stok_penerimaan_packing
+                        WHERE cancel = 'N'
+                            AND mutasi = 'Y'
+
                     ) bpb_all
 
                     GROUP BY no_mutasi, no_trans
@@ -98,7 +107,9 @@ class FGStokMutasiController extends Controller
     public function store(Request $request)
     {
         $timestamp = Carbon::now();
+        $user_id               =  Auth::user()->id;
         $user               =  Auth::user()->name;
+        $username               =  Auth::user()->username;
         $JmlArray         = $_POST['txtqty'];
         $id_so_detArray         = $_POST['id_so_det'];
         $no_cartonArray         = $_POST['no_carton'];
@@ -151,6 +162,16 @@ class FGStokMutasiController extends Controller
         $kodepay_bpb_scan = sprintf("%05s", $urutan_bpb_scan);
         $kode_trans_bpb_scan = $kode_bpb_scan . $no . '/' . $kodepay_bpb_scan;
 
+        $kode_bpb_packing = 'FGS/IN/';
+        $cek_nomor_bpb_packing = DB::select("
+        select max(right(no_trans,5))nomor from fg_stok_penerimaan_packing where year(created_at) = '" . $tahun . "'
+        ");
+        $nomor_tr_bpb_packing = $cek_nomor_bpb_packing[0]->nomor;
+        $urutan_bpb_packing = (int)($nomor_tr_bpb_packing);
+        $urutan_bpb_packing++;
+        $kodepay_bpb_packing = sprintf("%05s", $urutan_bpb_packing);
+        $kode_trans_bpb_packing = $kode_bpb_packing . $no . '/' . $kodepay_bpb_packing;
+
         foreach ($JmlArray as $key => $value) {
             if ($value != '0' && $value != '') {
                 $txtqty         = $JmlArray[$key];
@@ -173,6 +194,14 @@ class FGStokMutasiController extends Controller
                     $insert_bpb_scan =  DB::insert("
                     insert into fg_stok_bpb_scan(no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
                     values('$kode_trans_bpb_scan','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
+                }else if($source_table == 'BPB_PACKING'){
+
+                    $data_bpb_packing = DB::selectOne("SELECT * FROM fg_stok_penerimaan_packing WHERE lokasi_palet = '$lokasi_asal' AND no_karton_gd = '$request->cbono_carton_asal' AND so_det_id = '$txtid_so_det' LIMIT 1");
+
+                    $ppic_master_so_id = $data_bpb_packing->ppic_master_so_id === null ? 'NULL' : "'{$data_bpb_packing->ppic_master_so_id}'";
+                    $insert_bpb_packing =  DB::insert("
+                    insert into fg_stok_penerimaan_packing(no_trans,packing_out_gudang_stok_id,ppic_master_so_id,so_det_id,po,no_karton_asal,qty,no_karton_gd,lokasi_palet,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by_username,created_by,created_at,updated_at)
+                    values('$kode_trans_bpb_packing','$data_bpb_packing->packing_out_gudang_stok_id',$ppic_master_so_id,'$txtid_so_det','$data_bpb_packing->po','$data_bpb_packing->no_karton_asal','$txtqty','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$username','$user_id','$timestamp','$timestamp')");
                 }
             }
         }
@@ -266,6 +295,22 @@ class FGStokMutasiController extends Controller
                 WHERE lokasi = '" . $request->cbolok_asal . "'
                 GROUP BY no_carton, a.id_so_det, a.grade
 
+                UNION ALL
+
+                SELECT
+                    fg.lokasi_palet AS lokasi,
+                    fg.no_karton_gd AS no_carton,
+                    fg.so_det_id AS id_so_det,
+                    SUM(fg.qty) AS qty_in,
+                    0 AS qty_out,
+                    packing_out.grade
+                FROM
+                    fg_stok_penerimaan_packing fg
+                LEFT JOIN packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = fg.so_det_id
+                WHERE fg.lokasi_palet = '" . $request->cbolok_asal . "'
+                GROUP BY fg.no_karton_gd, fg.so_det_id, packing_out.grade
+
             ) s
             INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
             LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
@@ -309,6 +354,8 @@ class FGStokMutasiController extends Controller
                     CASE
                         WHEN SUM(CASE WHEN s.source_table = 'BPB_SCAN' THEN 1 ELSE 0 END) > 0
                             THEN 'BPB_SCAN'
+                        WHEN SUM(CASE WHEN s.source_table = 'BPB_PACKING' THEN 1 ELSE 0 END) > 0
+                            THEN 'BPB_PACKING'
                         ELSE 'BPB'
                     END AS source_table
                 FROM
@@ -361,6 +408,24 @@ class FGStokMutasiController extends Controller
                     WHERE lokasi = '" . $request->cbolok_asal . "'
                         AND no_carton = '" . $request->cbono_carton_asal . "'
                     GROUP BY no_carton, a.id_so_det, a.grade
+
+
+                    UNION ALL
+
+                    SELECT
+                        fg.lokasi_palet AS lokasi,
+                        fg.no_karton_gd AS no_carton,
+                        fg.so_det_id AS id_so_det,
+                        SUM(fg.qty) AS qty_in,
+                        0 AS qty_out,
+                        packing_out.grade,
+                        'BPB_PACKING' AS source_table
+                    FROM
+                        fg_stok_penerimaan_packing fg
+                    LEFT JOIN packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+                    LEFT JOIN master_sb_ws msb ON msb.id_so_det = fg.so_det_id
+                    WHERE fg.lokasi_palet = '" . $request->cbolok_asal . "'  AND fg.no_karton_gd = '" . $request->cbono_carton_asal . "'
+                    GROUP BY fg.no_karton_gd, fg.so_det_id, packing_out.grade
                 ) s
                 INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
                 LEFT JOIN signalbit_erp.act_costing act ON m.id_act_cost = act.id
