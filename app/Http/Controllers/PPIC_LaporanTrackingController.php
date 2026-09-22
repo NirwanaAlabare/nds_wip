@@ -947,7 +947,7 @@ class PPIC_LaporanTrackingController extends Controller
                             COUNT(*) qty_finishing
                             from signalbit_erp.output_rfts_packing a
                             inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                            where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
+                            where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59'
                             group by so_det_id
             ),
             pck_now as (
