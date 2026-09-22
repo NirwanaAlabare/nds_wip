@@ -209,10 +209,10 @@ class FGStokBPBController extends Controller
 
         if($cbosumber != 'QC REJECT'){
             $data_ws = DB::select("
-                select a.ws isi, a.ws tampil
+                select a.ws isi, a.ws tampil, act.close_order
                 from master_sb_ws a
                 left join signalbit_erp.act_costing act on a.id_act_cost = act.id
-                where a.buyer = '" . $request->cbobuyer . "' AND (act.close_order is null or act.close_order != 'Y')
+                where a.buyer = '" . $request->cbobuyer . "' 
                 group by ws
                 order by ws desc
             ");
@@ -220,7 +220,8 @@ class FGStokBPBController extends Controller
             $data_ws = DB::select("
                 SELECT
                     master_sb_ws.ws isi,
-                    master_sb_ws.ws tampil
+                    master_sb_ws.ws tampil,
+                    act.close_order
                 FROM master_sb_ws
                 INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
                 INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
@@ -228,7 +229,6 @@ class FGStokBPBController extends Controller
                 LEFT JOIN signalbit_erp.act_costing act ON master_sb_ws.id_act_cost = act.id
                 WHERE master_sb_ws.buyer = '".$request->cbobuyer."'
                 AND output_reject_in.kode_numbering IS NULL
-                AND (act.close_order IS NULL OR act.close_order != 'Y')
                 GROUP BY master_sb_ws.ws
                 ORDER BY master_sb_ws.ws DESC
             ");
@@ -237,7 +237,7 @@ class FGStokBPBController extends Controller
         $html = "<option value=''>Pilih No WS</option>";
 
         foreach ($data_ws as $dataws) {
-            $html .= " <option value='" . $dataws->isi . "'>" . $dataws->tampil . "</option> ";
+            $html .= " <option value='" . $dataws->isi . "' " . ($dataws->close_order == 'Y' ? 'disabled' : '') . ">" . $dataws->tampil . ($dataws->close_order == 'Y' ? ' (Close Order)' : '') . "</option> ";
         }
 
         return $html;
