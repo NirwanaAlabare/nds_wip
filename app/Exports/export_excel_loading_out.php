@@ -76,7 +76,7 @@ left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
 left join signalbit_erp.mastersupplier mb on ac.id_buyer = mb.id_supplier
 where tgl_form >= '$start_date' and tgl_form <= '$end_date'
-group by no_form, b.id_qr_stocker
+group by no_form, b.id
 order by no_form asc, tgl_form asc, a.created_at desc
     ");
 
