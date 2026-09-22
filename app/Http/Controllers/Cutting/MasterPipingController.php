@@ -121,36 +121,32 @@ class MasterPipingController extends Controller
 
         switch ($request->data) {
             case 'buyer' :
-                $data = MasterPiping::select("buyer_id", "buyer")
+                $data = MasterPiping::select("buyer_id", "buyer", "act_costing.close_order")
                     ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
-                    ->where("act_costing.close_order", "N")
                     ->groupBy("buyer_id")
                     ->get();
 
                 break;
             case 'worksheet' :
-                $data = MasterPiping::select("act_costing_id", "act_costing_ws")
+                $data = MasterPiping::select("act_costing_id", "act_costing_ws", "act_costing.close_order")
                     ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
                     ->where("buyer_id", $request->buyer_id)
-                    ->where("act_costing.close_order", "N")
                     ->groupBy("act_costing_id")
                     ->get();
 
                 break;
             case 'color' :
-                $data = MasterPiping::select("color")
+                $data = MasterPiping::select("color", "act_costing.close_order")
                     ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
                     ->where("act_costing_id", $request->act_costing_id)
-                    ->where("act_costing.close_order", "N")
                     ->groupBy("act_costing_id", "color")
                     ->first();
 
                 break;
             case 'part' :
-                $data = MasterPiping::select("id", "part")
+                $data = MasterPiping::select("id", "part", "act_costing.close_order")
                     ->leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "master_piping.act_costing_id")
                     ->where("act_costing_id", $request->act_costing_id)
-                    ->where("act_costing.close_order", "N")
                     ->groupBy("act_costing_id", "color", "part")
                     ->get();
 
