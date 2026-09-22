@@ -234,7 +234,7 @@ class PemasukanService
 
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->leftJoin('masterstyle as s', 'a.id_item', '=', 's.id_item') // Fix missing item issue
+                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
