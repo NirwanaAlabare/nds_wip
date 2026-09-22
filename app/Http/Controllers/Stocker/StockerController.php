@@ -10,6 +10,7 @@ use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailLap;
 use App\Models\Cutting\FormCutInputDetailOutput;
+use App\Models\Cutting\FormCutInputDetailOutputLog;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
@@ -809,6 +810,12 @@ class StockerController extends Controller
                 first();
         }
 
+        $formDetailOutputLog = FormCutInputDetailOutputLog::
+                whereRaw("(form_cut_input_id_asal = '".$formCutId."' OR form_cut_input_id_tujuan = '".$formCutId."')")->
+                whereRaw("(size_asal = '".$size."' OR size_tujuan = '".$size."')")->
+                where("group_roll_asal", $groupRoll)->
+                first();
+
         // When there is separate stocker
         if ($stockerSeparate) {
 
@@ -923,10 +930,10 @@ class StockerController extends Controller
                 $qtyPlyAct = floor(($qtyCut / $ratio));
                 $qtyPlyActMod = round(($qtyCut % $ratio));
 
-                $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyAct + $qtyPlyActMod)) : ($ratio < 1 ? 0 : $qtyPlyAct);
-                $maxGroupStocker = FormCutInputDetail::where("form_cut_id", $formCutId)->where("group_roll", $groupRoll)->max("group_stocker");
+                // $qty = ($i == ($ratio - 1) && $formDetailOutput) ? (($ratio < 1 ? 0 : $qtyPlyAct + $qtyPlyActMod)) : ($ratio < 1 ? 0 : $qtyPlyAct);
+                $currentMinGroupStocker = FormCutInputDetail::where("form_cut_id", $formCutId)->where("group_roll", $groupRoll)->min("group_stocker");
 
-                // $qty = ($i == ($ratio - 1) && $groupStocker == $minGroupStocker && $formDetailOutput) ? (($ratio < 1 ? 0 : ($qtyPlyGroup)) + ($formDetailOutput->qty_output_aktual - ($ratio * $qtyPlyGroup))) : ($ratio < 1 ? 0 : $qtyPlyGroup);
+                $qty = ($i == ($ratio - 1) && $groupStocker == $currentMinGroupStocker && $formDetailOutputLog) ? (($ratio < 1 ? 0 : ($qtyPlyGroup)) + ($formDetailOutput->qty_output_aktual - ($ratio * $qtyPlyGroup))) : ($ratio < 1 ? 0 : $qtyPlyGroup);
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + ($ratio < 1 ? null : $qty);
