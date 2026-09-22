@@ -285,7 +285,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" wire:click="transferNumbering">SEND</button>
+                    <button type="button" class="btn btn-sb" onclick="transferNumbering()">SEND</button>
                 </div>
             </div>
         </div>
@@ -335,12 +335,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-rft fw-bold" wire:click="transferRftDetail()">SEND</button>
+                        <button type="button" class="btn btn-rft fw-bold" onclick="transferRftDetail()">SEND</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-rft btn-block fw-bold" wire:click="transferRft()">SEND ALL RFT</button>
+                    <button type="button" class="btn btn-rft btn-block fw-bold" onclick="transferRft()">SEND ALL RFT</button>
                 </div>
             </div>
         </div>
@@ -390,12 +390,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-defect fw-bold" wire:click="transferDefectDetail()">SEND</button>
+                            <button type="button" class="btn btn-defect fw-bold" onclick="transferDefectDetail()">SEND</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-defect btn-block fw-bold" wire:click="transferDefect()">SEND ALL DEFECT</button>
+                    <button type="button" class="btn btn-defect btn-block fw-bold" onclick="transferDefect()">SEND ALL DEFECT</button>
                 </div>
             </div>
         </div>
@@ -445,12 +445,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-rework fw-bold" wire:click="transferReworkDetail()">SEND</button>
+                        <button type="button" class="btn btn-rework fw-bold" onclick="transferReworkDetail()">SEND</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-rework btn-block fw-bold" wire:click="transferRework()">SEND ALL REWORK</button>
+                    <button type="button" class="btn btn-rework btn-block fw-bold" onclick="transferRework()">SEND ALL REWORK</button>
                 </div>
             </div>
         </div>
@@ -500,12 +500,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-reject fw-bold" wire:click="transferRejectDetail()">SEND</button>
+                        <button type="button" class="btn btn-reject fw-bold" onclick="transferRejectDetail()">SEND</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-reject btn-block fw-bold" wire:click="transferReject()">SEND ALL REJECT</button>
+                    <button type="button" class="btn btn-reject btn-block fw-bold" onclick="transferReject()">SEND ALL REJECT</button>
                 </div>
             </div>
         </div>
@@ -530,6 +530,60 @@
                     Livewire.emit('loadingStart');
                 }
             });
+        }
+
+        function confirmTransfer(label, transferAction) {
+            Swal.fire({
+                icon: "warning",
+                title: "Transfer",
+                html: "<b>Transfer "+label+" '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
+                showConfirmButton: true,
+                confirmButtonText: "Transfer",
+                showCancelButton: true,
+                cancelButtonText: "Batal",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    transferAction();
+
+                    Livewire.emit('loadingStart');
+                }
+            });
+        }
+
+        function transferNumbering() {
+            confirmTransfer("Numbering", () => @this.transferNumbering());
+        }
+
+        function transferRftDetail() {
+            confirmTransfer("RFT", () => @this.transferRftDetail());
+        }
+
+        function transferRft() {
+            confirmTransfer("Semua RFT", () => @this.transferRft());
+        }
+
+        function transferDefectDetail() {
+            confirmTransfer("Defect", () => @this.transferDefectDetail());
+        }
+
+        function transferDefect() {
+            confirmTransfer("Semua Defect", () => @this.transferDefect());
+        }
+
+        function transferReworkDetail() {
+            confirmTransfer("Rework", () => @this.transferReworkDetail());
+        }
+
+        function transferRework() {
+            confirmTransfer("Semua Rework", () => @this.transferRework());
+        }
+
+        function transferRejectDetail() {
+            confirmTransfer("Reject", () => @this.transferRejectDetail());
+        }
+
+        function transferReject() {
+            confirmTransfer("Semua Reject", () => @this.transferReject());
         }
 
         $("#toSelectedMasterPlan").on("change", () => {
