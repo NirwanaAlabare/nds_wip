@@ -302,6 +302,11 @@ class FGStokBPPBController extends Controller
         inner join master_sb_ws m on a.id_so_det = m.id_so_det
         where lokasi = '" . $request->cbolok . "'
         group by ws	, no_carton
+        union
+        select fg.no_karton_gd AS no_carton,msb.ws,sum(fg.qty) qty_in, '0' qty_out  from fg_stok_penerimaan_packing fg
+        LEFT JOIN master_sb_ws msb ON msb.id_so_det = fg.so_det_id
+        where fg.lokasi_palet = '" . $request->cbolok . "'
+        group by msb.ws	, fg.no_karton_gd
         )
         saldo
         group by ws
@@ -351,6 +356,12 @@ class FGStokBPPBController extends Controller
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             where lokasi = '" . $request->cbolok . "'
             group by no_carton, a.id_so_det, a.grade
+            union
+            select fg.lokasi_palet AS lokasi, fg.no_karton_gd AS no_carton, fg.so_det_id AS id_so_det, sum(fg.qty) qty_in, '0' qty_out, packing_out.grade  from fg_stok_penerimaan_packing fg
+            LEFT JOIN packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+            LEFT JOIN master_sb_ws msb ON msb.id_so_det = fg.so_det_id
+            where fg.lokasi_palet = '" . $request->cbolok . "'
+            group by fg.no_karton_gd, fg.so_det_id, packing_out.grade
             )
             s
             inner join master_sb_ws m on s.id_so_det = m.id_so_det
@@ -390,6 +401,11 @@ class FGStokBPPBController extends Controller
             select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             group by no_carton, a.id_so_det, a.grade, a.lokasi
+            union
+            select fg.lokasi_palet AS lokasi, fg.no_karton_gd AS no_carton, fg.so_det_id AS id_so_det, sum(fg.qty) qty_in, '0' qty_out, packing_out.grade  from fg_stok_penerimaan_packing fg
+            LEFT JOIN packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+            LEFT JOIN master_sb_ws msb ON msb.id_so_det = fg.so_det_id
+            group by fg.no_karton_gd, fg.so_det_id, packing_out.grade, fg.lokasi_palet
             )
             s
             inner join master_sb_ws m on s.id_so_det = m.id_so_det

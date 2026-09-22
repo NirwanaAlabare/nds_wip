@@ -318,7 +318,8 @@
                     targets: '_all',
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
-                        if (row.tujuan == 'Temporary') {
+
+                        if (row.tujuan == 'TEMPORARY PACKING') {
                             color = ' #d68910';
                         } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
                             'Temporary') {

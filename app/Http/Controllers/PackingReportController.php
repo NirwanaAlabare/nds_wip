@@ -533,7 +533,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     ((SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) + SUM( pc_terima ) + SUM( pc_terima_return ) - SUM( pc_fg_in )) AS pc_saldo_akhir
                 FROM
                     trx_union t
-                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                    INNER JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                     LEFT JOIN master_size_new msn ON msn.size = msw.size
                 GROUP BY
                     msn.urutan,
@@ -683,19 +683,27 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SUM(qty_adjustment_before) adjustment_before,
                 SUM(switching_in_before) switching_in_before,
                 SUM(switching_out_before) switching_out_before,
-                SUM(pl_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjusment,
+                SUM(pl_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) - SUM(qty_terima_temporary_before) saldo_awal_adjusment,
+                SUM(qty_terima_temporary) pl_keluar_temporary,
                 SUM(qty_adjustment) qty_adjustment,
                 SUM(switching_in) switching_in,
                 SUM(switching_out) switching_out,
-                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
+                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) - SUM(qty_terima_temporary_before)) + SUM(pl_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out) - SUM(qty_terima_temporary)) saldo_akhir_adj,
+                SUM(qty_terima_temporary_before) - SUM(qty_keluar_gudang_stok_temporary_before) - SUM(qty_keluar_packing_central_temporary_before) AS saldo_awal_packing_temporary,
+                SUM(qty_terima_temporary) AS terima_packing_temporary,
+                SUM(qty_keluar_gudang_stok_temporary) AS keluar_gudang_stok_temporary,
+                SUM(qty_keluar_packing_central_temporary) AS keluar_packing_central_temporary,
+                SUM(qty_terima_temporary_before) - SUM(qty_keluar_gudang_stok_temporary_before) - SUM(qty_keluar_packing_central_temporary_before) + (SUM(qty_terima_temporary) - SUM(qty_keluar_gudang_stok_temporary) - SUM(qty_keluar_packing_central_temporary)) AS saldo_akhir_packing_temporary,
                 SUM(pc_qty_adjustment_before) pc_adjustment_before,
                 SUM(pc_switching_in_before) pc_switching_in_before,
                 SUM(pc_switching_out_before) pc_switching_out_before,
-                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before) pc_saldo_awal_adjusment,
+                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before) + SUM(qty_terima_packing_temporary_central_before) - SUM(qty_keluar_gudang_stok_temporary_central_before) pc_saldo_awal_adjusment,
+                SUM(qty_terima_packing_temporary_central) pc_terima_temporary,
+                SUM(qty_keluar_gudang_stok_temporary_central) pc_keluar_gudang_stok,
                 SUM(pc_qty_adjustment) pc_qty_adjustment,
                 SUM(pc_switching_in) + SUM(pc_switching_transaction_in) pc_switching_in,
                 SUM(pc_switching_out) + SUM(pc_switching_transaction_out) pc_switching_out,
-                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out) + SUM(pc_terima_gudang_stok)) pc_saldo_akhir_adj
+                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) + SUM(pc_terima_gudang_stok_before) + SUM(qty_terima_packing_temporary_central_before) - SUM(qty_keluar_gudang_stok_temporary_central_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out) + SUM(pc_terima_gudang_stok) + SUM(qty_terima_packing_temporary_central) - SUM(qty_keluar_gudang_stok_temporary_central)) pc_saldo_akhir_adj
             from
             (
                 select
@@ -721,7 +729,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 from main_select
 
                 UNION ALL
@@ -765,7 +783,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 from saldo_finishing
                 GROUP BY
                     saldo_finishing.ws,
@@ -814,7 +842,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_adjustment
                 WHERE
@@ -863,7 +901,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_adjustment
                 WHERE
@@ -911,7 +959,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_switching_adj
                 where
@@ -959,7 +1017,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_switching_adj
                 WHERE
@@ -1009,7 +1077,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_adjustment
                 WHERE
@@ -1057,7 +1135,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_switching_adj
                 where
@@ -1105,7 +1193,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     wip_switching_adj
                 WHERE
@@ -1154,7 +1252,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     packing_central_switching
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.tujuan_so_det_id
@@ -1202,7 +1310,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out_before,
                     SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out,
                     0 as pc_terima_gudang_stok_before,
-                    0 as pc_terima_gudang_stok
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     packing_central_switching
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.asal_so_det_id
@@ -1252,13 +1370,328 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
                     SUM(IF(tgl_penerimaan < '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok_before,
-                    SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok
+                    SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
                 FROM
                     packing_packing_in
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
                 WHERE
                     tgl_penerimaan <= '{$tgl_akhir}' and
                     sumber = 'FGS'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok,
+                    SUM(IF(tgl_trans < '{$tgl_awal}', packing_trf_garment.qty,0)) AS qty_terima_temporary_before,
+                    SUM(IF(tgl_trans >= '{$tgl_awal}', packing_trf_garment.qty,0)) AS qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
+                FROM
+                    packing_trf_garment
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det 
+                WHERE
+                    tgl_trans <= '{$tgl_akhir}' and
+                    tujuan = 'Temporary Packing'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    SUM(IF(created_at < '{$tgl_awal} 00:00:00', packing_out_gudang_stok.qty,0)) AS qty_keluar_gudang_stok_temporary_before,
+                    SUM(IF(created_at >= '{$tgl_awal} 00:00:00', packing_out_gudang_stok.qty,0)) AS qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
+                FROM
+                    packing_out_gudang_stok
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                WHERE
+                    created_at <= '{$tgl_akhir} 23:59:59' and
+                    lokasi_asal = 'TEMPORARY PACKING'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    SUM(IF(tgl_trans < '{$tgl_awal}', packing_trf_garment_out_temporary.qty,0)) AS qty_keluar_packing_central_temporary_before,
+                    SUM(IF(tgl_trans >= '{$tgl_awal}', packing_trf_garment_out_temporary.qty,0)) AS qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
+                FROM
+                    packing_trf_garment_out_temporary
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment_out_temporary.id_so_det 
+                WHERE
+                    tgl_trans <= '{$tgl_akhir}' and
+                    po = 'TEMPORARY PACKING'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                 UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    SUM(IF(tgl_penerimaan < '{$tgl_awal}', packing_packing_in.qty,0)) AS qty_terima_packing_temporary_central_before,
+                    SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS qty_terima_packing_temporary_central,
+                    0 as qty_keluar_gudang_stok_temporary_central_before,
+                    0 as qty_keluar_gudang_stok_temporary_central
+                FROM
+                    packing_packing_in
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                WHERE
+                    tgl_penerimaan <= '{$tgl_akhir}' and
+                    sumber = 'TEMPORARY PACKING'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                UNION ALL
+
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft_before,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in_before,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out,
+                    0 as pc_terima_gudang_stok_before,
+                    0 as pc_terima_gudang_stok,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary,
+                    0 as qty_keluar_gudang_stok_temporary_before,
+                    0 as qty_keluar_gudang_stok_temporary,
+                    0 as qty_keluar_packing_central_temporary_before,
+                    0 as qty_keluar_packing_central_temporary,
+                    0 as qty_terima_packing_temporary_central_before,
+                    0 as qty_terima_packing_temporary_central,
+                    SUM(IF(created_at < '{$tgl_awal} 00:00:00', packing_out_gudang_stok.qty,0)) AS qty_keluar_gudang_stok_temporary_central_before,
+                    SUM(IF(created_at >= '{$tgl_awal} 00:00:00', packing_out_gudang_stok.qty,0)) AS qty_keluar_gudang_stok_temporary_central
+                FROM
+                    packing_out_gudang_stok
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                WHERE
+                    created_at <= '{$tgl_akhir} 23:59:59' and
+                    lokasi_asal = 'PACKING CENTRAL'
                 GROUP BY
                     master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
             ) a
@@ -1334,8 +1767,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $headerTop = [
             'Jenis Produk', '', '', '', '',
             'Transit Terima Packing Line', '', '', '', '',
-            'Packing Line', '', '', '', '', '', '', '',
-            'Packing Central', '', '', '', '', '', '', '', '',
+            'Packing Line', '', '', '', '', '', '', '', '',
+            'Packing Temporary', '', '', '', '',
+            'Packing Central', '', '', '', '', '', '', '', '', '', ''
         ];
 
         $sheet->writeRow(
@@ -1350,8 +1784,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
         $sheet->mergeCells('A4:E4');
         $sheet->mergeCells('F4:J4');
-        $sheet->mergeCells('K4:R4');
-        $sheet->mergeCells('S4:AA4');
+        $sheet->mergeCells('K4:S4');
+        $sheet->mergeCells('T4:X4');
+        $sheet->mergeCells('Y4:AI4');
 
         $sheet->setCellStyle('A4:E4', [
             'fill'       => '#ADD8E6',
@@ -1363,12 +1798,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('K4:R4', [
+        $sheet->setCellStyle('K4:S4', [
             'fill' => '#90EE90',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('S4:AA4', [
+        $sheet->setCellStyle('T4:X4', [
+            'fill' => '#85C1E9',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('Y4:AI4', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1387,16 +1827,24 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Saldo Awal',
             'Terima Good',
             'Terima Reject',
-            'Keluar',
+            'Keluar Packing Central',
+            'Keluar Temporary Packing',
             'Switching OUT',
             'Switching IN',
             'Adjustment',
             'Saldo Akhir',
             'Saldo Awal',
             'Terima',
+            'Keluar Gudang Stok',
+            'Keluar Packing Central',
+            'Saldo Akhir',
+            'Saldo Awal',
+            'Terima Packing Line',
+            'Terima Temporary Packing',
             'Terima Return',
             'Terima Gudang Stok',
             'Packing Scan FG In',
+            'Keluar Gudang Stok',
             'Switching OUT',
             'Switching IN',
             'Adjustment',
@@ -1422,12 +1870,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('K5:R5', [
+        $sheet->setCellStyle('K5:S5', [
             'fill' => '#90EE90',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('S5:AA5', [
+        $sheet->setCellStyle('T5:X5', [
+            'fill' => '#85C1E9',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('Y5:AI5', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1451,16 +1904,25 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 (float) ($row->pl_rft ?? 0),
                 (float) ($row->pl_reject ?? 0),
                 (float) ($row->pl_keluar ?? 0),
+                (float) ($row->pl_keluar_temporary ?? 0),
                 (float) ($row->switching_out ?? 0),
                 (float) ($row->switching_in ?? 0),
                 (float) ($row->qty_adjustment ?? 0),
                 (float) ($row->saldo_akhir_adj ?? 0),
 
+                (float) ($row->saldo_awal_packing_temporary ?? 0),
+                (float) ($row->terima_packing_temporary ?? 0),
+                (float) ($row->keluar_gudang_stok_temporary ?? 0),
+                (float) ($row->keluar_packing_central_temporary ?? 0),
+                (float) ($row->saldo_akhir_packing_temporary ?? 0),
+
                 (float) ($row->pc_saldo_awal_adjusment ?? 0),
                 (float) ($row->pc_terima ?? 0),
+                (float) ($row->pc_terima_temporary ?? 0),
                 (float) ($row->pc_terima_return ?? 0),
                 (float) ($row->pc_terima_gudang_stok ?? 0),
                 (float) ($row->pc_fg_in ?? 0),
+                (float) ($row->pc_keluar_gudang_stok ?? 0),
                 (float) ($row->pc_switching_out ?? 0),
                 (float) ($row->pc_switching_in ?? 0),
                 (float) ($row->pc_qty_adjustment ?? 0),
@@ -1478,8 +1940,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $columns = [
             'A', 'B', 'C', 'D', 'E',
             'F', 'G', 'H', 'I', 'J',
-            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA'
+            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 
+            'T', 'U', 'V', 'W', 'X', 
+            'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'
         ];
 
         foreach ($columns as $col) {

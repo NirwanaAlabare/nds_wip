@@ -176,9 +176,20 @@ class PackingPackingOutController extends Controller
                 UPPER(a.tujuan) AS tujuan,
                 a.created_by_username AS created_by,
                 DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
-                '-' AS status
+                CASE
+                    WHEN COALESCE(fsp.qty_terima, 0) >= a.qty
+                        THEN 'TERIMA'
+                    ELSE 'PENDING'
+                END AS status
             FROM packing_out_gudang_stok a
             LEFT JOIN master_sb_ws w ON w.id_so_det = a.so_det_id
+            LEFT JOIN (
+                SELECT
+                    packing_out_gudang_stok_id,
+                    SUM(qty) AS qty_terima
+                FROM fg_stok_penerimaan_packing
+                GROUP BY packing_out_gudang_stok_id
+            ) fsp ON fsp.packing_out_gudang_stok_id = a.id
             WHERE DATE(a.created_at) >= ? AND DATE(a.created_at) <= ?
             $po_text
             ORDER BY
