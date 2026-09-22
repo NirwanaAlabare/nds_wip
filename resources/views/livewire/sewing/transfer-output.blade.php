@@ -12,8 +12,8 @@
     <div class="row g-3">
         <div class="col-12 col-md-5">
             <div class="card">
-                <div class="card-header bg-sb">
-                    <h5 class="card-title text-light text-center">FROM</h5>
+                <div class="card-header bg-primary">
+                    <h5 class="card-title text-light text-center fw-bold">SUMBER</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -23,7 +23,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Line</label>
                         <select class="form-select" wire:model="fromLine">
-                            <option value="">Select Line</option>
+                            <option value="">Pilih Line</option>
                             @foreach ($lines as $line)
                                 <option value="{{ $line->username }}">{{ $line->username }}</option>
                             @endforeach
@@ -32,7 +32,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Master Plan</label>
                         <select class="form-select" wire:model="fromSelectedMasterPlan">
-                            <option value="">Select Master Plan</option>
+                            <option value="">Pilih Master Plan</option>
                             @foreach ($fromMasterPlans as $fromMasterPlan)
                                 <option value="{{ $fromMasterPlan->id }}" {{ $toSelectedMasterPlan == $fromMasterPlan->id ? "disabled" : "" }}>{{ $fromMasterPlan->no_ws." - ".$fromMasterPlan->style." - ".$fromMasterPlan->color." ".($fromMasterPlan->cancel != "Y" ? "" : "- CANCELLED") }}</option>
                             @endforeach
@@ -106,8 +106,8 @@
         </div>
         <div class="col-12 col-md-5">
             <div class="card">
-                <div class="card-header bg-sb">
-                    <h5 class="card-title text-light text-center">TO</h5>
+                <div class="card-header bg-success">
+                    <h5 class="card-title text-light text-center fw-bold">TUJUAN</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -117,7 +117,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Line</label>
                         <select class="form-select" wire:model="toLine">
-                            <option value="">Select Line</option>
+                            <option value="">Pilih Line</option>
                             @foreach ($lines as $line)
                                 <option value="{{ $line->username }}">{{ $line->username }}</option>
                             @endforeach
@@ -126,7 +126,7 @@
                     <div class="mb-3">
                         <label class="form-label">Master Plan</label>
                         <select class="form-select" wire:model="toSelectedMasterPlan" id="toSelectedMasterPlan">
-                            <option value="">Select Master Plan</option>
+                            <option value="">Pilih Master Plan</option>
                             @foreach ($toMasterPlans as $toMasterPlan)
                                 <option value="{{ $toMasterPlan->id }}" {{ $fromSelectedMasterPlan == $toMasterPlan->id ? "disabled" : "" }}>{{ $toMasterPlan->no_ws." - ".$toMasterPlan->style." - ".$toMasterPlan->color }}</option>
                             @endforeach
@@ -192,7 +192,7 @@
     </div>
     <div class="row g-3 mt-3">
         <div class="col-6 col-md-6">
-            <button class="btn btn-sb w-100 h-100 fw-bold" onclick="transferAll()">TRANSFER ALL <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+            <button class="btn btn-sb w-100 h-100 fw-bold" onclick="transferAll()">TRANSFER SEMUA <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
         <div class="col-6 col-md-6">
             <button class="btn btn-sb-secondary w-100 h-100 fw-bold" wire:click="preTransferNumbering()">TRANSFER NUMBERING <i class="fa-solid fa-arrow-right fa-sm"></i></button>
@@ -228,7 +228,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <h6>Destination : </h6>
+                        <h6>Tujuan : </h6>
                         <p class="mb-0">{{ $toDate }}</p>
                         <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
                         <p class="mb-0" id="selectedPlan" wire:ignore></p>
@@ -285,7 +285,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" onclick="transferNumbering()">SEND</button>
+                    <button type="button" class="btn btn-sb" onclick="transferNumbering()">KIRIM</button>
                 </div>
             </div>
         </div>
@@ -304,7 +304,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <h6>Destination : </h6>
+                        <h6>Tujuan : </h6>
                         <p class="mb-0">{{ $toDate }}</p>
                         <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
                         <p class="mb-0" id="selectedPlanRft" wire:ignore></p>
@@ -335,12 +335,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-rft fw-bold" onclick="transferRftDetail()">SEND</button>
+                        <button type="button" class="btn btn-rft fw-bold" onclick="transferRftDetail()">KIRIM</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-rft btn-block fw-bold" onclick="transferRft()">SEND ALL RFT</button>
+                    <button type="button" class="btn btn-rft btn-block fw-bold" onclick="transferRft()">KIRIM SEMUA RFT</button>
                 </div>
             </div>
         </div>
@@ -359,7 +359,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <h6>Destination : </h6>
+                        <h6>Tujuan : </h6>
                         <p class="mb-0">{{ $toDate }}</p>
                         <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
                         <p class="mb-0" id="selectedPlanDefect" wire:ignore></p>
@@ -390,12 +390,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-defect fw-bold" onclick="transferDefectDetail()">SEND</button>
+                            <button type="button" class="btn btn-defect fw-bold" onclick="transferDefectDetail()">KIRIM</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-defect btn-block fw-bold" onclick="transferDefect()">SEND ALL DEFECT</button>
+                    <button type="button" class="btn btn-defect btn-block fw-bold" onclick="transferDefect()">KIRIM SEMUA DEFECT</button>
                 </div>
             </div>
         </div>
@@ -414,7 +414,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <h6>Destination : </h6>
+                        <h6>Tujuan : </h6>
                         <p class="mb-0">{{ $toDate }}</p>
                         <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
                         <p class="mb-0" id="selectedPlanRework" wire:ignore></p>
@@ -445,12 +445,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-rework fw-bold" onclick="transferReworkDetail()">SEND</button>
+                        <button type="button" class="btn btn-rework fw-bold" onclick="transferReworkDetail()">KIRIM</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-rework btn-block fw-bold" onclick="transferRework()">SEND ALL REWORK</button>
+                    <button type="button" class="btn btn-rework btn-block fw-bold" onclick="transferRework()">KIRIM SEMUA REWORK</button>
                 </div>
             </div>
         </div>
@@ -469,7 +469,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <h6>Destination : </h6>
+                        <h6>Tujuan : </h6>
                         <p class="mb-0">{{ $toDate }}</p>
                         <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
                         <p class="mb-0" id="selectedPlanReject" wire:ignore></p>
@@ -500,12 +500,12 @@
                     </div>
                     <div class="d-flex justify-content-end gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-reject fw-bold" onclick="transferRejectDetail()">SEND</button>
+                        <button type="button" class="btn btn-reject fw-bold" onclick="transferRejectDetail()">KIRIM</button>
                     </div>
                     <hr style="border-top: 1px solid #7b7b7b;">
                     <h5 class="text-center">OR</h5>
                     <hr style="border-top: 1px solid #7b7b7b;">
-                    <button type="button" class="btn btn-reject btn-block fw-bold" onclick="transferReject()">SEND ALL REJECT</button>
+                    <button type="button" class="btn btn-reject btn-block fw-bold" onclick="transferReject()">KIRIM SEMUA REJECT</button>
                 </div>
             </div>
         </div>
@@ -518,7 +518,7 @@
             Swal.fire({
                 icon: "warning",
                 title: "Transfer",
-                html: "<b>Transfer Semua Output '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
+                html: "<b>KIRIM Semua Output '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
                 showConfirmButton: true,
                 confirmButtonText: "Transfer",
                 confirmButtonColor: "#082149",
