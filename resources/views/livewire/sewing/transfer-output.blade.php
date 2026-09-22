@@ -239,7 +239,7 @@
                         <textarea class="form-control" name="kode_numbering" id="kode_numbering" wire:model="kodeNumbering" cols="30" rows="10"></textarea>
                         <div class="mt-3">
                             <input type="checkbox" wire:model="transferNumberingBackDate">
-                            <label for="transferNumberingBackDate" class="form-label">Back Date Input</label>
+                            <label for="transferNumberingBackDate" class="form-label">Ubah Tanggal Input</label>
                         </div>
                         <div class="d-flex justify-content-between gap-3 my-3">
                             <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
@@ -314,7 +314,7 @@
                         <div class="form-check" wire:ignore>
                             <input class="form-check-input" type="checkbox" id="backDateRft">
                             <label class="form-check-label" for="backDateRft">
-                                Back-date input
+                                Ubah tanggal input
                             </label>
                         </div>
                     </div>
@@ -369,7 +369,7 @@
                         <div class="form-check" wire:ignore>
                             <input class="form-check-input" type="checkbox" id="backDateDefect">
                             <label class="form-check-label" for="backDateDefect">
-                                Back-date input
+                                Ubah tanggal input
                             </label>
                         </div>
                     </div>
@@ -424,7 +424,7 @@
                         <div class="form-check" wire:ignore>
                             <input class="form-check-input" type="checkbox" id="backDateRework">
                             <label class="form-check-label" for="backDateRework">
-                                Back-date input
+                                Ubah tanggal input
                             </label>
                         </div>
                     </div>
@@ -479,7 +479,7 @@
                         <div class="form-check" wire:ignore>
                             <input class="form-check-input" type="checkbox" id="backDateReject">
                             <label class="form-check-label" for="backDateReject">
-                                Back-date input
+                                Ubah tanggal input
                             </label>
                         </div>
                     </div>
@@ -521,6 +521,7 @@
                 html: "<b>Transfer Semua Output '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
                 showConfirmButton: true,
                 confirmButtonText: "Transfer",
+                confirmButtonColor: "#082149",
                 showCancelButton: true,
                 cancelButtonText: "Batal",
             }).then(async (result) => {
@@ -532,13 +533,14 @@
             });
         }
 
-        function confirmTransfer(label, transferAction) {
+        function confirmTransfer(label, transferAction, confirmButtonColor) {
             Swal.fire({
                 icon: "warning",
                 title: "Transfer",
                 html: "<b>Transfer "+label+" '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
                 showConfirmButton: true,
                 confirmButtonText: "Transfer",
+                confirmButtonColor: confirmButtonColor,
                 showCancelButton: true,
                 cancelButtonText: "Batal",
             }).then(async (result) => {
@@ -551,39 +553,39 @@
         }
 
         function transferNumbering() {
-            confirmTransfer("Numbering", () => @this.transferNumbering());
+            confirmTransfer("Numbering", () => @this.transferNumbering(), "#1f7673");
         }
 
         function transferRftDetail() {
-            confirmTransfer("RFT", () => @this.transferRftDetail());
+            confirmTransfer("RFT", () => @this.transferRftDetail(), "#198754");
         }
 
         function transferRft() {
-            confirmTransfer("Semua RFT", () => @this.transferRft());
+            confirmTransfer("Semua RFT", () => @this.transferRft(), "#198754");
         }
 
         function transferDefectDetail() {
-            confirmTransfer("Defect", () => @this.transferDefectDetail());
+            confirmTransfer("Defect", () => @this.transferDefectDetail(), "#ff971f");
         }
 
         function transferDefect() {
-            confirmTransfer("Semua Defect", () => @this.transferDefect());
+            confirmTransfer("Semua Defect", () => @this.transferDefect(), "#ff971f");
         }
 
         function transferReworkDetail() {
-            confirmTransfer("Rework", () => @this.transferReworkDetail());
+            confirmTransfer("Rework", () => @this.transferReworkDetail(), "#2c9efc");
         }
 
         function transferRework() {
-            confirmTransfer("Semua Rework", () => @this.transferRework());
+            confirmTransfer("Semua Rework", () => @this.transferRework(), "#2c9efc");
         }
 
         function transferRejectDetail() {
-            confirmTransfer("Reject", () => @this.transferRejectDetail());
+            confirmTransfer("Reject", () => @this.transferRejectDetail(), "#dc3545");
         }
 
         function transferReject() {
-            confirmTransfer("Semua Reject", () => @this.transferReject());
+            confirmTransfer("Semua Reject", () => @this.transferReject(), "#dc3545");
         }
 
         $("#toSelectedMasterPlan").on("change", () => {
