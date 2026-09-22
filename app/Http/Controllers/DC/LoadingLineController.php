@@ -689,202 +689,55 @@ class LoadingLineController extends Controller
     }
 
     public function exportLoadingLine(Request $request) {
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '2048M');
         ini_set('max_execution_time', '3600');
 
-        $from = $request->from ? $request->from : date('Y-m-d');
-        $to = $request->to ? $request->to : date('Y-m-d');
+        $from = $request->from ?: date('Y-m-d');
+        $to = $request->to ?: date('Y-m-d');
 
-        $detailDateFilter = "";
-        if ($from || $to) {
-            $detailDateFilter = "WHERE ";
-            $dateFromFilter = " loading_line.tanggal_loading >= '".$from."' ";
-            $dateToFilter = " loading_line.tanggal_loading <= '".$to."' ";
-
-            if ($from && $to) {
-                $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
-            } else {
-                if ($to) {
-                    $detailDateFilter .= $dateFromFilter;
-                }
-
-                if ($from) {
-                    $detailDateFilter .= $dateToFilter;
-                }
-            }
-        }
-
-        $dateFilter = "";
-        if ($from || $to) {
-            $dateFilter = "WHERE ";
-            $dateFromFilter = " loading_line_plan.tanggal >= '".$from."' ";
-            $dateToFilter = " loading_line_plan.tanggal <= '".$to."' ";
-
-            if ($from && $to) {
-                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
-            } else {
-                if ($to) {
-                    $dateFilter .= $dateFromFilter;
-                }
-
-                if ($from) {
-                    $dateFilter .= $dateToFilter;
-                }
-            }
-        }
+        // --- Filter Date Builder ---
+        $detailDateFilter = "WHERE loading_line.tanggal_loading BETWEEN '{$from}' AND '{$to}'";
+        $dateFilter       = "WHERE loading_line_plan.tanggal BETWEEN '{$from}' AND '{$to}'";
 
         $generalFilter = "";
-        if ($request->lineFilter || $request->wsFilter || $request->styleFilter || $request->colorFilter || $request->targetSewingFilter || $request->targetLoadingFilter || $request->trolleyFilter || $request->trolleyColorFilter) {
+        if ($request->lineFilter || $request->wsFilter || $request->styleFilter || $request->colorFilter ||
+            $request->targetSewingFilter || $request->targetLoadingFilter || $request->trolleyFilter || $request->trolleyColorFilter) {
+
             $generalFilter .= " WHERE ( loading_line_plan.id IS NOT NULL ";
-            if ($request->lineFilter) {
-                $generalFilter .= "AND loading_line_plan.line_id LIKE '%".$request->lineFilter."%'";
-            }
-            if ($request->wsFilter) {
-                $generalFilter .= "AND loading_line_plan.act_costing_ws LIKE '%".$request->wsFilter."%'";
-            }
-            if ($request->styleFilter) {
-                $generalFilter .= "AND loading_line_plan.style LIKE '%".$request->styleFilter."%'";
-            }
-            if ($request->colorFilter) {
-                $generalFilter .= "AND loading_line_plan.color LIKE '%".$request->colorFilter."%'";
-            }
-            if ($request->targetSewingFilter) {
-                $generalFilter .= "AND loading_line_plan.target_sewing LIKE '%".$request->targetSewingFilter."%'";
-            }
-            if ($request->targetLoadingFilter) {
-                $generalFilter .= "AND loading_line_plan.target_loading LIKE '%".$request->targetLoadingFilter."%'";
-            }
-            if ($request->trolleyFilter) {
-                $generalFilter .= "AND loading_stock.nama_trolley LIKE '%".$request->trolleyFilter."%'";
-            }
-            if ($request->trolleyColorFilter) {
-                $generalFilter .= "AND trolley_stock.trolley_color LIKE '%".$request->trolleyColorFilter."%'";
-            }
+            if ($request->lineFilter) $generalFilter .= "AND loading_line_plan.line_id LIKE '%".$request->lineFilter."%'";
+            if ($request->wsFilter) $generalFilter .= "AND loading_line_plan.act_costing_ws LIKE '%".$request->wsFilter."%'";
+            if ($request->styleFilter) $generalFilter .= "AND loading_line_plan.style LIKE '%".$request->styleFilter."%'";
+            if ($request->colorFilter) $generalFilter .= "AND loading_line_plan.color LIKE '%".$request->colorFilter."%'";
+            if ($request->targetSewingFilter) $generalFilter .= "AND loading_line_plan.target_sewing LIKE '%".$request->targetSewingFilter."%'";
+            if ($request->targetLoadingFilter) $generalFilter .= "AND loading_line_plan.target_loading LIKE '%".$request->targetLoadingFilter."%'";
+            if ($request->trolleyFilter) $generalFilter .= "AND loading_stock.nama_trolley LIKE '%".$request->trolleyFilter."%'";
+            if ($request->trolleyColorFilter) $generalFilter .= "AND trolley_stock.trolley_color LIKE '%".$request->trolleyColorFilter."%'";
             $generalFilter .= " )";
         }
 
-        $dataLoadingLinePlan = collect(
-            DB::select("
-                SELECT
-                    loading_line_plan.id,
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.style,
-                    TRIM(loading_line_plan.color) color,
-                    loading_line_plan.target_sewing,
-                    loading_line_plan.target_loading,
-                    sum( loading_stock.qty ) loading_qty,
-                    sum( loading_stock.qty ) - loading_line_plan.target_loading loading_balance,
-                    loading_stock.nama_trolley nama_trolley,
-                    trolley_stock.trolley_color trolley_color,
-                    trolley_stock.trolley_qty trolley_qty,
-                    loading_stock.no_bon
-                FROM
-                    loading_line_plan
-                    INNER JOIN (
-                        SELECT
-                            (
-                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
-                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
-                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
-                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
-                            ) qty_old,
-                            MIN(loading_line.qty) qty,
-                            trolley.id trolley_id,
-                            trolley.nama_trolley,
-                            stocker_input.so_det_id,
-                            COALESCE(stocker_input.size, master_sb_ws.size) size,
-                            loading_line.loading_plan_id,
-                            loading_line.no_bon
-                        FROM
-                            loading_line
-                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
-                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
-                            ".$detailDateFilter."
-                        GROUP BY
-                            loading_line.tanggal_loading,
-                            loading_line.loading_plan_id,
-                            stocker_input.form_cut_id,
-                            stocker_input.form_reject_id,
-                            stocker_input.form_piece_id,
-                            stocker_input.so_det_id,
-                            stocker_input.size,
-                            stocker_input.group_stocker,
-                            stocker_input.range_awal,
-                            stocker_input.stocker_reject
-                        ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
-                    LEFT JOIN (
-                        select
-                            trolley.id trolley_id,
-                            group_concat(distinct trolley_stock_bundle.trolley_ws) trolley_ws,
-                            group_concat(distinct trolley_stock_bundle.trolley_color) trolley_color,
-                            sum(trolley_stock_bundle.trolley_qty) trolley_qty
-                        from
-                            trolley
-                            left join trolley_stocker on trolley_stocker.trolley_id = trolley.id
-                            inner join (
-                                SELECT
-                                    trolley_stocker.stocker_id,
-                                    stocker_input.act_costing_ws trolley_ws,
-                                    stocker_input.color trolley_color,
-                                    stocker_input.size trolley_size,
-                                    stocker_input.qty_ply trolley_qty
-                                FROM
-                                    trolley_stocker
-                                    LEFT JOIN stocker_input ON stocker_input.id = trolley_stocker.stocker_id
-                                WHERE
-                                    trolley_stocker.STATUS = 'active'
-                                GROUP BY
-                                    stocker_input.form_cut_id,
-                                    stocker_input.form_reject_id,
-                                    stocker_input.form_piece_id,
-                                    stocker_input.so_det_id,
-                                    stocker_input.size,
-                                    stocker_input.group_stocker,
-                                    stocker_input.range_awal,
-                                    stocker_input.stocker_reject
-                            ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
-                            group by trolley.id
-                    ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
-                    ".$generalFilter."
-                GROUP BY
-                    loading_line_plan.id
+        // 1. Ambil ID Plan secara efisien (menggunakan pluck/select minimal)
+        $loadingPlanIds = DB::table('loading_line_plan')
+            ->join(DB::raw("(
+                SELECT loading_line.loading_plan_id, trolley.nama_trolley, trolley.id trolley_id
+                FROM loading_line
+                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                {$detailDateFilter}
+                GROUP BY loading_line.loading_plan_id
+            ) loading_stock"), 'loading_stock.loading_plan_id', '=', 'loading_line_plan.id')
+            ->pluck('loading_line_plan.id')
+            ->toArray();
 
-                ORDER BY
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.color
-            ")
-        );
-
-        $loadingPlanIds = "('".$dataLoadingLinePlan->implode("id", "','")."')";
-
-        $innerDetailDateFilter = "";
-        if ($from || $to) {
-            $innerDetailDateFilter = "AND ";
-            $dateFromFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) >= '".$from."' ";
-            $dateToFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) <= '".$to."' ";
-
-            if ($from && $to) {
-                $innerDetailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
-            } else {
-                if ($to) {
-                    $innerDetailDateFilter .= $dateFromFilter;
-                }
-
-                if ($from) {
-                    $innerDetailDateFilter .= $dateToFilter;
-                }
-            }
+        if (empty($loadingPlanIds)) {
+            return back()->with('error', 'Data tidak ditemukan.');
         }
 
-        $data = DB::select("
+        $innerDetailDateFilter = "AND COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) BETWEEN '{$from}' AND '{$to}'";
+
+        // Build SQL Query Utama
+        $loadingPlanIdsStr = implode("','", $loadingPlanIds);
+        $querySql = "
             SELECT
                 COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
                 loading_line.loading_plan_id,
@@ -927,180 +780,154 @@ class LoadingLineController extends Controller
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
                 users.username AS user,
                 stocker_input.notes
-            FROM
-                loading_line
-                LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
-                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
-                LEFT JOIN part ON part.id = part_detail.part_id
-                LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-                LEFT JOIN part part_com ON part_com.id = part_detail_com.part_id
-                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
-                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
-                LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = master_sb_ws.color
-                LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
-                LEFT JOIN users ON users.id = loading_line.created_by
-                LEFT JOIN (
-                    SELECT
-                        s.id_qr_stocker,
-                        COALESCE(
-                            MIN(ll.qty) OVER (
-                                PARTITION BY
-                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
-                                    s.form_cut_id,
-                                    s.form_reject_id,
-                                    s.form_piece_id,
-                                    s.so_det_id,
-                                    s.size,
-                                    s.group_stocker,
-                                    s.ratio,
-                                    s.stocker_reject
-                            ),
-                            ll.qty
-                        ) AS loading_qty
-                    FROM loading_line ll
-                    JOIN stocker_input s ON s.id = ll.stocker_id
-                    LEFT JOIN master_sb_ws msb on msb.id_so_det = s.so_det_id
-                    LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
-                    LEFT JOIN part p ON p.id = pd.part_id
-                    LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
-                        AND pd.part_status = 'complement'
-                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-                    WHERE
-                        ll.tanggal_loading BETWEEN '".$from."' AND '".$to."'
-                        AND COALESCE(s.cancel, 'n') != 'y'
-                        AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                ) AS loading_qty ON loading_qty.id_qr_stocker = stocker_input.id_qr_stocker
-            WHERE
-                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
-                AND loading_line_plan.id IN ".$loadingPlanIds."
-                ".$innerDetailDateFilter."
-            GROUP BY
-                stocker_input.id_qr_stocker
+            FROM loading_line
+            LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
+            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+            LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
+            LEFT JOIN part ON part.id = part_detail.part_id
+            LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+            LEFT JOIN part part_com ON part_com.id = part_detail_com.part_id
+            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+            LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+            LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+            LEFT JOIN part_custom pcust ON pcust.part_id = part.id AND pcust.part_detail_id = part_detail.id AND pcust.color = master_sb_ws.color
+            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
+            LEFT JOIN users ON users.id = loading_line.created_by
+            LEFT JOIN (
+                SELECT
+                    s.id_qr_stocker,
+                    COALESCE(
+                        MIN(ll.qty) OVER (
+                            PARTITION BY
+                            (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
+                                s.form_cut_id,
+                                s.form_reject_id,
+                                s.form_piece_id,
+                                s.so_det_id,
+                                s.size,
+                                s.group_stocker,
+                                s.ratio,
+                                s.stocker_reject
+                        ),
+                        ll.qty
+                    ) AS loading_qty
+                FROM loading_line ll
+                JOIN stocker_input s ON s.id = ll.stocker_id
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                LEFT JOIN part p ON p.id = pd.part_id
+                LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                LEFT JOIN part_custom pcust ON pcust.part_id = p.id AND pcust.part_detail_id = pd.id AND pcust.color = msb.color
+                WHERE ll.tanggal_loading BETWEEN '{$from}' AND '{$to}'
+                    AND COALESCE(s.cancel, 'n') != 'y'
+                    AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+            ) AS loading_qty ON loading_qty.id_qr_stocker = stocker_input.id_qr_stocker
+            WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                AND loading_line_plan.id IN ('{$loadingPlanIdsStr}')
+                {$innerDetailDateFilter}
+            GROUP BY stocker_input.id_qr_stocker
+
             UNION ALL
+
             SELECT
-                tanggal,
-                null loading_plan_id,
-                'INJECT' nama_line,
-                qty qty_old,
-                qty qty_old_1,
-                qty qty,
-                null trolley_id,
-                null nama_trolley,
-                null id_qr_stocker,
-                null so_det_id,
+                tanggal AS tanggal_loading,
+                NULL AS loading_plan_id,
+                'INJECT' AS nama_line,
+                qty AS qty_old,
+                qty AS qty_old_1,
+                qty AS qty,
+                NULL AS trolley_id,
+                NULL AS nama_trolley,
+                NULL AS id_qr_stocker,
+                NULL AS so_det_id,
                 size,
-                null dest,
-                null shade,
-                null group_stocker,
-                null range_awal,
-                null range_akhir,
-                null act_costing_id,
-                ws act_costing_ws,
+                NULL AS dest,
+                NULL AS shade,
+                NULL AS group_stocker,
+                NULL AS range_awal,
+                NULL AS range_akhir,
+                NULL AS act_costing_id,
+                ws AS act_costing_ws,
                 buyer,
                 style,
                 color,
-                null line_id,
-                'INJECT' no_form,
-                null no_cut,
-                null type,
+                NULL AS line_id,
+                'INJECT' AS no_form,
+                NULL AS no_cut,
+                NULL AS type,
                 panel,
-                null panel_status,
+                NULL AS panel_status,
                 part,
-                null part_status,
-                'INJECT' no_bon,
-                null waktu_loading,
-                'INJECT' user,
-                'INJECT' notes
-            FROM
-                dc_loading_inject
-            WHERE
-                tanggal between '".$from."' and '".$to."'
-            GROUP BY
-                ws, color, size, panel, part
-            ORDER BY
-                tanggal_loading,
-                act_costing_ws,
-                color,
-                size
-        ");
+                NULL AS part_status,
+                'INJECT' AS no_bon,
+                NULL AS waktu_loading,
+                'INJECT' AS user,
+                'INJECT' AS notes
+            FROM dc_loading_inject
+            WHERE tanggal BETWEEN '{$from}' AND '{$to}'
+            GROUP BY ws, color, size, panel, part
+        ";
 
-        // Create Excel file using FastExcel
+        // 2. Gunakan DB::cursor() / LazyCollection untuk Streaming Data dari Database
         $excel = FastExcel::create('Loading Line Report');
         $sheet = $excel->getSheet();
 
-        // Title
+        // Title & Header setup
         $sheet->writeTo('A1', 'Loading Line Report', ['font-size' => 16]);
         $sheet->mergeCells('A1:U1');
 
-        // Headers
-        $sheet->writeTo('A2', 'Tanggal Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('B2', 'Nama Line')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('C2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('D2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('E2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('F2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J2', 'No Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K2', 'No Form')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L2', 'Type')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M2', 'No Bon')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N2', 'QR Stocker')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O2', 'Range Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P2', 'Range Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q2', 'Trolley')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R2', 'Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S2', 'Waktu Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U2', 'Part Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'Stocker Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $headers = [
+            'A2' => 'Tanggal Loading', 'B2' => 'Nama Line', 'C2' => 'WS', 'D2' => 'Buyer',
+            'E2' => 'Style', 'F2' => 'Color', 'G2' => 'Panel', 'H2' => 'Part',
+            'I2' => 'Size', 'J2' => 'No Cut', 'K2' => 'No Form', 'L2' => 'Type',
+            'M2' => 'No Bon', 'N2' => 'QR Stocker', 'O2' => 'Range Awal', 'P2' => 'Range Akhir',
+            'Q2' => 'Trolley', 'R2' => 'Qty', 'S2' => 'Waktu Loading', 'T2' => 'User',
+            'U2' => 'Part Status', 'V2' => 'Stocker Notes'
+        ];
 
-        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
-            $sheet->writeAreas();
+        foreach ($headers as $cell => $text) {
+            $sheet->writeTo($cell, $text)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
 
-            foreach ($rows as $row) {
-                $rowArr = [
-                    $row->tanggal_loading ?? "-",
-                    $row->nama_line ?? "-",
-                    $row->act_costing_ws ?? "-",
-                    $row->buyer ?? "-",
-                    $row->style ?? "-",
-                    $row->color ?? "-",
-                    $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
-                    $row->part ? preg_replace('/\s+/', ' ', $row->part) : "-",
-                    $row->size ?? "-",
-                    $row->no_cut ?? "-",
-                    $row->no_form ?? "-",
-                    $row->type ?? "-",
-                    $row->no_bon ?? "-",
-                    $row->id_qr_stocker ?? "-",
-                    $row->range_awal ?? "-",
-                    $row->range_akhir ?? "-",
-                    $row->nama_trolley ?? "-",
-                    $row->qty,
-                    $row->waktu_loading ?? "-",
-                    $row->user ?? "-",
-                    $row->part_status ?? "-",
-                    $row->notes ?? "-",
-                ];
+        // 3. Tulis baris secara streaming satu per satu langsung ke file
+        foreach (DB::cursor($querySql) as $row) {
+            $rowArr = [
+                $row->tanggal_loading ?? "-",
+                $row->nama_line ?? "-",
+                $row->act_costing_ws ?? "-",
+                $row->buyer ?? "-",
+                $row->style ?? "-",
+                $row->color ?? "-",
+                $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
+                $row->part ? preg_replace('/\s+/', ' ', $row->part) : "-",
+                $row->size ?? "-",
+                $row->no_cut ?? "-",
+                $row->no_form ?? "-",
+                $row->type ?? "-",
+                $row->no_bon ?? "-",
+                $row->id_qr_stocker ?? "-",
+                $row->range_awal ?? "-",
+                $row->range_akhir ?? "-",
+                $row->nama_trolley ?? "-",
+                $row->qty,
+                $row->waktu_loading ?? "-",
+                $row->user ?? "-",
+                $row->part_status ?? "-",
+                $row->notes ?? "-",
+            ];
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            }
-        });
+            $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
 
         $filename = 'Laporan Loading '.$from.' - '.$to.' ('.Carbon::now()->format('Y-m-d H:i:s').').xlsx';
-
         return $excel->download($filename);
     }
 
@@ -1535,7 +1362,7 @@ class LoadingLineController extends Controller
 
     public function exportExcel(Request $request)
     {
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '2048M');
         ini_set('max_execution_time', '3600');
 
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
@@ -1644,7 +1471,7 @@ class LoadingLineController extends Controller
                 ".$dateFilter."
             ORDER BY
                 tanggal,
-                ws,
+                act_costing_ws,
                 color,
                 size
         ");
