@@ -13,6 +13,7 @@ use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokOpnameController;
+use App\Http\Controllers\FGStokCekQrCartonController;
 use App\Http\Controllers\FGStokLokasiScanBPBController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
@@ -761,6 +762,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/warehouse-map', 'getWarehouseMap')->name('get-warehouse-map-opname-fg-stock');
         Route::get('/dashboard/warehouse-filter-options', 'getWarehouseFilterOptions')->name('get-warehouse-filter-options-opname-fg-stock');
         Route::get('/dashboard/pallet-detail', 'getPalletDetail')->name('get-pallet-detail-opname-fg-stock');
+    });
+
+    Route::controller(FGStokCekQrCartonController::class)->prefix("cek-qr-carton-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('cek-qr-carton-opname-fg-stock');
+        Route::get('/get-data', 'getData')->name('get-cek-qr-carton-opname-fg-stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {

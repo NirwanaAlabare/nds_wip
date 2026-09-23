@@ -511,6 +511,12 @@
                                     Stock Opname <i class="fas fa-list fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('cek-qr-carton-opname-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'cek-qr-carton-fg-stock' ? 'active' : '' }}">
+                                    Check QR Carton <i class="fas fa-qrcode fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
