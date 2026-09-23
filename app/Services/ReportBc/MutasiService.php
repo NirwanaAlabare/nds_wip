@@ -2160,7 +2160,7 @@ class MutasiService
         //     ORDER BY ws ASC
         // ";
 
-        $sql = "
+       $sql = "
             SELECT 
                 IFNULL(msw.ws, ac.kpno) AS ws,
                 IFNULL(msw.styleno, ac.styleno) AS styleno,
@@ -2176,6 +2176,22 @@ class MutasiService
                 SELECT id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM saldoawal_fg
                 WHERE periode = ?
+
+                UNION
+
+                SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                FROM bpb a
+                WHERE a.bpbdate >= ? AND a.bpbdate < ?
+                AND bpbno LIKE 'FG%'
+                GROUP BY a.id_so_det
+
+                UNION
+
+                SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                FROM bppb a
+                WHERE a.bppbdate >= ? AND a.bppbdate < ?
+                AND bppbno LIKE 'SJ-FG%'
+                GROUP BY a.id_so_det
 
                 UNION
 
@@ -2198,6 +2214,17 @@ class MutasiService
                 WHERE a.tgl_pengeluaran < ?
                 GROUP BY a.id_so_det
 
+                UNION
+
+                SELECT fg.so_det_id AS id_so_det, SUM(fg.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                FROM laravel_nds.fg_stok_penerimaan_packing fg
+                WHERE fg.created_at < ?
+                GROUP BY fg.so_det_id
+
+
+                -- ==========================================
+                -- ON GOING
+                -- ==========================================
 
                 UNION ALL
 
@@ -2209,10 +2236,10 @@ class MutasiService
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item
                 WHERE a.bpbdate >= ? AND a.bpbdate <= ?
-                  AND a.bpbno_int LIKE 'FG%'
-                  AND a.cancel = 'N'
-                  AND sod.cancel = 'N'
-                  AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+                AND a.bpbno_int LIKE 'FG%'
+                AND a.cancel = 'N'
+                AND sod.cancel = 'N'
+                AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
                 GROUP BY a.id_so_det
 
                 UNION ALL
@@ -2223,10 +2250,10 @@ class MutasiService
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
-                  AND a.cancel = 'N' 
-                  AND so.cancel_h = 'N' 
-                  AND ac.aktif = 'Y'
-                  AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND a.cancel = 'N' 
+                AND so.cancel_h = 'N' 
+                AND ac.aktif = 'Y'
+                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
                 UNION ALL
@@ -2237,10 +2264,10 @@ class MutasiService
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
-                  AND a.cancel = 'N' 
-                  AND so.cancel_h = 'N' 
-                  AND ac.aktif = 'Y'
-                  AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND a.cancel = 'N' 
+                AND so.cancel_h = 'N' 
+                AND ac.aktif = 'Y'
+                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
                 UNION ALL
@@ -2253,27 +2280,27 @@ class MutasiService
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
-                  AND a.bppbno_int LIKE 'FG%'
-                  AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
-                  AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                  AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
-                  AND a.cancel = 'N'
-                  AND so.cancel_h = 'N'
-                  AND ac.aktif = 'Y'
+                AND a.bppbno_int LIKE 'FG%'
+                AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+                AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+                AND a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
                 GROUP BY a.id_so_det
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty_out) AS pengeluaran
+                SELECT a.id_so_det, 0 AS saldo_awal, 0 AS pengeluaran, SUM(a.qty_out) AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
-                  AND a.cancel = 'N'
-                  AND so.cancel_h = 'N'
-                  AND ac.aktif = 'Y'
-                  AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
+                AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
                 GROUP BY a.id_so_det
 
             ) AS mutasi
