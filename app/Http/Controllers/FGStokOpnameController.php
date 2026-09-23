@@ -1014,12 +1014,30 @@ class FGStokOpnameController extends Controller
             return response()->json(['message' => 'Item dengan Grade ini sudah ada di carton, gunakan tombol Update untuk mengubah qty-nya!'], 422);
         }
 
-        DB::insert("
-            INSERT INTO fg_stok_opname_detail (no_opname, id_so_det, qty, grade, no_pallet, no_carton, cancel, status, created_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'N', 'OPEN', ?, ?, ?)
-        ", [$request->no_opname, $request->id_so_det, $request->qty, $request->grade, $request->no_pallet, $request->no_carton, $user, $now, $now]);
+        // item pertama mengisi baris penanda carton, tidak membuat baris baru
+        $penanda = DB::select("
+            SELECT id FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N' AND id_so_det IS NULL
+            ORDER BY id ASC
+            LIMIT 1
+        ", [$request->no_opname, $request->no_carton, $request->no_pallet]);
 
-        $id_detail = DB::getPdo()->lastInsertId();
+        if (count($penanda) > 0) {
+            DB::update("
+                UPDATE fg_stok_opname_detail
+                SET id_so_det = ?, qty = ?, grade = ?, created_by = ?, updated_at = ?
+                WHERE id = ?
+            ", [$request->id_so_det, $request->qty, $request->grade, $user, $now, $penanda[0]->id]);
+
+            $id_detail = $penanda[0]->id;
+        } else {
+            DB::insert("
+                INSERT INTO fg_stok_opname_detail (no_opname, id_so_det, qty, grade, no_pallet, no_carton, cancel, status, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'N', 'OPEN', ?, ?, ?)
+            ", [$request->no_opname, $request->id_so_det, $request->qty, $request->grade, $request->no_pallet, $request->no_carton, $user, $now, $now]);
+
+            $id_detail = DB::getPdo()->lastInsertId();
+        }
 
         return response()->json([
             'message' => 'Item berhasil disimpan.',
@@ -1078,7 +1096,8 @@ class FGStokOpnameController extends Controller
         ]);
 
         $header = DB::select("
-            SELECT h.status header_status, d.status item_status FROM fg_stok_opname_detail d
+            SELECT h.status header_status, d.status item_status, d.no_opname, d.no_carton, d.no_pallet
+            FROM fg_stok_opname_detail d
             JOIN fg_stok_opname_header h ON h.no_opname = d.no_opname
             WHERE d.id = ?
             LIMIT 1
@@ -1088,9 +1107,24 @@ class FGStokOpnameController extends Controller
             return response()->json(['message' => 'Opname / carton ini sudah CLOSED, tidak bisa menghapus item!'], 422);
         }
 
-        DB::update("
-            UPDATE fg_stok_opname_detail SET cancel = 'Y', updated_at = ? WHERE id = ?
-        ", [Carbon::now(), $request->id_detail]);
+        $itemLain = count($header) > 0 ? DB::select("
+            SELECT id FROM fg_stok_opname_detail
+            WHERE no_opname = ? AND no_carton = ? AND no_pallet = ? AND cancel = 'N' AND id != ?
+            LIMIT 1
+        ", [$header[0]->no_opname, $header[0]->no_carton, $header[0]->no_pallet, $request->id_detail]) : [];
+
+        if (count($header) > 0 && count($itemLain) === 0) {
+            // item terakhir: baris dikembalikan jadi penanda supaya carton tetap tampil di list
+            DB::update("
+                UPDATE fg_stok_opname_detail
+                SET id_so_det = NULL, qty = NULL, grade = NULL, updated_at = ?
+                WHERE id = ?
+            ", [Carbon::now(), $request->id_detail]);
+        } else {
+            DB::update("
+                UPDATE fg_stok_opname_detail SET cancel = 'Y', updated_at = ? WHERE id = ?
+            ", [Carbon::now(), $request->id_detail]);
+        }
 
         return response()->json(['message' => 'Item berhasil dibatalkan.']);
     }
