@@ -51,7 +51,7 @@ class FGStokOpnameController extends Controller
             return DataTables::of($data)->toJson();
         }
 
-        return view('fg-stock.opname_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-opname", "subPage" => "opname-fg-stock"]);
+        return view('fg-stock.opname_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-opname", "subPage" => "opname-fg-stock", 'containerFluid' => true]);
     }
 
     public function exportExcel(Request $request)
@@ -169,6 +169,7 @@ class FGStokOpnameController extends Controller
             'page' => 'dashboard-fg-stock',
             'subPageGroup' => 'fgstock-opname',
             'subPage' => 'opname-fg-stock',
+            'containerFluid' => true,
         ]);
     }
 
@@ -450,6 +451,7 @@ class FGStokOpnameController extends Controller
             "subPageGroup" => "fgstock-opname",
             "subPage" => "opname-fg-stock",
             "user" => $user,
+            'containerFluid' => true,
         ]);
     }
 
