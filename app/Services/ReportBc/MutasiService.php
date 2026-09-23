@@ -2180,17 +2180,22 @@ class MutasiService
                 UNION
 
                 SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-                FROM bpb a
-                WHERE a.bpbdate >= ? AND a.bpbdate < ?
-                   AND bpbno like 'FG%'
+                FROM laravel_nds.fg_stok_bpb a
+                WHERE a.tgl_terima < ?
                 GROUP BY a.id_so_det
 
                 UNION
 
-                SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-                FROM bppb a
-                WHERE a.bppbdate >= ? AND a.bppbdate < ?
-                  AND bppbno like 'SJ-FG%'
+                SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                FROM laravel_nds.fg_stok_bpb_scan a
+                WHERE a.tgl_terima < ?
+                GROUP BY a.id_so_det
+
+                UNION 
+
+                SELECT a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                FROM laravel_nds.fg_stok_bppb a
+                WHERE a.tgl_pengeluaran < ?
                 GROUP BY a.id_so_det
 
 
@@ -2317,24 +2322,21 @@ class MutasiService
 
         // UNION
 
-        // SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        // FROM laravel_nds.fg_stok_bpb a
-        // WHERE a.tgl_terima < ?
-        // GROUP BY a.id_so_det
-
-        // UNION
+       
 
         // SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        // FROM laravel_nds.fg_stok_bpb_scan a
-        // WHERE a.tgl_terima < ?
-        // GROUP BY a.id_so_det
+        //         FROM bpb a
+        //         WHERE a.bpbdate >= ? AND a.bpbdate < ?
+        //            AND bpbno like 'FG%'
+        //         GROUP BY a.id_so_det
 
-        // UNION 
+        //         UNION
 
-        // SELECT a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        // FROM laravel_nds.fg_stok_bppb a
-        // WHERE a.tgl_pengeluaran < ?
-        // GROUP BY a.id_so_det
+        //         SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //         FROM bppb a
+        //         WHERE a.bppbdate >= ? AND a.bppbdate < ?
+        //           AND bppbno like 'SJ-FG%'
+        //         GROUP BY a.id_so_det
     }
     
 
