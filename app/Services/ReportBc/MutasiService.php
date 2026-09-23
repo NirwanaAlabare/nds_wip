@@ -2218,7 +2218,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                WHERE a.tgl_terima < ?
+                WHERE a.tgl_terima >= ? AND a.tgl_terima < ?
                   AND a.cancel = 'N' 
                   AND so.cancel_h = 'N' 
                   AND ac.aktif = 'Y'
@@ -2232,7 +2232,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                WHERE a.tgl_terima < ?
+                WHERE a.tgl_terima >= ? AND a.tgl_terima < ?
                   AND a.cancel = 'N' 
                   AND so.cancel_h = 'N' 
                   AND ac.aktif = 'Y'
@@ -2246,7 +2246,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                WHERE a.tgl_pengeluaran < ?
+                WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran < ?
                   AND a.cancel = 'N'
                   AND so.cancel_h = 'N'
                   AND ac.aktif = 'Y'
@@ -2348,9 +2348,9 @@ class MutasiService
             $baselineDate,           
             $baselineDate, $fromDate,
             $baselineDate, $fromDate,
-            $fromDate,               
-            $fromDate,               
-            $fromDate,               
+            $baselineDate, $fromDate,               
+            $baselineDate, $fromDate,               
+            $baselineDate, $fromDate,               
             $fromDate, $toDate,      
             $fromDate, $toDate,      
             $fromDate, $toDate,      
