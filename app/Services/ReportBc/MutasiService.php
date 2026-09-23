@@ -1966,7 +1966,7 @@ class MutasiService
         ini_set('max_execution_time', 120);
 
         $mysql_sb = DB::connection('mysql_sb');
-        $baselineDate = '2022-10-01';
+        $baselineDate = '2023-12-01';
 
         // $sql = "
         //     SELECT 
