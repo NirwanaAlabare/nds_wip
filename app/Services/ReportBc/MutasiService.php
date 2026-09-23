@@ -2279,7 +2279,7 @@ class MutasiService
                 AND so.cancel_h = 'N' 
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY ms.id_item, a.id_so_det
+                GROUP BY a.id_so_det
 
                 UNION ALL
 
@@ -2298,7 +2298,7 @@ class MutasiService
                 AND a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
-                GROUP BY ms.id_item, a.id_so_det
+                GROUP BY a.id_so_det
 
                 UNION ALL
 
@@ -2313,7 +2313,7 @@ class MutasiService
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY ms.id_item, a.id_so_det
+                GROUP BY a.id_so_det
 
             ) AS mutasi
             INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
