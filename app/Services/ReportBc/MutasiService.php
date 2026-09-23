@@ -2317,18 +2317,28 @@ class MutasiService
             ORDER BY ws ASC
         ";
 
-        $bindings = [
-            $baselineDate,           
-            $baselineDate, $fromDate,
-            $baselineDate, $fromDate,
-            $fromDate,               
-            $fromDate,               
+       $bindings = [
+            $baselineDate, 
+            
+            $baselineDate, 
+            $fromDate, 
+            
+            $baselineDate, 
+            $fromDate, 
+            
+            $fromDate,                     
+            
+            $fromDate,                     
+            
             $fromDate,
-            $fromDate, $toDate,      
-            $fromDate, $toDate,      
-            $fromDate, $toDate,      
-            $fromDate, $toDate,      
-            $fromDate, $toDate,      
+            
+            $fromDate, 
+            
+            $fromDate, $toDate, 
+            $fromDate, $toDate, 
+            $fromDate, $toDate, 
+            $fromDate, $toDate, 
+            $fromDate, $toDate, 
         ];
 
         $rows = $mysql_sb->select($sql, $bindings);
