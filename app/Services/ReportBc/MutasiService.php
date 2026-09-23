@@ -2160,7 +2160,7 @@ class MutasiService
         //     ORDER BY ws ASC
         // ";
 
-       $sql = "
+        $sql = "
             SELECT 
                 IFNULL(msw.ws, ac.kpno) AS ws,
                 IFNULL(msw.styleno, ac.styleno) AS styleno,
@@ -2173,112 +2173,133 @@ class MutasiService
                 (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
             FROM (
 
-                SELECT id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-                FROM saldoawal_fg
-                WHERE periode = ?
+                -- ==========================================
+                -- SALDO AWAL 
+                -- ==========================================
 
-                UNION
+                -- 1. Saldo Awal Native
+                SELECT ms.id_item, s.id_so_det, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
+                FROM saldoawal_fg s 
+                INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
+                WHERE s.periode = ?
 
-                SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                UNION ALL
+
+                -- 2. BPB 
+                SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
-                AND bpbno LIKE 'FG%'
-                GROUP BY a.id_so_det
+                AND a.bpbno LIKE 'FG%'
+                GROUP BY ms.id_item, a.id_so_det
 
-                UNION
+                UNION ALL
 
-                SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                -- 3. BPPB 
+                SELECT ms.id_item, a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
-                AND bppbno LIKE 'SJ-FG%'
-                GROUP BY a.id_so_det
+                AND a.bppbno LIKE 'SJ-FG%'
+                GROUP BY ms.id_item, a.id_so_det
 
-                UNION
+                UNION ALL
 
-                SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                -- 4. fg_stok_bpb
+                SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima < ?
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
-                UNION
+                UNION ALL
 
-                SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                -- 5. fg_stok_bpb_scan
+                SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima < ?
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
-                UNION 
+                UNION ALL
 
-                SELECT a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                -- 6. fg_stok_bppb
+                SELECT ms.id_item, a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_pengeluaran < ?
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
-                UNION
+                UNION ALL
 
-                SELECT fg.so_det_id AS id_so_det, SUM(fg.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                -- 7. fg_stok_penerimaan_packing
+                SELECT ms.id_item, fg.so_det_id AS id_so_det, SUM(fg.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_penerimaan_packing fg
+                INNER JOIN masterstyle ms ON fg.so_det_id = ms.id_so_det
+                LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
                 WHERE fg.created_at < ?
-                GROUP BY fg.so_det_id
+                GROUP BY ms.id_item, fg.so_det_id
 
 
                 -- ==========================================
-                -- ON GOING
+                -- ON GOING (PENERIMAAN & PENGELUARAN)
                 -- ==========================================
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                 INNER JOIN so_det sod ON a.id_so_det = sod.id
                 INNER JOIN so ON sod.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_item = ms.id_item
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate <= ?
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
                 AND sod.cancel = 'N'
                 AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
                 AND a.cancel = 'N' 
                 AND so.cancel_h = 'N' 
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
                 AND a.cancel = 'N' 
                 AND so.cancel_h = 'N' 
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty) AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty) AS pengeluaran
                 FROM bppb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_item = ms.id_item
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
                 AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
@@ -2287,27 +2308,28 @@ class MutasiService
                 AND a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
                 UNION ALL
 
-                SELECT a.id_so_det, 0 AS saldo_awal, 0 AS pengeluaran, SUM(a.qty_out) AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty_out) AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
                 AND a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY a.id_so_det
+                GROUP BY ms.id_item, a.id_so_det
 
             ) AS mutasi
             INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
             INNER JOIN so so2 ON sod2.id_so = so2.id
             INNER JOIN act_costing ac ON so2.id_cost = ac.id
-            LEFT JOIN masterstyle s ON mutasi.id_so_det = s.id_so_det
+            LEFT JOIN masterstyle s ON mutasi.id_item = s.id_item AND mutasi.id_so_det = s.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
             GROUP BY IFNULL(msw.ws, ac.kpno)
             HAVING SUM(mutasi.saldo_awal) != 0 
