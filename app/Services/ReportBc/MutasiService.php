@@ -2177,7 +2177,6 @@ class MutasiService
                 -- SALDO AWAL 
                 -- ==========================================
 
-                -- 1. Saldo Awal Native
                 SELECT ms.id_item, s.id_so_det, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
                 FROM saldoawal_fg s 
                 INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
@@ -2185,7 +2184,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 2. BPB 
                 SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
@@ -2195,7 +2193,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 3. BPPB 
                 SELECT ms.id_item, a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
@@ -2205,7 +2202,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 4. fg_stok_bpb
                 SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
@@ -2214,7 +2210,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 5. fg_stok_bpb_scan
                 SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
@@ -2223,7 +2218,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 6. fg_stok_bppb
                 SELECT ms.id_item, a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
@@ -2232,7 +2226,6 @@ class MutasiService
 
                 UNION ALL
 
-                -- 7. fg_stok_penerimaan_packing
                 SELECT ms.id_item, fg.so_det_id AS id_so_det, SUM(fg.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_penerimaan_packing fg
                 INNER JOIN masterstyle ms ON fg.so_det_id = ms.id_so_det
@@ -2241,9 +2234,7 @@ class MutasiService
                 GROUP BY ms.id_item, fg.so_det_id
 
 
-                -- ==========================================
                 -- ON GOING (PENERIMAAN & PENGELUARAN)
-                -- ==========================================
 
                 UNION ALL
 
@@ -2257,7 +2248,6 @@ class MutasiService
                 WHERE a.bpbdate >= ? AND a.bpbdate <= ?
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
-                AND sod.cancel = 'N'
                 AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
                 GROUP BY ms.id_item, a.id_so_det
 
