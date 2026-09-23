@@ -10,6 +10,10 @@ use DB;
 
 class AssetMesinRequirementController extends Controller
 {
+    // Nama lokasi selalu gabungan main - sub - status, tiap bagian di-TRIM karena data master
+    // banyak yang menyisakan spasi di ujung. Sama seperti di Master Mesin.
+    private const SQL_NAMA_LOKASI = "NULLIF(TRIM(CONCAT_WS(' - ', NULLIF(TRIM(lok_main.main_lokasi), ''), NULLIF(TRIM(lok_det.sub_lokasi), ''), NULLIF(TRIM(lok_det.status), ''))), '')";
+
     public function asset_mesin_requirement(Request $request)
     {
         // Nama lokasi disusun sama seperti di Master Mesin (main - sub - status), tiap bagian di-TRIM
@@ -247,13 +251,62 @@ class AssetMesinRequirementController extends Controller
         ", $nilai);
     }
 
-    // Semua jenis yang punya mesin (beli atau sewa), untuk tabel stok mesin di preview
+    // Semua jenis yang punya mesin (beli atau sewa), untuk tabel stok mesin di preview,
+    // lengkap dengan rincian per lokasi. Rincian ini hanya informasi: cek kurang/tersedia
+    // tetap dibanding total semua lokasi, karena mesin bisa dimutasi antar line.
     private function stokMesin(): array
     {
-        return array_values(array_filter(
-            $this->stokPerJenis(null),
-            fn ($j) => $j->stok_beli + $j->stok_sewa > 0
-        ));
+        $perLokasi = DB::select("
+            SELECT kd_jenis, nama_lokasi, SUM(beli) AS beli, SUM(sewa) AS sewa
+            FROM (
+                SELECT
+                    m.kd_jenis,
+                    " . self::SQL_NAMA_LOKASI . " AS nama_lokasi,
+                    COUNT(*) AS beli,
+                    0 AS sewa
+                FROM asset_penerimaan_mesin a
+                INNER JOIN asset_master_jenis_mesin m ON m.id_jenis = a.id_jenis
+                LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = a.id_lokasi
+                LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
+                WHERE a.status IN ('ACTIVE','IDLE','BREAKDOWN')
+                GROUP BY m.kd_jenis, nama_lokasi
+
+                UNION ALL
+
+                SELECT
+                    kj.kd_jenis,
+                    " . self::SQL_NAMA_LOKASI . " AS nama_lokasi,
+                    0 AS beli,
+                    COUNT(*) AS sewa
+                FROM asset_penerimaan_mesin_sewa s
+                INNER JOIN asset_master_kd_jenis kj ON TRIM(UPPER(kj.kd_jenis)) = TRIM(UPPER(s.nm_jenis))
+                LEFT JOIN asset_master_lokasi_det lok_det ON lok_det.id = s.id_lokasi
+                LEFT JOIN asset_master_main_lokasi lok_main ON lok_main.id = lok_det.id_main_lokasi
+                WHERE s.status IN ('ACTIVE','IDLE')
+                GROUP BY kj.kd_jenis, nama_lokasi
+            ) x
+            GROUP BY kd_jenis, nama_lokasi
+            ORDER BY kd_jenis ASC, nama_lokasi IS NULL, nama_lokasi ASC
+        ");
+
+        $lokasiPerJenis = collect($perLokasi)->groupBy('kd_jenis');
+
+        return collect($this->stokPerJenis(null))
+            ->filter(fn ($j) => $j->stok_beli + $j->stok_sewa > 0)
+            ->map(function ($j) use ($lokasiPerJenis) {
+                $j->lokasi = collect($lokasiPerJenis[$j->kd_jenis] ?? [])
+                    ->map(fn ($l) => [
+                        // Mesin yang id_lokasi-nya belum diisi tetap ditampilkan, biar totalnya nyambung
+                        'nama_lokasi' => $l->nama_lokasi ?: 'BELUM DIDATA',
+                        'beli' => (int) $l->beli,
+                        'sewa' => (int) $l->sewa,
+                    ])
+                    ->values();
+
+                return $j;
+            })
+            ->values()
+            ->all();
     }
 
     // Stok mesin sewa per nm_jenis. kd_jenis terisi kalau nm_jenis-nya sudah sama dengan kode jenis di master,

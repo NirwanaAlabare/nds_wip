@@ -80,6 +80,13 @@
             white-space: nowrap;
         }
 
+        /* Tabel saran tindakan di dalam kotak peringatan */
+        .tabel-saran th,
+        .tabel-saran td {
+            font-size: .8rem;
+            color: #212529;
+        }
+
         .table-preview tr.row-kurang td {
             background: #fdf1f2;
         }
@@ -87,6 +94,13 @@
         .table-preview td.cell-kurang {
             background: #f8d7da;
             color: #b02a37;
+            font-weight: 700;
+        }
+
+        /* Mesin ada di pabrik tapi tidak di line itu: perlu dimutasi */
+        .table-preview td.cell-mutasi {
+            background: #fff3cd;
+            color: #664d03;
             font-weight: 700;
         }
 
@@ -98,45 +112,6 @@
         .table-preview tfoot .row-total th {
             background: #e9ecef;
             border-top: 2px solid #212529;
-        }
-
-        /* KPI */
-        .kpi-card {
-            border-left: 4px solid #0d6efd;
-        }
-
-        .kpi-card.kpi-ok {
-            border-left-color: #198754;
-        }
-
-        .kpi-card.kpi-bad {
-            border-left-color: #dc3545;
-        }
-
-        .kpi-card.kpi-bad .kpi-value {
-            color: #dc3545;
-        }
-
-        .kpi-card.kpi-ok .kpi-value {
-            color: #198754;
-        }
-
-        .kpi-label {
-            font-size: .75rem;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-        }
-
-        .kpi-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .kpi-icon {
-            font-size: 2rem;
-            opacity: .2;
         }
 
     </style>
@@ -315,9 +290,6 @@
                     </div>
 
                     <div id="previewContent">
-                        <!-- KPI -->
-                        <div class="row g-3 mb-3" id="kpiRow"></div>
-
                         <!-- Requirement per Style -->
                         <div class="card preview-card mb-3">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -646,7 +618,38 @@
                 });
             });
 
-            return { kurangPerRow, kebutuhan };
+            return { kurangPerRow, kebutuhan, kebutuhanLine: hitungKebutuhanLine(jenis, rows, tanggal) };
+        }
+
+        // Kebutuhan per line per jenis, diambil dari hari tersibuk line itu (semua style di line dijumlah
+        // kalau jalan bersamaan). Dipakai untuk tahu berapa mesin yang harus dimutasi ke line tersebut.
+        function hitungKebutuhanLine(jenis, rows, tanggal) {
+            const hasil = {};
+
+            rows.forEach(row => {
+                const line = (hasil[row.nama_lokasi] ??= {});
+                Object.keys(row.qty).forEach(kd => line[kd] ??= 0);
+            });
+
+            Object.entries(hasil).forEach(([namaLine, perJenis]) => {
+                Object.keys(perJenis).forEach(kd => {
+                    tanggal.forEach(t => {
+                        const total = rows
+                            .filter(row => row.nama_lokasi === namaLine && row.tgl_awal <= t && row.tgl_akhir >= t)
+                            .reduce((sum, row) => sum + (row.qty[kd] || 0), 0);
+                        perJenis[kd] = Math.max(perJenis[kd], total);
+                    });
+                });
+            });
+
+            return hasil;
+        }
+
+        // Stok per lokasi per jenis, dari rincian lokasi di tabel Stok Mesin
+        function stokDiLine(namaLine, kdJenis) {
+            const jenis = (dataPreview.stok || []).find(j => j.kd_jenis === kdJenis);
+            const lokasi = (jenis?.lokasi || []).find(l => l.nama_lokasi === namaLine);
+            return lokasi ? lokasi.beli + lokasi.sewa : 0;
         }
 
         // Pilihan filter diisi dari style yang ada di periode ini; pilihan sebelumnya dipertahankan kalau masih ada
@@ -665,6 +668,8 @@
         // Stok satu jenis = mesin beli + mesin sewa yang nm_jenis-nya sudah sama dengan kode jenis
         const stokJenis = j => Number(j.stok_beli) + Number(j.stok_sewa);
 
+        // Semua angka (KPI, pivot, stok, saran) mengikuti filter style yang sedang dipilih.
+        // Kalau filter kosong berarti semua style ikut dihitung.
         function renderSemua() {
             if (!dataPreview) return;
 
@@ -676,64 +681,103 @@
             $('#previewContent').removeClass('d-none');
             $('#previewEmpty').addClass('d-none');
 
-            renderKpi();
+            const filter = $('#cbofilter_style').val() || [];
+            const rowsAktif = filter.length ? dataPreview.rows.filter(row => filter.includes(row.style)) : dataPreview.rows;
+
+            dataPreview.aktif = {
+                filter,
+                rows: rowsAktif,
+                ...hitungAlokasi(dataPreview.jenis, rowsAktif, dataPreview.tanggal),
+            };
+            dataPreview.aktif.barisLine = hitungBarisLine(dataPreview.aktif);
+
             renderPivotStyle();
             renderStokMesin();
         }
 
-        function kartuKpi(label, nilai, keterangan, icon, warna) {
-            return `<div class="col-6 col-xl-3">
-                <div class="card preview-card kpi-card kpi-${warna} h-100">
-                    <div class="card-body py-2 d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="kpi-label">${label}</div>
-                            <div class="kpi-value">${nilai}</div>
-                            <small class="text-muted">${keterangan}</small>
-                        </div>
-                        <i class="fa-solid ${icon} kpi-icon"></i>
-                    </div>
-                </div>
-            </div>`;
+        // Per line + jenis: kebutuhan line, stok yang ada di line itu, dan tindakannya.
+        // Stok pabrik dicek lebih dulu: kalau totalnya masih cukup berarti tinggal mutasi,
+        // kalau totalnya kurang berarti memang harus sewa / beli.
+        function hitungBarisLine(aktif) {
+            const stokTotal = Object.fromEntries(dataPreview.jenis.map(j => [j.kd_jenis, stokJenis(j)]));
+
+            // Kekurangan stok sepabrik per jenis; dibagi ke line yang kurang, sisanya cukup dimutasi
+            const kurangPabrik = {};
+            dataPreview.jenis.forEach(j => {
+                kurangPabrik[j.kd_jenis] = Math.max(0, (aktif.kebutuhan[j.kd_jenis] || 0) - stokTotal[j.kd_jenis]);
+            });
+
+            // Semua kombinasi line + jenis, diurutkan FIFO: plan yang mulai lebih awal dapat stok duluan
+            // (kalau tanggalnya sama, yang diinput lebih dulu). Sama seperti pembagian stok di sel style.
+            const baris = [];
+            Object.entries(aktif.kebutuhanLine).forEach(([namaLine, perJenis]) => {
+                Object.entries(perJenis).forEach(([kdJenis, butuh]) => {
+                    if (!butuh) return;
+
+                    const planTerawal = aktif.rows
+                        .filter(row => row.nama_lokasi === namaLine && row.qty[kdJenis])
+                        .sort((a, b) => a.tgl_awal.localeCompare(b.tgl_awal) || a.urutan - b.urutan)[0];
+
+                    baris.push({
+                        namaLine,
+                        kdJenis,
+                        butuh,
+                        stokLine: stokDiLine(namaLine, kdJenis),
+                        mulai: planTerawal?.tgl_awal ?? '9999-12-31',
+                        urutan: planTerawal?.urutan ?? Number.MAX_SAFE_INTEGER,
+                    });
+                });
+            });
+
+            baris.sort((a, b) => a.mulai.localeCompare(b.mulai) || a.urutan - b.urutan);
+
+            // Kekurangan dibagi mundur dari plan paling belakang, karena yang mulai duluan dapat stok duluan
+            [...baris].reverse().forEach(b => {
+                b.selisih = b.stokLine - b.butuh;
+
+                if (b.selisih > 0) {
+                    // Mesin di line ini lebih banyak dari kebutuhannya, sisanya bisa dipindah ke line lain
+                    b.tindakan = { tipe: 'keluar', masuk: 0, keluar: b.selisih, beli: 0 };
+                } else if (b.selisih < 0) {
+                    // Yang benar-benar tidak ada barangnya = jatah kekurangan pabrik, sisanya tinggal mutasi.
+                    // Line yang plannya paling belakang yang kebagian kekurangan.
+                    const perlu = -b.selisih;
+                    const beli = Math.min(perlu, kurangPabrik[b.kdJenis] || 0);
+                    kurangPabrik[b.kdJenis] -= beli;
+                    b.tindakan = {
+                        tipe: beli === 0 ? 'masuk' : (perlu - beli ? 'campur' : 'beli'),
+                        masuk: perlu - beli,
+                        keluar: 0,
+                        beli,
+                    };
+                } else {
+                    b.tindakan = { tipe: 'pas', masuk: 0, keluar: 0, beli: 0 };
+                }
+            });
+
+            return baris;
         }
 
-        function renderKpi() {
-            const { jenis, rows, kebutuhan, kurangPerRow } = dataPreview;
-
-            const totalKebutuhan = jenis.reduce((sum, j) => sum + kebutuhan[j.kd_jenis], 0);
-            const totalStok = jenis.reduce((sum, j) => sum + stokJenis(j), 0);
-            const jenisKurang = jenis.filter(j => stokJenis(j) < kebutuhan[j.kd_jenis]).length;
-
-            const semuaStyle = new Set(rows.map(row => row.style));
-            const styleMasalah = new Set(rows
-                .filter((row, index) => Object.values(kurangPerRow[index]).some(k => k > 0))
-                .map(row => row.style));
-
-            $('#kpiRow').html(
-                kartuKpi('Total Kebutuhan', totalKebutuhan, 'unit mesin di hari tersibuk', 'fa-gears', 'info') +
-                kartuKpi('Stok Tersedia', totalStok, `untuk ${jenis.length} jenis yang dibutuhkan`, 'fa-warehouse', 'info') +
-                kartuKpi('Jenis Kurang', `${jenisKurang} / ${jenis.length}`,
-                    jenisKurang ? 'jenis mesin stoknya tidak cukup' : 'semua jenis tercukupi',
-                    'fa-triangle-exclamation', jenisKurang ? 'bad' : 'ok') +
-                kartuKpi('Style Bermasalah', `${styleMasalah.size} / ${semuaStyle.size}`,
-                    styleMasalah.size ? 'style tidak dapat mesin cukup' : 'semua style aman',
-                    'fa-shirt', styleMasalah.size ? 'bad' : 'ok')
-            );
+        function badgeTindakan(t) {
+            if (t.tipe === 'keluar') return `<span class="badge bg-primary">Kelebihan ${t.keluar}, bisa dipindah</span>`;
+            if (t.tipe === 'pas') return '<span class="badge bg-success">Pas</span>';
+            if (t.tipe === 'masuk') return `<span class="badge bg-warning text-dark">Mutasi masuk ${t.masuk}</span>`;
+            if (t.tipe === 'beli') return `<span class="badge bg-danger">Sewa / beli ${t.beli}</span>`;
+            return `<span class="badge bg-warning text-dark">Mutasi masuk ${t.masuk}</span>
+                <span class="badge bg-danger">Sewa / beli ${t.beli}</span>`;
         }
 
         // Tabel ala Excel: kolom = style (tanggal awal plan di bawahnya), baris = line lalu jenis mesin.
         // Style yang sama di beberapa periode digabung jadi satu kolom. Kalau di line yang sama, qty per jenis
         // diambil yang terbesar (bukan dijumlah) karena mesinnya dipakai ulang, bukan ditambah.
-        // Filter style / kurang saja hanya menyaring tampilan; alokasi tetap dihitung dari semua style.
         function renderPivotStyle() {
-            const { jenis, rows, kurangPerRow } = dataPreview;
-            const filter = $('#cbofilter_style').val() || [];
+            const { jenis } = dataPreview;
+            const { rows, kurangPerRow, barisLine } = dataPreview.aktif;
             const kurangSaja = hanyaKurang();
             const styles = {};
             const lines = {};
 
             rows.forEach((row, index) => {
-                if (filter.length && !filter.includes(row.style)) return;
-
                 Object.entries(row.qty).forEach(([kdJenis, qty]) => {
                     const kurang = kurangPerRow[index][kdJenis] || 0;
                     if (kurangSaja && !kurang) return;
@@ -757,15 +801,20 @@
                 $('#tablePivotStyle thead, #tablePivotStyle tfoot').html('');
                 $('#tablePivotStyle tbody').html(`<tr><td class="text-center text-muted py-3">
                     ${kurangSaja ? 'Tidak ada kekurangan mesin' : 'Tidak ada data sesuai filter'}</td></tr>`);
-                renderAlertPivot([]);
+                renderSaran([]);
                 return;
             }
 
             const urutanJenis = jenis.map(j => j.kd_jenis);
+            const cariBaris = (namaLine, kdJenis) => barisLine.find(b => b.namaLine === namaLine && b.kdJenis === kdJenis);
 
             let head = `<tr>
                 <th rowspan="2" class="align-middle">Line</th>
-                <th rowspan="2" class="align-middle">Jenis Mesin</th>`;
+                <th rowspan="2" class="align-middle">Jenis Mesin</th>
+                <th rowspan="2" class="align-middle">Kebutuhan</th>
+                <th rowspan="2" class="align-middle">Actual</th>
+                <th rowspan="2" class="align-middle">Balance</th>
+                <th rowspan="2" class="align-middle">Tindakan</th>`;
             daftarStyle.forEach(style => head += styles[style].kurang
                 ? `<th class="th-kurang"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(style)}</th>`
                 : `<th>${escapeHtml(style)}</th>`);
@@ -774,16 +823,29 @@
             head += '</tr>';
 
             const totalPerStyle = {};
-            const pesanKurang = [];
+            const barisTampil = [];
+            let totalButuh = 0;
+            let totalActual = 0;
             let body = '';
+
             Object.entries(lines).forEach(([namaLine, perJenis]) => {
                 const jenisLine = urutanJenis.filter(kd => perJenis[kd]);
                 jenisLine.forEach((kdJenis, i) => {
+                    const info = cariBaris(namaLine, kdJenis) || { butuh: 0, stokLine: 0, selisih: 0, tindakan: { tipe: 'pas' } };
+                    barisTampil.push(info);
+                    totalButuh += info.butuh;
+                    totalActual += info.stokLine;
+
                     body += '<tr>';
                     if (i === 0) {
                         body += `<td rowspan="${jenisLine.length}" class="fw-bold">${escapeHtml(namaLine)}</td>`;
                     }
-                    body += `<td>${escapeHtml(kdJenis)}</td>`;
+                    body += `<td>${escapeHtml(kdJenis)}</td>
+                        <td class="text-end fw-bold">${info.butuh}</td>
+                        <td class="text-end">${info.stokLine}</td>
+                        <td class="text-end ${info.selisih < 0 ? 'cell-mutasi' : ''}">${info.selisih > 0 ? '+' : ''}${info.selisih}</td>
+                        <td class="text-center">${badgeTindakan(info.tindakan)}</td>`;
+
                     daftarStyle.forEach(style => {
                         const sel = perJenis[kdJenis][style];
                         if (!sel) {
@@ -798,7 +860,6 @@
                         }
 
                         const dapat = sel.qty - sel.kurang;
-                        pesanKurang.push({ style, namaLine, kdJenis, qty: sel.qty, dapat, kurang: sel.kurang });
                         body += `<td class="text-end cell-kurang" title="Butuh ${sel.qty}, dapat ${dapat}, kurang ${sel.kurang}">
                             ${sel.qty} <small>(-${sel.kurang})</small>
                         </td>`;
@@ -807,7 +868,13 @@
                 });
             });
 
-            let foot = '<tr class="row-total"><th colspan="2">TOTAL</th>';
+            const totalBalance = totalActual - totalButuh;
+            let foot = `<tr class="row-total">
+                <th colspan="2">TOTAL</th>
+                <th class="text-end">${totalButuh}</th>
+                <th class="text-end">${totalActual}</th>
+                <th class="text-end ${totalBalance < 0 ? 'text-danger' : ''}">${totalBalance > 0 ? '+' : ''}${totalBalance}</th>
+                <th></th>`;
             daftarStyle.forEach(style => foot += `<th class="text-end">${totalPerStyle[style] || 0}</th>`);
             foot += '</tr>';
 
@@ -815,46 +882,79 @@
             $('#tablePivotStyle tbody').html(body);
             $('#tablePivotStyle tfoot').html(foot);
 
-            renderAlertPivot(pesanKurang);
+            renderSaran(barisTampil);
         }
 
-        function renderAlertPivot(pesanKurang) {
+        // Style mana saja di line itu yang butuh jenis mesin tersebut
+        function stylePemakai(namaLine, kdJenis) {
+            return [...new Set(dataPreview.aktif.rows
+                .filter(row => row.nama_lokasi === namaLine && row.qty[kdJenis])
+                .map(row => row.style))].join(', ');
+        }
+
+        // Ringkasan tindakan dalam bentuk tabel: mana yang tinggal dimutasi, mana yang harus sewa / beli
+        function renderSaran(barisTampil) {
+            const perluAksi = barisTampil.filter(b => b.tindakan.masuk || b.tindakan.beli);
+
+            if (!perluAksi.length) {
+                $('#pivotAlert')
+                    .removeClass('alert-danger alert-warning')
+                    .addClass('alert-success')
+                    .html('<i class="fa-solid fa-circle-check"></i> <b>Semua mesin cukup</b> dan sudah ada di line-nya masing-masing.');
+                return;
+            }
+
+            const totalMasuk = perluAksi.reduce((sum, b) => sum + b.tindakan.masuk, 0);
+            const totalBeli = perluAksi.reduce((sum, b) => sum + b.tindakan.beli, 0);
+
+            const isi = perluAksi.map(b => `<tr>
+                <td>${escapeHtml(b.namaLine)}</td>
+                <td>${escapeHtml(stylePemakai(b.namaLine, b.kdJenis))}</td>
+                <td><b>${escapeHtml(b.kdJenis)}</b></td>
+                <td class="text-end">${b.butuh}</td>
+                <td class="text-end">${b.stokLine}</td>
+                <td class="text-center">${badgeTindakan(b.tindakan)}</td>
+            </tr>`).join('');
+
+            const ringkas = [
+                totalMasuk ? `<b>${totalMasuk} unit</b> perlu mutasi antar line` : '',
+                totalBeli ? `<b>${totalBeli} unit</b> harus sewa / beli` : '',
+            ].filter(Boolean).join(' &middot; ');
+
             $('#pivotAlert')
-                .removeClass('alert-success alert-danger')
-                .addClass(pesanKurang.length ? 'alert-danger' : 'alert-success')
-                .html(pesanKurang.length
-                    ? `<i class="fa-solid fa-triangle-exclamation"></i> <b>Stok mesin tidak cukup untuk ${pesanKurang.length} kebutuhan</b>
-                       <small class="d-block">Stok dibagi ke plan yang mulai lebih awal dulu.</small>
-                       <ul class="mb-0 mt-1">${pesanKurang.map(p => `<li>
-                            <b>${escapeHtml(p.style)}</b> - ${escapeHtml(p.namaLine)} - <b>${escapeHtml(p.kdJenis)}</b>:
-                            butuh ${p.qty}, dapat ${p.dapat}, <b>kurang ${p.kurang}</b></li>`).join('')}</ul>`
-                    : '<i class="fa-solid fa-circle-check"></i> Semua style mendapat mesin yang cukup');
+                .removeClass('alert-success alert-danger alert-warning')
+                .addClass(totalBeli ? 'alert-danger' : 'alert-warning')
+                .html(`<div class="mb-2"><i class="fa-solid fa-clipboard-list"></i> ${ringkas}</div>
+                    <table class="table table-sm table-bordered bg-white mb-0 tabel-saran">
+                        <thead>
+                            <tr><th>Line</th><th>Style</th><th>Jenis</th><th>Kebutuhan</th><th>Actual</th><th>Tindakan</th></tr>
+                        </thead>
+                        <tbody>${isi}</tbody>
+                    </table>`);
         }
 
-        // Satu tabel untuk semua jenis yang punya mesin: stok beli & sewa dipisah, lalu dibanding pemakaian
-        // (kebutuhan hari tersibuk di periode ini). Status di atas tabel hanya untuk jenis yang dibutuhkan.
+        // Stok mesin per jenis untuk seluruh pabrik (tanpa rincian lokasi), dibanding pemakaian di periode ini
         function renderStokMesin() {
-            const { stok: daftarStok, kebutuhan, sewa } = dataPreview;
+            const { stok: daftarStok } = dataPreview;
+            const { kebutuhan } = dataPreview.aktif;
             const total = { beli: 0, sewa: 0, pakai: 0 };
-            const kurang = [];
             let body = '';
 
             daftarStok.forEach(j => {
                 const beli = Number(j.stok_beli);
-                const sewaJenis = Number(j.stok_sewa);
-                const stok = beli + sewaJenis;
+                const sewa = Number(j.stok_sewa);
+                const stok = beli + sewa;
                 const pakai = kebutuhan[j.kd_jenis] || 0;
                 const sisa = stok - pakai;
                 total.beli += beli;
-                total.sewa += sewaJenis;
+                total.sewa += sewa;
                 total.pakai += pakai;
-                if (sisa < 0) kurang.push(`${j.kd_jenis} (kurang ${-sisa})`);
                 if (hanyaKurang() && sisa >= 0) return;
 
                 body += `<tr class="${sisa < 0 ? 'row-kurang' : ''}">
                     <td><b>${escapeHtml(j.kd_jenis)}</b> - ${escapeHtml(j.nm_jenis)}</td>
                     <td class="text-end">${beli}</td>
-                    <td class="text-end">${sewaJenis || ''}</td>
+                    <td class="text-end">${sewa || ''}</td>
                     <td class="text-end fw-bold">${stok}</td>
                     <td class="text-end">${pakai || ''}</td>
                     <td class="text-end fw-bold ${sisa < 0 ? 'text-danger' : ''}">${sisa}</td>
@@ -873,15 +973,8 @@
                 <th class="text-end">${totalStok - total.pakai}</th>
             </tr>`);
 
-            $('#previewStatus')
-                .removeClass('alert-success alert-danger')
-                .addClass(kurang.length ? 'alert-danger' : 'alert-success')
-                .html(kurang.length
-                    ? `<i class="fa-solid fa-circle-xmark"></i> <b>Stok tidak cukup</b> untuk ${kurang.length} jenis mesin: ${escapeHtml(kurang.join(', '))}`
-                    : '<i class="fa-solid fa-circle-check"></i> <b>Semua stok tersedia</b> untuk requirement di periode ini');
-
-            // Mesin sewa yang nm_jenis-nya belum sama dengan kode jenis tidak masuk tabel, cukup diinfokan jumlahnya
-            const belumTerpetakan = sewa.filter(s => !s.kd_jenis).reduce((sum, s) => sum + Number(s.total), 0);
+            // Mesin sewa yang nm_jenis-nya belum sama dengan kode jenis tidak masuk hitungan, cukup diinfokan
+            const belumTerpetakan = (dataPreview.sewa || []).filter(s => !s.kd_jenis).reduce((sum, s) => sum + Number(s.total), 0);
             $('#infoSewaBelum').html(belumTerpetakan
                 ? `<b class="text-danger">${belumTerpetakan} unit mesin sewa belum terhitung</b> karena nama jenisnya belum diisi kode jenis.`
                 : '');
