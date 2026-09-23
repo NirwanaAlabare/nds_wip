@@ -2249,7 +2249,7 @@ class MutasiService
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
                 AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
-                GROUP BY a.id_so_det
+                GROUP BY a.id_so_det , ac.kpno , a.id_so_det
 
                 UNION ALL
 
@@ -2264,7 +2264,7 @@ class MutasiService
                 AND so.cancel_h = 'N' 
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY a.id_so_det
+                GROUP BY ac.kpno, a.no_trans, a.id_so_det
 
                 UNION ALL
 
@@ -2279,7 +2279,7 @@ class MutasiService
                 AND so.cancel_h = 'N' 
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY a.id_so_det
+                GROUP BY ac.kpno, a.no_trans, a.id_so_det
 
                 UNION ALL
 
