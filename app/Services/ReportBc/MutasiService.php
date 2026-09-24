@@ -109,52 +109,77 @@ class MutasiService
         }
 
         // ===== ACCESSORIES: group by mastercontents.id + unit (dari bpb/bppb) =====
-        if (in_array($kategori, ['all', 'semua', 'accesories', 'accessories'])) {
+        if (in_array(strtolower($kategori), ['all', 'semua', 'accesories', 'accessories'])) {
             $contentJoin = "
                 INNER JOIN masteritem mi ON mi.id_item = b.id_item
                 $contentJoinFromMi
             ";
 
             $sqlAcc = "
-                SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
+                SELECT 
+                    isi.id_contents AS id_item, 
+                    IFNULL(mc.kode_contents, mc.id) AS goods_code, 
+                    mc.nama_contents AS itemdesc, 
+                    isi.unit,
                     SUM(isi.sain) - SUM(isi.saout) AS saldoawal,
                     SUM(isi.qtyin) AS qtyterima,
                     SUM(isi.qtyout) AS qtykeluar,
                     (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir,
                     NULL AS kpno
                 FROM (
+                    -- 1. Saldo Awal Masuk (Sebelum fromDate)
                     SELECT mcnt.id AS id_contents, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bpbdate < ? 
+                    AND b.cancel = 'N'
+                    AND b.bpbno_int NOT LIKE 'FG%'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 2. Saldo Awal Keluar (Sebelum fromDate)
                     SELECT mcnt.id AS id_contents, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bppbdate < ? 
+                    AND b.cancel = 'N'
+                    AND COALESCE(b.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 3. Qty Terima / Masuk (Range Tanggal)
                     SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? 
+                    AND b.cancel = 'N'
+                    AND b.bpbno_int NOT LIKE 'FG%'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 4. Qty Keluar (Range Tanggal)
                     SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? 
+                    AND b.cancel = 'N'
+                    AND COALESCE(b.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
                 ) isi
                 LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
-                GROUP BY isi.id_contents, isi.unit
+                GROUP BY 
+                    isi.id_contents, 
+                    isi.unit,
+                    mc.kode_contents,
+                    mc.id,
+                    mc.nama_contents
             ";
 
             $accRows = $mysql_sb->select($sqlAcc, [
