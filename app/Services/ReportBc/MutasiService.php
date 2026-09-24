@@ -45,15 +45,17 @@ class MutasiService
                         SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
                         UNION
                         SELECT id_item, unit FROM whs_inmaterial_fabric_det WHERE status != 'N' GROUP BY id_item, unit
+                        UNION
+                        SELECT id_item, satuan AS unit FROM whs_bppb_det WHERE status != 'N' GROUP BY id_item, satuan
                     ) a
                     
-                    -- SALDO AWAL (Penerimaan < fromDate)
+                    -- 1. SALDO AWAL PENERIMAAN (< fromDate)
                     LEFT JOIN (
                         SELECT id_item, unit, SUM(sal_awal) sal_awal FROM (
-                            SELECT b.id_item, b.unit, SUM(b.qty_good) sal_awal
+                            SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) sal_awal
                             FROM whs_inmaterial_fabric_det b
                             INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
-                            WHERE h.tgl_dok < ? AND b.status != 'N' AND h.status != 'cancel' 
+                            WHERE h.tgl_dok < ? AND b.status != 'N' AND h.status != 'cancel'
                             GROUP BY b.id_item, b.unit
 
                             UNION ALL
@@ -63,32 +65,38 @@ class MutasiService
                         ) x GROUP BY id_item, unit
                     ) b ON b.id_item = a.id_item AND b.unit = a.unit
                     
-                    -- ON GOING: PENERIMAAN (Range Tanggal)
+                    -- 2. PENERIMAAN RANGE TANGGAL (Inmaterial Fabric)
                     LEFT JOIN (
-                        SELECT b.id_item, b.unit, SUM(b.qty_good) qty_in
+                        SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) qty_in
                         FROM whs_inmaterial_fabric_det b
                         INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
                         WHERE h.tgl_dok BETWEEN ? AND ? AND b.status != 'N' AND h.status != 'cancel'
                         GROUP BY b.id_item, b.unit
                     ) c ON c.id_item = a.id_item AND c.unit = a.unit
                     
-                    -- SALDO AWAL (Pengeluaran Sebelumnya < fromDate)
+                    -- 3. SALDO AWAL PENGELUARAN (< fromDate) -> Menggunakan GK BPPB
                     LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out_sbl
-                        FROM whs_bppb_det a
-                        INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                        WHERE b.tgl_bppb < ? AND a.status = 'Y' AND COALESCE(b.status, '') != 'cancel'
-                        GROUP BY id_item, satuan
-                    ) d ON d.id_item = a.id_item AND d.satuan = a.unit
+                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out_sbl
+                        FROM whs_bppb_h a
+                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
+                        AND b.status != 'N' 
+                        AND a.status != 'cancel' 
+                        AND a.tgl_bppb < ?
+                        GROUP BY b.id_item, b.satuan
+                    ) d ON d.id_item = a.id_item AND d.unit = a.unit
                     
-                    -- ON GOING: PENGELUARAN (Range Tanggal)
+                    -- 4. PENGELUARAN RANGE TANGGAL -> Menggunakan GK BPPB
                     LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out
-                        FROM whs_bppb_det a
-                        INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                        WHERE b.tgl_bppb BETWEEN ? AND ? AND a.status = 'Y' AND COALESCE(b.status, '') != 'cancel'
-                        GROUP BY id_item, satuan
-                    ) e ON e.id_item = a.id_item AND e.satuan = a.unit
+                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out
+                        FROM whs_bppb_h a
+                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
+                        AND b.status != 'N' 
+                        AND a.status != 'cancel' 
+                        AND a.tgl_bppb BETWEEN ? AND ?
+                        GROUP BY b.id_item, b.satuan
+                    ) e ON e.id_item = a.id_item AND e.unit = a.unit
                     
                     INNER JOIN masteritem mi ON mi.id_item = a.id_item
                     $contentJoinFromMi
