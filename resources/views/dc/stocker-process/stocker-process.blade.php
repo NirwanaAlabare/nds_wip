@@ -18,6 +18,14 @@
             padding: 8px 12px;
             height: 100%;
         }
+        .allocation-card-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #082149;
+            border-radius: 6px;
+            padding: 8px 12px;
+            height: 100%;
+        }
         .info-label {
             font-size: 10px;
             color: #888888;
@@ -130,7 +138,7 @@
                     <!-- Header Info Stocker di Dalam Modal -->
                     <div class="card border mb-3 shadow-sm bg-white">
                         <div class="card-body p-3">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-lg-3 col-md-4 col-6 mb-2">
                                     <div class="modal-info-box">
                                         <div class="info-label"><i class="fas fa-qrcode mr-1 text-sb-secondary"></i> ID Stocker</div>
@@ -171,6 +179,28 @@
                                     <div class="modal-info-box">
                                         <div class="info-label"><i class="fas fa-info-circle mr-1"></i> Part Status</div>
                                         <div class="info-value text-truncate" id="modal-part-status">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Baris Alokasi Trolley & Line di Header Modal -->
+                            <div class="row pt-2 border-top">
+                                <div class="col-md-6 col-12 mb-2">
+                                    <div class="modal-info-box">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="info-label text-primary"><i class="fas fa-dolly mr-1"></i> Trolley</span>
+                                            <small class="text-muted font-weight-bold" id="modal-trolley-tgl">-</small>
+                                        </div>
+                                        <div class="info-value text-truncate" id="modal-trolley-nama">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12 mb-2">
+                                    <div class="modal-info-box">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="info-label text-success"><i class="fas fa-stream mr-1"></i> Line</span>
+                                            <small class="text-muted font-weight-bold" id="modal-line-tgl">-</small>
+                                        </div>
+                                        <div class="info-value text-truncate" id="modal-line-nama">-</div>
                                     </div>
                                 </div>
                             </div>
@@ -304,7 +334,7 @@
                     </div>
                 </div>
                 <div class="modal-footer py-2">
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" data-bs-dismiss="modal"><i class=""></i> Tutup</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -394,9 +424,6 @@
         }
 
         function renderCardHtml(item, index) {
-            // Tentukan Qty Terakhir untuk Secondary Inhouse: 
-            // jika sec_inhouse_qty_hasil bernilai > 0 / ada transaksi maka pakai sec_inhouse_qty_hasil, 
-            // jika tidak ada maka gunakan total qty_sec_inhouse_in
             let secInhouseLastQty = (item.sec_inhouse_qty_hasil && item.sec_inhouse_qty_hasil !== 0) 
                 ? item.sec_inhouse_qty_hasil 
                 : (item.qty_sec_inhouse_in || 0);
@@ -428,7 +455,7 @@
 
                         <div class="card-body py-3">
                             <!-- Kelompok Informasi Master Stocker -->
-                            <div class="row mb-3">
+                            <div class="row mb-2">
                                 <div class="col-lg-2 col-md-3 col-6 mb-2">
                                     <div class="info-card-box">
                                         <div class="info-label"><i class="fas fa-file-alt mr-1"></i> Work Order / WS</div>
@@ -447,25 +474,25 @@
                                         <div class="info-value">${item.size || '-'}</div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-3 col-3 mb-2">
+                                <div class="col-lg-3 col-md-3 col-6 mb-2">
                                     <div class="info-card-box">
                                         <div class="info-label"><i class="fas fa-th-large mr-1"></i> Panel</div>
                                         <div class="info-value text-truncate" title="${item.panel || '-'}">${item.panel || '-'}</div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-3 col-3 mb-2">
+                                <div class="col-lg-3 col-md-3 col-6 mb-2">
                                     <div class="info-card-box">
                                         <div class="info-label"><i class="fas fa-puzzle-piece mr-1"></i> Nama Part</div>
                                         <div class="info-value text-truncate" title="${item.nama_part || '-'}">${item.nama_part || '-'}</div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6 col-md-3 col-3 mb-2">
+                                <div class="col-lg-6 col-md-6 col-12 mb-2">
                                     <div class="info-card-box">
                                         <div class="info-label"><i class="fas fa-map-marker-alt mr-1"></i> Tujuan</div>
                                         <div class="info-value text-truncate" title="${item.tujuan || '-'}">${item.tujuan || '-'}</div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6 col-md-3 col-3 mb-2">
+                                <div class="col-lg-6 col-md-6 col-12 mb-2">
                                     <div class="info-card-box">
                                         <div class="info-label"><i class="fas fa-cogs mr-1"></i> Proses</div>
                                         <div class="info-value text-truncate" title="${item.proses || '-'}">${item.proses || '-'}</div>
@@ -473,7 +500,37 @@
                                 </div>
                             </div>
 
-                            <!-- Detail Akumulasi Ringkasan Transaksi (Diubah ke Qty Terakhir) -->
+                            <!-- Baris Alokasi Trolley & Line -->
+                            <div class="row mb-3">
+                                <div class="col-lg-6 col-md-6 col-12 mb-2">
+                                    <div class="allocation-card-box">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="info-label text-primary"><i class="fas fa-dolly mr-1"></i> Trolley</span>
+                                            <span class="badge bg-light text-dark border font-weight-bold" style="font-size: 10px;">
+                                                <i class="far fa-calendar-alt mr-1"></i> ${item.tanggal_trolley || '-'}
+                                            </span>
+                                        </div>
+                                        <div class="info-value text-truncate" title="${item.nama_trolley || '-'}">
+                                            ${item.nama_trolley || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-6 col-12 mb-2">
+                                    <div class="allocation-card-box">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="info-label text-success"><i class="fas fa-stream mr-1"></i> Line</span>
+                                            <span class="badge bg-light text-dark border font-weight-bold" style="font-size: 10px;">
+                                                <i class="far fa-calendar-alt mr-1"></i> ${item.tanggal_loading || '-'}
+                                            </span>
+                                        </div>
+                                        <div class="info-value text-truncate" title="${item.nama_line || '-'}">
+                                            ${item.nama_line || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detail Akumulasi Ringkasan Transaksi -->
                             <div class="row">
                                 <!-- DC IN -->
                                 <div class="col-xl-3 col-md-6 mb-2">
@@ -552,6 +609,12 @@
             $('#modal-nama-part').text(item.nama_part || '-');
             $('#modal-panel').text(item.panel || '-');
             $('#modal-part-status').html(item.part_status ? `<span class="badge badge-primary">${item.part_status.toUpperCase()}</span>` : '-');
+
+            // Populasi Info Trolley & Line pada Modal
+            $('#modal-trolley-nama').text(item.nama_trolley || '-');
+            $('#modal-trolley-tgl').text(item.tanggal_trolley || '-');
+            $('#modal-line-nama').text(item.nama_line || '-');
+            $('#modal-line-tgl').text(item.tanggal_loading || '-');
 
             // 1. DC IN
             let htmlDc = '';
