@@ -511,6 +511,12 @@
                                     Stock Opname <i class="fas fa-list fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('cek-qr-carton-opname-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'cek-qr-carton-fg-stock' ? 'active' : '' }}">
+                                    Check QR Carton <i class="fas fa-qrcode fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
@@ -1585,6 +1591,9 @@
                                         <a href="{{ route('asset_mesin_mutasi') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_mutasi' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-right-left"></i>Mutasi Mesin</a>
+                                        <a href="{{ route('asset_mesin_requirement') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_requirement' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list-check"></i>Machine Requirement</a>
                                     </div>
 
                                     <div class="mega-dropdown-col">

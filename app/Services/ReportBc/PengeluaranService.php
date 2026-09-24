@@ -413,7 +413,7 @@ class PengeluaranService
                 ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->where('a.bppbno_int', 'LIKE', 'FG%') // Filter bppbno_int
                 ->where('a.cancel', 'N')
-                ->where('sd.cancel', 'N')
+                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereBetween($dateField, [$fromDate, $toDate])
@@ -463,7 +463,7 @@ class PengeluaranService
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->whereBetween('a.tgl_pengeluaran', [$fromDate, $toDate])
                 ->where('a.cancel', 'N')
-                ->where('sd.cancel', 'N')
+                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereNotIn('a.tujuan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])

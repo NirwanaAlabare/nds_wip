@@ -16,6 +16,7 @@ use App\Http\Controllers\DC\StockDcIncompleteController;
 use App\Http\Controllers\DC\StockDcWipController;
 use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
+use App\Http\Controllers\DC\StockerProcessController;
 
 Route::middleware('auth')->group(function () {
     // // DC IN BACKUP
@@ -293,5 +294,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/report_terima_secondary_luar', 'report_terima_secondary_luar')->name('dc-report-terima-secondary-luar');
         Route::post('/export_excel_report_terima_secondary_luar', 'export_excel_report_terima_secondary_luar')->name('export_excel_report_terima_secondary_luar');
 
+    });
+
+    // Stocker Process
+    Route::controller(StockerProcessController::class)->prefix("stocker-process")->middleware('role:dc')->group(function () {
+        // Route::get('/', 'index')->name('dc-report');
+        Route::match(['get', 'post'], '/', 'index')->name('stocker-process');
+        Route::get('/stocker-process/data', 'getData')->name('get-stocker-process');
     });
 });
