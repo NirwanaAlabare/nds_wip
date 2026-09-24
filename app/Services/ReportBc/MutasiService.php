@@ -2125,7 +2125,7 @@ class MutasiService
         //     ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         // ";
 
-        $sql = "SELECT 
+       $sql = "SELECT 
                     ac.kpno AS ws,
                     ac.styleno AS styleno,
                     IFNULL(msw.product_group, '-') AS product_group,
@@ -2149,7 +2149,7 @@ class MutasiService
 
                     SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bpb a
-                    INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+                    LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                     LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                     INNER JOIN so_det sod ON a.id_so_det = sod.id
                     INNER JOIN so ON sod.id_so = so.id
@@ -2158,12 +2158,18 @@ class MutasiService
                     AND a.bpbno_int LIKE 'FG%'
                     AND a.cancel = 'N'
                     AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+                    -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+                    AND (
+                        (a.bpbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+                        OR 
+                        (a.bpbdate > '2025-11-30')
+                    )
 
                     UNION ALL
 
                     SELECT a.id_so_det, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bppb a
-                    INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+                    LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                     LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                     INNER JOIN so_det sd ON a.id_so_det = sd.id
                     INNER JOIN so ON sd.id_so = so.id
@@ -2176,6 +2182,12 @@ class MutasiService
                     AND a.cancel = 'N'
                     AND so.cancel_h = 'N'
                     AND ac.aktif = 'Y'
+                    -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+                    AND (
+                        (a.bppbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+                        OR 
+                        (a.bppbdate > '2025-11-30')
+                    )
 
                     UNION ALL
 
