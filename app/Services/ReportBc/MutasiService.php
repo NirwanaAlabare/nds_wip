@@ -2355,175 +2355,6 @@ class MutasiService
         //     $fromDate, $toDate, 
         // ];
 
-        // $sql = "
-        //     SELECT 
-        //         IFNULL(msw.ws, ac.kpno) AS ws,
-        //         IFNULL(msw.styleno, ac.styleno) AS styleno,
-        //         IFNULL(msw.color, s.color) AS color,
-        //         IFNULL(msw.product_group, '-') AS product_group,
-        //         IFNULL(msw.product_item, '-') AS product_item,
-        //         SUM(mutasi.saldo_awal) AS saldoawal,
-        //         SUM(mutasi.penerimaan) AS qtyterima,
-        //         SUM(mutasi.pengeluaran) AS qtykeluar,
-        //         (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
-        //     FROM (
-
-        //         -- ==========================================
-        //         -- SALDO AWAL
-        //         -- ==========================================
-
-        //         SELECT ms.id_item, s.id_so_det, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
-        //         FROM saldoawal_fg s 
-        //         INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
-        //         WHERE s.periode = ?
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM bpb a
-        //         INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
-        //         WHERE a.bpbdate >= ? AND a.bpbdate < ?
-        //         AND a.bpbno LIKE 'FG%'
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM bppb a
-        //         INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
-        //         WHERE a.bppbdate >= ? AND a.bppbdate < ?
-        //         AND a.bppbno LIKE 'SJ-FG%'
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bpb a
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_terima < ?
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bpb_scan a
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_terima < ?
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, -SUM(a.qty_out) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bppb a
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_pengeluaran < ?
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, fg.so_det_id AS id_so_det, SUM(fg.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_penerimaan_packing fg
-        //         INNER JOIN masterstyle ms ON fg.so_det_id = ms.id_so_det
-        //         LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
-        //         WHERE fg.created_at < ?
-        //         GROUP BY ms.id_item, fg.so_det_id
-
-        //         -- ==========================================
-        //         -- ON GOING
-        //         -- ==========================================
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
-        //         FROM bpb a
-        //         LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
-        //         INNER JOIN so_det sod ON a.id_so_det = sod.id
-        //         INNER JOIN so ON sod.id_so = so.id
-        //         INNER JOIN act_costing ac ON so.id_cost = ac.id
-        //         INNER JOIN masterstyle ms ON a.id_item = ms.id_item
-        //         WHERE a.bpbdate >= ? AND a.bpbdate <= ?
-        //         AND a.bpbno_int LIKE 'FG%'
-        //         AND a.cancel = 'N'
-        //         AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bpb a
-        //         INNER JOIN so_det sd ON a.id_so_det = sd.id
-        //         INNER JOIN so ON sd.id_so = so.id
-        //         INNER JOIN act_costing ac ON so.id_cost = ac.id
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
-        //         AND a.cancel = 'N' 
-        //         AND so.cancel_h = 'N' 
-        //         AND ac.aktif = 'Y'
-        //         AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, SUM(a.qty) AS penerimaan, 0 AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bpb_scan a
-        //         INNER JOIN so_det sd ON a.id_so_det = sd.id
-        //         INNER JOIN so ON sd.id_so = so.id
-        //         INNER JOIN act_costing ac ON so.id_cost = ac.id
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
-        //         AND a.cancel = 'N' 
-        //         AND so.cancel_h = 'N' 
-        //         AND ac.aktif = 'Y'
-        //         AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty) AS pengeluaran
-        //         FROM bppb a
-        //         LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
-        //         INNER JOIN so_det sd ON a.id_so_det = sd.id
-        //         INNER JOIN so ON sd.id_so = so.id
-        //         INNER JOIN act_costing ac ON so.id_cost = ac.id
-        //         INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
-        //         WHERE a.bppbdate >= ? AND a.bppbdate <= ?
-        //         AND a.bppbno_int LIKE 'FG%'
-        //         AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
-        //         AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-        //         AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
-        //         AND a.cancel = 'N'
-        //         AND so.cancel_h = 'N'
-        //         AND ac.aktif = 'Y'
-        //         GROUP BY a.id_so_det
-
-        //         UNION ALL
-
-        //         SELECT ms.id_item, a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, SUM(a.qty_out) AS pengeluaran
-        //         FROM laravel_nds.fg_stok_bppb a
-        //         INNER JOIN so_det sd ON a.id_so_det = sd.id
-        //         INNER JOIN so ON sd.id_so = so.id
-        //         INNER JOIN act_costing ac ON so.id_cost = ac.id
-        //         INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
-        //         WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
-        //         AND a.cancel = 'N'
-        //         AND so.cancel_h = 'N'
-        //         AND ac.aktif = 'Y'
-        //         AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-        //         GROUP BY a.id_so_det
-
-        //     ) AS mutasi
-        //     INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
-        //     INNER JOIN so so2 ON sod2.id_so = so2.id
-        //     INNER JOIN act_costing ac ON so2.id_cost = ac.id
-        //     LEFT JOIN masterstyle s ON mutasi.id_item = s.id_item AND mutasi.id_so_det = s.id_so_det
-        //     LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
-        //     GROUP BY IFNULL(msw.ws, ac.kpno)
-        //     HAVING SUM(mutasi.saldo_awal) != 0 
-        //         OR SUM(mutasi.penerimaan) != 0 
-        //         OR SUM(mutasi.pengeluaran) != 0 
-        //         OR (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) != 0
-        //     ORDER BY ws ASC
-        // ";
 
         $sql = "
             SELECT 
@@ -2538,7 +2369,7 @@ class MutasiService
                 SUM(mutasi.saldo_awal) AS saldoawal,
                 SUM(mutasi.penerimaan) AS qtyterima,
                 SUM(mutasi.pengeluaran) AS qtykeluar,
-                (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS mutasi_netto
+                (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
             FROM (
 
                 -- ==========================================
@@ -2583,7 +2414,7 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'SA - NDS BPPB' AS jenis_transaksi, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'SA - NDS BPPB' AS jenis_transaksi, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_pengeluaran < ?
@@ -2662,7 +2493,7 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'OUT - NDS BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
+                SELECT ms.id_item, a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'OUT - NDS BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
@@ -2684,15 +2515,15 @@ class MutasiService
             GROUP BY 
                 IFNULL(msw.ws, ac.kpno),
                 IFNULL(msw.color, s.color),
-                mutasi.no_transaksi
-            
+                mutasi.id_so_det
+
             HAVING SUM(mutasi.saldo_awal) != 0 
                 OR SUM(mutasi.penerimaan) != 0 
                 OR SUM(mutasi.pengeluaran) != 0 
                 
             ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         ";
-        
+
         $bindings = [
             $baselineDate,              // saldoawal_fg periode
 
@@ -2717,6 +2548,7 @@ class MutasiService
                 'ws'            => $row->ws,
                 'styleno'       => $row->styleno,
                 'color'         => $row->color,
+                'no_transaksi'         => $row->no_transaksi,
                 'product_group' => $row->product_group,
                 'product_item'  => $row->product_item,
                 'saldoawal'     => (float) $row->saldoawal,
@@ -2725,24 +2557,6 @@ class MutasiService
                 'saldoakhir'    => (float) $row->saldoakhir,
             ];
         })->values();
-
-        // UNION
-
-       
-
-        // SELECT a.id_so_det, SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM bpb a
-        //         WHERE a.bpbdate >= ? AND a.bpbdate < ?
-        //            AND bpbno like 'FG%'
-        //         GROUP BY a.id_so_det
-
-        //         UNION
-
-        //         SELECT a.id_so_det, -SUM(a.qty) AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
-        //         FROM bppb a
-        //         WHERE a.bppbdate >= ? AND a.bppbdate < ?
-        //           AND bppbno like 'SJ-FG%'
-        //         GROUP BY a.id_so_det
     }
 
 
@@ -2795,7 +2609,9 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'No WS',
+            'No Transaksi',
             'Style',
+            'Color',
             'Product Group',
             'Product Item',
             'Saldo Awal',
@@ -2815,7 +2631,9 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->ws ?? '-',
+                $row->no_transaksi ?? '-',
                 $row->styleno ?? '-',
+                $row->color ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
                 $row->saldoawal ?? '-',
