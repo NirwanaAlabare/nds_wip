@@ -2149,35 +2149,70 @@ class MutasiService
 
                     SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bpb a
-                    INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
-                    WHERE a.bpbdate >= ? AND a.bpbdate < ?
-                    AND a.bpbno LIKE 'FG%'
+                    LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                    INNER JOIN so_det sod ON a.id_so_det = sod.id
+                    INNER JOIN so ON sod.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
+                    WHERE a.bpbdate >= ? AND a.bpbdate <= ?
+                    AND a.bpbno_int LIKE 'FG%'
+                    AND a.cancel = 'N'
+                    AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
 
                     UNION ALL
 
                     SELECT a.id_so_det, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bppb a
-                    INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
-                    WHERE a.bppbdate >= ? AND a.bppbdate < ?
-                    AND a.bppbno LIKE 'SJ-FG%'
+                    LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                    INNER JOIN so_det sd ON a.id_so_det = sd.id
+                    INNER JOIN so ON sd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
+                    WHERE a.bppbdate >= ? AND a.bppbdate <= ?
+                    AND a.bppbno_int LIKE 'FG%'
+                    AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+                    AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                    AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+                    AND a.cancel = 'N'
+                    AND so.cancel_h = 'N'
+                    AND ac.aktif = 'Y'
 
                     UNION ALL
 
                     SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM laravel_nds.fg_stok_bpb a
+                    INNER JOIN so_det sd ON a.id_so_det = sd.id
+                    INNER JOIN so ON sd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
                     WHERE a.tgl_terima < ?
+                    AND a.cancel = 'N' 
+                    AND so.cancel_h = 'N' 
+                    AND ac.aktif = 'Y'
+                    AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
 
                     UNION ALL
 
                     SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM laravel_nds.fg_stok_bpb_scan a
+                    INNER JOIN so_det sd ON a.id_so_det = sd.id
+                    INNER JOIN so ON sd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
                     WHERE a.tgl_terima < ?
+                    AND a.cancel = 'N' 
+                    AND so.cancel_h = 'N' 
+                    AND ac.aktif = 'Y'
+                    AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
 
                     UNION ALL
 
                     SELECT a.id_so_det, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM laravel_nds.fg_stok_bppb a
+                    INNER JOIN so_det sd ON a.id_so_det = sd.id
+                    INNER JOIN so ON sd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
                     WHERE a.tgl_pengeluaran < ?
+                    AND a.cancel = 'N'
+                    AND so.cancel_h = 'N'
+                    AND ac.aktif = 'Y'
+                    AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
 
                     UNION ALL
 
