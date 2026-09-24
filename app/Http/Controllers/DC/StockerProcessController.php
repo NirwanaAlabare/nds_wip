@@ -128,8 +128,13 @@ class StockerProcessController extends Controller
                 sih_in.history_sec_inhouse_in,
                 sih.history_sec_inhouse,
                 sin.history_sec_in,
-                upd.history_sec_update
+                upd.history_sec_update,
 
+                DATE(trolley_stocker.created_at) tanggal_trolley,
+                trolley.nama_trolley,
+
+                loading_line.tanggal_loading,
+                loading_line.nama_line
             FROM stocker_input 
 
             -- SUBQUERY 1: DC IN
@@ -264,6 +269,9 @@ class StockerProcessController extends Controller
             LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = part_detail.id 
             LEFT JOIN master_secondary multi_master_secondary ON multi_master_secondary.id = part_detail_secondary.master_secondary_id  
             LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
+            LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
+            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+            LEFT JOIN loading_line ON loading_line.stocker_id = stocker_input.id
 
             {$mainWhere}
 
