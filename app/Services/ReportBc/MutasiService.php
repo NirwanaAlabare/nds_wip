@@ -1994,16 +1994,15 @@ class MutasiService
                 INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
                 WHERE s.periode = ?
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'SA - BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
                 AND a.bpbno LIKE 'FG%'
-                -- GROUP BY dihapus agar transaksi tidak gabung
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'SA - BPPB' AS jenis_transaksi, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
@@ -2011,25 +2010,25 @@ class MutasiService
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
                 AND a.bppbno LIKE 'SJ-FG%'
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 WHERE a.tgl_terima < ?
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB SCAN' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
                 WHERE a.tgl_terima < ?
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'SA - NDS BPPB' AS jenis_transaksi, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 WHERE a.tgl_pengeluaran < ?
 
-                UNION ALL
+                UNION
 
                 SELECT fg.so_det_id AS id_so_det, fg.no_trans AS no_transaksi, fg.created_at AS tgl_transaksi, 'SA - NDS PACKING' AS jenis_transaksi, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_penerimaan_packing fg
@@ -2040,7 +2039,7 @@ class MutasiService
                 -- ON GOING (MUTASI)
                 -- ==========================================
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'IN - BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
@@ -2053,7 +2052,7 @@ class MutasiService
                 AND a.cancel = 'N'
                 AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
@@ -2066,7 +2065,7 @@ class MutasiService
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB SCAN' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
@@ -2079,7 +2078,7 @@ class MutasiService
                 AND ac.aktif = 'Y'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'OUT - BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty AS pengeluaran
                 FROM bppb a
@@ -2097,7 +2096,7 @@ class MutasiService
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
 
-                UNION ALL
+                UNION
 
                 SELECT a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'OUT - NDS BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
