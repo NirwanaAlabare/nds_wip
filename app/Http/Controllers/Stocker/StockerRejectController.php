@@ -178,6 +178,54 @@ class StockerRejectController extends Controller
                         AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
                     GROUP BY
                         secondary_in_input.id
+                        -- secondary_in_input
+                    UNION
+                    SELECT
+                        secondary_in_update.tgl_trans tanggal,
+                        secondary_in_input.id AS id,
+                        NULL dc_in_id,
+                        NULL secondary_inhouse_id,
+                        secondary_in_input.id AS secondary_in_id,
+                        stocker_input.id_qr_stocker,
+                        GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        'Secondary In' AS proses,
+                        COALESCE( secondary_in_update.`reject` - secondary_in_update.`replace` ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( secondary_in_update.`reject` - secondary_in_update.`replace`, 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                    FROM
+                        secondary_in_update
+                        LEFT JOIN secondary_in_input ON secondary_in_input.id = secondary_in_update.secondary_in_id
+                        LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                        LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                        AND similar_stocker.so_det_id = stocker_input.so_det_id
+                        AND similar_stocker.shade = stocker_input.shade
+                        AND similar_stocker.group_stocker = stocker_input.group_stocker
+                        AND similar_stocker.ratio = stocker_input.ratio
+                        AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                        AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_in_update
+                                LEFT JOIN secondary_in_input ON secondary_in_input.id = secondary_in_update.secondary_in_id
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_in_input.id
+                            WHERE
+                                ( secondary_in_update.reject - secondary_in_update.`replace` ) > 0
+                            GROUP BY
+                                secondary_in_input.id
+                        ) stocker_reject on stocker_reject.secondary_in_id = secondary_in_input.id
+                    WHERE
+                        ( secondary_in_update.`reject` - secondary_in_update.`replace` ) > 0
+                        AND secondary_in_update.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                    GROUP BY
+                        secondary_in_input.id
                 ) dc_reject_transaction
             ");
 
@@ -526,6 +574,43 @@ class StockerRejectController extends Controller
                             AND stocker_input.stocker_reject is null
                         GROUP BY
                             secondary_in_input.id
+                        UNION ALL
+                        SELECT
+                            secondary_in_update.tgl_trans tanggal,
+                            NULL dc_in_id,
+                            NULL secondary_inhouse_id,
+                            secondary_in_input.id AS secondary_in_id,
+                            stocker_input.id_qr_stocker,
+                            GROUP_CONCAT( similar_stocker.id_qr_stocker SEPARATOR ', ' ) AS id_qr_similar_stocker,
+                            master_sb_ws.ws as act_costing_ws,
+                            master_sb_ws.styleno as style,
+                            master_sb_ws.color,
+                            master_sb_ws.size,
+                            stocker_input.panel,
+                            stocker_input.form_cut_id,
+                            form_cut_input.no_form,
+                            stocker_input.urutan,
+                            'Secondary In' AS proses,
+                            secondary_in_update.`reject` - secondary_in_update.`replace` qty_reject
+                        FROM
+                            secondary_in_update
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id = secondary_in_update.secondary_in_id
+                            LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                            LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                                AND similar_stocker.so_det_id = stocker_input.so_det_id
+                                AND similar_stocker.shade = stocker_input.shade
+                                AND similar_stocker.group_stocker = stocker_input.group_stocker
+                                AND similar_stocker.ratio = stocker_input.ratio
+                                AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                                AND similar_stocker.stocker_reject is null
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        WHERE
+                            ( secondary_in_update.`reject` - secondary_in_update.`replace` ) > 0
+                            AND secondary_in_input.id = '".$request->id."'
+                            AND stocker_input.stocker_reject is null
+                        GROUP BY
+                            secondary_in_input.id
                     ");
 
                     $filterColumn = "secondary_in_id";
@@ -850,6 +935,59 @@ class StockerRejectController extends Controller
                                 ".$wsFilter.$colorFilter.$sizeFilter."
                         GROUP BY
                                 secondary_in_input.id
+                        UNION ALL
+                        SELECT
+                            secondary_in_update.tgl_trans tanggal,
+                            secondary_in_input.id AS id,
+                            NULL dc_in_id,
+                            NULL secondary_inhouse_id,
+                            secondary_in_input.id AS secondary_in_id,
+                            stocker_input.id_qr_stocker,
+                            GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                            CONCAT(stocker_input.id_qr_stocker, ' | ', master_part.nama_part) stocker_part,
+                            GROUP_CONCAT( CONCAT(similar_stocker.id_qr_stocker, ' | ', similar_master_part.nama_part) ) AS similar_stocker_part,
+                            master_sb_ws.ws act_costing_ws,
+                            master_sb_ws.styleno style,
+                            master_sb_ws.color,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            'Secondary In' AS proses,
+                            COALESCE( ( secondary_in_update.`reject` - secondary_in_update.`replace` ) ) qty_reject,
+                            COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                            ( COALESCE( ( secondary_in_update.`reject` - secondary_in_update.`replace` ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                        FROM
+                            secondary_in_update
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id = secondary_in_update.secondary_in_id
+                            LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                            LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                            AND similar_stocker.so_det_id = stocker_input.so_det_id
+                            AND similar_stocker.shade = stocker_input.shade
+                            AND similar_stocker.group_stocker = stocker_input.group_stocker
+                            AND similar_stocker.ratio = stocker_input.ratio
+                            AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                            AND similar_stocker.stocker_reject is null
+                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                            LEFT JOIN part_detail similar_part_detail ON similar_part_detail.id = similar_stocker.part_detail_id
+                            LEFT JOIN master_part similar_master_part ON similar_master_part.id = similar_part_detail.master_part_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN (
+                                SELECT
+                                    stocker_reject.*,
+                                    SUM(stocker_reject.qty_reject) generated_qty_reject
+                                FROM
+                                    secondary_in_update
+                                    LEFT JOIN secondary_in_input ON secondary_in_input.id = secondary_in_update.secondary_in_id
+                                    inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_in_input.id
+                                WHERE
+                                    ( secondary_in_update.reject - secondary_in_update.`replace` ) > 0
+                                GROUP BY
+                                    secondary_in_input.id
+                            ) stocker_reject on stocker_reject.secondary_in_id = secondary_in_input.id
+                        WHERE
+                            ( secondary_in_update.reject - `replace` ) > 0
+                            ".$wsFilter.$colorFilter.$sizeFilter."
+                        GROUP BY
+                            secondary_in_input.id
                 ) dc_reject_transaction
             ");
 
