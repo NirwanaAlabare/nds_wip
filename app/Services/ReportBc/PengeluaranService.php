@@ -400,7 +400,7 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+                // ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->leftJoin('so_det as sd', 'a.id_so_det', '=', 'sd.id')
                 ->leftJoin('so as so', 'sd.id_so', '=', 'so.id')
