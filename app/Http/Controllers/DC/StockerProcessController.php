@@ -134,7 +134,8 @@ class StockerProcessController extends Controller
                 trolley.nama_trolley,
 
                 loading_line.tanggal_loading,
-                loading_line.nama_line
+                loading_line.nama_line,
+                loading_line.qty loading_qty
             FROM stocker_input 
 
             -- SUBQUERY 1: DC IN

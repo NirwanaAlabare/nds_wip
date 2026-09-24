@@ -200,7 +200,10 @@
                                             <span class="info-label text-success"><i class="fas fa-stream mr-1"></i> Line</span>
                                             <small class="text-muted font-weight-bold" id="modal-line-tgl">-</small>
                                         </div>
-                                        <div class="info-value text-truncate" id="modal-line-nama">-</div>
+                                        <div class="info-value d-flex justify-content-between align-items-center">
+                                            <span class="text-truncate" id="modal-line-nama">-</span>
+                                            <span class="badge badge-success font-weight-bold px-2 py-1" id="modal-loading-qty">Loading Qty: 0</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -523,8 +526,11 @@
                                                 <i class="far fa-calendar-alt mr-1"></i> ${item.tanggal_loading || '-'}
                                             </span>
                                         </div>
-                                        <div class="info-value text-truncate" title="${item.nama_line || '-'}">
-                                            ${item.nama_line || '-'}
+                                        <div class="info-value d-flex justify-content-between align-items-center">
+                                            <span class="text-truncate" title="${item.nama_line || '-'}">${item.nama_line || '-'}</span>
+                                            <span class="badge badge-success font-weight-bold px-2 py-1" style="font-size: 11px;">
+                                                Loading Qty: ${item.loading_qty || 0}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -610,11 +616,12 @@
             $('#modal-panel').text(item.panel || '-');
             $('#modal-part-status').html(item.part_status ? `<span class="badge badge-primary">${item.part_status.toUpperCase()}</span>` : '-');
 
-            // Populasi Info Trolley & Line pada Modal
+            // Populasi Info Trolley, Line, dan Loading Qty pada Modal
             $('#modal-trolley-nama').text(item.nama_trolley || '-');
             $('#modal-trolley-tgl').text(item.tanggal_trolley || '-');
             $('#modal-line-nama').text(item.nama_line || '-');
             $('#modal-line-tgl').text(item.tanggal_loading || '-');
+            $('#modal-loading-qty').text('Loading Qty: ' + (item.loading_qty || 0));
 
             // 1. DC IN
             let htmlDc = '';
