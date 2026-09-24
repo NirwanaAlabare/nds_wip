@@ -43,11 +43,12 @@ class MutasiService
                             SUM( A.qtyin ) AS qtyterima,
                             SUM( A.qtyout ) AS qtykeluar,
                             ( SUM( A.sain ) - SUM( A.saout ) ) + SUM( A.qtyin ) - SUM( A.qtyout ) AS saldoakhir,
-                            A.unit 
+                            A.unit,
+                            A.no_trans
                         FROM
                             (
                             -- 1. Saldo Awal Masuk
-                            SELECT id_item, id_jo, SUM( qty ) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                            SELECT id_item, id_jo, SUM( qty ) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit, bpb.bpbno_int as no_trans 
                             FROM bpb 
                             WHERE bpbdate < ? 
                             GROUP BY id_jo, id_item, unit, bpb.bpbno_int
@@ -55,7 +56,7 @@ class MutasiService
                             UNION ALL
 
                             -- 2. Saldo Awal Keluar
-                            SELECT id_item, id_jo, 0 AS sain, SUM( qty ) AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                            SELECT id_item, id_jo, 0 AS sain, SUM( qty ) AS saout, 0 AS qtyin, 0 AS qtyout, unit, bppb.bppbno_int as no_trans 
                             FROM bppb 
                             WHERE bppbdate < ? 
                             AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
@@ -64,7 +65,7 @@ class MutasiService
                             UNION ALL
 
                             -- 3. Qty Terima (Range Tanggal)
-                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM( qty ) AS qtyin, 0 AS qtyout, unit 
+                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM( qty ) AS qtyin, 0 AS qtyout, unit, bpb.bpbno_int as no_trans
                             FROM bpb 
                             WHERE bpbdate >= ? AND bpbdate <= ?
                             GROUP BY id_jo, id_item, unit , bpb.bpbno_int
@@ -72,7 +73,7 @@ class MutasiService
                             UNION ALL
 
                             -- 4. Qty Keluar (Range Tanggal)
-                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM( qty ) AS qtyout, unit 
+                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM( qty ) AS qtyout, unit, bppb.bppbno_int as no_trans
                             FROM bppb 
                             WHERE bppbdate >= ? AND bppbdate <= ?
                             AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
@@ -1206,6 +1207,8 @@ class MutasiService
             'No',
             'ID Item',
             'Nama Barang',
+            'WS',
+            'No Trans',
             'Satuan',
             'Saldo Awal',
             'Pemasukan',
@@ -1225,6 +1228,8 @@ class MutasiService
                 $no++,
                 $row->id_item ?? '-',
                 $row->itemdesc ?? '-',
+                $row->kpno ?? '-',
+                $row->no_trans ?? '-',
                 $row->unit ?? '-',
                 number_format($row->saldoawal ?? 0, 2),
                 number_format($row->qtyterima ?? 0, 2),
