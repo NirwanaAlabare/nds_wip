@@ -2125,6 +2125,201 @@ class MutasiService
             ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         ";
 
+        // $sql = "SELECT 
+        //             ac.kpno AS ws,
+        //             ac.styleno AS styleno,
+        //             IFNULL(msw.product_group, '-') AS product_group,
+        //             IFNULL(msw.product_item, '-') AS product_item,
+        //             SUM(mutasi.saldo_awal) AS saldoawal,
+        //             SUM(mutasi.penerimaan) AS qtyterima,
+        //             SUM(mutasi.pengeluaran) AS qtykeluar,
+        //             (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
+        //         FROM (
+
+        //             -- ==========================================
+        //             -- SALDO AWAL
+        //             -- ==========================================
+
+        //             SELECT s.id_so_det, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
+        //             FROM saldoawal_fg s 
+        //             INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
+        //             WHERE s.periode = ?
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM bpb a
+        //             LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sod ON a.id_so_det = sod.id
+        //             INNER JOIN so ON sod.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bpbdate >= ? AND a.bpbdate <= ?
+        //             AND a.bpbno_int LIKE 'FG%'
+        //             AND a.cancel = 'N'
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+        //             AND (
+        //                 (a.bpbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+        //                 OR 
+        //                 (a.bpbdate > '2025-11-30')
+        //             )
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM bppb a
+        //             LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bppbdate >= ? AND a.bppbdate <= ?
+        //             AND a.bppbno_int LIKE 'FG%'
+        //             AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+        //             AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+        //             AND (
+        //                 (a.bppbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+        //                 OR 
+        //                 (a.bppbdate > '2025-11-30')
+        //             )
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima < ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb_scan a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima < ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bppb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_pengeluaran < ?
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT fg.so_det_id AS id_so_det, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_penerimaan_packing fg
+        //             LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+        //             WHERE fg.created_at < ?
+
+        //             -- ==========================================
+        //             -- ON GOING (MUTASI)
+        //             -- ==========================================
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM bpb a
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sod ON a.id_so_det = sod.id
+        //             INNER JOIN so ON sod.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bpbdate >= ? AND a.bpbdate <= ?
+        //             AND a.bpbno_int LIKE 'FG%'
+        //             AND a.cancel = 'N'
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb_scan a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, a.qty AS pengeluaran
+        //             FROM bppb a
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bppbdate >= ? AND a.bppbdate <= ?
+        //             AND a.bppbno_int LIKE 'FG%'
+        //             AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+        //             AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bppb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //         ) AS mutasi
+        //         INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
+        //         INNER JOIN so so2 ON sod2.id_so = so2.id
+        //         INNER JOIN act_costing ac ON so2.id_cost = ac.id
+        //         LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
+        //         GROUP BY ac.kpno
+        //         HAVING SUM(mutasi.saldo_awal) != 0 
+        //             OR SUM(mutasi.penerimaan) != 0 
+        //             OR SUM(mutasi.pengeluaran) != 0 
+        //         ORDER BY ws ASC
+        // ";
+
         $bindings = [
             $baselineDate,              // saldoawal_fg periode
 
@@ -2148,8 +2343,6 @@ class MutasiService
             return (object) [
                 'ws'            => $row->ws,
                 'styleno'       => $row->styleno,
-                'color'         => $row->color,
-                'no_transaksi'         => $row->no_transaksi,
                 'product_group' => $row->product_group,
                 'product_item'  => $row->product_item,
                 'saldoawal'     => (float) $row->saldoawal,
