@@ -13,6 +13,7 @@ use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokOpnameController;
+use App\Http\Controllers\FGStokCekQrCartonController;
 use App\Http\Controllers\FGStokLokasiScanBPBController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
@@ -153,6 +154,7 @@ use App\Http\Controllers\AssetMesinSewaController;
 use App\Http\Controllers\AssetMesinSewaPengeluaranController;
 use App\Http\Controllers\AssetMesinMasterController;
 use App\Http\Controllers\AssetMesinMutasiController;
+use App\Http\Controllers\AssetMesinRequirementController;
 use App\Http\Controllers\AssetMesinOpnameController;
 use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
@@ -760,6 +762,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/warehouse-map', 'getWarehouseMap')->name('get-warehouse-map-opname-fg-stock');
         Route::get('/dashboard/warehouse-filter-options', 'getWarehouseFilterOptions')->name('get-warehouse-filter-options-opname-fg-stock');
         Route::get('/dashboard/pallet-detail', 'getPalletDetail')->name('get-pallet-detail-opname-fg-stock');
+    });
+
+    Route::controller(FGStokCekQrCartonController::class)->prefix("cek-qr-carton-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('cek-qr-carton-opname-fg-stock');
+        Route::get('/get-data', 'getData')->name('get-cek-qr-carton-opname-fg-stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
@@ -1691,6 +1698,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_mutasi/cek_qr', 'cek_qr_asset_mesin_mutasi')->name('cek_qr_asset_mesin_mutasi');
         Route::get('/asset_mesin_mutasi/list', 'getdata_asset_mesin_mutasi')->name('getdata_asset_mesin_mutasi');
         Route::post('/asset_mesin_mutasi/store', 'store_asset_mesin_mutasi')->name('store_asset_mesin_mutasi');
+    });
+
+    // Asset Management Machine Requirement
+    Route::controller(AssetMesinRequirementController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_requirement', 'asset_mesin_requirement')->name('asset_mesin_requirement');
+        Route::get('/asset_mesin_requirement/list', 'getdata_asset_mesin_requirement')->name('getdata_asset_mesin_requirement');
+        Route::get('/asset_mesin_requirement/preview', 'preview_asset_mesin_requirement')->name('preview_asset_mesin_requirement');
+        Route::get('/asset_mesin_requirement/style', 'get_style')->name('asset_mesin_requirement_style');        Route::post('/asset_mesin_requirement/store', 'store_asset_mesin_requirement')->name('store_asset_mesin_requirement');
+        Route::post('/asset_mesin_requirement/cek_stok', 'cek_stok_asset_mesin_requirement')->name('cek_stok_asset_mesin_requirement');
     });
 
     // Master Asset Management Tambah Mesin (Sewa Mesin)
