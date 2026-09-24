@@ -401,10 +401,11 @@ class PengeluaranService
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 // ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->leftJoin('so_det as sd', 'a.id_so_det', '=', 'sd.id')
                 ->leftJoin('so as so', 'sd.id_so', '=', 'so.id')
                 ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1', 'INHOUSE', 'BC 2.5'])
                 ->where(function ($query) {
                     $query->where('a.jenis_dok', '!=', 'BC 2.7')
@@ -418,9 +419,7 @@ class PengeluaranService
                 ->where('ac.aktif', 'Y')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
-                    "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                    "s.itemname",
-                    "s.id_item",
+                    "msw.product_item",
                     "'BARANG JADI'"
                 ))
                 ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
