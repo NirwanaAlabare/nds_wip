@@ -44,7 +44,7 @@ class PackingPackingInController extends Controller
             left join ppic_master_so p on a.id_ppic_master_so = p.id
             left join master_sb_ws m on p.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
-                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing', 'Switching')
+                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing')
             union
             select
             a.no_trans,
