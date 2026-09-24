@@ -2149,6 +2149,7 @@ class MutasiService
 
                     SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bpb a
+                    INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
                     LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                     INNER JOIN so_det sod ON a.id_so_det = sod.id
                     INNER JOIN so ON sod.id_so = so.id
@@ -2162,6 +2163,7 @@ class MutasiService
 
                     SELECT a.id_so_det, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM bppb a
+                    INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
                     LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                     INNER JOIN so_det sd ON a.id_so_det = sd.id
                     INNER JOIN so ON sd.id_so = so.id
