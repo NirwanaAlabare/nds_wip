@@ -1991,12 +1991,14 @@ class MutasiService
 
                 SELECT s.id_so_det, 'SALDO_AWAL' AS no_transaksi, s.periode AS tgl_transaksi, 'SA - MASTER' AS jenis_transaksi, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
                 FROM saldoawal_fg s 
+                INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
                 WHERE s.periode = ?
 
                 UNION ALL
 
                 SELECT a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'SA - BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
                 AND a.bpbno LIKE 'FG%'
                 -- GROUP BY dihapus agar transaksi tidak gabung
@@ -2005,6 +2007,7 @@ class MutasiService
 
                 SELECT a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'SA - BPPB' AS jenis_transaksi, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
+                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
                 AND a.bppbno LIKE 'SJ-FG%'
 
@@ -2030,7 +2033,6 @@ class MutasiService
 
                 SELECT fg.so_det_id AS id_so_det, fg.no_trans AS no_transaksi, fg.created_at AS tgl_transaksi, 'SA - NDS PACKING' AS jenis_transaksi, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_penerimaan_packing fg
-                INNER JOIN masterstyle ms ON fg.so_det_id = ms.id_so_det
                 LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
                 WHERE fg.created_at < ?
 
