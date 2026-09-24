@@ -30,77 +30,79 @@ class MutasiService
         if (in_array($kategori, ['all', 'semua', 'fabric'])) {
                 $sqlFabric = "
                     SELECT
-                        isi.*,
-                        mi.itemdesc,
-                        mi.goods_code,
-                        ac.kpno 
-                    FROM
-                        (
-                        SELECT
-                            A.id_jo,
-                            A.id_item,
-                            SUM( A.sain ) - SUM( A.saout ) AS saldoawal,
-                            SUM( A.qtyin ) AS qtyterima,
-                            SUM( A.qtyout ) AS qtykeluar,
-                            ( SUM( A.sain ) - SUM( A.saout ) ) + SUM( A.qtyin ) - SUM( A.qtyout ) AS saldoakhir,
-                            A.unit,
-                            A.no_trans
-                        FROM
-                            (
-                            -- 1. Saldo Awal Masuk
-                            SELECT id_item, id_jo, SUM( qty ) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit, bpb.bpbno_int as no_trans 
-                            FROM bpb 
-                            WHERE bpbdate < ? 
-                            GROUP BY id_jo, id_item, unit, bpb.bpbno_int
+                        isi.id_item,
+                        ac.kpno,
+                        IFNULL(mcnt.kode_contents, mcnt.id) AS kode_brg,
+                        mcnt.nama_contents AS itemdesc,
+                        isi.unit,
+                        SUM(isi.sain) - SUM(isi.saout) AS saldoawal,
+                        SUM(isi.qtyin) AS qtyterima,
+                        SUM(isi.qtyout) AS qtykeluar,
+                        (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir
+                    FROM (
+                        SELECT id_item, id_jo, SUM(qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                        FROM bpb 
+                        WHERE bpbdate < ? 
+                        AND cancel = 'N' 
+                        AND bpbno_int NOT LIKE 'FG%'
+                        GROUP BY id_jo, id_item, unit
 
-                            UNION ALL
+                        UNION ALL
 
-                            -- 2. Saldo Awal Keluar
-                            SELECT id_item, id_jo, 0 AS sain, SUM( qty ) AS saout, 0 AS qtyin, 0 AS qtyout, unit, bppb.bppbno_int as no_trans 
-                            FROM bppb 
-                            WHERE bppbdate < ? 
-                            AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
-                            GROUP BY id_jo, id_item, unit, bppb.bppbno_int
+                        SELECT id_item, id_jo, 0 AS sain, SUM(qty) AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                        FROM bppb 
+                        WHERE bppbdate < ? 
+                        AND cancel = 'N'
+                        AND COALESCE(jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                        GROUP BY id_jo, id_item, unit
 
-                            UNION ALL
+                        UNION ALL
 
-                            -- 3. Qty Terima (Range Tanggal)
-                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM( qty ) AS qtyin, 0 AS qtyout, unit, bpb.bpbno_int as no_trans
-                            FROM bpb 
-                            WHERE bpbdate >= ? AND bpbdate <= ?
-                            GROUP BY id_jo, id_item, unit , bpb.bpbno_int
+                        SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM(qty) AS qtyin, 0 AS qtyout, unit
+                        FROM bpb 
+                        WHERE bpbdate >= ? AND bpbdate <= ? 
+                        AND cancel = 'N' 
+                        AND bpbno_int NOT LIKE 'FG%'
+                        GROUP BY id_jo, id_item, unit
 
-                            UNION ALL
+                        UNION ALL
 
-                            -- 4. Qty Keluar (Range Tanggal)
-                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM( qty ) AS qtyout, unit, bppb.bppbno_int as no_trans
-                            FROM bppb 
-                            WHERE bppbdate >= ? AND bppbdate <= ?
-                            AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
-                            GROUP BY id_jo, id_item, unit , bppb.bppbno_int
-                            ) A 
-                        GROUP BY
-                            A.id_jo,
-                            A.id_item,
-                            A.unit 
-                        ) isi
-                        INNER JOIN masteritem mi ON isi.id_item = mi.id_item
-                        INNER JOIN (
-                            SELECT DISTINCT jd.id_jo, ac.kpno 
-                            FROM jo_det jd
-                            INNER JOIN so ON so.id = jd.id_so
-                            INNER JOIN act_costing ac ON ac.id = so.id_cost 
-                        ) ac ON ac.id_jo = isi.id_jo 
-                    WHERE
-                        mi.matclass = 'FABRIC'
+                        SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(qty) AS qtyout, unit
+                        FROM bppb 
+                        WHERE bppbdate >= ? AND bppbdate <= ? 
+                        AND cancel = 'N'
+                        AND COALESCE(jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                        GROUP BY id_jo, id_item, unit
+                    ) isi
+                    INNER JOIN masteritem s ON isi.id_item = s.id_item
+                    INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                    INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                    INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                    INNER JOIN masterlength sl ON sw.id_length = sl.id
+                    INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                    INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                    INNER JOIN (
+                        SELECT DISTINCT jd.id_jo, ac.kpno 
+                        FROM jo_det jd
+                        INNER JOIN so ON so.id = jd.id_so
+                        INNER JOIN act_costing ac ON ac.id = so.id_cost 
+                    ) ac ON ac.id_jo = isi.id_jo 
+                    WHERE s.matclass = 'FABRIC'
+                    GROUP BY 
+                        isi.id_item, 
+                        ac.kpno,
+                        mcnt.kode_contents,
+                        mcnt.id,
+                        mcnt.nama_contents,
+                        isi.unit
                 ";
 
-            $bindings = [
-                $fromDate,            
-                $fromDate,            
-                $fromDate, $toDate,   
-                $fromDate, $toDate,   
-            ];
+                $bindings = [
+                    $fromDate,            // 1. bpbdate < ?
+                    $fromDate,            // 2. bppbdate < ?
+                    $fromDate, $toDate,   // 3. bpbdate >= ? AND bpbdate <= ?
+                    $fromDate, $toDate,   // 4. bppbdate >= ? AND bppbdate <= ?
+                ];
 
             $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
             $result = $result->concat($fabricRows);
