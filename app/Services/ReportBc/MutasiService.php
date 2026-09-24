@@ -50,7 +50,7 @@ class MutasiService
                             SELECT id_item, id_jo, SUM( qty ) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit 
                             FROM bpb 
                             WHERE bpbdate < ? 
-                            GROUP BY id_jo, id_item, unit
+                            GROUP BY id_jo, id_item, unit, bpb.bpbno_int
 
                             UNION ALL
 
@@ -58,7 +58,8 @@ class MutasiService
                             SELECT id_item, id_jo, 0 AS sain, SUM( qty ) AS saout, 0 AS qtyin, 0 AS qtyout, unit 
                             FROM bppb 
                             WHERE bppbdate < ? 
-                            GROUP BY id_jo, id_item, unit
+                            AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                            GROUP BY id_jo, id_item, unit, bppb.bppbno_int
 
                             UNION ALL
 
@@ -66,7 +67,7 @@ class MutasiService
                             SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM( qty ) AS qtyin, 0 AS qtyout, unit 
                             FROM bpb 
                             WHERE bpbdate >= ? AND bpbdate <= ?
-                            GROUP BY id_jo, id_item, unit
+                            GROUP BY id_jo, id_item, unit , bpb.bpbno_int
 
                             UNION ALL
 
@@ -74,7 +75,8 @@ class MutasiService
                             SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM( qty ) AS qtyout, unit 
                             FROM bppb 
                             WHERE bppbdate >= ? AND bppbdate <= ?
-                            GROUP BY id_jo, id_item, unit 
+                            AND COALESCE(bppb.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', 'Ekspedisi', 'Mutasi Internal', '')
+                            GROUP BY id_jo, id_item, unit , bppb.bppbno_int
                             ) A 
                         GROUP BY
                             A.id_jo,
