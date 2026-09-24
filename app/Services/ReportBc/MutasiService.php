@@ -2104,7 +2104,6 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
                 AND a.cancel = 'N'
@@ -2120,7 +2119,6 @@ class MutasiService
             
             GROUP BY 
                 ac.kpno
-
             HAVING SUM(mutasi.saldo_awal) != 0 
                 OR SUM(mutasi.penerimaan) != 0 
                 OR SUM(mutasi.pengeluaran) != 0 
