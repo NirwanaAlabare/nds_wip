@@ -402,9 +402,9 @@ class PengeluaranService
             $queryBarangJadi = $mysql_sb->table('bppb as a')
                 // ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->leftJoin('so_det as sd', 'a.id_so_det', '=', 'sd.id')
-                ->leftJoin('so as so', 'sd.id_so', '=', 'so.id')
-                ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so as so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->whereIn('a.jenis_dok', ['BC 3.0', 'BC 2.6.1', 'BC 2.7', 'BC 3.3', 'BC 4.1', 'INHOUSE', 'BC 2.5'])
                 ->where(function ($query) {
