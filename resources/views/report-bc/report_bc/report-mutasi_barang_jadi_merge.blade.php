@@ -162,9 +162,7 @@
                         <tr>
                             <th width="5%">No</th>
                             <th>No WS</th>
-                            <th>No Trans</th>
                             <th>Style</th>
-                            <th>Color</th>
                             <th>Product Group</th>
                             <th>Product Item</th>
                             <th>Unit</th>
@@ -180,9 +178,7 @@
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
                                     <td>{{ $row->ws ?? '-' }}</td>
-                                    <td>{{ $row->no_transaksi ?? '-' }}</td>
                                     <td>{{ $row->styleno ?? '-' }}</td>
-                                    <td>{{ $row->color ?? '-' }}</td>
                                     <td>{{ $row->product_group ?? '-' }}</td>
                                     <td>{{ $row->product_item ?? '-' }}</td>
                                     <td class="text-center">PCS</td>

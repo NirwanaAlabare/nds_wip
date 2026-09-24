@@ -2508,9 +2508,7 @@ class MutasiService
             LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
             
             GROUP BY 
-                ac.kpno,
-                sod2.color,
-                mutasi.id_so_det
+                ac.kpno
 
             HAVING SUM(mutasi.saldo_awal) != 0 
                 OR SUM(mutasi.penerimaan) != 0 
@@ -2604,9 +2602,7 @@ class MutasiService
         $sheet->writeRow([
             'No',
             'No WS',
-            'No Transaksi',
             'Style',
-            'Color',
             'Product Group',
             'Product Item',
             'Saldo Awal',
@@ -2626,9 +2622,7 @@ class MutasiService
             $rows = [
                 $no++,
                 $row->ws ?? '-',
-                $row->no_transaksi ?? '-',
                 $row->styleno ?? '-',
-                $row->color ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
                 $row->saldoawal ?? '-',
