@@ -2358,9 +2358,9 @@ class MutasiService
 
         $sql = "
             SELECT 
-                IFNULL(msw.ws, ac.kpno) AS ws,
-                IFNULL(msw.styleno, ac.styleno) AS styleno,
-                IFNULL(msw.color, s.color) AS color,
+                ac.kpno AS ws,
+                ac.styleno AS styleno,
+                sod2.color AS color,
                 IFNULL(msw.product_group, '-') AS product_group,
                 IFNULL(msw.product_item, '-') AS product_item,
                 mutasi.jenis_transaksi,
@@ -2505,12 +2505,11 @@ class MutasiService
             INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
             INNER JOIN so so2 ON sod2.id_so = so2.id
             INNER JOIN act_costing ac ON so2.id_cost = ac.id
-            LEFT JOIN masterstyle s ON mutasi.id_item = s.id_item AND mutasi.id_so_det = s.id_so_det
             LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
             
             GROUP BY 
                 ac.kpno,
-                so2.color,
+                sod2.color,
                 mutasi.id_so_det
 
             HAVING SUM(mutasi.saldo_awal) != 0 
