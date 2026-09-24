@@ -2376,14 +2376,14 @@ class MutasiService
                 -- SALDO AWAL
                 -- ==========================================
 
-                SELECT ms.id_item, s.id_so_det, 'SALDO_AWAL' AS no_transaksi, s.periode AS tgl_transaksi, 'SA - MASTER' AS jenis_transaksi, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
+                SELECT s.id_so_det, 'SALDO_AWAL' AS no_transaksi, s.periode AS tgl_transaksi, 'SA - MASTER' AS jenis_transaksi, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
                 FROM saldoawal_fg s 
                 INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
                 WHERE s.periode = ?
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'SA - BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'SA - BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
@@ -2392,7 +2392,7 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'SA - BPPB' AS jenis_transaksi, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'SA - BPPB' AS jenis_transaksi, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM bppb a
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate < ?
@@ -2400,28 +2400,28 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima < ?
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB SCAN' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'SA - NDS BPB SCAN' AS jenis_transaksi, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima < ?
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'SA - NDS BPPB' AS jenis_transaksi, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'SA - NDS BPPB' AS jenis_transaksi, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_pengeluaran < ?
 
                 UNION ALL
 
-                SELECT ms.id_item, fg.so_det_id AS id_so_det, fg.no_trans AS no_transaksi, fg.created_at AS tgl_transaksi, 'SA - NDS PACKING' AS jenis_transaksi, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+                SELECT fg.so_det_id AS id_so_det, fg.no_trans AS no_transaksi, fg.created_at AS tgl_transaksi, 'SA - NDS PACKING' AS jenis_transaksi, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_penerimaan_packing fg
                 INNER JOIN masterstyle ms ON fg.so_det_id = ms.id_so_det
                 LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
@@ -2433,13 +2433,12 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'IN - BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.bpbno_int AS no_transaksi, a.bpbdate AS tgl_transaksi, 'IN - BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM bpb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                 INNER JOIN so_det sod ON a.id_so_det = sod.id
                 INNER JOIN so ON sod.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_item = ms.id_item
                 WHERE a.bpbdate >= ? AND a.bpbdate <= ?
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.cancel = 'N'
@@ -2447,12 +2446,11 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
                 AND a.cancel = 'N' 
                 AND so.cancel_h = 'N' 
@@ -2461,12 +2459,11 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB SCAN' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+                SELECT a.id_so_det, a.no_trans AS no_transaksi, a.tgl_terima AS tgl_transaksi, 'IN - NDS BPB SCAN' AS jenis_transaksi, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
                 FROM laravel_nds.fg_stok_bpb_scan a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
                 WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
                 AND a.cancel = 'N' 
                 AND so.cancel_h = 'N' 
@@ -2475,13 +2472,12 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'OUT - BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty AS pengeluaran
+                SELECT a.id_so_det, a.bppbno_int AS no_transaksi, a.bppbdate AS tgl_transaksi, 'OUT - BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty AS pengeluaran
                 FROM bppb a
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
                 AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
@@ -2493,7 +2489,7 @@ class MutasiService
 
                 UNION ALL
 
-                SELECT ms.id_item, a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'OUT - NDS BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
+                SELECT a.id_so_det, a.no_trans_out AS no_transaksi, a.tgl_pengeluaran AS tgl_transaksi, 'OUT - NDS BPPB' AS jenis_transaksi, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
                 FROM laravel_nds.fg_stok_bppb a
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
@@ -2513,8 +2509,8 @@ class MutasiService
             LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
             
             GROUP BY 
-                IFNULL(msw.ws, ac.kpno),
-                IFNULL(msw.color, s.color),
+                ac.kpno,
+                so2.color,
                 mutasi.id_so_det
 
             HAVING SUM(mutasi.saldo_awal) != 0 
