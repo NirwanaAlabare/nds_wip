@@ -419,7 +419,9 @@ class PengeluaranService
                 ->where('ac.aktif', 'Y')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
+                    "msw.styleno",
                     "msw.product_item",
+                    "a.id_item",
                     "'BARANG JADI'"
                 ))
                 ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
