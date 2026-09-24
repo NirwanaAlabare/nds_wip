@@ -234,7 +234,6 @@ class PemasukanService
 
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
@@ -248,7 +247,7 @@ class PemasukanService
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
                     "IFNULL(msw.styleno, ac.styleno)",
-                    "CONCAT(IFNULL(msw.styleno, ac.styleno), ' - ', IFNULL(msw.color, IFNULL(s.color, '-')))",
+                    "msw.color",
                     "'BARANG JADI'",
                     "IFNULL(msw.ws, ac.kpno)"
                 ))
