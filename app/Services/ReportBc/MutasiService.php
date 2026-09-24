@@ -28,85 +28,75 @@ class MutasiService
 
         // ===== FABRIC: group by mastercontents.id + unit =====
         if (in_array($kategori, ['all', 'semua', 'fabric'])) {
-            $sqlFabric = "
-                SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
-                    ROUND(SUM(sal_awal - qty_out_sbl), 2) AS saldoawal,
-                    ROUND(SUM(qty_in), 2) AS qtyterima,
-                    ROUND(SUM(qty_out), 2) AS qtykeluar,
-                    ROUND(SUM(sal_awal + qty_in - qty_out_sbl - qty_out), 2) AS saldoakhir,
-                    NULL AS kpno
-                FROM (
-                    SELECT a.id_item, a.unit, mcnt.id AS id_contents,
-                        COALESCE(sal_awal, 0) sal_awal,
-                        COALESCE(qty_in, 0) qty_in,
-                        COALESCE(qty_out_sbl, 0) qty_out_sbl,
-                        COALESCE(qty_out, 0) qty_out,
-                        (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) fil
-                    FROM (
-                        SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
-                        UNION
-                        SELECT id_item, unit FROM whs_inmaterial_fabric_det GROUP BY id_item, unit
-                    ) a
-                    LEFT JOIN (
-                        SELECT id_item, unit, SUM(sal_awal) sal_awal FROM (
-                            SELECT 'tr' id, id_item, unit, SUM(qty_good) sal_awal
-                            FROM whs_inmaterial_fabric_det
-                            WHERE tgl_dok < ? AND status = 'Y' GROUP BY id_item, unit
+                $sqlFabric = "
+                    SELECT
+                        isi.*,
+                        mi.itemdesc,
+                        mi.goods_code,
+                        ac.kpno 
+                    FROM
+                        (
+                        SELECT
+                            A.id_jo,
+                            A.id_item,
+                            SUM( A.sain ) - SUM( A.saout ) AS saldoawal,
+                            SUM( A.qtyin ) AS qtyterima,
+                            SUM( A.qtyout ) AS qtykeluar,
+                            ( SUM( A.sain ) - SUM( A.saout ) ) + SUM( A.qtyin ) - SUM( A.qtyout ) AS saldoakhir,
+                            A.unit 
+                        FROM
+                            (
+                            -- 1. Saldo Awal Masuk
+                            SELECT id_item, id_jo, SUM( qty ) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                            FROM bpb 
+                            WHERE bpbdate < ? 
+                            GROUP BY id_jo, id_item, unit
 
-                            UNION
+                            UNION ALL
 
-                            SELECT 'sa' id, id_item, unit, ROUND(SUM(qty), 2) sal_awal
-                            FROM whs_sa_fabric GROUP BY id_item, unit
-                        ) x GROUP BY id_item, unit
-                    ) b ON b.id_item = a.id_item AND b.unit = a.unit
-                    LEFT JOIN (
-                        SELECT id_item, unit, SUM(qty_in) qty_in FROM (
-                            SELECT 'T' id, id_item, unit, SUM(qty_good) qty_in
-                            FROM whs_inmaterial_fabric_det
-                            WHERE tgl_dok BETWEEN ? AND ? AND status = 'Y' GROUP BY id_item, unit
+                            -- 2. Saldo Awal Keluar
+                            SELECT id_item, id_jo, 0 AS sain, SUM( qty ) AS saout, 0 AS qtyin, 0 AS qtyout, unit 
+                            FROM bppb 
+                            WHERE bppbdate < ? 
+                            GROUP BY id_jo, id_item, unit
 
-                            UNION
+                            UNION ALL
 
-                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_in
-                            FROM whs_mut_lokasi
-                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
-                        ) x GROUP BY id_item, unit
-                    ) c ON c.id_item = a.id_item AND c.unit = a.unit
-                    LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out_sbl
-                        FROM whs_bppb_det a
-                        INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                        WHERE b.tgl_bppb < ? AND a.status = 'Y' GROUP BY id_item, satuan
-                    ) d ON d.id_item = a.id_item AND d.satuan = a.unit
-                    LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out FROM (
-                            SELECT 'T' id, id_item, satuan, SUM(qty_out) qty_out
-                            FROM whs_bppb_det a
-                            INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                            WHERE b.tgl_bppb BETWEEN ? AND ? AND a.status = 'Y' GROUP BY id_item, satuan
+                            -- 3. Qty Terima (Range Tanggal)
+                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, SUM( qty ) AS qtyin, 0 AS qtyout, unit 
+                            FROM bpb 
+                            WHERE bpbdate >= ? AND bpbdate <= ?
+                            GROUP BY id_jo, id_item, unit
 
-                            UNION
+                            UNION ALL
 
-                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_out
-                            FROM whs_mut_lokasi
-                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
-                        ) x GROUP BY id_item, satuan
-                    ) e ON e.id_item = a.id_item AND e.satuan = a.unit
-                    INNER JOIN masteritem mi ON mi.id_item = a.id_item
-                    $contentJoinFromMi
-                    WHERE (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) != 0
-                ) isi
-                LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
-                GROUP BY isi.id_contents, isi.unit
-            ";
+                            -- 4. Qty Keluar (Range Tanggal)
+                            SELECT id_item, id_jo, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM( qty ) AS qtyout, unit 
+                            FROM bppb 
+                            WHERE bppbdate >= ? AND bppbdate <= ?
+                            GROUP BY id_jo, id_item, unit 
+                            ) A 
+                        GROUP BY
+                            A.id_jo,
+                            A.id_item,
+                            A.unit 
+                        ) isi
+                        INNER JOIN masteritem mi ON isi.id_item = mi.id_item
+                        INNER JOIN (
+                            SELECT DISTINCT jd.id_jo, ac.kpno 
+                            FROM jo_det jd
+                            INNER JOIN so ON so.id = jd.id_so
+                            INNER JOIN act_costing ac ON ac.id = so.id_cost 
+                        ) ac ON ac.id_jo = isi.id_jo 
+                    WHERE
+                        mi.matclass = 'FABRIC'
+                ";
 
             $bindings = [
-                $fromDate,
-                $fromDate, $toDate,
-                $fromDate, $toDate,
-                $fromDate,
-                $fromDate, $toDate,
-                $fromDate, $toDate,
+                $fromDate,            
+                $fromDate,            
+                $fromDate, $toDate,   
+                $fromDate, $toDate,   
             ];
 
             $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
