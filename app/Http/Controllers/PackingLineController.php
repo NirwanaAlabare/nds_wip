@@ -105,7 +105,7 @@ class PackingLineController extends Controller
                     COUNT(*)            AS qty_packing_line
                 FROM output_rfts_packing_po a
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
-                  AND a.created_by_line = '$line_esc'
+                  AND a.created_by_line = '$line_esc' AND '$po_esc' = 'TEMPORARY PACKING'
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
@@ -155,7 +155,7 @@ class PackingLineController extends Controller
                     0                   AS qty_packing_line,
                     0                   AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
-                WHERE a.line = '$line_esc' AND a.po = 'TEMPORARY PACKING'
+                WHERE a.line = '$line_esc' AND a.po = 'TEMPORARY PACKING' AND '$po_esc' = 'TEMPORARY PACKING'
                 UNION ALL
                 SELECT po, line, so_det_id, 0, qty_packing_line, 0 FROM m
                 UNION ALL
