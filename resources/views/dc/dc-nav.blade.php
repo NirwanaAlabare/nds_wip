@@ -56,6 +56,12 @@
             class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
+                <a href="{{ route('stocker-process') }}"
+                    class="dropdown-item {{ $routeName == 'stocker-process' ? 'active' : '' }}">
+                    Stocker Process <i class="fa-solid fa-cog"></i>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('stock-dc-complete') }}"
                     class="dropdown-item {{ $routeName == 'stok-dc-complete' ? 'active' : '' }}">
                     Stocker Complete <i class="fa-solid fa-circle-check"></i>
