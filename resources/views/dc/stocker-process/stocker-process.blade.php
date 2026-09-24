@@ -431,13 +431,22 @@
                 ? item.sec_inhouse_qty_hasil 
                 : (item.qty_sec_inhouse_in || 0);
 
+            // Flag Badge HTML
+            let isRejectBadge = (item.stocker_reject > 0) 
+                ? `<span class="badge badge-danger font-weight-bold px-2 py-2" style="font-size: 12px;"><i class="fas fa-exclamation-triangle mr-1"></i>STOCKER REJECT</span>` 
+                : '';
+
+            let sourceQrBadge = item.stocker_source_qr 
+                ? `<span class="badge badge-warning text-dark font-weight-bold px-2 py-2" style="font-size: 12px;">Sumber : ${item.stocker_source_qr}</span>` 
+                : '';
+
             return `
                 <div class="col-12 mb-4">
                     <div class="card stocker-card h-100 shadow-sm">
                         <!-- Header Kartu Stocker -->
                         <div class="card-header bg-white border-bottom">
                             <div class="row justify-content-between align-items-center py-2">
-                                <div class="col-6">
+                                <div class="col-8">
                                     <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
                                         <span class="badge bg-sb font-weight-bold px-3 py-2" style="font-size: 14px;">
                                             <i class="fas fa-qrcode mr-1"></i> ${item.id_qr_stocker || '-'}
@@ -446,9 +455,10 @@
                                             Qty Ply: ${item.qty_stocker || 0}
                                         </span>
                                         ${item.part_status ? `<span class="badge badge-info font-weight-bold px-2 py-2" style="font-size: 12px;"><i class="fas fa-info-circle mr-1"></i>${item.part_status.toUpperCase()}</span>` : ''}
+                                        ${isRejectBadge}${sourceQrBadge}
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <button class="btn btn-sm btn-sb-secondary font-weight-bold float-end" onclick="openDetailModal(${index})">
                                         <i class="fas fa-list-alt mr-1"></i> Detail Riwayat Transaksi
                                     </button>
