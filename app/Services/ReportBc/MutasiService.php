@@ -2087,6 +2087,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
                 AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
@@ -2104,6 +2105,7 @@ class MutasiService
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
+                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
                 AND a.cancel = 'N'
                 AND so.cancel_h = 'N'
