@@ -36,21 +36,22 @@ class export_excel_packing_list implements FromView, ShouldAutoSize, WithEvents,
                 a.po,
                 no_carton,
                 CONCAT('0', a.barcode) AS sku,
-                CONCAT(sd.reff_no, ' ', sd.color, ' ', sd.size) AS short_desc,
-                sd.size,
-                sd.reff_no,
-                sd.color,
+                CONCAT(ws.styleno, ' ', ws.color, ' ', ws.size) AS short_desc,
+                ws.size,
+                ws.styleno AS reff_no,
+                ws.color,
                 a.qty
             FROM packing_master_packing_list a
             LEFT JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            LEFT JOIN master_sb_ws ws ON ws.id_so_det = p.id_so_det
             LEFT JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
             LEFT JOIN signalbit_erp.so so ON sd.id_so = so.id
             LEFT JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
             LEFT JOIN signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
             WHERE a.po = '$this->po'
               AND ms.supplier = '$this->buyer'
-              AND sd.dest = '$this->dest'
-              AND sd.reff_no = '$this->styleno'
+              AND ws.dest = '$this->dest'
+              AND ws.styleno = '$this->styleno'
             ORDER BY no_carton ASC
         ");
 
