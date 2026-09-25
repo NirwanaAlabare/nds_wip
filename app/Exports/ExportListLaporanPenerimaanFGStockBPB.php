@@ -49,6 +49,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
         $data = DB::select("
             SELECT
                 a.id,
+                a.id_so_det,
                 a.no_trans,
                 a.tgl_terima,
                 CONCAT(
@@ -78,6 +79,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
 
             SELECT
                 a.id,
+                a.id_so_det,
                 a.no_trans,
                 a.tgl_terima,
                 CONCAT(
@@ -107,6 +109,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                fg_stok_penerimaan_packing.so_det_id AS id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -136,6 +139,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                fg_stok_penerimaan_packing.so_det_id AS id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -165,6 +169,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                fg_stok_penerimaan_packing.so_det_id AS id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -216,7 +221,7 @@ class ExportListLaporanPenerimaanFGStockBPB implements FromView, WithEvents, Sho
     {
 
         $event->sheet->styleCells(
-            'A4:M' . $event->getConcernable()->rowCount,
+            'A4:N' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
