@@ -416,8 +416,16 @@ class SpreadingController extends Controller
     public function updateStatus(Request $request, StockerService $stockerService) {
 
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
-        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+        $dataForm = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        if (!$dataForm->waktu_selesai) {
+            return array(
+                "status" => 400,
+                "message" => "Form belum memiliki waktu selesai.",
+                "additional" => "Closing"
+            );
+        }
+
+        if (checkClosingDate($dataForm->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -490,6 +498,24 @@ class SpreadingController extends Controller
             "edit_id_status" => "required",
             "edit_status" => "required",
         ]);
+
+        // Check Closing
+        $dataForm = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        if (!$dataForm->waktu_selesai) {
+            return array(
+                "status" => 400,
+                "message" => "Form belum memiliki waktu selesai.",
+                "additional" => "Closing"
+            );
+        }
+
+        if (checkClosingDate($dataForm->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
 
         // If the form already has stockers (return error)
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
