@@ -184,7 +184,7 @@ class PemasukanService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty"),
             'a.curr',
             DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
             'a.berat_bersih',
@@ -234,7 +234,7 @@ class PemasukanService
                 "s.matclass",
                 "mcnt.id"
             ))
-            ->groupBy('a.bpbno_int', 'mcnt.id', 'a.unit');
+            ->groupBy('mcnt.id', 'a.unit');
         }
 
         // ===== 2. QUERY BARANG JADI =====
