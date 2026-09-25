@@ -313,12 +313,11 @@ class PemasukanService
                 ->where('s.matclass', 'FABRIC')
                 ->select([
                     DB::raw("wh.type_bc as jenis_dokumen"),
-                    DB::raw("'-' as bcno"),
+                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
                     DB::raw("wh.tgl_dok as bcdate"),
                     DB::raw("wh.no_dok as trans_no"),
                     DB::raw("wh.tgl_dok as bpbdate"),
                     DB::raw("wh.supplier as supplier"),
-                    DB::raw("wh.no_daftar as nomor_daftar"),
                     DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
                     DB::raw("mcnt.nama_contents as itemdesc"),
                     DB::raw("wd.unit as unit"),
