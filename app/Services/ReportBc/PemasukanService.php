@@ -171,6 +171,8 @@ class PemasukanService
         $dateField = 'a.bpbdate';
 
         $mysql_sb = DB::connection('mysql_sb');
+        
+        $kategori = strtolower(trim($kategoriBarang));
 
         $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
             DB::raw("a.jenis_dok as jenis_dokumen"),
@@ -199,7 +201,7 @@ class PemasukanService
         $queryFgStokBpb = null;
         $queryFgStokBpbScan = null; 
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories', 'sample'])) {
+        if (in_array($kategori, ['all', 'fabric', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
             $queryBahanBaku = $mysql_sb->table('bpb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
                 ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
@@ -208,15 +210,20 @@ class PemasukanService
                 ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
                 ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->whereRaw("NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')"); // Exclude Inhouse Sample
 
-            if (strtolower($kategoriBarang) !== 'all') {
-                $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-                $queryBahanBaku->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+            if ($kategori === 'fabric') {
+                $queryBahanBaku->where('s.matclass', 'FABRIC');
+            } elseif (in_array($kategori, ['accesories', 'accessories'])) {
+                $queryBahanBaku->whereIn('s.matclass', ['ACCESORIES PACKING', 'ACCESORIES SEWING']);
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku'])) {
+                $queryBahanBaku->whereNotIn('s.matclass', ['BARANG JADI', 'SAMPLE']);
+            } elseif ($kategori === 'sample') {
+                $queryBahanBaku->where('s.matclass', 'SAMPLE');
             }
 
             $queryBahanBaku->select($selectData(
@@ -227,10 +234,11 @@ class PemasukanService
                 "s.matclass",
                 "mcnt.id"
             ))
-            ->groupBy('mcnt.id', 'a.unit');
+            ->groupBy('a.bpbno_int', 'mcnt.id', 'a.unit');
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
+        // ===== 2. QUERY BARANG JADI =====
+        if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
 
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
@@ -239,7 +247,6 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
-                // ->where('sod.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
@@ -259,7 +266,6 @@ class PemasukanService
                 ->join('so', 'sd.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
-                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
@@ -293,7 +299,6 @@ class PemasukanService
                 ->join('so', 'sd.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->where('a.cancel', 'N')
-                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
@@ -326,6 +331,10 @@ class PemasukanService
         foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokBpbScan] as $q) {
             if (!$q) continue;
             $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+        }
+
+        if (!$unionQuery) {
+            return collect([]);
         }
 
         $rateSubQuery = $mysql_sb->table('masterrate')
