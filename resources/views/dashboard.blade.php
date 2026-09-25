@@ -3045,7 +3045,7 @@
                     var title = $(this).text();
                     $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
-                    $('input', this).on('keyup change', function() {
+                    $('input', this).on('change', function() {
                         if (datatableDc.column(i).search() !== this.value) {
                             datatableDc
                                 .column(i)

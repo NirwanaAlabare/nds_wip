@@ -40,58 +40,64 @@ class MutasiService
                         COALESCE(sal_awal, 0) sal_awal,
                         COALESCE(qty_in, 0) qty_in,
                         COALESCE(qty_out_sbl, 0) qty_out_sbl,
-                        COALESCE(qty_out, 0) qty_out,
-                        (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) fil
+                        COALESCE(qty_out, 0) qty_out
                     FROM (
                         SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
                         UNION
-                        SELECT id_item, unit FROM whs_inmaterial_fabric_det GROUP BY id_item, unit
+                        SELECT id_item, unit FROM whs_inmaterial_fabric_det WHERE status != 'N' GROUP BY id_item, unit
+                        UNION
+                        SELECT id_item, satuan AS unit FROM whs_bppb_det WHERE status != 'N' GROUP BY id_item, satuan
                     ) a
+                    
+                    -- 1. SALDO AWAL PENERIMAAN (< fromDate)
                     LEFT JOIN (
                         SELECT id_item, unit, SUM(sal_awal) sal_awal FROM (
-                            SELECT 'tr' id, id_item, unit, SUM(qty_good) sal_awal
-                            FROM whs_inmaterial_fabric_det
-                            WHERE tgl_dok < ? AND status = 'Y' GROUP BY id_item, unit
+                            SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) sal_awal
+                            FROM whs_inmaterial_fabric_det b
+                            INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
+                            WHERE h.tgl_dok < ? AND b.status != 'N' AND h.status != 'cancel'
+                            GROUP BY b.id_item, b.unit
 
-                            UNION
+                            UNION ALL
 
-                            SELECT 'sa' id, id_item, unit, ROUND(SUM(qty), 2) sal_awal
+                            SELECT id_item, unit, ROUND(SUM(qty), 2) sal_awal
                             FROM whs_sa_fabric GROUP BY id_item, unit
                         ) x GROUP BY id_item, unit
                     ) b ON b.id_item = a.id_item AND b.unit = a.unit
+                    
+                    -- 2. PENERIMAAN RANGE TANGGAL (Inmaterial Fabric)
                     LEFT JOIN (
-                        SELECT id_item, unit, SUM(qty_in) qty_in FROM (
-                            SELECT 'T' id, id_item, unit, SUM(qty_good) qty_in
-                            FROM whs_inmaterial_fabric_det
-                            WHERE tgl_dok BETWEEN ? AND ? AND status = 'Y' GROUP BY id_item, unit
-
-                            UNION
-
-                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_in
-                            FROM whs_mut_lokasi
-                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
-                        ) x GROUP BY id_item, unit
+                        SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) qty_in
+                        FROM whs_inmaterial_fabric_det b
+                        INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
+                        WHERE h.tgl_dok BETWEEN ? AND ? AND b.status != 'N' AND h.status != 'cancel'
+                        GROUP BY b.id_item, b.unit
                     ) c ON c.id_item = a.id_item AND c.unit = a.unit
+                    
+                    -- 3. SALDO AWAL PENGELUARAN (< fromDate) -> Menggunakan GK BPPB
                     LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out_sbl
-                        FROM whs_bppb_det a
-                        INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                        WHERE b.tgl_bppb < ? AND a.status = 'Y' GROUP BY id_item, satuan
-                    ) d ON d.id_item = a.id_item AND d.satuan = a.unit
+                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out_sbl
+                        FROM whs_bppb_h a
+                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
+                        AND b.status != 'N' 
+                        AND a.status != 'cancel' 
+                        AND a.tgl_bppb < ?
+                        GROUP BY b.id_item, b.satuan
+                    ) d ON d.id_item = a.id_item AND d.unit = a.unit
+                    
+                    -- 4. PENGELUARAN RANGE TANGGAL -> Menggunakan GK BPPB
                     LEFT JOIN (
-                        SELECT id_item, satuan, SUM(qty_out) qty_out FROM (
-                            SELECT 'T' id, id_item, satuan, SUM(qty_out) qty_out
-                            FROM whs_bppb_det a
-                            INNER JOIN whs_bppb_h b ON b.no_bppb = a.no_bppb
-                            WHERE b.tgl_bppb BETWEEN ? AND ? AND a.status = 'Y' GROUP BY id_item, satuan
-
-                            UNION
-
-                            SELECT 'M' id, id_item, unit satuan, SUM(qty_mutasi) qty_out
-                            FROM whs_mut_lokasi
-                            WHERE status = 'Y' AND tgl_mut BETWEEN ? AND ? GROUP BY id_item, satuan
-                        ) x GROUP BY id_item, satuan
-                    ) e ON e.id_item = a.id_item AND e.satuan = a.unit
+                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out
+                        FROM whs_bppb_h a
+                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
+                        AND b.status != 'N' 
+                        AND a.status != 'cancel' 
+                        AND a.tgl_bppb BETWEEN ? AND ?
+                        GROUP BY b.id_item, b.satuan
+                    ) e ON e.id_item = a.id_item AND e.unit = a.unit
+                    
                     INNER JOIN masteritem mi ON mi.id_item = a.id_item
                     $contentJoinFromMi
                     WHERE (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) != 0
@@ -100,20 +106,18 @@ class MutasiService
                 GROUP BY isi.id_contents, isi.unit
             ";
 
-            $bindings = [
-                $fromDate,
-                $fromDate, $toDate,
-                $fromDate, $toDate,
-                $fromDate,
-                $fromDate, $toDate,
-                $fromDate, $toDate,
+            $bindingsFabric = [
+                $fromDate,           // Saldo awal penerimaan (< fromDate)
+                $fromDate, $toDate,  // Penerimaan fabric range
+                $fromDate,           // Saldo awal pengeluaran (< fromDate)
+                $fromDate, $toDate,  // Pengeluaran fabric range
             ];
 
-            $fabricRows = $mysql_sb->select($sqlFabric, $bindings);
+            $fabricRows = $mysql_sb->select($sqlFabric, $bindingsFabric);
             $result = $result->concat($fabricRows);
         }
 
-        // ===== ACCESSORIES: group by mastercontents.id + unit (dari bpb/bppb) =====
+        // ===== ACCESSORIES: group by mastercontents.id + unit =====
         if (in_array($kategori, ['all', 'semua', 'accesories', 'accessories'])) {
             $contentJoin = "
                 INNER JOIN masteritem mi ON mi.id_item = b.id_item
@@ -128,34 +132,46 @@ class MutasiService
                     (SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout) AS saldoakhir,
                     NULL AS kpno
                 FROM (
+                    -- 1. Saldo Awal Masuk (< fromDate)
                     SELECT mcnt.id AS id_contents, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bpbdate < ? 
+                    AND b.cancel = 'N'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 2. Saldo Awal Keluar (< fromDate)
                     SELECT mcnt.id AS id_contents, 0 AS sain, SUM(b.qty) AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate < ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bppbdate < ? 
+                    AND b.cancel = 'N'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 3. Penerimaan (Range Tanggal)
                     SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, SUM(b.qty) AS qtyin, 0 AS qtyout, b.unit
                     FROM bpb b
                     $contentJoin
-                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bpbdate >= ? AND b.bpbdate <= ? 
+                    AND b.cancel = 'N'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
 
                     UNION ALL
 
+                    -- 4. Pengeluaran (Range Tanggal)
                     SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty) AS qtyout, b.unit
                     FROM bppb b
                     $contentJoin
-                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
+                    WHERE b.bppbdate >= ? AND b.bppbdate <= ? 
+                    AND b.cancel = 'N'
+                    AND mi.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')
                     GROUP BY mcnt.id, b.unit
                 ) isi
                 LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
@@ -174,7 +190,6 @@ class MutasiService
 
         return $result;
     }
-
 
     public function getDataMutasiBarangJadi($fromDate, $toDate, $kategoriBarang, $filterInhouse = false)
     {
@@ -2001,7 +2016,6 @@ class MutasiService
                 INNER JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
                 WHERE a.bpbdate >= ? AND a.bpbdate < ?
                 AND a.bpbno LIKE 'FG%'
-                -- GROUP BY dihapus agar transaksi tidak gabung
 
                 UNION ALL
 
@@ -2087,6 +2101,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE a.bppbdate >= ? AND a.bppbdate <= ?
                 AND a.bppbno_int LIKE 'FG%'
                 AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
@@ -2103,7 +2118,7 @@ class MutasiService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN masterstyle ms ON a.id_so_det = ms.id_so_det
+                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
                 AND a.cancel = 'N'
                 AND so.cancel_h = 'N'
@@ -2118,13 +2133,207 @@ class MutasiService
             
             GROUP BY 
                 ac.kpno
-
             HAVING SUM(mutasi.saldo_awal) != 0 
                 OR SUM(mutasi.penerimaan) != 0 
                 OR SUM(mutasi.pengeluaran) != 0 
                 
             ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         ";
+
+        // $sql = "SELECT 
+        //             ac.kpno AS ws,
+        //             ac.styleno AS styleno,
+        //             IFNULL(msw.product_group, '-') AS product_group,
+        //             IFNULL(msw.product_item, '-') AS product_item,
+        //             SUM(mutasi.saldo_awal) AS saldoawal,
+        //             SUM(mutasi.penerimaan) AS qtyterima,
+        //             SUM(mutasi.pengeluaran) AS qtykeluar,
+        //             (SUM(mutasi.saldo_awal) + SUM(mutasi.penerimaan) - SUM(mutasi.pengeluaran)) AS saldoakhir
+        //         FROM (
+
+        //             -- ==========================================
+        //             -- SALDO AWAL
+        //             -- ==========================================
+
+        //             SELECT s.id_so_det, s.saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran 
+        //             FROM saldoawal_fg s 
+        //             INNER JOIN masterstyle ms ON s.id_item = ms.id_item AND s.id_so_det = ms.id_so_det
+        //             WHERE s.periode = ?
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM bpb a
+        //             LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sod ON a.id_so_det = sod.id
+        //             INNER JOIN so ON sod.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bpbdate >= ? AND a.bpbdate <= ?
+        //             AND a.bpbno_int LIKE 'FG%'
+        //             AND a.cancel = 'N'
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+        //             AND (
+        //                 (a.bpbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+        //                 OR 
+        //                 (a.bpbdate > '2025-11-30')
+        //             )
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, -a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM bppb a
+        //             LEFT JOIN masterstyle ms ON a.id_item = ms.id_item AND a.id_so_det = ms.id_so_det
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bppbdate >= ? AND a.bppbdate <= ?
+        //             AND a.bppbno_int LIKE 'FG%'
+        //             AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+        //             AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             -- Kondisi: INNER JOIN jika <= Nov 2025, Abaikan JOIN (seperti on going) jika > Nov 2025
+        //             AND (
+        //                 (a.bppbdate <= '2025-11-30' AND ms.id_item IS NOT NULL) 
+        //                 OR 
+        //                 (a.bppbdate > '2025-11-30')
+        //             )
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima < ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, a.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb_scan a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima < ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, -a.qty_out AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bppb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_pengeluaran < ?
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT fg.so_det_id AS id_so_det, fg.qty AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_penerimaan_packing fg
+        //             LEFT JOIN laravel_nds.packing_out_gudang_stok packing_out ON packing_out.id = fg.packing_out_gudang_stok_id
+        //             WHERE fg.created_at < ?
+
+        //             -- ==========================================
+        //             -- ON GOING (MUTASI)
+        //             -- ==========================================
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM bpb a
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sod ON a.id_so_det = sod.id
+        //             INNER JOIN so ON sod.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bpbdate >= ? AND a.bpbdate <= ?
+        //             AND a.bpbno_int LIKE 'FG%'
+        //             AND a.cancel = 'N'
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, a.qty AS penerimaan, 0 AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bpb_scan a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_terima >= ? AND a.tgl_terima <= ?
+        //             AND a.cancel = 'N' 
+        //             AND so.cancel_h = 'N' 
+        //             AND ac.aktif = 'Y'
+        //             AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, a.qty AS pengeluaran
+        //             FROM bppb a
+        //             LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.bppbdate >= ? AND a.bppbdate <= ?
+        //             AND a.bppbno_int LIKE 'FG%'
+        //             AND COALESCE(a.jenis_trans, '-') NOT IN ('Pengiriman ke Gudang Barang Jadi', '')
+        //             AND COALESCE(a.tujuan, '') NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+        //             AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+
+        //             UNION ALL
+
+        //             SELECT a.id_so_det, 0 AS saldo_awal, 0 AS penerimaan, a.qty_out AS pengeluaran
+        //             FROM laravel_nds.fg_stok_bppb a
+        //             INNER JOIN so_det sd ON a.id_so_det = sd.id
+        //             INNER JOIN so ON sd.id_so = so.id
+        //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+        //             WHERE a.tgl_pengeluaran >= ? AND a.tgl_pengeluaran <= ?
+        //             AND a.cancel = 'N'
+        //             AND so.cancel_h = 'N'
+        //             AND ac.aktif = 'Y'
+        //             AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+
+        //         ) AS mutasi
+        //         INNER JOIN so_det sod2 ON mutasi.id_so_det = sod2.id
+        //         INNER JOIN so so2 ON sod2.id_so = so2.id
+        //         INNER JOIN act_costing ac ON so2.id_cost = ac.id
+        //         LEFT JOIN laravel_nds.master_sb_ws msw ON mutasi.id_so_det = msw.id_so_det
+        //         GROUP BY ac.kpno
+        //         HAVING SUM(mutasi.saldo_awal) != 0 
+        //             OR SUM(mutasi.penerimaan) != 0 
+        //             OR SUM(mutasi.pengeluaran) != 0 
+        //         ORDER BY ws ASC
+        // ";
 
         $bindings = [
             $baselineDate,              // saldoawal_fg periode
@@ -2149,8 +2358,6 @@ class MutasiService
             return (object) [
                 'ws'            => $row->ws,
                 'styleno'       => $row->styleno,
-                'color'         => $row->color,
-                'no_transaksi'         => $row->no_transaksi,
                 'product_group' => $row->product_group,
                 'product_item'  => $row->product_item,
                 'saldoawal'     => (float) $row->saldoawal,

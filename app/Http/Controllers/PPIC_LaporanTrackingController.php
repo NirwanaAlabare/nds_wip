@@ -1105,7 +1105,7 @@ class PPIC_LaporanTrackingController extends Controller
                                             ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                                             where
                                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 OR form_cut_output.qty_output_aktual > 0)
                                             group by
                                             marker_input.id,
                                             marker_input_detail.id,
@@ -1239,6 +1239,7 @@ class PPIC_LaporanTrackingController extends Controller
                                                 WHERE
                                                     stocker_ws_additional_detail.ratio > 0
                                                     OR modify_size_qty.difference_qty != 0
+                                                    OR form_cut_output.qty_output_aktual > 0
                                                 GROUP BY
                                                     form_cut.id,
                                                     stocker_ws_additional.panel,

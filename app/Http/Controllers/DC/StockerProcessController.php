@@ -78,7 +78,7 @@ class StockerProcessController extends Controller
         }, $similarStockers);
 
         $inClause = implode(',',$quotedList);
-        
+
         // Buat klausa WHERE eksplisit dengan prefix nama tabel masing-masing
         $whereDcIn         = " WHERE dc_in_input.id_qr_stocker IN ({$inClause}) ";
         $whereSecInhouseIn = " WHERE secondary_inhouse_in_input.id_qr_stocker IN ({$inClause}) ";
@@ -128,7 +128,17 @@ class StockerProcessController extends Controller
                 sih_in.history_sec_inhouse_in,
                 sih.history_sec_inhouse,
                 sin.history_sec_in,
-                upd.history_sec_update
+                upd.history_sec_update,
+
+                DATE(trolley_stocker.created_at) tanggal_trolley,
+                trolley.nama_trolley,
+
+                loading_line.tanggal_loading,
+                loading_line.nama_line,
+                loading_line.qty loading_qty,
+
+                stocker_input.stocker_reject, 
+                stocker_source.id_qr_stocker stocker_source_qr
 
             FROM stocker_input 
 
@@ -264,6 +274,17 @@ class StockerProcessController extends Controller
             LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = part_detail.id 
             LEFT JOIN master_secondary multi_master_secondary ON multi_master_secondary.id = part_detail_secondary.master_secondary_id  
             LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
+            LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
+            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+            LEFT JOIN loading_line ON loading_line.stocker_id = stocker_input.id
+            LEFT JOIN stocker_reject ON stocker_reject.id = stocker_input.stocker_reject
+            LEFT JOIN stocker_input stocker_source ON 
+                stocker_source.form_cut_id = stocker_input.form_cut_id and 
+                stocker_source.part_detail_id = stocker_input.part_detail_id and 
+                stocker_source.so_det_id = stocker_input.so_det_id and 
+                stocker_source.group_stocker = stocker_input.group_stocker and 
+                stocker_source.ratio = stocker_input.ratio and
+                stocker_source.stocker_reject is null
 
             {$mainWhere}
 

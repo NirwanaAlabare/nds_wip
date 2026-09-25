@@ -4692,12 +4692,19 @@ class SewingToolsController extends Controller
                         $rejectInDetailIds = $rejectInDetail->pluck("id")->toArray();
 
                         // Delete Detail Position
+                        $rejectInDetailPositions = RejectInDetailPosition::whereIn("reject_in_detail_id", $rejectInDetailIds)->get();
+                        foreach ($rejectInDetailPositions as $rejectInDetailPosition) {
+                            logHistory($rejectInDetailPosition->id, $rejectInDetailPosition->toArray());
+                        }
                         $deleteRejectInDetailPosition = RejectInDetailPosition::whereIn("reject_in_detail_id", $rejectInDetailIds)->delete();
 
                         // Delete Detail
-                        if ($deleteRejectInDetailPosition) {
-                            RejectInDetail::where("reject_in_id", $output->id)->delete();
+                        foreach ($rejectInDetail as $rejectInDetailItem) {
+                            logHistory($rejectInDetailItem->id, $rejectInDetailItem->toArray());
+                        }
+                        RejectInDetail::where("reject_in_id", $output->id)->delete();
 
+                        if ($deleteRejectInDetailPosition || $rejectInDetail->count() > 0) {
                             $message .= "Reject In ".$output->kode_numbering." -> DELETED <br>";
                         }
                     }
@@ -4709,26 +4716,38 @@ class SewingToolsController extends Controller
                         $rejectOutDetailIds = $rejectOutDetail->pluck("id")->toArray();
 
                         // Delete Detail
-                        if ($deleteRejectOut) {
-                            $deleteRejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->delete();
+                        foreach ($rejectOutDetail as $rejectOutDetailItem) {
+                            logHistory($rejectOutDetailItem->id, $rejectOutDetailItem->toArray());
+                        }
+                        $deleteRejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->delete();
 
-                            if ($deleteRejectOutDetail) {
-                                // Output Gudang Stok
-                                OutputGudangStok::whereIn("reject_out_id", $rejectOutDetailIds)->delete();
+                        if ($deleteRejectOutDetail) {
+                            // Output Gudang Stok
+                            $outputGudangStok = OutputGudangStok::whereIn("reject_out_id", $rejectOutDetailIds)->get();
+                            foreach ($outputGudangStok as $ogs) {
+                                logHistory($ogs->id, $ogs->toArray());
 
-                                // Delete Group
-                                $rejectOut = RejectOut::whereIn("id", $rejectOutIds)->get();
-                                // Check Reject Out Detail before delete the group
-                                if ($rejectOut->rejectOutDetail()->count() < 1) {
-                                    $deleteRejectOut = $rejectOut->delete();
-                                }
+                                $ogs->delete();
                             }
 
-                            $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
+                            // Delete Group
+                            $rejectOut = RejectOut::whereIn("id", $rejectOutIds)->get();
+                            foreach ($rejectOut as $ro) {
+                                // Check Reject Out Detail before delete the group
+                                if ($ro->rejectOutDetail()->count() < 1) {
+                                    logHistory($ro->id, $ro->toArray());
+
+                                    $ro->delete();
+                                }
+                            }
                         }
+
+                        $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
                     }
 
                     // Reject In
+                    logHistory($output->id, $output->toArray());
+
                     $deleteRejectIn = RejectIn::where("id", $output->id)->delete();
 
                     array_push($result, $message);
