@@ -28,89 +28,79 @@ class MutasiService
 
         // ===== FABRIC: group by mastercontents.id + unit =====
         if (in_array($kategori, ['all', 'semua', 'fabric'])) {
+            $contentJoin = "
+                INNER JOIN masteritem mi ON mi.id_item = b.id_item
+                $contentJoinFromMi
+            ";
+
             $sqlFabric = "
                 SELECT isi.id_contents AS id_item, mc.kode_contents AS goods_code, mc.nama_contents AS itemdesc, isi.unit,
-                    ROUND(SUM(sal_awal - qty_out_sbl), 2) AS saldoawal,
-                    ROUND(SUM(qty_in), 2) AS qtyterima,
-                    ROUND(SUM(qty_out), 2) AS qtykeluar,
-                    ROUND(SUM(sal_awal + qty_in - qty_out_sbl - qty_out), 2) AS saldoakhir,
+                    ROUND(SUM(isi.sain) - SUM(isi.saout), 2) AS saldoawal,
+                    ROUND(SUM(isi.qtyin), 2) AS qtyterima,
+                    ROUND(SUM(isi.qtyout), 2) AS qtykeluar,
+                    ROUND((SUM(isi.sain) - SUM(isi.saout)) + SUM(isi.qtyin) - SUM(isi.qtyout), 2) AS saldoakhir,
                     NULL AS kpno
                 FROM (
-                    SELECT a.id_item, a.unit, mcnt.id AS id_contents,
-                        COALESCE(sal_awal, 0) sal_awal,
-                        COALESCE(qty_in, 0) qty_in,
-                        COALESCE(qty_out_sbl, 0) qty_out_sbl,
-                        COALESCE(qty_out, 0) qty_out
-                    FROM (
-                        SELECT id_item, unit FROM whs_sa_fabric GROUP BY id_item, unit
-                        UNION
-                        SELECT id_item, unit FROM whs_inmaterial_fabric_det WHERE status != 'N' GROUP BY id_item, unit
-                        UNION
-                        SELECT id_item, satuan AS unit FROM whs_bppb_det WHERE status != 'N' GROUP BY id_item, satuan
-                    ) a
-                    
-                    -- 1. SALDO AWAL PENERIMAAN (< fromDate)
-                    LEFT JOIN (
-                        SELECT id_item, unit, SUM(sal_awal) sal_awal FROM (
-                            SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) sal_awal
-                            FROM whs_inmaterial_fabric_det b
-                            INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
-                            WHERE h.tgl_dok < ? AND b.status != 'N' AND h.status != 'cancel'
-                            GROUP BY b.id_item, b.unit
+                    -- 1. Saldo Awal Master (Stok Awal Statis)
+                    SELECT mcnt.id AS id_contents, SUM(b.qty) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM whs_sa_fabric b
+                    $contentJoin
+                    GROUP BY mcnt.id, b.unit
 
-                            UNION ALL
+                    UNION ALL
 
-                            SELECT id_item, unit, ROUND(SUM(qty), 2) sal_awal
-                            FROM whs_sa_fabric GROUP BY id_item, unit
-                        ) x GROUP BY id_item, unit
-                    ) b ON b.id_item = a.id_item AND b.unit = a.unit
-                    
-                    -- 2. PENERIMAAN RANGE TANGGAL (Inmaterial Fabric)
-                    LEFT JOIN (
-                        SELECT b.id_item, b.unit, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) qty_in
-                        FROM whs_inmaterial_fabric_det b
-                        INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
-                        WHERE h.tgl_dok BETWEEN ? AND ? AND b.status != 'N' AND h.status != 'cancel'
-                        GROUP BY b.id_item, b.unit
-                    ) c ON c.id_item = a.id_item AND c.unit = a.unit
-                    
-                    -- 3. SALDO AWAL PENGELUARAN (< fromDate) -> Menggunakan GK BPPB
-                    LEFT JOIN (
-                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out_sbl
-                        FROM whs_bppb_h a
-                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
-                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
-                        AND b.status != 'N' 
-                        AND a.status != 'cancel' 
-                        AND a.tgl_bppb < ?
-                        GROUP BY b.id_item, b.satuan
-                    ) d ON d.id_item = a.id_item AND d.unit = a.unit
-                    
-                    -- 4. PENGELUARAN RANGE TANGGAL -> Menggunakan GK BPPB
-                    LEFT JOIN (
-                        SELECT b.id_item, b.satuan AS unit, SUM(b.qty_out) qty_out
-                        FROM whs_bppb_h a
-                        INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
-                        WHERE LEFT(a.no_bppb, 2) = 'GK' 
-                        AND b.status != 'N' 
-                        AND a.status != 'cancel' 
-                        AND a.tgl_bppb BETWEEN ? AND ?
-                        GROUP BY b.id_item, b.satuan
-                    ) e ON e.id_item = a.id_item AND e.unit = a.unit
-                    
-                    INNER JOIN masteritem mi ON mi.id_item = a.id_item
-                    $contentJoinFromMi
-                    WHERE (COALESCE(sal_awal, 0) + COALESCE(qty_in, 0)) != 0
+                    -- 2. Saldo Awal Masuk (< fromDate)
+                    SELECT mcnt.id AS id_contents, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) AS sain, 0 AS saout, 0 AS qtyin, 0 AS qtyout, b.unit
+                    FROM whs_inmaterial_fabric_det b
+                    INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
+                    $contentJoin
+                    WHERE h.tgl_dok < ? 
+                    AND b.status != 'N' AND h.status != 'cancel'
+                    GROUP BY mcnt.id, b.unit
+
+                    UNION ALL
+
+                    -- 3. Saldo Awal Keluar (< fromDate)
+                    SELECT mcnt.id AS id_contents, 0 AS sain, SUM(b.qty_out) AS saout, 0 AS qtyin, 0 AS qtyout, b.satuan AS unit
+                    FROM whs_bppb_det b
+                    INNER JOIN whs_bppb_h h ON h.no_bppb = b.no_bppb
+                    $contentJoin
+                    WHERE h.tgl_bppb < ? 
+                    AND LEFT(h.no_bppb, 2) = 'GK' AND b.status != 'N' AND h.status != 'cancel'
+                    GROUP BY mcnt.id, b.satuan
+
+                    UNION ALL
+
+                    -- 4. Penerimaan Range Tanggal
+                    SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, SUM(b.qty_good + COALESCE(b.qty_reject, 0)) AS qtyin, 0 AS qtyout, b.unit
+                    FROM whs_inmaterial_fabric_det b
+                    INNER JOIN whs_inmaterial_fabric h ON h.no_dok = b.no_dok
+                    $contentJoin
+                    WHERE h.tgl_dok BETWEEN ? AND ? 
+                    AND b.status != 'N' AND h.status != 'cancel'
+                    GROUP BY mcnt.id, b.unit
+
+                    UNION ALL
+
+                    -- 5. Pengeluaran Range Tanggal
+                    SELECT mcnt.id AS id_contents, 0 AS sain, 0 AS saout, 0 AS qtyin, SUM(b.qty_out) AS qtyout, b.satuan AS unit
+                    FROM whs_bppb_det b
+                    INNER JOIN whs_bppb_h h ON h.no_bppb = b.no_bppb
+                    $contentJoin
+                    WHERE h.tgl_bppb BETWEEN ? AND ? 
+                    AND LEFT(h.no_bppb, 2) = 'GK' AND b.status != 'N' AND h.status != 'cancel'
+                    GROUP BY mcnt.id, b.satuan
                 ) isi
                 LEFT JOIN mastercontents mc ON mc.id = isi.id_contents
                 GROUP BY isi.id_contents, isi.unit
+                HAVING saldoawal != 0 OR qtyterima != 0 OR qtykeluar != 0 -- Opsional: Menyembunyikan item yang mutasinya 0 semua
             ";
 
             $bindingsFabric = [
-                $fromDate,           // Saldo awal penerimaan (< fromDate)
-                $fromDate, $toDate,  // Penerimaan fabric range
-                $fromDate,           // Saldo awal pengeluaran (< fromDate)
-                $fromDate, $toDate,  // Pengeluaran fabric range
+                $fromDate,           // 2. Saldo awal masuk (< fromDate)
+                $fromDate,           // 3. Saldo awal keluar (< fromDate)
+                $fromDate, $toDate,  // 4. Penerimaan (Between)
+                $fromDate, $toDate,  // 5. Pengeluaran (Between)
             ];
 
             $fabricRows = $mysql_sb->select($sqlFabric, $bindingsFabric);
