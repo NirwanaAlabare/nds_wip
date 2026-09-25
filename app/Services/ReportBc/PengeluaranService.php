@@ -537,6 +537,7 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->where('a.bppbno_int', 'NOT LIKE', 'FG%')
+                ->where('a.bppbno_int', 'NOT LIKE', 'OFC%')
                 ->where('a.cancel', 'N')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
