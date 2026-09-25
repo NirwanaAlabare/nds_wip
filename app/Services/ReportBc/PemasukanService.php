@@ -18,26 +18,11 @@ class PemasukanService
 
     // public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     // {
-    //     // $dateField = ($filterBy == 'transaksi') ? 'a.bpbdate' : 'a.bcdate';
     //     $dateField = 'a.bpbdate';
 
     //     $mysql_sb = DB::connection('mysql_sb');
-
-    //     $caseJenisDokumen = "
-    //         CASE
-    //             WHEN a.jenis_dok = '2.3' AND a.invno LIKE '%PJT%' THEN 'BC 2.3 IMPOR PJT'
-    //             WHEN a.jenis_dok = '2.3' AND a.invno NOT LIKE '%PJT%' AND a.invno NOT LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.3 IMPOR'
-    //             WHEN a.jenis_dok = '2.6.2' THEN 'BC 2.6.2 MASUK'
-    //             WHEN a.jenis_dok = '2.7' THEN 'BC 2.7 MASUK'
-    //             WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) NOT LIKE '%SUBKON%' THEN 'BC 4.0'
-    //             WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) LIKE '%SEWA%' THEN 'BC 4.0 (SEWA)'
-    //             WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.0 SUBKON'
-    //             WHEN d.area = 'I' AND a.invno LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.0 IMPOR PIB'
-    //             WHEN d.area = 'I' AND a.invno LIKE '%PIBK%' THEN 'BC 2.1 IMPOR PIBK'
-    //             WHEN d.status_kb = 'KITTE' AND d.area = 'L' THEN 'BC 2.4 KITTE'
-    //             ELSE __ELSE_RULE__
-    //         END
-    //     ";
+        
+    //     $kategori = strtolower(trim($kategoriBarang));
 
     //     $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
     //         DB::raw("a.jenis_dok as jenis_dokumen"),
@@ -49,7 +34,7 @@ class PemasukanService
     //         DB::raw("$kodeBrgExpr as kode_brg"),
     //         DB::raw("$itemdescExpr as itemdesc"),
     //         'a.unit',
-    //         DB::raw("SUM(a.qty) as qty"),
+    //         DB::raw("SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty"),
     //         'a.curr',
     //         DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
     //         'a.berat_bersih',
@@ -63,8 +48,10 @@ class PemasukanService
 
     //     $queryBahanBaku = null;
     //     $queryBarangJadi = null;
+    //     $queryFgStokBpb = null;
+    //     $queryFgStokBpbScan = null; 
 
-    //     if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
+    //     if (in_array($kategori, ['all', 'fabric', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
     //         $queryBahanBaku = $mysql_sb->table('bpb as a')
     //             ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
     //             ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
@@ -73,14 +60,20 @@ class PemasukanService
     //             ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
     //             ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
     //             ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-    //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+    //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->where('a.cancel', 'N')
     //             ->where('a.bpbno_int', 'not like', 'FG%')
-    //             ->whereBetween($dateField, [$fromDate, $toDate]);
+    //             ->whereBetween($dateField, [$fromDate, $toDate])
+    //             ->whereRaw("NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')"); // Exclude Inhouse Sample
 
-    //         if (strtolower($kategoriBarang) !== 'all') {
-    //             $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-    //             $queryBahanBaku->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+    //         if ($kategori === 'fabric') {
+    //             $queryBahanBaku->where('s.matclass', 'FABRIC');
+    //         } elseif (in_array($kategori, ['accesories', 'accessories'])) {
+    //             $queryBahanBaku->whereIn('s.matclass', ['ACCESORIES PACKING', 'ACCESORIES SEWING']);
+    //         } elseif (in_array($kategori, ['bahan baku', 'bahan_baku'])) {
+    //             $queryBahanBaku->whereNotIn('s.matclass', ['BARANG JADI', 'SAMPLE']);
+    //         } elseif ($kategori === 'sample') {
+    //             $queryBahanBaku->where('s.matclass', 'SAMPLE');
     //         }
 
     //         $queryBahanBaku->select($selectData(
@@ -94,35 +87,104 @@ class PemasukanService
     //         ->groupBy('mcnt.id', 'a.unit');
     //     }
 
-    //     if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
+    //     // ===== 2. QUERY BARANG JADI =====
+    //     if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+
     //         $queryBarangJadi = $mysql_sb->table('bpb as a')
-    //             ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-    //             ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+    //             ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
     //             ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
     //             ->join('so', 'sod.id_so', '=', 'so.id')
     //             ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+    //             ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
     //             ->where('a.cancel', 'N')
     //             ->where('a.bpbno_int', 'like', 'FG%')
-    //             ->where('d.supplier', '!=', 'BARANG JADI STOCK')
+    //             ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
     //             ->whereBetween($dateField, [$fromDate, $toDate])
     //             ->select($selectData(
     //                 "a.jenis_dok as jenis_dokumen",
     //                 "a.bcdate",
-    //                 "ac.kpno",
-    //                 "s.itemname",
+    //                 "IFNULL(msw.styleno, ac.styleno)",
+    //                 "msw.color",
     //                 "'BARANG JADI'",
-    //                 "ac.kpno"
+    //                 "IFNULL(msw.ws, ac.kpno)"
     //             ))
-    //             ->groupBy('ac.kpno', 'a.bpbno_int');
+    //             ->groupBy('ac.kpno', 'a.bpbno_int', 'a.id_so_det'); 
+
+    //         $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
+    //             ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+    //             ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+    //             ->join('so', 'sd.id_so', '=', 'so.id')
+    //             ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+    //             ->where('a.cancel', 'N')
+    //             ->where('so.cancel_h', 'N')
+    //             ->where('ac.aktif', 'Y')
+    //             ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
+    //             ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
+    //             ->select([
+    //                 DB::raw("'INHOUSE' as jenis_dokumen"),
+    //                 DB::raw("'-' as bcno"),
+    //                 DB::raw("a.tgl_terima as bcdate"),
+    //                 DB::raw("a.no_trans as trans_no"),
+    //                 DB::raw("a.tgl_terima as bpbdate"),
+    //                 DB::raw("'PRODUCTION-SEWING' as supplier"),
+    //                 DB::raw("IFNULL(m.styleno, ac.styleno) as kode_brg"),
+    //                 DB::raw("CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc"),
+    //                 DB::raw("'PCS' as unit"),
+    //                 DB::raw("SUM(a.qty) as qty"),
+    //                 DB::raw("'-' as curr"),
+    //                 DB::raw("0 as nilai_barang"),
+    //                 DB::raw("0 as berat_bersih"),
+    //                 DB::raw("0 as berat_kotor"),
+    //                 DB::raw("'-' as nomor_aju"),
+    //                 DB::raw("a.sumber_pemasukan as tujuan"),
+    //                 DB::raw("IFNULL(m.ws, ac.kpno) as id_item"),
+    //                 DB::raw("'BARANG JADI' as matclass"),
+    //                 'a.id_so_det',
+    //             ])
+    //             ->groupBy('ac.kpno', 'a.no_trans', 'a.id_so_det');
+                
+    //         $queryFgStokBpbScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
+    //             ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+    //             ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+    //             ->join('so', 'sd.id_so', '=', 'so.id')
+    //             ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+    //             ->where('a.cancel', 'N')
+    //             ->where('so.cancel_h', 'N')
+    //             ->where('ac.aktif', 'Y')
+    //             ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
+    //             ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
+    //             ->select([
+    //                 DB::raw("'INHOUSE' as jenis_dokumen"),
+    //                 DB::raw("'-' as bcno"),
+    //                 DB::raw("a.tgl_terima as bcdate"),
+    //                 DB::raw("a.no_trans as trans_no"),
+    //                 DB::raw("a.tgl_terima as bpbdate"),
+    //                 DB::raw("'PRODUCTION-SEWING' as supplier"),
+    //                 DB::raw("IFNULL(m.styleno, ac.styleno) as kode_brg"),
+    //                 DB::raw("CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc"),
+    //                 DB::raw("'PCS' as unit"),
+    //                 DB::raw("SUM(a.qty) as qty"),
+    //                 DB::raw("'-' as curr"),
+    //                 DB::raw("0 as nilai_barang"),
+    //                 DB::raw("0 as berat_bersih"),
+    //                 DB::raw("0 as berat_kotor"),
+    //                 DB::raw("'-' as nomor_aju"),
+    //                 DB::raw("a.sumber_pemasukan as tujuan"),
+    //                 DB::raw("IFNULL(m.ws, ac.kpno) as id_item"),
+    //                 DB::raw("'BARANG JADI' as matclass"),
+    //                 'a.id_so_det',
+    //             ])
+    //             ->groupBy('ac.kpno', 'a.no_trans', 'a.id_so_det');
     //     }
 
+    //     $unionQuery = null;
+    //     foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokBpbScan] as $q) {
+    //         if (!$q) continue;
+    //         $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+    //     }
 
-    //     if ($queryBahanBaku && $queryBarangJadi) {
-    //         $unionQuery = $queryBahanBaku->unionAll($queryBarangJadi);
-    //     } elseif ($queryBahanBaku) {
-    //         $unionQuery = $queryBahanBaku;
-    //     } else {
-    //         $unionQuery = $queryBarangJadi;
+    //     if (!$unionQuery) {
+    //         return collect([]);
     //     }
 
     //     $rateSubQuery = $mysql_sb->table('masterrate')
@@ -165,7 +227,6 @@ class PemasukanService
     //         ->get();
     // }
 
-
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $dateField = 'a.bpbdate';
@@ -174,7 +235,7 @@ class PemasukanService
         
         $kategori = strtolower(trim($kategoriBarang));
 
-        $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
+        $selectData = fn ($jenisDokExpr, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr, $qtySumExpr = "SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty))", $qtyField = "a.qty") => [
             DB::raw("a.jenis_dok as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             DB::raw("$bcdateExpr as bcdate"),
@@ -184,11 +245,11 @@ class PemasukanService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            DB::raw("SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty"),
+            DB::raw("$qtySumExpr as qty"),
             'a.curr',
-            DB::raw("ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2) as nilai_barang"),
-            'a.berat_bersih',
-            'a.berat_kotor',
+            DB::raw("SUM(ROUND(IFNULL(a.price_bc, a.price) * $qtyField, 2)) as nilai_barang"),
+            DB::raw("SUM(a.berat_bersih) as berat_bersih"),
+            DB::raw("SUM(a.berat_kotor) as berat_kotor"),
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
             'a.tujuan',
             DB::raw("$idItemExpr as id_item"),
@@ -196,13 +257,14 @@ class PemasukanService
             'a.id_so_det'
         ];
 
-        $queryBahanBaku = null;
+        $queryBahanBaku_Bpb = null;
+        $queryBahanBaku_Whs = null;
         $queryBarangJadi = null;
         $queryFgStokBpb = null;
         $queryFgStokBpbScan = null; 
 
-        if (in_array($kategori, ['all', 'fabric', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
-            $queryBahanBaku = $mysql_sb->table('bpb as a')
+        if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
+            $queryBahanBaku_Bpb = $mysql_sb->table('bpb as a')
                 ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
                 ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
                 ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
@@ -214,19 +276,17 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate])
-                ->whereRaw("NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')"); // Exclude Inhouse Sample
+                ->whereRaw("NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')");
 
-            if ($kategori === 'fabric') {
-                $queryBahanBaku->where('s.matclass', 'FABRIC');
-            } elseif (in_array($kategori, ['accesories', 'accessories'])) {
-                $queryBahanBaku->whereIn('s.matclass', ['ACCESORIES PACKING', 'ACCESORIES SEWING']);
-            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku'])) {
-                $queryBahanBaku->whereNotIn('s.matclass', ['BARANG JADI', 'SAMPLE']);
+            if (in_array($kategori, ['accesories', 'accessories'])) {
+                $queryBahanBaku_Bpb->whereIn('s.matclass', ['ACCESORIES PACKING', 'ACCESORIES SEWING']);
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku', 'all'])) {
+                $queryBahanBaku_Bpb->whereNotIn('s.matclass', ['BARANG JADI', 'SAMPLE', 'FABRIC']); 
             } elseif ($kategori === 'sample') {
-                $queryBahanBaku->where('s.matclass', 'SAMPLE');
+                $queryBahanBaku_Bpb->where('s.matclass', 'SAMPLE');
             }
 
-            $queryBahanBaku->select($selectData(
+            $queryBahanBaku_Bpb->select($selectData(
                 "a.jenis_dok",
                 "IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate)",
                 "IFNULL(mcnt.kode_contents, mcnt.id)",
@@ -237,7 +297,45 @@ class PemasukanService
             ->groupBy('mcnt.id', 'a.unit');
         }
 
-        // ===== 2. QUERY BARANG JADI =====
+        // ===== QUERY WAREHOUSE (Khusus FABRIC - Murni WHS tanpa Join BPB) =====
+        if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
+            $queryBahanBaku_Whs = $mysql_sb->table('whs_inmaterial_fabric_det as wd')
+                ->leftJoin('whs_inmaterial_fabric as wh', 'wd.no_dok', '=', 'wh.no_dok')
+                ->join('masteritem as s', 'wd.id_item', '=', 's.id_item')
+                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
+                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
+                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
+                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
+                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
+                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
+                ->where('wd.no_dok', 'not like', 'FG%')
+                ->whereBetween('wd.tgl_dok', [$fromDate, $toDate]) 
+                ->where('s.matclass', 'FABRIC')
+                ->select([
+                    DB::raw("wh.type_bc as jenis_dokumen"),
+                    DB::raw("'-' as bcno"),
+                    DB::raw("wh.tgl_dok as bcdate"),
+                    DB::raw("wh.no_dok as trans_no"),
+                    DB::raw("wh.tgl_dok as bpbdate"),
+                    DB::raw("'-' as supplier"),
+                    DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
+                    DB::raw("mcnt.nama_contents as itemdesc"),
+                    DB::raw("wd.unit as unit"),
+                    DB::raw("SUM(wd.qty_good) as qty"),
+                    DB::raw("'-' as curr"),
+                    DB::raw("0 as nilai_barang"),
+                    DB::raw("0 as berat_bersih"),
+                    DB::raw("0 as berat_kotor"),
+                    DB::raw("wh.no_aju as nomor_aju"),
+                    DB::raw("'-' as tujuan"),
+                    DB::raw("mcnt.id as id_item"),
+                    DB::raw("s.matclass as matclass"),
+                    DB::raw("NULL as id_so_det")
+                ])
+                ->groupBy('mcnt.id', 'wd.unit');
+        }
+
+        // ===== 3. QUERY BARANG JADI =====
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
 
             $queryBarangJadi = $mysql_sb->table('bpb as a')
@@ -327,8 +425,10 @@ class PemasukanService
                 ->groupBy('ac.kpno', 'a.no_trans', 'a.id_so_det');
         }
 
+        // 4. UNION ALL QUERIES
         $unionQuery = null;
-        foreach ([$queryBahanBaku, $queryBarangJadi, $queryFgStokBpb, $queryFgStokBpbScan] as $q) {
+        // Daftarkan semua query (termasuk yang dipecah jadi Bpb dan Whs)
+        foreach ([$queryBahanBaku_Bpb, $queryBahanBaku_Whs, $queryBarangJadi, $queryFgStokBpb, $queryFgStokBpbScan] as $q) {
             if (!$q) continue;
             $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
         }
