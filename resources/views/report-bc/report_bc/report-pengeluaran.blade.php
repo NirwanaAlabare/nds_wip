@@ -252,8 +252,8 @@
                             <th>Nomor Daftar</th>
                             <th>Tanggal Daftar</th>
                             <th>Nama Penerima</th>
-                            <th>No BPPB</th>
-                            <th>Tanggal BPPB</th>
+                            <th>No BPB</th>
+                            <th>Tanggal BPB</th>
                             <th>No WS</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>

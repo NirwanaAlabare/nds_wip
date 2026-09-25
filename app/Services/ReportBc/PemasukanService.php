@@ -1658,7 +1658,7 @@ class PemasukanService
 
         $sheet->writeRow([
             'No',
-            'Kode Kantor',
+            // 'Kode Kantor',
             'ID So Det',
             'Jenis Dokumen',
             'Kategori Barang',
@@ -1687,7 +1687,7 @@ class PemasukanService
 
             $rows = [
                 $no++,
-                $row->kode_kantor ?? '-',
+                // $row->kode_kantor ?? '-',
                 $row->id_so_det ?? '-',
                 $row->jenis_dokumen ?? '-',
                 $row->kategori_barang ?? '-',
@@ -1709,9 +1709,10 @@ class PemasukanService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'L') as $col) {
+        foreach (range('A', 'K') as $col) {
             $sheet->setColWidth($col, 20);
         }
+
 
         return $excel->download();
     }

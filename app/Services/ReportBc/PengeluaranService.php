@@ -366,13 +366,13 @@ class PengeluaranService
         $dateField = 'a.bppbdate';
         $mysql_sb = DB::connection('mysql_sb');
 
-        $wsExpr = "(SELECT act_costing.kpno
-                    FROM so_det
-                    LEFT JOIN so ON so_det.id_so = so.id
-                    LEFT JOIN act_costing ON so.id_cost = act_costing.id
-                    WHERE so_det.id = a.id_so_det)";
+        $wsExpr = "(SELECT sub_ac.kpno 
+                    FROM so_det sub_sd 
+                    LEFT JOIN so sub_so ON sub_sd.id_so = sub_so.id 
+                    LEFT JOIN act_costing sub_ac ON sub_so.id_cost = sub_ac.id 
+                    WHERE sub_sd.id = a.id_so_det LIMIT 1)";
 
-        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $idContentsExpr, $matclassExpr) => [
+        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $idContentsExpr, $matclassExpr, $wsValueExpr) => [
             DB::raw("a.jenis_dok as jenis_dokumen"),
             DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
             'a.bcdate',
@@ -387,7 +387,7 @@ class PengeluaranService
             DB::raw("ROUND(SUM(a.qty * IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price)), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass"),
-            DB::raw("$wsExpr as ws")
+            DB::raw("$wsValueExpr as ws") 
         ];
 
         $rateSubQuery = $mysql_sb->table('masterrate')
@@ -400,7 +400,6 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                // ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
                 ->join('so as so', 'sd.id_so', '=', 'so.id')
@@ -412,9 +411,8 @@ class PengeluaranService
                         ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
                 })
                 ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
-                ->where('a.bppbno_int', 'LIKE', 'FG%') // Filter bppbno_int
+                ->where('a.bppbno_int', 'LIKE', 'FG%') 
                 ->where('a.cancel', 'N')
-                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereBetween($dateField, [$fromDate, $toDate])
@@ -422,7 +420,8 @@ class PengeluaranService
                     "msw.styleno",
                     "msw.product_item",
                     "a.id_item",
-                    "'BARANG JADI'"
+                    "'BARANG JADI'",
+                    "IFNULL(msw.ws, ac.kpno)" 
                 ))
                 ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
 
@@ -435,13 +434,13 @@ class PengeluaranService
                 ->select(
                     DB::raw("'' as kode_kantor"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.jenis_dokumen ORDER BY a.jenis_dokumen SEPARATOR ', ') as jenis_dokumen"),
-                    'a.ws',
+                    DB::raw("MAX(a.ws) as ws"), 
                     DB::raw("MAX(a.matclass) as kategori_barang"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.bcno ORDER BY a.bcno SEPARATOR ', ') as nomor_daftar"),
                     DB::raw("MIN(a.bcdate) as tanggal_daftar"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.supplier ORDER BY a.supplier SEPARATOR ', ') as nama_pengirim"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.trans_no ORDER BY a.trans_no SEPARATOR ', ') as nomor_bpb"),
-                    DB::raw("MIN(a.bppbdate) as tanggal_bpb"),
+                    DB::raw("MIN(a.bpbdate) as tanggal_bpb"),
                     'a.id_contents as id_item',
                     DB::raw("GROUP_CONCAT(DISTINCT a.itemdesc ORDER BY a.itemdesc SEPARATOR ', ') as uraian_barang"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
@@ -464,7 +463,6 @@ class PengeluaranService
                 ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
                 ->whereBetween('a.tgl_pengeluaran', [$fromDate, $toDate])
                 ->where('a.cancel', 'N')
-                // ->where('sd.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->whereNotIn('a.tujuan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
@@ -498,7 +496,7 @@ class PengeluaranService
                 ->select(
                     DB::raw("'' as kode_kantor"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.jenis_dokumen ORDER BY a.jenis_dokumen SEPARATOR ', ') as jenis_dokumen"),
-                    'a.ws',
+                    DB::raw("MAX(a.ws) as ws"),
                     DB::raw("MAX(a.matclass) as kategori_barang"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.bcno ORDER BY a.bcno SEPARATOR ', ') as nomor_daftar"),
                     DB::raw("MIN(a.bcdate) as tanggal_daftar"),
@@ -550,7 +548,8 @@ class PengeluaranService
                 "IFNULL(mcnt.kode_contents, IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT(s.mattype, s.id_item)))",
                 "IFNULL(mcnt.nama_contents, s.itemdesc)",
                 "IFNULL(mcnt.id, CONCAT('item_', s.id_item))",
-                "s.matclass"
+                "s.matclass",
+                $wsExpr 
             ))
             ->groupBy('a.bcno', 'a.bppbno', DB::raw('IFNULL(mcnt.id, s.id_item)'), 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
 
@@ -563,7 +562,7 @@ class PengeluaranService
                 ->select(
                     DB::raw("'' as kode_kantor"),
                     DB::raw("MAX(a.jenis_dokumen) as jenis_dokumen"),
-                    'a.ws',
+                    DB::raw("MAX(a.ws) as ws"), 
                     DB::raw("MAX(a.matclass) as kategori_barang"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.bcno ORDER BY a.bcno SEPARATOR ', ') as nomor_daftar"),
                     DB::raw("MIN(a.bcdate) as tanggal_daftar"),
@@ -587,6 +586,7 @@ class PengeluaranService
 
             $result = $result->concat($bahanBaku);
         }
+
 
         return $result;
     }
@@ -3485,14 +3485,14 @@ class PengeluaranService
 
         $sheet->writeRow([
             'No',
-            'Kode Kantor',
+            // 'Kode Kantor',
             'Jenis Dokumen',
             'Kategori Barang',
             'Nomor Daftar',
             'Tanggal Daftar',
             'Nama Penerima',
-            'No BPPB',
-            'Tanggal BPPB',
+            'No BPB',
+            'Tanggal BPB',
             'WS',
             'Uraian Barang',
             'Jenis Satuan',
@@ -3513,7 +3513,7 @@ class PengeluaranService
 
             $rows = [
                 $no++,
-                $row->kode_kantor ?? '-',
+                // $row->kode_kantor ?? '-',
                 $row->jenis_dokumen ?? $jenisDokumenFixed,
                 $row->kategori_barang ?? '-',
                 $row->nomor_daftar ?? '-',
@@ -3534,9 +3534,10 @@ class PengeluaranService
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        foreach (range('A', 'J') as $col) {
             $sheet->setColWidth($col, 20);
         }
+
 
         return $excel->download();
     }
