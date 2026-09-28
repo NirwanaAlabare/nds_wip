@@ -589,7 +589,7 @@ class PengeluaranService
                     FROM whs_mut_lokasi a
                     INNER JOIN whs_mut_lokasi_h mut ON mut.no_mut = a.no_mut
                     LEFT JOIN whs_inmaterial_fabric c ON c.no_dok = a.no_bpb
-                    WHERE a.status = 'Y'
+                    WHERE a.status = 'Y' AND a.no_mut LIKE 'MT%'
                     GROUP BY a.no_mut, a.id_item, a.id_jo, a.unit
                 ) m
                 INNER JOIN masteritem s ON m.id_item = s.id_item
