@@ -351,15 +351,10 @@ select '', no_barcode, no_dok, tgl_dok, supplier, kode_lok, id_jo, id_item, no_l
 
 
 
-    public function export_excel_mut_barcode(Request $request)
-{
-    $from = $request->from;
-    $to   = $request->to;
-
-    // ==============================
-    // SQL
-    // ==============================
-    $sql = "
+    // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
+    public function exportSql($from, $to)
+    {
+        return "
         WITH 
 buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
 
@@ -398,6 +393,17 @@ mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_j
 
 select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc, mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir from mutasi a inner join masteritem mi on mi.id_item = a.id_item where (sal_awal + qty_in) > 0
     ";
+    }
+
+    public function export_excel_mut_barcode(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = $this->exportSql($from, $to);
 
     $data = DB::connection('mysql_sb')->select($sql);
 

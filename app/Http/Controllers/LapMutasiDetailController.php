@@ -103,15 +103,10 @@ return view("lap-mutasi-detail.lap_mutasi_detail", ["page" => "dashboard-warehou
 
 
 
-    public function export_excel_mut_detail(Request $request)
-{
-    $from = $request->from;
-    $to   = $request->to;
-
-    // ==============================
-    // SQL
-    // ==============================
-    $sql = "WITH 
+    // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
+    public function exportSql($from, $to)
+    {
+        return "WITH 
 buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
 
 saldo_awal as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno, a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in  from whs_sa_fabric_copy a INNER JOIN masteritem b on b.id_item = a.id_item INNER JOIN  buyer c on c.id_jo=a.id_jo where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '" . $from . "') GROUP BY no_barcode, kode_lok),
@@ -151,6 +146,17 @@ mutasi_fix as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id
 
 
 select concat(a.kode_lok,' FABRIC WAREHOUSE RACK') kode_lok, id_jo, kpno no_ws, styleno, buyer, a.id_item, b.goods_code, b.itemdesc, b.color, b.size, satuan, sum(sal_awal) sal_awal, sum(qty_in) qty_in, sum(qty_out_sbl) qty_out_sbl, sum(qty_out) qty_out, sum(sal_akhir) sal_akhir from mutasi_fix a INNER JOIN masteritem b on b.id_item = a.id_item group by kode_lok, a.id_item, a.id_jo, satuan";
+    }
+
+    public function export_excel_mut_detail(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = $this->exportSql($from, $to);
 
     $data = DB::connection('mysql_sb')->select($sql);
 
