@@ -2255,9 +2255,12 @@ class MutasiService
                 )
 
                 SELECT
-                    a.id_so_det,
+                        a.id_so_det,
                         id_item,
-                    ac.kpno,
+                       ac.kpno,
+                       ac.styleno,
+                       IFNULL(msw.product_group, '-') AS product_group,
+                        IFNULL(msw.product_item, '-') AS product_item,
                 --     sd.color,
                 --     sd.size,
                         sd.cancel,
@@ -2282,6 +2285,7 @@ class MutasiService
                 INNER JOIN so             ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 LEFT JOIN masterstyle ms on a.id_so_det = ms.id_so_det
+                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
                 WHERE sd.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
@@ -2313,14 +2317,14 @@ class MutasiService
 
         return collect($rows)->map(function ($row) {
             return (object) [
-                'ws'            => $row->ws,
+                'ws'            => $row->kpno,
                 'styleno'       => $row->styleno,
                 'product_group' => $row->product_group,
                 'product_item'  => $row->product_item,
-                'saldoawal'     => (float) $row->saldoawal,
-                'qtyterima'     => (float) $row->qtyterima,
-                'qtykeluar'     => (float) $row->qtykeluar,
-                'saldoakhir'    => (float) $row->saldoakhir,
+                'saldoawal'     => (float) $row->saldo_awal,
+                'qtyterima'     => (float) $row->penerimaan,
+                'qtykeluar'     => (float) $row->pengeluaran,
+                'saldoakhir'    => (float) $row->saldo_akhir,
             ];
         })->values();
     }
