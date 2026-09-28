@@ -755,9 +755,9 @@ class FGStokLaporanController extends Controller
         return $excel->download($filename);
     }
 
-    public function getDataPenerimaan(Request $request)
+    private function buildQueryPenerimaan($tgl_awal, $tgl_akhir)
     {
-        $data = DB::select("
+        $query = DB::select("
             SELECT
                 a.id,
                 a.no_trans,
@@ -783,7 +783,7 @@ class FGStokLaporanController extends Controller
             FROM fg_stok_bpb a
             LEFT JOIN master_sb_ws m
                 ON a.id_so_det = m.id_so_det
-            WHERE a.tgl_terima BETWEEN '$request->dateFrom' AND '$request->dateTo'
+            WHERE a.tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
 
             UNION ALL
 
@@ -812,7 +812,7 @@ class FGStokLaporanController extends Controller
             FROM fg_stok_bpb_scan a
             LEFT JOIN master_sb_ws m
                 ON a.id_so_det = m.id_so_det
-            WHERE a.tgl_terima BETWEEN '$request->dateFrom' AND '$request->dateTo'
+            WHERE a.tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
 
             UNION ALL
 
@@ -839,7 +839,7 @@ class FGStokLaporanController extends Controller
             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
-                fg_stok_penerimaan_packing.created_at BETWEEN '$request->dateFrom 00:00:00' AND '$request->dateTo 23:59:59'
+                fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
                 AND packing_out_gudang_stok.lokasi_asal = 'TEMPORARY PACKING'
                 AND fg_stok_penerimaan_packing.mutasi = 'N'
 
@@ -868,10 +868,10 @@ class FGStokLaporanController extends Controller
             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
-                fg_stok_penerimaan_packing.created_at BETWEEN '$request->dateFrom 00:00:00' AND '$request->dateTo 23:59:59'
+                fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
                 AND packing_out_gudang_stok.lokasi_asal = 'PACKING CENTRAL'
                 AND fg_stok_penerimaan_packing.mutasi = 'N'
-            
+
             UNION ALL
 
             SELECT
@@ -897,18 +897,111 @@ class FGStokLaporanController extends Controller
             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
-                fg_stok_penerimaan_packing.created_at BETWEEN '$request->dateFrom 00:00:00' AND '$request->dateTo 23:59:59'
+                fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
                 AND fg_stok_penerimaan_packing.mutasi = 'Y'
 
             ORDER BY SUBSTR(no_trans, 13) DESC
         ");
+
+        return $query;
+    }
+
+    public function getDataPenerimaan(Request $request)
+    {
+
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+
+        $data = $this->buildQueryPenerimaan($tgl_awal, $tgl_akhir);
 
         return DataTables::of($data)->toJson();
     }
 
     public function exportPenerimaan(Request $request)
     {
-        return Excel::download(new ExportListLaporanPenerimaanFGStockBPB($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+        $tgl_awal = $request->from;
+        $tgl_akhir = $request->to;
+
+        $data = $this->buildQueryPenerimaan($tgl_awal, $tgl_akhir);
+
+        $fileName = 'laporan-penerimaan-fg-stock';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Laporan Penerimaan FG Stok'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $tgl_awal . ' s/d ' . $tgl_akhir],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow([
+            'No. Trans',
+            'Tgl. Trans',
+            'Lokasi',
+            'No Karton',
+            'Buyer',
+            'Brand',
+            'Style',
+            'Grade',
+            'WS',
+            'Color',
+            'Size',
+            'Qty',
+            'Sumber',
+        ], [
+            'fill'       => '#ADD8E6',
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $sheet->mergeCells('A1:M1');
+        $sheet->mergeCells('A2:M2');
+
+        foreach ($data as $row) {
+
+            $rows = [
+                $row->no_trans,
+                $row->tgl_terima_fix,
+                $row->lokasi,
+                $row->no_carton,
+                $row->buyer,
+                $row->brand,
+                $row->styleno,
+                $row->grade,
+                $row->ws,
+                $row->color,
+                $row->size,
+                (float) ($row->qty ?? 0),
+                $row->sumber_pemasukan,
+            ];
+
+            $rows = array_map(fn ($value) => $value ?? '', $rows);
+
+            $sheet->writeRow($rows, ['border' => 'thin']);
+        }
+
+        foreach (range('A', 'M') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download($fileName . '.xlsx');
     }
 
     private function buildQueryMutasiGlobalFgStok($tgl_awal, $tgl_akhir, $saldo_awal)
@@ -1020,7 +1113,9 @@ class FGStokLaporanController extends Controller
                     SUM(x.qty_inbound_stok_gudang_temporary_before) AS qty_inbound_stok_gudang_temporary_before,
                     SUM(x.qty_inbound_stok_gudang_temporary) AS qty_inbound_stok_gudang_temporary,
                     SUM(x.qty_inbound_stok_gudang_central_before) AS qty_inbound_stok_gudang_central_before,
-                    SUM(x.qty_inbound_stok_gudang_central) AS qty_inbound_stok_gudang_central
+                    SUM(x.qty_inbound_stok_gudang_central) AS qty_inbound_stok_gudang_central,
+                    SUM(x.qty_pemusnahan_before) AS qty_pemusnahan_before,
+                    SUM(x.qty_pemusnahan) AS qty_pemusnahan
                 FROM (
 
                     SELECT
@@ -1059,7 +1154,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM saldo_awal
 
                     UNION ALL
@@ -1100,7 +1197,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM signalbit_erp.output_reject_out_detail a
                     INNER JOIN signalbit_erp.output_reject_in b on a.reject_in_id = b.id
                     INNER JOIN signalbit_erp.master_plan mp on b.master_plan_id = mp.id
@@ -1167,7 +1266,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         signalbit_erp.bppb
                     INNER JOIN signalbit_erp.masterstyle ON masterstyle.id_item = bppb.id_item
@@ -1216,7 +1317,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1260,7 +1363,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1304,7 +1409,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1348,7 +1455,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1392,7 +1501,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         wip_adjustment
                     WHERE
@@ -1439,7 +1550,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1483,7 +1596,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1527,7 +1642,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1571,7 +1688,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bpb_scan a
                     LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                     WHERE a.tgl_terima <= '" . $tgl_akhir . "'
@@ -1615,7 +1734,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bppb a
                     LEFT JOIN master_sb_ws m on a.id_so_det = m.id_so_det
                     WHERE a.tgl_pengeluaran <= '" . $tgl_akhir . "'
@@ -1659,7 +1780,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bppb a
                     LEFT JOIN master_sb_ws m on a.id_so_det = m.id_so_det
                     WHERE a.tgl_pengeluaran <= '" . $tgl_akhir . "'
@@ -1703,7 +1826,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM fg_stok_bppb a
                     LEFT JOIN master_sb_ws m on a.id_so_det = m.id_so_det
                     WHERE a.tgl_pengeluaran <= '" . $tgl_akhir . "'
@@ -1747,7 +1872,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         packing_packing_in
                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
@@ -1795,7 +1922,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         packing_out_gudang_stok
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
@@ -1843,7 +1972,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         packing_out_gudang_stok
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
@@ -1891,7 +2022,9 @@ class FGStokLaporanController extends Controller
                         SUM(IF(fg_stok_penerimaan_packing.created_at < '{$tgl_awal} 00:00:00', fg_stok_penerimaan_packing.qty,0)) AS qty_inbound_stok_gudang_temporary_before,
                         SUM(IF(fg_stok_penerimaan_packing.created_at >= '{$tgl_awal} 00:00:00', fg_stok_penerimaan_packing.qty,0)) AS qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
-                        0 qty_inbound_stok_gudang_central
+                        0 qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         fg_stok_penerimaan_packing
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
@@ -1940,7 +2073,9 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary_before,
                         0 qty_inbound_stok_gudang_temporary,
                         SUM(IF(fg_stok_penerimaan_packing.created_at < '{$tgl_awal} 00:00:00', fg_stok_penerimaan_packing.qty,0)) AS qty_inbound_stok_gudang_central_before,
-                        SUM(IF(fg_stok_penerimaan_packing.created_at >= '{$tgl_awal} 00:00:00', fg_stok_penerimaan_packing.qty,0)) AS qty_inbound_stok_gudang_central
+                        SUM(IF(fg_stok_penerimaan_packing.created_at >= '{$tgl_awal} 00:00:00', fg_stok_penerimaan_packing.qty,0)) AS qty_inbound_stok_gudang_central,
+                        0 qty_pemusnahan_before,
+                        0 qty_pemusnahan
                     FROM
                         fg_stok_penerimaan_packing
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
@@ -1948,6 +2083,56 @@ class FGStokLaporanController extends Controller
                     WHERE
                         fg_stok_penerimaan_packing.created_at <= '{$tgl_akhir} 23:59:59' AND
                         packing_out_gudang_stok.lokasi_asal = 'PACKING CENTRAL' AND fg_stok_penerimaan_packing.mutasi = 'N'
+                    GROUP BY
+                        master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+
+                    UNION ALL
+
+                    SELECT
+                        master_sb_ws.buyer,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.styleno,
+                        master_sb_ws.size,
+                        0 qty_saldo_awal_adjustment_before,
+                        0 qty_in_qc_reject_before,
+                        0 qty_in_qc_reject,
+                        0 qty_in_ekspedisi_before,
+                        0 qty_in_ekspedisi,
+                        0 qty_out_qc_reject_before,
+                        0 qty_out_qc_reject,
+                        0 qty_out_ekspedisi_before,
+                        0 qty_out_ekspedisi,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 qty_terima_qc_reject_before,
+                        0 qty_terima_qc_reject,
+                        0 qty_terima_ekspedisi_before,
+                        0 qty_terima_ekspedisi,
+                        0 qty_keluar_sewing_before,
+                        0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa,
+                        0 qty_keluar_ekspedisi_before,
+                        0 qty_keluar_ekspedisi,
+                        0 qty_keluar_packing_central_before,
+                        0 qty_keluar_packing_central,
+                        0 qty_in_temporary_packing_before,
+                        0 qty_in_temporary_packing,
+                        0 qty_in_packing_central_before,
+                        0 qty_in_packing_central,
+                        0 qty_inbound_stok_gudang_temporary_before,
+                        0 qty_inbound_stok_gudang_temporary,
+                        0 qty_inbound_stok_gudang_central_before,
+                        0 qty_inbound_stok_gudang_central,
+                        SUM(IF(tgl_pengeluaran < '{$tgl_awal}', qty_out,0)) AS qty_pemusnahan_before,
+                        SUM(IF(tgl_pengeluaran >= '{$tgl_awal}', qty_out,0)) AS qty_pemusnahan
+                    FROM
+                        fg_stok_bppb
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_bppb.id_so_det 
+                    WHERE
+                        tgl_pengeluaran <= '{$tgl_akhir}' AND
+                        tujuan = 'PEMUSNAHAN' 
                     GROUP BY
                         master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
                 ) x
@@ -2022,6 +2207,7 @@ class FGStokLaporanController extends Controller
                             - COALESCE(qty_keluar_qa_before,0)
                             - COALESCE(qty_keluar_ekspedisi_before,0)
                             - COALESCE(qty_keluar_packing_central_before,0)
+                            - COALESCE(qty_pemusnahan_before,0)
                     END
                 ) AS saldo_awal_gudang_stok,
                 qty_terima_qc_reject,
@@ -2032,6 +2218,7 @@ class FGStokLaporanController extends Controller
                 qty_keluar_qa,
                 qty_keluar_ekspedisi,
                 qty_keluar_packing_central,
+                qty_pemusnahan,
                 (
                     CASE
                         WHEN '" . $tgl_awal . "' = '" . $saldo_awal . "'
@@ -2046,6 +2233,7 @@ class FGStokLaporanController extends Controller
                             - COALESCE(qty_keluar_qa_before,0)
                             - COALESCE(qty_keluar_ekspedisi_before,0)
                             - COALESCE(qty_keluar_packing_central_before,0)
+                            - COALESCE(qty_pemusnahan_before,0)
                     END
                     + COALESCE(qty_terima_qc_reject,0)
                     + COALESCE(qty_terima_ekspedisi,0)
@@ -2055,6 +2243,7 @@ class FGStokLaporanController extends Controller
                     - COALESCE(qty_keluar_qa,0)
                     - COALESCE(qty_keluar_ekspedisi,0)
                     - COALESCE(qty_keluar_packing_central,0)
+                    - COALESCE(qty_pemusnahan,0)
                 ) AS saldo_akhir_gudang_stok
             FROM
                 all_data
@@ -2119,7 +2308,7 @@ class FGStokLaporanController extends Controller
             'Color',
             'Size',
             'Transit Terima Gudang Stok', '', '', '', '', '', '', '', '', '', '',
-            'Gudang Stok', '', '', '', '', '', '', '', '', ''
+            'Gudang Stok', '', '', '', '', '', '', '', '', '', ''
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -2133,7 +2322,7 @@ class FGStokLaporanController extends Controller
         $sheet->mergeCells('D4:D5');
         $sheet->mergeCells('E4:E5');
         $sheet->mergeCells('F4:P4');
-        $sheet->mergeCells('Q4:Z4');
+        $sheet->mergeCells('Q4:AA4');
 
         $sheet->setCellStyle('A4:E4', [
             'fill'   => '#ADD8E6',
@@ -2145,7 +2334,7 @@ class FGStokLaporanController extends Controller
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('Q4:Z4', [
+        $sheet->setCellStyle('Q4:AA4', [
             'fill'   => '#FFFFE0',
             'text-align' => 'center',
         ]);
@@ -2173,6 +2362,7 @@ class FGStokLaporanController extends Controller
             'Keluar QA',
             'Keluar Ekspedisi',
             'Keluar Packing Central',
+            'Pemusnahan',
             'Saldo Akhir',
         ], [
             'font-style' => 'bold',
@@ -2191,7 +2381,7 @@ class FGStokLaporanController extends Controller
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('Q5:Z5', [
+        $sheet->setCellStyle('Q5:AA5', [
             'fill'   => '#FFFFE0',
             'text-align' => 'center',
         ]);
@@ -2226,13 +2416,14 @@ class FGStokLaporanController extends Controller
                 (float) ($row->qty_keluar_qa ?? 0),
                 (float) ($row->qty_keluar_ekspedisi ?? 0),
                 (float) ($row->qty_keluar_packing_central ?? 0),
+                (float) ($row->qty_pemusnahan ?? 0),
                 (float) ($row->saldo_akhir_gudang_stok ?? 0),
             ];
 
             $sheet->writeRow($rows, ['border' => 'thin',]);
         }
 
-        foreach (range('A', 'Z') as $col) {
+        foreach (array_merge(range('A', 'Z'), ['AA']) as $col) {
             $sheet->setColWidth($col, 20);
         }
 

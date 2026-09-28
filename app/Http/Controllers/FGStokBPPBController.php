@@ -9,6 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use App\Exports\ExportLaporanPengeluaranFGStokBPPB;
 
 
@@ -419,8 +420,169 @@ class FGStokBPPBController extends Controller
     }
 
 
+    // public function export_excel_bppb_fg_stok(Request $request)
+    // {
+    //     return Excel::download(new ExportLaporanPengeluaranFGStokBPPB($request->from, $request->to), 'Laporan_Pengeluaran FG_Stok.xlsx');
+    // }
+
     public function export_excel_bppb_fg_stok(Request $request)
     {
-        return Excel::download(new ExportLaporanPengeluaranFGStokBPPB($request->from, $request->to), 'Laporan_Pengeluaran FG_Stok.xlsx');
+        $tgl_awal = $request->from;
+        $tgl_akhir = $request->to;
+
+        $data = DB::select("
+            select
+                a.id,
+                no_trans_out,
+                tgl_pengeluaran,
+                concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
+                ) tgl_pengeluaran_fix,
+                a.id_so_det,
+                m.product_group,
+                m.product_item,
+                buyer,
+                ws,
+                brand,
+                styleno,
+                color,
+                size,
+                a.qty_out,
+                a.grade,
+                no_carton,
+                lokasi,
+                tujuan_pengeluaran,
+                tujuan,
+                no_dok,
+                a.created_by,
+                created_at,
+                requester,
+                keterangan,
+                CASE
+                    WHEN tujuan = 'PACKING CENTRAL'
+                        AND COALESCE(p.qty_in, 0) >= a.qty_out
+                        THEN 'TERIMA'
+
+                    WHEN tujuan = 'PACKING CENTRAL'
+                        AND COALESCE(p.qty_in, 0) < a.qty_out
+                        THEN 'PENDING'
+
+                    ELSE 'KIRIM'
+                END AS status
+            from fg_stok_bppb a
+            left join master_sb_ws m on a.id_so_det = m.id_so_det
+            LEFT JOIN (
+                SELECT
+                    fg_stok_bppb_id,
+                    SUM(qty) AS qty_in
+                FROM packing_packing_in
+                GROUP BY fg_stok_bppb_id
+            ) p ON p.fg_stok_bppb_id = a.id
+            where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
+            order by tgl_pengeluaran desc,substr(no_trans_out,14) desc
+        ");
+
+        $fileName = 'laporan-pengeluaran-fg-stock';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Laporan Pengeluaran FG Stok'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $tgl_awal . ' s/d ' . $tgl_akhir],
+            [
+                'halign' => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow([
+            'No',
+            'No. Trans Out',
+            'Tgl. Pengeluaran',
+            'ID SO Det',
+            'Buyer',
+            'Product Group',
+            'Product Item',
+            'WS',
+            'Brand',
+            'Style',
+            'Color',
+            'Size',
+            'Qty',
+            'Grade',
+            'No. Carton',
+            'Lokasi',
+            'Requester',
+            'Tujuan Penerima',
+            'Jenis Pengeluaran',
+            'Keterangan',
+            'Status',
+            'No Dok',
+            'User',
+            'Tgl. Input',
+        ], [
+            'fill'       => '#ADD8E6',
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+            'valign'     => 'center',
+        ]);
+
+        $sheet->mergeCells('A1:X1');
+        $sheet->mergeCells('A2:X2');
+
+        $no = 1;
+
+        foreach ($data as $row) {
+
+            $rows = [
+                $no++,
+                $row->no_trans_out,
+                $row->tgl_pengeluaran_fix,
+                $row->id_so_det,
+                $row->buyer,
+                $row->product_group,
+                $row->product_item,
+                $row->ws,
+                $row->brand,
+                $row->styleno,
+                $row->color,
+                $row->size,
+                (float) ($row->qty_out ?? 0),
+                $row->grade,
+                $row->no_carton,
+                $row->lokasi,
+                $row->requester,
+                $row->tujuan,
+                $row->tujuan_pengeluaran,
+                $row->keterangan,
+                $row->status,
+                $row->no_dok,
+                $row->created_by,
+                $row->created_at,
+            ];
+
+            $rows = array_map(fn ($value) => $value ?? '', $rows);
+            $sheet->writeRow($rows, ['border' => 'thin']);
+        }
+
+        foreach (range('A', 'X') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        $sheet->setColWidth('A', 6);
+
+        return $excel->download($fileName . '.xlsx');
     }
 }
