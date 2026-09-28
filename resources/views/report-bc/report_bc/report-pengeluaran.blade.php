@@ -252,9 +252,10 @@
                             <th>Nomor Daftar</th>
                             <th>Tanggal Daftar</th>
                             <th>Nama Penerima</th>
-                            <th>No BPPB</th>
-                            <th>Tanggal BPPB</th>
+                            <th>No BPB</th>
+                            <th>Tanggal BPB</th>
                             <th>No WS</th>
+                            <th>ID Content</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
                             <th>Jumlah Satuan</th>
@@ -265,7 +266,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        
+
                     </tbody>
                 </table>
             </div>
@@ -282,8 +283,8 @@
             let table = $('#tabel-report').DataTable({
                 "processing": true,
                 "scrollX": true,
-                "scrollY": "800px",     
-                "scrollCollapse": true, 
+                "scrollY": "800px",
+                "scrollCollapse": true,
                 "paging": true,
                 "ajax": {
                     url: `{{ route('get_pengeluaran_data') }}`,
@@ -304,8 +305,9 @@
                     { data: 'tanggal_daftar' },
                     { data: 'nama_pengirim' },
                     { data: 'nomor_bpb' },
-                    { data: 'tanggal_bpb' }, 
+                    { data: 'tanggal_bpb' },
                     { data: 'ws' },
+                    { data: 'id_item' },
                     { data: 'uraian_barang' },
                     { data: 'jenis_satuan' },
                     { data: 'jumlah_satuan', className: 'text-right font-weight-bold' },
@@ -336,7 +338,7 @@
 
                 $.ajax({
                     type: "get",
-                    url: `{{ route('export_excel_pengeluaran_bc') }}`, 
+                    url: `{{ route('export_excel_pengeluaran_bc') }}`,
                     data: {
                         from: $('#from').val(),
                         to: $('#to').val(),

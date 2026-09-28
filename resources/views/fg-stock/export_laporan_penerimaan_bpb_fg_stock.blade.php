@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='13'>Laporan Penerimaan</td>
+        <td colspan='14'>Laporan Penerimaan</td>
     </tr>
     <tr>
-        <td colspan='13'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='14'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <tr>
@@ -22,6 +22,7 @@
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Brand</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Style</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Grade</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">ID So Det</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">WS</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Size</th>
@@ -43,6 +44,7 @@
                 <td>{{ $item->brand }}</td>
                 <td>{{ $item->styleno }}</td>
                 <td>{{ $item->grade }}</td>
+                <td>{{ $item->id_so_det }}</td>
                 <td>{{ $item->ws }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>

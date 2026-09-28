@@ -106,15 +106,10 @@ class LapDetPengeluaranController extends Controller
     //     return Excel::download(new ExportLaporanPengeluaran($request->from, $request->to), 'Laporan_pengeluaran_fabric.xlsx');
     // }
 
-    public function export_excel_pengeluaran(Request $request)
-{
-    $from = $request->from;
-    $to   = $request->to;
-
-    // ==============================
-    // SQL
-    // ==============================
-    $sql = "select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,IFNULL(ro.no_po,'-') no_po, no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
+    // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
+    public function exportSql($from, $to)
+    {
+        return "select a.*, b.styleno style_aktual, cp.nama_panel,cp.color_gmt from ((select a.no_bppb bppbno,a.no_req bppbno_req,a.tgl_bppb bppbdate,IFNULL(ro.no_po,'-') no_po, no_invoice invno,a.dok_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju tanggal_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.tujuan supplier,b.id_item, s.id_gen, goods_code, itemdesc,s.color,s.size, sum(b.qty_out) qty,0 as qty_good,0 as qty_reject, b.satuan unit,'' berat_bersih,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,ac.kpno ws,ac.styleno,b.curr,b.price,br.idws_act,'' jenis_trans,IF(a.jenis_pengeluaran is null,'-',a.jenis_pengeluaran) jenis_pengeluaran, b.id_jo
         from whs_bppb_h a
         inner join whs_bppb_det b on b.no_bppb = a.no_bppb
         left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
@@ -135,6 +130,17 @@ class LapDetPengeluaranController extends Controller
         left join po_header_draft z on z.id = po.id_draft
         left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo
         where a.tgl_mut BETWEEN  '" . $from . "' and '" . $to . "')) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo left join (select id_jo,a.id_item,group_concat(distinct(nama_panel)) nama_panel, group_concat(distinct(color)) color_gmt from bom_jo_item a left join masterpanel mp on a.id_panel = mp.id left join so_det sd on a.id_so_det = sd.id where status = 'M' and a.cancel = 'N' group by id_item, id_jo) cp on a.id_gen = cp.id_item and a.id_jo = cp.id_jo";
+    }
+
+    public function export_excel_pengeluaran(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = $this->exportSql($from, $to);
 
     $data = DB::connection('mysql_sb')->select($sql);
 

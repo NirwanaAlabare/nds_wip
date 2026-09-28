@@ -263,7 +263,7 @@
                             <th>Nama Pengirim</th>
                             <th>Nomor BPB</th>
                             <th>Tanggal BPB</th>
-                            <th>WS</th>
+                            <th>{{ $kategoriBarang == 'fabric' ? 'Id Content' : 'WS' }}</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
                             <th>Jumlah Satuan</th>

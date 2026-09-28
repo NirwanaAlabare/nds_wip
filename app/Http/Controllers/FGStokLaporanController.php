@@ -760,6 +760,7 @@ class FGStokLaporanController extends Controller
         $query = DB::select("
             SELECT
                 a.id,
+                m.id_so_det,
                 a.no_trans,
                 a.tgl_terima,
                 CONCAT(
@@ -789,6 +790,7 @@ class FGStokLaporanController extends Controller
 
             SELECT
                 a.id,
+                m.id_so_det,
                 a.no_trans,
                 a.tgl_terima,
                 CONCAT(
@@ -818,6 +820,7 @@ class FGStokLaporanController extends Controller
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                master_sb_ws.id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -836,7 +839,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
                 fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
@@ -847,6 +850,7 @@ class FGStokLaporanController extends Controller
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                master_sb_ws.id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -865,7 +869,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
                 fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
@@ -876,6 +880,7 @@ class FGStokLaporanController extends Controller
 
             SELECT
                 fg_stok_penerimaan_packing.id,
+                master_sb_ws.id_so_det,
                 fg_stok_penerimaan_packing.no_trans,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima,
                 DATE_FORMAT(fg_stok_penerimaan_packing.created_at, '%d-%m-%Y') AS tgl_terima_fix,
@@ -894,7 +899,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id
             LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
             WHERE
                 fg_stok_penerimaan_packing.created_at BETWEEN '$tgl_awal 00:00:00' AND '$tgl_akhir 23:59:59'
@@ -1877,7 +1882,7 @@ class FGStokLaporanController extends Controller
                         0 qty_pemusnahan
                     FROM
                         packing_packing_in
-                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
                     WHERE
                         tgl_penerimaan <= '{$tgl_akhir}' and
                         sumber = 'FGS'
@@ -1927,7 +1932,7 @@ class FGStokLaporanController extends Controller
                         0 qty_pemusnahan
                     FROM
                         packing_out_gudang_stok
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id
                     WHERE
                         created_at <= '{$tgl_akhir} 23:59:59' and
                         lokasi_asal = 'TEMPORARY PACKING'
@@ -1977,7 +1982,7 @@ class FGStokLaporanController extends Controller
                         0 qty_pemusnahan
                     FROM
                         packing_out_gudang_stok
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id
                     WHERE
                         created_at <= '{$tgl_akhir} 23:59:59' and
                         lokasi_asal = 'PACKING CENTRAL'
@@ -2027,7 +2032,7 @@ class FGStokLaporanController extends Controller
                         0 qty_pemusnahan
                     FROM
                         fg_stok_penerimaan_packing
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id
                     LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
                     WHERE
                         fg_stok_penerimaan_packing.created_at <= '{$tgl_akhir} 23:59:59' AND
@@ -2078,7 +2083,7 @@ class FGStokLaporanController extends Controller
                         0 qty_pemusnahan
                     FROM
                         fg_stok_penerimaan_packing
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id 
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_penerimaan_packing.so_det_id
                     LEFT JOIN packing_out_gudang_stok ON packing_out_gudang_stok.id = fg_stok_penerimaan_packing.packing_out_gudang_stok_id
                     WHERE
                         fg_stok_penerimaan_packing.created_at <= '{$tgl_akhir} 23:59:59' AND
@@ -2340,7 +2345,11 @@ class FGStokLaporanController extends Controller
         ]);
 
         $sheet->writeRow([
-            '', '', '', '', '',
+            '',
+            '',
+            '',
+            '',
+            '',
             'Saldo Awal',
             'In QC Reject',
             'In Ekspedisi',

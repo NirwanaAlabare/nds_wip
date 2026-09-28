@@ -74,15 +74,10 @@ select 'M' id,a.id_item,unit satuan,sum(a.qty_mutasi) qty_out from whs_mut_lokas
     //     return Excel::download(new ExportLaporanMutGlobal($request->from, $request->to), 'Laporan_mutasi_global_fabric.xlsx');
     // }
 
-    public function export_excel_mut_global(Request $request)
-{
-    $from = $request->from;
-    $to   = $request->to;
-
-    // ==============================
-    // SQL
-    // ==============================
-    $sql = "select id_item,goods_code,itemdesc, color, size, unit,round((sal_awal - qty_out_sbl),2) sal_awal,round(qty_in,2) qty_in,ROUND(qty_out_sbl,2) qty_out_sbl,ROUND(qty_out,2) qty_out, round((sal_awal + qty_in - qty_out_sbl - qty_out),2) sal_akhir from (select id_item,goods_code,itemdesc, color, size, unit,SUM(sal_awal) sal_awal,SUM(qty_in) qty_in,SUM(qty_out_sbl) qty_out_sbl,SUM(qty_out) qty_out,SUM(fil) fil from (select a.id_item,a.goods_code,a.itemdesc, color, size, a.unit,COALESCE(sal_awal,0) sal_awal,COALESCE(qty_in,0) qty_in,COALESCE(qty_out_sbl,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (COALESCE(sal_awal,0) + COALESCE(qty_in,0)) fil from (
+    // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
+    public function exportSql($from, $to)
+    {
+        return "select id_item,goods_code,itemdesc, color, size, unit,round((sal_awal - qty_out_sbl),2) sal_awal,round(qty_in,2) qty_in,ROUND(qty_out_sbl,2) qty_out_sbl,ROUND(qty_out,2) qty_out, round((sal_awal + qty_in - qty_out_sbl - qty_out),2) sal_akhir from (select id_item,goods_code,itemdesc, color, size, unit,SUM(sal_awal) sal_awal,SUM(qty_in) qty_in,SUM(qty_out_sbl) qty_out_sbl,SUM(qty_out) qty_out,SUM(fil) fil from (select a.id_item,a.goods_code,a.itemdesc, color, size, a.unit,COALESCE(sal_awal,0) sal_awal,COALESCE(qty_in,0) qty_in,COALESCE(qty_out_sbl,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (COALESCE(sal_awal,0) + COALESCE(qty_in,0)) fil from (
             select a.id_item,a.unit,b.goods_code,b.itemdesc, b.color, b.size from (select id_item,unit from whs_sa_fabric  group by id_item,unit
             UNION
             select id_item,unit from whs_inmaterial_fabric_det group by id_item,unit) a inner join masteritem b on b.id_item = a.id_item group by id_item,unit) a left join
@@ -95,6 +90,17 @@ select 'M' id,a.id_item,unit satuan,sum(a.qty_mutasi) qty_in from whs_mut_lokasi
 UNION                       
 select 'M' id,a.id_item,unit satuan,sum(a.qty_mutasi) qty_out from whs_mut_lokasi a where a.status = 'Y' and tgl_mut BETWEEN '" . $from . "' and '" . $to . "' group by a.id_item,satuan) a group by id_item,satuan
 ) e on e.id_item = a.id_item and e.satuan = a.unit) a GROUP BY a.id_item,a.unit) a where fil != 0";
+    }
+
+    public function export_excel_mut_global(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = $this->exportSql($from, $to);
 
     $data = DB::connection('mysql_sb')->select($sql);
 

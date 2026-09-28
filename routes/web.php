@@ -42,6 +42,7 @@ use App\Http\Controllers\LapDetPengeluaranRollController;
 use App\Http\Controllers\LapMutasiBarcodeController;
 use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
+use App\Http\Controllers\RekonsiliasiMutasiController;
 use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
 use App\Http\Controllers\Marketing_BomController;
@@ -596,6 +597,14 @@ Route::middleware('auth')->group(function () {
         // export excel
         Route::get('/export_excel_mut_barcode', 'export_excel_mut_barcode')->name('export_excel_mut_barcode');
         // Route::get('/export', 'export')->name('export');
+    });
+
+    //rekonsiliasi mutasi (khusus admin_01, dicek di controller)
+    Route::controller(RekonsiliasiMutasiController::class)->prefix("rekonsiliasi-mutasi")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('rekonsiliasi-mutasi');
+        Route::get('/hitung', 'hitung')->name('rekonsiliasi-mutasi-hitung');
+        Route::get('/status', 'status')->name('rekonsiliasi-mutasi-status');
+        Route::get('/hasil', 'hasil')->name('rekonsiliasi-mutasi-hasil');
     });
 
     //konfirmasi penerimaan

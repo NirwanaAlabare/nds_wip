@@ -56,6 +56,7 @@ class StockerProcessRejectService
             if ($create) {
 
                 // Check Stocker Reject's Process
+                $additionalReject = 0;
                 $stockerRejectProcess = null;
                 if ($request['dc_in_id']) {
                     $stockerRejectProcess = DCIn::where("id", $request['dc_in_id'])->first();
@@ -65,11 +66,14 @@ class StockerProcessRejectService
                 }
                 if ($request['secondary_in_id']) {
                     $stockerRejectProcess = SecondaryIn::where("id", $request['secondary_in_id'])->first();
+
+                    $stockerRejectProcessUpdate = $stockerRejectProcess->secondaryInUpdate();
+                    $additionalReject += ($stockerRejectProcessUpdate->sum("reject") + $stockerRejectProcessUpdate->sum("replace"));
                 }
 
                 if ($stockerRejectProcess) {
                     $stockerRejectQty = $stockerReject->sum("qty_reject");
-                    $stockerRejectProcessQty = $stockerRejectProcess->qty_reject + $stockerRejectProcess->qty_replace;
+                    $stockerRejectProcessQty = $stockerRejectProcess->qty_reject + $stockerRejectProcess->qty_replace + $additionalReject;
 
                     if ($stockerRejectQty >= $stockerRejectProcessQty) {
                         return array(

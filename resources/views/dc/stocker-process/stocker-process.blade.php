@@ -200,7 +200,10 @@
                                             <span class="info-label text-success"><i class="fas fa-stream mr-1"></i> Line</span>
                                             <small class="text-muted font-weight-bold" id="modal-line-tgl">-</small>
                                         </div>
-                                        <div class="info-value text-truncate" id="modal-line-nama">-</div>
+                                        <div class="info-value d-flex justify-content-between align-items-center">
+                                            <span class="text-truncate" id="modal-line-nama">-</span>
+                                            <span class="badge badge-success font-weight-bold px-2 py-1" id="modal-loading-qty">Loading Qty: 0</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -428,13 +431,22 @@
                 ? item.sec_inhouse_qty_hasil 
                 : (item.qty_sec_inhouse_in || 0);
 
+            // Flag Badge HTML
+            let isRejectBadge = (item.stocker_reject > 0) 
+                ? `<span class="badge badge-danger font-weight-bold px-2 py-2" style="font-size: 12px;"><i class="fas fa-exclamation-triangle mr-1"></i>STOCKER REJECT</span>` 
+                : '';
+
+            let sourceQrBadge = item.stocker_source_qr 
+                ? `<span class="badge badge-warning text-dark font-weight-bold px-2 py-2" style="font-size: 12px;">Sumber : ${item.stocker_source_qr}</span>` 
+                : '';
+
             return `
                 <div class="col-12 mb-4">
                     <div class="card stocker-card h-100 shadow-sm">
                         <!-- Header Kartu Stocker -->
                         <div class="card-header bg-white border-bottom">
                             <div class="row justify-content-between align-items-center py-2">
-                                <div class="col-6">
+                                <div class="col-8">
                                     <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
                                         <span class="badge bg-sb font-weight-bold px-3 py-2" style="font-size: 14px;">
                                             <i class="fas fa-qrcode mr-1"></i> ${item.id_qr_stocker || '-'}
@@ -443,9 +455,10 @@
                                             Qty Ply: ${item.qty_stocker || 0}
                                         </span>
                                         ${item.part_status ? `<span class="badge badge-info font-weight-bold px-2 py-2" style="font-size: 12px;"><i class="fas fa-info-circle mr-1"></i>${item.part_status.toUpperCase()}</span>` : ''}
+                                        ${isRejectBadge}${sourceQrBadge}
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <button class="btn btn-sm btn-sb-secondary font-weight-bold float-end" onclick="openDetailModal(${index})">
                                         <i class="fas fa-list-alt mr-1"></i> Detail Riwayat Transaksi
                                     </button>
@@ -523,8 +536,11 @@
                                                 <i class="far fa-calendar-alt mr-1"></i> ${item.tanggal_loading || '-'}
                                             </span>
                                         </div>
-                                        <div class="info-value text-truncate" title="${item.nama_line || '-'}">
-                                            ${item.nama_line || '-'}
+                                        <div class="info-value d-flex justify-content-between align-items-center">
+                                            <span class="text-truncate" title="${item.nama_line || '-'}">${item.nama_line || '-'}</span>
+                                            <span class="badge badge-success font-weight-bold px-2 py-1" style="font-size: 11px;">
+                                                Loading Qty: ${item.loading_qty || 0}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -610,11 +626,12 @@
             $('#modal-panel').text(item.panel || '-');
             $('#modal-part-status').html(item.part_status ? `<span class="badge badge-primary">${item.part_status.toUpperCase()}</span>` : '-');
 
-            // Populasi Info Trolley & Line pada Modal
+            // Populasi Info Trolley, Line, dan Loading Qty pada Modal
             $('#modal-trolley-nama').text(item.nama_trolley || '-');
             $('#modal-trolley-tgl').text(item.tanggal_trolley || '-');
             $('#modal-line-nama').text(item.nama_line || '-');
             $('#modal-line-tgl').text(item.tanggal_loading || '-');
+            $('#modal-loading-qty').text('Loading Qty: ' + (item.loading_qty || 0));
 
             // 1. DC IN
             let htmlDc = '';

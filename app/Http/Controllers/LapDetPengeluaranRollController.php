@@ -84,15 +84,10 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $requ
     // }
 
 
-    public function export_excel_roll(Request $request)
-{
-    $from = $request->from;
-    $to   = $request->to;
-
-    // ==============================
-    // SQL
-    // ==============================
-    $sql = "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+    // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
+    public function exportSql($from, $to)
+    {
+        return "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
 left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
@@ -113,6 +108,17 @@ left join so on tmpjod.id_so=so.id
 
 left join act_costing ac on so.id_cost=ac.id  
 where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $from . "' and '" . $to . "' GROUP BY b.id order by a.no_mut) a";
+    }
+
+    public function export_excel_roll(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = $this->exportSql($from, $to);
 
     $data = DB::connection('mysql_sb')->select($sql);
 

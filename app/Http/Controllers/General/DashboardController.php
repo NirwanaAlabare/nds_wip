@@ -17,6 +17,7 @@ use App\Events\CuttingChartUpdated;
 use App\Events\CuttingChartUpdatedAll;
 use App\Exports\ExportTrackStocker;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
+use Carbon\Carbon;
 use DB;
 use Excel;
 
@@ -1783,6 +1784,9 @@ class DashboardController extends Controller
                 $year = $data['year'];
             }
 
+            $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+            $endDate   = Carbon::create($year, $month, 1)->endOfMonth();
+
             $dc = Stocker::selectRaw("
                     stocker_input.id stocker_id,
                     stocker_input.id_qr_stocker,
@@ -1795,7 +1799,7 @@ class DashboardController extends Controller
                     stocker_input.shade,
                     stocker_input.ratio,
                     master_part.nama_part,
-                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(sec_in_update.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
                     stocker_input.status,
                     dc_in_input.id dc_in_id,
                     dc_in_input.tgl_trans tanggal_dc,
@@ -1805,7 +1809,7 @@ class DashboardController extends Controller
                     (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
                     COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                     COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-                    COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
+                    COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) + COALESCE(sec_in_update.qty_reject, 0)), stocker_input.qty_ply) dc_in_qty,
                     (CASE WHEN stocker_input.form_piece_id THEN CONCAT(form_cut_piece.no_form, ' / ', form_cut_piece.no_cut) ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) END) no_cut,
                     form_cut_input.no_form,
                     form_cut_input.no_cut no_cut_only,
@@ -1820,16 +1824,29 @@ class DashboardController extends Controller
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin(DB::raw("
+                    (
+                        SELECT
+                            secondary_in_id,
+                            (0 - SUM(reject) + SUM(`replace`)) qty_reject
+                        FROM
+                            secondary_in_update
+                        GROUP BY
+                            secondary_in_id
+                    ) sec_in_update
+                "), "sec_in_update.secondary_in_id", "=", "secondary_in_input.id")->
                 leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                whereRaw("(form_cut_input.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
-                OR form_cut_reject.updated_at BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
-                OR form_cut_piece.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59'))")->
+                where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('form_cut_input.waktu_selesai', [$startDate, $endDate])
+                        ->orWhereBetween('form_cut_reject.updated_at', [$startDate, $endDate])
+                        ->orWhereBetween('form_cut_piece.waktu_selesai', [$startDate, $endDate]);
+                })->
                 whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_piece.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
                 orderBy("stocker_input.act_costing_ws", "asc")->
                 orderBy("stocker_input.color", "asc")->

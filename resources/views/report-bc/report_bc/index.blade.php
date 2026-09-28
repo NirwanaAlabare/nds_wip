@@ -340,21 +340,21 @@
     <script>
         $(document).ready(function() {
 
-             $('#from_date').on('change', function() {
-                let fromDateVal = $(this).val();
+            //  $('#from_date').on('change', function() {
+            //     let fromDateVal = $(this).val();
                 
-                $('#to_date').attr('min', fromDateVal);
+            //     $('#to_date').attr('min', fromDateVal);
                 
-                let toDateVal = $('#to_date').val();
-                if (toDateVal && toDateVal < fromDateVal) {
-                    $('#to_date').val('');
-                }
-            });
+            //     let toDateVal = $('#to_date').val();
+            //     if (toDateVal && toDateVal < fromDateVal) {
+            //         $('#to_date').val('');
+            //     }
+            // });
 
-            $('#to_date').on('change', function() {
-                let toDateVal = $(this).val();
-                $('#from_date').attr('max', toDateVal);
-            });
+            // $('#to_date').on('change', function() {
+            //     let toDateVal = $(this).val();
+            //     $('#from_date').attr('max', toDateVal);
+            // });
 
             $('.select2').select2({
                 theme: 'bootstrap4',
