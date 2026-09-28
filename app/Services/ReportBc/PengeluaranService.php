@@ -731,6 +731,7 @@ class PengeluaranService
                 ->where('a.bppbno_int', 'NOT LIKE', 'FG%')
                 ->where('a.bppbno_int', 'NOT LIKE', 'OFC%')
                 ->where('a.bppbno_int', 'NOT LIKE', 'GK%')
+                ->where('a.bppbno_int', 'NOT LIKE', 'WIP%')
                 ->where('a.cancel', 'N')
                 ->whereBetween('a.bppbdate', [$fromDate, $toDate]);
 
