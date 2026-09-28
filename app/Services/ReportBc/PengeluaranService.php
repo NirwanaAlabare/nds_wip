@@ -520,11 +520,123 @@ class PengeluaranService
         }
 
 
-        if (in_array($kategori, ['all', 'fabric'])) {
+        // if (in_array($kategori, ['all', 'fabric'])) {
 
-            $is2026         = $fromDate >= '2026-01-01';
-            $jenisDokMutasi = $is2026 ? "'INHOUSE'" : "m.type_bc";
-            $currMutasi     = $is2026 ? "'IDR'" : "'-'";
+
+        //     $contentsJoin = "
+        //         LEFT JOIN masterdesc sd ON s.id_gen = sd.id
+        //         LEFT JOIN mastercolor sc ON sd.id_color = sc.id
+        //         LEFT JOIN masterweight sw ON sc.id_weight = sw.id
+        //         LEFT JOIN masterlength sl ON sw.id_length = sl.id
+        //         LEFT JOIN masterwidth swd ON sl.id_width = swd.id
+        //         LEFT JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+        //     ";
+
+        //     $sqlFabric = "
+        //         SELECT
+        //             a.dok_bc AS jenis_dokumen,
+        //             LPAD(a.no_daftar, 6, '0') AS bcno,
+        //             a.tgl_daftar AS bcdate,
+        //             a.no_bppb AS trans_no,
+        //             a.tgl_bppb AS bppbdate,
+        //             a.tujuan AS supplier,
+        //             b.id_item AS id_item,
+        //             IFNULL(mcnt.id, CONCAT('item_', s.id_item)) AS id_contents,
+        //             IFNULL(mcnt.nama_contents, s.itemdesc) AS itemdesc,
+        //             b.satuan AS unit,
+        //             SUM(b.qty_out) AS qty,
+        //             b.curr AS curr,
+        //             ROUND(SUM(b.qty_out * IFNULL(b.price, 0)), 2) AS nilai_barang,
+        //             ac.kpno AS ws,
+        //             s.matclass AS matclass
+        //         FROM whs_bppb_h a
+        //         INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+        //         INNER JOIN masteritem s ON b.id_item = s.id_item
+        //         {$contentsJoin}
+        //         LEFT JOIN (SELECT id_jo, id_so FROM jo_det GROUP BY id_jo) tmpjod ON tmpjod.id_jo = b.id_jo
+        //         LEFT JOIN so ON tmpjod.id_so = so.id
+        //         LEFT JOIN act_costing ac ON so.id_cost = ac.id
+        //         WHERE LEFT(a.no_bppb, 2) = 'GK'
+        //         AND b.status != 'N'
+        //         AND a.status != 'cancel'
+        //         AND a.tgl_bppb BETWEEN ? AND ?
+        //         GROUP BY b.id_jo, b.id_item, b.satuan, b.no_bppb
+
+        //         UNION ALL
+
+        //         SELECT
+        //             {$jenisDokMutasi} AS jenis_dokumen,
+        //             LPAD(m.no_daftar, 6, '0') AS bcno,
+        //             m.tgl_daftar AS bcdate,
+        //             m.no_mut AS trans_no,
+        //             m.tgl_mut AS bppbdate,
+        //             'Mutasi Lokasi' AS supplier,
+        //             m.id_item AS id_item,
+        //             IFNULL(mcnt.id, CONCAT('item_', s.id_item)) AS id_contents,
+        //             IFNULL(mcnt.nama_contents, s.itemdesc) AS itemdesc,
+        //             m.unit AS unit,
+        //             m.qty AS qty,
+        //             {$currMutasi} AS curr,
+        //             0 AS nilai_barang,
+        //             tmpjo.kpno AS ws,
+        //             s.matclass AS matclass
+        //         FROM (
+        //             SELECT a.no_mut, a.tgl_mut, c.type_bc, c.no_daftar, c.tgl_daftar,
+        //                 a.id_item, SUM(a.qty_mutasi) AS qty, a.unit, a.id_jo
+        //             FROM whs_mut_lokasi a
+        //             INNER JOIN whs_mut_lokasi_h mut ON mut.no_mut = a.no_mut
+        //             LEFT JOIN whs_inmaterial_fabric c ON c.no_dok = a.no_bpb
+        //             WHERE a.status = 'Y' AND a.no_mut LIKE 'MT%'
+        //             GROUP BY a.no_mut, a.id_item, a.id_jo, a.unit
+        //         ) m
+        //         INNER JOIN masteritem s ON m.id_item = s.id_item
+        //         {$contentsJoin}
+        //         LEFT JOIN (
+        //             SELECT id_jo, kpno
+        //             FROM act_costing ac
+        //             INNER JOIN so ON ac.id = so.id_cost
+        //             INNER JOIN jo_det jod ON so.id = jod.id_so
+        //             GROUP BY id_jo
+        //         ) tmpjo ON tmpjo.id_jo = m.id_jo
+        //         WHERE m.tgl_mut BETWEEN ? AND ?
+        //     ";
+
+        //     $fabric = $mysql_sb->query()
+        //         ->fromRaw("({$sqlFabric}) as a", [$fromDate, $toDate, $fromDate, $toDate])
+        //         ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
+        //             $join->on('mr.tanggal', '=', 'a.bcdate')
+        //                 ->on('mr.curr', '=', 'a.curr');
+        //         })
+        //         ->select(
+        //             DB::raw("'' as kode_kantor"),
+        //             DB::raw("MAX(a.jenis_dokumen) as jenis_dokumen"),
+        //             DB::raw("MAX(a.ws) as ws"),
+        //             DB::raw("MAX(a.matclass) as kategori_barang"),
+        //             DB::raw("GROUP_CONCAT(DISTINCT a.bcno ORDER BY a.bcno SEPARATOR ', ') as nomor_daftar"),
+        //             DB::raw("MIN(a.bcdate) as tanggal_daftar"),
+        //             DB::raw("GROUP_CONCAT(DISTINCT a.supplier ORDER BY a.supplier SEPARATOR ', ') as nama_pengirim"),
+        //             DB::raw("GROUP_CONCAT(DISTINCT a.trans_no ORDER BY a.trans_no SEPARATOR ', ') as nomor_bpb"),
+        //             DB::raw("MIN(a.bppbdate) as tanggal_bpb"),
+        //             'a.id_contents as id_item',
+        //             DB::raw("GROUP_CONCAT(DISTINCT a.itemdesc ORDER BY a.itemdesc SEPARATOR ', ') as uraian_barang"),
+        //             DB::raw("MAX(a.unit) as jenis_satuan"),
+        //             DB::raw("SUM(a.qty) as jumlah_satuan"),
+        //             DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
+        //             DB::raw("SUM(a.nilai_barang) as nilai_barang"),
+        //             DB::raw('COALESCE(mr.rate, 1) as kurs'),
+        //             DB::raw('SUM(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+        //         )
+        //         ->groupBy('a.id_contents', 'a.trans_no')
+        //         ->orderBy('a.bcdate', 'ASC')
+        //         ->orderBy('a.bcno', 'ASC')
+        //         ->orderBy('a.trans_no', 'ASC')
+        //         ->get();
+
+        //     $result = $result->concat($fabric);
+        // }
+
+
+        if (in_array($kategori, ['all', 'fabric'])) {
 
             $contentsJoin = "
                 LEFT JOIN masterdesc sd ON s.id_gen = sd.id
@@ -564,48 +676,10 @@ class PengeluaranService
                 AND a.status != 'cancel'
                 AND a.tgl_bppb BETWEEN ? AND ?
                 GROUP BY b.id_jo, b.id_item, b.satuan, b.no_bppb
-
-                UNION ALL
-
-                SELECT
-                    {$jenisDokMutasi} AS jenis_dokumen,
-                    LPAD(m.no_daftar, 6, '0') AS bcno,
-                    m.tgl_daftar AS bcdate,
-                    m.no_mut AS trans_no,
-                    m.tgl_mut AS bppbdate,
-                    'Mutasi Lokasi' AS supplier,
-                    m.id_item AS id_item,
-                    IFNULL(mcnt.id, CONCAT('item_', s.id_item)) AS id_contents,
-                    IFNULL(mcnt.nama_contents, s.itemdesc) AS itemdesc,
-                    m.unit AS unit,
-                    m.qty AS qty,
-                    {$currMutasi} AS curr,
-                    0 AS nilai_barang,
-                    tmpjo.kpno AS ws,
-                    s.matclass AS matclass
-                FROM (
-                    SELECT a.no_mut, a.tgl_mut, c.type_bc, c.no_daftar, c.tgl_daftar,
-                        a.id_item, SUM(a.qty_mutasi) AS qty, a.unit, a.id_jo
-                    FROM whs_mut_lokasi a
-                    INNER JOIN whs_mut_lokasi_h mut ON mut.no_mut = a.no_mut
-                    LEFT JOIN whs_inmaterial_fabric c ON c.no_dok = a.no_bpb
-                    WHERE a.status = 'Y' AND a.no_mut LIKE 'MT%'
-                    GROUP BY a.no_mut, a.id_item, a.id_jo, a.unit
-                ) m
-                INNER JOIN masteritem s ON m.id_item = s.id_item
-                {$contentsJoin}
-                LEFT JOIN (
-                    SELECT id_jo, kpno
-                    FROM act_costing ac
-                    INNER JOIN so ON ac.id = so.id_cost
-                    INNER JOIN jo_det jod ON so.id = jod.id_so
-                    GROUP BY id_jo
-                ) tmpjo ON tmpjo.id_jo = m.id_jo
-                WHERE m.tgl_mut BETWEEN ? AND ?
             ";
 
             $fabric = $mysql_sb->query()
-                ->fromRaw("({$sqlFabric}) as a", [$fromDate, $toDate, $fromDate, $toDate])
+                ->fromRaw("({$sqlFabric}) as a", [$fromDate, $toDate])
                 ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
                     $join->on('mr.tanggal', '=', 'a.bcdate')
                         ->on('mr.curr', '=', 'a.curr');
