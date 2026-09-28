@@ -2130,7 +2130,7 @@ class FGStokLaporanController extends Controller
                         0 qty_inbound_stok_gudang_temporary,
                         0 qty_inbound_stok_gudang_central_before,
                         0 qty_inbound_stok_gudang_central,
-                        SUM(IF(tgl_pengeluaran < '{$tgl_awal}', qty_out,0)) AS qty_pemusnahan_before,
+                        SUM(IF(tgl_pengeluaran >= '2026-09-01' AND tgl_pengeluaran < '{$tgl_awal}', qty_out,0)) AS qty_pemusnahan_before,
                         SUM(IF(tgl_pengeluaran >= '{$tgl_awal}', qty_out,0)) AS qty_pemusnahan
                     FROM
                         fg_stok_bppb
