@@ -134,7 +134,7 @@ class PemasukanService
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
-                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
+                ->whereNotIn('a.id_supplier', ['1038', '1039'])
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
@@ -199,7 +199,7 @@ class PemasukanService
                     DB::raw("IFNULL(m.styleno, ac.styleno) as kode_brg"),
                     DB::raw("CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc"),
                     DB::raw("'PCS' as unit"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("COUNT(*) as qty"),
                     DB::raw("'-' as curr"),
                     DB::raw("0 as nilai_barang"),
                     DB::raw("0 as berat_bersih"),
