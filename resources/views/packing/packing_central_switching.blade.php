@@ -499,9 +499,9 @@
                 processResults: function(data) {
                     return {
                         results: data.map(item => ({
-                            id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id,
+                            id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id + '-' + (item.packing_packing_in_id ?? 0),
                             ppic_id: item.id_ppic_master_so ?? 0,
-                            text: item.po + ' | ' + item.color + ' | ' + item.size,
+                            text: item.po + ' | ' + item.ws + ' | ' + item.color + ' | ' + item.size,
                             packing_packing_in_id: item.packing_packing_in_id,
                             so_det_id: item.so_det_id,
                             po: item.po,

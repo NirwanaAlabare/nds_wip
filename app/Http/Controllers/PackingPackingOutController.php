@@ -926,6 +926,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                         + COALESCE(pack_switch_in.qty_switch_masuk, 0)
                         - COALESCE(pack_out.tot_out, 0)
                         - COALESCE(pack_switch.qty_switch, 0)
+                        - COALESCE(pack_out_gudang_stok.qty, 0)
                     ) AS tot_s
 
                 FROM ppic_master_so p
@@ -1010,6 +1011,20 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                     ON p.id = pack_switch_in.tujuan_ppic_master_so_id
                     AND p.id_so_det = pack_switch_in.tujuan_so_det_id
 
+                LEFT JOIN
+                (
+                    SELECT
+                        ppic_master_so_id,
+                        so_det_id,
+                        SUM(qty) AS qty
+                    FROM packing_out_gudang_stok
+                    WHERE lokasi_asal = 'PACKING CENTRAL'
+                    GROUP BY
+                        ppic_master_so_id,
+                        so_det_id
+                ) pack_out_gudang_stok
+                    ON p.id = pack_out_gudang_stok.ppic_master_so_id
+                    AND p.id_so_det = pack_out_gudang_stok.so_det_id
                 WHERE p.barcode = '$barcode'
                 AND p.po = '$cek_dest_po'
                 AND p.dest = '$dest'
@@ -1792,7 +1807,7 @@ group by po, no_carton, notes
                     SELECT
                         id_ppic_master_so,
                         id_so_det,
-                        qty
+                        SUM(qty) AS qty
                     FROM fg_fg_out
                     WHERE status = 'RETUR'
                     GROUP BY
@@ -1974,35 +1989,39 @@ group by po, no_carton, notes
                     ) AS qty_sisa
                 FROM (
                     SELECT
+                        po,
                         id_ppic_master_so,
                         id_so_det,
                         SUM(qty) AS qty_in
                     FROM packing_packing_in
                     WHERE sumber IN ('Sewing', 'FGS', 'TEMPORARY PACKING')
                         AND po = ?
-                    GROUP BY id_ppic_master_so, id_so_det
+                    GROUP BY po, id_ppic_master_so, id_so_det
                 ) pin
                 LEFT JOIN (
                     SELECT
                         id_ppic_master_so,
                         id_so_det,
-                        qty
+                        SUM(qty) AS qty
                     FROM fg_fg_out
                     WHERE status = 'RETUR'
                     GROUP BY id_ppic_master_so, id_so_det
                 ) retur
                     ON retur.id_so_det = pin.id_so_det
-                    AND retur.id_ppic_master_so = pin.id_ppic_master_so
+                    AND COALESCE(retur.id_ppic_master_so, 0) = COALESCE(pin.id_ppic_master_so, 0)
                 LEFT JOIN (
                     SELECT
-                        asal_ppic_master_so_id,
-                        asal_so_det_id,
-                        SUM(qty_switch) AS qty
-                    FROM packing_central_switching
-                    GROUP BY asal_ppic_master_so_id, asal_so_det_id
+                        asal.po,
+                        sw.asal_ppic_master_so_id,
+                        sw.asal_so_det_id,
+                        SUM(sw.qty_switch) AS qty
+                    FROM packing_central_switching sw
+                    INNER JOIN packing_packing_in asal ON asal.id = sw.packing_packing_in_id
+                    GROUP BY asal.po, sw.asal_ppic_master_so_id, sw.asal_so_det_id
                 ) switch_out
                     ON switch_out.asal_so_det_id = pin.id_so_det
-                    AND switch_out.asal_ppic_master_so_id = pin.id_ppic_master_so
+                    AND COALESCE(switch_out.asal_ppic_master_so_id, 0) = COALESCE(pin.id_ppic_master_so, 0)
+                    AND switch_out.po = pin.po
                 LEFT JOIN (
                     SELECT
                         tujuan_ppic_master_so_id,
@@ -2023,18 +2042,20 @@ group by po, no_carton, notes
                     GROUP BY id_ppic, id_so_det
                 ) scan
                     ON scan.id_so_det = pin.id_so_det
-                    AND scan.id_ppic = pin.id_ppic_master_so
+                    AND COALESCE(scan.id_ppic, 0) = COALESCE(pin.id_ppic_master_so, 0)
                 LEFT JOIN (
                     SELECT
+                        po,
                         ppic_master_so_id,
                         so_det_id,
                         SUM(qty) AS qty
                     FROM packing_out_gudang_stok
                     WHERE lokasi_asal = 'PACKING CENTRAL'
-                    GROUP BY ppic_master_so_id, so_det_id
+                    GROUP BY po, ppic_master_so_id, so_det_id
                 ) out_gudang_stok
                     ON out_gudang_stok.so_det_id = pin.id_so_det
-                    AND out_gudang_stok.ppic_master_so_id = pin.id_ppic_master_so
+                    AND COALESCE(out_gudang_stok.ppic_master_so_id, 0) = COALESCE(pin.id_ppic_master_so, 0)
+                    AND out_gudang_stok.po = pin.po
             ) stok
             WHERE stok.qty_sisa >= 1
         ";
