@@ -126,20 +126,24 @@ class PemasukanService
         // ===== 3. QUERY BARANG JADI =====
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
 
+            $subMsw = function ($query) {
+                $query->from('laravel_nds.master_sb_ws')
+                      ->select('id_so_det', DB::raw('MAX(styleno) as styleno'), DB::raw('MAX(color) as color'), DB::raw('MAX(ws) as ws'))
+                      ->groupBy('id_so_det');
+            };
+
             $queryBarangJadi = $mysql_sb->table('bpb as a')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
                 ->join('so', 'sod.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
+                ->leftJoinSub($subMsw, 'msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereNotIn('a.id_supplier', ['1038', '1039'])
-
                 ->whereBetween($dateField, [$fromDate, $toDate])
-
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
@@ -151,7 +155,7 @@ class PemasukanService
                 ->groupBy('ac.kpno', 'a.bpbno_int', 'a.id_so_det');
 
             $queryFgStokBpb = $mysql_sb->table('laravel_nds.fg_stok_bpb as a')
-                ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+                ->leftJoinSub($subMsw, 'm', 'a.id_so_det', '=', 'm.id_so_det')
                 ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
                 ->join('so', 'sd.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
@@ -184,7 +188,7 @@ class PemasukanService
                 ->groupBy('ac.kpno', 'a.no_trans', 'a.id_so_det');
 
             $queryFgStokBpbScan = $mysql_sb->table('laravel_nds.fg_stok_bpb_scan as a')
-                ->leftJoin('laravel_nds.master_sb_ws as m', 'a.id_so_det', '=', 'm.id_so_det')
+                ->leftJoinSub($subMsw, 'm', 'a.id_so_det', '=', 'm.id_so_det')
                 ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
                 ->join('so', 'sd.id_so', '=', 'so.id')
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
