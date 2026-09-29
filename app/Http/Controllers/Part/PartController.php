@@ -2184,7 +2184,7 @@ class PartController extends Controller
                 Log::channel('deletePartDetail')->info([
                     "Deleting Data",
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                    DB::table("part_detail")->where('id', $id)->get(),
+                    $partDetail,
                     DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
                     DB::table("stocker_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
@@ -2198,7 +2198,7 @@ class PartController extends Controller
 
                 $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
                 // $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
-                $deleteStocker = Stocker::where('part_detail_id', $id)->update("cancel", "y");
+                $deleteStocker = Stocker::where('part_detail_id', $id)->update(["cancel" => "y"]);
                 $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
