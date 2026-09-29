@@ -141,6 +141,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
+                ->where('sod.cancel', 'N')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereNotIn('a.id_supplier', ['1038', '1039'])
                 ->whereBetween($dateField, [$fromDate, $toDate])
@@ -162,6 +163,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
                 ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
@@ -195,6 +197,7 @@ class PemasukanService
                 ->where('a.cancel', 'N')
                 ->where('so.cancel_h', 'N')
                 ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereBetween('a.tgl_terima', [$fromDate, $toDate])
                 ->whereNotIn('a.sumber_pemasukan', ['EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'])
                 ->select([
