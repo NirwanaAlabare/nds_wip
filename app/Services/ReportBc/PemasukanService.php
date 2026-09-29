@@ -133,9 +133,13 @@ class PemasukanService
                 ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
                 ->leftJoin('laravel_nds.master_sb_ws as msw', 'a.id_so_det', '=', 'msw.id_so_det')
                 ->where('a.cancel', 'N')
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
                 ->where('a.bpbno_int', 'like', 'FG%')
                 ->whereNotIn('a.id_supplier', ['1038', '1039'])
+
                 ->whereBetween($dateField, [$fromDate, $toDate])
+
                 ->select($selectData(
                     "a.jenis_dok as jenis_dokumen",
                     "a.bcdate",
