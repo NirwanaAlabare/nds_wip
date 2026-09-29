@@ -436,51 +436,82 @@
         });
     }
 
+    let hasSearched = false;
+
     let listTable = $("#list-table").DataTable({
         ordering: false,
         processing: true,
         serverSide: false,
         searching: true,
-        ajax: {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            type: 'post',
-            url: '{{ route('check-output-qr-detail-list') }}',
-            dataType: 'json',
-            dataSrc: 'data',
-            scrollY: '400px',
-            data: function(d) {
-                d.buyer = $('#buyer').val();
-                d.ws = $('#ws').val();
-                d.style = $('#style option:selected').text();
-                d.color = $('#color').val();
-                d.size = $('#size').val();
-                d.tanggal_loading_awal = $('#tanggal_loading_awal').val();
-                d.tanggal_loading_akhir = $('#tanggal_loading_akhir').val();
-                d.line_loading = $('#line_loading').val();
-                d.tanggal_plan_awal = $('#tanggal_plan_awal').val();
-                d.tanggal_plan_akhir = $('#tanggal_plan_akhir').val();
-                d.tanggal_output_awal = $('#tanggal_output_awal').val();
-                d.tanggal_output_akhir = $('#tanggal_output_akhir').val();
-                d.line_output = $('#line_output').val();
-                d.status_output = $('#status_output').val();
-                d.defect_output = $('#defect_output').val();
-                d.allocation_output = $('#allocation_output').val();
-                d.tanggal_packing_awal = $('#tanggal_packing_awal').val();
-                d.tanggal_packing_akhir = $('#tanggal_packing_akhir').val();
-                d.line_packing = $('#line_packing').val();
-                d.status_packing = $('#status_packing').val();
-                d.defect_packing = $('#defect_packing').val();
-                d.allocation_packing = $('#allocation_packing').val();
-                d.back_date = $('#back_date').is(':checked') ? true : null;
-                d.back_date_packing = $('#back_date_packing').is(':checked') ? true : null;
-                d.missmatch_code = $('#missmatch_code').is(':checked') ? true : null;
-                d.missmatch_code_packing = $('#missmatch_code_packing').is(':checked') ? true : null;
-                d.crossline_output = $('#crossline_output').is(':checked') ? true : null;
-                d.crossline_loading = $('#crossline_loading').is(':checked') ? true : null;
-                d.kode = $('#kode').val();
-            },
+        ajax: function (dtParams, callback, settings) {
+            
+            if (!hasSearched) {
+                callback({ data: [] });
+                return;
+            }
+
+            let d = $.extend({}, dtParams);
+
+            d.buyer = $('#buyer').val();
+            d.ws = $('#ws').val();
+            d.style = $('#style option:selected').text();
+            d.color = $('#color').val();
+            d.size = $('#size').val();
+            d.tanggal_loading_awal = $('#tanggal_loading_awal').val();
+            d.tanggal_loading_akhir = $('#tanggal_loading_akhir').val();
+            d.line_loading = $('#line_loading').val();
+            d.tanggal_plan_awal = $('#tanggal_plan_awal').val();
+            d.tanggal_plan_akhir = $('#tanggal_plan_akhir').val();
+            d.tanggal_output_awal = $('#tanggal_output_awal').val();
+            d.tanggal_output_akhir = $('#tanggal_output_akhir').val();
+            d.line_output = $('#line_output').val();
+            d.status_output = $('#status_output').val();
+            d.defect_output = $('#defect_output').val();
+            d.allocation_output = $('#allocation_output').val();
+            d.tanggal_packing_awal = $('#tanggal_packing_awal').val();
+            d.tanggal_packing_akhir = $('#tanggal_packing_akhir').val();
+            d.line_packing = $('#line_packing').val();
+            d.status_packing = $('#status_packing').val();
+            d.defect_packing = $('#defect_packing').val();
+            d.allocation_packing = $('#allocation_packing').val();
+            d.back_date = $('#back_date').is(':checked') ? true : null;
+            d.back_date_packing = $('#back_date_packing').is(':checked') ? true : null;
+            d.missmatch_code = $('#missmatch_code').is(':checked') ? true : null;
+            d.missmatch_code_packing = $('#missmatch_code_packing').is(':checked') ? true : null;
+            d.crossline_output = $('#crossline_output').is(':checked') ? true : null;
+            d.crossline_loading = $('#crossline_loading').is(':checked') ? true : null;
+            d.kode = $('#kode').val();
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'post',
+                url: '{{ route('check-output-qr-detail-list') }}',
+                dataType: 'json',
+                data: d,
+                beforeSend: function () {
+                    Swal.fire({
+                        title: "Loading",
+                        html: "Please Wait...",
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                    });
+                },
+                success: function (json) {
+                    callback(json);
+                },
+                error: function (xhr) {
+                    callback({ data: [] });
+                    Swal.fire("Error", "Gagal mengambil data", "error");
+                },
+                complete: function () {
+                    Swal.close();
+                },
+            });
         },
         columns: [
             {
@@ -581,6 +612,7 @@
     });
 
     function listTableReload() {
+        hasSearched = true;
         listTable.ajax.reload();
     }
 

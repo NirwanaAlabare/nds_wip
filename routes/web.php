@@ -1556,12 +1556,12 @@ Route::middleware('auth')->group(function () {
 
     // Industrial Engineering
     // Dashboard
-    Route::controller(IEDashboardController::class)->middleware('role:management')->group(function () {
+    Route::controller(IEDashboardController::class)->middleware('role:ie')->group(function () {
         Route::get('/dashboard_IE', 'dashboard_IE')->name('dashboard-IE');
     });
 
     // Proses Industrial Engineering Master Process
-    Route::controller(IEMasterProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
+    Route::controller(IEMasterProcessController::class)->prefix("master")->middleware('role:ie')->group(function () {
         Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
         Route::post('/IE_save_master_process', 'IE_save_master_process')->name('IE_save_master_process');
         Route::get('/IE_show_master_process', 'IE_show_master_process')->name('IE_show_master_process');
@@ -1570,7 +1570,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/upload_excel_master_process', 'upload_excel_master_process')->name('upload_excel_master_process');
     });
     // Proses Industrial Engineering Master Part Process
-    Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
+    Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:ie')->group(function () {
         Route::get('/IE_master_part_process', 'IE_master_part_process')->name('IE_master_part_process');
         Route::get('/IE_master_part_process_show_new', 'IE_master_part_process_show_new')->name('IE_master_part_process_show_new');
         Route::post('/IE_save_master_part_process', 'IE_save_master_part_process')->name('IE_save_master_part_process');
@@ -1580,7 +1580,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Proses Industrial Engineering Operational Breakdown
-    Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
+    Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:ie')->group(function () {
         Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
         Route::get('/show_modal_proses_breakdown_new', 'show_modal_proses_breakdown_new')->name('show_modal_proses_breakdown_new');
         Route::get('/show_modal_summary_breakdown', 'show_modal_summary_breakdown')->name('show_modal_summary_breakdown');
@@ -1591,13 +1591,13 @@ Route::middleware('auth')->group(function () {
     });
 
     // Laporan Industrial Engineering Recap SMV
-    Route::controller(IE_Laporan_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+    Route::controller(IE_Laporan_Controller::class)->prefix("laporan")->middleware('role:ie')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
 
     // Industrial Engineering Output Perfomance Analyzer
-    Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+    Route::controller(IE_Output_Perfomance_Controller::class)->prefix("laporan")->middleware('role:ie')->group(function () {
         Route::get('/IE_output_performance', 'IE_output_performance')->name('IE_output_performance');
         Route::get('/IE_output_performance_styleno_suggest', 'styleno_suggest')->name('IE_output_performance_styleno_suggest');
     });
