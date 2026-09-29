@@ -30,10 +30,16 @@ class DashboardReportBcService
         'BC 27 Out' => ['pengeluaran' => 'BC 2.7'],
     ];
 
+    protected $pemasukanService;
+    protected $pengeluaranService;
+
     public function __construct(
-        protected PemasukanService $pemasukanService,
-        protected PengeluaranService $pengeluaranService
-    ) {}
+        PemasukanService $pemasukanService,
+        PengeluaranService $pengeluaranService
+    ) {
+        $this->pemasukanService = $pemasukanService;
+        $this->pengeluaranService = $pengeluaranService;
+    }
 
     public function getSummary(): array
     {
