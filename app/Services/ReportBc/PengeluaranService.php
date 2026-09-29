@@ -1650,4 +1650,107 @@ class PengeluaranService
         return $excel->download();
     }
 
+    public function getData(string $fromDate, string $toDate): array
+    {
+        $dateField = 'a.bcdate';
+        $mysql_sb  = DB::connection('mysql_sb');
+
+        $caseJenisDokumen = "
+            CASE
+                WHEN a.jenis_dok = 'BC 3.0' THEN 'BC 3.0'
+                WHEN a.jenis_dok = 'BC 2.6.1' AND a.bcno != '-' THEN 'BC 2.6.1 KELUAR'
+                WHEN a.jenis_dok = 'BC 2.7' AND a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN') THEN 'BC 2.7 OUT'
+                WHEN a.jenis_dok = 'BC 2.5' AND SUBSTRING(a.bppbno, 4, 2) = 'FG' THEN 'BC 2.5 FG'
+                WHEN a.jenis_dok = 'BC 2.5' THEN 'BC 2.5 SCRAP'
+                WHEN a.jenis_dok = 'BC 3.3' THEN 'BC 3.3'
+                WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.remark) LIKE '%SEWA%' THEN 'BC 4.1 SEWA'
+                WHEN a.jenis_dok = 'BC 4.1' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.1 SUBKON'
+                WHEN a.jenis_dok = 'BC 4.1' THEN 'BC 4.1 LOKAL'
+                ELSE a.jenis_dok
+            END
+        ";
+
+        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $idItemExpr, $matclassExpr) => [
+            DB::raw("$caseJenisDokumen as jenis_dokumen"),
+            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
+            'a.bcdate',
+            DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no"),
+            'a.bppbdate',
+            'd.supplier',
+            DB::raw("$kodeBrgExpr as kode_brg"),
+            DB::raw("$itemdescExpr as itemdesc"),
+            'a.unit',
+            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
+            DB::raw("ROUND(SUM(a.qty * IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price)), 2) as nilai_barang"),
+            DB::raw("$idItemExpr as id_item"),
+            DB::raw("$matclassExpr as matclass"),
+        ];
+
+        $queryBahanBaku = $mysql_sb->table('bppb as a')
+            ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
+            ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
+            ->where(function ($query) {
+                $query->where('a.jenis_dok', '!=', 'BC 2.7')
+                    ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
+            })
+            ->whereRaw("SUBSTRING(a.bppbno, 4, 2) != 'FG'")
+            ->whereRaw("a.cancel != 'Y'")
+            ->whereBetween($dateField, [$fromDate, $toDate])
+            ->select($selectData(
+                "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT(s.mattype, s.id_item))",
+                's.itemdesc',
+                'a.id_item',
+                's.matclass'
+            ))
+            ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
+
+        $queryBarangJadi = $mysql_sb->table('bppb as a')
+            ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+            ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
+            ->where(function ($query) {
+                $query->where('a.jenis_dok', '!=', 'BC 2.7')
+                    ->orWhereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN']);
+            })
+            ->whereRaw("SUBSTRING(a.bppbno, 4, 2) = 'FG'")
+            ->whereRaw("a.cancel != 'Y'")
+            ->whereBetween($dateField, [$fromDate, $toDate])
+            ->select($selectData(
+                "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
+                's.itemname',
+                's.id_so_det',
+                "'BARANG JADI'"
+            ))
+            ->groupBy('a.bcno', 'a.bppbno', 'a.id_item', 'a.price', 'a.jenis_dok', 'a.remark', 'a.tujuan');
+
+        $unionQuery = $queryBahanBaku->unionAll($queryBarangJadi);
+
+        $rateSubQuery = $mysql_sb->table('masterrate')
+            ->select('tanggal', 'curr', 'rate')
+            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
+            ->groupBy('tanggal', 'curr');
+
+        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
+            ->mergeBindings($unionQuery)
+            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
+                $join->on('mr.tanggal', '=', 'a.bcdate')
+                    ->on('mr.curr', '=', 'a.curr');
+            })
+            ->select(
+                'a.jenis_dokumen',
+                'a.matclass as kategori_barang',
+                'a.bcno as nomor_daftar',
+                'a.bcdate as tanggal_daftar',
+                'a.trans_no as nomor_bpb',
+                'a.curr as kode_valuta',
+                'a.nilai_barang',
+                DB::raw('COALESCE(mr.rate, 1) as kurs'),
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+            )
+            ->get()
+            ->toArray();
+    }
+
 }

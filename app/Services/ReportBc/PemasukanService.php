@@ -1048,4 +1048,105 @@ class PemasukanService
 
         return $excel->download();
     }
+    public function getData(string $fromDate, string $toDate): array
+    {
+        $dateField = 'a.bcdate';
+        $mysql_sb  = DB::connection('mysql_sb');
+
+        $caseJenisDokumen = "
+            CASE
+                WHEN a.jenis_dok = '2.3' AND a.invno LIKE '%PJT%' THEN 'BC 2.3 IMPOR PJT'
+                WHEN a.jenis_dok = '2.3' AND a.invno NOT LIKE '%PJT%' AND a.invno NOT LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.3'
+                WHEN a.jenis_dok = '2.6.2' THEN 'BC 2.6.2'
+                WHEN a.jenis_dok = '2.7' THEN 'BC 2.7'
+                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) NOT LIKE '%SUBKON%' THEN 'BC 4.0'
+                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) LIKE '%SEWA%' THEN 'BC 4.0 (SEWA)'
+                WHEN a.jenis_dok = '4.0' AND UPPER(a.invno) NOT LIKE '%SEWA%' AND UPPER(a.tujuan) LIKE '%SUBKON%' THEN 'BC 4.0 SUBKON'
+                WHEN d.area = 'I' AND a.invno LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%' THEN 'BC 2.0 IMPOR PIB'
+                WHEN d.area = 'I' AND a.invno LIKE '%PIBK%' THEN 'BC 2.1 IMPOR PIBK'
+                WHEN d.status_kb = 'KITTE' AND d.area = 'L' THEN 'BC 2.4 KITTE'
+                ELSE __ELSE_RULE__
+            END
+        ";
+
+        $selectData = fn ($jenisDokElse, $bcdateExpr, $kodeBrgExpr, $itemdescExpr, $matclassExpr) => [
+            DB::raw(str_replace('__ELSE_RULE__', $jenisDokElse, $caseJenisDokumen) . " as jenis_dokumen"),
+            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
+            DB::raw("$bcdateExpr as bcdate"),
+            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
+            'a.bpbdate',
+            'd.supplier',
+            DB::raw("$kodeBrgExpr as kode_brg"),
+            DB::raw("$itemdescExpr as itemdesc"),
+            'a.unit',
+            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
+            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty), 2) as nilai_barang"),
+            'a.berat_bersih',
+            'a.berat_kotor',
+            DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
+            'a.tujuan',
+            'a.id_item',
+            DB::raw("$matclassExpr as matclass"),
+        ];
+
+        $queryBahanBaku = $mysql_sb->table('bpb as a')
+            ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
+            ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+            ->where('a.cancel', 'N')
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
+            ->where('a.bpbno', 'not like', 'FG%')
+            ->whereBetween($dateField, [$fromDate, $toDate])
+            ->select($selectData(
+                'a.jenis_dok',
+                "IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate)",
+                "IF(s.goods_code = '' OR s.goods_code = '-' OR s.goods_code = '0', CONCAT(s.mattype, ' ', a.id_item), s.goods_code)",
+                "CONCAT_WS(' ', s.itemdesc, s.color, s.size, s.add_info)",
+                's.matclass'
+            ))
+            ->groupBy('a.bcno', 'a.bpbno', 'a.id_item', 'a.price');
+
+        $queryBarangJadi = $mysql_sb->table('bpb as a')
+            ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+            ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+            ->where('a.cancel', 'N')
+            ->where('a.jenis_dok', '!=', 'INHOUSE')
+            ->where('a.bpbno', 'like', 'FG%')
+            ->whereBetween($dateField, [$fromDate, $toDate])
+            ->select($selectData(
+                "'N/A'",
+                'a.bcdate',
+                "IF(s.goods_code = '' OR s.goods_code = '-' OR s.goods_code = '0', CONCAT('FG ', a.id_item), s.goods_code)",
+                's.itemname',
+                "'BARANG JADI'"
+            ))
+            ->groupBy('a.bcno', 'a.bpbno', 'a.id_item', 'a.price');
+
+        $unionQuery = $queryBahanBaku->unionAll($queryBarangJadi);
+
+        $rateSubQuery = $mysql_sb->table('masterrate')
+            ->select('tanggal', 'curr', 'rate')
+            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
+            ->groupBy('tanggal', 'curr');
+
+        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
+            ->mergeBindings($unionQuery)
+            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
+                $join->on('mr.tanggal', '=', 'a.bcdate')
+                    ->on('mr.curr', '=', 'a.curr');
+            })
+            ->select(
+                'a.jenis_dokumen',
+                'a.matclass as kategori_barang',
+                'a.bcno as nomor_daftar',
+                'a.bcdate as tanggal_daftar',
+                'a.trans_no as nomor_bpb',
+                'a.curr as kode_valuta',
+                'a.nilai_barang',
+                DB::raw('COALESCE(mr.rate, 1) as kurs'),
+                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr')
+            )
+            ->get()
+            ->toArray();
+    }
 }
