@@ -470,7 +470,7 @@
         </a>
         @endrole
 
-        @role('management')
+        @role('ie')
         <a href="{{ route('dashboard-IE') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/IE.png') }}" alt="IE"></div>
             <span class="menu-label">Industrial Engineering</span>
