@@ -1965,16 +1965,8 @@ class MutasiService
     //     ]);
     // }
 
-    public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
-    {
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', 120);
 
-        $mysql_sb = DB::connection('mysql_sb');
-        $baselineDate = '2022-10-01';
-
-
-        // $sql = "
+    // $sql = "
         //     SELECT
         //         ac.kpno AS ws,
         //         ac.styleno AS styleno,
@@ -2130,6 +2122,14 @@ class MutasiService
         //     ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         // ";
 
+    public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', 120);
+
+        $mysql_sb = DB::connection('mysql_sb');
+        $baselineDate = '2022-10-01';
+
         $sql = "WITH erp AS (
                     SELECT id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM saldoawal_fg
@@ -2255,41 +2255,39 @@ class MutasiService
                 )
 
                 SELECT
-                        a.id_so_det,
-                        id_item,
-                       ac.kpno,
-                       ac.styleno,
-                       IFNULL(msw.product_group, '-') AS product_group,
-                        IFNULL(msw.product_item, '-') AS product_item,
-                --     sd.color,
-                --     sd.size,
-                        sd.cancel,
-                        so.cancel_h,
-                        ac.aktif,
-                    COALESCE(SUM(sa), 0)          AS saldo_awal,
-                    COALESCE(SUM(penerimaan), 0)  AS penerimaan,
+                    a.id_so_det,
+                    msw.id_item,
+                    ac.kpno,
+                    ac.styleno,
+                    IFNULL(msw.product_group, '-') AS product_group,
+                    IFNULL(msw.product_item, '-') AS product_item,
+                    sd.cancel,
+                    so.cancel_h,
+                    ac.aktif,
+                    COALESCE(SUM(sa), 0) AS saldo_awal,
+                    COALESCE(SUM(penerimaan), 0) AS penerimaan,
                     COALESCE(SUM(pengeluaran), 0) AS pengeluaran,
-                    COALESCE(SUM(sa), 0)
-                    + COALESCE(SUM(penerimaan), 0)
-                    - COALESCE(SUM(pengeluaran), 0) AS saldo_akhir
+                    COALESCE(SUM(sa), 0) + COALESCE(SUM(penerimaan), 0) - COALESCE(SUM(pengeluaran), 0) AS saldo_akhir
                 FROM (
                     SELECT id_so_det, saldo_awal AS sa, 0 AS penerimaan, 0 AS pengeluaran
                     FROM saldo_awal
-
                     UNION ALL
-
                     SELECT id_so_det, 0, penerimaan, pengeluaran
                     FROM mut_ongoing
                 ) a
                 INNER JOIN so_det sd      ON a.id_so_det = sd.id
                 INNER JOIN so             ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                LEFT JOIN masterstyle ms on a.id_so_det = ms.id_so_det
-                LEFT JOIN laravel_nds.master_sb_ws msw ON a.id_so_det = msw.id_so_det
+                LEFT JOIN masterstyle ms  ON a.id_so_det = ms.id_so_det
+                LEFT JOIN (
+                    SELECT id_so_det, MAX(ws) AS id_item, MAX(product_group) AS product_group, MAX(product_item) AS product_item
+                    FROM laravel_nds.master_sb_ws
+                    GROUP BY id_so_det
+                ) msw ON a.id_so_det = msw.id_so_det
                 WHERE sd.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
-                GROUP BY kpno
+                GROUP BY ac.kpno, ac.styleno, msw.product_group, msw.product_item, sd.cancel, so.cancel_h, ac.aktif
                 HAVING saldo_awal <> 0
                     OR penerimaan <> 0
                     OR pengeluaran <> 0
