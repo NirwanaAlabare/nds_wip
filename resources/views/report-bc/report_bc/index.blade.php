@@ -325,7 +325,7 @@
                         <button type="submit" class="btn btn-primary w-100 text-white" id="btn-tampilkan">
                             <i class="fas fa-search mr-1"></i> Tampilkan
                         </button>
-                        
+
                     </div>
                 </div>
             </form>
@@ -342,9 +342,9 @@
 
             //  $('#from_date').on('change', function() {
             //     let fromDateVal = $(this).val();
-                
+
             //     $('#to_date').attr('min', fromDateVal);
-                
+
             //     let toDateVal = $('#to_date').val();
             //     if (toDateVal && toDateVal < fromDateVal) {
             //         $('#to_date').val('');
@@ -523,6 +523,16 @@
                 let fromDate = $('#from_date').val();
                 let toDate = $('#to_date').val();
                 let kategoriBarang = $('#kategori_barang').val();
+
+                if (fromDate && toDate && fromDate > toDate) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Range Tanggal Salah',
+                        text: 'Tanggal awal tidak boleh lebih besar dari tanggal akhir.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return;
+                }
 
                 if (!jenis) {
                     Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Silakan pilih jenis laporan terlebih dahulu', confirmButtonColor: '#3085d6' });
