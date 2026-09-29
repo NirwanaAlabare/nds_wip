@@ -2130,6 +2130,11 @@ class MutasiService
         $mysql_sb = DB::connection('mysql_sb');
         $baselineDate = '2022-10-01';
 
+        $whereCondition = '';
+        if($fromDate >= '2024-01-01'){
+            $whereCondition = "AND id_supplier NOT IN ('1038','1039')";
+        }
+
         $sql = "WITH erp AS (
                     SELECT id_so_det, saldo AS saldo_awal, 0 AS penerimaan, 0 AS pengeluaran
                     FROM saldoawal_fg
@@ -2140,8 +2145,9 @@ class MutasiService
                     SELECT id_so_det, 0, SUM(qty), 0
                     FROM bpb
                     WHERE bpbdate >= ? AND bpbdate < ?
-                    AND bpbno LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
+                    AND bpbno LIKE 'FG%'
                             AND bpb.cancel = 'N'
+                            $whereCondition
                     GROUP BY id_so_det
 
                     UNION ALL
@@ -2149,8 +2155,9 @@ class MutasiService
                     SELECT id_so_det, 0, 0, SUM(qty)
                     FROM bppb
                     WHERE bppbdate >= ? AND bppbdate < ?
-                    AND bppbno LIKE 'SJ-FG%' AND id_supplier NOT IN ('1038','1039')
+                    AND bppbno LIKE 'SJ-FG%'
                             AND bppb.cancel = 'N'
+                            $whereCondition
                     GROUP BY id_so_det
                 ),
                 gabung AS (
@@ -2167,6 +2174,7 @@ class MutasiService
                     AND sumber_pemasukan NOT IN ('EKSPEDISI', 'EXPEDISI', 'MUTASI INTERNAL')
                             AND fg_stok_bpb.cancel = 'N'
                     GROUP BY id_so_det
+
 
                     UNION ALL
 
@@ -2199,17 +2207,20 @@ class MutasiService
                         SELECT id_item, id_so_det, SUM(qty) penerimaan, 0 pengeluaran
                         FROM bpb
                         WHERE bpbdate >= ? AND bpbdate <= ?
-                        AND bpbno LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
+                        AND bpbno LIKE 'FG%'
                                     AND bpb.cancel = 'N'
+                                    $whereCondition
                         GROUP BY id_so_det
+
 
                         UNION ALL
 
                         SELECT id_item, id_so_det, 0, SUM(qty)
                         FROM bppb
                         WHERE bppbdate >= ? AND bppbdate <= ?
-                        AND bppbno LIKE 'SJ-FG%' AND id_supplier NOT IN ('1038','1039')
+                        AND bppbno LIKE 'SJ-FG%'
                                     AND bppb.cancel = 'N'
+                                    $whereCondition
                         GROUP BY id_so_det
                     ),
                     gabung AS (
