@@ -2122,7 +2122,6 @@ class MutasiService
         //     ORDER BY ws ASC, color ASC, tgl_transaksi ASC
         // ";
 
-
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang)
     {
         ini_set('memory_limit', '1024M');
@@ -2138,14 +2137,12 @@ class MutasiService
 
                     UNION ALL
 
-                    SELECT bpb.id_so_det, 0, SUM(IF(bpb.qty = 0, IFNULL(bpb.qty_temp, 0), bpb.qty)), 0
+                    SELECT id_so_det, 0, SUM(qty), 0
                     FROM bpb
-                    INNER JOIN so_det sod ON bpb.id_so_det = sod.id
                     WHERE bpbdate >= ? AND bpbdate < ?
-                    AND bpbno_int LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
+                    AND bpbno LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
                             AND bpb.cancel = 'N'
-                            AND sod.cancel = 'N'
-                    GROUP BY bpb.id_so_det
+                    GROUP BY id_so_det
 
                     UNION ALL
 
@@ -2164,25 +2161,21 @@ class MutasiService
                     UNION ALL
 
                     -- NDS penerimaan
-                    SELECT fg_stok_bpb.id_so_det, 0, SUM(qty), 0
+                    SELECT id_so_det, 0, SUM(qty), 0
                     FROM laravel_nds.fg_stok_bpb
-                    INNER JOIN so_det sd ON fg_stok_bpb.id_so_det = sd.id
                     WHERE tgl_terima >= ? AND tgl_terima < ?
                     AND sumber_pemasukan NOT IN ('EKSPEDISI', 'EXPEDISI', 'MUTASI INTERNAL')
                             AND fg_stok_bpb.cancel = 'N'
-                            AND sd.cancel = 'N'
-                    GROUP BY fg_stok_bpb.id_so_det
+                    GROUP BY id_so_det
 
                     UNION ALL
 
-                    SELECT fg_stok_bpb_scan.id_so_det, 0, COUNT(*), 0
+                    SELECT id_so_det, 0, COUNT(*), 0
                     FROM laravel_nds.fg_stok_bpb_scan
-                    INNER JOIN so_det sd ON fg_stok_bpb_scan.id_so_det = sd.id
                     WHERE tgl_terima >= ? AND tgl_terima < ?
                     AND sumber_pemasukan NOT IN ('EKSPEDISI', 'EXPEDISI', 'MUTASI INTERNAL')
                             AND fg_stok_bpb_scan.cancel = 'N'
-                            AND sd.cancel = 'N'
-                    GROUP BY fg_stok_bpb_scan.id_so_det
+                    GROUP BY id_so_det
 
                     UNION ALL
 
@@ -2203,14 +2196,12 @@ class MutasiService
                 ),
                 mut_ongoing AS (
                     WITH erp AS (
-                        SELECT bpb.id_item, bpb.id_so_det, SUM(IF(bpb.qty = 0, IFNULL(bpb.qty_temp, 0), bpb.qty)) penerimaan, 0 pengeluaran
+                        SELECT id_item, id_so_det, SUM(qty) penerimaan, 0 pengeluaran
                         FROM bpb
-                        INNER JOIN so_det sod ON bpb.id_so_det = sod.id
                         WHERE bpbdate >= ? AND bpbdate <= ?
-                        AND bpbno_int LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
+                        AND bpbno LIKE 'FG%' AND id_supplier NOT IN ('1038','1039')
                                     AND bpb.cancel = 'N'
-                                    AND sod.cancel = 'N'
-                        GROUP BY bpb.id_so_det
+                        GROUP BY id_so_det
 
                         UNION ALL
 
@@ -2229,25 +2220,21 @@ class MutasiService
                         UNION ALL
 
                         -- NDS penerimaan
-                        SELECT fg_stok_bpb.id_so_det, SUM(qty), 0
+                        SELECT id_so_det, SUM(qty), 0
                         FROM laravel_nds.fg_stok_bpb
-                        INNER JOIN so_det sd ON fg_stok_bpb.id_so_det = sd.id
                         WHERE tgl_terima >= ? AND tgl_terima <= ?
                         AND sumber_pemasukan NOT IN ('EKSPEDISI', 'EXPEDISI', 'MUTASI INTERNAL')
                                     AND fg_stok_bpb.cancel = 'N'
-                                    AND sd.cancel = 'N'
-                        GROUP BY fg_stok_bpb.id_so_det
+                        GROUP BY id_so_det
 
                         UNION ALL
 
-                        SELECT fg_stok_bpb_scan.id_so_det, COUNT(*), 0
+                        SELECT id_so_det, COUNT(*), 0
                         FROM laravel_nds.fg_stok_bpb_scan
-                        INNER JOIN so_det sd ON fg_stok_bpb_scan.id_so_det = sd.id
                         WHERE tgl_terima >= ? AND tgl_terima <= ?
                         AND sumber_pemasukan NOT IN ('EKSPEDISI', 'EXPEDISI', 'MUTASI INTERNAL')
                                     AND fg_stok_bpb_scan.cancel = 'N'
-                                    AND sd.cancel = 'N'
-                        GROUP BY fg_stok_bpb_scan.id_so_det
+                        GROUP BY id_so_det
 
                         UNION ALL
 
@@ -2291,6 +2278,7 @@ class MutasiService
                 INNER JOIN so_det sd      ON a.id_so_det = sd.id
                 INNER JOIN so             ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN masterstyle ms  ON a.id_so_det = ms.id_so_det
                 LEFT JOIN (
                     SELECT id_so_det, MAX(ws) AS id_item, MAX(product_group) AS product_group, MAX(product_item) AS product_item
                     FROM laravel_nds.master_sb_ws
