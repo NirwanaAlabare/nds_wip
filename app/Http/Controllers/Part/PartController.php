@@ -2039,17 +2039,6 @@ class PartController extends Controller
                 }
             }
 
-            // Check Part Form
-            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Part sudah memiliki Form Cut, tidak dapat diubah.',
-                    'redirect' => '',
-                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                    'additional' => [],
-                );
-            }
-
             // Update Part Detail Status to Inactive
             $partDetailUpdate = $partDetail->update([
                "status" => "inactive",
