@@ -2039,17 +2039,6 @@ class PartController extends Controller
                 }
             }
 
-            // Check Part Form
-            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Part sudah memiliki Form Cut, tidak dapat diubah.',
-                    'redirect' => '',
-                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                    'additional' => [],
-                );
-            }
-
             // Update Part Detail Status to Inactive
             $partDetailUpdate = $partDetail->update([
                "status" => "inactive",
@@ -2208,7 +2197,8 @@ class PartController extends Controller
                 ]);
 
                 $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
-                $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+                // $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+                $deleteStocker = Stocker::where('part_detail_id', $id)->update("cancel", "y");
                 $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
