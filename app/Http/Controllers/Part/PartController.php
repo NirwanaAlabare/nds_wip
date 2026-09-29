@@ -2208,7 +2208,8 @@ class PartController extends Controller
                 ]);
 
                 $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
-                $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+                // $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+                $deleteStocker = Stocker::where('part_detail_id', $id)->update("cancel", "y");
                 $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
