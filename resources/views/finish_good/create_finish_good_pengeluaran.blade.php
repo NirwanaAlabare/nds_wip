@@ -84,7 +84,7 @@
                                 name="tgl_pengeluaran" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="form-group">
                             <label><small><b>Buyer :</b></small></label>
                             <select class="form-control select2bs4" id="cbobuyer" name="cbobuyer" onchange="getpo();"
@@ -126,11 +126,19 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-5">
+                    <div class="col-sm-6">
                         <div class="form-group">
                             <label><small><b>Inv / SJ :</b></small></label>
                             <input type="text" class="form-control form-control-sm" id="txtinv" name="txtinv"
                                 style="width: 100%;" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label><small><b>Remark :</b></small></label>
+                            {{-- Disimpan ke signalbit_erp.bppb.remark (varchar 80) --}}
+                            <input type="text" class="form-control form-control-sm" id="txtremark" name="txtremark"
+                                maxlength="80" placeholder="Opsional" style="width: 100%;">
                         </div>
                     </div>
                 </div>
@@ -322,6 +330,7 @@
             $("#cbonotes").val('').trigger('change');
             $("#cbotipe_doc").val('').trigger('change');
             $("#txtinv").val('');
+            $("#txtremark").val('');
             $("#txtctn_awal").val('');
             $("#txtctn_akhir").val('');
             cleartmp();

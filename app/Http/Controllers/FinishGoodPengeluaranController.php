@@ -343,6 +343,8 @@ order by po asc, no_carton asc
 
         $jns_dok    = $_POST['cbotipe_doc'];
         $inv        = $_POST['txtinv'];
+        // Teks bebas, jadi dikirim sebagai binding (bukan disisipkan ke SQL) & dipotong sesuai kolom bppb.remark varchar(80)
+        $remark     = mb_substr(trim((string) $request->input('txtremark', '')), 0, 80);
 
         $update_data_bpbno = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = 'O.FG'");
         $data_bppbno = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = 'O.FG'");
@@ -366,7 +368,7 @@ where a.created_by = '$user'");
 
 
         $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
-                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,jenis_trans)
+                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,jenis_trans,remark)
                 select
 'SJ-FG$bppbno',
 '$bppbno_int',
@@ -390,7 +392,8 @@ sd.price,
 '0',
 'NDS',
 '$id_buyer',
-'$jenis_trans'
+'$jenis_trans',
+?
 from
 (
 select * from laravel_nds.fg_fg_out where no_sb = '$bppbno_int'
@@ -400,7 +403,7 @@ left join signalbit_erp.masterstyle ms on b.id_so_det = ms.id_so_det
 left join signalbit_erp.so_det sd on b.id_so_det = sd.id
 left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
-group by b.id_so_det");
+group by b.id_so_det", [$remark]);
 
         //         $update_karton =  DB::update("
         // update packing_master_carton a
@@ -528,6 +531,8 @@ order by po asc, no_carton asc, color asc, urutan asc
         $inv        = $_POST['txtinv'];
         $bppbno_int_fix  = $data_sb && $data_sb[0] ? $data_sb[0]->bppbno_int : '';
         $bppbno_fix  = $data_sb && $data_sb[0] ? $data_sb[0]->bppbno : '';
+        // Baris tambahan ikut memakai remark dokumen yang sudah ada
+        $remark_fix  = $data_sb && $data_sb[0] ? (string) $data_sb[0]->remark : '';
 
         $id_so_detArray         = $_POST['id_so_det'];
         $qtyArray               = $_POST['qty'];
@@ -546,8 +551,8 @@ order by po asc, no_carton asc, color asc, urutan asc
                 $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
 
                 $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
-                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
-        values('$bppbno_fix','$bppbno_int_fix','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','1','NDS','$id_buyer') ");
+                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,remark)
+        values('$bppbno_fix','$bppbno_int_fix','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','1','NDS','$id_buyer',?) ", [$remark_fix]);
             }
         }
 
