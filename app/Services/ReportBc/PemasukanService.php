@@ -101,7 +101,7 @@ class PemasukanService
                 ->where('s.matclass', 'FABRIC')
                 ->select([
                     DB::raw("wh.type_bc as jenis_dokumen"),
-                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
+                    DB::raw("wh.no_daftar as bcno"),
                     DB::raw("wh.tgl_dok as bcdate"),
                     DB::raw("wh.no_dok as trans_no"),
                     DB::raw("wh.tgl_dok as bpbdate"),
@@ -120,7 +120,7 @@ class PemasukanService
                     DB::raw("s.matclass as matclass"),
                     DB::raw("NULL as id_so_det")
                 ])
-                ->groupBy('mcnt.id', 'wd.unit');
+                ->groupBy('wh.no_daftar', 'wd.unit');
         }
 
         // ===== 3. QUERY BARANG JADI =====
@@ -1013,7 +1013,7 @@ class PemasukanService
             'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
             'Nomor BPB',
             'Tanggal BPB',
-            'No WS',
+            'ID Item',
             'Uraian Barang',
             'Jenis Satuan',
             'Jumlah Satuan',
