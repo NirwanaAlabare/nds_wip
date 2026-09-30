@@ -171,4 +171,83 @@ class AssetMasterTabController extends Controller
             'message' => "{$import->inserted} data berhasil diupload",
         ]);
     }
+
+    // Tab rusak dikirim repair: hanya tab yang sudah dikembalikan (IDLE), supaya fisiknya memang sudah di IT.
+    // Selama REPAIR, tab tidak bisa diambil di Transaksi Tab.
+    public function repair_master_tab(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+            'keterangan' => 'required|string|max:255',
+        ]);
+
+        return $this->changeRepairStatus($request->id, 'IDLE', 'REPAIR', trim($request->keterangan));
+    }
+
+    public function selesai_repair_master_tab(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        return $this->changeRepairStatus($request->id, 'REPAIR', 'IDLE', trim((string) $request->keterangan) ?: null);
+    }
+
+    // Ubah status repair dan catat di asset_trans_tab supaya muncul di Riwayat Monitoring Tab
+    private function changeRepairStatus($id, $fromStatus, $toStatus, $keterangan)
+    {
+        $repair = $toStatus === 'REPAIR';
+
+        DB::beginTransaction();
+
+        try {
+            $tab = DB::table('asset_master_tab')->where('id', $id)->lockForUpdate()->first();
+
+            if (!$tab || $tab->status !== $fromStatus) {
+                DB::rollBack();
+
+                if (!$tab) {
+                    $message = 'Tab tidak ditemukan.';
+                } elseif ($repair && $tab->status === 'TAKEN') {
+                    $message = 'Tab sedang dibawa. Kembalikan dulu lewat Transaksi Tab sebelum dikirim repair.';
+                } elseif ($repair) {
+                    $message = 'Tab sudah berstatus REPAIR.';
+                } else {
+                    $message = 'Tab tidak sedang REPAIR.';
+                }
+
+                return response()->json(['status' => 'error', 'message' => $message], $tab ? 409 : 404);
+            }
+
+            $timestamp = Carbon::now();
+
+            DB::table('asset_master_tab')->where('id', $id)->update([
+                'status' => $toStatus,
+                'lokasi' => 'IT',
+                'updated_at' => $timestamp,
+            ]);
+
+            DB::table('asset_trans_tab')->insert([
+                'tgl_trans' => $timestamp->format('Y-m-d'),
+                'rfid_code' => $tab->rfid_code,
+                'status' => $repair ? 'REPAIR' : 'SELESAI_REPAIR',
+                'tipe_input' => 'MASTER',
+                'keterangan' => $keterangan,
+                'created_by' => Auth::user()->name,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tab ' . ($tab->tab_code ?: $tab->rfid_code) . ($repair ? ' dikirim repair' : ' selesai repair dan siap dipakai'),
+        ]);
+    }
 }

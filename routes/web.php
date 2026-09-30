@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardFabricController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\Exim\DokumenPabeanController;
 use App\Http\Controllers\Exim\ExportImportController;
+use App\Http\Controllers\Exim\InvoiceEximController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -161,6 +162,8 @@ use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMasterTabController;
 use App\Http\Controllers\AssetTransTabController;
+use App\Http\Controllers\AssetMonitoringTabController;
+use App\Http\Controllers\AssetOpnameTabController;
 use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
@@ -1790,6 +1793,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_master_tab/delete', 'delete_master_tab')->name('delete_master_tab');
         Route::post('/asset_master_tab/delete_all', 'delete_all_master_tab')->name('delete_all_master_tab');
         Route::post('/asset_master_tab/import', 'import_master_tab')->name('import_master_tab');
+        Route::post('/asset_master_tab/repair', 'repair_master_tab')->name('repair_master_tab');
+        Route::post('/asset_master_tab/selesai_repair', 'selesai_repair_master_tab')->name('selesai_repair_master_tab');
     });
 
     // Trans Asset Tab IT
@@ -1797,8 +1802,28 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_trans_tab', 'asset_trans_tab')->name('asset_trans_tab');
         Route::get('/asset_trans_tab/nik_suggest', 'nik_suggest_trans_tab')->name('nik_suggest_trans_tab');
         Route::get('/asset_trans_tab/check_rfid', 'check_rfid_trans_tab')->name('check_rfid_trans_tab');
+        Route::post('/asset_trans_tab/check_rfid_batch', 'check_rfid_batch_trans_tab')->name('check_rfid_batch_trans_tab');
         Route::post('/asset_trans_tab/store', 'store_trans_tab')->name('store_trans_tab');
-        Route::get('/asset_trans_tab/history', 'history_trans_tab')->name('history_trans_tab');
+    });
+
+    // Monitoring Asset Tab IT
+    Route::controller(AssetMonitoringTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_monitoring_tab', 'asset_monitoring_tab')->name('asset_monitoring_tab');
+        Route::get('/asset_monitoring_tab/taken', 'taken_monitoring_tab')->name('taken_monitoring_tab');
+        Route::get('/asset_monitoring_tab/export_taken', 'export_taken_monitoring_tab')->name('export_taken_monitoring_tab');
+        Route::get('/asset_monitoring_tab/history', 'history_monitoring_tab')->name('history_monitoring_tab');
+        Route::get('/asset_monitoring_tab/export_history', 'export_history_monitoring_tab')->name('export_history_monitoring_tab');
+    });
+
+    // Opname Asset Tab IT
+    Route::controller(AssetOpnameTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_opname_tab', 'asset_opname_tab')->name('asset_opname_tab');
+        Route::get('/asset_opname_tab/master', 'master_opname_tab')->name('master_opname_tab');
+        Route::post('/asset_opname_tab/kembalikan', 'kembalikan_opname_tab')->name('kembalikan_opname_tab');
+        Route::post('/asset_opname_tab/store', 'store_opname_tab')->name('store_opname_tab');
+        Route::get('/asset_opname_tab/list', 'list_opname_tab')->name('list_opname_tab');
+        Route::get('/asset_opname_tab/detail', 'detail_opname_tab')->name('detail_opname_tab');
+        Route::get('/asset_opname_tab/export', 'export_opname_tab')->name('export_opname_tab');
     });
 
     // Dashboard Helpdesk
@@ -1853,6 +1878,41 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
         Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
         Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    });
+
+    Route::controller(InvoiceEximController::class)->prefix("invoice-exim")->middleware('role:export_import')->group(function () {
+        Route::get('/local', 'local')->name('invoice-exim-local');
+        Route::get('/export', 'export')->name('invoice-exim-export');
+        Route::get('/local/data', 'dataLocal')->name('invoice-exim-local-data');
+        Route::get('/export/data', 'dataExport')->name('invoice-exim-export-data');
+        Route::get('/local/create', 'createLocal')->name('invoice-exim-local-create');
+        Route::get('/export/create', 'createExport')->name('invoice-exim-export-create');
+        Route::get('/kode-negara', 'kodeNegara')->name('invoice-exim-kode-negara');
+        Route::get('/nomor-invoice', 'nomorInvoice')->name('invoice-exim-nomor');
+        Route::get('/sj', 'daftarSj')->name('invoice-exim-sj');
+        Route::get('/ws', 'daftarWs')->name('invoice-exim-ws');
+        Route::get('/riwayat', 'riwayat')->name('invoice-exim-riwayat');
+        Route::post('/local/simpan', 'simpanLocal')->name('invoice-exim-local-simpan');
+        Route::post('/export/simpan', 'simpanExport')->name('invoice-exim-export-simpan');
+        Route::get('/local/{id}/edit', 'editLocal')->name('invoice-exim-local-edit');
+        Route::post('/local/perbarui', 'perbaruiLocal')->name('invoice-exim-local-perbarui');
+        Route::post('/local/batal', 'batalLocal')->name('invoice-exim-local-batal');
+        Route::get('/local/detail', 'detailLocal')->name('invoice-exim-local-detail');
+        Route::get('/local/pdf', 'pdfLocal')->name('invoice-exim-local-pdf');
+        Route::get('/local/pdf-ringkas', 'pdfLocalRingkas')->name('invoice-exim-local-pdf-ringkas');
+        Route::get('/local/pdf-knitting', 'pdfLocalKnitting')->name('invoice-exim-local-pdf-knitting');
+        Route::get('/local/excel', 'excelLocal')->name('invoice-exim-local-excel');
+        Route::get('/local/excel-ringkas', 'excelLocalRingkas')->name('invoice-exim-local-excel-ringkas');
+        Route::get('/local/excel-knitting', 'excelLocalKnitting')->name('invoice-exim-local-excel-knitting');
+        Route::get('/export/{id}/edit', 'editExport')->name('invoice-exim-export-edit');
+        Route::post('/export/perbarui', 'perbaruiExport')->name('invoice-exim-export-perbarui');
+        Route::post('/export/batal', 'batalExport')->name('invoice-exim-export-batal');
+        Route::get('/export/detail', 'detailExport')->name('invoice-exim-export-detail');
+        Route::get('/export/pdf', 'pdfExport')->name('invoice-exim-export-pdf');
+        Route::get('/export/excel', 'excelExport')->name('invoice-exim-export-excel');
+        // Tombol Export di layar daftar - daftar yang sedang tersaring jadi Excel.
+        Route::get('/local/excel-daftar', 'excelDaftarLocal')->name('invoice-exim-local-excel-daftar');
+        Route::get('/export/excel-daftar', 'excelDaftarExport')->name('invoice-exim-export-excel-daftar');
     });
 
     Route::controller(DokumenPabeanController::class)->prefix("dokumen-pabean")->middleware('role:export_import')->group(function () {
