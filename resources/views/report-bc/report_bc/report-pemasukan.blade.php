@@ -251,30 +251,30 @@
             {{-- Tanpa div.table-responsive: biar scrollX/scrollY DataTables yang handle scroll --}}
             <div class="report-table-wrapper">
                 <table id="tabel-report" class="table table-bordered table-striped table-hover table-sm w-100">
-                    <thead class="thead-report text-center">
+                    <thead class="text-center">
                         <tr>
-                            <th>No</th>
-                            <th>Kode Kantor</th>
-                            <th>ID So Det</th>
-                            <th>Jenis Dokumen</th>
-                            <th>Kategori Barang</th>
-                            <th>Nomor Daftar</th>
-                            <th>Tanggal Daftar</th>
-                            <th>Nama Pengirim</th>
-                            <th>Nomor BPB</th>
-                            <th>Tanggal BPB</th>
-                            <th>{{ $kategoriBarang != 'barang_jadi' ? 'Id Item' : 'WS' }}</th>
-                            <th>Uraian Barang</th>
-                            <th>Jenis Satuan</th>
-                            <th>Jumlah Satuan</th>
-                            <th>Kode Valuta</th>
-                            <th>Nilai Barang</th>
-                            <th>Kurs</th>
-                            <th>Nilai Barang IDR</th>
+                            <th rowspan="2" class="align-middle">No</th>
+                            <th colspan="3">Dokumen Pabean</th>
+                            <th colspan="2">Bukti Penerimaan Barang</th>
+                            <th rowspan="2" class="align-middle">Pengirim Barang</th>
+                            <th rowspan="2" class="align-middle">Kode Barang</th>
+                            <th rowspan="2" class="align-middle">Nama Barang</th>
+                            <th rowspan="2" class="align-middle">Jumlah</th>
+                            <th rowspan="2" class="align-middle">Sat</th>
+                            <th rowspan="2" class="align-middle">Val</th>
+                            <th rowspan="2" class="align-middle">Nilai</th>
+                            <th rowspan="2" class="align-middle">Kategori</th>
+                            <th rowspan="2" class="align-middle">Keterangan</th>
+                        </tr>
+                        <tr>
+                            <th>Jenis</th>
+                            <th>Nomor</th>
+                            <th>Tanggal</th>
+                            <th>Nomor</th>
+                            <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
             </div>
@@ -299,30 +299,26 @@
                     data: function(d) {
                         d.from = $('#from').val();
                         d.to = $('#to').val();
-                        // d.filter_by = $('#filter_by').val();
                         d.kategoriBarang = $('#kategoriBarang').val();
                         d.kategori = $('#kategori').val();
                     }
                 },
                 "columns": [
                     { data: 'no' },
-                    { data: 'kode_kantor' },
-                    { data: 'id_so_det' },
                     { data: 'jenis_dokumen' },
-                    { data: 'kategori_barang' },
                     { data: 'nomor_daftar' },
                     { data: 'tanggal_daftar' },
-                    { data: 'nama_pengirim' },
                     { data: 'nomor_bpb' },
-                    { data: 'tanggal_bpb' }, // TERLEWAT SEBELUMNYA
+                    { data: 'tanggal_bpb' },
+                    { data: 'nama_pengirim' },
                     { data: 'id_item' },
                     { data: 'uraian_barang' },
-                    { data: 'jenis_satuan' },
                     { data: 'jumlah_satuan', className: 'text-right font-weight-bold' },
-                    { data: 'kode_valuta' },
+                    { data: 'jenis_satuan', className: 'text-center' },
+                    { data: 'kode_valuta', className: 'text-center' },
                     { data: 'nilai_barang', className: 'text-right font-weight-bold' },
-                    { data: 'kurs', className: 'text-right font-weight-bold' },
-                    { data: 'nilai_barang_idr', className: 'text-right font-weight-bold' },
+                    { data: 'kategori_barang' },
+                    { data: 'keterangan', defaultContent: '-' }
                 ]
             });
 
