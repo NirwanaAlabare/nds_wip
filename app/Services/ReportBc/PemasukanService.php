@@ -549,686 +549,798 @@ class PemasukanService
 
     public function getDataBc23($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = 'a.bpbdate';
+        $kategori = strtolower(trim($kategoriBarang));
+        $queries = [];
 
-        $mysql_sb = DB::connection('mysql_sb');
-
-        $excludeInvno = function ($query) {
-            $query->where('a.invno', 'not like', '%PJT%')
-                ->where('a.invno', 'not like', '%PIB%')
-                ->where('a.invno', 'not like', '%PIBK%');
-        };
-
-        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw("'BC 2.3' as jenis_dokumen"),
-            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
-            'a.bcdate',
-            DB::raw("a.bpbno_int as trans_no"),
-            'a.bpbdate',
-            'd.supplier',
-            DB::raw("$kodeBrgExpr as kode_brg"),
-            DB::raw("$itemdescExpr as itemdesc"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.satuan_bc), ''), a.unit) as unit"),
-            DB::raw("SUM(IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty)) as qty"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty)), 2) as nilai_barang"),
-            DB::raw("SUM(a.berat_bersih) as berat_bersih"),
-            DB::raw("SUM(a.berat_kotor) as berat_kotor"),
-            DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.tujuan',
-            DB::raw("$idItemExpr as id_item"),
-            'a.satuan_bc',
-            DB::raw("SUM(IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty)) as qty_bc"),
-            DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det'
-        ];
-
-        $queryBahanBaku_Bpb = null;
-        $queryBahanBaku_Whs = null;
-        $queryBarangJadi = null;
-
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
-            $queryBahanBaku_Bpb = $mysql_sb->table('bpb as a')
-                ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno_int', 'not like', 'FG%')
-                ->where($excludeInvno)
-                ->whereBetween($dateField, [$fromDate, $toDate]);
-
-            if (strtolower($kategoriBarang) !== 'all') {
-                $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-                $queryBahanBaku_Bpb->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+        // Accessories / Bahan Baku / Penolong
+        if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
+            $condition = "";
+            if (in_array($kategori, ['accesories', 'accessories'])) {
+                $condition = "AND s.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku', 'all'])) {
+                $condition = "AND s.matclass NOT IN ('BARANG JADI', 'SAMPLE', 'FABRIC')";
+            } elseif ($kategori === 'sample') {
+                $condition = "AND s.matclass = 'SAMPLE'";
             }
 
-            $queryBahanBaku_Bpb->select($selectData(
-                "IFNULL(mcnt.kode_contents, mcnt.id)",
-                'mcnt.nama_contents',
-                's.matclass',
-                'mcnt.id'
-            ))->groupBy('mcnt.id', 'a.bpbno_int');
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate) as bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN PENOLONG' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                INNER JOIN masteritem s ON a.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                WHERE a.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.3'
+                AND a.bpbno_int NOT LIKE 'FG%'
+                AND a.invno NOT LIKE '%PJT%'
+                AND a.invno NOT LIKE '%PIB%'
+                AND a.invno NOT LIKE '%PIBK%'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
+                $condition
+                GROUP BY a.bpbno_int, a.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
-            $queryBahanBaku_Whs = $mysql_sb->table('whs_inmaterial_fabric_det as wd')
-                ->leftJoin('whs_inmaterial_fabric as wh', 'wd.no_dok', '=', 'wh.no_dok')
-                ->join('masteritem as s', 'wd.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->where('wh.type_bc', 'BC 2.3')
-                ->where('wd.no_dok', 'not like', 'FG%')
-                ->whereBetween('wd.tgl_dok', [$fromDate, $toDate])
-                ->where('s.matclass', 'FABRIC')
-                ->select([
-                    DB::raw("'BC 2.3' as jenis_dokumen"),
-                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
-                    DB::raw("wh.tgl_dok as bcdate"),
-                    DB::raw("wh.no_dok as trans_no"),
-                    DB::raw("wh.tgl_dok as bpbdate"),
-                    DB::raw("wh.supplier as supplier"),
-                    DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
-                    DB::raw("mcnt.nama_contents as itemdesc"),
-                    DB::raw("wd.unit as unit"),
-                    DB::raw("SUM(wd.qty_good) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("0 as berat_bersih"),
-                    DB::raw("0 as berat_kotor"),
-                    DB::raw("wh.no_aju as nomor_aju"),
-                    DB::raw("'-' as tujuan"),
-                    DB::raw("mcnt.id as id_item"),
-                    DB::raw("wd.unit as satuan_bc"),
-                    DB::raw("SUM(wd.qty_good) as qty_bc"),
-                    DB::raw("s.matclass as matclass"),
-                    DB::raw("NULL as id_so_det")
-                ])
-                ->groupBy('mcnt.id', 'wd.unit');
+        // Warehouse Fabric
+        if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
+            $queries[] = "
+                SELECT
+                    wh.type_bc as jenis_dokumen,
+                    wh.no_daftar as bcno,
+                    wh.tgl_dok as bcdate,
+                    wh.no_dok as trans_no,
+                    wh.tgl_dok as bpbdate,
+                    wh.supplier as supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    wd.unit as unit,
+                    SUM(wd.qty_good) as qty,
+                    '-' as curr,
+                    0 as nilai_barang,
+                    0 as berat_bersih,
+                    0 as berat_kotor,
+                    wh.no_aju as nomor_aju,
+                    '-' as tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN BAKU' as matclass,
+                    NULL as id_so_det
+                FROM whs_inmaterial_fabric_det wd
+                LEFT JOIN whs_inmaterial_fabric wh ON wd.no_dok = wh.no_dok
+                INNER JOIN masteritem s ON wd.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                WHERE wd.no_dok NOT LIKE 'FG%'
+                AND wh.type_bc = 'BC 2.3'
+                AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
+                AND s.matclass = 'FABRIC'
+                GROUP BY wh.no_dok, wd.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
-            $queryBarangJadi = $mysql_sb->table('bpb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
-                ->join('so', 'sod.id_so', '=', 'so.id')
-                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.3')
-                ->where('a.bpbno_int', 'like', 'FG%')
-                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
-                ->where($excludeInvno)
-                ->whereBetween($dateField, [$fromDate, $toDate])
-                ->select($selectData(
-                    'ac.kpno',
-                    's.itemname',
-                    "'BARANG JADI'",
-                    'ac.kpno'
-                ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+        // Barang Jadi
+        if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    a.bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    ac.kpno as kode_brg,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    IFNULL(msw.ws, ac.kpno) as id_item,
+                    'BARANG JADI' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN msw ON a.id_so_det = msw.id_so_det
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
+                WHERE a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
+                AND sod.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.3'
+                AND a.bpbno_int LIKE 'FG%'
+                AND a.id_supplier NOT IN ('1038', '1039')
+                AND d.supplier != 'BARANG JADI STOCK'
+                AND a.invno NOT LIKE '%PJT%'
+                AND a.invno NOT LIKE '%PIB%'
+                AND a.invno NOT LIKE '%PIBK%'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                GROUP BY ac.kpno, a.bpbno_int, a.unit
+            ";
         }
 
-        $unionQuery = null;
-        foreach ([$queryBahanBaku_Bpb, $queryBahanBaku_Whs, $queryBarangJadi] as $q) {
-            if (!$q) continue;
-            $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+        if (empty($queries)) {
+            return collect([]);
         }
 
-        if (!$unionQuery) return collect([]);
+        $unionSql = implode("\n UNION ALL \n", $queries);
 
-        $rateSubQuery = $mysql_sb->table('masterrate')
-            ->select('tanggal', 'curr', 'rate')
-            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
-            ->groupBy('tanggal', 'curr');
-
-        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
-            ->mergeBindings($unionQuery)
-            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
-                $join->on('mr.tanggal', '=', 'a.bcdate')
-                    ->on('mr.curr', '=', 'a.curr');
-            })
-            ->select(
-                DB::raw("'' as kode_kantor"),
-                'a.jenis_dokumen',
-                'a.matclass as kategori_barang',
-                'a.nomor_aju',
-                'a.bcno as nomor_daftar',
-                'a.bcdate as tanggal_daftar',
-                'a.supplier as nama_pengirim',
-                'a.trans_no as nomor_bpb',
-                'a.bpbdate as tanggal_bpb',
-                'a.id_item as id_item',
-                'a.itemdesc as uraian_barang',
-                'a.unit as jenis_satuan',
-                'a.qty as jumlah_satuan',
-                'a.curr as kode_valuta',
-                'a.nilai_barang',
-                DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
-                'a.berat_bersih',
-                'a.berat_kotor',
-                'a.tujuan',
-                'a.id_so_det'
+        $finalSql = "
+            WITH msw AS (
+                SELECT
+                    id_so_det,
+                    MAX(styleno) as styleno,
+                    MAX(color) as color,
+                    MAX(ws) as ws,
+                    MAX(product_group) as product_group
+                FROM laravel_nds.master_sb_ws
+                GROUP BY id_so_det
+            ),
+            mr AS (
+                SELECT tanggal, curr, rate
+                FROM masterrate
+                WHERE TRIM(UPPER(v_codecurr)) = 'PAJAK'
+                GROUP BY tanggal, curr
             )
-            ->orderBy('a.bcdate', 'ASC')
-            ->orderBy('a.bcno', 'ASC')
-            ->get();
+            SELECT
+                '' as kode_kantor,
+                a.jenis_dokumen,
+                a.matclass as kategori_barang,
+                a.nomor_aju,
+                a.bcno as nomor_daftar,
+                a.bcdate as tanggal_daftar,
+                a.supplier as nama_pengirim,
+                a.trans_no as nomor_bpb,
+                a.bpbdate as tanggal_bpb,
+                a.id_item as id_item,
+                a.kode_brg as kode_brg,
+                a.itemdesc as uraian_barang,
+                a.unit as jenis_satuan,
+                a.qty as jumlah_satuan,
+                a.curr as kode_valuta,
+                a.nilai_barang,
+                COALESCE(mr.rate, 1) as kurs,
+                (a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr,
+                a.berat_bersih,
+                a.berat_kotor,
+                a.tujuan,
+                a.id_so_det
+            FROM (
+                $unionSql
+            ) a
+            LEFT JOIN mr ON mr.tanggal = a.bcdate AND mr.curr = a.curr
+            ORDER BY a.bcdate ASC, a.bcno ASC, a.trans_no ASC
+        ";
+
+        $result = DB::connection('mysql_sb')->select($finalSql);
+
+        return collect($result);
     }
 
     public function getDataBc262($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = 'a.bpbdate';
-        $mysql_sb = DB::connection('mysql_sb');
+        $kategori = strtolower(trim($kategoriBarang));
+        $queries = [];
 
-        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $unitExpr, $qtyExpr, $nilaiBarangExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw("'BC 2.6.2 MASUK' as jenis_dokumen"),
-            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
-            'a.bcdate',
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
-            'a.bpbdate',
-            'd.supplier',
-            DB::raw("$kodeBrgExpr as kode_brg"),
-            DB::raw("$itemdescExpr as itemdesc"),
-            DB::raw("$unitExpr as unit"),
-            DB::raw("SUM($qtyExpr) as qty"),
-            'a.curr',
-            DB::raw("SUM($nilaiBarangExpr) as nilai_barang"),
-            DB::raw("SUM(a.berat_bersih) as berat_bersih"),
-            DB::raw("SUM(a.berat_kotor) as berat_kotor"),
-            DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.tujuan',
-            DB::raw("$idItemExpr as id_item"),
-            DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det'
-        ];
-
-        $queryBahanBaku_Bpb = null;
-        $queryBahanBaku_Whs = null;
-        $queryBarangJadi = null;
-
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
-            $queryBahanBaku_Bpb = $mysql_sb->table('bpb as a')
-                ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno_int', 'not like', 'FG%')
-                ->whereBetween($dateField, [$fromDate, $toDate]);
-
-            if (strtolower($kategoriBarang) !== 'all') {
-                $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-                $queryBahanBaku_Bpb->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+        // Accessories / Bahan Baku / Penolong
+        if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
+            $condition = "";
+            if (in_array($kategori, ['accesories', 'accessories'])) {
+                $condition = "AND s.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku', 'all'])) {
+                $condition = "AND s.matclass NOT IN ('BARANG JADI', 'SAMPLE', 'FABRIC')";
+            } elseif ($kategori === 'sample') {
+                $condition = "AND s.matclass = 'SAMPLE'";
             }
 
-            $queryBahanBaku_Bpb->select($selectData(
-                "IFNULL(mcnt.kode_contents, mcnt.id)",
-                "mcnt.nama_contents",
-                "IFNULL(NULLIF(TRIM(a.satuan_bc), ''), a.unit)",
-                "IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty)",
-                "ROUND(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * IFNULL(NULLIF(TRIM(a.qty_bc), ''), a.qty), 2)",
-                "s.matclass",
-                "mcnt.id"
-            ))->groupBy('mcnt.id', 'a.bpbno_int');
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate) as bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN PENOLONG' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                INNER JOIN masteritem s ON a.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                WHERE a.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.6.2'
+                AND a.bpbno_int NOT LIKE 'FG%'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
+                $condition
+                GROUP BY a.bpbno_int, a.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
-            $queryBahanBaku_Whs = $mysql_sb->table('whs_inmaterial_fabric_det as wd')
-                ->leftJoin('whs_inmaterial_fabric as wh', 'wd.no_dok', '=', 'wh.no_dok')
-                ->join('masteritem as s', 'wd.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->where('wh.type_bc', 'BC 2.6.2')
-                ->where('wd.no_dok', 'not like', 'FG%')
-                ->whereBetween('wd.tgl_dok', [$fromDate, $toDate])
-                ->where('s.matclass', 'FABRIC')
-                ->select([
-                    DB::raw("'BC 2.6.2 MASUK' as jenis_dokumen"),
-                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
-                    DB::raw("wh.tgl_dok as bcdate"),
-                    DB::raw("wh.no_dok as trans_no"),
-                    DB::raw("wh.tgl_dok as bpbdate"),
-                    DB::raw("wh.supplier as supplier"),
-                    DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
-                    DB::raw("mcnt.nama_contents as itemdesc"),
-                    DB::raw("wd.unit as unit"),
-                    DB::raw("SUM(wd.qty_good) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("0 as berat_bersih"),
-                    DB::raw("0 as berat_kotor"),
-                    DB::raw("wh.no_aju as nomor_aju"),
-                    DB::raw("'-' as tujuan"),
-                    DB::raw("mcnt.id as id_item"),
-                    DB::raw("s.matclass as matclass"),
-                    DB::raw("NULL as id_so_det")
-                ])
-                ->groupBy('mcnt.id', 'wd.unit');
+        // Warehouse Fabric
+        if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
+            $queries[] = "
+                SELECT
+                    wh.type_bc as jenis_dokumen,
+                    wh.no_daftar as bcno,
+                    wh.tgl_dok as bcdate,
+                    wh.no_dok as trans_no,
+                    wh.tgl_dok as bpbdate,
+                    wh.supplier as supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    wd.unit as unit,
+                    SUM(wd.qty_good) as qty,
+                    '-' as curr,
+                    0 as nilai_barang,
+                    0 as berat_bersih,
+                    0 as berat_kotor,
+                    wh.no_aju as nomor_aju,
+                    '-' as tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN BAKU' as matclass,
+                    NULL as id_so_det
+                FROM whs_inmaterial_fabric_det wd
+                LEFT JOIN whs_inmaterial_fabric wh ON wd.no_dok = wh.no_dok
+                INNER JOIN masteritem s ON wd.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                WHERE wd.no_dok NOT LIKE 'FG%'
+                AND wh.type_bc = 'BC 2.6.2'
+                AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
+                AND s.matclass = 'FABRIC'
+                GROUP BY wh.no_dok, wd.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
-            $queryBarangJadi = $mysql_sb->table('bpb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
-                ->join('so', 'sod.id_so', '=', 'so.id')
-                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.6.2')
-                ->where('a.bpbno_int', 'like', 'FG%')
-                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
-                ->whereBetween($dateField, [$fromDate, $toDate])
-                ->select($selectData(
-                    "ac.kpno",
-                    "s.itemname",
-                    "a.unit",
-                    "a.qty",
-                    "ROUND(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty, 2)",
-                    "'BARANG JADI'",
-                    "ac.kpno"
-                ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+        // Barang Jadi
+        if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    a.bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    ac.kpno as kode_brg,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    IFNULL(msw.ws, ac.kpno) as id_item,
+                    'BARANG JADI' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN msw ON a.id_so_det = msw.id_so_det
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
+                WHERE a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
+                AND sod.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.6.2'
+                AND a.bpbno_int LIKE 'FG%'
+                AND a.id_supplier NOT IN ('1038', '1039')
+                AND d.supplier != 'BARANG JADI STOCK'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                GROUP BY ac.kpno, a.bpbno_int, a.unit
+            ";
         }
 
-        $unionQuery = null;
-        foreach ([$queryBahanBaku_Bpb, $queryBahanBaku_Whs, $queryBarangJadi] as $q) {
-            if (!$q) continue;
-            $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+        if (empty($queries)) {
+            return collect([]);
         }
 
-        if (!$unionQuery) return collect([]);
+        $unionSql = implode("\n UNION ALL \n", $queries);
 
-        $rateSubQuery = $mysql_sb->table('masterrate')
-            ->select('tanggal', 'curr', 'rate')
-            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
-            ->groupBy('tanggal', 'curr');
-
-        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
-            ->mergeBindings($unionQuery)
-            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
-                $join->on('mr.tanggal', '=', 'a.bcdate')
-                    ->on('mr.curr', '=', 'a.curr');
-            })
-            ->select(
-                DB::raw("'' as kode_kantor"),
-                'a.jenis_dokumen',
-                'a.matclass as kategori_barang',
-                'a.nomor_aju',
-                'a.bcno as nomor_daftar',
-                'a.bcdate as tanggal_daftar',
-                'a.supplier as nama_pengirim',
-                'a.trans_no as nomor_bpb',
-                'a.bpbdate as tanggal_bpb',
-                'a.id_item as id_item',
-                'a.itemdesc as uraian_barang',
-                'a.unit as jenis_satuan',
-                'a.qty as jumlah_satuan',
-                'a.curr as kode_valuta',
-                'a.nilai_barang',
-                DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
-                'a.berat_bersih',
-                'a.berat_kotor',
-                'a.tujuan',
-                'a.id_so_det'
+        $finalSql = "
+            WITH msw AS (
+                SELECT
+                    id_so_det,
+                    MAX(styleno) as styleno,
+                    MAX(color) as color,
+                    MAX(ws) as ws,
+                    MAX(product_group) as product_group
+                FROM laravel_nds.master_sb_ws
+                GROUP BY id_so_det
+            ),
+            mr AS (
+                SELECT tanggal, curr, rate
+                FROM masterrate
+                WHERE TRIM(UPPER(v_codecurr)) = 'PAJAK'
+                GROUP BY tanggal, curr
             )
-            ->orderBy('a.bcdate', 'ASC')
-            ->orderBy('a.bcno', 'ASC')
-            ->get();
+            SELECT
+                '' as kode_kantor,
+                a.jenis_dokumen,
+                a.matclass as kategori_barang,
+                a.nomor_aju,
+                a.bcno as nomor_daftar,
+                a.bcdate as tanggal_daftar,
+                a.supplier as nama_pengirim,
+                a.trans_no as nomor_bpb,
+                a.bpbdate as tanggal_bpb,
+                a.id_item as id_item,
+                a.kode_brg as kode_brg,
+                a.itemdesc as uraian_barang,
+                a.unit as jenis_satuan,
+                a.qty as jumlah_satuan,
+                a.curr as kode_valuta,
+                a.nilai_barang,
+                COALESCE(mr.rate, 1) as kurs,
+                (a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr,
+                a.berat_bersih,
+                a.berat_kotor,
+                a.tujuan,
+                a.id_so_det
+            FROM (
+                $unionSql
+            ) a
+            LEFT JOIN mr ON mr.tanggal = a.bcdate AND mr.curr = a.curr
+            ORDER BY a.bcdate ASC, a.bcno ASC, a.trans_no ASC
+        ";
+
+        $result = DB::connection('mysql_sb')->select($finalSql);
+
+        return collect($result);
     }
 
     public function getDataBc40($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = 'a.bpbdate';
-        $mysql_sb = DB::connection('mysql_sb');
+        $kategori = strtolower(trim($kategoriBarang));
+        $queries = [];
 
-        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw("'BC 4.0' as jenis_dokumen"),
-            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
-            'a.bcdate',
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
-            'a.bpbdate',
-            'd.supplier',
-            DB::raw("$kodeBrgExpr as kode_brg"),
-            DB::raw("$itemdescExpr as itemdesc"),
-            'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty), 2) as nilai_barang"),
-            DB::raw("SUM(a.berat_bersih) as berat_bersih"),
-            DB::raw("SUM(a.berat_kotor) as berat_kotor"),
-            DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.tujuan',
-            DB::raw("$idItemExpr as id_item"),
-            'a.remark',
-            DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det'
-        ];
-
-        $queryBahanBaku_Bpb = null;
-        $queryBahanBaku_Whs = null;
-        $queryBarangJadi = null;
-
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
-            $queryBahanBaku_Bpb = $mysql_sb->table('bpb as a')
-                ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno_int', 'not like', 'FG%')
-                ->whereBetween($dateField, [$fromDate, $toDate]);
-
-            if (strtolower($kategoriBarang) !== 'all') {
-                $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-                $queryBahanBaku_Bpb->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+        // Accessories / Bahan Baku / Penolong
+        if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
+            $condition = "";
+            if (in_array($kategori, ['accesories', 'accessories'])) {
+                $condition = "AND s.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku', 'all'])) {
+                $condition = "AND s.matclass NOT IN ('BARANG JADI', 'SAMPLE', 'FABRIC')";
+            } elseif ($kategori === 'sample') {
+                $condition = "AND s.matclass = 'SAMPLE'";
             }
 
-            $queryBahanBaku_Bpb->select($selectData(
-                "IFNULL(mcnt.kode_contents, mcnt.id)",
-                'mcnt.nama_contents',
-                's.matclass',
-                'mcnt.id'
-            ))->groupBy('mcnt.id', 'a.bpbno_int');
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate) as bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN PENOLONG' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                INNER JOIN masteritem s ON a.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                WHERE a.cancel = 'N'
+                AND a.jenis_dok = 'BC 4.0'
+                AND a.bpbno_int NOT LIKE 'FG%'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
+                $condition
+                GROUP BY a.bpbno_int, a.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
-            $queryBahanBaku_Whs = $mysql_sb->table('whs_inmaterial_fabric_det as wd')
-                ->leftJoin('whs_inmaterial_fabric as wh', 'wd.no_dok', '=', 'wh.no_dok')
-                ->join('masteritem as s', 'wd.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->where('wh.type_bc', 'BC 4.0')
-                ->where('wd.no_dok', 'not like', 'FG%')
-                ->whereBetween('wd.tgl_dok', [$fromDate, $toDate])
-                ->where('s.matclass', 'FABRIC')
-                ->select([
-                    DB::raw("'BC 4.0' as jenis_dokumen"),
-                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
-                    DB::raw("wh.tgl_dok as bcdate"),
-                    DB::raw("wh.no_dok as trans_no"),
-                    DB::raw("wh.tgl_dok as bpbdate"),
-                    DB::raw("wh.supplier as supplier"),
-                    DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
-                    DB::raw("mcnt.nama_contents as itemdesc"),
-                    DB::raw("wd.unit as unit"),
-                    DB::raw("SUM(wd.qty_good) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("0 as berat_bersih"),
-                    DB::raw("0 as berat_kotor"),
-                    DB::raw("wh.no_aju as nomor_aju"),
-                    DB::raw("'-' as tujuan"),
-                    DB::raw("mcnt.id as id_item"),
-                    DB::raw("'-' as remark"),
-                    DB::raw("s.matclass as matclass"),
-                    DB::raw("NULL as id_so_det")
-                ])
-                ->groupBy('mcnt.id', 'wd.unit');
+        // Warehouse Fabric
+        if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
+            $queries[] = "
+                SELECT
+                    wh.type_bc as jenis_dokumen,
+                    wh.no_daftar as bcno,
+                    wh.tgl_dok as bcdate,
+                    wh.no_dok as trans_no,
+                    wh.tgl_dok as bpbdate,
+                    wh.supplier as supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    wd.unit as unit,
+                    SUM(wd.qty_good) as qty,
+                    '-' as curr,
+                    0 as nilai_barang,
+                    0 as berat_bersih,
+                    0 as berat_kotor,
+                    wh.no_aju as nomor_aju,
+                    '-' as tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN BAKU' as matclass,
+                    NULL as id_so_det
+                FROM whs_inmaterial_fabric_det wd
+                LEFT JOIN whs_inmaterial_fabric wh ON wd.no_dok = wh.no_dok
+                INNER JOIN masteritem s ON wd.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                WHERE wd.no_dok NOT LIKE 'FG%'
+                AND wh.type_bc = 'BC 4.0'
+                AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
+                AND s.matclass = 'FABRIC'
+                GROUP BY wh.no_dok, wd.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
-            $queryBarangJadi = $mysql_sb->table('bpb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
-                ->join('so', 'sod.id_so', '=', 'so.id')
-                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 4.0')
-                ->where('a.bpbno_int', 'like', 'FG%')
-                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
-                ->whereBetween($dateField, [$fromDate, $toDate])
-                ->select($selectData(
-                    'ac.kpno',
-                    's.itemname',
-                    "'BARANG JADI'",
-                    'ac.kpno'
-                ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+        // Barang Jadi
+        if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    a.bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    ac.kpno as kode_brg,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    IFNULL(msw.ws, ac.kpno) as id_item,
+                    'BARANG JADI' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN msw ON a.id_so_det = msw.id_so_det
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
+                WHERE a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
+                AND sod.cancel = 'N'
+                AND a.jenis_dok = 'BC 4.0'
+                AND a.bpbno_int LIKE 'FG%'
+                AND a.id_supplier NOT IN ('1038', '1039')
+                AND d.supplier != 'BARANG JADI STOCK'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                GROUP BY ac.kpno, a.bpbno_int, a.unit
+            ";
         }
 
-        $unionQuery = null;
-        foreach ([$queryBahanBaku_Bpb, $queryBahanBaku_Whs, $queryBarangJadi] as $q) {
-            if (!$q) continue;
-            $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+        if (empty($queries)) {
+            return collect([]);
         }
 
-        if (!$unionQuery) return collect([]);
+        $unionSql = implode("\n UNION ALL \n", $queries);
 
-        $rateSubQuery = $mysql_sb->table('masterrate')
-            ->select('tanggal', 'curr', 'rate')
-            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
-            ->groupBy('tanggal', 'curr');
-
-        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
-            ->mergeBindings($unionQuery)
-            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
-                $join->on('mr.tanggal', '=', 'a.bcdate')
-                    ->on('mr.curr', '=', 'a.curr');
-            })
-            ->select(
-                DB::raw("'' as kode_kantor"),
-                'a.jenis_dokumen',
-                'a.matclass as kategori_barang',
-                'a.nomor_aju',
-                'a.bcno as nomor_daftar',
-                'a.bcdate as tanggal_daftar',
-                'a.supplier as nama_pengirim',
-                'a.trans_no as nomor_bpb',
-                'a.bpbdate as tanggal_bpb',
-                'a.id_item as id_item',
-                'a.itemdesc as uraian_barang',
-                'a.unit as jenis_satuan',
-                'a.qty as jumlah_satuan',
-                'a.curr as kode_valuta',
-                'a.nilai_barang',
-                DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
-                'a.berat_bersih',
-                'a.berat_kotor',
-                'a.tujuan',
-                'a.remark',
-                'a.id_so_det'
+        $finalSql = "
+            WITH msw AS (
+                SELECT
+                    id_so_det,
+                    MAX(styleno) as styleno,
+                    MAX(color) as color,
+                    MAX(ws) as ws,
+                    MAX(product_group) as product_group
+                FROM laravel_nds.master_sb_ws
+                GROUP BY id_so_det
+            ),
+            mr AS (
+                SELECT tanggal, curr, rate
+                FROM masterrate
+                WHERE TRIM(UPPER(v_codecurr)) = 'PAJAK'
+                GROUP BY tanggal, curr
             )
-            ->orderBy('a.bcdate', 'ASC')
-            ->orderBy('a.bcno', 'ASC')
-            ->get();
+            SELECT
+                '' as kode_kantor,
+                a.jenis_dokumen,
+                a.matclass as kategori_barang,
+                a.nomor_aju,
+                a.bcno as nomor_daftar,
+                a.bcdate as tanggal_daftar,
+                a.supplier as nama_pengirim,
+                a.trans_no as nomor_bpb,
+                a.bpbdate as tanggal_bpb,
+                a.id_item as id_item,
+                a.kode_brg as kode_brg,
+                a.itemdesc as uraian_barang,
+                a.unit as jenis_satuan,
+                a.qty as jumlah_satuan,
+                a.curr as kode_valuta,
+                a.nilai_barang,
+                COALESCE(mr.rate, 1) as kurs,
+                (a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr,
+                a.berat_bersih,
+                a.berat_kotor,
+                a.tujuan,
+                a.id_so_det
+            FROM (
+                $unionSql
+            ) a
+            LEFT JOIN mr ON mr.tanggal = a.bcdate AND mr.curr = a.curr
+            ORDER BY a.bcdate ASC, a.bcno ASC, a.trans_no ASC
+        ";
+
+        $result = DB::connection('mysql_sb')->select($finalSql);
+
+        return collect($result);
     }
 
     public function getDataBc27($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
-        $dateField = 'a.bpbdate';
-        $mysql_sb = DB::connection('mysql_sb');
+        $kategori = strtolower(trim($kategoriBarang));
+        $queries = [];
 
-        $selectData = fn ($kodeBrgExpr, $itemdescExpr, $matclassExpr, $idItemExpr) => [
-            DB::raw("'BC 2.7' as jenis_dokumen"),
-            DB::raw("LPAD(a.bcno, 6, '0') as bcno"),
-            'a.bcdate',
-            DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trans_no"),
-            'a.bpbdate',
-            'd.supplier',
-            DB::raw("$kodeBrgExpr as kode_brg"),
-            DB::raw("$itemdescExpr as itemdesc"),
-            'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty), 2) as nilai_barang"),
-            DB::raw("SUM(a.berat_bersih) as berat_bersih"),
-            DB::raw("SUM(a.berat_kotor) as berat_kotor"),
-            DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
-            'a.tujuan',
-            DB::raw("$idItemExpr as id_item"),
-            DB::raw("$matclassExpr as matclass"),
-            'a.id_so_det'
-        ];
-
-        $queryBahanBaku_Bpb = null;
-        $queryBahanBaku_Whs = null;
-        $queryBarangJadi = null;
-
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'accesories'])) {
-            $queryBahanBaku_Bpb = $mysql_sb->table('bpb as a')
-                ->join('masteritem as s', 'a.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.7')
-                ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno_int', 'not like', 'FG%')
-                ->whereBetween($dateField, [$fromDate, $toDate]);
-
-            if (strtolower($kategoriBarang) !== 'all') {
-                $searchTerm = '%' . strtolower($kategoriBarang) . '%';
-                $queryBahanBaku_Bpb->whereRaw("LOWER(s.matclass) LIKE ?", [$searchTerm]);
+        // Accessories / Bahan Baku / Penolong
+        if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
+            $condition = "";
+            if (in_array($kategori, ['accesories', 'accessories'])) {
+                $condition = "AND s.matclass IN ('ACCESORIES PACKING', 'ACCESORIES SEWING')";
+            } elseif (in_array($kategori, ['bahan baku', 'bahan_baku', 'all'])) {
+                $condition = "AND s.matclass NOT IN ('BARANG JADI', 'SAMPLE', 'FABRIC')";
+            } elseif ($kategori === 'sample') {
+                $condition = "AND s.matclass = 'SAMPLE'";
             }
 
-            $queryBahanBaku_Bpb->select($selectData(
-                "IFNULL(mcnt.kode_contents, mcnt.id)",
-                'mcnt.nama_contents',
-                's.matclass',
-                'mcnt.id'
-            ))->groupBy('mcnt.id', 'a.bpbno_int');
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate) as bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN PENOLONG' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                INNER JOIN masteritem s ON a.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                WHERE a.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.7'
+                AND a.tujuan NOT REGEXP 'SUBKON'
+                AND a.bpbno_int NOT LIKE 'FG%'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
+                $condition
+                GROUP BY a.bpbno_int, a.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
-            $queryBahanBaku_Whs = $mysql_sb->table('whs_inmaterial_fabric_det as wd')
-                ->leftJoin('whs_inmaterial_fabric as wh', 'wd.no_dok', '=', 'wh.no_dok')
-                ->join('masteritem as s', 'wd.id_item', '=', 's.id_item')
-                ->join('masterdesc as sd', 's.id_gen', '=', 'sd.id')
-                ->join('mastercolor as sc', 'sd.id_color', '=', 'sc.id')
-                ->join('masterweight as sw', 'sc.id_weight', '=', 'sw.id')
-                ->join('masterlength as sl', 'sw.id_length', '=', 'sl.id')
-                ->join('masterwidth as swd', 'sl.id_width', '=', 'swd.id')
-                ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
-                ->where('wh.type_bc', 'BC 2.7')
-                ->where('wd.no_dok', 'not like', 'FG%')
-                ->whereBetween('wd.tgl_dok', [$fromDate, $toDate])
-                ->where('s.matclass', 'FABRIC')
-                ->select([
-                    DB::raw("'BC 2.7' as jenis_dokumen"),
-                    DB::raw("GROUP_CONCAT(DISTINCT wh.no_daftar ORDER BY wh.no_daftar SEPARATOR ', ') as bcno"),
-                    DB::raw("wh.tgl_dok as bcdate"),
-                    DB::raw("wh.no_dok as trans_no"),
-                    DB::raw("wh.tgl_dok as bpbdate"),
-                    DB::raw("wh.supplier as supplier"),
-                    DB::raw("IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg"),
-                    DB::raw("mcnt.nama_contents as itemdesc"),
-                    DB::raw("wd.unit as unit"),
-                    DB::raw("SUM(wd.qty_good) as qty"),
-                    DB::raw("'-' as curr"),
-                    DB::raw("0 as nilai_barang"),
-                    DB::raw("0 as berat_bersih"),
-                    DB::raw("0 as berat_kotor"),
-                    DB::raw("wh.no_aju as nomor_aju"),
-                    DB::raw("'-' as tujuan"),
-                    DB::raw("mcnt.id as id_item"),
-                    DB::raw("s.matclass as matclass"),
-                    DB::raw("NULL as id_so_det")
-                ])
-                ->groupBy('mcnt.id', 'wd.unit');
+        // Warehouse Fabric
+        if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
+            $queries[] = "
+                SELECT
+                    wh.type_bc as jenis_dokumen,
+                    wh.no_daftar as bcno,
+                    wh.tgl_dok as bcdate,
+                    wh.no_dok as trans_no,
+                    wh.tgl_dok as bpbdate,
+                    wh.supplier as supplier,
+                    mcnt.kode_contents as kode_brg,
+                    s.itemdesc as itemdesc,
+                    wd.unit as unit,
+                    SUM(wd.qty_good) as qty,
+                    '-' as curr,
+                    0 as nilai_barang,
+                    0 as berat_bersih,
+                    0 as berat_kotor,
+                    wh.no_aju as nomor_aju,
+                    '-' as tujuan,
+                    mcnt.id as id_item,
+                    'BAHAN BAKU' as matclass,
+                    NULL as id_so_det
+                FROM whs_inmaterial_fabric_det wd
+                LEFT JOIN whs_inmaterial_fabric wh ON wd.no_dok = wh.no_dok
+                INNER JOIN masteritem s ON wd.id_item = s.id_item
+                INNER JOIN masterdesc sd ON s.id_gen = sd.id
+                INNER JOIN mastercolor sc ON sd.id_color = sc.id
+                INNER JOIN masterweight sw ON sc.id_weight = sw.id
+                INNER JOIN masterlength sl ON sw.id_length = sl.id
+                INNER JOIN masterwidth swd ON sl.id_width = swd.id
+                INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+                WHERE wd.no_dok NOT LIKE 'FG%'
+                AND wh.type_bc = 'BC 2.7'
+                AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
+                AND s.matclass = 'FABRIC'
+                GROUP BY wh.no_dok, wd.unit, mcnt.id
+            ";
         }
 
-        if (in_array(strtolower($kategoriBarang), ['all', 'barang_jadi', 'barang jadi'])) {
-            $queryBarangJadi = $mysql_sb->table('bpb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
-                ->join('so_det as sod', 'a.id_so_det', '=', 'sod.id')
-                ->join('so', 'sod.id_so', '=', 'so.id')
-                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->where('a.cancel', 'N')
-                ->where('a.jenis_dok', 'BC 2.7')
-                ->where('a.tujuan', 'not regexp', 'SUBKON')
-                ->where('a.bpbno_int', 'like', 'FG%')
-                ->where('d.supplier', '!=', 'BARANG JADI STOCK')
-                ->whereBetween($dateField, [$fromDate, $toDate])
-                ->select($selectData(
-                    'ac.kpno',
-                    's.itemname',
-                    "'BARANG JADI'",
-                    'ac.kpno'
-                ))
-                ->groupBy('ac.kpno', 'a.bpbno_int');
+        // Barang Jadi
+        if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    a.bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    ac.kpno as kode_brg,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
+                    a.unit,
+                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    a.curr,
+                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    IFNULL(msw.ws, ac.kpno) as id_item,
+                    'BARANG JADI' as matclass,
+                    a.id_so_det
+                FROM bpb a
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                INNER JOIN so_det sod ON a.id_so_det = sod.id
+                INNER JOIN so ON sod.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN msw ON a.id_so_det = msw.id_so_det
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
+                WHERE a.cancel = 'N'
+                AND so.cancel_h = 'N'
+                AND ac.aktif = 'Y'
+                AND sod.cancel = 'N'
+                AND a.jenis_dok = 'BC 2.7'
+                AND a.tujuan NOT REGEXP 'SUBKON'
+                AND a.bpbno_int LIKE 'FG%'
+                AND a.id_supplier NOT IN ('1038', '1039')
+                AND d.supplier != 'BARANG JADI STOCK'
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                GROUP BY ac.kpno, a.bpbno_int, a.unit
+            ";
         }
 
-        $unionQuery = null;
-        foreach ([$queryBahanBaku_Bpb, $queryBahanBaku_Whs, $queryBarangJadi] as $q) {
-            if (!$q) continue;
-            $unionQuery = $unionQuery ? $unionQuery->unionAll($q) : $q;
+        if (empty($queries)) {
+            return collect([]);
         }
 
-        if (!$unionQuery) return collect([]);
+        $unionSql = implode("\n UNION ALL \n", $queries);
 
-        $rateSubQuery = $mysql_sb->table('masterrate')
-            ->select('tanggal', 'curr', 'rate')
-            ->whereRaw("TRIM(UPPER(v_codecurr)) = 'PAJAK'")
-            ->groupBy('tanggal', 'curr');
-
-        return $mysql_sb->table(DB::raw("({$unionQuery->toSql()}) as a"))
-            ->mergeBindings($unionQuery)
-            ->leftJoinSub($rateSubQuery, 'mr', function ($join) {
-                $join->on('mr.tanggal', '=', 'a.bcdate')
-                    ->on('mr.curr', '=', 'a.curr');
-            })
-            ->select(
-                DB::raw("'' as kode_kantor"),
-                'a.jenis_dokumen',
-                'a.matclass as kategori_barang',
-                'a.nomor_aju',
-                'a.bcno as nomor_daftar',
-                'a.bcdate as tanggal_daftar',
-                'a.supplier as nama_pengirim',
-                'a.trans_no as nomor_bpb',
-                'a.bpbdate as tanggal_bpb',
-                'a.id_item as id_item',
-                'a.itemdesc as uraian_barang',
-                'a.unit as jenis_satuan',
-                'a.qty as jumlah_satuan',
-                'a.curr as kode_valuta',
-                'a.nilai_barang',
-                DB::raw('COALESCE(mr.rate, 1) as kurs'),
-                DB::raw('(a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr'),
-                'a.berat_bersih',
-                'a.berat_kotor',
-                'a.tujuan',
-                'a.id_so_det'
+        $finalSql = "
+            WITH msw AS (
+                SELECT
+                    id_so_det,
+                    MAX(styleno) as styleno,
+                    MAX(color) as color,
+                    MAX(ws) as ws,
+                    MAX(product_group) as product_group
+                FROM laravel_nds.master_sb_ws
+                GROUP BY id_so_det
+            ),
+            mr AS (
+                SELECT tanggal, curr, rate
+                FROM masterrate
+                WHERE TRIM(UPPER(v_codecurr)) = 'PAJAK'
+                GROUP BY tanggal, curr
             )
-            ->orderBy('a.bcdate', 'ASC')
-            ->orderBy('a.bcno', 'ASC')
-            ->get();
+            SELECT
+                '' as kode_kantor,
+                a.jenis_dokumen,
+                a.matclass as kategori_barang,
+                a.nomor_aju,
+                a.bcno as nomor_daftar,
+                a.bcdate as tanggal_daftar,
+                a.supplier as nama_pengirim,
+                a.trans_no as nomor_bpb,
+                a.bpbdate as tanggal_bpb,
+                a.id_item as id_item,
+                a.kode_brg as kode_brg,
+                a.itemdesc as uraian_barang,
+                a.unit as jenis_satuan,
+                a.qty as jumlah_satuan,
+                a.curr as kode_valuta,
+                a.nilai_barang,
+                COALESCE(mr.rate, 1) as kurs,
+                (a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr,
+                a.berat_bersih,
+                a.berat_kotor,
+                a.tujuan,
+                a.id_so_det
+            FROM (
+                $unionSql
+            ) a
+            LEFT JOIN mr ON mr.tanggal = a.bcdate AND mr.curr = a.curr
+            ORDER BY a.bcdate ASC, a.bcno ASC, a.trans_no ASC
+        ";
+
+        $result = DB::connection('mysql_sb')->select($finalSql);
+
+        return collect($result);
     }
 
     public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
