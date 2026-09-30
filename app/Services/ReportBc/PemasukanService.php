@@ -337,7 +337,7 @@ class PemasukanService
             $queries[] = "
                 SELECT
                     wh.type_bc as jenis_dokumen,
-                    wh.no_dok as bcno,
+                    wh.no_daftar as bcno,
                     wh.tgl_dok as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
