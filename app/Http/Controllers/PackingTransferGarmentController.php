@@ -799,7 +799,7 @@ order by msn.urutan asc
         $no = date('dmy', strtotime($tgltrans));
         $kode = 'TMP/OUT/';
         $cek_nomor = DB::select("
-            SELECT MAX(CAST(SUBSTR(no_trans, 15, 3) AS UNSIGNED)) AS nomor
+            SELECT MAX(CAST(SUBSTRING_INDEX(no_trans, '/', -1) AS UNSIGNED)) AS nomor
             FROM packing_trf_garment_out_temporary
             WHERE YEAR(tgl_trans) = '$tahun'
             AND MONTH(tgl_trans) = '$bulan'
@@ -829,7 +829,7 @@ order by msn.urutan asc
                 SELECT '$kode_trans','$tgltrans',
                 a.id_ppic_master_so,
                 p.id_so_det,
-                a.qty_tmp_trf_garment,
+                SUM(a.qty_tmp_trf_garment),
                 'TEMPORARY PACKING' AS po,
                 p.barcode,
                 p.dest,
@@ -843,6 +843,7 @@ order by msn.urutan asc
                     group by id_so_det
                 ) p on a.id_so_det = p.id_so_det
                 where a.created_by = '$user'
+                group by a.id_ppic_master_so, p.id_so_det, p.barcode, p.dest
                 "
             );
             if ($insert) {
