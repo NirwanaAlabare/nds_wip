@@ -161,6 +161,8 @@ use App\Http\Controllers\AssetMesinTambahSparepartsController;
 use App\Http\Controllers\AssetMesinPengeluaranSparepartsController;
 use App\Http\Controllers\AssetMasterTabController;
 use App\Http\Controllers\AssetTransTabController;
+use App\Http\Controllers\AssetMonitoringTabController;
+use App\Http\Controllers\AssetOpnameTabController;
 use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
 use App\Http\Controllers\MarketingReportController;
@@ -1790,6 +1792,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_master_tab/delete', 'delete_master_tab')->name('delete_master_tab');
         Route::post('/asset_master_tab/delete_all', 'delete_all_master_tab')->name('delete_all_master_tab');
         Route::post('/asset_master_tab/import', 'import_master_tab')->name('import_master_tab');
+        Route::post('/asset_master_tab/repair', 'repair_master_tab')->name('repair_master_tab');
+        Route::post('/asset_master_tab/selesai_repair', 'selesai_repair_master_tab')->name('selesai_repair_master_tab');
     });
 
     // Trans Asset Tab IT
@@ -1797,8 +1801,28 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_trans_tab', 'asset_trans_tab')->name('asset_trans_tab');
         Route::get('/asset_trans_tab/nik_suggest', 'nik_suggest_trans_tab')->name('nik_suggest_trans_tab');
         Route::get('/asset_trans_tab/check_rfid', 'check_rfid_trans_tab')->name('check_rfid_trans_tab');
+        Route::post('/asset_trans_tab/check_rfid_batch', 'check_rfid_batch_trans_tab')->name('check_rfid_batch_trans_tab');
         Route::post('/asset_trans_tab/store', 'store_trans_tab')->name('store_trans_tab');
-        Route::get('/asset_trans_tab/history', 'history_trans_tab')->name('history_trans_tab');
+    });
+
+    // Monitoring Asset Tab IT
+    Route::controller(AssetMonitoringTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_monitoring_tab', 'asset_monitoring_tab')->name('asset_monitoring_tab');
+        Route::get('/asset_monitoring_tab/taken', 'taken_monitoring_tab')->name('taken_monitoring_tab');
+        Route::get('/asset_monitoring_tab/export_taken', 'export_taken_monitoring_tab')->name('export_taken_monitoring_tab');
+        Route::get('/asset_monitoring_tab/history', 'history_monitoring_tab')->name('history_monitoring_tab');
+        Route::get('/asset_monitoring_tab/export_history', 'export_history_monitoring_tab')->name('export_history_monitoring_tab');
+    });
+
+    // Opname Asset Tab IT
+    Route::controller(AssetOpnameTabController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_opname_tab', 'asset_opname_tab')->name('asset_opname_tab');
+        Route::get('/asset_opname_tab/master', 'master_opname_tab')->name('master_opname_tab');
+        Route::post('/asset_opname_tab/kembalikan', 'kembalikan_opname_tab')->name('kembalikan_opname_tab');
+        Route::post('/asset_opname_tab/store', 'store_opname_tab')->name('store_opname_tab');
+        Route::get('/asset_opname_tab/list', 'list_opname_tab')->name('list_opname_tab');
+        Route::get('/asset_opname_tab/detail', 'detail_opname_tab')->name('detail_opname_tab');
+        Route::get('/asset_opname_tab/export', 'export_opname_tab')->name('export_opname_tab');
     });
 
     // Dashboard Helpdesk

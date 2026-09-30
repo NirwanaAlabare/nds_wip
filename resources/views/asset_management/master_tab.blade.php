@@ -402,7 +402,7 @@
                     data: 'status',
                     className: 'text-center',
                     render: function(data) {
-                        let badgeClass = data === 'TAKEN' ? 'badge-danger' : 'badge-success';
+                        let badgeClass = { TAKEN: 'bg-danger', REPAIR: 'bg-warning text-dark' }[data] || 'bg-success';
                         return `<span class="badge ${badgeClass}">${data ?? ''}</span>`;
                     }
                 }, // Status
@@ -412,9 +412,21 @@
                 }, // Lokasi
                 {
                     data: 'id',
-                    render: function(data) {
+                    render: function(data, type, row) {
+                        // Repair hanya untuk tab yang sudah kembali (IDLE); tab REPAIR bisa ditandai selesai
+                        let repairButton = row.status === 'REPAIR' ?
+                            `<button class="btn btn-sm btn-success" onclick="selesaiRepair(${data})" title="Selesai repair">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </button>` :
+                            `<button class="btn btn-sm btn-outline-secondary" onclick="kirimRepair(${data})"
+                                title="${row.status === 'TAKEN' ? 'Tab sedang dibawa, kembalikan dulu' : 'Kirim repair'}"
+                                ${row.status === 'TAKEN' ? 'disabled' : ''}>
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                            </button>`;
+
                         return `
                     <div class="text-center">
+                        ${repairButton}
                         <button class="btn btn-sm btn-warning" onclick="editData(${data})">
                             <i class="fa fa-edit"></i>
                         </button>
@@ -595,6 +607,72 @@
                         });
                     }
                 });
+            });
+        }
+
+        function kirimRepair(id) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Kirim tab ke repair?',
+                text: 'Selama repair, tab tidak bisa diambil di Transaksi Tab.',
+                input: 'text',
+                inputLabel: 'Kerusakan / keterangan',
+                inputPlaceholder: 'Mis. layar retak, tidak bisa charge',
+                inputAttributes: { maxlength: 255 },
+                inputValidator: (value) => !value.trim() ? 'Keterangan wajib diisi' : undefined,
+                showCancelButton: true,
+                confirmButtonText: 'Kirim Repair',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) postRepair('{{ route('repair_master_tab') }}', id, result.value.trim());
+            });
+        }
+
+        function selesaiRepair(id) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Repair selesai?',
+                text: 'Tab kembali berstatus IDLE di ruangan IT dan bisa diambil lagi.',
+                input: 'text',
+                inputLabel: 'Keterangan (opsional)',
+                inputPlaceholder: 'Mis. ganti LCD',
+                inputAttributes: { maxlength: 255 },
+                showCancelButton: true,
+                confirmButtonText: 'Selesai Repair',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#198754',
+            }).then((result) => {
+                if (result.isConfirmed) postRepair('{{ route('selesai_repair_master_tab') }}', id, result.value.trim());
+            });
+        }
+
+        function postRepair(url, id, keterangan) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id: id,
+                    keterangan: keterangan
+                },
+                success: function(response) {
+                    dataTableReload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan.',
+                    });
+                }
             });
         }
 
