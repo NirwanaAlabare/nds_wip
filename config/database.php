@@ -146,6 +146,21 @@ return [
             ]) : [],
         ],
 
+        // Database knitting (PostgreSQL)
+        'pgsql_nak' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_HOST_NAK', '10.10.5.62'),
+            'port' => env('DB_PORT_NAK', '5432'),
+            'database' => env('DB_DATABASE_NAK', 'forge'),
+            'username' => env('DB_USERNAME_NAK', 'forge'),
+            'password' => env('DB_PASSWORD_NAK', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'pgsql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
