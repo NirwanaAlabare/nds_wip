@@ -301,7 +301,7 @@ class PemasukanService
                     a.bpbno_int as trans_no,
                     a.bpbdate,
                     d.supplier,
-                    IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg,
+                    mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
@@ -311,8 +311,8 @@ class PemasukanService
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
                     a.tujuan,
-                    mcnt.id as id_item,
-                    s.matclass as matclass,
+                    mcnt.kode_contents as id_item,
+                    'BAHAN BAKU PENOLONG' as matclass,
                     a.id_so_det
                 FROM bpb a
                 INNER JOIN masteritem s ON a.id_item = s.id_item
@@ -342,7 +342,7 @@ class PemasukanService
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
-                    IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg,
+                    mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
                     SUM(wd.qty_good) as qty,
@@ -352,8 +352,8 @@ class PemasukanService
                     0 as berat_kotor,
                     wh.no_aju as nomor_aju,
                     '-' as tujuan,
-                    mcnt.id as id_item,
-                    s.matclass as matclass,
+                    mcnt.kode_contents as id_item,
+                    'BAHAN BAKU' as matclass,
                     NULL as id_so_det
                 FROM whs_inmaterial_fabric_det wd
                 LEFT JOIN whs_inmaterial_fabric wh ON wd.no_dok = wh.no_dok
@@ -384,8 +384,8 @@ class PemasukanService
                     a.bpbno_int as trans_no,
                     a.bpbdate,
                     d.supplier,
-                    IFNULL(msw.styleno, ac.styleno) as kode_brg,
-                    mst.itemname as itemdesc,
+                    ac.kpno as kode_brg,
+                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
@@ -403,7 +403,7 @@ class PemasukanService
                 INNER JOIN so ON sod.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 LEFT JOIN msw ON a.id_so_det = msw.id_so_det
-                INNER JOIN masterstyle mst ON a.id_item = mst.id_item
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
                 WHERE a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
@@ -411,7 +411,7 @@ class PemasukanService
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.id_supplier NOT IN ('1038', '1039')
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
-                GROUP BY ac.kpno, a.bpbno_int, a.id_so_det
+                GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
 
             // FG STOK BPB
@@ -423,8 +423,8 @@ class PemasukanService
                     a.no_trans as trans_no,
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
-                    IFNULL(m.styleno, ac.styleno) as kode_brg,
-                    IFNULL(m.product_group,'-') as itemdesc,
+                    ac.kpno as kode_brg,
+                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
                     'PCS' as unit,
                     SUM(a.qty) as qty,
                     '-' as curr,
@@ -441,13 +441,14 @@ class PemasukanService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
                 WHERE a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY ac.kpno, a.no_trans, a.id_so_det
+                GROUP BY ac.kpno, a.no_trans
             ";
 
             // FG STOK BPB SCAN
@@ -459,8 +460,8 @@ class PemasukanService
                     a.no_trans as trans_no,
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
-                    IFNULL(m.styleno, ac.styleno) as kode_brg,
-                    IFNULL(m.product_group,'-') as itemdesc,
+                    ac.kpno as kode_brg,
+                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
                     'PCS' as unit,
                     COUNT(*) as qty,
                     '-' as curr,
@@ -477,13 +478,14 @@ class PemasukanService
                 INNER JOIN so_det sd ON a.id_so_det = sd.id
                 INNER JOIN so ON sd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN masterproduct mp ON ac.id_product = mp.id
                 WHERE a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
                 AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
-                GROUP BY ac.kpno, a.no_trans, a.id_so_det
+                GROUP BY ac.kpno, a.no_trans
             ";
         }
 
@@ -521,6 +523,7 @@ class PemasukanService
                 a.trans_no as nomor_bpb,
                 a.bpbdate as tanggal_bpb,
                 a.id_item as id_item,
+                a.kode_brg as kode_brg,
                 a.itemdesc as uraian_barang,
                 a.unit as jenis_satuan,
                 a.qty as jumlah_satuan,
@@ -1230,102 +1233,104 @@ class PemasukanService
 
     public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
     {
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', '3600');
 
-        $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
-        $methodName = 'getData' . ucfirst($cleanKategori);
-
-        $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
-        $fileName = 'laporan-pemasukan';
-
-        $excel = FastExcel::create($fileName);
-        $sheet = $excel->sheet();
-
-        $sheet->writeRow(
-            ['PT NIRWANA ALABARE GARMENT'],
-            [
-                'font-style' => 'bold',
-                'font-size'  => 14,
-                'halign'     => 'center',
-                'valign'     => 'center',
-            ]
-        );
-
-        $sheet->writeRow(
-            ['LAPORAN PEMASUKAN '.strtoupper($cleanKategori).''],
-            [
-                'font-style' => 'bold',
-                'font-size'  => 14,
-                'halign'     => 'center',
-                'valign'     => 'center',
-            ]
-        );
-
-        $sheet->writeRow(
-            ['Periode ' . $fromDate . ' s/d ' . $toDate],
-            [
-                'halign' => 'center',
-            ]
-        );
-
-        $sheet->writeRow(['']);
-
-        $sheet->writeRow([
-            'No',
-            'ID So Det',
-            'Jenis Dokumen',
-            'Kategori Barang',
-            'Nomor Daftar',
-            'Tanggal Daftar',
-            'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
-            'Nomor BPB',
-            'Tanggal BPB',
-            'ID Item',
-            'Uraian Barang',
-            'Jenis Satuan',
-            'Jumlah Satuan',
-            'Kode Valuta',
-            'Nilai Barang',
-            'Kurs',
-            'Nilai Barang IDR'
-        ], [
-            'font-style' => 'bold',
-            'border'     => 'thin',
-            'halign'     => 'center',
-            'valign'     => 'center',
-        ]);
-
-        $no = 1;
-        foreach ($data as $row) {
-            $rows = [
-                $no++,
-                $row->id_so_det ?? '-',
-                $row->jenis_dokumen ?? '-',
-                $row->kategori_barang ?? '-',
-                $row->nomor_daftar ?? '-',
-                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
-                $row->nama_pengirim ?? '-',
-                $row->nomor_bpb ?? '-',
-                ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
-                $row->id_item ?? '-',
-                $row->uraian_barang ?? '-',
-                $row->jenis_satuan ?? '-',
-                (float) ($row->jumlah_satuan ?? 0),
-                $row->kode_valuta ?? '-',
-                (float) ($row->nilai_barang ?? 0),
-                (float) ($row->kurs ?? 0),
-                (float) ($row->nilai_barang_idr ?? 0),
-            ];
-
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        if($kategori == 'rekap'){
+            $this->exportExcelRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
         }
 
-        foreach (range('A', 'K') as $col) {
-            $sheet->setColWidth($col, 20);
-        }
+        // $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+        // $methodName = 'getData' . ucfirst($cleanKategori);
 
-        return $excel->download();
+        // $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+        // $fileName = 'laporan-pemasukan';
+
+        // $excel = FastExcel::create($fileName);
+        // $sheet = $excel->sheet();
+
+        // $sheet->writeRow(
+        //     ['PT NIRWANA ALABARE GARMENT'],
+        //     [
+        //         'font-style' => 'bold',
+        //         'font-size'  => 14,
+        //         'halign'     => 'center',
+        //         'valign'     => 'center',
+        //     ]
+        // );
+
+        // $sheet->writeRow(
+        //     ['LAPORAN PEMASUKAN '.strtoupper($cleanKategori).''],
+        //     [
+        //         'font-style' => 'bold',
+        //         'font-size'  => 14,
+        //         'halign'     => 'center',
+        //         'valign'     => 'center',
+        //     ]
+        // );
+
+        // $sheet->writeRow(
+        //     ['Periode ' . $fromDate . ' s/d ' . $toDate],
+        //     [
+        //         'halign' => 'center',
+        //     ]
+        // );
+
+        // $sheet->writeRow(['']);
+
+        // $sheet->writeRow([
+        //     'No',
+        //     'ID So Det',
+        //     'Jenis Dokumen',
+        //     'Kategori Barang',
+        //     'Nomor Daftar',
+        //     'Tanggal Daftar',
+        //     'Nama ' . ($jenis == 'pemasukan' ? 'Pengirim' : 'Penerima'),
+        //     'Nomor BPB',
+        //     'Tanggal BPB',
+        //     'ID Item',
+        //     'Uraian Barang',
+        //     'Jenis Satuan',
+        //     'Jumlah Satuan',
+        //     'Kode Valuta',
+        //     'Nilai Barang',
+        //     'Kurs',
+        //     'Nilai Barang IDR'
+        // ], [
+        //     'font-style' => 'bold',
+        //     'border'     => 'thin',
+        //     'halign'     => 'center',
+        //     'valign'     => 'center',
+        // ]);
+
+        // $no = 1;
+        // foreach ($data as $row) {
+        //     $rows = [
+        //         $no++,
+        //         $row->id_so_det ?? '-',
+        //         $row->jenis_dokumen ?? '-',
+        //         $row->kategori_barang ?? '-',
+        //         $row->nomor_daftar ?? '-',
+        //         ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '00-00-0000',
+        //         $row->nama_pengirim ?? '-',
+        //         $row->nomor_bpb ?? '-',
+        //         ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '00-00-0000',
+        //         $row->id_item ?? '-',
+        //         $row->uraian_barang ?? '-',
+        //         $row->jenis_satuan ?? '-',
+        //         (float) ($row->jumlah_satuan ?? 0),
+        //         $row->kode_valuta ?? '-',
+        //         (float) ($row->nilai_barang ?? 0),
+        //         (float) ($row->kurs ?? 0),
+        //         (float) ($row->nilai_barang_idr ?? 0),
+        //     ];
+
+        //     $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+        // }
+
+        // foreach (range('A', 'K') as $col) {
+        //     $sheet->setColWidth($col, 20);
+        // }
+
+        // return $excel->download();
     }
     public function getData(string $fromDate, string $toDate): array
     {
@@ -1427,5 +1432,119 @@ class PemasukanService
             )
             ->get()
             ->toArray();
+    }
+
+    public function exportExcelRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
+        $methodName = 'getData' . ucfirst($cleanKategori);
+
+        $data = $this->$methodName($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang);
+        $fileName = 'laporan-pemasukan-pabean-' . date('YmdHis');
+
+        $excel = FastExcel::create($fileName);
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['PT NIRWANA ALABARE GARMENT'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(
+            ['LAPORAN PEMASUKAN REKAP'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->writeRow(['Periode ' . $fromDate . ' s/d ' . $toDate]);
+        $sheet->writeRow(['']);
+
+
+        $sheet->writeRow([
+            'No',
+            'Dokumen Pabean',
+            '',
+            'Tanggal',
+            'Bukti Penerimaan Barang',
+            '',
+            'Pengirim Barang',
+            'Kode Barang',
+            'Nama Barang',
+            'Jumlah',
+            'Sat',
+            'Val',
+            'Nilai',
+            'Kategori',
+            'Keterangan'
+        ], [
+            'font-style' => 'bold',
+            'border' => 'thin',
+            'halign' => 'center'
+        ]);
+
+        $sheet->writeRow([
+            '',
+            'Jenis',
+            'Nomor',
+            '',
+            'Nomor',
+            'Tanggal',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
+        ], [
+            'font-style' => 'bold',
+            'border' => 'thin',
+            'halign' => 'center'
+        ]);
+
+        $no = 1;
+        foreach ($data as $row) {
+            $rows = [
+                $no++,
+                $row->jenis_dokumen ?? '-',
+                $row->nomor_daftar ?? '-',
+                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '-',
+                $row->nomor_bpb ?? '-',
+                ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-',
+                $row->nama_pengirim ?? '-',
+                $row->id_item ?? '-',
+                $row->uraian_barang ?? '-',
+                (float) ($row->jumlah_satuan ?? 0),
+                $row->jenis_satuan ?? '-',
+                $row->kode_valuta ?? '-',
+                (float) ($row->nilai_barang ?? 0),
+                $row->kategori_barang ?? '-',
+                $row->keterangan ?? '-'
+            ];
+
+            $sheet->writeRow($rows, [ 'border' => 'thin' ]);
+        }
+
+        foreach (range('A', 'O') as $col) {
+            $sheet->setColWidth($col, 15);
+        }
+        $sheet->setColWidth('G', 30);
+        $sheet->setColWidth('I', 35);
+
+        return $excel->download();
     }
 }
