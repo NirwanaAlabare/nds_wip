@@ -302,7 +302,7 @@ class PemasukanService
                     a.bpbdate,
                     d.supplier,
                     IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg,
-                    mcnt.nama_contents as itemdesc,
+                    s.itemdesc as itemdesc,
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
@@ -328,7 +328,7 @@ class PemasukanService
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
                 AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
                 $condition
-                GROUP BY a.bpbno_int, a.unit, mnct.id
+                GROUP BY a.bpbno_int, a.unit, mcnt.id
             ";
         }
 
@@ -343,7 +343,7 @@ class PemasukanService
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
                     IFNULL(mcnt.kode_contents, mcnt.id) as kode_brg,
-                    mcnt.nama_contents as itemdesc,
+                    s.itemdesc as itemdesc,
                     wd.unit as unit,
                     SUM(wd.qty_good) as qty,
                     '-' as curr,
@@ -385,7 +385,7 @@ class PemasukanService
                     a.bpbdate,
                     d.supplier,
                     IFNULL(msw.styleno, ac.styleno) as kode_brg,
-                    msw.color as itemdesc,
+                    mst.itemname as itemdesc,
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
@@ -403,6 +403,7 @@ class PemasukanService
                 INNER JOIN so ON sod.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 LEFT JOIN msw ON a.id_so_det = msw.id_so_det
+                INNER JOIN masterstyle mst ON a.id_item = mst.id_item
                 WHERE a.cancel = 'N'
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
@@ -423,7 +424,7 @@ class PemasukanService
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
                     IFNULL(m.styleno, ac.styleno) as kode_brg,
-                    CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc,
+                    IFNULL(m.product_group,'-') as itemdesc,
                     'PCS' as unit,
                     SUM(a.qty) as qty,
                     '-' as curr,
@@ -459,7 +460,7 @@ class PemasukanService
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
                     IFNULL(m.styleno, ac.styleno) as kode_brg,
-                    CONCAT(IFNULL(m.styleno, ac.styleno), ' - ', IFNULL(m.color,'-')) as itemdesc,
+                    IFNULL(m.product_group,'-') as itemdesc,
                     'PCS' as unit,
                     COUNT(*) as qty,
                     '-' as curr,
@@ -498,7 +499,8 @@ class PemasukanService
                     id_so_det,
                     MAX(styleno) as styleno,
                     MAX(color) as color,
-                    MAX(ws) as ws
+                    MAX(ws) as ws,
+                    MAX(product_group) as product_group
                 FROM laravel_nds.master_sb_ws
                 GROUP BY id_so_det
             ),
