@@ -263,7 +263,7 @@
                             <th>Nama Pengirim</th>
                             <th>Nomor BPB</th>
                             <th>Tanggal BPB</th>
-                            <th>{{ $kategoriBarang == 'fabric' ? 'Id Content' : 'WS' }}</th>
+                            <th>{{ $kategoriBarang != 'barang_jadi' ? 'Id Item' : 'WS' }}</th>
                             <th>Uraian Barang</th>
                             <th>Jenis Satuan</th>
                             <th>Jumlah Satuan</th>
@@ -274,7 +274,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        
+
                     </tbody>
                 </table>
             </div>
@@ -291,8 +291,8 @@
             let table = $('#tabel-report').DataTable({
                 "processing": true,
                 "scrollX": true,
-                "scrollY": "800px",     
-                "scrollCollapse": true, 
+                "scrollY": "800px",
+                "scrollCollapse": true,
                 "paging": true,
                 "ajax": {
                     url: `{{ route('get_pemasukan_data') }}`,
@@ -347,7 +347,7 @@
                 $.ajax({
                     type: "get",
                     // Arahkan ke endpoint khusus export excel pemasukan
-                    url: `{{ route('export_excel_pemasukan_bc') }}`, 
+                    url: `{{ route('export_excel_pemasukan_bc') }}`,
                     data: {
                         from: $('#from').val(),
                         to: $('#to').val(),
