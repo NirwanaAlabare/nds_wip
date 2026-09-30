@@ -311,8 +311,8 @@ class PemasukanService
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
                     a.tujuan,
-                    mcnt.kode_contents as id_item,
-                    'BAHAN BAKU PENOLONG' as matclass,
+                    mcnt.id as id_item,
+                    'BAHAN PENOLONG' as matclass,
                     a.id_so_det
                 FROM bpb a
                 INNER JOIN masteritem s ON a.id_item = s.id_item
@@ -352,7 +352,7 @@ class PemasukanService
                     0 as berat_kotor,
                     wh.no_aju as nomor_aju,
                     '-' as tujuan,
-                    mcnt.kode_contents as id_item,
+                    mcnt.id as id_item,
                     'BAHAN BAKU' as matclass,
                     NULL as id_so_det
                 FROM whs_inmaterial_fabric_det wd
@@ -385,7 +385,7 @@ class PemasukanService
                     a.bpbdate,
                     d.supplier,
                     ac.kpno as kode_brg,
-                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
@@ -424,7 +424,7 @@ class PemasukanService
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
                     ac.kpno as kode_brg,
-                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     'PCS' as unit,
                     SUM(a.qty) as qty,
                     '-' as curr,
@@ -461,7 +461,7 @@ class PemasukanService
                     a.tgl_terima as bpbdate,
                     'PRODUCTION-SEWING' as supplier,
                     ac.kpno as kode_brg,
-                    CONCAT(mp.product_group, ' ', mp.product_item) AS itemdesc,
+                    CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     'PCS' as unit,
                     COUNT(*) as qty,
                     '-' as curr,
@@ -1488,10 +1488,11 @@ class PemasukanService
             'Nilai',
             'Kategori',
             'Keterangan'
-        ], [
-            'font-style' => 'bold',
-            'border' => 'thin',
-            'halign' => 'center'
+        ],
+        [
+          'font-style' => 'bold',
+          'border' => 'thin',
+          'halign' => 'center'
         ]);
 
         $sheet->writeRow([
@@ -1510,11 +1511,26 @@ class PemasukanService
             '',
             '',
             ''
-        ], [
-            'font-style' => 'bold',
-            'border' => 'thin',
-            'halign' => 'center'
+        ],
+        ['font-style' => 'bold',
+          'border' => 'thin',
+          'halign' => 'center'
         ]);
+
+        $sheet->mergeCells('B5:C5');
+        $sheet->mergeCells('E5:F5');
+
+        $sheet->mergeCells('A5:A6');
+        $sheet->mergeCells('D5:D6');
+        $sheet->mergeCells('G5:G6');
+        $sheet->mergeCells('H5:H6');
+        $sheet->mergeCells('I5:I6');
+        $sheet->mergeCells('J5:J6');
+        $sheet->mergeCells('K5:K6');
+        $sheet->mergeCells('L5:L6');
+        $sheet->mergeCells('M5:M6');
+        $sheet->mergeCells('N5:N6');
+        $sheet->mergeCells('O5:O6');
 
         $no = 1;
         foreach ($data as $row) {
