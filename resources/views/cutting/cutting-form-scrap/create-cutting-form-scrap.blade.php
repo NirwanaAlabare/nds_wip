@@ -49,8 +49,8 @@
                             @else
                                 <option value="">Pilih WS</option>
                                 @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}" {{ $order->close_order == 'Y' ? 'disabled' : '' }}>
-                                            {{ $order->kpno }} {{ $order->close_order == 'Y' ? ' (Close Order)' : '' }}
+                                    <option value="{{ $order->id }}" {{ trim(strtoupper($order->close_order)) == 'Y' ? 'disabled' : '' }}>
+                                        {{ $order->kpno }} {{ trim(strtoupper($order->close_order)) == 'Y' ? ' (Close Order)' : '' }}
                                     </option>
                                 @endforeach
                             @endif
@@ -318,8 +318,7 @@
             templateResult: function (data) {
                 if (!data.id) return data.text;
 
-                var $element = $(data.element);
-                if ($element.is(':disabled')) {
+                if (data.disabled) {
                     return $(
                         '<div style="' +
                             'background-color: #f8d7da; ' +
