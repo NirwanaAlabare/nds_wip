@@ -2500,7 +2500,7 @@ class PartController extends Controller
                     'part_id'         => $currentPart->id,
                     'part_detail_id'  => $currentPartDetail->id,
                     'part_status'     => $currentPartDetail->part_status,
-                    'set_part_status' => strtoupper($partStatus),
+                    'set_part_status' => $partStatus,
                 ];
             }
 
@@ -2542,8 +2542,8 @@ class PartController extends Controller
                     'part_id'             => $item['part_id'],
                     'part_detail_id'      => $item['part_detail_id'],
                     'color'               => $item['color'],
-                    'part_status'         => $item['part_status'],
-                    'set_part_status'     => $item['set_part_status'],
+                    'part_status'         => strtolower($item['part_status'] ?? ''),
+                    'set_part_status'     => strtolower($item['set_part_status'] ?? ''),
                     'created_by'          => auth()->user()->id,
                     'created_by_username' => auth()->user()->username,
                 ]);
