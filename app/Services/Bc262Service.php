@@ -765,7 +765,7 @@ class Bc262Service
                                 ->get()->first();
 
                 //kode kantor bandung
-                $kantor = 60; 
+                $kantor = 60;
                 if($data_kantor){
                     $kantor = $data_kantor->id;
                 }
@@ -1630,11 +1630,11 @@ class Bc262Service
             if ($responseCeisa['successful']) {
                 foreach ($bpbs as $no_bpb) {
                     $data_kantor = $db->table('master_kantor')
-                                    ->where('kode', $draft['kodeKantor'])
+                                    ->where('kode', $finalPayload['kodeKantor'])
                                     ->get()->first();
 
                     //kode kantor bandung
-                    $kantor = 60; 
+                    $kantor = 60;
                     if($data_kantor){
                         $kantor = $data_kantor->id;
                     }
