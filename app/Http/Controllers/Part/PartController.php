@@ -12,6 +12,7 @@ use App\Models\Part\PartDetailItem;
 use App\Models\Part\PartItem;
 use App\Models\Part\PartDetailSecondary;
 use App\Models\Part\PartForm;
+use App\Models\Part\PartCustom;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutPiece;
@@ -34,6 +35,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 
@@ -2388,5 +2390,180 @@ class PartController extends Controller
             orderBy("part_detail.created_at", "desc")->
             orderBy("master_sb_ws.ws")->
             orderBy("master_part.nama_part");
+    }
+
+    public function previewImportPartCustom(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
+        ], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes'    => 'Format file harus .xlsx, .xls, atau .csv',
+            'file.max'      => 'Ukuran file maksimal 2 MB',
+        ]);
+
+        try {
+            // Read Excel File to Array
+            $data = Excel::toArray([], $request->file('file'))[0];
+
+            if (count($data) <= 1) {
+                return response()->json([
+                    'status'  => 400,
+                    'message' => 'File Excel kosong atau hanya berisi header.'
+                ], 400);
+            }
+
+            // Ambil header (baris ke-0) & buat lowercase
+            $header = array_map('strtolower', array_map('trim', $data[0]));
+
+            // Mapping index kolom dari header
+            $colWs         = array_search('ws', $header);
+            $colBuyer      = array_search('buyer', $header);
+            $colStyle      = array_search('style', $header);
+            $colColor      = array_search('color', $header);
+            $colPanel      = array_search('panel', $header);
+            $colPart       = array_search('part', $header);
+            $colPartStatus = array_search('part_status', $header);
+
+            
+
+            // Validasi keberadaan kolom di header Excel
+            if (
+                $colWs === false || $colBuyer === false || $colStyle === false || $colColor === false || $colPanel === false || $colPart === false || $colPartStatus === false
+            ) {
+                return response()->json([
+                    'status'  => 400,
+                    'message' => 'Format header Excel tidak sesuai. Wajib ada kolom: ws, buyer, style, color, panel, part, part_status'
+                ], 400);
+            }
+
+            $previewData = [];
+            $errorRows = [];
+
+            // Loop data mulai baris ke-1 (setelah header)
+            for ($i = 1; $i < count($data); $i++) {
+                $row = $data[$i];
+
+                // Abaikan jika baris kosong
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                $ws         = trim($row[$colWs] ?? '');
+                $buyer      = trim($row[$colBuyer] ?? '');
+                $style      = trim($row[$colStyle] ?? '');
+                $color      = trim($row[$colColor] ?? '');
+                $panel      = trim($row[$colPanel] ?? '');
+                $part       = trim($row[$colPart] ?? '');
+                $partStatus = strtolower(trim($row[$colPartStatus] ?? ''));
+
+                // 1. Validasi Kelengkapan Data per Baris
+                if (empty($ws) || empty($buyer) || empty($style) || empty($color) || empty($panel) || empty($part) || empty($partStatus)) {
+                    $errorRows[] = "Baris " . ($i + 1) . ": Ada kolom yang masih kosong.";
+                    continue;
+                }
+
+                // 2. Cari Master Part berdasarkan WS & Panel
+                $currentPart = Part::where("act_costing_ws", $ws)->where("panel", $panel)->first();
+                if (!$currentPart) {
+                    $errorRows[] = "Baris " . ($i + 1) . ": Data Part dengan WS '{$ws}' dan Panel '{$panel}' tidak ditemukan.";
+                    continue;
+                }
+
+                // 3. Cari Detail Part
+                $currentPartDetail = PartDetail::selectRaw("part_detail.*, master_part.nama_part")
+                    ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
+                    ->where("part_id", $currentPart->id)
+                    ->where("master_part.nama_part", $part)
+                    ->first();
+
+                if (!$currentPartDetail) {
+                    $errorRows[] = "Baris " . ($i + 1) . ": Nama Part '{$part}' tidak ditemukan pada WS '{$ws}' dan Panel '{$panel}'.";
+                    continue;
+                }
+
+                $currentPartCustom = PartCustom::where("part_detail_id", $currentPartDetail->id)->where("color", $color)->first();
+                if ($currentPartCustom) {
+                    $errorRows[] = "Baris " . ($i + 1) . " Sudah ada Custom Part.";
+                    continue;
+                }
+
+                // Push ke array preview jika semua data valid
+                $previewData[] = [
+                    'row'             => $i + 1,                     
+                    'ws'              => $currentPart->act_costing_ws,
+                    'buyer'           => $currentPart->buyer,
+                    'style'           => $currentPart->style,
+                    'color'           => $color,
+                    'panel'           => $currentPart->panel,
+                    'part'            => $currentPartDetail->nama_part,
+                    'part_id'         => $currentPart->id,
+                    'part_detail_id'  => $currentPartDetail->id,
+                    'part_status'     => $currentPartDetail->part_status,
+                    'set_part_status' => $partStatus,
+                ];
+            }
+
+            return response()->json([
+                'status'     => 200,
+                'message'    => 'Preview data berhasil dibaca.',
+                'total_data' => count($previewData),
+                'errors'     => $errorRows,
+                'data'       => $previewData
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'status'  => 500,
+                'message' => 'Gagal membaca file Excel: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Menyimpan data hasil import Excel yang sudah dipreview
+     */
+    public function storePartCustomImport(Request $request)
+    {
+        $request->validate([
+            'data' => 'required|array|min:1',
+        ], [
+            'data.required' => 'Data import tidak boleh kosong.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->data as $item) {
+                // Sesuaikan nama kolom tabel database 'part_custom' Anda
+                PartCustom::create([
+                    'part_id'             => $item['part_id'],
+                    'part_detail_id'      => $item['part_detail_id'],
+                    'color'               => $item['color'],
+                    'part_status'         => strtolower($item['part_status'] ?? ''),
+                    'set_part_status'     => strtolower($item['set_part_status'] ?? ''),
+                    'created_by'          => auth()->user()->id,
+                    'created_by_username' => auth()->user()->username,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 200,
+                'message' => count($request->data) . ' Data Custom Part berhasil disimpan!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'status'  => 500,
+                'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

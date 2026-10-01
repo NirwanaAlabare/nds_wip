@@ -77,6 +77,12 @@ Route::middleware('auth')->group(function () {
 
         // get part detail items
         Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
+
+        // 1. Route Preview Data dari Excel (AJAX)
+        Route::post('/part-custom/preview-import', 'previewImportPartCustom')->name('preview-import-part-custom');
+
+        // 2. Route Simpan Hasil Import ke Database (AJAX)
+        Route::post('/part-custom/store-import', 'storePartCustomImport')->name('store-part-custom-import');
     });
 
     // part custom
