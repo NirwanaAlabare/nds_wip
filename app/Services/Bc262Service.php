@@ -1504,7 +1504,7 @@ class Bc262Service
                         'kodeBarang'            => $bb['kodeBarang'] ?? '',
                         'kodeDokAsal'           => $bb['kodeDokAsal'] ?? '',
                         'kodeDokumen'           => $bb['kodeDokumen'] ?? '',
-                        'kodeKantor'            => $bb['kodeKantor'] ?? '',
+                        'kodeKantor'            => $draft['kantorPabean'] ?? '',
                         'merkBarang'            => $bb['merkBarang'] ?? '',
                         'ndpbm'                 => (float) ($bb['ndpbm'] ?? 0),
                         'netto'                 => (float) ($bb['netto'] ?? 0),
@@ -1630,7 +1630,7 @@ class Bc262Service
             if ($responseCeisa['successful']) {
                 foreach ($bpbs as $no_bpb) {
                     $data_kantor = $db->table('master_kantor')
-                                    ->where('kode', $finalPayload['kodeKantor'])
+                                    ->where('kode', $draft['kantorPabean'])
                                     ->get()->first();
 
                     //kode kantor bandung
