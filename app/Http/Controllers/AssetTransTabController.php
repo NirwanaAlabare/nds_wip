@@ -194,10 +194,11 @@ class AssetTransTabController extends Controller
 
         $tags = $this->normalizeCodes($request->tags);
 
-        if ($request->mode === 'bulk' && count($tags) <= 1) {
+        // Single maupun Bulk cukup minimal 1 tag
+        if (!$tags) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Mode Bulk minimal scan lebih dari 1 tag.',
+                'message' => 'Scan minimal 1 tag.',
             ], 422);
         }
 
