@@ -667,6 +667,27 @@ class CeisaService
 
     public function kirimDokumenBatch262($payload, $isFinal = 'false')
     {
+        $this->setEnv('dev');
+        $this->useUserCredential();
+
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+    public function kirimDokumenBatch261($payload, $isFinal = 'false')
+    {
         $this->setEnv('live');
         $this->useUserCredential();
 
