@@ -87,6 +87,12 @@ class CuttingFormScrapController extends Controller
 
                     return implode(' , ', $result);
                 })->
+                filterColumn('waktu_selesai', function ($query, $keyword) {
+                    $query->whereRaw(
+                        'COALESCE(form_cut_scrap.waktu_selesai, form_cut_scrap.waktu_mulai, form_cut_scrap.tanggal) LIKE ?',
+                        ['%'.$keyword.'%']
+                    );
+                })->
                 filter(function ($query) use ($request) {
                     if ($request->dateFrom) {
                         $query->whereRaw("form_cut_scrap.tanggal >= '".$request->dateFrom."'");
@@ -679,7 +685,18 @@ class CuttingFormScrapController extends Controller
     {
         $validatedRequest = $request->validate([
             "id" => "required",
-            "tanggal" => "required",
+            "tanggal" => "required|date",
+            "status" => "required|in:complete,incomplete",
+            "waktu_selesai" => "nullable|required_if:status,complete|date",
+            "ket" => "nullable|string",
+            "details" => "sometimes|array",
+            "details.*.qty_roll" => "required|numeric|gt:0",
+            "details.*.lot" => "nullable|string",
+            "details.*.group_roll" => "nullable|string",
+            "details.*.parts" => "sometimes|array",
+            "details.*.parts.*.ket" => "nullable|string",
+            "details.*.parts.*.sizes" => "sometimes|array",
+            "details.*.parts.*.sizes.*.qty" => "required|numeric|min:0",
         ]);
 
         $formCutScrap = FormCutScrap::find($validatedRequest["id"]);
@@ -692,7 +709,11 @@ class CuttingFormScrapController extends Controller
             );
         }
 
-        if ($formCutScrap->waktu_mulai > $request["waktu_selesai"]) {
+        $waktuSelesai = $validatedRequest["status"] == "complete"
+            ? $validatedRequest["waktu_selesai"]
+            : null;
+
+        if ($waktuSelesai && $formCutScrap->waktu_mulai > $waktuSelesai) {
             return array(
                 "status" => 400,
                 "message" => "Waktu selesai tidak bisa kurang dari <br> '".$formCutScrap->waktu_mulai."'",
@@ -700,7 +721,7 @@ class CuttingFormScrapController extends Controller
             );
         }
 
-        if (checkClosingDate($formCutScrap->waktu_selesai)) {
+        if (checkClosingDate($formCutScrap->waktu_selesai) || checkClosingDate($waktuSelesai)) {
             return array(
                 "status" => 400,
                 "message" => "Periode sudah ditutup",
@@ -712,13 +733,48 @@ class CuttingFormScrapController extends Controller
         try {
             $formCutScrap->update([
                 "tanggal" => $validatedRequest["tanggal"],
-                "waktu_selesai" => $request["waktu_selesai"] ?: $formCutScrap->waktu_selesai,
-                "operator" => $request["operator"],
-                "ket" => $request["ket"],
+                "waktu_selesai" => $waktuSelesai,
+                "status" => $validatedRequest["status"],
+                "process" => $validatedRequest["status"] == "incomplete" ? 3 : 4,
+                "ket" => $validatedRequest["ket"] ?? null,
                 "edited_by" => Auth::user()->username,
                 "edited_by_id" => Auth::user()->id,
                 "edited_at" => Carbon::now(),
             ]);
+
+            foreach ($validatedRequest["details"] ?? [] as $detailId => $detailData) {
+                $detail = FormCutScrapDetail::where("form_scrap_id", $formCutScrap->id)->find($detailId);
+
+                if (!$detail) {
+                    throw new \RuntimeException("Detail roll tidak ditemukan pada form ini.");
+                }
+
+                $detail->update([
+                    "qty_roll" => $detailData["qty_roll"],
+                    "lot" => $detailData["lot"] ?? null,
+                    "group_roll" => $detailData["group_roll"] ?? null,
+                ]);
+
+                foreach ($detailData["parts"] ?? [] as $partId => $partData) {
+                    $part = $detail->formCutScrapParts()->find($partId);
+
+                    if (!$part) {
+                        throw new \RuntimeException("Part tidak ditemukan pada detail roll ini.");
+                    }
+
+                    $part->update(["ket" => $partData["ket"] ?? null]);
+
+                    foreach ($partData["sizes"] ?? [] as $sizeId => $sizeData) {
+                        $size = $part->formCutScrapSizes()->find($sizeId);
+
+                        if (!$size) {
+                            throw new \RuntimeException("Size tidak ditemukan pada part ini.");
+                        }
+
+                        $size->update(["qty" => $sizeData["qty"]]);
+                    }
+                }
+            }
 
             DB::commit();
 
