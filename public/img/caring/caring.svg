@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="126" height="132" viewBox="0 0 126 132">
+  <line x1="3" y1="6" x2="3" y2="126" stroke="#d9dde3" stroke-width="1.4"/>
+  <g font-family="Helvetica" font-size="12.5" fill="#2b2b2b">
+    <circle cx="24" cy="14" r="8.5" fill="#e2231a"/><text x="24" y="18" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">C</text><text x="41" y="18.5">Care</text>
+    <circle cx="24" cy="36" r="8.5" fill="#e2231a"/><text x="24" y="40" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">A</text><text x="41" y="40.5">Accountable</text>
+    <circle cx="24" cy="58" r="8.5" fill="#e2231a"/><text x="24" y="62" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">R</text><text x="41" y="62.5">Reliable</text>
+    <circle cx="24" cy="80" r="8.5" fill="#e2231a"/><text x="24" y="84" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">I</text><text x="41" y="84.5">Integrity</text>
+    <circle cx="24" cy="102" r="8.5" fill="#e2231a"/><text x="24" y="106" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">N</text><text x="41" y="106.5">Noble</text>
+    <circle cx="24" cy="124" r="8.5" fill="#e2231a"/><text x="24" y="128" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">G</text><text x="41" y="128.5">Grow Together</text>
+  </g>
+</svg>

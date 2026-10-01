@@ -27,6 +27,26 @@
         </ul>
     </li>
     <li class="nav-item dropdown">
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+            class="nav-link dropdown-toggle {{ (isset($subPageGroup) && $subPageGroup == 'invoice-export-import') ? 'active' : '' }}">
+            Invoice
+        </a>
+        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+            <li>
+                <a href="{{ route('invoice-exim-local') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'invoice-local') ? 'active' : '' }}">
+                    Invoice Local <i class="fa-solid fa-file-invoice fa-sm"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('invoice-exim-export') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'invoice-export') ? 'active' : '' }}">
+                    Invoice Export <i class="fa-solid fa-file-export fa-sm"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-item dropdown">
 
         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
             class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-export-import' ? 'active' : '' }}">Laporan</a>

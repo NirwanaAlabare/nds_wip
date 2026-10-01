@@ -24,6 +24,7 @@
         "livewire/livewire": "^2.12",
         "maatwebsite/excel": "^3.1",
         "milon/barcode": "^10.0",
+        "mpdf/mpdf": "^8.3",
         "predis/predis": "^2.3",
         "rap2hpoutre/fast-excel": "^4.1|^5.0",
         "simplesoftwareio/simple-qrcode": "^4.2",

@@ -176,6 +176,7 @@
                             <th class="text-center align-middle">Switching Out</th>
                             <th class="text-center align-middle">Switching In</th>
                             <th class="text-center align-middle">Scan</th>
+                            <th class="text-center align-middle">Keluar Gudang Stok</th>
                             <th class="text-center align-middle">Qty Sisa WIP</th>
                             <th class="text-center align-middle">Status</th>
                         </tr>
@@ -350,6 +351,9 @@
                     },
                     {
                         data: 'qty_scan'
+                    },
+                    {
+                        data: 'qty_out_gudang_stok'
                     },
                     {
                         data: 'qty_sisa'
