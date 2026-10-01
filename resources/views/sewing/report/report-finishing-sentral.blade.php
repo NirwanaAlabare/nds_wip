@@ -121,6 +121,10 @@
                     data: "{{ route('report.f_rework_spot.data') }}",
                     export: "{{ route('report.f_rework_spot.export') }}"
                 },
+                'f_terima_reject': {
+                    data: "{{ route('report.f_terima_reject.data') }}",
+                    export: "{{ route('report.f_terima_reject.export') }}"
+                },
                 'f_reject': {
                     data: "{{ route('report.f_reject.data') }}",
                     export: "{{ route('report.f_reject.export') }}"

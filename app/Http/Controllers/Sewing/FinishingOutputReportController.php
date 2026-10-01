@@ -26,6 +26,7 @@ class FinishingOutputReportController extends Controller
             'f_rework_sewing'     => 'Rework Sewing',
             'f_rework_mending'    => 'Rework Mending',
             'f_rework_spot'       => 'Rework Spotcleaning',
+            'f_terima_reject'     => 'Terima Reject',
             'f_reject'            => 'Reject'
         ];
 

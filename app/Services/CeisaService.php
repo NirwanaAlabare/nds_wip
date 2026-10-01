@@ -89,7 +89,7 @@ class CeisaService
 
     public function getToken($forceRefresh = false)
     {
-       
+
         $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
             'username' => $this->username,
             'password' => $this->password,
@@ -350,7 +350,7 @@ class CeisaService
     public function kirimDokumenBc261($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('dev');
+        $this->setEnv('live');
 
         $response = $this->requestWithRetry(
             'POST',
@@ -644,6 +644,28 @@ class CeisaService
 
     // kirim dokumen batch BC 3.0 ke CEISA
     public function kirimDokumenBatch30($payload, $isFinal = 'false')
+    {
+        $this->setEnv('live');
+        $this->useUserCredential();
+
+        if (is_array($payload) && !empty($this->idPlatform)) {
+            $payload['idPlatform'] = $this->idPlatform;
+        }
+
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    public function kirimDokumenBatch262($payload, $isFinal = 'false')
     {
         $this->setEnv('live');
         $this->useUserCredential();
