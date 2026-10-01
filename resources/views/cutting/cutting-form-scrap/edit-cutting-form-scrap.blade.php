@@ -48,7 +48,14 @@
                         <label class="form-label">Waktu Selesai</label>
                         <input type="datetime" class="form-control" name="waktu_selesai" value="{{ $formCutScrap->waktu_selesai ? $formCutScrap->waktu_selesai : '' }}">
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-6 col-md-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="status" required>
+                            <option value="complete" {{ $formCutScrap->status == 'complete' ? 'selected' : '' }}>Selesai</option>
+                            <option value="incomplete" {{ $formCutScrap->status == 'incomplete' ? 'selected' : '' }}>Belum Selesai</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-12">
                         <label class="form-label">Keterangan</label>
                         <textarea class="form-control" name="ket" rows="1">{{ $formCutScrap->ket }}</textarea>
                     </div>
@@ -56,30 +63,65 @@
             </div>
         </div>
 
-        <div class="card card-sb mb-3">
-            <div class="card-header">
+        <div class="card mb-3">
+            <div class="card-header bg-sb-secondary">
                 <h5 class="card-title fw-bold">Detail Roll</h5>
             </div>
             <div class="card-body">
                 @forelse ($formCutScrap->formCutScrapDetails as $detail)
-                    <div class="border rounded p-2 mb-2">
-                        <b>{{ $detail->id_roll ?: '-' }}</b>
-                        <small class="text-muted">
-                            {{ $detail->itemdesc ?: '-' }} | {{ num($detail->qty_roll, 2) }} {{ $detail->unit }} | Lot {{ $detail->lot ?: '-' }} | Group {{ $detail->group_roll ?: '-' }}
-                        </small>
-                        <ul class="mb-0 mt-1">
-                            @foreach ($detail->formCutScrapParts as $part)
-                                <li>
-                                    {{ $part->partDetail && $part->partDetail->masterPart ? $part->partDetail->masterPart->nama_part : 'Part #'.$part->part_detail_id }}
-                                    @if ($part->ket)
-                                        <small class="text-muted">({{ $part->ket }})</small>
-                                    @endif
-                                    <small>
-                                        : {{ $part->formCutScrapSizes->map(fn ($size) => $size->size.' = '.$size->qty)->implode(', ') ?: '-' }}
-                                    </small>
-                                </li>
-                            @endforeach
-                        </ul>
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-1 mb-3">
+                            <div>
+                                <div class="text-sb-secondary fw-bold fs-6">ITEM  {{ $detail->id_item ?: '-' }}</div>
+                                <small class="text-muted">{{ $detail->itemdesc ?: '-' }}</small>
+                            </div>
+                            <small class="text-muted align-self-md-center">{{ $detail->formCutScrapParts->count() }} part</small>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1">Qty Roll</label>
+                                <input type="number" class="form-control form-control-sm" name="details[{{ $detail->id }}][qty_roll]" value="{{ $detail->qty_roll }}" min="0.01" step="0.01" required>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label mb-1">Unit Roll</label>
+                                <input type="text" class="form-control form-control-sm" value="{{ $detail->unit }}" readonly>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1">Lot</label>
+                                <input type="text" class="form-control form-control-sm" name="details[{{ $detail->id }}][lot]" value="{{ $detail->lot }}">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label mb-1">Group</label>
+                                <input type="text" class="form-control form-control-sm" name="details[{{ $detail->id }}][group_roll]" value="{{ $detail->group_roll }}">
+                            </div>
+                        </div>
+
+                        @forelse ($detail->formCutScrapParts as $part)
+                            <div class="border-top pt-3 mt-2">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-sb-secondary fw-bold mb-1 fs-6">
+                                            {{ $part->partDetail && $part->partDetail->masterPart ? $part->partDetail->masterPart->nama_part : 'Part #'.$part->part_detail_id }}
+                                        </div>
+                                        <label class="form-label mb-1">Keterangan Part</label>
+                                        <input type="text" class="form-control form-control-sm" name="details[{{ $detail->id }}][parts][{{ $part->id }}][ket]" value="{{ $part->ket }}">
+                                    </div>
+                                    @forelse ($part->formCutScrapSizes as $size)
+                                        <div class="col-6 col-md-2">
+                                            <label class="form-label mb-1">Size {{ $size->size }}</label>
+                                            <input type="number" class="form-control form-control-sm" name="details[{{ $detail->id }}][parts][{{ $part->id }}][sizes][{{ $size->id }}][qty]" value="{{ $size->qty }}" min="0" step="any" required>
+                                        </div>
+                                    @empty
+                                        <div class="col-12 col-md-8">
+                                            <small class="text-muted">Belum ada data size.</small>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @empty
+                            <small class="text-muted">Belum ada part pada roll ini.</small>
+                        @endforelse
                     </div>
                 @empty
                     <small class="text-muted">Belum ada detail roll.</small>

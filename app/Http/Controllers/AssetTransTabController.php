@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\ImportIE_MasterProcess;
+use App\Services\AssetTabService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -13,6 +14,13 @@ use Illuminate\Support\Facades\Log;
 
 class AssetTransTabController extends Controller
 {
+    protected $tabService;
+
+    public function __construct(AssetTabService $tabService)
+    {
+        $this->tabService = $tabService;
+    }
+
     public function asset_trans_tab(Request $request)
     {
         if ($request->ajax()) {
@@ -54,6 +62,8 @@ class AssetTransTabController extends Controller
             'divisiList' => $divisiList,
             'idleCount' => $idleCount,
             'takenCount' => $takenCount,
+            'overdueCount' => $this->tabService->overdueCount(),
+            'overdueHours' => AssetTabService::OVERDUE_HOURS,
         ]);
     }
 
@@ -76,82 +86,99 @@ class AssetTransTabController extends Controller
         return response()->json($data);
     }
 
+    // Cek apakah tiap tag boleh diambil/dikembalikan. Dipakai saat scan dan saat simpan supaya aturannya sama.
+    // $lock = true untuk mengunci baris tag selama transaksi simpan (mencegah 1 tag diambil 2x bersamaan).
+    // Return: [KODE => ['ok' => bool, 'message' => ?string, 'tag' => ?object]]
+    private function validateTags(array $codes, $action, $lock = false)
+    {
+        $query = DB::table('asset_master_tab')
+            ->select('rfid_code', 'line_code', 'tab_code', 'status')
+            ->whereIn('rfid_code', $codes);
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $tags = $query->get()->keyBy(fn($tag) => strtoupper($tag->rfid_code));
+
+        $result = [];
+        foreach ($codes as $code) {
+            $tag = $tags[$code] ?? null;
+            $message = null;
+
+            if (!$tag) {
+                $message = 'Tidak terdaftar di Master Tab';
+            } elseif ($tag->status === 'REPAIR') {
+                $message = 'Sedang REPAIR';
+            } elseif ($action === 'ambil' && $tag->status === 'TAKEN') {
+                $message = 'Sedang dibawa (taken), tidak bisa diambil lagi';
+            } elseif ($action === 'kembalikan' && $tag->status !== 'TAKEN') {
+                $message = 'Tidak sedang dibawa (idle), tidak bisa dikembalikan';
+            }
+
+            $result[$code] = ['ok' => $message === null, 'message' => $message, 'tag' => $tag];
+        }
+
+        return $result;
+    }
+
+    // Kode RFID berupa hex, disamakan huruf besar supaya pembacaan yang sama tidak terhitung 2 tag
+    private function normalizeCodes(array $codes)
+    {
+        return array_values(array_unique(array_filter(array_map(fn($code) => strtoupper(trim((string) $code)), $codes), 'strlen')));
+    }
+
     public function check_rfid_trans_tab(Request $request)
     {
-        $rfidCode = trim($request->rfid_code);
-        $action = $request->action;
+        $rfidCode = strtoupper(trim($request->rfid_code));
+        $check = $this->validateTags([$rfidCode], $request->action)[$rfidCode];
 
-        $tag = DB::selectOne("
-            SELECT rfid_code, line_code, tab_code, status
-            FROM asset_master_tab
-            WHERE rfid_code = ?
-        ", [$rfidCode]);
-
-        if (!$tag) {
+        if (!$check['ok']) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'RFID Code tidak terdaftar di Master Tab.',
-            ], 404);
-        }
-
-        if ($tag->status === 'REPAIR') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tag ' . $rfidCode . ' sedang REPAIR, tidak bisa digunakan.',
-            ], 409);
-        }
-
-        if ($action === 'ambil' && $tag->status === 'TAKEN') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tag ' . $rfidCode . ' sedang dibawa (taken), tidak bisa diambil lagi.',
-            ], 409);
-        }
-
-        if ($action === 'kembalikan' && $tag->status !== 'TAKEN') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tag ' . $rfidCode . ' tidak sedang dibawa keluar (idle), tidak bisa dikembalikan.',
-            ], 409);
+                'message' => 'Tag ' . $rfidCode . ': ' . $check['message'] . '.',
+            ], $check['tag'] ? 409 : 404);
         }
 
         return response()->json([
             'status' => 'success',
-            'data' => $tag,
+            'data' => $check['tag'],
         ]);
     }
 
-    public function history_trans_tab(Request $request)
+    // Cek banyak tag sekaligus dalam 1 request. Dipakai scan beruntun (continuous scan) supaya kotak scan
+    // tidak perlu menunggu jawaban server untuk setiap tag.
+    public function check_rfid_batch_trans_tab(Request $request)
     {
-        $rows = DB::select("
-            SELECT tt.id, tt.tgl_trans, tt.rfid_code, tt.enroll_id, tt.tujuan, tt.status, tt.created_by, tt.created_at,
-                mt.line_code, mt.tab_code
-            FROM asset_trans_tab tt
-            LEFT JOIN asset_master_tab mt ON mt.rfid_code = tt.rfid_code
-            ORDER BY tt.id DESC
-        ");
+        $request->validate([
+            'action' => 'required|in:ambil,kembalikan',
+            'codes' => 'required|array|min:1|max:1000',
+            'codes.*' => 'required|string|max:100',
+        ]);
 
-        $enrollIds = collect($rows)->pluck('enroll_id')->filter()->unique()->values();
+        $codes = $this->normalizeCodes($request->codes);
+        $checks = $this->validateTags($codes, $request->action);
 
-        $employeeNames = [];
-        if ($enrollIds->isNotEmpty()) {
-            $placeholders = implode(',', array_fill(0, $enrollIds->count(), '?'));
-            $employees = DB::connection('mysql_hris')->select("
-                SELECT enroll_id, employee_name
-                FROM employee_atribut
-                WHERE enroll_id IN ($placeholders)
-            ", $enrollIds->all());
+        // Pemegang hanya dicari untuk tag yang sedang dibawa: ditampilkan saat Kembalikan,
+        // dan jadi keterangan kenapa tag tidak bisa diambil lagi
+        $takenCodes = array_keys(array_filter($checks, fn($check) => $check['tag'] && $check['tag']->status === 'TAKEN'));
+        $holders = $this->tabService->holders(array_map('strval', $takenCodes));
 
-            foreach ($employees as $employee) {
-                $employeeNames[$employee->enroll_id] = $employee->employee_name;
-            }
+        $results = [];
+        foreach ($checks as $code => $check) {
+            $code = (string) $code; // kode RFID yang isinya angka semua jadi key integer di array PHP
+            $results[] = [
+                'code' => $code,
+                'ok' => $check['ok'],
+                'registered' => (bool) $check['tag'], // false = tidak ada di Master Tab (mis. tag RFID lain yang ikut terbaca)
+                'message' => $check['message'],
+                'line_code' => $check['tag']->line_code ?? null,
+                'tab_code' => $check['tag']->tab_code ?? null,
+                'holder' => $this->tabService->holderPayload($holders[$code] ?? null),
+            ];
         }
 
-        foreach ($rows as $row) {
-            $row->employee_name = $employeeNames[$row->enroll_id] ?? null;
-        }
-
-        return DataTables::of($rows)->toJson();
+        return response()->json(['status' => 'success', 'results' => $results]);
     }
 
     public function store_trans_tab(Request $request)
@@ -165,10 +192,13 @@ class AssetTransTabController extends Controller
             'id_tujuan' => 'required_if:action,ambil|nullable|integer',
         ]);
 
-        if ($request->mode === 'bulk' && count($request->tags) <= 1) {
+        $tags = $this->normalizeCodes($request->tags);
+
+        // Single maupun Bulk cukup minimal 1 tag
+        if (!$tags) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Mode Bulk minimal scan lebih dari 1 tag.',
+                'message' => 'Scan minimal 1 tag.',
             ], 422);
         }
 
@@ -208,7 +238,7 @@ class AssetTransTabController extends Controller
         $timestamp = Carbon::now();
 
         $rows = [];
-        foreach ($request->tags as $rfidCode) {
+        foreach ($tags as $rfidCode) {
             $rows[] = [
                 'tgl_trans' => $timestamp->format('Y-m-d'),
                 'rfid_code' => $rfidCode,
@@ -222,19 +252,43 @@ class AssetTransTabController extends Controller
             ];
         }
 
-        DB::table('asset_trans_tab')->insert($rows);
+        DB::beginTransaction();
 
-        DB::table('asset_master_tab')
-            ->whereIn('rfid_code', $request->tags)
-            ->update([
-                'status' => $request->action === 'ambil' ? 'TAKEN' : 'IDLE',
-                'lokasi' => $request->action === 'ambil' ? $tujuan : 'IT',
-                'updated_at' => $timestamp,
-            ]);
+        try {
+            // Status dicek ulang di sini (dengan kunci baris), karena bisa berubah sejak tag discan,
+            // mis. tag yang sama diambil dari perangkat lain. Kalau ada yang tidak valid, tidak ada yang disimpan.
+            $invalid = array_filter($this->validateTags($tags, $request->action, true), fn($check) => !$check['ok']);
+
+            if ($invalid) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => count($invalid) . ' tag tidak bisa diproses, transaksi dibatalkan.',
+                    'invalid' => array_map(fn($code, $check) => ['code' => (string) $code, 'message' => $check['message']], array_keys($invalid), $invalid),
+                ], 409);
+            }
+
+            DB::table('asset_trans_tab')->insert($rows);
+
+            DB::table('asset_master_tab')
+                ->whereIn('rfid_code', $tags)
+                ->update([
+                    'status' => $request->action === 'ambil' ? 'TAKEN' : 'IDLE',
+                    'lokasi' => $request->action === 'ambil' ? $tujuan : 'IT',
+                    'updated_at' => $timestamp,
+                ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Transaksi Tab berhasil disimpan',
+            'message' => count($tags) . ' tag berhasil diproses',
+            'count' => count($tags),
         ]);
     }
 }

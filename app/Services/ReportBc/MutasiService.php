@@ -2339,132 +2339,125 @@ class MutasiService
     // }
 
     public function getDataMutasiBarangJadiMerge($fromDate, $toDate, $kategoriBarang = null)
-{
-    ini_set('memory_limit', '1024M');
-    ini_set('max_execution_time', 120);
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', 120);
 
-    $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb = DB::connection('mysql_sb');
 
-    $baselineDate = '2022-10-01';
-    $tglBatas     = '2024-01-01';
+        $tglPeriode   = '2022-10-01';
+        $tglFilterSup = '2024-01-01';
 
-    $sql = "
-        WITH trx AS (
-            -- 1. Saldo awal FG
-            SELECT id_so_det, CAST('$baselineDate' AS DATE) AS tgl, saldo AS masuk, 0 AS keluar
-            FROM saldoawal_fg
-            WHERE periode = '$baselineDate'
+        $sql = "
+            WITH trx AS (
+                -- 1. Saldo awal periode
+                SELECT id_so_det, CAST('$tglPeriode' AS DATE) AS tgl, saldo, 0 AS masuk, 0 AS keluar
+                FROM saldoawal_fg
+                WHERE periode = '$tglPeriode'
 
-            UNION ALL
+                UNION ALL
 
-            -- 2. ERP BPB sebelum 2024 (tanpa filter supplier)
-            SELECT id_so_det, bpbdate, qty, 0
-            FROM bpb
-            WHERE bpbdate >= '$baselineDate' AND bpbdate < '$tglBatas'
-            AND bpbno_int LIKE 'FG%' AND cancel = 'N'
+                -- 2. ERP penerimaan
+                SELECT id_so_det, bpbdate, 0 AS saldo, qty AS masuk, 0 AS keluar
+                FROM bpb
+                WHERE bpbdate >= '$tglPeriode' AND bpbdate <= '$toDate'
+                AND bpbno LIKE 'FG%'
+                AND cancel = 'N'
+                AND (bpbdate < '$tglFilterSup' OR id_supplier NOT IN ('1038','1039'))
 
-            UNION ALL
+                UNION ALL
 
-            -- 3. ERP BPB mulai 2024 (dengan filter supplier)
-            SELECT id_so_det, bpbdate, qty, 0
-            FROM bpb
-            WHERE bpbdate >= '$tglBatas' AND bpbdate <= '$toDate'
-            AND bpbno_int LIKE 'FG%' AND cancel = 'N'
-            AND id_supplier NOT IN ('1038','1039')
+                -- 3. ERP pengeluaran
+                SELECT id_so_det, bppbdate, 0, 0, qty
+                FROM bppb
+                WHERE bppbdate >= '$tglPeriode' AND bppbdate <= '$toDate'
+                AND bppbno LIKE 'SJ-FG%'
+                AND cancel = 'N'
+                AND (bppbdate < '$tglFilterSup' OR id_supplier NOT IN ('1038','1039'))
 
-            UNION ALL
+                UNION ALL
 
-            -- 4. ERP BPPB sebelum 2024 (dengan filter cancel, tanpa filter supplier)
-            SELECT id_so_det, bppbdate, 0, qty
-            FROM bppb
-            WHERE bppbdate >= '$baselineDate' AND bppbdate < '$tglBatas'
-            AND bppbno LIKE 'SJ-FG%' AND cancel = 'N'
+                -- 4. NDS penerimaan
+                SELECT id_so_det, tgl_terima, 0, qty, 0
+                FROM laravel_nds.fg_stok_bpb
+                WHERE tgl_terima >= '$tglPeriode' AND tgl_terima <= '$toDate'
+                AND cancel = 'N'
+                AND (tgl_terima < '$tglFilterSup' OR sumber_pemasukan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL'))
 
-            UNION ALL
+                UNION ALL
 
-            -- 5. ERP BPPB mulai 2024 (dengan filter supplier & cancel)
-            SELECT id_so_det, bppbdate, 0, qty
-            FROM bppb
-            WHERE bppbdate >= '$tglBatas' AND bppbdate <= '$toDate'
-            AND bppbno LIKE 'SJ-FG%' AND cancel = 'N'
-            AND id_supplier NOT IN ('1038','1039')
+                -- 5. NDS penerimaan (scan, 1 baris = 1 pcs)
+                SELECT id_so_det, tgl_terima, 0, 1, 0
+                FROM laravel_nds.fg_stok_bpb_scan
+                WHERE tgl_terima >= '$tglPeriode' AND tgl_terima <= '$toDate'
+                AND cancel = 'N'
+                AND (tgl_terima < '$tglFilterSup' OR sumber_pemasukan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL'))
 
-            UNION ALL
+                UNION ALL
 
-            -- 6. NDS penerimaan
-            SELECT id_so_det, tgl_terima, qty, 0
-            FROM laravel_nds.fg_stok_bpb
-            WHERE tgl_terima >= '$baselineDate' AND tgl_terima <= '$toDate'
-            AND sumber_pemasukan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL')
-            AND cancel = 'N'
+                -- 6. NDS pengeluaran
+                SELECT id_so_det, tgl_pengeluaran, 0, 0, qty_out
+                FROM laravel_nds.fg_stok_bppb
+                WHERE tgl_pengeluaran >= '$tglPeriode' AND tgl_pengeluaran <= '$toDate'
+                AND cancel = 'N'
+                AND (tgl_pengeluaran < '$tglFilterSup' OR tujuan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL'))
+            ),
+            rekap AS (
+                SELECT
+                    id_so_det,
+                    SUM(saldo) + SUM(CASE WHEN tgl < '$fromDate' THEN masuk - keluar ELSE 0 END) AS saldo_awal,
+                    SUM(CASE WHEN tgl >= '$fromDate' THEN masuk  ELSE 0 END) AS penerimaan,
+                    SUM(CASE WHEN tgl >= '$fromDate' THEN keluar ELSE 0 END) AS pengeluaran
+                FROM trx
+                GROUP BY id_so_det
+            )
 
-            UNION ALL
+            SELECT
+                r.id_so_det,
+                ms.id_item,
+                ac.kpno,
+                ac.styleno,
+                sd.color,
+                mp.product_group AS product_group,
+                mp.product_item AS product_item,
+                sd.size,
+                r.saldo_awal,
+                r.penerimaan,
+                r.pengeluaran,
+                (r.saldo_awal + r.penerimaan - r.pengeluaran) AS saldo_akhir
+            FROM rekap r
+            INNER JOIN so_det sd       ON r.id_so_det = sd.id
+            INNER JOIN so              ON sd.id_so = so.id
+            INNER JOIN act_costing ac  ON so.id_cost = ac.id
+            LEFT JOIN masterstyle ms   ON r.id_so_det = ms.id_so_det
+            LEFT JOIN masterproduct mp ON ac.id_product = mp.id
+            WHERE sd.cancel = 'N'
+            AND so.cancel_h = 'N'
+            AND ac.aktif = 'Y'
+            AND (r.saldo_awal <> 0 OR r.penerimaan <> 0 OR r.pengeluaran <> 0)
+            GROUP BY ac.kpno
+            ORDER BY r.id_so_det ASC
+        ";
 
-            -- 7. NDS penerimaan scan (1 baris = 1 pcs)
-            SELECT id_so_det, tgl_terima, 1, 0
-            FROM laravel_nds.fg_stok_bpb_scan
-            WHERE tgl_terima >= '$baselineDate' AND tgl_terima <= '$toDate'
-            AND sumber_pemasukan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL')
-            AND cancel = 'N'
+        $rows = $mysql_sb->select($sql);
 
-            UNION ALL
-
-            -- 8. NDS pengeluaran
-            SELECT id_so_det, tgl_pengeluaran, 0, qty_out
-            FROM laravel_nds.fg_stok_bppb
-            WHERE tgl_pengeluaran >= '$baselineDate' AND tgl_pengeluaran <= '$toDate'
-            AND tujuan NOT IN ('EKSPEDISI','EXPEDISI','MUTASI INTERNAL')
-            AND cancel = 'N'
-        )
-
-        SELECT
-            t.id_so_det,
-            msw.id_item,
-            ac.kpno,
-            ac.styleno,
-            IFNULL(msw.product_group, '-') AS product_group,
-            IFNULL(msw.product_item, '-') AS product_item,
-            sd.cancel,
-            so.cancel_h,
-            ac.aktif,
-            COALESCE(SUM(CASE WHEN t.tgl <  '$fromDate' THEN t.masuk - t.keluar ELSE 0 END), 0) AS saldo_awal,
-            COALESCE(SUM(CASE WHEN t.tgl >= '$fromDate' THEN t.masuk            ELSE 0 END), 0) AS penerimaan,
-            COALESCE(SUM(CASE WHEN t.tgl >= '$fromDate' THEN t.keluar           ELSE 0 END), 0) AS pengeluaran,
-            COALESCE(SUM(t.masuk - t.keluar), 0)                                                AS saldo_akhir
-        FROM trx t
-        INNER JOIN so_det sd      ON t.id_so_det = sd.id
-        INNER JOIN so             ON sd.id_so = so.id
-        INNER JOIN act_costing ac ON so.id_cost = ac.id
-        LEFT JOIN (
-            SELECT id_so_det, MAX(ws) AS id_item, MAX(product_group) AS product_group, MAX(product_item) AS product_item
-            FROM laravel_nds.master_sb_ws
-            GROUP BY id_so_det
-        ) msw ON t.id_so_det = msw.id_so_det
-        WHERE sd.cancel = 'N'
-        AND so.cancel_h = 'N'
-        AND ac.aktif = 'Y'
-        GROUP BY ac.kpno, ac.styleno, msw.product_group, msw.product_item, sd.cancel, so.cancel_h, ac.aktif
-        HAVING saldo_awal <> 0
-            OR penerimaan <> 0
-            OR pengeluaran <> 0
-        ORDER BY ac.kpno ASC
-    ";
-
-    $rows = $mysql_sb->select($sql);
-
-    return collect($rows)->map(function ($row) {
-        return (object) [
-            'ws'            => $row->kpno,
-            'styleno'       => $row->styleno,
-            'product_group' => $row->product_group,
-            'product_item'  => $row->product_item,
-            'saldoawal'     => (float) $row->saldo_awal,
-            'qtyterima'     => (float) $row->penerimaan,
-            'qtykeluar'     => (float) $row->pengeluaran,
-            'saldoakhir'    => (float) $row->saldo_akhir,
-        ];
-    })->values();
-}
+        return collect($rows)->map(function ($row) {
+            return (object) [
+                'id_so_det'  => $row->id_so_det,
+                'id_item'    => $row->id_item ?? '-',
+                'ws'         => $row->kpno ?? '-',
+                'product_group' => $row->product_group ?? '-',
+                'product_item'  => $row->product_item ?? '-',
+                'styleno'    => $row->styleno ?? '-',
+                'color'      => $row->color ?? '-',
+                'size'       => $row->size ?? '-',
+                'saldoawal'  => (float) $row->saldo_awal,
+                'qtyterima'  => (float) $row->penerimaan,
+                'qtykeluar'  => (float) $row->pengeluaran,
+                'saldoakhir' => (float) $row->saldo_akhir,
+            ];
+        })->values();
+    }
 
     public function exportExcelBarangJadiMerge($fromDate, $toDate)
     {

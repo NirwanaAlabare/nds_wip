@@ -1626,6 +1626,12 @@
                                         <a href="{{ route('asset_trans_tab') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_trans_tab' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Trans Tab</a>
+                                        <a href="{{ route('asset_monitoring_tab') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_monitoring_tab' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-display"></i>Monitoring Tab</a>
+                                        <a href="{{ route('asset_opname_tab') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_opname_tab' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-clipboard-check"></i>Opname Tab</a>
                                     </div>
                                 </div>
                             </li>

@@ -34,6 +34,7 @@
                     <thead>
                         <tr>
                             <th>Action</th>
+                            <th>Status</th>
                             <th>No. Form</th>
                             <th>Tanggal</th>
                             <th>No. WS</th>
@@ -44,7 +45,6 @@
                             <th>Total Roll</th>
                             <th>Total Roll Qty</th>
                             <th>Size Qty</th>
-                            <th>Status</th>
                             <th>Notes</th>
                             <th>Operator</th>
                         </tr>
@@ -69,6 +69,19 @@
             $("#tgl-awal").val(lastWeek.toISOString().slice(0, 10)).trigger("change");
         });
 
+        const filterableColumns = [1, 2, 3, 4, 5, 6, 11, 12, 13];
+
+        $('#datatable thead tr').first().clone(false).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(index) {
+            if (!filterableColumns.includes(index)) {
+                $(this).empty();
+                return;
+            }
+
+            const columnTitle = $('#datatable thead tr:first th').eq(index).text().trim();
+            $(this).html(`<input type="text" class="form-control form-control-sm" data-column="${index}" placeholder="Filter ${columnTitle}" aria-label="Filter ${columnTitle}">`);
+        });
+
         let datatable = $("#datatable").DataTable({
             processing: true,
             serverSide: true,
@@ -84,6 +97,7 @@
             },
             columns: [
                 { data: 'id' },
+                { data: 'status' },
                 { data: 'no_form' },
                 { data: 'waktu_selesai' },
                 { data: 'act_costing_ws' },
@@ -94,7 +108,6 @@
                 { data: 'total_roll' },
                 { data: 'total_qty_roll' },
                 { data: 'size_qty' },
-                { data: 'status' },
                 { data: 'ket' },
                 { data: 'created_by' },
             ],
@@ -109,9 +122,23 @@
                     }
                 },
                 {
-                    targets: [2],
+                    targets: [3],
                     render: (data, type, row) => {
                         return (row.waktu_selesai ? row.waktu_selesai : (row.waktu_mulai ? row.waktu_mulai : row.tanggal));
+                    }
+                },
+                {
+                    targets: [1],
+                    render: (data, type) => {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        if (String(data).toLowerCase() === 'complete') {
+                            return '<span class="badge badge-success text-white">Complete</span>';
+                        }
+
+                        return $('<span>').text(data || '-').html();
                     }
                 },
                 {
@@ -119,6 +146,14 @@
                     className: 'text-nowrap'
                 }
             ]
+        });
+
+        $('#datatable_wrapper').on('keyup change', '.dataTables_scrollHead thead tr:eq(1) input', function() {
+            const columnIndex = Number(this.dataset.column);
+
+            if (datatable.column(columnIndex).search() !== this.value) {
+                datatable.column(columnIndex).search(this.value).draw();
+            }
         });
 
         function dataTableReload() {

@@ -33,7 +33,17 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
         $kategori = $this->kategori;
         $buyer = $this->buyer;
 
-        if ($kategori == "TERIMA") {
+        $keluarGood = [
+            'KELUAR SEWING',
+            'KELUAR QC FINISHING',
+            'KELUAR PASANG KANCING',
+            'KELUAR BARTACK',
+            'KELUAR HEATSEAL',
+            'KELUAR SNAP',
+            'KELUAR EMBRO'
+        ];
+
+        if ($kategori == 'TERIMA') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
@@ -91,9 +101,9 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
-            })->get();
+            });
 
-        }else if ($kategori == "KELUAR GOOD") {
+        } else if ($kategori == 'KELUAR GOOD') {
             $data = DB::table(DB::raw("
                 (
                     SELECT
@@ -153,90 +163,195 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
-            })->get();
+            });
 
-        }else if ($kategori == "KELUAR REJECT") {
+        } else if (in_array($kategori, $keluarGood, true)) {
+            $outputType = [
+                'KELUAR SEWING' => 'qc',
+                'KELUAR QC FINISHING' => 'packing',
+                'KELUAR PASANG KANCING' => 'finishing_proses',
+                'KELUAR BARTACK' => 'finishing_proses',
+                'KELUAR HEATSEAL' => 'finishing_proses',
+                'KELUAR SNAP' => 'finishing_proses',
+                'KELUAR EMBRO' => 'finishing_proses'
+            ];
+
+            $additionalQuery = "";
+            if ($kategori == 'finishing_proses') {
+                $finishingProses = [
+                    'KELUAR PASANG KANCING' => 'Pasang Kancing',
+                    'KELUAR BARTACK' => 'Bartack',
+                    'KELUAR HEATSEAL' => 'Heatseal',
+                    'KELUAR SNAP' => 'Snap',
+                    'KELUAR EMBRO' => 'Embro'
+                ];
+
+                $additionalQuery = " AND secondary_prosess = '".$finishingProses[$kategori]."' ";
+            }
+
             $data = DB::table(DB::raw("
+                (
+                        SELECT
+                            b.so_det_id,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size,
+                            DATE(a.created_at) AS tgl,
+                            COUNT(*) AS jumlah
+                        FROM signalbit_erp.output_reject_out_detail a
+                        INNER JOIN signalbit_erp.output_reject_in b ON b.id = a.reject_in_id
+                        INNER JOIN signalbit_erp.master_plan mp ON mp.id = b.master_plan_id
+                        LEFT JOIN (
+                            SELECT
+                            sd.id as id_so_det,
+                            ac.kpno as ws,
+                            supplier as buyer,
+                            styleno,
+                            color,
+                            size,
+                            dest
+                            FROM signalbit_erp.so_det sd
+                            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                            INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                            WHERE jd.cancel = 'N'
+                        ) mb on b.so_det_id = mb.id_so_det
+                        left join signalbit_erp.output_undo_secondary_out undo_secondary ON undo_secondary.output_reject_id = b.reject_id and b.status = 'finishing_proses'
+                        left join signalbit_erp.output_secondary_master osm on osm.id = undo_secondary.secondary_id
+                        -- Invalid out
+                        left join signalbit_erp.output_rejects on output_rejects.kode_numbering = b.kode_numbering and output_rejects.created_at < b.created_at and b.output_type = 'qc'
+                        left join signalbit_erp.output_rejects_packing on output_rejects_packing.kode_numbering = b.kode_numbering and output_rejects_packing.created_at < b.created_at and b.output_type = 'packing'
+                        left join signalbit_erp.output_rejects_packing_po on output_rejects.kode_numbering = b.kode_numbering and output_rejects_packing_po.created_at < b.created_at and b.output_type = 'qc_fns_pck_retur'
+                        left join signalbit_erp.output_secondary_out_reject on output_secondary_out_reject.kode_numbering = b.kode_numbering and output_secondary_out_reject.created_at < b.created_at and b.output_type = 'finishing_proses'
+                        WHERE
+                            (CASE WHEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) IS NOT NULL AND b.status = 'reworked' THEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) > b.created_at ELSE 1=1 END)
+                            AND a.created_at >= '{$tglAwal} 00:00:00'
+                            AND a.created_at <= '{$tglAkhir} 23:59:59'
+                            AND mp.cancel = 'N'
+                            AND b.status = 'reworked'
+                            AND b.output_type = '{$outputType[$kategori]}'
+                        GROUP BY so_det_id, DATE(a.created_at)
+                    ) as results
+            "))
+            ->when($buyer, function ($query) use ($buyer) {
+                return $query->where('results.buyer', $buyer);
+            });
+
+        }  else if ($kategori == 'KELUAR GOOD INJECT') {
+            $data = DB::table(DB::raw("
+                (
+
+                    SELECT
+                        null so_det_id,
+                        buyer,
+                        ws,
+                        styleno,
+                        color,
+                        size,
+                        tgl_saldo AS tgl,
+                        SUM(COALESCE(qty_reworked, 0)) AS jumlah
+                    FROM signalbit_erp.inject_mutasi_sewing
+                    WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_reworked > 0
+                    GROUP BY
+                        ws,
+                        color,
+                        size,
+                        tgl_saldo
+                ) as results
+            "))
+            ->when($buyer, function ($query) use ($buyer) {
+                return $query->where('results.buyer', $buyer);
+            });
+
+        } else if ($kategori == 'KELUAR REJECT') {
+
+            $data = DB::table(DB::raw("
+                (
+                    SELECT
+                        MAX(buyer) buyer,
+                        ws,
+                        styleno,
+                        color,
+                        size,
+                        tgl,
+                        SUM(jumlah) AS jumlah
+                    FROM
                     (
                         SELECT
-                            MAX(buyer) buyer,
+                            so_det_id,
+                            mb.buyer buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size,
+                            DATE(a.created_at) AS tgl,
+                            COUNT(*) AS jumlah
+                        FROM signalbit_erp.output_reject_out_detail a
+                        INNER JOIN signalbit_erp.output_reject_in b ON b.id = a.reject_in_id
+                        LEFT JOIN signalbit_erp.output_reject_out c ON c.id = a.reject_out_id
+                        INNER JOIN signalbit_erp.master_plan mp ON mp.id = b.master_plan_id
+                        LEFT JOIN (
+                            SELECT
+                            sd.id as id_so_det,
+                            ac.kpno as ws,
+                            supplier as buyer,
+                            styleno,
+                            color,
+                            size,
+                            dest
+                            FROM signalbit_erp.so_det sd
+                            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                            INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                            WHERE jd.cancel = 'N'
+                        ) mb on b.so_det_id = mb.id_so_det
+                        WHERE
+                            DATE(a.created_at) >= '{$tglAwal}'
+                            AND DATE(a.created_at) <= '{$tglAkhir}'
+                            AND b.status = 'rejected'
+                            AND mp.cancel = 'N'
+                        GROUP BY so_det_id, ws, color, size, DATE(a.created_at)
+
+                        UNION ALL
+
+                        SELECT
+                            null so_det_id,
+                            buyer,
                             ws,
                             styleno,
                             color,
                             size,
-                            tgl,
-                            SUM(jumlah) AS jumlah
-                        FROM
-                        (
-                            SELECT
-                                so_det_id,
-                                mb.buyer buyer,
-                                mb.ws,
-                                mb.styleno,
-                                mb.color,
-                                mb.size,
-                                DATE(a.created_at) AS tgl,
-                                COUNT(*) AS jumlah
-                            FROM signalbit_erp.output_reject_out_detail a
-                            INNER JOIN signalbit_erp.output_reject_in b ON b.id = a.reject_in_id
-                            LEFT JOIN signalbit_erp.output_reject_out c ON c.id = a.reject_out_id
-                            INNER JOIN signalbit_erp.master_plan mp ON mp.id = b.master_plan_id
-                            LEFT JOIN (
-                                SELECT
-                                sd.id as id_so_det,
-                                ac.kpno as ws,
-                                supplier as buyer,
-                                styleno,
-                                color,
-                                size,
-                                dest
-                                FROM signalbit_erp.so_det sd
-                                INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                                INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-                                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                                WHERE jd.cancel = 'N'
-                            ) mb on b.so_det_id = mb.id_so_det
-                            WHERE
-                                DATE(a.created_at) >= '{$tglAwal}'
-                                AND DATE(a.created_at) <= '{$tglAkhir}'
-                                AND b.status = 'rejected'
-                                AND mp.cancel = 'N'
-                            GROUP BY so_det_id, ws, color, size, DATE(a.created_at)
-
-                            UNION ALL
-
-                            SELECT
-                                null so_det_id,
-                                buyer,
-                                ws,
-                                styleno,
-                                color,
-                                size,
-                                tgl_saldo AS tgl,
-                                SUM(COALESCE(qty_rejected, 0)) AS jumlah
-                            FROM signalbit_erp.inject_mutasi_sewing
-                            WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_rejected > 0
-                            GROUP BY
-                                ws,
-                                color,
-                                size,
-                                tgl_saldo
-                        ) as results
+                            tgl_saldo AS tgl,
+                            SUM(COALESCE(qty_rejected, 0)) AS jumlah
+                        FROM signalbit_erp.inject_mutasi_sewing
+                        WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_rejected > 0
                         GROUP BY
                             ws,
                             color,
-                            size
-                    ) results
+                            size,
+                            tgl_saldo
+                    ) as results
+                    GROUP BY
+                        ws,
+                        color,
+                        size
+                ) results
             "))
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
-            })->get();
+            });
+
         } else {
-            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0');
         }
 
-        $this->rowCount = count($data) + 5; // 1 for header
+        $data = $data->get();
+
+        $this->rowCount = $data->count() + 5; // 1 for header
 
         return view('sewing.report.excel.export_report_qc_reject', [
             'data' => $data,
