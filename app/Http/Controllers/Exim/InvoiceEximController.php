@@ -2106,6 +2106,8 @@ class InvoiceEximController extends Controller
                     if ($so) { $db->table(self::TABEL_SO)->insert($so); }
                     $db->table(self::TABEL_POT)->insert($this->barisPotongan($idBook, $noInvoice, $s, $user, $now));
 
+                    // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
+                    $this->selaraskanInvno($db, $idBook, $noInvoice);
                     $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_LOCAL, 'CREATE', $user, $now);
 
                     return array('id' => $idBook, 'no_invoice' => $noInvoice);
@@ -2214,6 +2216,8 @@ class InvoiceEximController extends Controller
                         + $s['header'] + array('created_by' => $user, 'created_at' => $now)
                     );
                     $this->tulisIsiExport($db, $idBook, $noInvoice, $s, $user, $now);
+                    // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
+                    $this->selaraskanInvno($db, $idBook, $noInvoice);
                     $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_EXPORT, 'CREATE', $user, $now);
 
                     return array('id' => $idBook, 'no_invoice' => $noInvoice);
@@ -2872,6 +2876,8 @@ class InvoiceEximController extends Controller
                     $db->table($t)->where('id_book_invoice', $idBook)->delete();
                 }
                 $this->tulisIsiExport($db, $idBook, $noInvoice, $s, $user, $now);
+                // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
+                $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_EXPORT, 'UPDATE', $user, $now);
             });
         } catch (\RuntimeException $e) {
@@ -3753,6 +3759,8 @@ class InvoiceEximController extends Controller
 
                 // Barisnya baru saja ditulis ulang, jadi keadaan sebelumnya hanya
                 // tersimpan di riwayat - potretnya diambil sesudah semuanya masuk.
+                // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
+                $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_LOCAL, 'UPDATE', $user, $now);
             });
         } catch (\RuntimeException $e) {
@@ -3807,6 +3815,9 @@ class InvoiceEximController extends Controller
                     throw new \RuntimeException('bukan_draft');
                 }
                 $db->table('tbl_book_invoice')->where('id', $idBook)->update(array('status' => 'CANCEL'));
+                // Invoicenya batal - tandanya di SJ ikut dilepas supaya SJ-nya
+                // tidak terbaca masih masuk invoice ini.
+                $this->lepasInvno($db, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, $shipp, 'CANCEL', $user, $now);
             });
         } catch (\RuntimeException $e) {
@@ -3827,6 +3838,61 @@ class InvoiceEximController extends Controller
     // ======================================================================
     //  Riwayat - potret invoice tiap kali disimpan
     // ======================================================================
+
+    /**
+     * Tandai SJ garment dengan nomor invoicenya di tabel asalnya (bppb.invno).
+     *
+     * Supaya di aplikasi sebelah langsung terlihat SJ itu masuk invoice mana,
+     * tanpa harus menelusuri balik lewat tbl_book_invoice_exim_det.
+     *
+     * Baris yang tadinya bertanda invoice ini dibersihkan DULU, baru baris yang
+     * sekarang ditandai: waktu invoice di-update SJ-nya bisa berganti, dan SJ
+     * yang dilepas tidak boleh tetap membawa nomor invoice ini.
+     *
+     * Hanya baris NAG. Baris knitting datang dari official_out_h di database
+     * lain, dan yang diminta memang bppb.
+     */
+    private function selaraskanInvno($db, $idBook, $noInvoice)
+    {
+        if (!$this->kolomAda('bppb', 'invno')) {
+            return;
+        }
+        $this->lepasInvno($db, $noInvoice);
+        $db->update(
+            "UPDATE bppb SET invno = ?
+              WHERE id IN (SELECT id_bppb FROM " . self::TABEL_DET . "
+                            WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAG')",
+            array((string) $noInvoice, (int) $idBook)
+        );
+    }
+
+    /** Lepaskan tanda invoice ini dari SJ-nya - dipakai waktu update & batal. */
+    private function lepasInvno($db, $noInvoice)
+    {
+        if (!$this->kolomAda('bppb', 'invno')) {
+            return;
+        }
+        $db->update(
+            "UPDATE bppb SET invno = ? WHERE invno = ?",
+            array($this->kosongInvno($db), (string) $noInvoice)
+        );
+    }
+
+    /**
+     * Nilai "tidak ada invoice" untuk bppb.invno.
+     *
+     * NULL kalau kolomnya memang boleh kosong; kalau tidak, string kosong -
+     * memaksa NULL ke kolom NOT NULL akan menggagalkan seluruh penyimpanan.
+     */
+    private function kosongInvno($db)
+    {
+        $r = $db->select(
+            "SELECT IS_NULLABLE FROM information_schema.COLUMNS
+              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bppb'
+                AND COLUMN_NAME = 'invno' LIMIT 1"
+        );
+        return ($r && strtoupper((string) $r[0]->IS_NULLABLE) === 'YES') ? null : '';
+    }
 
     /** Tabel riwayat - dibuat lewat migrations/20260929_invoice_exim_riwayat.sql */
     const TABEL_LOG = 'tbl_book_invoice_exim_log';
