@@ -2990,10 +2990,12 @@ $(function () {
             if (!pertama) { pertama = $(sel).closest('.card'); }
         }
         if (!kirimBaris.length) { kartuKurang('#inv-table-kirim', 'Shipment Details: add at least one row'); }
-        // Yang wajib baris SO (WS), bukan SJ: invoice sering harus terbit
-        // sebelum barangnya keluar. Memilih SJ pun ikut mengisi Detail SO.
-        if (!invSo.length) {
-            kartuKurang('#inv-table-ringkas', 'Detail SO: add at least one WS row (Add SJ / WS)');
+        // Harus ada isinya - dari SJ atau dari SO, tidak harus dua-duanya.
+        // Invoice yang terbit sebelum barangnya keluar baru punya baris SO;
+        // yang barangnya sudah keluar bisa langsung punya SJ saja.
+        if (!invSo.length && !invBaris.length) {
+            kartuKurang('#inv-table-ringkas',
+                'Detail SJ or Detail SO: add at least one row (Add SJ / WS)');
         }
 
         var warna = warnaUrut();

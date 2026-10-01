@@ -2294,10 +2294,15 @@ class InvoiceEximController extends Controller
         if ($tgl === null)                       { $kurang[] = 'Invoice Date'; }
         if (!in_array($docType, self::DOC_TYPE_EXPORT, true)) { $kurang[] = 'Document Type'; }
         if (!is_array($kirim) || !$kirim)        { $kurang[] = 'Shipment Details (at least one row)'; }
-        // Yang wajib baris SO (WS), bukan SJ: invoice sering harus terbit
-        // sebelum barangnya keluar. Memilih SJ pun ikut mengisi Detail SO,
-        // jadi syarat ini tidak menyulitkan alur yang lama.
-        if (!is_array($barisWs) || !$barisWs)    { $kurang[] = 'Detail SO (at least one WS row)'; }
+        // Harus ada ISINYA - dari SJ atau dari SO, tidak harus dua-duanya.
+        // Keduanya sah: invoice yang terbit sebelum barangnya keluar baru punya
+        // baris SO, sedangkan yang barangnya sudah keluar bisa saja langsung
+        // punya SJ tanpa SO-nya pernah dipesan lebih dulu.
+        $adaWs = is_array($barisWs) && $barisWs;
+        $adaSj = is_array($baris) && $baris;
+        if (!$adaWs && !$adaSj) {
+            $kurang[] = 'Detail SJ or Detail SO (at least one row)';
+        }
         if ($kurang) {
             return $salah(implode(', ', $kurang) . (count($kurang) > 1 ? ' are' : ' is') . ' required.', 422);
         }
