@@ -105,7 +105,7 @@
             <td style="width:15%">INVOICE NO :</td>
             <td style="width:35%">{{ $noCetak }}</td>
             <td style="width:10%">DATE :</td>
-            <td style="width:40%">{{ $tanggal }}</td>
+            <td style="width:40%">{{ $tanggal }} &nbsp;|&nbsp; {{ $labelVersi }}</td>
         </tr>
     </table>
 

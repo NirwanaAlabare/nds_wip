@@ -3112,6 +3112,10 @@ class InvoiceEximController extends Controller
 
         return array(
             'versi'     => $versi,
+            // Versinya ikut dicetak di samping DATE - satu invoice bisa dicetak
+            // dua kali dengan harga berbeda, jadi pembacanya harus tahu yang
+            // dipegangnya yang mana.
+            'labelVersi' => $this->labelVersiExport($versi),
             'judul'     => ($tipe !== '' ? $tipe : 'COMMERCIAL') . ' INVOICE',
             // Cetakan cuma menampilkan SATU nomor: Invoice Number #2 kalau diisi
             // (dipakai kalau buyer minta penomoran sendiri), selain itu nomor sistem.
@@ -3173,6 +3177,17 @@ class InvoiceEximController extends Controller
     private function namaBerkasExport(array $data)
     {
         return str_replace('/', '_', (string) $data['inv']['no_invoice']) . '_' . strtoupper($data['versi']);
+    }
+
+    /**
+     * Label versi cetakan Export: FOB atau CMT.
+     *
+     * Dipakai PDF (CARING & Classic) dan Excel - satu tempat, supaya ketiganya
+     * tidak bisa menyebut hal yang berbeda untuk invoice yang sama.
+     */
+    private function labelVersiExport($versi)
+    {
+        return strtolower(trim((string) $versi)) === 'fob' ? 'FOB' : 'CMT';
     }
 
     /** PDF Invoice Export - ?id=..&versi=cm|fob */
@@ -3297,7 +3312,7 @@ class InvoiceEximController extends Controller
         $tulis('B' . $b . ':D' . $b, $data['noCetak']);
         // DATE sejajar label SELLER (E) dan tanggalnya sejajar isi SELLER (F:H).
         $tulis('E' . $b, 'DATE :');
-        $tulis('F' . $b . ':H' . $b, $data['tanggal']);
+        $tulis('F' . $b . ':H' . $b, $data['tanggal'] . '   |   ' . $data['labelVersi']);
 
         // ---------------- Pihak-pihak ----------------
         $pasangan = array(
