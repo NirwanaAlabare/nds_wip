@@ -9,7 +9,7 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    
+
 @endsection
 
 @section('content')
@@ -27,6 +27,14 @@
                         <option selected value="" disabled>Pilih Kategori</option>
                         <option value="TERIMA">TERIMA</option>
                         <option value="KELUAR GOOD">KELUAR GOOD</option>
+                        <option value="KELUAR SEWING">KELUAR SEWING</option>
+                        <option value="KELUAR QC FINISHING">KELUAR QC FINISHING</option>
+                        <option value="KELUAR PASANG KANCING">KELUAR PASANG KANCING</option>
+                        <option value="KELUAR BARTACK">KELUAR BARTACK</option>
+                        <option value="KELUAR HEATSEAL">KELUAR HEATSEAL</option>
+                        <option value="KELUAR SNAP">KELUAR SNAP</option>
+                        <option value="KELUAR EMBRO">KELUAR EMBRO</option>
+                        <option value="KELUAR GOOD INJECT">KELUAR GOOD INJECT</option>
                         <option value="KELUAR REJECT">KELUAR REJECT</option>
                     </select>
                 </div>

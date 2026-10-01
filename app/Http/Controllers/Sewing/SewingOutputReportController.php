@@ -26,6 +26,7 @@ class SewingOutputReportController extends Controller
             'rework'              => 'Rework Sewing',
             'rework_mending'      => 'Rework Mending',
             'rework_spotcleaning' => 'Rework Spotcleaning',
+            'terima_reject'       => 'Terima Reject',
             'reject'              => 'Reject'
         ];
 
