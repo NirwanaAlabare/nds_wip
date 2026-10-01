@@ -612,8 +612,13 @@
                         <h5 class="card-title fw-bold">
                             <i class="fa fa-cog"></i> Custom Part
                         </h5>
-                        <div class='card-tools'>
-                            <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                        <div class='card-tools d-flex align-items-center gap-2'>
+                            <button type='button' class='btn btn-sb-secondary btn-xs' data-bs-toggle='modal' data-bs-target='#importPartCustomModal'>
+                                <i class='fas fa-file-excel me-1'></i> Import
+                            </button>
+                            <button type='button' class='btn btn-tool' data-card-widget='collapse'>
+                                <i class='fas fa-plus'></i>
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -751,13 +756,108 @@
                         <div class="modal-footer">
                             <div class="d-flex gap-1">
                                 <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-sb">Simpan</button>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-sb-secondary btn-sm flex-fill" name="part_custom_submit" id="part_custom_submit">
+                                        SIMPAN <i class="fa fa-save"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </form>
+
+        <!-- Modal Import Part Custom -->
+        <div class="modal fade" id="importPartCustomModal" tabindex="-1" aria-labelledby="importPartCustomModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+                    <form id="importPartCustomForm" enctype="multipart/form-data" class="d-flex flex-column h-100 mb-0">
+                        @csrf
+                        <input type="hidden" name="part_id" value="{{ $part->id ?? '' }}">
+
+                        <!-- Header (Navy / Dark Blue) -->
+                        <div class="modal-header text-white py-3" style="background-color: #0d2342;">
+                            <h5 class="modal-title fw-bold fs-5" id="importPartCustomModalLabel">
+                                <i class="fa fa-file-excel me-2"></i>Import Part Custom
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="modal-body p-4">
+                            <!-- Drop Zone / File Input Box -->
+                            <div class="drop-zone mb-3 p-4 border border-2 border-dashed rounded-3 text-center bg-light" id="drop-zone-part-custom">
+                                <p class="fs-5 fw-bold text-dark mb-1">Pilih File Excel untuk Diimport</p>
+                                <p class="text-muted small mb-3">Format file yang didukung: .xlsx, .xls, .csv (Maksimal 2MB)</p>
+                                <div class="d-flex align-items-center justify-content-center gap-3">
+                                    <label for="import-part-custom-file" class="btn btn-primary px-4 py-2 rounded-3 mb-0 style-btn-browse cursor-pointer">
+                                        <i class="fa fa-folder-open me-1"></i> Browse File...
+                                    </label>
+                                    <input type="file" id="import-part-custom-file" name="file" accept=".xlsx,.xls,.csv" class="d-none">
+                                    <span id="part-custom-file-name-display" class="text-secondary fw-medium">Tidak ada file dipilih.</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                                <a href="{{ asset('example/contoh-import-part-custom.xlsx') }}" 
+                                id="btn-download-template-custom" 
+                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0" 
+                                download="Contoh_Import_Part_Custom.xlsx">
+                                    <i class="fa fa-download me-1"></i> Download Template Excel
+                                </a>
+                                <button type="button" id="btn-empty-preview-custom" class="btn btn-outline-danger btn-sm px-3 flex-shrink-0">
+                                    <i class="fa fa-trash me-1"></i> Kosongkan Preview
+                                </button>
+                            </div>
+
+                            <!-- Alert & Summary -->
+                            <div id="import-part-custom-error" class="alert alert-danger d-none shadow-sm rounded-3 small" role="alert"></div>
+                            <div id="import-part-custom-summary" class="fw-bold text-secondary mb-2 px-1 small"></div>
+
+                            <!-- Table Preview Data -->
+                            <div class="table-responsive rounded-3 border shadow-sm style-table-container">
+                                <table class="table table-bordered table-striped table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                    <thead class="table-dark sticky-top">
+                                        <tr class="text-center align-middle">
+                                            <th>No</th>
+                                            <th>No. WS</th>
+                                            <th>Buyer</th>
+                                            <th>Style</th>
+                                            <th>Color</th>
+                                            <th>Panel</th>
+                                            <th>Part</th>
+                                            <th>Original Status</th>
+                                            <th>Custom Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="import-part-custom-preview" class="bg-white">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">
+                                                Silakan pilih file Excel di atas untuk menampilkan preview data.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Footer (Batal & Simpan) -->
+                        <div class="modal-footer bg-light border-top py-3 px-4">
+                            <div class="d-flex w-100 justify-content-end align-items-center gap-2">
+                                <button type="button" class="btn btn-secondary px-4 fw-medium btn-sm" data-bs-dismiss="modal" id="btn-batal-custom">
+                                    <i class="fa fa-times me-1"></i> Batal
+                                </button>
+                                <button type="submit" class="btn btn-success px-4 fw-medium btn-sm" id="btn-simpan-custom" disabled>
+                                    <i class="fa fa-save me-1"></i> Simpan Data (<span id="count-simpan-custom">0</span>)
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endrole
 
     {{-- FORM --}}
@@ -883,6 +983,222 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <!-- Page specific script -->
     <script>
+        $(document).ready(function() {
+            // Variable global penyimpan data preview
+            let previewDataImport = [];
+
+            // Elemen DOM & Drop Zone
+            const $fileInput =$('#import-part-custom-file');
+            const $fileNameDisplay =$('#part-custom-file-name-display');
+            const dropZone = document.getElementById('drop-zone-part-custom');
+
+            // 1. Event Browse File Input
+            $fileInput.on('change', function () {
+                if (this.files && this.files.length > 0) {
+                    let file = this.files[0];
+                    $fileNameDisplay.text(file.name).addClass('text-dark fw-semibold');
+                    uploadAndPreviewFile(file);
+                }
+            });
+
+            // 2. Event Drag and Drop Zone
+            if (dropZone) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(dropZone).addClass('drag-over');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(dropZone).removeClass('drag-over');
+                    }, false);
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    let dt = e.dataTransfer;
+                    let files = dt.files;
+
+                    if (files.length > 0) {
+                        $fileInput[0].files = files;
+                        $fileNameDisplay.text(files[0].name).addClass('text-dark fw-semibold');
+                        uploadAndPreviewFile(files[0]);
+                    }
+                });
+            }
+
+            // 3. Fungsi Upload & Read Preview Excel via AJAX
+            function uploadAndPreviewFile(file) {
+                let formData = new FormData();
+                formData.append('file', file);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                let tbody = $('#import-part-custom-preview');
+                let errorBox = $('#import-part-custom-error');
+                let summaryBox = $('#import-part-custom-summary');
+                let btnSimpan = $('#btn-simpan-custom');
+
+                // Loading state
+                errorBox.addClass('d-none').html('');
+                summaryBox.html('<i class="fa fa-spinner fa-spin me-1"></i> Membaca file Excel...');
+                btnSimpan.prop('disabled', true);
+                $('#count-simpan-custom').text('0');
+
+                tbody.html(`
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            Memproses & Membaca Data...
+                        </td>
+                    </tr>
+                `);
+
+                $.ajax({
+                    url: "{{ route('preview-import-part-custom') }}",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        let html = '';
+                        previewDataImport = response.data || [];
+
+                        if (previewDataImport.length > 0) {
+                            $.each(previewDataImport, function (index, item) {
+                                html += `
+                                    <tr>
+                                        <td class="text-center fw-bold">${item.row}</td>
+                                        <td class="text-center">${item.ws}</td>
+                                        <td>${item.buyer}</td>
+                                        <td>${item.style}</td>
+                                        <td class="text-center">${item.color}</td>
+                                        <td class="text-center">${item.panel}</td>
+                                        <td>${item.part}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">${item.part_status || '-'}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">${item.set_part_status}</span>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            tbody.html(html);
+                            summaryBox.html(`<i class="fa fa-check-circle text-success me-1"></i> Total data valid siap diimport: <b>${response.total_data}</b> baris.`);
+                            btnSimpan.prop('disabled', false);
+                            $('#count-simpan-custom').text(response.total_data);
+                        } else {
+                            tbody.html(`
+                                <tr>
+                                    <td colspan="9" class="text-center text-warning py-4">
+                                        Tidak ada data valid yang dapat ditampilkan.
+                                    </td>
+                                </tr>
+                            `);
+                            summaryBox.html('');
+                            btnSimpan.prop('disabled', true);
+                            $('#count-simpan-custom').text('0');
+                        }
+
+                        // Tampilkan catatan/peringatan per baris jika ada
+                        if (response.errors && response.errors.length > 0) {
+                            let errHtml = '<b>Peringatan / Catatan Baris Excel:</b><ul class="mb-0 mt-1 ps-3">';
+                            $.each(response.errors, function (i, err) {
+                                errHtml += `<li>${err}</li>`;
+                            });
+                            errHtml += '</ul>';
+                            errorBox.removeClass('d-none').html(errHtml);
+                        }
+                    },
+                    error: function (xhr) {
+                        let res = xhr.responseJSON;
+                        let message = res && res.message ? res.message : 'Gagal memproses file Excel.';
+
+                        tbody.html(`
+                            <tr>
+                                <td colspan="9" class="text-center text-danger py-4">
+                                    Gagal memuat preview data.
+                                </td>
+                            </tr>
+                        `);
+                        summaryBox.html('');
+                        errorBox.removeClass('d-none').html(message);
+                        btnSimpan.prop('disabled', true);
+                        $('#count-simpan-custom').text('0');
+                    }
+                });
+            }
+
+            // 4. Tombol Kosongkan Preview
+            $('#btn-empty-preview-custom').on('click', function () {
+                $fileInput.val('');
+                $fileNameDisplay.text('Tidak ada file dipilih.').removeClass('text-dark fw-semibold');$('#import-part-custom-error').addClass('d-none').html('');
+                $('#import-part-custom-summary').html('');
+                $('#btn-simpan-custom').prop('disabled', true);
+                $('#count-simpan-custom').text('0');
+                previewDataImport = [];
+
+                $('#import-part-custom-preview').html(`
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            Silakan pilih file Excel di atas untuk menampilkan preview data.
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // 5. Submit Form Simpan Data ke Database
+            $('#importPartCustomForm').on('submit', function (e) {
+                e.preventDefault();
+
+                if (previewDataImport.length === 0) {
+                    Swal.fire('Peringatan', 'Tidak ada data preview yang siap disimpan.', 'warning');
+                    return;
+                }
+
+                let submitBtn = $('#btn-simpan-custom');
+                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> Menyimpan...');
+
+                $.ajax({
+                    url: "{{ route('store-part-custom-import') }}",
+                    type: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        data: previewDataImport
+                    },
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message || 'Data Custom Part berhasil disimpan.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        $('#importPartCustomModal').modal('hide');
+                        $('#btn-empty-preview-custom').click();
+
+                        if (typeof $('#datatable-part-custom').DataTable === 'function') {
+                            $('#datatable-part-custom').DataTable().ajax.reload();
+                        }
+                    },
+                    error: function (xhr) {
+                        let res = xhr.responseJSON;
+                        Swal.fire('Gagal!', res && res.message ? res.message : 'Terjadi kesalahan saat menyimpan data.', 'error');
+                    },
+                    complete: function () {
+                        submitBtn.prop('disabled', false).html('<i class="fa fa-save me-1"></i> Simpan Data (' + previewDataImport.length + ')');
+                    }
+                });
+            });
+
+        });
+        
         //Initialize Select2 Elements
         $('.select2').select2()
 
