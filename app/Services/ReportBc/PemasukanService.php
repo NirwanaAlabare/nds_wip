@@ -304,9 +304,9 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
+                    SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -345,9 +345,9 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
-                    SUM(wd.qty_good) as qty,
+                    SUM(ROUND(IFNULL(wd.qty_good, 0))) as qty,
+                    SUM(ROUND(IFNULL(wd.price, 0) * IFNULL(wd.qty_good, 0), 2)) as nilai_barang,
                     '-' as curr,
-                    0 as nilai_barang,
                     0 as berat_bersih,
                     0 as berat_kotor,
                     wh.no_aju as nomor_aju,
@@ -387,9 +387,9 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
+                    SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -427,8 +427,8 @@ class PemasukanService
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     'PCS' as unit,
                     SUM(a.qty) as qty,
-                    '-' as curr,
                     0 as nilai_barang,
+                    '-' as curr,
                     0 as berat_bersih,
                     0 as berat_kotor,
                     '-' as nomor_aju,
@@ -464,8 +464,8 @@ class PemasukanService
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     'PCS' as unit,
                     COUNT(*) as qty,
-                    '-' as curr,
                     0 as nilai_barang,
+                    '-' as curr,
                     0 as berat_bersih,
                     0 as berat_kotor,
                     '-' as nomor_aju,
@@ -552,7 +552,7 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
-        // Accessories / Bahan Baku / Penolong
+        // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
             $condition = "";
             if (in_array($kategori, ['accesories', 'accessories'])) {
@@ -606,7 +606,7 @@ class PemasukanService
             ";
         }
 
-        // Warehouse Fabric
+        // Fabric
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
@@ -755,7 +755,7 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
-        // Accessories / Bahan Baku / Penolong
+        // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
             $condition = "";
             if (in_array($kategori, ['accesories', 'accessories'])) {
@@ -806,7 +806,7 @@ class PemasukanService
             ";
         }
 
-        // Warehouse Fabric
+        // Fabric
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
@@ -952,7 +952,7 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
-        // Accessories / Bahan Baku / Penolong
+        // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
             $condition = "";
             if (in_array($kategori, ['accesories', 'accessories'])) {
@@ -1003,7 +1003,7 @@ class PemasukanService
             ";
         }
 
-        // Warehouse Fabric
+        // Fabric
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
@@ -1149,7 +1149,7 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
-        // Accessories / Bahan Baku / Penolong
+        // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
             $condition = "";
             if (in_array($kategori, ['accesories', 'accessories'])) {
@@ -1201,7 +1201,7 @@ class PemasukanService
             ";
         }
 
-        // Warehouse Fabric
+        // Fabric
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
