@@ -539,13 +539,13 @@
             let nik = $('#txtnik').val();
             let tujuan = $('#cbotujuan').val();
             let c = tagCounts();
-            let hasTag = state.mode === 'bulk' ? c.ok > 1 : c.ok >= 1;
+            let hasTag = c.ok >= 1;
 
             let requirements = [];
             if (state.mode === 'single' && !nik) requirements.push('Isi NIK');
             if (c.pending) requirements.push('tunggu pengecekan tag');
             else if (c.error) requirements.push('hapus tag yang gagal');
-            else if (!hasTag) requirements.push(state.mode === 'bulk' ? 'scan lebih dari 1 tag' : 'scan minimal 1 tag');
+            else if (!hasTag) requirements.push('scan minimal 1 tag');
             if (state.action === 'ambil' && !tujuan) requirements.push('pilih tujuan');
 
             let $btn = $('#btnSubmit').removeClass('btn-secondary btn-success btn-warning');
