@@ -2,8 +2,9 @@
      PDF Invoice Export - gaya CARING. Dua versi dari data yang sama:
        CM  ($versi = 'cm')  untuk penagihan tim AR
        FOB ($versi = 'fob') untuk perizinan barang keluar BC
-     Yang berbeda cuma harga di Invoice Summary & rekapnya. Judulnya sama -
-     versinya sengaja tidak ditulis di dokumen.
+     Yang berbeda cuma harga di Invoice Summary & rekapnya. Judulnya sama,
+     jadi versinya disebut di samping DATE (FOB / CMT) - tanpa itu dua
+     cetakan yang angkanya berbeda terlihat seperti dokumen yang sama.
 
      Isinya sama dengan versi Classic (pdf-lama.blade.php): kop, pihak-pihak,
      Shipment Details per baris, Invoice Summary, Invoice Notes, Manufacturer
@@ -172,7 +173,8 @@
          Satu nomor saja: Invoice Number #2 kalau diisi, selain itu nomor sistem. --}}
     <div class="judul">{{ $judul }}</div>
     <div class="nomor">INVOICE NO : {{ $noCetak }}
-        <span class="tanggal">&nbsp;&nbsp;|&nbsp;&nbsp;DATE : {{ $tanggal }}</span></div>
+        <span class="tanggal">&nbsp;&nbsp;|&nbsp;&nbsp;DATE : {{ $tanggal }}</span>
+        <span class="tanggal">&nbsp;&nbsp;|&nbsp;&nbsp;{{ $labelVersi }}</span></div>
 
     {{-- ===== Pihak-pihak: SHIP FROM | SELLER, lalu PURCHASER | SHIP TO ===== --}}
     @foreach (array(array($pihak[0], $pihak[1]), array($pihak[2], $pihak[3])) as $pasang)
