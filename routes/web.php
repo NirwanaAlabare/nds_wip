@@ -114,6 +114,7 @@ use App\Http\Controllers\Sewing\FinishingDefectReportController;
 use App\Http\Controllers\Sewing\FinishingMendingReportController;
 use App\Http\Controllers\Sewing\FinishingOutputReportController;
 use App\Http\Controllers\Sewing\FinishingRejectReportController;
+use App\Http\Controllers\Sewing\FinishingTerimaRejectReportController;
 use App\Http\Controllers\Sewing\FinishingReworkMendingReportController;
 use App\Http\Controllers\Sewing\FinishingReworkReportController;
 use App\Http\Controllers\Sewing\FinishingReworkSewingReportController;
@@ -123,6 +124,7 @@ use App\Http\Controllers\Sewing\SewingDefectReportController;
 use App\Http\Controllers\Sewing\SewingMendingReportController;
 use App\Http\Controllers\Sewing\SewingOutputReportController;
 use App\Http\Controllers\Sewing\SewingRejectReportController;
+use App\Http\Controllers\Sewing\SewingTerimaRejectReportController;
 use App\Http\Controllers\Sewing\SewingReworkMendingReportController;
 use App\Http\Controllers\Sewing\SewingReworkReportController;
 use App\Http\Controllers\Sewing\SewingReworkSpotcleaningReportController;
@@ -2164,6 +2166,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/data', 'getData')->name('report.reject.data');
             Route::get('/export', 'exportExcel')->name('report.reject.export');
         });
+
+        Route::controller(SewingTerimaRejectReportController::class)->prefix('terima-reject')->group(function () {
+            Route::get('/data', 'getData')->name('report.terima_reject.data');
+            Route::get('/export', 'exportExcel')->name('report.terima_reject.export');
+        });
     });
 
     Route::middleware(['role:sewing'])->prefix('report-finishing')->group(function () {
@@ -2201,6 +2208,11 @@ Route::middleware('auth')->group(function () {
         Route::controller(FinishingRejectReportController::class)->prefix('reject')->group(function () {
             Route::get('/data', 'getData')->name('report.f_reject.data');
             Route::get('/export', 'exportExcel')->name('report.f_reject.export');
+        });
+
+        Route::controller(FinishingTerimaRejectReportController::class)->prefix('terima-reject')->group(function () {
+            Route::get('/data', 'getData')->name('report.f_terima_reject.data');
+            Route::get('/export', 'exportExcel')->name('report.f_terima_reject.export');
         });
     });
 

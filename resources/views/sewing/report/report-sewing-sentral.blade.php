@@ -130,6 +130,10 @@
                 data: "{{ route('report.rework_spotcleaning.data') }}",
                 export: "{{ route('report.rework_spotcleaning.export') }}"
             },
+            'terima_reject': {
+                data: "{{ route('report.terima_reject.data') }}",
+                export: "{{ route('report.terima_reject.export') }}"
+            },
             'reject': {
                 data: "{{ route('report.reject.data') }}",
                 export: "{{ route('report.reject.export') }}"

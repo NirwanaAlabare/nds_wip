@@ -141,6 +141,25 @@ class ReportFinishingProsesController extends Controller
                                         output_rfts.created_by
                                 UNION ALL
 
+                                -- REJECT UNDO
+                                select
+                                    a.so_det_id,
+                                    a.created_by,
+                                    a.secondary_id,
+                                    0 AS wip,
+                                    0 AS 'in',
+                                    0 AS defect,
+                                    0 AS rework,
+                                    COUNT( DISTINCT a.id ) AS reject,
+                                    0 AS output
+                                from signalbit_erp.output_undo_packing a
+                                inner join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = a.output_reject_id and reject_in.output_type = 'finishing_proses' and reject_in.status = 'reworked'
+                                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                                where a.updated_at BETWEEN ? and ? and mp.cancel = 'N'
+                                group by a.secondary_id, a.so_det_id, a.created_by
+
+                                UNION ALL
+
                                 -- OUTPUT RFT & REWORK
                                 SELECT
                                         output_rfts.so_det_id,
@@ -305,6 +324,25 @@ class ReportFinishingProsesController extends Controller
                                         output_secondary_in.secondary_id,
                                         output_rfts.so_det_id,
                                         output_rfts.created_by
+                                UNION ALL
+
+                                -- Reject UNDO
+                                select
+                                    a.so_det_id,
+                                    a.created_by,
+                                    a.secondary_id,
+                                    0 AS wip,
+                                    0 AS 'in',
+                                    0 AS defect,
+                                    0 AS rework,
+                                    COUNT( DISTINCT a.id ) AS reject,
+                                    0 AS output
+                                from signalbit_erp.output_undo_packing a
+                                inner join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = a.output_reject_id and reject_in.output_type = 'finishing_proses' and reject_in.status = 'reworked'
+                                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                                where a.updated_at BETWEEN ? and ? and mp.cancel = 'N'
+                                group by a.secondary_id, a.so_det_id, a.created_by
+
                                 UNION ALL
 
                                 -- OUTPUT RFT & REWORK

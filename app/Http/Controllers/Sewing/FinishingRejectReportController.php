@@ -20,31 +20,73 @@ class FinishingRejectReportController extends Controller
     {
         if (!$startDate || !$endDate) return [];
 
-        $bindings = [$startDate . ' 00:00:00', $endDate . ' 23:59:59'];
+        $bindings = [$startDate . ' 00:00:00', $endDate . ' 23:59:59', $startDate . ' 00:00:00', $endDate . ' 23:59:59'];
         $buyerFilter = !empty($buyer) ? "AND ms.supplier = ?" : "";
         if (!empty($buyer)) $bindings[] = $buyer;
 
         $sql = "
-            SELECT
-                ms.supplier AS buyer,
-                ac.kpno AS ws,
-                ac.styleno AS style,
-                sd.color,
-                sd.size,
-                COUNT(a.id) AS jumlah
-            FROM signalbit_erp.output_rejects_packing a
-            INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
-            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-            LEFT JOIN signalbit_erp.master_size_new msn ON sd.size = msn.size
-            WHERE a.updated_at >= ?
-              AND a.updated_at <= ?
-              $buyerFilter
-            GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
-            UNION ALL
-            select buyer, ws, styleno style, color, size, COALESCE(qty_fin_reject,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'FINISHING' AND tgl_saldo >= '$startDate' AND tgl_saldo <= '$endDate' and qty_fin_reject > 0
-            ORDER BY buyer ASC, ws ASC, color ASC
+            select
+                buyer,
+                ws,
+                style,
+                color,
+                size,
+                SUM(qty_reject) qty_reject
+            FROM (
+                select
+                        ms.supplier AS buyer, ac.kpno AS ws, ac.styleno AS style, sd.color, sd.size,
+                        COUNT(reject_in.id) AS qty_reject
+                from signalbit_erp.output_undo_packing a
+                inner join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = a.output_reject_id and reject_in.output_type = 'packing' and reject_in.status = 'reworked'
+                inner join signalbit_erp.output_reject_out_detail reject_out on reject_out.reject_in_id = reject_in.id
+                inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                -- order info
+                INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
+                INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                LEFT JOIN signalbit_erp.master_size_new msn ON sd.size = msn.size
+                where
+                    a.updated_at >= '2026-09-01 00:00:00'
+                    and a.updated_at >= ?
+                    and a.updated_at <= ?
+                    and mp.cancel = 'N'
+                    $buyerFilter
+                GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
+                UNION ALL
+                SELECT
+                    ms.supplier AS buyer,
+                    ac.kpno AS ws,
+                    ac.styleno AS style,
+                    sd.color,
+                    sd.size,
+                    COUNT(a.id) AS jumlah
+                FROM signalbit_erp.output_rejects_packing a
+                INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
+                INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                LEFT JOIN signalbit_erp.master_size_new msn ON sd.size = msn.size
+                WHERE a.updated_at >= ?
+                AND a.updated_at <= ?
+                $buyerFilter
+                GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
+                UNION ALL
+                select buyer, ws, styleno style, color, size, COALESCE(qty_fin_reject,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'FINISHING' AND tgl_saldo >= '$startDate' AND tgl_saldo <= '$endDate' and qty_fin_reject > 0
+                ORDER BY buyer ASC, ws ASC, color ASC
+            ) reject
+            group by
+                buyer,
+                ws,
+                style,
+                color,
+                size
+            order by
+                buyer,
+                ws,
+                style,
+                color
         ";
 
         return DB::connection('mysql_sb')->select($sql, $bindings);
