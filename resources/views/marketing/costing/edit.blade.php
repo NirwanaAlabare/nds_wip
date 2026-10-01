@@ -175,6 +175,10 @@
             font-weight: 700;
         }
     </style>
+
+    @include('marketing.costing.partials.summary-edit-style')
+    @include('marketing.costing.partials.fluid-layout')
+    @include('marketing.costing.partials.page-theme')
 @endsection
 
 @section('content')
@@ -198,7 +202,7 @@
             @method('PUT')
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-info-circle"></i> Buyer</div>
-            <div class="row">
+            <div class="row fluid-grid">
                 <div class="col-md-3 form-group">
                     <label>Buyer Name</label>
                     <select name="buyer" id="buyer" class="form-control select2bs4" required>
@@ -235,7 +239,7 @@
 
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-tshirt"></i> Produk & Tipe</div>
-            <div class="row">
+            <div class="row fluid-grid">
                 <div class="col-md-3 form-group">
                     <label>Product Group</label>
                     <select name="product_group" id="product_group" class="form-control select2bs4" required>
@@ -273,7 +277,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row fluid-grid">
                 <div class="col-md-3 form-group">
                     <label>Tipe WS</label>
                      <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
@@ -283,7 +287,7 @@
                         {{-- <option value="DTH" {{ $costing->tipe_ws == 'DTH' ? 'selected' : '' }}>DTH</option> --}}
                     </select>
                 </div>
-                <div class="col-md-3 form-group">
+                <div class="col-md-3 form-group span-2">
                     <label>Product Type</label>
                     <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple>
                         @php
@@ -318,7 +322,7 @@
 
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-ship"></i> Pengiriman & Tujuan</div>
-            <div class="row">
+            <div class="row fluid-grid">
                 <div class="col-md-3 form-group">
                     <label>Marketing Order</label>
                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
@@ -352,7 +356,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row fluid-grid">
                 <div class="col-md-2 form-group">
                     <label>Unit</label>
                     <select name="unit" id="unit" class="form-control select2bs4" required>
@@ -362,7 +366,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 form-group">
+                <div class="col-md-3 form-group span-2">
                     <label>Main Destination #</label>
                     @php
                         $saved_dests = $costing->main_dest ? explode(',', $costing->main_dest) : [];
@@ -378,7 +382,7 @@
                     <label>Market</label>
                     <input type="text" name="market" id="market" class="form-control" value="{{ $costing->market }}" placeholder="Market">
                 </div>
-                <div class="col-md-4 form-group">
+                <div class="col-md-4 form-group span-2">
                     <label for="notes">Notes</label>
                     <textarea id="notes" name="notes" rows="1" class="form-control">{{ $costing->notes }}</textarea>
                 </div>
@@ -387,7 +391,7 @@
 
             <div class="form-section form-section-figures">
                 <div class="form-section-title"><i class="fas fa-calculator"></i> Qty, SMV & Rate</div>
-                <div class="row">
+                <div class="row fluid-grid">
                 <div class="col-md-2 form-group">
                     <label>QTY (PCS)</label>
                     <input type="text" name="qty" id="qty" class="form-control input-decimal text-right" value="{{ number_format($costing->qty, 0, '', '') }}" required>
@@ -470,79 +474,88 @@
             }
         @endphp
 
-        <h6 class="fw-bold mt-4 mb-2 text-sb"><i class="fas fa-keyboard"></i> INPUT COSTING TABLE</h6>
-        <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
-            <table class="table table-bordered table-sm table-striped w-100" style="font-size: 13px; min-width: 1500px;">
-                <thead class="bg-sb text-white text-center">
-                    <tr>
-                        <th style="min-width: 250px;">Item</th>
-                        <th style="min-width: 120px;">Set</th>
-                        <th style="min-width: 150px;">Desc</th>
-                        <th style="min-width: 200px;">Supplier</th>
-                        <th style="min-width: 80px;">Curr</th>
-                        <th style="min-width: 100px;">Price</th>
-                        <th style="min-width: 80px;">Cons/Pc</th>
-                        <th style="min-width: 100px;">Unit</th>
-                        <th style="min-width: 100px;">Price PX IDR</th>
-                        <th style="min-width: 100px;">Price PX USD</th>
-                        <th style="min-width: 80px;">Allow (%)</th>
-                        <th style="min-width: 120px;">Value IDR</th>
-                        <th style="min-width: 120px;">Value USD</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-light">
-                    <tr>
-                        <td style="padding: 4px;">
-                            <select id="txt_item" class="form-control form-control-sm select2bs4" style="width: 100%;">
-                                <option value="">-- Pilih Item --</option>
-                            </select>
-                        </td>
-                        <td style="padding: 4px;">
-                            <select id="txt_set" class="form-control form-control-sm select2bs4" style="width: 100%;">
-                                <option value="">-- Set --</option>
-                                {{-- @foreach ($set as $s)
-                                    <option value="{{ $s->id ?? $s->nama }}">{{ $s->nama ?? $s->id }}</option>
-                                @endforeach --}}
-                                @foreach ($active_sets_data as $act_set)
-                                    <option value="{{ $act_set['id'] }}">{{ $act_set['nama'] }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td style="padding: 4px;"><input type="text" id="txt_desc" class="form-control form-control-sm" placeholder="Desc..."></td>
-                        <td style="padding: 4px;">
-                            <select id="txt_supplier" class="form-control form-control-sm select2bs4" style="width: 100%;">
-                                <option value="">-- Supplier --</option>
-                                @foreach ($suppliers as $sup)
-                                    <option value="{{ $sup->Id_Supplier ?? $sup->id_supplier }}">{{ $sup->Supplier ?? $sup->supplier }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td style="padding: 4px;">
-                            <select id="txt_curr" class="form-control form-control-sm calc-input select2bs4">
-                                <option value="">-- Curr --</option>
-                                @foreach ($currencies as $cur)
-                                    <option value="{{ $cur->nama_pilihan }}">{{ $cur->nama_pilihan }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td style="padding: 4px;"><input type="text" id="txt_price" class="form-control form-control-sm text-right input-decimal calc-input" value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_cons" class="form-control form-control-sm text-center input-decimal calc-input" value="0"></td>
-                        <td style="padding: 4px;">
-                            <select id="txt_unit" class="form-control form-control-sm select2bs4" style="width: 100%;">
-                                <option value="">-- Unit --</option>
-                                @foreach ($units as $u)
-                                    <option value="{{ $u->nama_pilihan }}">{{ $u->nama_pilihan }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td style="padding: 4px;"><input type="text" id="txt_px_idr" class="form-control form-control-sm text-right bg-white" readonly value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_px_usd" class="form-control form-control-sm text-right bg-white" readonly value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_allowance" class="form-control form-control-sm text-center input-decimal calc-input" value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_val_idr" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0"></td>
-                    </tr>
-                </tbody>
-            </table>
+        <h6 class="fw-bold mt-4 mb-2 text-sb"><i class="fas fa-keyboard"></i> INPUT COSTING TABLE
+            <small class="text-muted font-weight-normal ml-2">Enter / &darr; : kolom berikutnya &middot; Shift+Enter / &uarr; : sebelumnya &middot; Enter di kolom terakhir : ADD</small>
+        </h6>
+        <div class="form-section mb-2" id="input-detail-grid">
+            <div class="row fluid-grid">
+                <div class="form-group mb-2 span-2">
+                    <label>Item</label>
+                    <select id="txt_item" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                        <option value="">-- Pilih Item --</option>
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label>Set</label>
+                    <select id="txt_set" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                        <option value="">-- Set --</option>
+                        @foreach ($active_sets_data as $act_set)
+                            <option value="{{ $act_set['id'] }}">{{ $act_set['nama'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label>Desc</label>
+                    <input type="text" id="txt_desc" class="form-control form-control-sm" placeholder="Desc...">
+                </div>
+                <div class="form-group mb-2 span-2">
+                    <label>Supplier</label>
+                    <select id="txt_supplier" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                        <option value="">-- Supplier --</option>
+                        @foreach ($suppliers as $sup)
+                            <option value="{{ $sup->Id_Supplier ?? $sup->id_supplier }}">{{ $sup->Supplier ?? $sup->supplier }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="row fluid-grid fluid-sm">
+                <div class="form-group mb-2">
+                    <label>Curr</label>
+                    <select id="txt_curr" class="form-control form-control-sm calc-input select2bs4" style="width: 100%;">
+                        <option value="">-- Curr --</option>
+                        @foreach ($currencies as $cur)
+                            <option value="{{ $cur->nama_pilihan }}">{{ $cur->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label>Price</label>
+                    <input type="text" id="txt_price" class="form-control form-control-sm text-right input-decimal calc-input" value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>Cons/Pc</label>
+                    <input type="text" id="txt_cons" class="form-control form-control-sm text-center input-decimal calc-input" value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>Unit</label>
+                    <select id="txt_unit" class="form-control form-control-sm select2bs4" style="width: 100%;">
+                        <option value="">-- Unit --</option>
+                        @foreach ($units as $u)
+                            <option value="{{ $u->nama_pilihan }}">{{ $u->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label>Allow (%)</label>
+                    <input type="text" id="txt_allowance" class="form-control form-control-sm text-center input-decimal calc-input" value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>PX IDR</label>
+                    <input type="text" id="txt_px_idr" class="form-control form-control-sm text-right bg-white" readonly value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>PX USD</label>
+                    <input type="text" id="txt_px_usd" class="form-control form-control-sm text-right bg-white" readonly value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>Value IDR</label>
+                    <input type="text" id="txt_val_idr" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0">
+                </div>
+                <div class="form-group mb-2">
+                    <label>Value USD</label>
+                    <input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0">
+                </div>
+            </div>
         </div>
 
         <div class="text-right mb-4 mt-2">
@@ -553,7 +566,13 @@
 
         <hr style="border-top: 2px solid #000;">
 
-        <h5 class="fw-bold p-2 mb-3 mt-4 text-sb border-bottom">SUMMARY DETAILS</h5>
+        <h5 class="fw-bold p-2 mb-1 mt-4 text-sb border-bottom">SUMMARY DETAILS</h5>
+        <div class="xl-hint mb-3">
+            <i class="fas fa-mouse-pointer"></i> Klik sel untuk memilih &middot; ketik / F2 / dobel-klik untuk ubah (tersimpan otomatis)
+            &middot; drag atau Shift+klik untuk blok &middot; Ctrl+C / Ctrl+V untuk copy-paste (bisa dari/ke Excel) &middot; Delete untuk mengosongkan.
+            Kolom bertanda <span class="xl-th-edit"></span> bisa diubah langsung (Item / Set / Supplier / Curr / Unit memakai pilihan + pencarian);
+            kolom lain dihitung otomatis.
+        </div>
 
         @php
             $std_categories = [
@@ -569,19 +588,21 @@
         @foreach($std_categories as $cat)
             <h6 class="fw-bold bg-sb text-white p-2 mb-0" style="font-size: 13px;">{{ $cat['title'] }}</h6>
             <div class="table-responsive mb-3">
-                <table class="table table-bordered table-sm text-nowrap w-100" style="font-size: 12px; min-width: 1400px;">
+                <table class="table table-bordered table-sm w-100 xl-table" style="font-size: 12px;">
                     <thead class="bg-light text-center">
                         <tr>
                             <th width="3%">NO</th>
-                            <th width="15%">ITEM</th>
-                            <th width="7%">SET</th>
-                            <th width="10%">DESC</th>
-                            <th width="10%">SUPPLIER</th>
+                            <th width="15%" class="xl-th-edit">ITEM</th>
+                            <th width="7%" class="xl-th-edit">SET</th>
+                            <th width="10%" class="xl-th-edit">DESC</th>
+                            <th width="10%" class="xl-th-edit">SUPPLIER</th>
+                            <th width="4%" class="xl-th-edit">CURR</th>
+                            <th width="7%" class="xl-th-edit">PRICE</th>
                             <th width="7%">PRICE PX IDR</th>
                             <th width="7%">PRICE PX USD</th>
-                            <th width="5%">CONS/PC</th>
-                            <th width="5%">UNIT</th>
-                            <th width="5%">ALLOW (%)</th>
+                            <th width="5%" class="xl-th-edit">CONS/PC</th>
+                            <th width="5%" class="xl-th-edit">UNIT</th>
+                            <th width="5%" class="xl-th-edit">ALLOW (%)</th>
                             <th width="8%">VALUE IDR</th>
                             <th width="8%">VALUE USD</th>
                             <th width="5%">%</th>
@@ -609,15 +630,17 @@
                                 @endphp
                                 <tr class="row-costing" data-category="{{ $cat['key'] }}" data-item="{{ $det->item_id }}" data-set="{{ $det->set }}" id="row-{{ $det->id }}">
                                     <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
-                                    <td class="item-name">{{ $det->nama_item }}</td>
-                                    <td class="set-td">{{ $det->nama_set }}</td>
-                                    <td>{{ $det->item_desc }}</td>
-                                    <td>{{ $det->nama_supplier }}</td>
+                                    <td class="item-name" data-field="item" data-val="{{ $det->item_id }}">{{ $det->nama_item }}</td>
+                                    <td class="set-td" data-field="set" data-val="{{ $det->set }}">{{ $det->nama_set }}</td>
+                                    <td class="desc-td" data-field="desc">{{ $det->item_desc }}</td>
+                                    <td class="supplier-td" data-field="supplier" data-val="{{ $det->supplier_id }}">{{ $det->nama_supplier }}</td>
+                                    <td class="text-center curr-td" data-field="curr" data-val="{{ $det->curr }}">{{ $det->curr }}</td>
+                                    <td class="text-right price-td" data-field="price" data-val="{{ $det->price }}">{{ number_format($det->price, 4, '.', ',') }}</td>
                                     <td class="text-right px-idr-td" data-val="{{ $det->price_px_idr }}">{{ number_format($det->price_px_idr, 2, '.', ',') }}</td>
                                     <td class="text-right px-usd-td" data-val="{{ $det->price_px_usd }}">{{ number_format($det->price_px_usd, 4, '.', ',') }}</td>
-                                    <td class="text-center cons-td" data-val="{{ $det->cons }}">{{ number_format($det->cons, 4, '.', '') }}</td>
-                                    <td class="text-center">{{ $det->unit }}</td>
-                                    <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') . '%' }}</td>
+                                    <td class="text-center cons-td" data-field="cons" data-val="{{ $det->cons }}">{{ number_format($det->cons, 4, '.', '') }}</td>
+                                    <td class="text-center unit-td" data-field="unit" data-val="{{ $det->unit }}">{{ $det->unit }}</td>
+                                    <td class="text-center allow-td" data-field="allowance" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') . '%' }}</td>
                                     <td class="text-right val-idr-td fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 2, '.', ',') }}</td>
                                     <td class="text-right val-usd-td fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, '.', ',') }}</td>
                                     <td class="text-center pct-td fw-bold">0%</td>
@@ -696,14 +719,14 @@
 
         <h6 class="fw-bold bg-sb text-white p-2 mb-0" style="font-size: 13px;">OTHER COST</h6>
         <div class="table-responsive mb-4">
-            <table class="table table-bordered table-sm text-nowrap w-100" style="font-size: 12px; min-width: 1000px;">
+            <table class="table table-bordered table-sm w-100 xl-table" style="font-size: 12px;">
                 <thead class="bg-light text-center">
                     <tr>
                         <th width="5%">NO</th>
-                        <th width="30%">ITEM</th>
-                        <th width="15%">ALLOW (%)</th>
-                        <th width="15%">VALUE IDR</th>
-                        <th width="15%">VALUE USD</th>
+                        <th width="30%" class="xl-th-edit">ITEM</th>
+                        <th width="15%" class="xl-th-edit">ALLOW (%)</th>
+                        <th width="15%" class="xl-th-edit">VALUE IDR</th>
+                        <th width="15%" class="xl-th-edit">VALUE USD</th>
                         <th width="10%">%</th>
                         <th width="10%">ACT</th>
                     </tr>
@@ -713,10 +736,10 @@
                         @foreach($details['Other Cost'] as $det)
                             <tr class="row-costing" data-category="Other Cost" data-item="{{ $det->item_id }}" id="row-{{ $det->id }}">
                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
-                                <td class="item-name">{{ $det->nama_item }}</td>
-                                <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') }}%</td>
-                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
-                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
+                                <td class="item-name" data-field="item" data-val="{{ $det->item_id }}">{{ $det->nama_item }}</td>
+                                <td class="text-center allow-td" data-field="allowance" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') }}%</td>
+                                <td class="text-right val-idr-td-other fw-bold" data-field="value_idr" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
+                                <td class="text-right val-usd-td-other fw-bold" data-field="value_usd" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button>
@@ -828,7 +851,7 @@
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row fluid-grid">
                    <div class="col-md-4 form-group m-not-other">
                         <label class="fw-bold">Set</label>
                         <select id="m_set" class="form-control select2modal" style="width: 100%;">
@@ -853,7 +876,7 @@
                     </div>
                 </div>
 
-                <div class="row m-not-other">
+                <div class="row fluid-grid fluid-sm m-not-other">
                     <div class="col-md-3 form-group">
                         <label class="fw-bold">Curr</label>
                         <select id="m_curr" class="form-control m-calc">
@@ -880,7 +903,7 @@
                     </div>
                 </div>
 
-                <div class="row mt-2 pt-3 border-top">
+                <div class="row fluid-grid fluid-sm mt-2 pt-3 border-top">
                     <div class="col-md-4 form-group">
                         <label class="fw-bold">Allow (%)</label>
                         <input type="text" id="m_allowance" class="form-control text-center input-decimal m-calc" value="0">
@@ -1019,6 +1042,106 @@
     $('#product_set').on('select2:select', function (e) {
         sync_set_dropdowns();
         autosave_header();
+    });
+
+    // ============ NAVIGASI KEYBOARD ALA EXCEL ============
+    // Tiap zona punya urutan field sendiri & aksi saat Enter di field terakhir
+    const navZones = [
+        {
+            fields: () => $('#form-header').find('input, select, textarea'),
+            onLast: () => $('#form-header button[type="submit"]').trigger('focus')
+        },
+        {
+            fields: () => $('#category').add($('#input-detail-grid').find('input, select')),
+            onLast: () => saveDetail()
+        },
+        {
+            fields: () => $('#modal_edit_costing .modal-body').find('input, select, textarea'),
+            onLast: () => updateDetailModal()
+        }
+    ];
+
+    function navFields(zone) {
+        return zone.fields().filter(function() {
+            if (this.disabled || this.readOnly || this.type === 'hidden' || this.type === 'file') return false;
+            if ($(this).hasClass('select2-hidden-accessible')) return true;
+            return $(this).is(':visible');
+        }).toArray();
+    }
+
+    // Cari field asli dari elemen yang sedang fokus (termasuk select2)
+    function fieldOf(target) {
+        let $container = $(target).closest('.select2-container');
+        if ($container.length) {
+            let sel = $container.prev('select')[0];
+            let s2 = sel ? $(sel).data('select2') : null;
+            return s2 && s2.$container[0] === $container[0] ? sel : null;
+        }
+        return target;
+    }
+
+    function focusField(el) {
+        let s2 = $(el).data('select2');
+        if (s2) {
+            s2.$container.find(el.multiple ? '.select2-search__field' : '.select2-selection').trigger('focus');
+            return;
+        }
+        el.focus();
+    }
+
+    function moveField(el, step) {
+        for (let zone of navZones) {
+            let fields = navFields(zone);
+            let idx = fields.indexOf(el);
+            if (idx < 0) continue;
+
+            let next = fields[idx + step];
+            if (next) {
+                focusField(next);
+            } else if (step > 0) {
+                zone.onLast();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    function isNavField(el) {
+        return navZones.some(zone => navFields(zone).includes(el));
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (!['Enter', 'ArrowUp', 'ArrowDown'].includes(e.key) || e.ctrlKey || e.metaKey) return;
+
+        let el = fieldOf(e.target);
+        if (!el || !isNavField(el)) return;
+
+        let s2 = $(el).data('select2');
+        if (s2) {
+            if (s2.isOpen()) return;
+            if (el.multiple && e.target.value) return;
+            // Enter pada select2 single tetap membuka dropdown
+            if (e.key === 'Enter' && !e.shiftKey && !el.multiple) return;
+        } else if (e.key !== 'Enter') {
+            // Panah pada input tanggal / select biasa dipakai untuk mengubah nilai
+            if (el.type === 'date' || el.tagName === 'SELECT') return;
+            if (el.tagName === 'TEXTAREA' && el.value.includes('\n')) return;
+        } else if (el.tagName === 'TEXTAREA' && e.altKey) {
+            e.preventDefault();
+            el.setRangeText('\n', el.selectionStart, el.selectionEnd, 'end');
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        moveField(el, (e.key === 'ArrowUp' || e.shiftKey) ? -1 : 1);
+    }, true);
+
+    // Setelah memilih di select2 single, lanjut ke field berikutnya
+    $(document).on('select2:select', 'select', function() {
+        if (this.multiple) return;
+        let el = this;
+        setTimeout(function() { moveField(el, 1); }, 50);
     });
 
     $(document).ready(function() {
@@ -1162,6 +1285,9 @@
                         }
                         select_item.html(res);
                         select_item.select2({ theme: 'bootstrap4', width: '100%' });
+
+                        // Fokus hilang saat select2 di-destroy, kembalikan ke Item
+                        if (document.activeElement === document.body) focusField(select_item[0]);
                     },
                     error: function() { alert('Gagal mengambil data item dari server.'); }
                 });
@@ -1358,6 +1484,688 @@
         return is_duplicate;
     }
 
+    function escHtml(v) {
+        return $('<div>').text(v ?? '').html();
+    }
+
+    function fmtNum(v, min, max) {
+        return (parseFloat(v) || 0).toLocaleString('en-US', { minimumFractionDigits: min, maximumFractionDigits: max ?? min });
+    }
+
+    // Kedip "baris baru" cukup sekali (sortTbody memindah baris & bisa memicu ulang animasi)
+    $(document).on('animationend', 'tr.row-new > td', function() {
+        $(this).parent().removeClass('row-new');
+    });
+
+    // Satu template baris summary, dipakai saat tambah & update detail.
+    // QTY BOM, VALUE, dan % diisi ulang oleh calculate_summary().
+    function buildCostingRow(d) {
+        let act = `
+            <td class="text-center align-middle">
+                <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${d.id}, '${d.cat}')"><i class="fas fa-edit"></i></button>
+                <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${d.id})"><i class="fas fa-trash"></i></button>
+            </td>`;
+
+        if (d.cat === 'Other Cost') {
+            return `
+                <tr class="row-costing row-new" data-category="${d.cat}" data-item="${escHtml(d.item_id)}" id="row-${d.id}">
+                    <td class="text-center fw-bold row-number">${d.no}</td>
+                    <td class="item-name" data-field="item" data-val="${escHtml(d.item_id)}">${escHtml(d.item_text)}</td>
+                    <td class="text-center allow-td" data-field="allowance" data-val="${parseFloat(d.allow) || 0}">${fmtNum(d.allow, 2)}%</td>
+                    <td class="text-right val-idr-td-other fw-bold" data-field="value_idr" data-val="${d.val_idr}">${fmtNum(d.val_idr, 7)}</td>
+                    <td class="text-right val-usd-td-other fw-bold" data-field="value_usd" data-val="${d.val_usd}">${fmtNum(d.val_usd, 7)}</td>
+                    <td class="text-center pct-td fw-bold">0%</td>
+                    ${act}
+                </tr>`;
+        }
+
+        return `
+            <tr class="row-costing row-new" data-category="${d.cat}" data-item="${escHtml(d.item_id)}" data-set="${escHtml(d.set_val)}" id="row-${d.id}">
+                <td class="text-center fw-bold row-number">${d.no}</td>
+                <td class="item-name" data-field="item" data-val="${escHtml(d.item_id)}">${escHtml(d.item_text)}</td>
+                <td class="set-td" data-field="set" data-val="${escHtml(d.set_val)}">${escHtml(d.set_text)}</td>
+                <td class="desc-td" data-field="desc">${escHtml(d.desc)}</td>
+                <td class="supplier-td" data-field="supplier" data-val="${escHtml(d.supplier_id)}">${escHtml(d.supplier_text)}</td>
+                <td class="text-center curr-td" data-field="curr" data-val="${escHtml(d.curr)}">${escHtml(d.curr)}</td>
+                <td class="text-right price-td" data-field="price" data-val="${parseFloat(d.price) || 0}">${fmtNum(d.price, 4)}</td>
+                <td class="text-right px-idr-td" data-val="${d.px_idr}">${fmtNum(d.px_idr, 2)}</td>
+                <td class="text-right px-usd-td" data-val="${d.px_usd}">${fmtNum(d.px_usd, 4)}</td>
+                <td class="text-center cons-td" data-field="cons" data-val="${parseFloat(d.cons) || 0}">${(parseFloat(d.cons) || 0).toFixed(4)}</td>
+                <td class="text-center unit-td" data-field="unit" data-val="${escHtml(d.unit)}">${escHtml(d.unit)}</td>
+                <td class="text-center allow-td" data-field="allowance" data-val="${parseFloat(d.allow) || 0}">${fmtNum(d.allow, 2)}%</td>
+                <td class="text-right val-idr-td fw-bold" data-val="${d.val_idr}">${fmtNum(d.val_idr, 2)}</td>
+                <td class="text-right val-usd-td fw-bold" data-val="${d.val_usd}">${fmtNum(d.val_usd, 4)}</td>
+                <td class="text-center pct-td fw-bold">0%</td>
+                <td class="text-right qty-bom-td fw-bold" data-val="0">0</td>
+                <td class="text-right tot-val-td fw-bold" data-val="0">0.00</td>
+                ${act}
+            </tr>`;
+    }
+
+    // ============ TABEL SUMMARY ALA EXCEL: klik sel, edit langsung, blok, copy-paste ============
+    const XL = { table: null, anchor: null, end: null, dragging: false, editing: null };
+
+    const XL_NUMERIC = ['price', 'cons', 'allowance', 'value_idr', 'value_usd'];
+    // Kolom pilihan -> nama field yang dikirim ke server
+    const XL_SELECT = { item: 'item_id', set: 'set', supplier: 'supplier_id', curr: 'curr', unit: 'unit' };
+
+    function xlRows(table) {
+        return $(table).find('tbody tr.row-costing').toArray();
+    }
+
+    function xlPos(td) {
+        let tr = td.parentElement;
+        return { r: xlRows($(tr).closest('table')[0]).indexOf(tr), c: $(td).index() };
+    }
+
+    function xlCell(r, c) {
+        let tr = xlRows(XL.table)[r];
+        return tr ? tr.children[c] || null : null;
+    }
+
+    function xlRange() {
+        let a = xlPos(XL.anchor), b = xlPos(XL.end);
+        return { r1: Math.min(a.r, b.r), r2: Math.max(a.r, b.r), c1: Math.min(a.c, b.c), c2: Math.max(a.c, b.c) };
+    }
+
+    function xlEditable(td) {
+        return !!(td && $(td).data('field'));
+    }
+
+    function xlClear() {
+        $('.xl-table .xl-sel').removeClass('xl-sel');
+        $('.xl-table .xl-active').removeClass('xl-active');
+        XL.table = XL.anchor = XL.end = null;
+    }
+
+    function xlRender() {
+        $('.xl-table .xl-sel').removeClass('xl-sel');
+        $('.xl-table .xl-active').removeClass('xl-active');
+        if (!XL.anchor) return;
+
+        let rg = xlRange();
+        for (let r = rg.r1; r <= rg.r2; r++)
+            for (let c = rg.c1; c <= rg.c2; c++) $(xlCell(r, c)).addClass('xl-sel');
+        $(XL.anchor).addClass('xl-active');
+    }
+
+    function xlSelect(td, extend) {
+        if (!td) return;
+        if (!extend) XL.anchor = td;
+        XL.end = td;
+        xlRender();
+        td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    function xlMove(dr, dc, extend) {
+        let from = xlPos(extend ? XL.end : XL.anchor);
+        let rows = xlRows(XL.table);
+        let r = Math.max(0, Math.min(rows.length - 1, from.r + dr));
+        let c = Math.max(1, Math.min(rows[r].children.length - 2, from.c + dc)); // lewati kolom NO & ACT
+        xlSelect(xlCell(r, c), extend);
+    }
+
+    function xlToast(icon, title, text, timer) {
+        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, icon: icon, title: title, text: text || '', timer: timer || 2500 });
+    }
+
+    // Terima angka format 1,234.56 / 1.234,56 / 12,5 / 10%
+    function xlParseNum(str) {
+        let original = String(str ?? '').trim();
+        if (original === '') return 0;
+        if (!/\d/.test(original)) return null;
+
+        let s = original.replace(/[%\s]/g, '').replace(/[^\d.,\-]/g, '');
+
+        let lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+        if (lastComma > -1 && lastDot > -1) {
+            s = lastComma > lastDot ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+        } else if (lastComma > -1) {
+            s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+        } else if (/^-?\d{1,3}(\.\d{3}){2,}$/.test(s)) {
+            s = s.replace(/\./g, '');
+        }
+
+        let n = parseFloat(s);
+        return isNaN(n) ? null : n;
+    }
+
+    // ---- Daftar pilihan untuk kolom Item / Set / Supplier / Curr / Unit ----
+    const xlItemCache = {};
+
+    function xlLoadItems(cat) {
+        if (!xlItemCache[cat]) {
+            xlItemCache[cat] = $.get("{{ route('get-item-contents') }}", { kategori: cat })
+                .then(html => $('<select>').html(html).find('option').toArray()
+                    .filter(o => o.value !== '')
+                    .map(o => ({ id: o.value, text: $(o).text().trim() })))
+                .fail(() => { delete xlItemCache[cat]; });
+        }
+        return xlItemCache[cat];
+    }
+
+    function xlOptions(field, tr) {
+        if (field === 'item') return xlLoadItems($(tr).data('category'));
+
+        let source = { set: '#txt_set', supplier: '#txt_supplier', curr: '#txt_curr', unit: '#txt_unit' }[field];
+        let opts = $(source).find('option').toArray()
+            .filter(o => o.value !== '')
+            .map(o => ({ id: o.value, text: $(o).text().trim() }));
+        return $.Deferred().resolve(opts).promise();
+    }
+
+    // Cocokkan teks paste ke pilihan: kode/teks persis, lalu awalan, lalu mengandung (harus unik)
+    function xlMatchOption(opts, raw) {
+        let s = String(raw ?? '').trim().toUpperCase();
+        if (s === '') return null;
+
+        let exact = opts.find(o => String(o.id).toUpperCase() === s || o.text.toUpperCase() === s);
+        if (exact) return exact;
+
+        let code = opts.filter(o => o.text.toUpperCase().split(/\s+/)[0] === s);
+        if (code.length === 1) return code[0];
+
+        let starts = opts.filter(o => o.text.toUpperCase().startsWith(s));
+        if (starts.length === 1) return starts[0];
+
+        let contains = opts.filter(o => o.text.toUpperCase().includes(s));
+        return contains.length === 1 ? contains[0] : null;
+    }
+
+    function xlClearable(field) {
+        if (field === 'item') return false;
+        if (field === 'set') return $('#type').val() !== 'multiple';
+        return true;
+    }
+
+    function xlRawValue(td) {
+        let field = $(td).data('field');
+        return XL_NUMERIC.includes(field) ? String($(td).data('val') ?? '') : $(td).text().trim();
+    }
+
+    function xlSetCell(td, field, value) {
+        if (field === 'desc') {
+            $(td).text(value);
+            return;
+        }
+        if (XL_SELECT[field]) {
+            $(td).attr('data-val', value.id).data('val', value.id).text(value.text);
+            let tr = $(td).closest('tr');
+            if (field === 'item') tr.attr('data-item', value.id).data('item', value.id);
+            if (field === 'set') tr.attr('data-set', value.id).data('set', value.id);
+            return;
+        }
+
+        let text;
+        if (field === 'price') text = fmtNum(value, 4);
+        else if (field === 'cons') text = value.toFixed(4);
+        else if (field === 'allowance') text = fmtNum(value, 2) + '%';
+        else if (field === 'value_idr' || field === 'value_usd') text = fmtNum(value, 7);
+        else if (td.classList.contains('px-usd-td') || td.classList.contains('val-usd-td')) text = fmtNum(value, 4);
+        else text = fmtNum(value, 2);
+
+        $(td).attr('data-val', value).data('val', value).text(text);
+    }
+
+    // Data baris untuk disimpan + hitung ulang PX & Value (rumus sama dengan calculate_template)
+    function xlRecalcRow(tr, changedFields) {
+        let $tr = $(tr);
+        let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
+        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 1;
+        let header_curr = $('#curr option:selected').text().trim().toUpperCase();
+        let num = sel => parseFloat($tr.find(sel).data('val')) || 0;
+        let row = { id: tr.id.replace('row-', '') };
+
+        changedFields.forEach(f => {
+            if (XL_SELECT[f]) row[XL_SELECT[f]] = String($tr.find(`td[data-field="${f}"]`).data('val') ?? '');
+        });
+        if (changedFields.includes('desc')) row.desc = $tr.find('.desc-td').text().trim();
+        if (!changedFields.some(f => XL_NUMERIC.includes(f))) return row;
+
+        if ($tr.data('category') === 'Other Cost') {
+            let val_idr = num('.val-idr-td-other'), val_usd = num('.val-usd-td-other');
+            if (changedFields.includes('value_usd') && !changedFields.includes('value_idr')) {
+                val_idr = val_usd * rate_to_idr;
+            } else {
+                val_usd = rate_to_idr ? val_idr / rate_to_idr : 0;
+            }
+            xlSetCell($tr.find('.val-idr-td-other')[0], 'value_idr', val_idr);
+            xlSetCell($tr.find('.val-usd-td-other')[0], 'value_usd', val_usd);
+
+            return Object.assign(row, { allowance: num('.allow-td'), value_idr: val_idr, value_usd: val_usd });
+        }
+
+        let price = num('.price-td'), cons = num('.cons-td'), allow = num('.allow-td');
+        let px_idr, px_usd;
+        if (header_curr === 'USD') {
+            px_usd = price; px_idr = price * rate_to_idr;
+        } else {
+            px_idr = price; px_usd = price / rate_from_idr;
+        }
+        let allow_f = 1 + (allow / 100);
+        let val_idr = px_idr * cons * allow_f;
+        let val_usd = px_usd * cons * allow_f;
+
+        xlSetCell($tr.find('.px-idr-td')[0], null, px_idr);
+        xlSetCell($tr.find('.px-usd-td')[0], null, px_usd);
+        xlSetCell($tr.find('.val-idr-td')[0], null, val_idr);
+        xlSetCell($tr.find('.val-usd-td')[0], null, val_usd);
+
+        return Object.assign(row, {
+            price: price, cons: cons, allowance: allow,
+            price_px_idr: px_idr, price_px_usd: px_usd, value_idr: val_idr, value_usd: val_usd
+        });
+    }
+
+    // Cek aturan yang sama dengan form input / modal. Return pesan error atau null.
+    function xlValidate(td, field, option) {
+        let $tr = $(td).closest('tr');
+        let cat = $tr.data('category');
+        let label = $tr.find('.item-name').text().trim();
+
+        if (option.id === '' && !xlClearable(field)) {
+            return field === 'item'
+                ? `Item tidak boleh kosong (${label}).`
+                : `Tipe Costing MULTIPLE, Set wajib diisi (${label}).`;
+        }
+
+        if ((field === 'item' && option.id !== '') || field === 'set') {
+            let item_id = field === 'item' ? option.id : String($tr.data('item') ?? '');
+            let set_id = field === 'set' ? option.id : String($tr.data('set') ?? '');
+            if (check_duplicate(cat, item_id, set_id, $tr.attr('id'))) {
+                return `Item "${field === 'item' ? option.text : label}" dengan Set tersebut sudah ada di ${cat}.`;
+            }
+        }
+        return null;
+    }
+
+    // changes: [{ td, value }] (teks ketik/paste) atau [{ td, option: {id, text} }] (dari dropdown)
+    // -> ubah sel, hitung ulang, simpan sekaligus. Hasil: { applied, invalid, notFound, rejected[] }
+    function xlApply(changes) {
+        let result = { applied: 0, invalid: 0, notFound: 0, rejected: [] };
+
+        // Siapkan daftar item per kategori yang dibutuhkan
+        let loads = {};
+        changes.forEach(ch => {
+            let field = $(ch.td).data('field');
+            if (!ch.option && XL_SELECT[field]) {
+                let tr = ch.td.parentElement;
+                loads[field + '|' + $(tr).data('category')] = xlOptions(field, tr);
+            }
+        });
+        let keys = Object.keys(loads);
+
+        return $.when(...keys.map(k => loads[k])).then(function() {
+            let lists = {};
+            let args = keys.length === 1 ? [arguments[0]] : Array.from(arguments);
+            keys.forEach((k, i) => lists[k] = args[i]);
+
+            let byRow = new Map();
+            let sortTargets = new Set();
+
+            changes.forEach(ch => {
+                if (!document.body.contains(ch.td)) return;
+                let field = $(ch.td).data('field');
+                let tr = ch.td.parentElement;
+                let value;
+
+                if (XL_NUMERIC.includes(field)) {
+                    value = xlParseNum(ch.value);
+                    if (value === null) { result.invalid++; return; }
+                } else if (field === 'desc') {
+                    value = String(ch.value ?? '').trim();
+                } else {
+                    value = ch.option;
+                    if (!value) {
+                        let raw = String(ch.value ?? '').trim();
+                        if (raw === '') {
+                            value = { id: '', text: '' };
+                        } else {
+                            value = xlMatchOption(lists[field + '|' + $(tr).data('category')] || [], raw);
+                            if (!value) { result.notFound++; return; }
+                        }
+                    }
+                    let err = xlValidate(ch.td, field, value);
+                    if (err) { result.rejected.push(err); return; }
+                    if (String(value.id) === String($(ch.td).data('val') ?? '')) return;
+                    if (field === 'set') sortTargets.add($(tr).closest('tbody')[0]);
+                }
+
+                if (!byRow.has(tr)) byRow.set(tr, { snapshot: tr.outerHTML, fields: [], tds: [] });
+                let entry = byRow.get(tr);
+
+                xlSetCell(ch.td, field, value);
+                entry.fields.push(field);
+                entry.tds.push(ch.td);
+                result.applied++;
+            });
+
+            if (!byRow.size) return result;
+
+            let payload = [];
+            byRow.forEach((entry, tr) => {
+                payload.push(xlRecalcRow(tr, entry.fields));
+                $(entry.tds).addClass('xl-saving');
+            });
+            sortTargets.forEach(tbody => sortTbody('#' + tbody.id));
+            calculate_summary();
+
+            $.ajax({
+                url: "{{ route('update-detail-batch-costing') }}",
+                type: "POST",
+                data: { _token: "{{ csrf_token() }}", id_costing: "{{ $costing->id }}", rows: payload },
+                success: function(res) {
+                    if (res.status == 200) {
+                        byRow.forEach(entry => {
+                            $(entry.tds).removeClass('xl-saving').addClass('xl-saved');
+                            setTimeout(() => $(entry.tds).removeClass('xl-saved'), 1200);
+                        });
+                    } else {
+                        xlRevert(byRow, res.message);
+                    }
+                },
+                error: function(xhr) {
+                    xlRevert(byRow, xhr.responseJSON?.message || 'Gagal menghubungi server.');
+                }
+            });
+
+            return result;
+        }, function() {
+            xlToast('error', 'Gagal mengambil daftar item dari server.');
+            return result;
+        });
+    }
+
+    function xlRevert(byRow, message) {
+        xlClear();
+        let tbodies = new Set();
+        byRow.forEach((entry, tr) => {
+            tbodies.add($(tr).closest('tbody')[0]);
+            $(tr).replaceWith(entry.snapshot);
+        });
+        tbodies.forEach(tbody => { if (tbody && tbody.id !== 'tbody-other-cost') sortTbody('#' + tbody.id); });
+        calculate_summary();
+        Swal.fire('Gagal Menyimpan', (message || '') + '<br>Perubahan dibatalkan.', 'error');
+    }
+
+    // Pesan setelah edit satu sel / Delete
+    function xlReport(result) {
+        if (result.rejected.length) {
+            Swal.fire({ icon: 'warning', title: 'Perubahan ditolak', html: result.rejected.map(escHtml).join('<br>') });
+        } else if (result.invalid) {
+            xlToast('warning', 'Isi harus berupa angka.');
+        } else if (result.notFound) {
+            xlToast('warning', 'Pilihan tidak ditemukan.');
+        }
+    }
+
+    // ---- Mode edit sel: kotak ketik (angka/teks) atau dropdown (pilihan) ----
+    function xlStartEdit(td, initial) {
+        if (!xlEditable(td)) {
+            xlToast('info', 'Kolom ini dihitung otomatis.', 'Ubah Price / Cons / Allow, nilainya ikut menyesuaikan.');
+            return;
+        }
+        if (XL_SELECT[$(td).data('field')]) return xlStartSelectEdit(td, initial);
+
+        let $input = $('<input type="text" class="xl-editor">')
+            .val(initial ?? xlRawValue(td))
+            .css('text-align', $(td).css('text-align'));
+        $(td).append($input);
+        XL.editing = { td: td, input: $input };
+        $input.trigger('focus');
+        let len = $input.val().length;
+        $input[0].setSelectionRange(len, len);
+    }
+
+    function xlStartSelectEdit(td, search) {
+        let field = $(td).data('field');
+        let current = String($(td).data('val') ?? '');
+        XL.editing = { td: td, loading: true };
+
+        xlOptions(field, td.parentElement).then(opts => {
+            if (!XL.editing || XL.editing.td !== td || !document.body.contains(td)) return;
+
+            let $sel = $('<select class="xl-select-editor"></select>');
+            opts.forEach(o => $sel.append(new Option(o.text, o.id, false, String(o.id) === current)));
+            if (!opts.some(o => String(o.id) === current)) $sel.prop('selectedIndex', -1);
+            $(td).append($sel);
+
+            $sel.select2({ theme: 'bootstrap4', width: '100%', dropdownAutoWidth: true });
+            XL.editing = { td: td, select: $sel, picked: false };
+
+            $sel.on('select2:select', function(e) {
+                XL.editing.picked = true;
+                let option = { id: e.params.data.id, text: e.params.data.text.trim() };
+                xlFinishSelect();
+                xlApply([{ td: td, option: option }]).then(xlReport);
+            });
+            $sel.on('select2:close', function() {
+                setTimeout(() => { if (XL.editing && XL.editing.select === $sel && !XL.editing.picked) xlFinishSelect(); }, 0);
+            });
+
+            $sel.select2('open');
+            if (search) {
+                setTimeout(() => $('.select2-container--open .select2-search__field').val(search).trigger('input'), 60);
+            }
+        }, () => {
+            XL.editing = null;
+            xlToast('error', 'Gagal mengambil daftar pilihan.');
+        });
+    }
+
+    function xlFinishSelect() {
+        let ed = XL.editing;
+        XL.editing = null;
+        if (ed && ed.select) {
+            ed.select.select2('destroy').remove();
+        }
+    }
+
+    function xlCommitEdit() {
+        if (!XL.editing) return;
+        if (!XL.editing.input) return xlCancelEdit();
+
+        let ed = XL.editing;
+        XL.editing = null;
+        let value = ed.input.val();
+        ed.input.remove();
+
+        if (value !== xlRawValue(ed.td)) xlApply([{ td: ed.td, value: value }]).then(xlReport);
+    }
+
+    function xlCancelEdit() {
+        if (!XL.editing) return;
+        if (XL.editing.input) {
+            XL.editing.input.remove();
+            XL.editing = null;
+        } else {
+            xlFinishSelect();
+        }
+    }
+
+    $(document).on('keydown', '.xl-editor', function(e) {
+        e.stopPropagation();
+        let moves = { Enter: [e.shiftKey ? -1 : 1, 0], Tab: [0, e.shiftKey ? -1 : 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            xlCancelEdit();
+        } else if (moves[e.key]) {
+            e.preventDefault();
+            let td = XL.editing.td;
+            xlCommitEdit();
+            if (document.body.contains(td)) {
+                XL.anchor = XL.end = td;
+                xlMove(moves[e.key][0], moves[e.key][1], false);
+            }
+        }
+    });
+
+    $(document).on('blur', '.xl-editor', function() { xlCommitEdit(); });
+
+    // ---- Mouse: klik, drag blok, Shift+klik, dobel-klik ----
+    $(document).on('mousedown', function(e) {
+        if ($(e.target).closest('.xl-editor, .select2-container, .select2-dropdown').length) return;
+        let td = $(e.target).closest('.xl-table tbody tr.row-costing > td')[0];
+
+        if (!td || e.button !== 0 || $(e.target).closest('button, a, input').length) {
+            if (!$(e.target).closest('.swal2-container').length) xlClear();
+            return;
+        }
+
+        e.preventDefault();
+        xlCommitEdit();
+        if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+
+        let table = $(td).closest('table')[0];
+        let extend = e.shiftKey && XL.anchor && XL.table === table;
+        if (!extend) XL.table = table;
+        xlSelect(td, extend);
+        XL.dragging = true;
+    });
+
+    $(document).on('mouseover', '.xl-table tbody tr.row-costing > td', function() {
+        if (XL.dragging && XL.table === $(this).closest('table')[0]) xlSelect(this, true);
+    });
+
+    $(document).on('mouseup', function() { XL.dragging = false; });
+
+    $(document).on('dblclick', '.xl-table tbody tr.row-costing > td', function() {
+        if (XL.anchor === this && !XL.editing) xlStartEdit(this);
+    });
+
+    function xlKeyboardActive(e) {
+        if (!XL.anchor || XL.editing) return false;
+        if (!document.body.contains(XL.anchor) || !document.body.contains(XL.end)) { xlClear(); return false; }
+        if ($(e.target).is('input, textarea, select, [contenteditable]') || $(e.target).closest('.select2-container').length) return false;
+        if ($('.modal.show').length || Swal.isVisible()) return false;
+        return true;
+    }
+
+    // ---- Keyboard saat sel terpilih ----
+    $(document).on('keydown', function(e) {
+        if (!xlKeyboardActive(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+
+        let moves = {
+            ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1],
+            Enter: [e.shiftKey ? -1 : 1, 0], Tab: [0, e.shiftKey ? -1 : 1]
+        };
+
+        if (moves[e.key]) {
+            e.preventDefault();
+            let extend = e.shiftKey && e.key.startsWith('Arrow');
+            xlMove(moves[e.key][0], moves[e.key][1], extend);
+        } else if (e.key === 'F2') {
+            e.preventDefault();
+            xlStartEdit(XL.anchor);
+        } else if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            let rg = xlRange(), changes = [];
+            for (let r = rg.r1; r <= rg.r2; r++)
+                for (let c = rg.c1; c <= rg.c2; c++) {
+                    let td = xlCell(r, c);
+                    if (xlEditable(td)) changes.push({ td: td, value: '' });
+                }
+            if (changes.length) xlApply(changes).then(xlReport);
+        } else if (e.key === 'Escape') {
+            xlClear();
+        } else if (e.key.length === 1) {
+            // Langsung ketik = timpa isi sel (atau cari di dropdown), seperti Excel
+            e.preventDefault();
+            XL.end = XL.anchor;
+            xlRender();
+            xlStartEdit(XL.anchor, e.key);
+        }
+    });
+
+    // ---- Copy blok (Ctrl+C) -> bisa di-paste ke Excel ----
+    document.addEventListener('copy', function(e) {
+        if (!xlKeyboardActive(e)) return;
+
+        let rg = xlRange(), lines = [];
+        for (let r = rg.r1; r <= rg.r2; r++) {
+            let cells = [];
+            for (let c = rg.c1; c <= rg.c2; c++) {
+                let td = xlCell(r, c);
+                let raw = $(td).data('val');
+                let field = $(td).data('field');
+                // Angka disalin mentah (tanpa pemisah ribuan), selain itu teks yang terlihat
+                let isNumber = raw !== undefined && !XL_SELECT[field] && field !== 'desc';
+                cells.push(isNumber ? String(raw) : $(td).text().trim());
+            }
+            lines.push(cells.join('\t'));
+        }
+
+        e.clipboardData.setData('text/plain', lines.join('\n'));
+        e.preventDefault();
+
+        let n = (rg.r2 - rg.r1 + 1) * (rg.c2 - rg.c1 + 1);
+        xlToast('success', n + ' sel disalin', '', 1500);
+    });
+
+    // ---- Paste blok (Ctrl+V) dari Excel / dari tabel ini ----
+    document.addEventListener('paste', function(e) {
+        if (!xlKeyboardActive(e)) return;
+        e.preventDefault();
+
+        let text = (e.clipboardData.getData('text/plain') || '').replace(/\r/g, '');
+        if (text.endsWith('\n')) text = text.slice(0, -1);
+        if (text === '') return;
+        let data = text.split('\n').map(line => line.split('\t'));
+
+        let rg = xlRange();
+        let changes = [], skipped = 0, overflow = 0;
+
+        if (data.length === 1 && data[0].length === 1) {
+            // Satu nilai ke blok = isi semua sel di blok
+            for (let r = rg.r1; r <= rg.r2; r++)
+                for (let c = rg.c1; c <= rg.c2; c++) {
+                    let td = xlCell(r, c);
+                    xlEditable(td) ? changes.push({ td: td, value: data[0][0] }) : skipped++;
+                }
+        } else {
+            data.forEach((cells, i) => {
+                if (!xlCell(rg.r1 + i, rg.c1)) { overflow++; return; }
+                cells.forEach((value, j) => {
+                    let td = xlCell(rg.r1 + i, rg.c1 + j);
+                    xlEditable(td) ? changes.push({ td: td, value: value }) : skipped++;
+                });
+            });
+
+            // Blok ikut menandai area yang di-paste
+            let lastRow = Math.min(rg.r1 + data.length, xlRows(XL.table).length) - 1;
+            let maxCol = xlRows(XL.table)[lastRow].children.length - 2;
+            let lastCol = Math.min(rg.c1 + Math.max(...data.map(d => d.length)) - 1, maxCol);
+            XL.anchor = xlCell(rg.r1, rg.c1);
+            XL.end = xlCell(lastRow, lastCol) || XL.anchor;
+            xlRender();
+        }
+
+        let report = function(result) {
+            let notes = [];
+            if (skipped) notes.push(skipped + ' sel dilewati (kolom hitungan otomatis)');
+            if (result.invalid) notes.push(result.invalid + ' sel bukan angka');
+            if (result.notFound) notes.push(result.notFound + ' pilihan tidak ditemukan');
+            if (overflow) notes.push(overflow + ' baris diabaikan (melebihi jumlah baris)');
+
+            if (result.rejected.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: result.applied + ' sel di-paste, ' + result.rejected.length + ' ditolak',
+                    html: result.rejected.map(escHtml).join('<br>') + (notes.length ? '<hr>' + notes.join('<br>') : '')
+                });
+            } else {
+                xlToast(notes.length ? 'warning' : 'success', result.applied + ' sel di-paste', notes.join(' · '), notes.length ? 5000 : 2000);
+            }
+        };
+
+        if (changes.length) {
+            xlApply(changes).then(report);
+        } else {
+            report({ applied: 0, invalid: 0, notFound: 0, rejected: [] });
+        }
+    });
+
     function saveDetail() {
         let id_costing = '{{ $costing->id ?? "" }}';
         let cat = $('#category').val();
@@ -1372,9 +2180,6 @@
         let unit = $('#txt_unit').val();
         let allow = $('#txt_allowance').val() || 0;
 
-        let px_idr_text = $('#txt_px_idr').val();
-        let px_usd_text = $('#txt_px_usd').val();
-
         let px_idr_raw = $('#txt_px_idr').data('raw') || 0;
         let px_usd_raw = $('#txt_px_usd').data('raw') || 0;
         let val_idr_raw = $('#txt_val_idr').data('raw') || 0;
@@ -1382,10 +2187,6 @@
 
         let set_val = $('#txt_set').val() || '';
         let set_text = set_val ? $('#txt_set option:selected').text() : '';
-
-        let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
-        let qty_bom_js = Math.ceil((1 + (allow / 100)) * order_qty * cons);
-        let tot_val_js = qty_bom_js * px_idr_raw;
 
         if (!cat) {
             Swal.fire('Peringatan', 'Silakan Pilih Kategori di atas!', 'warning');
@@ -1429,13 +2230,6 @@
             success: function(res) {
                 if(res.status == 200) {
                     Swal.close();
-                    let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-
-                    let qty_bom_text = qty_bom_js.toLocaleString('en-US');
-                    let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
                     let target_tbody = '';
                     if(cat === 'Fabric') { target_tbody = '#tbody-fabric'; }
@@ -1445,47 +2239,10 @@
                     else if (cat === 'Other Cost') { target_tbody = '#tbody-other-cost'; }
 
                     let rowCount = $(target_tbody + ' tr').length + 1;
-                    let tr = '';
-
-                    if (cat === 'Other Cost') {
-                        tr = `
-                            <tr class="row-costing" data-category="${cat}" data-item="${item_id}" id="row-${res.insert_id}">
-                                <td class="text-center fw-bold row-number">${rowCount}</td>
-                                <td class="item-name">${item_text}</td>
-                                <td class="text-center allow-td" data-val="${allow}">${allow > 0 ? allow + '%' : ''}</td>
-                                <td class="text-right val-idr-td-other fw-bold" data-val="${val_idr_raw}">${val_idr_text_other}</td>
-                                <td class="text-right val-usd-td- fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
-                                <td class="text-center pct-td fw-bold">0%</td>
-                                <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${res.insert_id}, '${cat}')"><i class="fas fa-edit"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        tr = `
-                            <tr class="row-costing" data-category="${cat}" data-item="${item_id}" data-set="${set_val}" id="row-${res.insert_id}">
-                                <td class="text-center fw-bold row-number">${rowCount}</td>
-                                <td class="item-name">${item_text}</td>
-                                <td class="set-td">${set_text}</td>
-                                <td>${desc}</td>
-                                <td>${supplier_text}</td>
-                                <td class="text-right px-idr-td" data-val="${px_idr_raw}">${px_idr_text}</td>
-                                <td class="text-right px-usd-td" data-val="${px_usd_raw}">${px_usd_text}</td>
-                                <td class="text-center cons-td" data-val="${cons}">${cons}</td><td class="text-center">${unit}</td>
-                                <td class="text-center allow-td" data-val="${allow}">${allow}</td>
-                                <td class="text-right val-idr-td fw-bold" data-val="${val_idr_raw}">${val_idr_text}</td>
-                                <td class="text-right val-usd-td fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
-                                <td class="text-center pct-td fw-bold">0%</td>
-                                <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
-                                <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
-                                <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${res.insert_id}, '${cat}')"><i class="fas fa-edit"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    }
+                    let tr = buildCostingRow({
+                        id: res.insert_id, no: rowCount, cat, item_id, item_text, set_val, set_text, desc, supplier_id, supplier_text,
+                        curr, price, px_idr: px_idr_raw, px_usd: px_usd_raw, cons, unit, allow, val_idr: val_idr_raw, val_usd: val_usd_raw
+                    });
 
                     $(target_tbody).append(tr);
 
@@ -1505,6 +2262,9 @@
 
                     calculate_template();
                     calculate_summary();
+
+                    // Siap input baris berikutnya
+                    setTimeout(function() { focusField($('#txt_item')[0]); }, 100);
                 } else {
                     Swal.fire('Error', res.message, 'error');
                 }
@@ -1603,10 +2363,6 @@
         let set_val = $('#m_set').val() || '';
         let set_text = set_val ? $('#m_set option:selected').text() : '';
 
-        let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
-        let qty_bom_js = Math.ceil((1 + (allow / 100)) * order_qty * cons);
-        let tot_val_js = qty_bom_js * px_idr_raw;
-
         if (!item_id) { Swal.fire('Peringatan', 'Pilih Item terlebih dahulu!', 'warning'); return; }
 
         let header_type = $('#type').val();
@@ -1643,15 +2399,6 @@
                     Swal.close();
                     $('#modal_edit_costing').modal('hide');
 
-                    let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-                    let px_idr_text = px_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let px_usd_text = px_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
-
-                    let qty_bom_text = qty_bom_js.toLocaleString('en-US');
-                    let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
                     let target_tbody = '';
                     if(cat === 'Fabric') { target_tbody = '#tbody-fabric'; }
                     else if (cat === 'Accessories Sewing') { target_tbody = '#tbody-acc-sewing'; }
@@ -1659,49 +2406,11 @@
                     else if (cat === 'Manufacturing') { target_tbody = '#tbody-manufacturing'; }
                     else if (cat === 'Other Cost') { target_tbody = '#tbody-other-cost'; }
 
-                    let tr = '';
                     let rowCount = $('#row-' + id_detail).find('.row-number').text();
-
-                    if (cat === 'Other Cost') {
-                        tr = `
-                            <tr class="row-costing" data-category="${cat}" data-item="${item_id}" id="row-${id_detail}">
-                                <td class="text-center fw-bold row-number">${rowCount}</td>
-                                <td class="item-name">${item_text}</td>
-                                <td class="text-center allow-td" data-val="${allow}">${allow > 0 ? allow + '%' : ''}</td>
-                                <td class="text-right val-idr-td-other fw-bold" data-val="${val_idr_raw}">${val_idr_text_other}</td>
-                                <td class="text-right val-usd-td-other fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
-                                <td class="text-center pct-td fw-bold">0%</td>
-                                <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${id_detail}, '${cat}')"><i class="fas fa-edit"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${id_detail})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        tr = `
-                            <tr class="row-costing" data-category="${cat}" data-item="${item_id}" data-set="${set_val}" id="row-${id_detail}">
-                                <td class="text-center fw-bold row-number">${rowCount}</td>
-                                <td class="item-name">${item_text}</td>
-                                <td class="set-td">${set_text}</td>
-                                <td>${desc}</td>
-                                <td>${supplier_text}</td>
-                                <td class="text-right px-idr-td" data-val="${px_idr_raw}">${px_idr_text}</td>
-                                <td class="text-right px-usd-td" data-val="${px_usd_raw}">${px_usd_text}</td>
-                                <td class="text-center cons-td" data-val="${cons}">${cons}</td>
-                                <td class="text-center">${unit}</td>
-                                <td class="text-center allow-td" data-val="${allow}">${allow}</td>
-                                <td class="text-right val-idr-td fw-bold" data-val="${val_idr_raw}">${val_idr_text}</td>
-                                <td class="text-right val-usd-td fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
-                                <td class="text-center pct-td fw-bold">0%</td>
-                                <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
-                                <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
-                                <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${id_detail}, '${cat}')"><i class="fas fa-edit"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${id_detail})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    }
+                    let tr = buildCostingRow({
+                        id: id_detail, no: rowCount, cat, item_id, item_text, set_val, set_text, desc, supplier_id, supplier_text,
+                        curr, price, px_idr: px_idr_raw, px_usd: px_usd_raw, cons, unit, allow, val_idr: val_idr_raw, val_usd: val_usd_raw
+                    });
 
                     $('#row-' + id_detail).replaceWith(tr);
 
@@ -1739,13 +2448,17 @@
                         if(res.status == 200) {
                             Swal.close();
                             let tbody = $(btn).closest('tbody');
-                            $(btn).closest('tr').remove();
 
-                            tbody.find('tr').each(function(index) {
-                                $(this).find('.row-number').text(index + 1);
+                            // Baris memudar dulu sebelum dihapus
+                            $(btn).closest('tr').fadeOut(250, function() {
+                                $(this).remove();
+
+                                tbody.find('tr').each(function(index) {
+                                    $(this).find('.row-number').text(index + 1);
+                                });
+
+                                calculate_summary();
                             });
-
-                            calculate_summary();
                         } else {
                             Swal.fire('Error', res.message || 'Gagal menghapus data', 'error');
                         }
@@ -1934,7 +2647,7 @@
                 let d = obj.sets[s];
                 tfoot_html += `
                     <tr style="background-color: #f8f9fa;">
-                        <td colspan="10" class="text-left">${title} - TOTAL ${s}</td>
+                        <td colspan="12" class="text-left">${title} - TOTAL ${s}</td>
                         <td class="text-right">${d.idr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td class="text-right">${d.usd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
                         <td></td>
@@ -1947,7 +2660,7 @@
 
             tfoot_html += `
                 <tr class="bg-warning text-dark">
-                    <td colspan="10" class="text-left">TOTAL ${title} :</td>
+                    <td colspan="12" class="text-left">TOTAL ${title} :</td>
                     <td class="text-right">${obj.idr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td class="text-right">${obj.usd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
                     <td class="text-center"></td>

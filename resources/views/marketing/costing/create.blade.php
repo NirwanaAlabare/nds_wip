@@ -131,6 +131,9 @@
             font-weight: 700;
         }
     </style>
+
+    @include('marketing.costing.partials.fluid-layout')
+    @include('marketing.costing.partials.page-theme')
 @endsection
 
 @section('content')
@@ -138,6 +141,9 @@
     <div class="card-header">
         <span class="card-eyebrow">Marketing &middot; Costing</span>
         <h3 class="card-title" style="font-size: 1.1rem;">Form Create Costing</h3>
+        <small style="color: #94a3b8;">
+            <i class="fas fa-keyboard"></i> Enter / &darr; : field berikutnya &middot; Shift+Enter / &uarr; : field sebelumnya &middot; Alt+Enter di Notes : baris baru
+        </small>
     </div>
 
     <form action="{{ route('store-costing') }}" method="POST" id="form-costing" enctype="multipart/form-data">
@@ -147,7 +153,7 @@
             {{-- ============ SECTION: INFORMASI DASAR ============ --}}
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-info-circle"></i> Buyer</div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Buyer Name</label>
                         <select name="buyer" id="buyer" class="form-control select2bs4" required>
@@ -180,7 +186,7 @@
             {{-- ============ SECTION: PRODUK & TIPE ============ --}}
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-tshirt"></i> Produk & Tipe</div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Product Group</label>
                         <select name="product_group" id="product_group" class="form-control select2bs4" required>
@@ -203,7 +209,7 @@
                             <option value="multiple">MULTIPLE</option>
                         </select>
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-3 form-group span-2">
                         <label>Product Type (Set)</label>
                         <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
                             @foreach ($master_set as $m_set)
@@ -212,7 +218,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Tipe WS</label>
                         <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
@@ -237,7 +243,7 @@
             {{-- ============ SECTION: PENGIRIMAN & TUJUAN ============ --}}
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-ship"></i> Pengiriman & Tujuan</div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Ship Mode</label>
                         <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
@@ -268,7 +274,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Marketing Order</label>
                         <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
@@ -278,7 +284,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-3 form-group span-2">
                         <label>Main Destination #</label>
                         <select name="main_dest[]" id="main_dest" class="form-control select2bs4" multiple>
                             @foreach ($destinations as $dest)
@@ -290,7 +296,7 @@
                         <label>Market</label>
                         <input type="text" name="market" id="market" class="form-control" placeholder="Market">
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-3 form-group span-2">
                         <label for="notes">Notes</label>
                         <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Tambahkan catatan jika ada..."></textarea>
                     </div>
@@ -300,7 +306,7 @@
             {{-- ============ SECTION: HARGA & KURS ============ --}}
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-money-bill-wave"></i> Harga & Kurs</div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-3 form-group">
                         <label>Curr</label>
                         <select name="curr" id="curr" class="form-control select2bs4" required>
@@ -320,7 +326,7 @@
             {{-- ============ SECTION: QTY / SMV / VAT / RATE (angka penting, di-highlight) ============ --}}
             <div class="form-section form-section-figures">
                 <div class="form-section-title"><i class="fas fa-calculator"></i> Qty, SMV & Rate</div>
-                <div class="row">
+                <div class="row fluid-grid">
                     <div class="col-md-2 form-group">
                         <label>QTY (PCS)</label>
                         <input type="text" name="qty" class="form-control input-decimal text-right" required>
@@ -397,6 +403,82 @@
             setTimeout(function() {
                 document.querySelector('.select2-container--open .select2-search__field').focus();
             }, 50);
+        });
+
+        // ============ NAVIGASI KEYBOARD ALA EXCEL ============
+        const $form = $('#form-costing');
+
+        function navFields() {
+            return $form.find('input, select, textarea').filter(function() {
+                if (this.disabled || this.type === 'hidden' || this.type === 'file') return false;
+                if ($(this).hasClass('select2-hidden-accessible')) return true;
+                return $(this).is(':visible');
+            }).toArray();
+        }
+
+        // Cari field asli dari elemen yang sedang fokus (termasuk select2)
+        function fieldOf(target) {
+            let $container = $(target).closest('.select2-container');
+            if ($container.length) {
+                return $container.closest('#form-costing').length ? $container.prev('select')[0] || null : null;
+            }
+            return $form[0].contains(target) ? target : null;
+        }
+
+        function focusField(el) {
+            let s2 = $(el).data('select2');
+            if (s2) {
+                s2.$container.find(el.multiple ? '.select2-search__field' : '.select2-selection').trigger('focus');
+                return;
+            }
+            el.focus();
+        }
+
+        function moveField(el, step) {
+            let fields = navFields();
+            let idx = fields.indexOf(el);
+            if (idx < 0) return;
+
+            let next = fields[idx + step];
+            if (next) {
+                focusField(next);
+            } else if (step > 0) {
+                $form.trigger('submit');
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (!['Enter', 'ArrowUp', 'ArrowDown'].includes(e.key) || e.ctrlKey || e.metaKey) return;
+
+            let el = fieldOf(e.target);
+            if (!el) return;
+
+            let s2 = $(el).data('select2');
+            if (s2) {
+                if (s2.isOpen()) return;
+                if (el.multiple && e.target.value) return;
+                // Enter pada select2 single tetap membuka dropdown
+                if (e.key === 'Enter' && !e.shiftKey && !el.multiple) return;
+            } else if (e.key !== 'Enter') {
+                // Panah pada input tanggal dipakai untuk mengubah nilai
+                if (el.type === 'date') return;
+                if (el.tagName === 'TEXTAREA' && el.value.includes('\n')) return;
+            } else if (el.tagName === 'TEXTAREA' && e.altKey) {
+                e.preventDefault();
+                el.setRangeText('\n', el.selectionStart, el.selectionEnd, 'end');
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            moveField(el, (e.key === 'ArrowUp' || e.shiftKey) ? -1 : 1);
+        }, true);
+
+        // Setelah memilih di select2 single, lanjut ke field berikutnya
+        $form.on('select2:select', 'select', function() {
+            if (this.multiple) return;
+            let el = this;
+            setTimeout(function() { moveField(el, 1); }, 50);
         });
 
         function checkShipmentType() {

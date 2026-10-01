@@ -1275,6 +1275,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-pdf/{id}', 'printPdf')->name('print-costing-pdf');
         Route::get('get-detail-row-costing/{id}', 'getDetailRow')->name('get-detail-row-costing');
         Route::post('update-detail', 'updateDetail')->name('update-detail-costing');
+        Route::post('update-detail-batch', 'updateDetailBatch')->name('update-detail-batch-costing');
         Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
         Route::get('/approval', 'approval')->name('master-costing-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');

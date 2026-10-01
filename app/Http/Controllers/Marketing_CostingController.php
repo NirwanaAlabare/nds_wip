@@ -784,6 +784,57 @@ class Marketing_CostingController extends Controller
         return response()->json(['status' => 200, 'message' => 'Success']);
     }
 
+    // Update beberapa baris sekaligus dari edit langsung / paste di tabel summary
+    public function updateDetailBatch(Request $request)
+    {
+        $request->validate([
+            'id_costing' => 'required',
+            'rows' => 'required|array|min:1',
+            'rows.*.id' => 'required|integer',
+        ]);
+
+        $numeric_fields = ['price', 'cons', 'allowance', 'price_px_idr', 'price_px_usd', 'value_idr', 'value_usd'];
+        $text_fields = ['item_id', 'supplier_id', 'curr', 'unit', 'set'];
+
+        $db = DB::connection('mysql_sb');
+        try {
+            $db->transaction(function () use ($db, $request, $numeric_fields, $text_fields) {
+                foreach ($request->rows as $row) {
+                    $data = [];
+                    foreach ($numeric_fields as $field) {
+                        if (array_key_exists($field, $row)) {
+                            $data[$field] = is_numeric($row[$field]) ? $row[$field] : 0;
+                        }
+                    }
+                    foreach ($text_fields as $field) {
+                        if (array_key_exists($field, $row)) {
+                            $data[$field] = $row[$field];
+                        }
+                    }
+                    if (array_key_exists('desc', $row)) {
+                        $data['item_desc'] = $row['desc'];
+                    }
+                    // Item wajib ada
+                    if (array_key_exists('item_id', $data) && ($data['item_id'] === null || $data['item_id'] === '')) {
+                        unset($data['item_id']);
+                    }
+                    if (!$data) continue;
+
+                    $db->table('act_costing_detail_new')
+                        ->where('id', $row['id'])
+                        ->where('id_costing', $request->id_costing)
+                        ->update($data);
+                }
+            });
+
+            $this->triggerAutoSyncSO($request->id_costing);
+
+            return response()->json(['status' => 200, 'message' => 'Success']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
+    }
+
     // public function printExcel($id)
     // {
     //     $db = DB::connection('mysql_sb');
