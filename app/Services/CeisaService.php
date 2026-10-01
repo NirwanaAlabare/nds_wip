@@ -89,7 +89,7 @@ class CeisaService
 
     public function getToken($forceRefresh = false)
     {
-       
+
         $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
             'username' => $this->username,
             'password' => $this->password,
@@ -350,7 +350,7 @@ class CeisaService
     public function kirimDokumenBc261($payload, $isFinal = 'false')
     {
         $this->useUserCredential();
-        $this->setEnv('dev');
+        $this->setEnv('live');
 
         $response = $this->requestWithRetry(
             'POST',
