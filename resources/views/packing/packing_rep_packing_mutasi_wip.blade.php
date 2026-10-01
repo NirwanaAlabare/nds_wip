@@ -110,7 +110,7 @@
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="5" style="background-color: yellow; text-align:center;">Transit Terima Packing Line</th>
                             <th colspan="9" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            <th colspan="5" style="background-color: #85C1E9; text-align:center;">Packing Temporary</th>
+                            <th colspan="6" style="background-color: #85C1E9; text-align:center;">Packing Temporary</th>
                             <th colspan="11" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
@@ -140,6 +140,7 @@
                             <th style="background-color: #85C1E9;">Terima</th>
                             <th style="background-color: #85C1E9;">Keluar Gudang Stok</th>
                             <th style="background-color: #85C1E9;">Keluar Packing Central</th>
+                            <th style="background-color: #85C1E9;">Adjustment</th>
                             <th style="background-color: #85C1E9;">Saldo Akhir</th>
 
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
@@ -328,6 +329,10 @@
                 },
                 ajax: {
                     url: '{{ route('packing_rep_packing_mutasi_wip') }}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     data: function(d) {
                         d.dateFrom = tglawal;
                         d.dateTo = tglakhir;
@@ -357,6 +362,7 @@
                     { data: 'terima_packing_temporary', className: 'text-end'},
                     { data: 'keluar_gudang_stok_temporary', className: 'text-end'},
                     { data: 'keluar_packing_central_temporary', className: 'text-end'},
+                    { data: 'adjustment_packing_temporary', className: 'text-end'},
                     { data: 'saldo_akhir_packing_temporary', className: 'text-end'},
                     { data: 'pc_saldo_awal_adjusment', className: 'text-end'},
                     { data: 'pc_terima', className: 'text-end'},
