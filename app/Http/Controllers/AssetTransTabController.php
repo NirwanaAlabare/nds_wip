@@ -64,6 +64,7 @@ class AssetTransTabController extends Controller
             'takenCount' => $takenCount,
             'overdueCount' => $this->tabService->overdueCount(),
             'overdueHours' => AssetTabService::OVERDUE_HOURS,
+            'nikWajib' => AssetTabService::NIK_WAJIB,
         ]);
     }
 
@@ -184,17 +185,17 @@ class AssetTransTabController extends Controller
     public function store_trans_tab(Request $request)
     {
         $request->validate([
-            'mode' => 'required|in:single,bulk',
             'action' => 'required|in:ambil,kembalikan',
-            'enroll_id' => 'required_if:mode,single',
+            'enroll_id' => AssetTabService::NIK_WAJIB ? 'required' : 'nullable',
             'tags' => 'required|array|min:1',
             'tags.*' => 'required|string',
             'id_tujuan' => 'required_if:action,ambil|nullable|integer',
+        ], [
+            'enroll_id.required' => 'ID card karyawan wajib diisi.',
         ]);
 
         $tags = $this->normalizeCodes($request->tags);
 
-        // Single maupun Bulk cukup minimal 1 tag
         if (!$tags) {
             return response()->json([
                 'status' => 'error',
@@ -202,9 +203,12 @@ class AssetTransTabController extends Controller
             ], 422);
         }
 
+        // Tipe dari jumlah tab: 1 tab = SINGLE, lebih dari 1 = BULK.
+        // ID card (enroll ID) terpisah dari tipe: kalau diisi, dicatat di Single maupun Bulk.
+        $mode = count($tags) > 1 ? 'bulk' : 'single';
         $enrollId = null;
 
-        if ($request->mode === 'single') {
+        if ($request->filled('enroll_id')) {
             $employee = DB::connection('mysql_hris')->select("
                 SELECT enroll_id FROM employee_atribut WHERE enroll_id = ?
             ", [$request->enroll_id]);
@@ -245,7 +249,7 @@ class AssetTransTabController extends Controller
                 'enroll_id' => $enrollId,
                 'tujuan' => $tujuan,
                 'status' => $request->action === 'ambil' ? 'AMBIL' : 'KEMBALI',
-                'tipe_input' => strtoupper($request->mode),
+                'tipe_input' => strtoupper($mode),
                 'created_by' => $user,
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,

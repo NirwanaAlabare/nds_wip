@@ -12,6 +12,10 @@ class AssetTabService
     // Tab yang sudah dibawa lebih lama dari ini ditandai "belum kembali"
     const OVERDUE_HOURS = 12;
 
+    // Transaksi Tab: ID card (enroll ID) wajib diisi atau tidak, baik Single maupun Bulk.
+    // Masa awal masih boleh kosong; ubah ke true kalau semua transaksi harus pakai ID card.
+    const NIK_WAJIB = false;
+
     // Pemegang tab = transaksi AMBIL terakhir dari tab tersebut.
     // $codes null = semua tab yang sedang TAKEN. $withNames false = tanpa nama karyawan (tidak query ke HRIS).
     // Return: [KODE RFID => object {rfid_code, enroll_id, employee_name, tujuan, tipe_input, created_by, taken_at}]

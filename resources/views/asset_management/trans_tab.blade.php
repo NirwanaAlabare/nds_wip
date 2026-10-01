@@ -56,20 +56,6 @@
 
             <div class="tt-body">
                 <div class="tt-section">
-                    <div class="tt-section-label"><i class="fa-solid fa-sliders"></i> Mode</div>
-                    <div class="tt-seg" role="group" aria-label="Mode">
-                        <input type="radio" class="btn-check" name="ttMode" id="btnModeSingle" autocomplete="off" checked>
-                        <label class="tt-seg-btn" for="btnModeSingle" onclick="setMode('single')">
-                            <i class="fa-solid fa-user"></i> Single
-                        </label>
-                        <input type="radio" class="btn-check" name="ttMode" id="btnModeBulk" autocomplete="off">
-                        <label class="tt-seg-btn" for="btnModeBulk" onclick="setMode('bulk')">
-                            <i class="fa-solid fa-layer-group"></i> Bulk
-                        </label>
-                    </div>
-                </div>
-
-                <div class="tt-section">
                     <div class="tt-section-label"><i class="fa-solid fa-right-left"></i> Aksi</div>
                     <div class="tt-seg" role="group" aria-label="Aksi">
                         <input type="radio" class="btn-check" name="ttAction" id="btnActionAmbil" autocomplete="off" checked>
@@ -89,10 +75,15 @@
                 </div>
 
                 <div class="tt-section" id="nikBox">
-                    <label class="tt-section-label" for="txtnik"><i class="fa-solid fa-id-badge"></i> Enroll ID Karyawan</label>
+                    <label class="tt-section-label" for="txtnik">
+                        <i class="fa-solid fa-id-badge"></i> ID Card Karyawan
+                        @unless ($nikWajib)
+                            <span class="tt-optional">opsional</span>
+                        @endunless
+                    </label>
                     <div class="tt-input">
                         <i class="fa-solid fa-magnifying-glass tt-input-icon"></i>
-                        <input type="text" id="txtnik" class="form-control" placeholder="Ketik Enroll ID" autocomplete="off">
+                        <input type="text" id="txtnik" class="form-control" placeholder="Scan / ketik enroll ID dari ID card" autocomplete="off">
                         <div id="nikSuggestList"></div>
                     </div>
                     <span id="nikEmployeeName"></span>
@@ -102,7 +93,7 @@
                     {{-- div, bukan label: tombol di dalam label ikut terpicu saat judulnya diklik --}}
                     <div class="tt-box-title">
                         <div class="tt-section-label mb-0">
-                            <i class="fa-solid fa-tower-broadcast"></i> <span id="scanBoxTitle">Scan tag yang dibawa</span>
+                            <i class="fa-solid fa-tower-broadcast"></i> <span id="scanBoxTitle">Scan tag</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
                             <button type="button" class="tt-clear d-none" id="btnClearTags" onclick="clearAllTags()">
@@ -134,6 +125,8 @@
 
                 <div class="tt-footer">
                     <button type="button" class="btn btn-secondary w-100" id="btnSubmit" onclick="submitTransTab()" disabled></button>
+                    {{-- Tercatat sebagai apa: atas nama NIK (Single) atau tanpa NIK (Bulk) --}}
+                    <div class="tt-submit-hint" id="submitHint"></div>
                 </div>
             </div>
         </div>
@@ -155,7 +148,6 @@
         });
 
         let state = {
-            mode: 'single', // single | bulk
             action: 'ambil', // ambil | kembalikan
             tags: [], // tag yang sudah discan: { code, status: pending|ok|error, message, tabInfo, holder, checked }
             dupCount: 0, // jumlah pembacaan tag yang sama (scanner RFID sering membaca 1 tag berkali-kali)
@@ -247,14 +239,12 @@
             }
         });
 
-        function setMode(mode) {
-            state.mode = mode;
+        // ID card wajib atau tidak (AssetTabService::NIK_WAJIB); masa awal masih boleh kosong
+        const NIK_WAJIB = @json($nikWajib);
 
-            $('#nikBox').toggleClass('d-none', mode === 'bulk');
-            $('#scanBoxTitle').text(mode === 'single' ? 'Scan tag yang dibawa' : 'Sapu semua tag');
-
-            updateBanner();
-            renderScannedTagList();
+        // Tipe dari jumlah tab: 1 tab = Single, lebih dari 1 = Bulk. ID card tidak memengaruhi tipe.
+        function currentMode() {
+            return tagCounts().ok > 1 ? 'bulk' : 'single';
         }
 
         function setAction(action) {
@@ -276,19 +266,10 @@
         }
 
         function updateBanner() {
-            let text = '';
-
-            if (state.mode === 'single' && state.action === 'ambil') {
-                text = 'Single · Ambil — 1 NIK bisa bawa beberapa tag sekaligus';
-            } else if (state.mode === 'single' && state.action === 'kembalikan') {
-                text = 'Single · Kembalikan — 1 NIK mengembalikan tag yang pernah dibawa';
-            } else if (state.mode === 'bulk' && state.action === 'ambil') {
-                text = 'Bulk · Ambil — checkout cepat tanpa NIK, tercatat sebagai "keluar" saja';
-            } else {
-                text = 'Bulk · Kembalikan — checkin cepat tanpa NIK, seluruh tag disapu masuk';
-            }
-
             let ambil = state.action === 'ambil';
+            let text = (ambil ? 'Ambil' : 'Kembalikan') + ' — 1 tab tercatat Single, lebih dari 1 tab tercatat Bulk' +
+                (NIK_WAJIB ? '' : '. ID card sementara boleh dikosongkan');
+
             $('#ttBannerText').text(text);
             $('#ttBannerIcon').attr('class', 'fa-solid ' + (ambil ? 'fa-arrow-right-from-bracket' : 'fa-arrow-rotate-left'));
             $('#ttBanner').toggleClass('is-kembali', !ambil);
@@ -509,11 +490,10 @@
             return Math.floor(minutes / 1440) + ' hari lalu';
         }
 
-        // Mode Single · Kembalikan: tag tercatat dibawa karyawan lain (bukan NIK yang diisi)
+        // Kembalikan dengan NIK diisi: tag tercatat dibawa karyawan lain (bukan NIK yang diisi)
         function isOtherHolder(tag) {
             let nik = $('#txtnik').val().trim();
-            return state.mode === 'single' && nik !== '' && !!tag.holder && tag.holder.enroll_id != null &&
-                String(tag.holder.enroll_id) !== nik;
+            return nik !== '' && !!tag.holder && tag.holder.enroll_id != null && String(tag.holder.enroll_id) !== nik;
         }
 
         function renderTagSummary() {
@@ -536,13 +516,13 @@
         }
 
         function refreshSubmitState() {
-            let nik = $('#txtnik').val();
+            let nik = $('#txtnik').val().trim();
             let tujuan = $('#cbotujuan').val();
             let c = tagCounts();
             let hasTag = c.ok >= 1;
 
             let requirements = [];
-            if (state.mode === 'single' && !nik) requirements.push('Isi NIK');
+            if (NIK_WAJIB && !nik) requirements.push('isi ID card');
             if (c.pending) requirements.push('tunggu pengecekan tag');
             else if (c.error) requirements.push('hapus tag yang gagal');
             else if (!hasTag) requirements.push('scan minimal 1 tag');
@@ -560,6 +540,16 @@
                 $btn.prop('disabled', false).addClass(ambil ? 'btn-success' : 'btn-warning')
                     .html(`<i class="fa-solid ${ambil ? 'fa-arrow-right-from-bracket' : 'fa-arrow-rotate-left'}"></i> ` + esc(label));
             }
+
+            // Tanpa konfirmasi tambahan: cukup diberi tahu tercatat sebagai apa & atas nama siapa
+            if (!c.ok) {
+                $('#submitHint').empty();
+                return;
+            }
+            let bulk = currentMode() === 'bulk';
+            $('#submitHint').html(`<i class="fa-solid ${bulk ? 'fa-layer-group' : 'fa-user'}"></i> ` +
+                `Tercatat ${bulk ? 'Bulk' : 'Single'} · ` +
+                (nik ? `atas nama ${esc(state.nikEmployeeName || 'ID ' + nik)}` : 'tanpa ID card'));
         }
 
         function updateLocationStats(action, tagCount) {
@@ -623,7 +613,7 @@
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
-                    mode: state.mode,
+                    mode: currentMode(), // hanya keterangan; server menentukan sendiri dari ada/tidaknya NIK
                     action: state.action,
                     enroll_id: $('#txtnik').val().trim(),
                     tags: codes,
