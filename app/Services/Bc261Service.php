@@ -1565,7 +1565,7 @@ class Bc261Service
 
             Log::info('Kirim BC 2.6.1 CEISA Payload: ', $finalPayload);
 
-            $responseCeisa = $this->ceisaService->kirimDokumenBatch262($finalPayload);
+            $responseCeisa = $this->ceisaService->kirimDokumenBatch261($finalPayload);
 
             if ($responseCeisa['successful']) {
                 foreach ($bppbs as $no_bppb) {

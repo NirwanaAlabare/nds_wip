@@ -301,6 +301,21 @@
         // --- DOM Ready Event ---
         document.addEventListener("DOMContentLoaded", () => {
 
+            // Set tanggal awal dan akhir otomatis (periode 1 bulan)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            
+            $('#tgl-awal').val(formatDate(firstDay));
+            $('#tgl-akhir').val(formatDate(lastDay));
+
             // Inisialisasi DataTables Main Report
             datatableDcReport = $("#datatable-dc-report").DataTable({
                 ordering: false,
