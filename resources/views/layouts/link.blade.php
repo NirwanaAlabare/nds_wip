@@ -16,5 +16,19 @@
 <link rel="stylesheet" href="{{ asset('dist/css/style.css') }}">
 <!-- Livewire Styles -->
 @livewireStyles
+<style>
+    .drop-zone {
+        border: 2px dashed #7a7a7a;
+        border-radius: 16px;
+        padding: 20px;
+        background-color: #ffffff;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .drop-zone.drag-over {
+        background-color: #f0f4ff;
+        border-color: #0d6efd;
+    }
+</style>
 
 @yield('custom-link')
