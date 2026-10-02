@@ -731,7 +731,7 @@ class ReportMutasiOutputController extends Controller
                 FROM
                     laravel_nds.output_reject_out_rekap
                 WHERE
-                    tgl_trans > '2026-09-01' AND tgl_trans < '$start_date'
+                    tgl_trans >= '2026-09-01' AND tgl_trans < '$start_date'
             ),
             qc_reject_out as (
                 SELECT
@@ -2096,9 +2096,9 @@ class ReportMutasiOutputController extends Controller
                     + COALESCE(ss.qty_reject_in, 0)
                     - COALESCE(ss.qty_rejected, 0)
                     - COALESCE(ss.qty_reworked, 0) AS saldo_akhir_qc_reject,
-                    COALESCE(ss.qty_transit_terima_sewing_before, 0) - COALESCE(qty_reworked_qc_awal, 0) AS qty_transit_terima_sewing_before,
-                    COALESCE(ss.qty_transit_terima_qc_finishing_before, 0) - COALESCE(qty_reworked_finishing_awal, 0) AS qty_transit_terima_qc_finishing_before,
-                    COALESCE(ss.qty_transit_terima_finishing_before, 0) - COALESCE(qty_reworked_secondary_awal, 0) AS qty_transit_terima_finishing_before,
+                    COALESCE(ss.qty_transit_terima_sewing_before, 0) AS qty_transit_terima_sewing_before,
+                    COALESCE(ss.qty_transit_terima_qc_finishing_before, 0) AS qty_transit_terima_qc_finishing_before,
+                    COALESCE(ss.qty_transit_terima_finishing_before, 0) AS qty_transit_terima_finishing_before,
                     COALESCE(ss.qty_transit_keluar_qc_reject_before, 0) AS qty_transit_keluar_qc_reject_before,
 
                     (
