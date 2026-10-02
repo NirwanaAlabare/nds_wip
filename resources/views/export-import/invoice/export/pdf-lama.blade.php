@@ -99,7 +99,7 @@
     {{-- ===== Nomor & tanggal =====
          Satu nomor saja: Invoice Number #2 kalau diisi, selain itu nomor sistem.
          Kolomnya sama dengan blok pihak di bawah (50% | 10% | 40%), jadi DATE
-         sejajar SELLER dan tanggalnya sejajar isi SELLER. --}}
+         sejajar label pihak di kanan dan tanggalnya sejajar isinya. --}}
     <table>
         <tr>
             <td style="width:15%">INVOICE NO :</td>
@@ -112,8 +112,10 @@
     {{-- ===== Pihak-pihak =====
          Kiri: label di atas, isinya di bawah. Kanan: isinya sejajar label -
          sama dengan contoh cetakan. --}}
-    @foreach ([['SHIP FROM', $baris['shipper'], 'SELLER', $baris['seller']],
-               ['PURCHASER', $baris['purchaser'], 'SHIP TO :', $baris['receiver']]] as $p)
+    {{-- Labelnya saja yang berbeda dari sebelumnya; isinya tetap dari kolom
+         yang sama (seller_* & purchaser_*). --}}
+    @foreach ([['SHIP FROM', $baris['shipper'], 'PURCHASER / INVOICE TO', $baris['seller']],
+               ['ULTIMATE CONSIGNEE', $baris['purchaser'], 'SHIP TO :', $baris['receiver']]] as $p)
         <div class="jarak"></div>
         <table>
             <tr>
