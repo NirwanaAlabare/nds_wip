@@ -161,6 +161,8 @@ class CeisaService
      */
    public function cekKurs($kurs)
     {
+
+        $this->setEnv('dev');
         try {
             $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/kurs/{$kurs}");
 
