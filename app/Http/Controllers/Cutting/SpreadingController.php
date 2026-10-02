@@ -421,7 +421,7 @@ class SpreadingController extends Controller
             return array(
                 "status" => 400,
                 "message" => "Form belum memiliki waktu selesai.",
-                "additional" => "Closing"
+                "additional" => ""
             );
         }
 
@@ -505,7 +505,7 @@ class SpreadingController extends Controller
             return array(
                 "status" => 400,
                 "message" => "Form belum memiliki waktu selesai.",
-                "additional" => "Closing"
+                "additional" => ""
             );
         }
 
@@ -771,6 +771,8 @@ class SpreadingController extends Controller
                 SUM(cutting.qty_awal) qty_awal,
                 SUM(cutting.qty_additional) qty_additional,
                 SUM(cutting.qty_modify_size) qty_modify_size,
+                SUM(cutting.switching_out) qty_switching_out,
+                SUM(cutting.switching_in) qty_switching_in,
                 SUM(cutting.qty) qty
             FROM
             (
@@ -795,9 +797,19 @@ class SpreadingController extends Controller
                     form_cut_input_detail.group_stocker,
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_awal,
+                    ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
+                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_out,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
+                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_in,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
@@ -891,6 +903,8 @@ class SpreadingController extends Controller
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty_awal,
                     0 qty_additional,
                     0 qty_modify_size,
+                    0 switching_out,
+                    0 switching_in,
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                 FROM
                     form_cut_piece
@@ -931,6 +945,16 @@ class SpreadingController extends Controller
                     0 qty_awal,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
+                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_out,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
+                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_in,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
@@ -995,6 +1019,7 @@ class SpreadingController extends Controller
                     AND (
                         stocker_ws_additional_detail.ratio > 0
                         OR modify_size_qty.difference_qty != 0
+                        OR form_cut_input_detail_output.qty_output_aktual > 0
                     )
                 GROUP BY
                     form_cut_input.id,
@@ -1025,6 +1050,8 @@ class SpreadingController extends Controller
                     SUM(form_cut_reject_detail.qty) as qty_awal,
                     0 qty_additional,
                     0 qty_modify_size,
+                    0 switching_out,
+                    0 switching_in,
                     SUM(form_cut_reject_detail.qty) as qty
                 FROM
                     form_cut_reject
@@ -1072,11 +1099,15 @@ class SpreadingController extends Controller
         $totalQtyAwal = 0;
         $totalQtyAdditional = 0;
         $totalQtyModifySize = 0;
+        $totalSwitchingOut = 0;
+        $totalSwitchingIn = 0;
         $totalQty = 0;
         foreach ($data as $d) {
             $totalQtyAwal += $d->qty_awal;
             $totalQtyAdditional += $d->qty_additional;
             $totalQtyModifySize += $d->qty_modify_size;
+            $totalSwitchingOut += $d->qty_switching_out;
+            $totalSwitchingIn += $d->qty_switching_in;
             $totalQty += $d->qty;
         }
 
@@ -1102,7 +1133,7 @@ class SpreadingController extends Controller
             'font-weight' => 'bold',
         ];
 
-        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
+        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'SWITCHING OUT', 'SWITCHING IN', 'QTY AKTUAL'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index); // A=65, B=66, etc.
             $sheet->writeTo($col . '4', $header)
@@ -1134,6 +1165,8 @@ class SpreadingController extends Controller
                     $row->qty_awal ?? 0,
                     $row->qty_additional ?? 0,
                     intval($row->qty_modify_size ?? 0),
+                    intval($row->qty_switching_out ?? 0),
+                    intval($row->qty_switching_in ?? 0),
                     $row->qty ?? 0,
                 ];
 
@@ -1148,7 +1181,9 @@ class SpreadingController extends Controller
         $sheet->writeTo('O' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R' . ($rowNum), $totalSwitchingOut, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S' . ($rowNum), $totalSwitchingIn, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $filename = 'Laporan_pemakaian_cutting_' . $dateFrom . '_to_' . $dateTo . '.xlsx';
 
@@ -1189,6 +1224,8 @@ class SpreadingController extends Controller
                 SUM(cutting.qty_awal) qty_awal,
                 SUM(cutting.qty_additional) qty_additional,
                 SUM(cutting.qty_modify_size) qty_modify_size,
+                SUM(cutting.switching_out) qty_switching_out,
+                SUM(cutting.switching_in) qty_switching_in,
                 SUM(cutting.qty) qty
             FROM
             (
@@ -1216,6 +1253,16 @@ class SpreadingController extends Controller
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
+                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_out,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
+                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_in,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
@@ -1279,7 +1326,7 @@ class SpreadingController extends Controller
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN' and
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
-                    (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
+                    (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0) OR form_cut_input_detail_output.qty_output_aktual > 0)
                 GROUP BY
                     form_cut_input.id,
                     form_cut_input_detail.group_roll,
@@ -1309,6 +1356,8 @@ class SpreadingController extends Controller
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty_awal,
                     0 qty_additional,
                     0 qty_modify_size,
+                    0 as switching_out,
+                    0 as switching_in,
                     SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                 FROM
                     form_cut_piece
@@ -1349,6 +1398,16 @@ class SpreadingController extends Controller
                     0 qty_awal,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
+                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_out,
+                    CASE
+                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
+                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
+                        ELSE 0
+                    END AS switching_in,
                     COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
@@ -1413,6 +1472,7 @@ class SpreadingController extends Controller
                     AND (
                         stocker_ws_additional_detail.ratio > 0
                         OR modify_size_qty.difference_qty != 0
+                        OR form_cut_input_detail_output.qty_output_aktual > 0
                     )
                 GROUP BY
                     form_cut_input.id,
@@ -1443,6 +1503,8 @@ class SpreadingController extends Controller
                     SUM(form_cut_reject_detail.qty) as qty_awal,
                     0 qty_additional,
                     0 qty_modify_size,
+                    0 as switching_out,
+                    0 as switching_in,
                     SUM(form_cut_reject_detail.qty) as qty
                 FROM
                     form_cut_reject
@@ -1459,7 +1521,7 @@ class SpreadingController extends Controller
             LEFT JOIN part on part.act_costing_ws = cutting.worksheet and part.panel = cutting.panel
             LEFT JOIN part_detail on part_detail.part_id = part.id
             LEFT JOIN master_part on master_part.id = part_detail.master_part_id
-            LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color
+            LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color AND pcust.tanggal_berlaku <= '".$dateTo."'
             WHERE
                 (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
             GROUP BY
@@ -1496,11 +1558,15 @@ class SpreadingController extends Controller
         $totalQtyAwal = 0;
         $totalQtyAdditional = 0;
         $totalQtyModifySize = 0;
+        $totalSwitchingOut = 0;
+        $totalSwitchingIn = 0;
         $totalQty = 0;
         foreach ($data as $d) {
             $totalQtyAwal += $d->qty_awal;
             $totalQtyAdditional += $d->qty_additional;
             $totalQtyModifySize += $d->qty_modify_size;
+            $totalSwitchingOut += $d->qty_switching_out;
+            $totalSwitchingIn += $d->qty_switching_in;
             $totalQty += $d->qty;
         }
 
@@ -1526,7 +1592,7 @@ class SpreadingController extends Controller
             'font-weight' => 'bold',
         ];
 
-        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'PANEL STATUS', 'NAMA PART', 'PART STATUS', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'QTY AKTUAL'];
+        $headers = ['TANGGAL', 'MEJA', 'WORKSHEET', 'BUYER', 'STYLE', 'COLOR', 'SIZE', 'DESTINATION', 'GROUP', 'LOT', 'CUT NUMBER', 'NO FORM', 'NO MARKER', 'PANEL', 'PANEL STATUS', 'NAMA PART', 'PART STATUS', 'QTY FORM', 'QTY ADDITIONAL', 'QTY MODIFY SIZE', 'SWITCHING OUT', 'SWITCHING IN', 'QTY AKTUAL'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index); // A=65, B=66, etc.
             $sheet->writeTo($col . '4', $header)
@@ -1561,6 +1627,8 @@ class SpreadingController extends Controller
                     $row->qty_awal ?? 0,
                     $row->qty_additional ?? 0,
                     intval($row->qty_modify_size ?? 0),
+                    intval($row->qty_switching_in ?? 0),
+                    intval($row->qty_switching_out ?? 0),
                     $row->qty ?? 0,
                 ];
 
@@ -1575,7 +1643,9 @@ class SpreadingController extends Controller
         $sheet->writeTo('R' . ($rowNum), $totalQtyAwal, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('S' . ($rowNum), $totalQtyAdditional, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T' . ($rowNum), $totalQtyModifySize, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U' . ($rowNum), $totalSwitchingOut, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V' . ($rowNum), $totalSwitchingIn, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W' . ($rowNum), $totalQty, ['font-weight' => 'bold'])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $filename = 'Laporan_pemakaian_cutting_' . $dateFrom . '_to_' . $dateTo . '.xlsx';
 
