@@ -863,8 +863,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 FROM
                     wip_adjustment
                 WHERE
-                    tgl_saldo <= '{$tgl_akhir}' and
-                    type_report = 'TRANSIT_PACKING'
+                    tgl_saldo <= '{$tgl_akhir}'
+                    AND type_report = 'TRANSIT_PACKING'
+                    AND status = 'Y'
                 GROUP BY
                     ws, color, size, panel, part
 
@@ -924,8 +925,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 FROM
                     wip_adjustment
                 WHERE
-                    tgl_saldo <= '{$tgl_akhir}' and
-                    type_report = 'PACKING'
+                    tgl_saldo <= '{$tgl_akhir}'
+                    AND type_report = 'PACKING'
+                    AND status = 'Y'
                 GROUP BY
                     ws, color, size, panel, part
                 UNION ALL
@@ -1108,6 +1110,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 WHERE
                     tgl_saldo <= '{$tgl_akhir}'
                     AND type_report = 'PACKING_CENTRAL'
+                    AND status = 'Y'
                 GROUP BY
                     ws, color, size, panel, part
                 UNION ALL
@@ -1789,6 +1792,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 WHERE
                     tgl_saldo <= '{$tgl_akhir}'
                     AND type_report = 'PACKING_TEMPORARY'
+                    AND status = 'Y'
                 GROUP BY
                     ws, color, size, panel, part
             ) a
