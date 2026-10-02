@@ -202,6 +202,37 @@ class InvoiceEximController extends Controller
     }
 
     /**
+     * Daftar brand milik satu Seller - isian pilihan Brand di Shipment Details.
+     *
+     * Brand tersimpan per kontrak di act_costing, dan satu Seller bisa punya
+     * beberapa brand. Yang dikirim hanya milik Seller yang sedang dipilih,
+     * supaya pilihannya pendek dan brand customer lain tidak mungkin terpakai.
+     *
+     * Seller di layar ini dan act_costing.id_buyer sama-sama menunjuk
+     * mastersupplier tipe 'C', jadi id-nya memang bisa langsung dicocokkan.
+     */
+    public function daftarMerek(Request $request)
+    {
+        $idSeller = trim((string) $request->query('id_seller'));
+        if ($idSeller === '' || !$this->kolomAda('act_costing', 'brand')) {
+            return response()->json(array('status' => true, 'brand' => array()));
+        }
+
+        $out = array();
+        foreach ($this->koneksiAr()->select(
+            "SELECT DISTINCT TRIM(brand) AS brand
+               FROM act_costing
+              WHERE id_buyer = ? AND TRIM(IFNULL(brand, '')) <> ''
+              ORDER BY brand",
+            array($idSeller)
+        ) as $r) {
+            $out[] = (string) $r->brand;
+        }
+
+        return response()->json(array('status' => true, 'brand' => $out));
+    }
+
+    /**
      * Nomor invoice berikutnya, dibangkitkan (bukan diambil dari Booking
      * Invoice). Formatnya sama dengan yang dipakai AR:
      *
@@ -2136,6 +2167,10 @@ class InvoiceEximController extends Controller
             return response()->json(array('status' => false, 'pesan' => 'Save failed, please try again.'), 500);
         }
 
+        // SJ knitting ada di database lain, jadi ditandai di luar transaksi -
+        // sesudah invoicenya benar-benar tersimpan.
+        $this->tandaiInvnoNak($hasil['no_invoice'], $this->idSjNak($hasil['id']));
+
         return response()->json(array(
             'status'     => true,
             'no_invoice' => $hasil['no_invoice'],
@@ -2245,6 +2280,10 @@ class InvoiceEximController extends Controller
             Log::error('Invoice EXIM Export simpan gagal - ' . $e->getMessage());
             return response()->json(array('status' => false, 'pesan' => 'Save failed, please try again.'), 500);
         }
+
+        // SJ knitting ada di database lain, jadi ditandai di luar transaksi -
+        // sesudah invoicenya benar-benar tersimpan.
+        $this->tandaiInvnoNak($hasil['no_invoice'], $this->idSjNak($hasil['id']));
 
         return response()->json(array(
             'status'     => true,
@@ -2911,6 +2950,10 @@ class InvoiceEximController extends Controller
             Log::error('Invoice EXIM Export perbarui gagal - ' . $e->getMessage());
             return response()->json(array('status' => false, 'pesan' => 'Update failed, please try again.'), 500);
         }
+
+        // SJ knitting ada di database lain, jadi ditandai di luar transaksi -
+        // sesudah invoicenya benar-benar tersimpan.
+        $this->tandaiInvnoNak($noInvoice, $this->idSjNak($idBook));
 
         return response()->json(array(
             'status'     => true,
@@ -3813,6 +3856,10 @@ class InvoiceEximController extends Controller
             return response()->json(array('status' => false, 'pesan' => 'Update failed, please try again.'), 500);
         }
 
+        // SJ knitting ada di database lain, jadi ditandai di luar transaksi -
+        // sesudah invoicenya benar-benar tersimpan.
+        $this->tandaiInvnoNak($noInvoice, $this->idSjNak($idBook));
+
         return response()->json(array(
             'status'     => true,
             'no_invoice' => $noInvoice,
@@ -3870,6 +3917,9 @@ class InvoiceEximController extends Controller
             return response()->json(array('status' => false, 'pesan' => 'Cancel failed, please try again.'), 500);
         }
 
+        // Invoicenya batal - tandanya di SJ knitting ikut dilepas.
+        $this->tandaiInvnoNak((string) $inv['no_invoice'], array());
+
         return response()->json(array(
             'status'     => true,
             'no_invoice' => (string) $inv['no_invoice'],
@@ -3882,6 +3932,79 @@ class InvoiceEximController extends Controller
     // ======================================================================
 
     /**
+     * Nama kolom nomor invoice di SJ knitting (official_out_h).
+     *
+     * Di form knitting isiannya bernama "No Invoice". Kalau di database nama
+     * kolomnya ternyata lain, cukup ganti di sini - penandaannya dilewati
+     * (dengan catatan di log) selama kolomnya tidak ketemu, jadi salah nama
+     * tidak akan menggagalkan penyimpanan invoice.
+     */
+    const KOLOM_INVNO_NAK = 'no_invoice';
+
+    /**
+     * Tandai SJ knitting dengan nomor invoicenya.
+     *
+     * Dipanggil SESUDAH invoicenya tersimpan, bukan di dalam transaksi: SJ
+     * knitting ada di database lain, jadi tidak bisa ikut dibatalkan bersama.
+     * Karena itu kegagalannya cuma dicatat - invoicenya sendiri sudah sah.
+     *
+     * Barisnya dibersihkan dulu lalu dipasang lagi, sama seperti garment: waktu
+     * invoice di-update SJ-nya bisa berganti, dan yang dilepas tidak boleh tetap
+     * membawa nomor invoice ini.
+     *
+     * @param array $idSj id official_out_h; kosong = cuma membersihkan
+     */
+    private function tandaiInvnoNak($noInvoice, array $idSj)
+    {
+        $no = trim((string) $noInvoice);
+        if ($no === '') {
+            return;
+        }
+
+        try {
+            $nak = DB::connection(self::KONEKSI_NAK);
+            $kolom = self::KOLOM_INVNO_NAK;
+            $ada = $nak->select(
+                "SELECT 1 FROM information_schema.columns
+                  WHERE table_name = 'official_out_h' AND column_name = ? LIMIT 1",
+                array($kolom)
+            );
+            if (!$ada) {
+                Log::warning('Invoice EXIM: kolom official_out_h.' . $kolom . ' tidak ada,'
+                    . ' nomor invoice tidak ditandai di SJ knitting.');
+                return;
+            }
+
+            $nak->update("UPDATE official_out_h SET $kolom = NULL WHERE $kolom = ?", array($no));
+            if ($idSj) {
+                $isi = implode(',', array_map('intval', $idSj));
+                $nak->update("UPDATE official_out_h SET $kolom = ? WHERE id IN ($isi)", array($no));
+            }
+        } catch (\Throwable $e) {
+            // Invoicenya sudah tersimpan - gagal menandai tidak boleh membatalkannya.
+            Log::warning('Invoice EXIM: tanda nomor invoice di SJ knitting gagal ('
+                . $no . ') - ' . $e->getMessage());
+        }
+    }
+
+    /** id SJ knitting milik satu invoice - dibaca dari baris yang tersimpan. */
+    private function idSjNak($idBook)
+    {
+        if (!$this->tabelAda(self::TABEL_DET)) {
+            return array();
+        }
+        $out = array();
+        foreach ($this->koneksiAr()->select(
+            "SELECT DISTINCT id_bppb FROM " . self::TABEL_DET . "
+              WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'",
+            array((int) $idBook)
+        ) as $r) {
+            $id = trim((string) $r->id_bppb);
+            if ($id !== '' && ctype_digit($id)) { $out[] = $id; }
+        }
+        return $out;
+    }
+    /**
      * Tandai SJ garment dengan nomor invoicenya di tabel asalnya (bppb.invno).
      *
      * Supaya di aplikasi sebelah langsung terlihat SJ itu masuk invoice mana,
@@ -3891,8 +4014,14 @@ class InvoiceEximController extends Controller
      * sekarang ditandai: waktu invoice di-update SJ-nya bisa berganti, dan SJ
      * yang dilepas tidak boleh tetap membawa nomor invoice ini.
      *
-     * Hanya baris NAG. Baris knitting datang dari official_out_h di database
-     * lain, dan yang diminta memang bppb.
+     * Garment dicocokkan lewat id (bppb.id = id_bppb). SJ knitting juga punya
+     * barisnya di bppb, tapi id_bppb untuk baris NAK itu official_out_h.id -
+     * bukan bppb.id - jadi yang dicocokkan NOMOR SJ-nya. Nomornya bisa tersimpan
+     * di bppbno atau bppbno_int, jadi dua-duanya dicoba; nomor SJ cukup khas
+     * sehingga tidak mungkin mengenai baris lain.
+     *
+     * SJ knitting ditandai di dua tempat: di sini (bppb) dan di official_out_h
+     * database knitting - lihat tandaiInvnoNak().
      */
     private function selaraskanInvno($db, $idBook, $noInvoice)
     {
@@ -3905,6 +4034,16 @@ class InvoiceEximController extends Controller
               WHERE id IN (SELECT id_bppb FROM " . self::TABEL_DET . "
                             WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAG')",
             array((string) $noInvoice, (int) $idBook)
+        );
+        $db->update(
+            "UPDATE bppb SET invno = ?
+              WHERE bppbno IN (SELECT bppb_number FROM " . self::TABEL_DET . "
+                                WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
+                                  AND IFNULL(bppb_number, '') <> '')
+                 OR bppbno_int IN (SELECT bppb_number FROM " . self::TABEL_DET . "
+                                    WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
+                                      AND IFNULL(bppb_number, '') <> '')",
+            array((string) $noInvoice, (int) $idBook, (int) $idBook)
         );
     }
 

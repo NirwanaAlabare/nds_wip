@@ -35,7 +35,7 @@ class PemasukanService
     //         'a.unit',
     //         DB::raw("$qtySumExpr as qty"),
     //         'a.curr',
-    //         DB::raw("SUM(ROUND(IFNULL(a.price_bc, a.price) * $qtyField, 2)) as nilai_barang"),
+    //         DB::raw("SUM(ROUND(a.price * $qtyField, 2)) as nilai_barang"),
     //         DB::raw("SUM(a.berat_bersih) as berat_bersih"),
     //         DB::raw("SUM(a.berat_kotor) as berat_kotor"),
     //         DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),
@@ -281,6 +281,8 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
+        $tglFilterSup = '2024-01-01';
+
         // accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
 
@@ -304,8 +306,8 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
-                    SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
+                    SUM(IFNULL(a.qty, 0)) as qty,
+                    SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang,
                     a.curr,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
@@ -332,7 +334,7 @@ class PemasukanService
             ";
         }
 
-        //  WAREHOUSE FABRIC
+        // WAREHOUSE FABRIC
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
@@ -387,8 +389,8 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
-                    SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
+                    SUM(IFNULL(a.qty, 0)) as qty,
+                    SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang,
                     a.curr,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
@@ -408,9 +410,9 @@ class PemasukanService
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND sod.cancel = 'N'
-                AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
+                AND a.bpbno LIKE 'FG%'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
 
@@ -447,7 +449,7 @@ class PemasukanService
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
-                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND (a.tgl_terima < '$tglFilterSup' OR a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'))
                 GROUP BY ac.kpno, a.no_trans
             ";
 
@@ -484,7 +486,7 @@ class PemasukanService
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
-                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND (a.tgl_terima < '$tglFilterSup' OR a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'))
                 GROUP BY ac.kpno, a.no_trans
             ";
         }
@@ -576,7 +578,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(a.price * a.qty, 2) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -661,7 +663,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -683,7 +685,6 @@ class PemasukanService
                 AND a.jenis_dok = 'BC 2.3'
                 AND a.bpbno_int LIKE 'FG%'
                 AND a.id_supplier NOT IN ('1038', '1039')
-                AND d.supplier != 'BARANG JADI STOCK'
                 AND a.invno NOT LIKE '%PJT%'
                 AND a.invno NOT LIKE '%PIB%'
                 AND a.invno NOT LIKE '%PIBK%'
@@ -779,7 +780,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -861,7 +862,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -976,7 +977,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -1058,7 +1059,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -1173,7 +1174,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -1256,7 +1257,7 @@ class PemasukanService
                     a.unit,
                     SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
                     a.curr,
-                    SUM(ROUND(IFNULL(a.price_bc, a.price) * a.qty, 2)) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -1474,8 +1475,8 @@ class PemasukanService
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
             DB::raw("SUM(a.qty) as qty"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price_bc), ''), a.price) * a.qty), 2) as nilai_barang"),
+            DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
+            DB::raw("ROUND(SUM(IFNULL(NULLIF(TRIM(a.price), ''), a.price) * a.qty), 2) as nilai_barang"),
             'a.berat_bersih',
             'a.berat_kotor',
             DB::raw("RIGHT(a.nomor_aju, 6) as nomor_aju"),

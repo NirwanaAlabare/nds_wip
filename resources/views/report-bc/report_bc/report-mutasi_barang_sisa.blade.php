@@ -79,14 +79,17 @@
                     <thead class="text-center">
                         <tr>
                             <th width="5%">No</th>
-                            <th>Id Item</th>
                             <th>Kode Barang</th>
                             <th>Nama Barang</th>
-                            <th>Unit</th>
+                            <th>Sat</th>
                             <th>Saldo Awal</th>
-                            <th>Penerimaan</th>
+                            <th>Pemasukan</th>
                             <th>Pengeluaran</th>
-                            <th>Saldo Akhir</th>
+                            <th>Penyesuaian</th>
+                            <th>Saldo Buku</th>
+                            <th>Stock Opname</th>
+                            <th>Selisih</th>
+                            <th>Ket</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,14 +97,17 @@
                             @foreach ($data as $index => $row)
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
-                                    <td class="text-center">{{ $row->id_item ?? '-' }}</td>
                                     <td>{{ $row->kode_brg ?? '-' }}</td>
                                     <td>{{ $row->nama_brg ?? '-' }}</td>
                                     <td class="text-center">{{ $row->unit ?? '-' }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldo_awal ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyrcv ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyout ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->penyesuaian ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qty_akhir ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->stockopname ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->selisih ?? 0, 2) }}</td>
+                                    <td>{{ $row->keterangan ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         @endif

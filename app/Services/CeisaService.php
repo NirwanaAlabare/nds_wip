@@ -159,8 +159,10 @@ class CeisaService
     /**
      * Cek kurs
      */
-    public function cekKurs($kurs)
+   public function cekKurs($kurs)
     {
+
+        $this->setEnv('dev');
         try {
             $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/kurs/{$kurs}");
 
@@ -171,7 +173,15 @@ class CeisaService
             throw new \Exception('CEISA response not successful: ' . $response->status());
 
         } catch (\Throwable $e) {
-            Log::warning("cekKurs API gagal untuk {$kurs}, fallback ke masterrate: " . $e->getMessage());
+            Log::warning("cekKurs API gagal untuk {$kurs}: " . $e->getMessage());
+
+            if (strtoupper($kurs) !== 'USD') {
+                return [
+                    'status' => 'false',
+                    'message' => 'Pengambilan data ke CEISA gagal. Kurs di NDS hanya menyediakan untuk USD, silahkan isi manual.',
+                    'data' => []
+                ];
+            }
 
             $db = DB::connection('mysql_sb');
 
@@ -193,7 +203,11 @@ class CeisaService
                 ];
             }
 
-            return null;
+            return [
+                'status' => 'false',
+                'message' => 'Server CEISA dan data NDS untuk USD tidak ditemukan, silahkan isi manual.',
+                'data' => []
+            ];
         }
     }
 

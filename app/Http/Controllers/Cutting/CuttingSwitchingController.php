@@ -16,11 +16,101 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 
 class CuttingSwitchingController extends Controller
 {
     public function index(Request $request) {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            $dateFrom = $request->dateFrom ?? date("Y-m-d");
+            $dateTo = $request->dateTo ?? date("Y-m-d");
+
+            if ($dateFrom) {
+                $additionalQuery .= " and (form_asal.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_tujuan.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_cut_input_detail_output_logs.updated_at >= '" . $dateFrom . " 00:00:00')";
+            }
+
+            if ($dateTo) {
+                $additionalQuery .= " and (form_asal.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_tujuan.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_cut_input_detail_output_logs.updated_at <= '" . $dateTo . " 23:59:59')";
+            }
+
+            $keywordQuery = "";
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        form_cut_input_detail_output_logs.group_roll_asal like '%".$request->search['value']."%' OR
+                        DATE(form_asal.waktu_selesai) LIKE '%".$request->search['value']."%' OR
+                        DATE(form_tujuan.waktu_selesai) LIKE '%".$request->search['value']."%' OR
+                        form_asal.no_form like '%".$request->search['value']."%' OR
+                        msb_asal.ws like '%".$request->search['value']."%' OR
+                        msb_asal.styleno like '%".$request->search['value']."%' OR
+                        msb_asal.color like '%".$request->search['value']."%' OR
+                        msb_asal.size like '%".$request->search['value']."%' OR
+                        marker_asal.panel like '%".$request->search['value']."%' OR
+                        form_tujuan.no_form like '%".$request->search['value']."%' OR
+                        msb_tujuan.ws like '%".$request->search['value']."%' OR
+                        msb_tujuan.styleno like '%".$request->search['value']."%' OR
+                        msb_tujuan.color like '%".$request->search['value']."%' OR
+                        msb_tujuan.size like '%".$request->search['value']."%' OR
+                        marker_tujuan.panel like '%".$request->search['value']."%' OR
+                        form_cut_input_detail_output_logs.qty_transfer like '%".$request->search['value']."%' OR
+                        form_cut_input_detail_output_logs.is_active like '%".$request->search['value']."%' OR
+                        form_cut_input_detail_output_logs.created_by like '%".$request->search['value']."%' OR
+                        form_cut_input_detail_output_logs.created_at like '%".$request->search['value']."%' OR
+                        form_cut_input_detail_output_logs.updated_at like '%".$request->search['value']."%' 
+                    )
+                ";
+            }
+
+            $data_spreading = DB::select("
+                select 
+                    form_cut_input_detail_output_logs.group_roll_asal,
+                    form_asal.no_form no_form_asal,
+                    DATE(form_asal.waktu_selesai) tanggal_form_asal,
+                    msb_asal.ws ws_asal,
+                    msb_asal.styleno styleno_asal,
+                    msb_asal.color color_asal,
+                    msb_asal.size size_asal,
+                    marker_asal.panel panel_asal,
+                    form_tujuan.no_form no_form_tujuan,
+                    DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
+                    msb_tujuan.ws ws_tujuan,
+                    msb_tujuan.styleno styleno_tujuan,
+                    msb_tujuan.color color_tujuan,
+                    msb_tujuan.size size_tujuan,
+                    marker_tujuan.panel panel_tujuan,
+                    form_cut_input_detail_output_logs.qty_transfer,
+                    form_cut_input_detail_output_logs.`is_active`,
+                    form_cut_input_detail_output_logs.created_by,
+                    form_cut_input_detail_output_logs.created_at,
+                    form_cut_input_detail_output_logs.updated_at
+                from 
+                    form_cut_input_detail_output_logs
+                    LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                    LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id 
+                    LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                    LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
+                    LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                    LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id 
+                    LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                    LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
+                where 
+                    form_cut_input_detail_output_logs.id is not null
+                    ".$additionalQuery."
+                    ".$keywordQuery."
+                group by 
+                    form_cut_input_detail_output_logs.id
+            ");
+
+            return DataTables::of($data_spreading)->toJson();
+        }
+
+        return view('cutting.switching.index', ["page" => "dashboard-cutting"]);
+    }
+
+    public function create(Request $request) {
         if ($request->ajax()) {
             $additionalQuery = "";
 
@@ -122,7 +212,7 @@ class CuttingSwitchingController extends Controller
 
         return view('cutting.switching.switching', ["page" => "dashboard-cutting"]);
     }
-
+    
     public function show($id = 0) {
         $form = FormCutInput::where("id", $id)->first();
 
@@ -451,5 +541,161 @@ class CuttingSwitchingController extends Controller
             Log::error("Error deleting switching log: " . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function exportFormCutInputDetailOutputLog(Request $request) {
+        // 1. Inisialisasi variabel filter
+        $additionalQuery = "";
+        $keywordQuery = ""; // Inisialisasi agar tidak error jika tidak ada kata kunci
+
+        $dateFrom =$request->dateFrom ?? date("Y-m-d");
+        $dateTo =$request->dateTo ?? date("Y-m-d");
+
+        // Jika request membawa input keyword/pencarian (opsional)
+        if ($request->filled('keyword')) {
+            $keyword =$request->keyword;
+            $keywordQuery = " and (msb_asal.ws like '%{$keyword}%' or msb_tujuan.ws like '%{$keyword}%')";
+        }
+
+        if ($dateFrom) {
+            $additionalQuery .= " and (form_asal.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_tujuan.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_cut_input_detail_output_logs.updated_at >= '" . $dateFrom . " 00:00:00')";
+        }
+
+        if ($dateTo) {
+            $additionalQuery .= " and (form_asal.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_tujuan.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_cut_input_detail_output_logs.updated_at <= '" . $dateTo . " 23:59:59')";
+        }
+
+        // 2. Eksekusi SQL Query
+        $data_spreading = DB::select("
+            select 
+                form_cut_input_detail_output_logs.group_roll_asal,
+                form_asal.no_form no_form_asal,
+                DATE(form_asal.waktu_selesai) tanggal_form_asal,
+                msb_asal.ws ws_asal,
+                msb_asal.styleno styleno_asal,
+                msb_asal.color color_asal,
+                msb_asal.size size_asal,
+                marker_asal.panel panel_asal,
+                form_tujuan.no_form no_form_tujuan,
+                DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
+                msb_tujuan.ws ws_tujuan,
+                msb_tujuan.styleno styleno_tujuan,
+                msb_tujuan.color color_tujuan,
+                msb_tujuan.size size_tujuan,
+                marker_tujuan.panel panel_tujuan,
+                form_cut_input_detail_output_logs.qty_transfer,
+                form_cut_input_detail_output_logs.`is_active`,
+                form_cut_input_detail_output_logs.created_by,
+                form_cut_input_detail_output_logs.created_at,
+                form_cut_input_detail_output_logs.updated_at
+            from 
+                form_cut_input_detail_output_logs
+                LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id 
+                LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
+                LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id 
+                LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
+            where 
+                form_cut_input_detail_output_logs.id is not null
+                ".$additionalQuery."
+                ".$keywordQuery."
+            group by 
+                form_cut_input_detail_output_logs.id
+        ");
+
+        // 3. Set Up FastExcel
+        $fileName = 'report-log-switching-cutting.xlsx';
+        $excel = FastExcel::create($fileName);
+        $sheet =$excel->sheet();
+
+        // Judul Laporan
+        $sheet->writeRow(
+            ['Report Log Switching Cutting'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        // Menggunakan variabel $dateFrom dan $dateTo yang benar
+        $sheet->writeRow(
+            ['Periode ' . $dateFrom . ' s/d ' .$dateTo],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        // Header tabel disesuaikan dengan data hasil SQL Query
+        $header = [
+            'Group Roll',
+            'No Form Asal',
+            'Tgl Form Asal',
+            'WS Asal',
+            'Style Asal',
+            'Color Asal',
+            'Size Asal',
+            'Panel Asal',
+            'No Form Tujuan',
+            'Tgl Form Tujuan',
+            'WS Tujuan',
+            'Style Tujuan',
+            'Color Tujuan',
+            'Size Tujuan',
+            'Panel Tujuan',
+            'Qty Transfer',
+            'Status',
+            'Created By',
+            'Created At'
+        ];
+
+        $sheet->writeRow($header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
+        );
+
+        // Loop data dari variabel $data_spreading
+        foreach ($data_spreading as$row) {
+            $rows = [
+                $row->group_roll_asal ?? '',
+                $row->no_form_asal ?? '',
+                $row->tanggal_form_asal ?? '',
+                $row->ws_asal ?? '',
+                $row->styleno_asal ?? '',
+                $row->color_asal ?? '',
+                $row->size_asal ?? '',
+                $row->panel_asal ?? '',
+                $row->no_form_tujuan ?? '',
+                $row->tanggal_form_tujuan ?? '',
+                $row->ws_tujuan ?? '',
+                $row->styleno_tujuan ?? '',
+                $row->color_tujuan ?? '',
+                $row->size_tujuan ?? '',
+                $row->panel_tujuan ?? '',
+                (int) ($row->qty_transfer ?? 0),
+                $row->is_active ? 'Aktif' : 'Tidak Aktif',
+                $row->created_by ?? '',
+                $row->created_at ?? '',
+            ];
+
+            $sheet->writeRow($rows,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        // Mengatur lebar kolom agar tampilan Excel rapi
+        foreach (range('A', 'S') as $col) {
+            $sheet->setColWidth($col, 18);
+        }
+
+        return $excel->download();
     }
 }
