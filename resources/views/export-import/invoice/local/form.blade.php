@@ -2217,7 +2217,12 @@ $(function () {
         if (!$('#inv-tgl').val())           { kurang.push('Invoice Date'); }
         // Yang wajib baris SO (WS), bukan SJ: invoice sering harus terbit
         // sebelum barangnya keluar. Memilih SJ pun ikut mengisi Detail SO.
-        if (!invSo.length)                  { kurang.push('SO (use "Add SJ / WS" to pick at least one WS)'); }
+        // Harus ada isinya - dari SJ atau dari SO, tidak harus dua-duanya.
+        // Invoice yang terbit sebelum barangnya keluar baru punya baris SO;
+        // yang barangnya sudah keluar bisa langsung punya SJ saja.
+        if (!invSo.length && !invBaris.length) {
+            kurang.push('SJ or SO (use "Add SJ / WS" to pick at least one row)');
+        }
 
         // SJ tanpa SO harus punya harga - server menolaknya juga, tapi lebih
         // enak ketahuan di sini sambil kotaknya masih di depan mata.

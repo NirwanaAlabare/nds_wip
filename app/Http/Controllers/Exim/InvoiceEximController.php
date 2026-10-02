@@ -1752,20 +1752,31 @@ class InvoiceEximController extends Controller
             return $salah(implode(', ', $kurang) . ' is required.', 422);
         }
 
-        // Yang wajib baris SO (WS), bukan SJ: invoice sering harus terbit
-        // sebelum barangnya keluar. Memilih SJ pun ikut mengisi Detail SO.
         $barisWs = $request->input('baris_ws');
-        if (!is_array($barisWs) || !$barisWs) {
-            return $salah('Pick at least one WS row.', 422);
-        }
-        $hasilWs = $this->barisWsUlang($pc, $barisWs);
-        if (isset($hasilWs['pesan'])) {
-            return $salah($hasilWs['pesan'], 422);
-        }
-        $ws = $hasilWs['baris'];
-
         $baris = $request->input('baris');
         $baris = is_array($baris) ? $baris : array();
+
+        // Harus ada ISINYA - dari SJ atau dari SO, tidak harus dua-duanya.
+        // Keduanya sah: invoice yang terbit sebelum barangnya keluar baru punya
+        // baris SO, sedangkan yang barangnya sudah keluar bisa saja langsung
+        // punya SJ tanpa SO-nya pernah dipesan lebih dulu. Sama dengan Export.
+        $adaWs = is_array($barisWs) && $barisWs;
+        if (!$adaWs && !$baris) {
+            return $salah('Pick at least one SJ or WS row.', 422);
+        }
+
+        // Tanpa baris WS tidak ada yang perlu dibaca ulang. Pembacaannya
+        // dilewati sekalian, karena di dalamnya ada pemeriksaan "WS cuma untuk
+        // NAG" - dan itu tidak boleh ikut menolak invoice knitting yang memang
+        // isinya SJ saja.
+        $ws = array();
+        if ($adaWs) {
+            $hasilWs = $this->barisWsUlang($pc, $barisWs);
+            if (isset($hasilWs['pesan'])) {
+                return $salah($hasilWs['pesan'], 422);
+            }
+            $ws = $hasilWs['baris'];
+        }
 
         $diskon = array();
         foreach ($baris as $b) {
