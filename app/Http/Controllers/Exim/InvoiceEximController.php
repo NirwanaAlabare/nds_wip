@@ -4609,11 +4609,37 @@ class InvoiceEximController extends Controller
                   INNER JOIN official_out_barcode b ON b.id_official = a.id
                   INNER JOIN master_kain c ON c.id = b.kain_id
                   LEFT JOIN master_kain_detail d ON d.id = b.detail_kain_id
-                  INNER JOIN detail_so e ON e.id = b.detail_so_id
                   INNER JOIN sales_orders f ON f.id = a.no_so
-                  -- g = satuan SO/kirim (id_unit_sales_order_shipment) - itu yang
-                  -- dipakai cetakan EXIM. Satuan tagih (id_unit_sales_order)
-                  -- tidak ikut dibaca di sini; yang memakainya Create Invoice AR.
+                  -- Satuan & harga diambil dari SO YANG DIKIRIM (SO di header SJ),
+                  -- bukan dari SO asal stoknya. Rollnya sering diambil dari SO
+                  -- lain, dan satuan SO itu belum tentu sama - menyambung lewat
+                  -- roll bikin satuannya ikut SO yang salah. Create Invoice di AR
+                  -- memang sudah menyambung lewat jalur ini.
+                  --
+                  -- ea = baris SO asal rollnya, dipakai kalau SO yang dikirim
+                  -- tidak punya baris untuk kain ini - supaya SJ-nya tidak hilang
+                  -- dari daftar, dan penyaringan barisnya persis seperti dulu.
+                  INNER JOIN detail_so ea ON ea.id = b.detail_so_id
+                  LEFT JOIN LATERAL (
+                      SELECT ds.harga, ds.harga_shipment, ds.id_unit_sales_order_shipment
+                        FROM detail_so ds
+                       WHERE ds.sales_order_id = f.id
+                         AND ds.master_kain_id = b.kain_id
+                       ORDER BY ds.id
+                       LIMIT 1
+                  ) ek ON TRUE
+                  -- Satu baris saja yang dipakai: harga & satuannya harus datang
+                  -- dari SO yang sama, kalau tidak totalnya dihitung dengan harga
+                  -- per satuan yang berbeda.
+                  LEFT JOIN LATERAL (
+                      SELECT COALESCE(ek.harga, ea.harga) AS harga,
+                             COALESCE(ek.harga_shipment, ea.harga_shipment) AS harga_shipment,
+                             COALESCE(ek.id_unit_sales_order_shipment,
+                                      ea.id_unit_sales_order_shipment)
+                                 AS id_unit_sales_order_shipment
+                  ) e ON TRUE
+                  -- g = satuan kirim SO itu. Satuan tagih (id_unit_sales_order)
+                  -- tidak dibaca di sini; yang memakainya Create Invoice AR.
                   LEFT JOIN master_unit g ON g.id = e.id_unit_sales_order_shipment
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
