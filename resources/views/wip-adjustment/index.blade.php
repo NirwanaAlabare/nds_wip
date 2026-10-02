@@ -188,6 +188,13 @@
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
+                <div>
+                    <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm" id="but_export"
+                        name="but_export">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel
+                    </a>
+                </div>
 
                 <!-- Button kanan -->
                 <div class="ms-auto d-flex align-items-center gap-2">
@@ -568,6 +575,64 @@
             });
         }
 
+        async function export_excel() {
+            const type = $('#type_report_filter').val();
+
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            try {
+                const res = await $.ajax({
+                    url: '{{ route('export-excel-wip-adjustment') }}',
+                    type: "GET",
+                    data: {
+                        dateFrom: $("#tgl-awal").val(),
+                        dateTo: $("#tgl-akhir").val(),
+                        type_report: type,
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    }
+                });
+
+                Swal.close();
+
+                iziToast.success({
+                    title: 'Success',
+                    message: 'Success',
+                    position: 'topCenter'
+                });
+
+                const blob = new Blob([res]);
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download =
+                    "WIP Adjustment " +
+                    $('#type_report_filter option:selected').text() + " " +
+                    $("#tgl-awal").val() +
+                    " - " +
+                    $("#tgl-akhir").val() +
+                    ".xlsx";
+                link.click();
+
+            } catch (err) {
+                Swal.close();
+                console.error(err);
+
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Export gagal',
+                    position: 'topCenter'
+                });
+            }
+        }
+
         function setImportStep(step) {
             $('.import-step').each(function () {
                 $(this).toggleClass('active', $(this).data('step') <= step);
@@ -620,27 +685,27 @@
             PACKING: {
                 label: 'Packing',
                 file: "{{ asset('example/template_wip_adjustment_packing.xlsx') }}",
-                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'transit terima packing line', 'packing line', 'packing temporary', 'packing central']
+                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'qty transit terima packing line', 'qty packing line', 'qty packing temporary', 'qty packing central']
             },
             SEWING: {
                 label: 'Sewing',
                 file: "{{ asset('example/template_wip_adjustment_sewing.xlsx') }}",
-                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'sewing', 'qc finishing', 'finishing pasang kancing', 'finishing bartack', 'finishing heatseal', 'finishing snap', 'finishing embro', 'defect sewing', 'defect spotcleaning', 'defect mending', 'transit terima qc reject', 'qc reject']
+                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'qty sewing', 'qty qc finishing', 'qty finishing pasang kancing', 'qty finishing bartack', 'qty finishing heatseal', 'qty finishing snap', 'qty finishing embro', 'qty defect sewing', 'qty defect spotcleaning', 'qty defect mending', 'qty transit terima qc reject', 'qty qc reject']
             },
             DC: {
                 label: 'DC',
                 file: "{{ asset('example/template_wip_adjustment_dc.xlsx') }}",
-                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'panel', 'part', 'mutasi dc', 'mutasi secondary dalam', 'mutasi secondary luar', 'terima transit secondary luar']
+                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'panel', 'part', 'qty mutasi dc', 'qty mutasi secondary dalam', 'qty mutasi secondary luar', 'qty terima transit secondary luar']
             },
             CUTTING_PCS: {
                 label: 'Cutting PCS',
                 file: "{{ asset('example/template_wip_adjustment_cutting_pcs.xlsx') }}",
-                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'panel', 'part', 'cutting']
+                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'panel', 'part', 'qty cutting']
             },
             CUTTING_FABRIC: {
                 label: 'Cutting Fabric',
                 file: "{{ asset('example/template_wip_adjustment_cutting_fabric.xlsx') }}",
-                columns: ['tgl_saldo', 'ws', 'id_roll', 'id_item', 'satuan', 'fabric']
+                columns: ['tgl_saldo', 'ws', 'id_roll', 'id_item', 'satuan', 'qty fabric']
             }
         };
 
