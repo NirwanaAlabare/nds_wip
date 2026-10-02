@@ -1172,13 +1172,12 @@ class MutasiService
     }
 
 
-    function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
-
+    public function exportExcelBahanBaku($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
 
         $data = $this->getDataMutasiBahanBaku($fromDate, $toDate, $kategoriBarang);
-
 
         $fileName = 'laporan-mutasi-bahan-baku';
         $excel = FastExcel::create($fileName);
@@ -1196,7 +1195,7 @@ class MutasiService
         );
 
         $sheet->writeRow(
-            ['LAPORAN MUTASI BARANG BAKU'],
+            ['LAPORAN MUTASI BAHAN BAKU'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
@@ -1214,16 +1213,19 @@ class MutasiService
 
         $sheet->writeRow(['']);
 
-
         $sheet->writeRow([
             'No',
-            'ID Item',
+            'Kode Barang',
             'Nama Barang',
-            'Satuan',
+            'Sat',
             'Saldo Awal',
             'Pemasukan',
             'Pengeluaran',
-            'Saldo Akhir',
+            'Penyesuaian',
+            'Saldo Buku',
+            'Stock Opname',
+            'Selisih',
+            'Ket'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1242,13 +1244,17 @@ class MutasiService
                 number_format($row->saldoawal ?? 0, 2),
                 number_format($row->qtyterima ?? 0, 2),
                 number_format($row->qtykeluar ?? 0, 2),
+                number_format($row->penyesuaian ?? 0, 2),
                 number_format($row->saldoakhir ?? 0, 2),
+                number_format($row->stockopname ?? 0, 2),
+                number_format($row->selisih ?? 0, 2),
+                $row->keterangan ?? '-'
             ];
 
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+            $sheet->writeRow($rows, [ 'border' => 'thin' ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
@@ -1256,13 +1262,12 @@ class MutasiService
     }
 
 
-    function exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
-
+   public function exportExcelMesinSparepart($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
 
         $data = $this->getDataMutasiMesinSparepart($fromDate, $toDate, $kategoriBarang);
-
 
         $fileName = 'laporan-mutasi-mesin-sparepart';
         $excel = FastExcel::create($fileName);
@@ -1298,17 +1303,20 @@ class MutasiService
 
         $sheet->writeRow(['']);
 
-
+        // Header disamakan dengan Mutasi Bahan Baku (12 Kolom)
         $sheet->writeRow([
             'No',
-            'Id Item',
             'Kode Barang',
             'Nama Barang',
+            'Sat',
             'Saldo Awal',
-            'Penerimaan',
+            'Pemasukan',
             'Pengeluaran',
-            'Saldo Akhir',
-            'Unit',
+            'Penyesuaian',
+            'Saldo Buku',
+            'Stock Opname',
+            'Selisih',
+            'Ket'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1319,35 +1327,39 @@ class MutasiService
         $no = 1;
         foreach ($data as $row) {
 
+            // Isian disesuaikan dengan nama variabel Mesin & Sparepart
             $rows = [
                 $no++,
-                $row->id_item ?? '-',
                 $row->kode_brg ?? '-',
                 $row->nama_brg ?? '-',
-                (float)($row->saldo_awal),
-                (float)($row->qtyrcv),
-                (float)($row->qtyout),
-                (float)($row->qty_akhir),
                 $row->unit ?? '-',
+                number_format($row->saldo_awal ?? 0, 2),
+                number_format($row->qtyrcv ?? 0, 2),
+                number_format($row->qtyout ?? 0, 2),
+                number_format($row->penyesuaian ?? 0, 2),
+                number_format($row->qty_akhir ?? 0, 2), // Saldo Akhir jadi Saldo Buku
+                number_format($row->stockopname ?? 0, 2),
+                number_format($row->selisih ?? 0, 2),
+                $row->keterangan ?? '-'
             ];
 
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+            $sheet->writeRow($rows, [ 'border' => 'thin' ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        // Range kolom di-set dari A sampai L (karena ada 12 Kolom)
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
         return $excel->download();
     }
 
-    function exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori){
-
+    public function exportExcelBarangSisa($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
+    {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
 
         $data = $this->getDataMutasiBarangSisa($fromDate, $toDate, $kategoriBarang);
-
 
         $fileName = 'laporan-mutasi-barang-sisa';
         $excel = FastExcel::create($fileName);
@@ -1383,17 +1395,20 @@ class MutasiService
 
         $sheet->writeRow(['']);
 
-
+        // Header disamakan dengan format 12 Kolom
         $sheet->writeRow([
             'No',
-            'Id Item',
             'Kode Barang',
             'Nama Barang',
+            'Sat',
             'Saldo Awal',
-            'Penerimaan',
+            'Pemasukan',
             'Pengeluaran',
-            'Saldo Akhir',
-            'Unit',
+            'Penyesuaian',
+            'Saldo Buku',
+            'Stock Opname',
+            'Selisih',
+            'Ket'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -1404,23 +1419,27 @@ class MutasiService
         $no = 1;
         foreach ($data as $row) {
 
+            // Isian disesuaikan dengan nama variabel Barang Sisa
             $rows = [
                 $no++,
-                $row->id_item ?? '-',
                 $row->kode_brg ?? '-',
                 $row->nama_brg ?? '-',
-                (float)($row->saldo_awal),
-                (float)($row->qtyrcv),
-                (float)($row->qtyout),
-                (float)($row->qty_akhir),
                 $row->unit ?? '-',
+                number_format($row->saldo_awal ?? 0, 2),
+                number_format($row->qtyrcv ?? 0, 2),
+                number_format($row->qtyout ?? 0, 2),
+                number_format($row->penyesuaian ?? 0, 2),
+                number_format($row->qty_akhir ?? 0, 2), // Saldo Akhir jadi Saldo Buku
+                number_format($row->stockopname ?? 0, 2),
+                number_format($row->selisih ?? 0, 2),
+                $row->keterangan ?? '-'
             ];
 
-
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+            $sheet->writeRow($rows, [ 'border' => 'thin' ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        // Range kolom di-set dari A sampai L (12 Kolom)
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
@@ -2501,17 +2520,19 @@ class MutasiService
 
         $sheet->writeRow(['']);
 
-
         $sheet->writeRow([
             'No',
-            'No WS',
-            'Style',
-            'Product Group',
-            'Product Item',
+            'Kode Barang',
+            'Nama Barang',
+            'Sat',
             'Saldo Awal',
-            'Penerimaan',
+            'Pemasukan',
             'Pengeluaran',
-            'Saldo Akhir',
+            'Penyesuaian',
+            'Saldo Buku',
+            'Stock Opname',
+            'Selisih',
+            'Ket'
         ], [
             'font-style' => 'bold',
             'border'     => 'thin',
@@ -2522,22 +2543,27 @@ class MutasiService
         $no = 1;
         foreach ($data as $row) {
 
+            // Sesuaikan urutan data baris Excel[cite: 4]
             $rows = [
                 $no++,
-                $row->ws ?? '-',
-                $row->styleno ?? '-',
-                $row->product_group ?? '-',
-                $row->product_item ?? '-',
-                $row->saldoawal ?? '-',
-                $row->qtyterima ?? '-',
-                $row->qtykeluar ?? '-',
-                $row->saldoakhir ?? '-',
+                $row->ws ?? '-',             // Kode Brg diisi ws
+                $row->product_item ?? '-',   // Nama Brg diisi product item
+                'PCS',                       // Satuan (hardcode PCS sesuai format web)
+                number_format($row->saldoawal ?? 0, 2),
+                number_format($row->qtyterima ?? 0, 2),
+                number_format($row->qtykeluar ?? 0, 2),
+                number_format($row->penyesuaian ?? 0, 2),
+                number_format($row->saldoakhir ?? 0, 2), // Saldo Buku
+                number_format($row->stockopname ?? 0, 2),
+                number_format($row->selisih ?? 0, 2),
+                $row->keterangan ?? '-'
             ];
 
-            $sheet->writeRow($rows, [ 'border' => 'thin', ] );
+            $sheet->writeRow($rows, [ 'border' => 'thin' ] );
         }
 
-        foreach (range('A', 'K') as $col) {
+        // Sesuaikan range kolom menjadi A sampai L (12 kolom)[cite: 4]
+        foreach (range('A', 'L') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

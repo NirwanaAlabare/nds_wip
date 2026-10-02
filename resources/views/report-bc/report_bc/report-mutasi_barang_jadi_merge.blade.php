@@ -161,15 +161,17 @@
                     <thead class="text-center">
                         <tr>
                             <th width="5%">No</th>
-                            <th>No WS</th>
-                            <th>Style</th>
-                            <th>Product Group</th>
-                            <th>Product Item</th>
-                            <th>Unit</th>
+                            <th>Kode Barang</th>
+                            <th>Nama Barang</th>
+                            <th>Sat</th>
                             <th>Saldo Awal</th>
-                            <th>Penerimaan</th>
+                            <th>Pemasukan</th>
                             <th>Pengeluaran</th>
-                            <th>Saldo Akhir</th>
+                            <th>Penyesuaian</th>
+                            <th>Saldo Buku</th>
+                            <th>Stock Opname</th>
+                            <th>Selisih</th>
+                            <th>Ket</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -178,14 +180,16 @@
                                 <tr>
                                     <td class="text-center">{{ $index + 1 }}</td>
                                     <td>{{ $row->ws ?? '-' }}</td>
-                                    <td>{{ $row->styleno ?? '-' }}</td>
-                                    <td>{{ $row->product_group ?? '-' }}</td>
                                     <td>{{ $row->product_item ?? '-' }}</td>
                                     <td class="text-center">PCS</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoawal ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtyterima ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->qtykeluar ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->penyesuaian ?? 0, 2) }}</td>
                                     <td class="text-right font-weight-bold">{{ number_format($row->saldoakhir ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->stockopname ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ number_format($row->selisih ?? 0, 2) }}</td>
+                                    <td>{{ $row->keterangan ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         @endif
