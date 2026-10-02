@@ -1198,7 +1198,7 @@
             });
 
         });
-        
+
         //Initialize Select2 Elements
         $('.select2').select2()
 
@@ -1585,6 +1585,20 @@
                                 <button class='btn btn-danger btn-sm mb-1' id="delete-complement" data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this, "delete", "Menghapus Part Detail ini akan <br> <b>menghapus stocker terkait beserta transaksinya</b>")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
+                                `+ (
+                                    row['status'] == 'inactive' ?
+                                    `
+                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['com_id']+`' onclick='restoreData(this, "cancel", "Kedepannya part ini tidak akan muncul jika di-cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                            <i class='fa fa-check'></i>
+                                        </button>
+                                    `
+                                    :
+                                    `
+                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this, "cancel", "Kedepannya part ini tidak akan muncul jika di-cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                            <i class='fa fa-ban'></i>
+                                        </button>
+                                    `
+                                ) +`
                             `;
                         }
                     },

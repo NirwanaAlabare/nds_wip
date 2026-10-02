@@ -316,16 +316,16 @@ class PenerimaanCuttingController extends Controller
 
         // Cek jika sudah ada pemakaian (menggunakan id_roll dari database/request)
         $idRoll = $request->id_roll ?? $penerimaanCutting->id_roll;
-        $firstUsage = $cuttingService->isRollUsed($idRoll, true);
-        if ($firstUsage && $tglTerimaBaru > $firstUsage) {
+        // $firstUsage = $cuttingService->isRollUsed($idRoll, true);
+        // if ($firstUsage && $tglTerimaBaru > $firstUsage) {
 
-            return response()->json([
-                'status'     => 400,
-                'message'    => 'Roll tidak dapat diubah ke tanggal setelah ada pemakaian.',
-                'table'      => 'datatable',
-                'additional' => [],
-            ], 400);
-        }
+        //     return response()->json([
+        //         'status'     => 400,
+        //         'message'    => 'Roll tidak dapat diubah ke tanggal setelah ada pemakaian.',
+        //         'table'      => 'datatable',
+        //         'additional' => [],
+        //     ], 400);
+        // }
 
         // 3. Cek perubahan & susun catatan perubahan (notes)
         $tglTerimaLama = $penerimaanCutting->tanggal_terima;
