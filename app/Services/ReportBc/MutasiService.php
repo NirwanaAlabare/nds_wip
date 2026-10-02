@@ -2432,18 +2432,17 @@ class MutasiService
             )
 
             SELECT
-                r.id_so_det,
-                ms.id_item,
                 ac.kpno,
-                ac.styleno,
-                sd.color,
-                mp.product_group AS product_group,
-                mp.product_item AS product_item,
-                sd.size,
-                r.saldo_awal,
-                r.penerimaan,
-                r.pengeluaran,
-                (r.saldo_awal + r.penerimaan - r.pengeluaran) AS saldo_akhir
+                MAX(ms.id_item) AS id_item,
+                MAX(ac.styleno) AS styleno,
+                MAX(sd.color) AS color,
+                MAX(mp.product_group) AS product_group,
+                MAX(mp.product_item) AS product_item,
+                MAX(sd.size) AS size,
+                SUM(r.saldo_awal) AS saldo_awal,
+                SUM(r.penerimaan) AS penerimaan,
+                SUM(r.pengeluaran) AS pengeluaran,
+                SUM(r.saldo_awal) + SUM(r.penerimaan) - SUM(r.pengeluaran) AS saldo_akhir
             FROM rekap r
             INNER JOIN so_det sd       ON r.id_so_det = sd.id
             INNER JOIN so              ON sd.id_so = so.id
@@ -2453,9 +2452,9 @@ class MutasiService
             WHERE sd.cancel = 'N'
             AND so.cancel_h = 'N'
             AND ac.aktif = 'Y'
-            AND (r.saldo_awal <> 0 OR r.penerimaan <> 0 OR r.pengeluaran <> 0)
             GROUP BY ac.kpno
-            ORDER BY r.id_so_det ASC
+            HAVING SUM(r.saldo_awal) <> 0 OR SUM(r.penerimaan) <> 0 OR SUM(r.pengeluaran) <> 0
+            ORDER BY ac.kpno ASC
         ";
 
         $rows = $mysql_sb->select($sql);
