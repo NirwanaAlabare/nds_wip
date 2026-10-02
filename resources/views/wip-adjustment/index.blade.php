@@ -384,7 +384,6 @@
             CUTTING_FABRIC: [
                 ['WS', 'ws'], ['ID Roll', 'id_roll'], ['ID Item', 'id_item'], ['Satuan', 'satuan'],
                 ['Fabric', 'fabric', true],
-                ['Type', 'type'],
             ],
         };
 
