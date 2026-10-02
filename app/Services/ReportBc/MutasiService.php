@@ -2461,7 +2461,6 @@ class MutasiService
 
         return collect($rows)->map(function ($row) {
             return (object) [
-                'id_so_det'  => $row->id_so_det,
                 'id_item'    => $row->id_item ?? '-',
                 'ws'         => $row->kpno ?? '-',
                 'product_group' => $row->product_group ?? '-',
