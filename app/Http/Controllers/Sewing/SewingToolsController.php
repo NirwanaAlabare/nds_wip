@@ -3699,6 +3699,14 @@ class SewingToolsController extends Controller
         // }
 
     public function modifyOutputAction(Request $request) {
+        if (checkClosingDate($request->tanggal)) {
+            return [
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            ];
+        }
+
         switch ($request->type) {
             case 'rft_' :
                 // Take Rft
