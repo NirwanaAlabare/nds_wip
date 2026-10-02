@@ -1346,9 +1346,7 @@ class PemasukanService
     public function exportExcel($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori)
     {
 
-        if($kategori == 'rekap'){
             $this->exportExcelRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang, $kategori);
-        }
 
         // $cleanKategori = preg_replace('/[^a-zA-Z0-9]/', '', $kategori);
         // $methodName = 'getData' . ucfirst($cleanKategori);
@@ -1588,8 +1586,8 @@ class PemasukanService
             'No',
             'Dokumen Pabean',
             '',
-            'Tanggal',
-            'Bukti Penerimaan Barang',
+            '',
+            'Bukti Pengiriman',
             '',
             'Pengirim Barang',
             'Kode Barang',
@@ -1611,7 +1609,7 @@ class PemasukanService
             '',
             'Jenis',
             'Nomor',
-            '',
+            'Tanggal',
             'Nomor',
             'Tanggal',
             '',
@@ -1629,11 +1627,10 @@ class PemasukanService
           'halign' => 'center'
         ]);
 
-        $sheet->mergeCells('B5:C5');
+        $sheet->mergeCells('B5:D5');
         $sheet->mergeCells('E5:F5');
 
         $sheet->mergeCells('A5:A6');
-        $sheet->mergeCells('D5:D6');
         $sheet->mergeCells('G5:G6');
         $sheet->mergeCells('H5:H6');
         $sheet->mergeCells('I5:I6');

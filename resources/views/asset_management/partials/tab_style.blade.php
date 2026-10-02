@@ -598,6 +598,34 @@
         place-items: center;
     }
 
+    /* Penanda field opsional di judul section (judulnya huruf besar) */
+    .tt-optional {
+        margin-left: 2px;
+        padding: 1px 7px;
+        border-radius: 20px;
+        background: #f1f3f5;
+        color: #6c757d;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    /* Keterangan di bawah tombol Proses: tercatat atas nama siapa / tanpa NIK */
+    .tt-submit-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .tt-submit-hint:empty {
+        display: none;
+    }
+
     .scanned-tag-row .tag-info.is-warn {
         color: #b45309;
         font-weight: 600;

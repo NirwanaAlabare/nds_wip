@@ -1039,6 +1039,7 @@
         }
 
         function modifyOutput(prefix) {
+            console.log(prefix);
             let dept = document.getElementById("dept").value;
             let tanggal = document.getElementById("tanggal").value;
             let line = document.getElementById("line").value;
@@ -1047,7 +1048,7 @@
             let poId = document.getElementById(prefix+"po") ? document.getElementById(prefix+"po").value : null;
             let qty = document.getElementById(prefix+"qty").value;
             let modSoDetId = document.getElementById(prefix+"mod_size").value;
-            let modPoId = document.getElementById(prefix+"mod_po").value;
+            let modPoId = document.getElementById(prefix+"mod_po") ? document.getElementById(prefix+"mod_po").value : null;
 
             if (tanggal && line && masterPlanId && soDetId && modSoDetId && (qty > 0)) {
                 document.getElementById("loading").classList.remove("d-none");

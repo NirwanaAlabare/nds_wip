@@ -2294,10 +2294,15 @@ class InvoiceEximController extends Controller
         if ($tgl === null)                       { $kurang[] = 'Invoice Date'; }
         if (!in_array($docType, self::DOC_TYPE_EXPORT, true)) { $kurang[] = 'Document Type'; }
         if (!is_array($kirim) || !$kirim)        { $kurang[] = 'Shipment Details (at least one row)'; }
-        // Yang wajib baris SO (WS), bukan SJ: invoice sering harus terbit
-        // sebelum barangnya keluar. Memilih SJ pun ikut mengisi Detail SO,
-        // jadi syarat ini tidak menyulitkan alur yang lama.
-        if (!is_array($barisWs) || !$barisWs)    { $kurang[] = 'Detail SO (at least one WS row)'; }
+        // Harus ada ISINYA - dari SJ atau dari SO, tidak harus dua-duanya.
+        // Keduanya sah: invoice yang terbit sebelum barangnya keluar baru punya
+        // baris SO, sedangkan yang barangnya sudah keluar bisa saja langsung
+        // punya SJ tanpa SO-nya pernah dipesan lebih dulu.
+        $adaWs = is_array($barisWs) && $barisWs;
+        $adaSj = is_array($baris) && $baris;
+        if (!$adaWs && !$adaSj) {
+            $kurang[] = 'Detail SJ or Detail SO (at least one row)';
+        }
         if ($kurang) {
             return $salah(implode(', ', $kurang) . (count($kurang) > 1 ? ' are' : ' is') . ' required.', 422);
         }
@@ -3112,6 +3117,10 @@ class InvoiceEximController extends Controller
 
         return array(
             'versi'     => $versi,
+            // Versinya ikut dicetak di samping DATE - satu invoice bisa dicetak
+            // dua kali dengan harga berbeda, jadi pembacanya harus tahu yang
+            // dipegangnya yang mana.
+            'labelVersi' => $this->labelVersiExport($versi),
             'judul'     => ($tipe !== '' ? $tipe : 'COMMERCIAL') . ' INVOICE',
             // Cetakan cuma menampilkan SATU nomor: Invoice Number #2 kalau diisi
             // (dipakai kalau buyer minta penomoran sendiri), selain itu nomor sistem.
@@ -3173,6 +3182,17 @@ class InvoiceEximController extends Controller
     private function namaBerkasExport(array $data)
     {
         return str_replace('/', '_', (string) $data['inv']['no_invoice']) . '_' . strtoupper($data['versi']);
+    }
+
+    /**
+     * Label versi cetakan Export: FOB atau CMT.
+     *
+     * Dipakai PDF (CARING & Classic) dan Excel - satu tempat, supaya ketiganya
+     * tidak bisa menyebut hal yang berbeda untuk invoice yang sama.
+     */
+    private function labelVersiExport($versi)
+    {
+        return strtolower(trim((string) $versi)) === 'fob' ? 'FOB' : 'CMT';
     }
 
     /** PDF Invoice Export - ?id=..&versi=cm|fob */
@@ -3297,7 +3317,7 @@ class InvoiceEximController extends Controller
         $tulis('B' . $b . ':D' . $b, $data['noCetak']);
         // DATE sejajar label SELLER (E) dan tanggalnya sejajar isi SELLER (F:H).
         $tulis('E' . $b, 'DATE :');
-        $tulis('F' . $b . ':H' . $b, $data['tanggal']);
+        $tulis('F' . $b . ':H' . $b, $data['tanggal'] . '   |   ' . $data['labelVersi']);
 
         // ---------------- Pihak-pihak ----------------
         $pasangan = array(
@@ -4460,7 +4480,8 @@ class InvoiceEximController extends Controller
         // pola supaya ejaan di mastertransaksi tidak perlu ditebak persis.
         $jenis = "($fg AND c.bppbdate < '2026-08-01')
                   OR c.jenis_trans LIKE 'Penjualan%'
-                  OR c.jenis_trans LIKE 'Pengiriman ke Subkontraktor CMT%'";
+                  OR c.jenis_trans LIKE 'Pengiriman ke Subkontraktor CMT%'
+                  OR c.jenis_trans LIKE 'Pengiriman Sample%'";
 
         $sql = "SELECT a.so_no AS no_so, c.bppbno AS sj, c.bppbdate, c.bppbno_int AS shipping_number,
                        d.kpno AS ws, d.styleno,
@@ -4575,7 +4596,7 @@ class InvoiceEximController extends Controller
                   LEFT JOIN master_unit h ON h.id = e.id_unit_sales_order
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
-                   AND a.tipe_pengeluaran = 'Penjualan'
+                   AND a.tipe_pengeluaran IN ('Penjualan','Sample')
                    AND a.tgl_pengeluaran BETWEEN ? AND ?";
         $bind = array($tglAwal, $tglAkhir);
         if ($kodeKnitting !== '') {

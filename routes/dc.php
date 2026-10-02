@@ -294,6 +294,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/report_terima_secondary_luar', 'report_terima_secondary_luar')->name('dc-report-terima-secondary-luar');
         Route::post('/export_excel_report_terima_secondary_luar', 'export_excel_report_terima_secondary_luar')->name('export_excel_report_terima_secondary_luar');
 
+        // Route untuk preview (saat upload otomatis)
+        Route::post('/secondary-luar/preview', 'previewImportTerimaSecLuar')->name('terima.secondary.luar.preview');
+
+        // Route untuk simpan permanen data dari preview
+        Route::post('/secondary-luar/store', 'storeImportTerimaSecLuar')->name('terima.secondary.luar.store');
+
+        // Route untuk kosongkan preview
+        Route::post('/secondary-luar/empty-preview', 'emptyPreviewTerimaSecLuar')->name('terima.secondary.luar.empty-preview');
     });
 
     // Stocker Process

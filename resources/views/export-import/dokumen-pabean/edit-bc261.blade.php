@@ -1566,6 +1566,85 @@
         'ZWD' => 'Zimbabwe Dollar',
         'ZZ' => 'mutually defined'
     ];
+
+    $optFasilitas = [
+        '00' => 'Tanpa Fasilitas',
+        '01' => 'PMA',
+        '02' => 'PMDN',
+        '03' => 'KITE/Kemudahan Impor Tujuan Ekspor - KITE PEMBEBASAN',
+        '04' => 'Insentif Otomotif',
+        '05' => 'PTNI',
+        '06' => 'ATIGA',
+        '07' => 'Keperluan Pertahanan dan Keamanan',
+        '08' => 'Industri Strategis',
+        '09' => 'Proyek pemerintah yang dibiayai dengan hibah atau dana pinjaman luar negeri',
+        '10' => 'Perwakilan Negara Asing dan Pejabatnya',
+        '11' => 'Badan Internasional dan Pejabatnya',
+        '12' => '--',
+        '13' => 'Hadiah untuk ibadah umum, amal,sosial, atau kebudayaan',
+        '14' => 'Keperluan museum, kebun binatang dan tempat lain yang semacamnya untuk umum',
+        '15' => 'Keperluan khusus tuna netra dan penyandang cacat',
+        '16' => 'Penelitian dan Pengembangan Ilmu Pengetahuan',
+        '17' => 'Barang contoh tidak untuk diperdagangkan',
+        '18' => 'Barang re-impor yang mendapat fasilitas Bapeksta',
+        '19' => 'Pencegahan Pencemaran Lingkungan',
+        '20' => 'Bibit dan benih untuk pengembangan pertanian, peternakan dan perikanan',
+        '21' => 'Hasil laut',
+        '22' => 'Barang yang semula diekspor untuk perbaikan, pengerjaan dan pengujian',
+        '23' => 'Bahan terapi manusia, pengelompokan darah, dan bahan penjenisan jaringan',
+        '24' => 'Diimpor pleh pemerintah pusat/ daerah untuk kepentingan umum',
+        '25' => 'Berasal dari Kawasan Berikat',
+        '26' => 'Berasal dari Gudang Berikat',
+        '27' => '--',
+        '28' => 'Keputusan lainnya (selain 01 s/d 24 dan 29 s/d 36)',
+        '29' => 'Pertamina',
+        '30' => 'Pembangunan atau pengembangan Industri (non PMA/PMDN)',
+        '31' => 'Barang reimpor yang tidak mendapatkan fasilitas Bapeksta',
+        '32' => 'Barang yang semula diekspor untuk pengerjaan proyek, pameran dan pengemasan',
+        '33' => 'Berasal dari Toko Bebas Bea (TBB)',
+        '34' => 'Berasal dari Entreport Tujuan Pameran (ETP)',
+        '35' => 'Impor Sementara',
+        '36' => 'AIDA',
+        '37' => 'BKPM',
+        '38' => 'Pertambangan',
+        '39' => 'Penundaan Bea Masuk, Cukai dan/atau Pajak',
+        '40' => 'KITE Pengembalian',
+        '41' => 'KITE IKM',
+        '42' => 'KITE IKM (Mesin)',
+        '43' => 'KITE (Barang Contoh)',
+        '50' => 'Keterangan Karantina',
+        '51' => 'Keterangan Kesehatan / POM',
+        '52' => 'Keterangan Pajak',
+        '53' => 'Keterangan lainnya (selain 50 s/d 52)',
+        '54' => 'Preferensi Tarif Importasi Asean-China (ACFTA)',
+        '55' => 'Preferensi Tarif Importasi Asean-Korea (AKFTA)',
+        '56' => 'Preferensi Tarif Indonesia-Japan (IJ-EPA)',
+        '57' => 'Preferensi Tarif Importasi Asean-India (AIFTA)',
+        '58' => 'Preferensi Tarif Asean-Australia-New Zealand (AANZFTA)',
+        '59' => 'Preferensi Tarif Indonesia Pakistan FTA',
+        '60' => 'USDFS',
+        '61' => 'AJCEP',
+        '62' => 'Preferensi Tarif Indonesia - Palestina',
+        '63' => 'Preferensi Tarif Indonesia - Chili (ICCEPA)',
+        '64' => 'Preferensi Tarif ASEAN - Hongkong, China FTA',
+        '65' => 'Preferensi Tarif Indonesia Australia (IACEPA)',
+        '67' => 'IECEPA',
+        '68' => 'PTA-D8',
+        '69' => 'RCEP',
+        '70' => 'Pembebasan Bea Masuk barang dan bahan untuk pembangunan dan pengembangan industri dalam rangka penanaman modal',
+        '71' => 'Pembebasan Bea Masuk barang dan bahan dalam rangka pembangunan dan pengembangan industri untuk jangka waktu tertentu',
+        '72' => 'IKCEPA',
+        '73' => 'USDFS-IKCEPA',
+        '74' => 'IUAECEPA',
+        '79' => 'Tariff Rate Quota (TRQ)',
+        '80' => 'Penanggulangan Bencana',
+        '81' => 'BM DTP KHUSUS',
+        '83' => 'Vaksin Covid 19',
+        '84' => 'KEK',
+        '88' => 'Preferensi Nilai Kandungan Lokal',
+        '89' => 'Insentif KBLBB Skema PPnBM DTP',
+        '99' => 'Terdapat beberapa fasilitas/ pemenuhan peryaratan impor untuk 1 dokumen',
+    ];
 @endphp
 
 <div class="container-fluid">
@@ -1792,7 +1871,15 @@
                                             <td>
                                                 <input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $dok['tanggalDokumen'] ?? $dok['tgl'] ?? '' }}">
                                             </td>
-                                            <td><input type="text" name="dok[{{ $index }}][fasilitas]" class="form-control form-control-sm" value="{{ $dok['fasilitas'] ?? '' }}" placeholder="Kode Fasilitas"></td>
+                                            <td><select name="dok[{{ $index }}][fasilitas]" class="form-control form-control-sm select2">
+                                                    <option value=""></option>
+                                                    @foreach($optFasilitas as $kode => $uraian)
+                                                        <option value="{{ $kode }}" {{ (isset($dok['fasilitas']) && $dok['fasilitas'] == $kode) ? 'selected' : '' }}>
+                                                            {{ $kode }} - {{ $uraian }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
                                             <td><input type="text" name="dok[{{ $index }}][izin]" class="form-control form-control-sm" value="{{ $dok['izin'] ?? '' }}" placeholder="Kode Izin"></td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok"><i class="fas fa-trash-alt"></i></button>
@@ -2088,7 +2175,10 @@
                                                                 <label>Daerah Asal Barang</label>
                                                                 <select name="barang[{{ $index }}][kodeAsalBarang]" class="form-control form-control-sm text-danger border-danger select2bs4">
                                                                     <option value="">Pilih Daerah Asal Barang</option>
-                                                                    @include('export-import.dokumen-pabean.options_daerah', ['selected' => $draftItem['kodeAsalBarang'] ?? ''])
+                                                                    <option value="1">1 - SEPENUHNYA DIPEROLEH DAN/ATAU DIPRODUKSI DI LUAR DAERAH PABEAN</option>
+                                                                    <option value="2">2 - SEPENUHNYA DIPEROLEH DAN/ATAU DIPRODUKSI DI TEMPAT LAIN DALAM DAERAH PABEAN</option>
+                                                                    <option value="3">3 - KAWASAN PABEAN</option>
+                                                                    <option value="4">4 - LAINNYA</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -2393,6 +2483,86 @@
             <option value="">-- Pilih Kode --</option>
             @foreach($referensiDokumen as $val => $text) <option value="{{ $val }}">{{ $val }} - {{ $text }}</option> @endforeach
         `;
+
+        let optFasilitasHtml = `
+            <option value=""></option>
+            <option value="00">00 - Tanpa Fasilitas</option>
+            <option value="01">01 - PMA</option>
+            <option value="02">02 - PMDN</option>
+            <option value="03">03 - KITE/Kemudahan Impor Tujuan Ekspor - KITE PEMBEBASAN</option>
+            <option value="04">04 - Insentif Otomotif</option>
+            <option value="05">05 - PTNI</option>
+            <option value="06">06 - ATIGA</option>
+            <option value="07">07 - Keperluan Pertahanan dan Keamanan</option>
+            <option value="08">08 - Industri Strategis</option>
+            <option value="09">09 - Proyek pemerintah yang dibiayai dengan hibah atau dana pinjaman luar negeri</option>
+            <option value="10">10 - Perwakilan Negara Asing dan Pejabatnya</option>
+            <option value="11">11 - Badan Internasional dan Pejabatnya</option>
+            <option value="12">12 - --</option>
+            <option value="13">13 - Hadiah untuk ibadah umum, amal,sosial, atau kebudayaan</option>
+            <option value="14">14 - Keperluan museum, kebun binatang dan tempat lain yang semacamnya untuk umum</option>
+            <option value="15">15 - Keperluan khusus tuna netra dan penyandang cacat</option>
+            <option value="16">16 - Penelitian dan Pengembangan Ilmu Pengetahuan</option>
+            <option value="17">17 - Barang contoh tidak untuk diperdagangkan</option>
+            <option value="18">18 - Barang re-impor yang mendapat fasilitas Bapeksta</option>
+            <option value="19">19 - Pencegahan Pencemaran Lingkungan</option>
+            <option value="20">20 - Bibit dan benih untuk pengembangan pertanian, peternakan dan perikanan</option>
+            <option value="21">21 - Hasil laut</option>
+            <option value="22">22 - Barang yang semula diekspor untuk perbaikan, pengerjaan dan pengujian</option>
+            <option value="23">23 - Bahan terapi manusia, pengelompokan darah, dan bahan penjenisan jaringan</option>
+            <option value="24">24 - Diimpor pleh pemerintah pusat/ daerah untuk kepentingan umum</option>
+            <option value="25">25 - Berasal dari Kawasan Berikat</option>
+            <option value="26">26 - Berasal dari Gudang Berikat</option>
+            <option value="27">27 - --</option>
+            <option value="28">28 - Keputusan lainnya (selain 01 s/d 24 dan 29 s/d 36)</option>
+            <option value="29">29 - Pertamina</option>
+            <option value="30">30 - Pembangunan atau pengembangan Industri (non PMA/PMDN)</option>
+            <option value="31">31 - Barang reimpor yang tidak mendapatkan fasilitas Bapeksta</option>
+            <option value="32">32 - Barang yang semula diekspor untuk pengerjaan proyek, pameran dan pengemasan</option>
+            <option value="33">33 - Berasal dari Toko Bebas Bea (TBB)</option>
+            <option value="34">34 - Berasal dari Entreport Tujuan Pameran (ETP)</option>
+            <option value="35">35 - Impor Sementara</option>
+            <option value="36">36 - AIDA</option>
+            <option value="37">37 - BKPM</option>
+            <option value="38">38 - Pertambangan</option>
+            <option value="39">39 - Penundaan Bea Masuk, Cukai dan/atau Pajak</option>
+            <option value="40">40 - KITE Pengembalian</option>
+            <option value="41">41 - KITE IKM</option>
+            <option value="42">42 - KITE IKM (Mesin)</option>
+            <option value="43">43 - KITE (Barang Contoh)</option>
+            <option value="50">50 - Keterangan Karantina</option>
+            <option value="51">51 - Keterangan Kesehatan / POM</option>
+            <option value="52">52 - Keterangan Pajak</option>
+            <option value="53">53 - Keterangan lainnya (selain 50 s/d 52)</option>
+            <option value="54">54 - Preferensi Tarif Importasi Asean-China (ACFTA)</option>
+            <option value="55">55 - Preferensi Tarif Importasi Asean-Korea (AKFTA)</option>
+            <option value="56">56 - Preferensi Tarif Indonesia-Japan (IJ-EPA)</option>
+            <option value="57">57 - Preferensi Tarif Importasi Asean-India (AIFTA)</option>
+            <option value="58">58 - Preferensi Tarif Asean-Australia-New Zealand (AANZFTA)</option>
+            <option value="59">59 - Preferensi Tarif Indonesia Pakistan FTA</option>
+            <option value="60">60 - USDFS</option>
+            <option value="61">61 - AJCEP</option>
+            <option value="62">62 - Preferensi Tarif Indonesia - Palestina</option>
+            <option value="63">63 - Preferensi Tarif Indonesia - Chili (ICCEPA)</option>
+            <option value="64">64 - Preferensi Tarif ASEAN - Hongkong, China FTA</option>
+            <option value="65">65 - Preferensi Tarif Indonesia Australia (IACEPA)</option>
+            <option value="67">67 - IECEPA</option>
+            <option value="68">68 - PTA-D8</option>
+            <option value="69">69 - RCEP</option>
+            <option value="70">70 - Pembebasan Bea Masuk barang dan bahan untuk pembangunan dan pengembangan industri dalam rangka penanaman modal</option>
+            <option value="71">71 - Pembebasan Bea Masuk barang dan bahan dalam rangka pembangunan dan pengembangan industri untuk jangka waktu tertentu</option>
+            <option value="72">72 - IKCEPA</option>
+            <option value="73">73 - USDFS-IKCEPA</option>
+            <option value="74">74 - IUAECEPA</option>
+            <option value="79">79 - Tariff Rate Quota (TRQ)</option>
+            <option value="80">80 - Penanggulangan Bencana</option>
+            <option value="81">81 - BM DTP KHUSUS</option>
+            <option value="83">83 - Vaksin Covid 19</option>
+            <option value="84">84 - KEK</option>
+            <option value="88">88 - Preferensi Nilai Kandungan Lokal</option>
+            <option value="89">89 - Insentif KBLBB Skema PPnBM DTP</option>
+            <option value="99">99 - Terdapat beberapa fasilitas/ pemenuhan peryaratan impor untuk 1 dokumen</option>
+        `;
         let dokIndex = {{ count($dokumens ?? []) }};
         $('#btn-add-dok').on('click', function() {
             let htmlTr = `
@@ -2401,7 +2571,9 @@
                     <td><select name="dok[${dokIndex}][kode]" class="form-control form-control-sm select2bs4-dynamic">${optDokumenHtml}</select></td>
                     <td><input type="text" name="dok[${dokIndex}][nomor]" class="form-control form-control-sm"></td>
                     <td><input type="date" name="dok[${dokIndex}][tgl]" class="form-control form-control-sm"></td>
-                    <td><input type="text" name="dok[${dokIndex}][fasilitas]" class="form-control form-control-sm" placeholder="Kode Fasilitas"></td>
+                    <td><select name="dok[${dokIndex}][fasilitas]" class="form-control form-control-sm select2-dok-fasilitas">
+                            ${optFasilitasHtml}
+                        </select></td>
                     <td><input type="text" name="dok[${dokIndex}][izin]" class="form-control form-control-sm" placeholder="Kode Izin"></td>
                     <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>`;

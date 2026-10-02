@@ -8,6 +8,9 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\DC\ExportReportDc;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use App\Services\DcService;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use DB;
 
 class DcReportController extends Controller
@@ -4090,6 +4093,143 @@ class DcReportController extends Controller
         ]);
     }
 
+    public function previewImportTerimaSecLuar(Request $request)
+    {
+        // 1. Validasi File
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file');
+
+            // 2. Langsung baca file Excel ke Array (Tanpa Import Class)
+            // Hasilnya berupa array multidimensi: $sheets[index_sheet][index_baris][index_kolom]
+            $sheets = Excel::toArray([], $file);
+            $rows = $sheets[0] ?? []; // Ambil sheet pertama
+
+            if (count($rows) <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File kosong atau hanya berisi header.'
+                ], 422);
+            }
+
+            $previewData = [];
+
+            // 3. Loop mulai baris ke-2 (karena baris ke-1 index [0] adalah Header)
+            foreach (array_slice($rows, 1) as $row) {
+                // Skip jika kolom Tanggal & No. WS kosong
+                if (empty($row[0]) && empty($row[1])) {
+                    continue;
+                }
+
+                // Format Tanggal (Handling jika Excel kirim format serial date angka)
+                $tanggal = $row[0];
+                if (is_numeric($tanggal)) {
+                    $tanggal = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tanggal))->format('Y-m-d');
+                } else if ($tanggal) {
+                    $tanggal = Carbon::parse($tanggal)->format('Y-m-d');
+                }
+
+                $previewData[] = [
+                    'tanggal' => $tanggal ?? '-',
+                    'no_ws'   => $row[1] ?? '-',
+                    'buyer'   => $row[2] ?? '-',
+                    'style'   => $row[3] ?? '-',
+                    'color'   => $row[4] ?? '-',
+                    'size'    => $row[5] ?? '-',
+                    'panel'   => $row[6] ?? '-',
+                    'part'    => $row[7] ?? '-',
+                    'qty'     => isset($row[8]) ? (int)$row[8] : 0,
+                ];
+            }
+
+            // 4. Simpan sementara ke Session
+            session(['temp_terima_secondary_luar_import' => $previewData]);
+
+            // 5. Return JSON ke Frontend
+            return response()->json([
+                'success' => true,
+                'data'    => $previewData,
+                'summary' => 'Total data terbaca: <strong>' . count($previewData) . '</strong> baris.',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membaca file: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    // 2. FUNGSI SIMPAN KE DATABASE PERMANEN
+    public function storeImportTerimaSecLuar(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = session('temp_terima_secondary_luar_import');
+
+        if (empty($data)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data preview yang bisa disimpan!'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($data as$item) {
+                // Ganti 'nama_tabel_kamu' dengan tabel database tujuan
+                DB::table('inject_mutasi_dc')->insert([
+                    'type_report'         => "SECONDARY_LUAR",
+                    'tanggal'             => $item['tanggal'],
+                    'no_ws'               => $item['no_ws'],
+                    'buyer'               => $item['buyer'],
+                    'style'               => $item['style'],
+                    'color'               => $item['color'],
+                    'size'                => $item['size'],
+                    'panel'               => $item['panel'],
+                    'part'                => $item['part'],
+                    'qty'                 => $item['qty'],
+                    'created_by'          => $user->id,
+                    'created_by_username' => $user->username,
+                    'created_at'          => now(),
+                    'updated_at'          => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            // Bersihkan session setelah berhasil disimpan
+            session()->forget('temp_terima_secondary_luar_import');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil disimpan ke database!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 3. FUNGSI KOSONGKAN SESSION PREVIEW
+    public function emptyPreviewTerimaSecLuar(Request $request)
+    {
+        session()->forget('temp_terima_secondary_luar_import');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Preview berhasil dikosongkan.'
+        ]);
+    }
+
     public function export_excel_report_terima_secondary_luar(Request $request)
     {
         $start_date = $request->from;
@@ -4138,6 +4278,8 @@ class DcReportController extends Controller
                 'Panel',
                 'Part',
                 'Qty',
+                'Dibuat Oleh',
+                'Dibuat Pada',
         ], [
                 'font-style' => 'bold',
                 'border' => 'thin',
@@ -4157,8 +4299,9 @@ class DcReportController extends Controller
                 $row->size ?: '',
                 $row->panel ?: '',
                 $row->part ?: '',
-
                 (float) ($row->qty ?? 0),
+                $row->created_by_username ?: '',
+                $row->created_at ?: '',
         ];
 
         $sheet->writeRow(
