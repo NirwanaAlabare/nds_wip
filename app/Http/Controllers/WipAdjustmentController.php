@@ -10,7 +10,9 @@ use DB;
 use Illuminate\Support\Facades\Auth;
 use Excel;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Yajra\DataTables\Facades\DataTables;
 
 class WipAdjustmentController extends Controller
@@ -22,7 +24,6 @@ class WipAdjustmentController extends Controller
             'page' => 'dashboard-ppic',
             "subPageGroup" => "ppic_tools",
             "subPage" => "wip-adjustment",
-            // Tanggal closing terakhir (Y-m-d), tombol cancel di periode ini disabled
             'lastClosing' => DB::table('data_locks')
                 ->where('is_locked', true)
                 ->orderBy('end_date', 'desc')
@@ -47,10 +48,10 @@ class WipAdjustmentController extends Controller
                 'size'  => 'size',
             ],
             'qty' => [
-                'transit terima packing line' => 'transit_terima_packing_line',
-                'packing line'                => 'packing_line',
-                'packing temporary'           => 'packing_temporary',
-                'packing central'             => 'packing_central',
+                'qty transit terima packing line' => 'transit_terima_packing_line',
+                'qty packing line'                => 'packing_line',
+                'qty packing temporary'           => 'packing_temporary',
+                'qty packing central'             => 'packing_central',
             ],
             'required' => ['no_ws', 'buyer', 'style', 'color', 'size'],
             'type_map' => [
@@ -69,18 +70,18 @@ class WipAdjustmentController extends Controller
                 'size'  => 'size',
             ],
             'qty' => [
-                'sewing'                   => 'sewing',
-                'qc finishing'             => 'qc_finishing',
-                'finishing pasang kancing' => 'finishing_pasang_kancing',
-                'finishing bartack'        => 'finishing_bartack',
-                'finishing heatseal'       => 'finishing_heatseal',
-                'finishing snap'           => 'finishing_snap',
-                'finishing embro'          => 'finishing_embro',
-                'defect sewing'            => 'defect_sewing',
-                'defect spotcleaning'      => 'defect_spotcleaning',
-                'defect mending'           => 'defect_mending',
-                'transit terima qc reject' => 'transit_terima_qc_reject',
-                'qc reject'                => 'qc_reject',
+                'qty sewing'                   => 'sewing',
+                'qty qc finishing'             => 'qc_finishing',
+                'qty finishing pasang kancing' => 'finishing_pasang_kancing',
+                'qty finishing bartack'        => 'finishing_bartack',
+                'qty finishing heatseal'       => 'finishing_heatseal',
+                'qty finishing snap'           => 'finishing_snap',
+                'qty finishing embro'          => 'finishing_embro',
+                'qty defect sewing'            => 'defect_sewing',
+                'qty defect spotcleaning'      => 'defect_spotcleaning',
+                'qty defect mending'           => 'defect_mending',
+                'qty transit terima qc reject' => 'transit_terima_qc_reject',
+                'qty qc reject'                => 'qc_reject',
             ],
             'required' => ['no_ws', 'buyer', 'style', 'color', 'size'],
             'type_map' => [
@@ -109,10 +110,10 @@ class WipAdjustmentController extends Controller
                 'part'  => 'part',
             ],
             'qty' => [
-                'mutasi dc'                     => 'mutasi_dc',
-                'mutasi secondary dalam'        => 'mutasi_secondary_dalam',
-                'mutasi secondary luar'         => 'mutasi_secondary_luar',
-                'terima transit secondary luar' => 'terima_transit_secondary_luar',
+                'qty mutasi dc'                     => 'mutasi_dc',
+                'qty mutasi secondary dalam'        => 'mutasi_secondary_dalam',
+                'qty mutasi secondary luar'         => 'mutasi_secondary_luar',
+                'qty terima transit secondary luar' => 'terima_transit_secondary_luar',
             ],
             'required' => ['no_ws', 'buyer', 'style', 'color', 'size', 'panel', 'part'],
             'type_map' => [
@@ -133,7 +134,7 @@ class WipAdjustmentController extends Controller
                 'part'  => 'part',
             ],
             'qty' => [
-                'cutting' => 'cutting',
+                'qty cutting' => 'cutting',
             ],
             'required' => ['no_ws', 'buyer', 'style', 'color', 'size', 'panel', 'part'],
             'type_map' => [
@@ -148,7 +149,7 @@ class WipAdjustmentController extends Controller
                 'satuan'  => 'satuan',
             ],
             'qty' => [
-                'fabric' => 'fabric',
+                'qty fabric' => 'fabric',
             ],
             'required' => ['ws', 'id_roll', 'id_item', 'satuan'],
         ],
@@ -469,14 +470,130 @@ class WipAdjustmentController extends Controller
     // Data index: baris per type_report digabung jadi 1 baris per tanggal + ws + buyer + style + color + size
     public function getData(Request $request)
     {
-        $typeReport = $request->type_report;
-
-        if (!isset($this->templateFields[$typeReport])) {
+        if (!isset($this->templateFields[$request->type_report])) {
             return DataTables::of([])->toJson();
         }
 
+        return DataTables::of(
+            $this->queryData($request->type_report, $request->dateFrom, $request->dateTo)
+        )->toJson();
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $typeReport = $request->type_report;
+
+        if (!isset($this->templateFields[$typeReport])) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'Jenis report tidak dikenali'
+            ], 422);
+        }
+
+        $template = $this->templateFields[$typeReport];
+        $data = $this->queryData($typeReport, $request->dateFrom, $request->dateTo);
+
+        if (!$data) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'Tidak ada data untuk diexport'
+            ], 422);
+        }
+
+        $columns = [
+            ['Tanggal Saldo', 'tgl_saldo', false],
+            ['Jenis Report', 'type_report', false],
+        ];
+
+        foreach ($template['text'] as $field) {
+            $columns[] = [$this->exportLabel($field), $field, false];
+        }
+
+        foreach ($template['qty'] as $field) {
+            $columns[] = [$this->exportLabel($field), $field, true];
+        }
+
+        $columns[] = ['Waktu Import', 'created_at', false];
+        $columns[] = ['User Import', 'created_by_username', false];
+        $columns[] = ['Status', 'status', false];
+
+        $excel = FastExcel::create('wip-adjustment');
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['WIP Adjustment ' . ucwords(strtolower(str_replace('_', ' ', $typeReport)))],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $request->dateFrom . ' s/d ' . $request->dateTo],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow(
+            array_column($columns, 0),
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'fill'       => '#ADD8E6',
+            ]
+        );
+
+        foreach ($data as $row) {
+            $values = [];
+
+            foreach ($columns as [$title, $field, $isNumber]) {
+                $value = $row->$field ?? null;
+
+                if ($field == 'status') {
+                    $values[] = $value === 'N' ? 'Tidak Aktif' : 'Aktif';
+                } elseif ($isNumber) {
+                    $values[] = (float) ($value ?? 0);
+                } else {
+                    $values[] = $value ?? '';
+                }
+            }
+
+            $sheet->writeRow(
+                $values,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        for ($i = 1; $i <= count($columns); $i++) {
+            $sheet->setColWidth(Coordinate::stringFromColumnIndex($i), 20);
+        }
+
+        return $excel->download();
+    }
+
+    // Judul kolom export dari nama field
+    private function exportLabel($field)
+    {
+        $label = ucwords(str_replace('_', ' ', $field));
+
+        return preg_replace(
+            ['/^No Ws$/', '/\bWs\b/', '/\bQc\b/', '/\bDc\b/', '/\bId\b/'],
+            ['WS', 'WS', 'QC', 'DC', 'ID'],
+            $label
+        );
+    }
+
+    // Query data index per jenis report
+    private function queryData($typeReport, $dateFrom, $dateTo)
+    {
         if ($typeReport == 'CUTTING_FABRIC') {
-            $data = DB::connection('mysql')->select("
+            return DB::connection('mysql')->select("
                 SELECT
                     a.id,
                     a.tgl_saldo AS tgl_saldo_raw,
@@ -499,9 +616,7 @@ class WipAdjustmentController extends Controller
                     a.tgl_saldo DESC,
                     a.ws,
                     a.id_roll
-            ", [$request->dateFrom, $request->dateTo]);
-
-            return DataTables::of($data)->toJson();
+            ", [$dateFrom, $dateTo]);
         }
 
         $typeMap = $this->templateFields[$typeReport]['type_map'];
@@ -533,11 +648,11 @@ class WipAdjustmentController extends Controller
         $bindings = array_merge(
             [str_replace('_', ' ', $typeReport)],
             $bindings,
-            [$request->dateFrom, $request->dateTo],
+            [$dateFrom, $dateTo],
             $types
         );
 
-        $data = DB::connection($this->connection($typeReport))->select("
+        return DB::connection($this->connection($typeReport))->select("
             SELECT
                 a.tgl_saldo AS tgl_saldo_raw,
                 DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
@@ -562,8 +677,6 @@ class WipAdjustmentController extends Controller
                 a.color,
                 a.size
         ", $bindings);
-
-        return DataTables::of($data)->toJson();
     }
 
     // Cancel 1 baris gabungan: semua type_report di grup itu jadi status N

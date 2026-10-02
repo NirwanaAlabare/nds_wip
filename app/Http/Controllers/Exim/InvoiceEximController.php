@@ -2376,11 +2376,19 @@ class InvoiceEximController extends Controller
         }
 
         // ---- baris SO (WS): dibaca ulang dari sumbernya ----
-        $hasilWs = $this->barisWsUlang($pc, $barisWs);
-        if (isset($hasilWs['pesan'])) {
-            return $salah($hasilWs['pesan'], 422);
+        // Tanpa baris WS tidak ada yang perlu dibaca ulang. Pembacaannya
+        // dilewati sekalian, karena di dalamnya ada pemeriksaan "WS cuma untuk
+        // NAG" - dan itu tidak boleh ikut menolak invoice knitting yang memang
+        // isinya SJ saja. Pemeriksaan itu tetap berlaku untuk kiriman yang
+        // benar-benar berisi baris WS.
+        $ws = array();
+        if (is_array($barisWs) && $barisWs) {
+            $hasilWs = $this->barisWsUlang($pc, $barisWs);
+            if (isset($hasilWs['pesan'])) {
+                return $salah($hasilWs['pesan'], 422);
+            }
+            $ws = $hasilWs['baris'];
         }
-        $ws = $hasilWs['baris'];
 
         // ---- baris SJ: dibaca ulang dari sumbernya (boleh tidak ada) ----
         $baris = is_array($baris) ? $baris : array();

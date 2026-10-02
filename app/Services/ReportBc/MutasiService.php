@@ -749,7 +749,7 @@ class MutasiService
                         0 qty_keluar_qa_before, 0 qty_keluar_qa,
                         0 qty_keluar_ekspedisi_before, 0 qty_keluar_ekspedisi
                     FROM wip_adjustment
-                    WHERE tgl_saldo <= '$tgl_akhir' AND type_report = 'TRANSIT_GUDANG_STOK'
+                    WHERE tgl_saldo <= '$tgl_akhir' AND type_report = 'TRANSIT_GUDANG_STOK' AND status = 'Y'
                     GROUP BY ws, color, size, panel, part
 
                     UNION ALL
