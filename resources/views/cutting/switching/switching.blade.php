@@ -12,7 +12,12 @@
 @endsection
 
 @section('content')
-    <h5 class="text-sb fw-bold">Pengeluaran Cutting</h5>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-sb fw-bold fs-5">Switching Cutting</h5>
+        <a href="{{ route('cutting-switching') }}" type="button" class="btn btn-info btn-sm">
+            <i class="fa fa-reply"></i> Kembali
+        </a>
+    </div>
     <div class="card card-body">
         <div class="d-flex justify-content-between align-items-end gap-3">
             <div class="d-flex align-items-end gap-3">
@@ -278,7 +283,7 @@
             scrollY: "500px",
             pageLength: 50,
             ajax: {
-                url: '{{ route('cutting-switching') }}',
+                url: '{{ route('create-cutting-switching') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();

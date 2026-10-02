@@ -469,6 +469,7 @@ Route::middleware('auth')->group(function () {
         // Switching Cutting
         Route::controller(CuttingSwitchingController::class)->prefix("cutting-switching")->middleware('role:cutting')->group(function () {
             Route::get('/index', 'index')->name('cutting-switching');
+            Route::get('/create', 'create')->name('create-cutting-switching');
             Route::get('/show/{id?}', 'show')->name('show-cutting-switching');
 
             Route::get('/get-form-list', 'getFormList')->name('get-form-list-cutting-switching');
@@ -476,6 +477,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/store', 'store')->name('store-cutting-switching');
             Route::post('/mass-store', 'massStore')->name('mass-store-cutting-switching');
             Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-switching');
+
+            Route::post('/export', 'exportFormCutInputDetailOutputLog')->name('export-cutting-switching');
         });
 
     // TOOLS :
