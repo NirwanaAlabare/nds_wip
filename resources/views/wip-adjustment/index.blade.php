@@ -171,15 +171,12 @@
 
                 <div>
                     <label class="form-label"><small>Jenis Report</small></label>
-                    <select name="type_report"
-                            id="type_report_filter"
-                            class="form-control form-control-sm select2bs4"
-                            style="width: 170px;">
-                        <option value="PACKING" selected>Packing</option>
-                        <option value="SEWING">Sewing</option>
-                        <option value="DC">DC</option>
+                    <select name="type_report" id="type_report_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
+                        <option value="CUTTING_FABRIC" selected>Cutting Fabric</option>
                         <option value="CUTTING_PCS">Cutting PCS</option>
-                        <option value="CUTTING_FABRIC">Cutting Fabric</option>
+                        <option value="DC">DC</option>
+                        <option value="SEWING">Sewing</option>
+                        <option value="PACKING">Packing</option>
                     </select>
                 </div>
 
@@ -227,7 +224,7 @@
                     <div class="modal-body">
 
                         {{ csrf_field() }}
-                        <input type="hidden" name="type_report" id="importTypeReport" value="PACKING">
+                        <input type="hidden" name="type_report" id="importTypeReport" value="CUTTING_FABRIC">
 
                         <div class="d-flex flex-wrap gap-2 mb-3">
                             <span class="import-step active" data-step="1">1. Pilih Report</span>
@@ -238,25 +235,25 @@
 
                         <div class="fw-bold text-uppercase mb-2"><small>Jenis Report</small></div>
                         <div class="template-type-list mb-3">
-                            <button type="button" class="template-type-btn import-type-btn active" data-type="PACKING">
-                                <i class="fa fa-box"></i> Packing
-                                <div class="import-type-desc">Mutasi Packing</div>
-                            </button>
-                            <button type="button" class="template-type-btn import-type-btn" data-type="SEWING">
-                                <i class="fa fa-tshirt"></i> Sewing
-                                <div class="import-type-desc">Mutasi Sewing</div>
-                            </button>
-                            <button type="button" class="template-type-btn import-type-btn" data-type="DC">
-                                <i class="fa fa-truck"></i> DC
-                                <div class="import-type-desc">Mutasi DC</div>
+                            <button type="button" class="template-type-btn import-type-btn active" data-type="CUTTING_FABRIC">
+                                <i class="fa fa-scroll"></i> Cutting Fabric
+                                <div class="import-type-desc">Mutasi Fabric</div>
                             </button>
                             <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_PCS">
                                 <i class="fa fa-cut"></i> Cutting PCS
                                 <div class="import-type-desc">Mutasi PCS</div>
                             </button>
-                            <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_FABRIC">
-                                <i class="fa fa-scroll"></i> Cutting Fabric
-                                <div class="import-type-desc">Mutasi Fabric</div>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="DC">
+                                <i class="fa fa-truck"></i> DC
+                                <div class="import-type-desc">Mutasi DC</div>
+                            </button>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="SEWING">
+                                <i class="fa fa-tshirt"></i> Sewing
+                                <div class="import-type-desc">Mutasi Sewing</div>
+                            </button>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="PACKING">
+                                <i class="fa fa-box"></i> Packing
+                                <div class="import-type-desc">Mutasi Packing</div>
                             </button>
                         </div>
 
@@ -295,20 +292,20 @@
                     <p class="text-muted mb-2"><small>Pilih jenis report untuk melihat kolom yang tersedia pada template.</small></p>
 
                     <div class="template-type-list mb-3">
-                        <button type="button" class="template-type-btn active" data-type="PACKING">
-                            <i class="fa fa-box"></i> Packing
-                        </button>
-                        <button type="button" class="template-type-btn" data-type="SEWING">
-                            <i class="fa fa-tshirt"></i> Sewing
-                        </button>
-                        <button type="button" class="template-type-btn" data-type="DC">
-                            <i class="fa fa-truck"></i> DC
+                        <button type="button" class="template-type-btn active" data-type="CUTTING_FABRIC">
+                            <i class="fa fa-scroll"></i> Cutting Fabric
                         </button>
                         <button type="button" class="template-type-btn" data-type="CUTTING_PCS">
                             <i class="fa fa-cut"></i> Cutting PCS
                         </button>
-                        <button type="button" class="template-type-btn" data-type="CUTTING_FABRIC">
-                            <i class="fa fa-scroll"></i> Cutting Fabric
+                        <button type="button" class="template-type-btn" data-type="DC">
+                            <i class="fa fa-truck"></i> DC
+                        </button>
+                        <button type="button" class="template-type-btn" data-type="SEWING">
+                            <i class="fa fa-tshirt"></i> Sewing
+                        </button>
+                        <button type="button" class="template-type-btn" data-type="PACKING">
+                            <i class="fa fa-box"></i> Packing
                         </button>
                     </div>
 
@@ -644,7 +641,7 @@
 
             form.reset();
             $('.import-type-btn').removeClass('active').first().addClass('active');
-            $('#importTypeReport').val('PACKING');
+            $('#importTypeReport').val('CUTTING_FABRIC');
             $('#importFileName').text('Belum ada file dipilih');
             setImportStep(1);
             $('#importExcel').modal('show');
@@ -720,7 +717,7 @@
 
         function OpenTemplateModal() {
             $('#templateReportModal .template-type-btn').removeClass('active').first().addClass('active');
-            renderTemplateColumns('PACKING');
+            renderTemplateColumns('CUTTING_FABRIC');
             $('#templateReportModal').modal('show');
         }
 
