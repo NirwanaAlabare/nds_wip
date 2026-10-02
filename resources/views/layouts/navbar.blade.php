@@ -943,9 +943,9 @@
                                 class="fa-solid fa-toolbox"></i></a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('ppic_tools_adj_mut_output') }}"
-                                    class="dropdown-item {{ $subPage == 'ppic_tools_adj_mut_output' ? 'active' : '' }}">
-                                    Adjustment Mutasi <i class="fa-solid fa-list-ul fa-sm"></i>
+                                <a href="{{ route('wip-adjustment') }}"
+                                    class="dropdown-item {{ $subPage == 'wip-adjustment' ? 'active' : '' }}">
+                                    WIP Adjustment <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
