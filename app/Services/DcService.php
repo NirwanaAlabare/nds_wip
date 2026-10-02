@@ -3145,7 +3145,8 @@ class DcService
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
-                        type_report = 'DC'
+                        type_report = 'DC' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL
@@ -3298,7 +3299,8 @@ class DcService
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
-                        type_report = 'DC_SECONDARY_DALAM'
+                        type_report = 'DC_SECONDARY_DALAM' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL
@@ -3349,7 +3351,8 @@ class DcService
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
-                        type_report = 'DC_SECONDARY_LUAR'
+                        type_report = 'DC_SECONDARY_LUAR' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL
@@ -3400,7 +3403,8 @@ class DcService
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
-                        type_report = 'TERIMA_TRANSIT_SECONDARY_LUAR'
+                        type_report = 'TERIMA_TRANSIT_SECONDARY_LUAR' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL

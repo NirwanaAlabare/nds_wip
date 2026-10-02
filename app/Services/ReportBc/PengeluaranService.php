@@ -323,6 +323,292 @@ class PengeluaranService
     //     return $result;
     // }
 
+    // public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
+    // {
+    //     $kategori = strtolower(trim($kategoriBarang));
+    //     $queries = [];
+
+    //     // 1. BARANG JADI
+    //     if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
+
+    //         $queries[] = "
+    //             SELECT
+    //                 '' as kode_kantor,
+    //                 a.jenis_dokumen as jenis_dokumen,
+    //                 a.ws as ws,
+    //                 'BARANG JADI' as kategori_barang,
+    //                 a.bcno as nomor_daftar,
+    //                 MIN(a.bcdate) as tanggal_daftar,
+    //                 a.supplier as nama_pengirim,
+    //                 a.trans_no as nomor_bpb,
+    //                 MIN(a.bppbdate) as tanggal_bpb,
+    //                 a.ws as id_item,
+    //                 a.itemdesc as uraian_barang,
+    //                 a.unit as jenis_satuan,
+    //                 SUM(a.qty) as jumlah_satuan,
+    //                 GROUP_CONCAT(DISTINCT a.curr) as kode_valuta,
+    //                 SUM(a.nilai_barang) as nilai_barang
+    //             FROM (
+    //                 SELECT
+    //                     a.jenis_dok as jenis_dokumen,
+    //                     LPAD(a.bcno, 6, '0') as bcno,
+    //                     a.bcdate,
+    //                     IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no,
+    //                     a.bppbdate,
+    //                     d.supplier,
+    //                     ac.kpno as kode_brg,
+    //                     CONCAT_WS(' - ', msp.product_item, ac.styleno) AS itemdesc,
+    //                     a.unit,
+    //                     SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
+    //                     SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
+    //                     IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr,
+    //                     a.id_item as id_contents,
+    //                     'BARANG JADI' as matclass,
+    //                     ac.kpno as ws
+    //                 FROM bppb as a
+    //                 LEFT JOIN mastersupplier as d ON a.id_supplier = d.id_supplier
+    //                 JOIN so_det as sd ON a.id_so_det = sd.id
+    //                 JOIN so as so ON sd.id_so = so.id
+    //                 JOIN act_costing as ac ON so.id_cost = ac.id
+    //                 LEFT JOIN masterproduct as msp ON ac.id_product = msp.id
+    //                 WHERE a.jenis_dok IN ('BC 3.0', 'BC 2.6.1', 'BC 2.6.2', 'BC 2.7', 'BC 3.3', 'BC 4.1', 'INHOUSE', 'BC 2.5')
+    //                 AND (a.jenis_dok != 'BC 2.7' OR a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN'))
+    //                 AND IFNULL(d.supplier, '') != 'BARANG JADI STOCK'
+    //                 AND a.bppbno_int LIKE 'FG%'
+    //                 AND a.cancel = 'N'
+    //                 AND so.cancel_h = 'N'
+    //                 AND ac.aktif = 'Y'
+    //                 AND a.bppbdate BETWEEN '$fromDate' AND '$toDate'
+    //                 GROUP BY a.bcno, a.bppbno, a.id_item, a.price, a.jenis_dok, a.remark, a.tujuan
+    //             ) as a
+    //             GROUP BY a.ws, a.trans_no, a.unit
+    //         ";
+
+    //         // B. FG Stok BPPB
+    //         $queries[] = "
+    //             SELECT
+    //                 '' as kode_kantor,
+    //                 a.jenis_dokumen as jenis_dokumen,
+    //                 a.ws as ws,
+    //                 'BARANG JADI' as kategori_barang,
+    //                 a.bcno as nomor_daftar,
+    //                 MIN(a.bcdate) as tanggal_daftar,
+    //                 a.supplier as nama_pengirim,
+    //                 a.trans_no as nomor_bpb,
+    //                 MIN(a.bppbdate) as tanggal_bpb,
+    //                 a.ws as id_item,
+    //                 a.itemdesc as uraian_barang,
+    //                 a.unit as jenis_satuan,
+    //                 SUM(a.qty) as jumlah_satuan,
+    //                 GROUP_CONCAT(DISTINCT a.curr) as kode_valuta,
+    //                 SUM(a.nilai_barang) as nilai_barang
+    //             FROM (
+    //                 SELECT
+    //                     'INHOUSE' as jenis_dokumen,
+    //                     '-' as bcno,
+    //                     a.tgl_pengeluaran as bcdate,
+    //                     a.no_trans_out as trans_no,
+    //                     a.tgl_pengeluaran as bppbdate,
+    //                     'PRODUCTION-SEWING' as supplier,
+    //                     ac.kpno as kode_brg,
+    //                     CONCAT_WS(' - ', msp.product_item, ac.styleno) AS itemdesc,
+    //                     'PCS' as unit,
+    //                     SUM(a.qty_out) as qty,
+    //                     '-' as curr,
+    //                     0 as nilai_barang,
+    //                     '-' as nomor_aju,
+    //                     a.tujuan,
+    //                     a.id_so_det as id_contents,
+    //                     'BARANG JADI' as matclass,
+    //                     ac.kpno as ws
+    //                 FROM laravel_nds.fg_stok_bppb as a
+    //                 JOIN so_det as sd ON a.id_so_det = sd.id
+    //                 JOIN so as so ON sd.id_so = so.id
+    //                 JOIN act_costing as ac ON so.id_cost = ac.id
+    //                 LEFT JOIN masterproduct as msp ON ac.id_product = msp.id
+    //                 WHERE a.tgl_pengeluaran BETWEEN '$fromDate' AND '$toDate'
+    //                 AND a.cancel = 'N'
+    //                 AND so.cancel_h = 'N'
+    //                 AND ac.aktif = 'Y'
+    //                 AND a.tujuan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+    //                 GROUP BY ws, a.no_trans_out
+    //             ) as a
+    //             GROUP BY a.ws, a.trans_no
+    //         ";
+    //     }
+
+    //     // 2. FABRIC
+    //     if (in_array($kategori, ['all', 'fabric'])) {
+    //         $queries[] = "
+    //             SELECT
+    //                 '' as kode_kantor,
+    //                 a.jenis_dokumen as jenis_dokumen,
+    //                 a.ws as ws,
+    //                 'BAHAN BAKU' as kategori_barang,
+    //                 a.bcno as nomor_daftar,
+    //                 MIN(a.bcdate) as tanggal_daftar,
+    //                 a.supplier as nama_pengirim,
+    //                 a.trans_no as nomor_bpb,
+    //                 MIN(a.bppbdate) as tanggal_bpb,
+    //                 a.id_contents as id_item,
+    //                 a.itemdesc as uraian_barang,
+    //                 a.unit as jenis_satuan,
+    //                 SUM(a.qty) as jumlah_satuan,
+    //                 GROUP_CONCAT(DISTINCT a.curr) as kode_valuta,
+    //                 SUM(a.nilai_barang) as nilai_barang
+    //             FROM (
+    //                 SELECT
+    //                     a.dok_bc AS jenis_dokumen,
+    //                     LPAD(a.no_daftar, 6, '0') AS bcno,
+    //                     a.tgl_daftar AS bcdate,
+    //                     a.no_bppb AS trans_no,
+    //                     a.tgl_bppb AS bppbdate,
+    //                     a.tujuan AS supplier,
+    //                     b.id_item AS id_item,
+    //                     mcnt.id AS id_contents,
+    //                     s.itemdesc AS itemdesc,
+    //                     b.satuan AS unit,
+    //                     SUM(ROUND(IFNULL(b.qty_out, 0))) as qty,
+    //                     SUM(ROUND(IFNULL(b.price, 0) * IFNULL(b.qty_out, 0), 2)) as nilai_barang,
+    //                     b.curr AS curr,
+    //                     ac.kpno AS ws,
+    //                     s.matclass AS matclass
+    //                 FROM whs_bppb_h a
+    //                 INNER JOIN whs_bppb_det b ON b.no_bppb = a.no_bppb
+    //                 INNER JOIN masteritem s ON b.id_item = s.id_item
+    //                 LEFT JOIN masterdesc sd ON s.id_gen = sd.id
+    //                 LEFT JOIN mastercolor sc ON sd.id_color = sc.id
+    //                 LEFT JOIN masterweight sw ON sc.id_weight = sw.id
+    //                 LEFT JOIN masterlength sl ON sw.id_length = sl.id
+    //                 LEFT JOIN masterwidth swd ON sl.id_width = swd.id
+    //                 LEFT JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
+    //                 LEFT JOIN (SELECT id_jo, id_so FROM jo_det GROUP BY id_jo) tmpjod ON tmpjod.id_jo = b.id_jo
+    //                 LEFT JOIN so ON tmpjod.id_so = so.id
+    //                 LEFT JOIN act_costing ac ON so.id_cost = ac.id
+    //                 WHERE LEFT(a.no_bppb, 2) = 'GK'
+    //                 AND b.status != 'N'
+    //                 AND a.status != 'cancel'
+    //                 AND a.tgl_bppb BETWEEN '$fromDate' AND '$toDate'
+    //                 GROUP BY b.id_jo, b.id_item, b.satuan, b.no_bppb
+    //             ) as a
+    //             GROUP BY a.trans_no, a.unit, a.id_contents
+    //         ";
+    //     }
+
+    //     // ACCESORIES / OTHER
+    //     if (in_array($kategori, ['all', 'accesories'])) {
+    //         $whereMatclass = "";
+    //         if ($kategori !== 'all') {
+    //             $whereMatclass = "AND LOWER(s.matclass) LIKE '%" . $kategori . "%'";
+    //         }
+
+    //         $queries[] = "
+    //             SELECT
+    //                 '' as kode_kantor,
+    //                 MAX(a.jenis_dokumen) as jenis_dokumen,
+    //                 MAX(a.ws) as ws,
+    //                 'BAHAN PENOLONG' as kategori_barang,
+    //                 a.bcno as nomor_daftar,
+    //                 MIN(a.bcdate) as tanggal_daftar,
+    //                 a.supplier as nama_pengirim,
+    //                 a.trans_no as nomor_bpb,
+    //                 MIN(a.bppbdate) as tanggal_bpb,
+    //                 a.id_contents as id_item,
+    //                 a.itemdesc as uraian_barang,
+    //                 a.unit as jenis_satuan,
+    //                 SUM(a.qty) as jumlah_satuan,
+    //                 GROUP_CONCAT(DISTINCT a.curr) as kode_valuta,
+    //                 SUM(a.nilai_barang) as nilai_barang
+    //             FROM (
+    //                 SELECT
+    //                     a.jenis_dok as jenis_dokumen,
+    //                     LPAD(a.bcno, 6, '0') as bcno,
+    //                     a.bcdate,
+    //                     IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no,
+    //                     a.bppbdate,
+    //                     d.supplier,
+    //                     mcnt.id as kode_brg,
+    //                     s.itemdesc as itemdesc,
+    //                     a.unit,
+    //                     SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
+    //                     SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
+    //                     IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr,
+    //                     mcnt.id as id_contents,
+    //                     s.matclass,
+    //                     (SELECT sub_ac.kpno
+    //                     FROM so_det sub_sd
+    //                     LEFT JOIN so sub_so ON sub_sd.id_so = sub_so.id
+    //                     LEFT JOIN act_costing sub_ac ON sub_so.id_cost = sub_ac.id
+    //                     WHERE sub_sd.id = a.id_so_det LIMIT 1) as ws
+    //                 FROM bppb as a
+    //                 JOIN masteritem as s ON a.id_item = s.id_item
+    //                 LEFT JOIN masterdesc as sd ON s.id_gen = sd.id
+    //                 LEFT JOIN mastercolor as sc ON sd.id_color = sc.id
+    //                 LEFT JOIN masterweight as sw ON sc.id_weight = sw.id
+    //                 LEFT JOIN masterlength as sl ON sw.id_length = sl.id
+    //                 LEFT JOIN masterwidth as swd ON sl.id_width = swd.id
+    //                 LEFT JOIN mastercontents as mcnt ON swd.id_contents = mcnt.id
+    //                 JOIN mastersupplier as d ON a.id_supplier = d.id_supplier
+    //                 WHERE a.jenis_dok IN ('BC 3.0', 'BC 2.6.1', 'BC 2.6.2', 'BC 2.7', 'BC 4.1', 'INHOUSE', 'BC 2.5')
+    //                 AND (a.jenis_dok != 'BC 2.7' OR a.tujuan NOT IN ('DIKEMBALIKAN', 'DISUBKONTRAKKAN'))
+    //                 AND a.bppbno_int NOT LIKE 'FG%'
+    //                 AND a.bppbno_int NOT LIKE 'OFC%'
+    //                 AND a.bppbno_int NOT LIKE 'GK%'
+    //                 AND a.bppbno_int NOT LIKE 'WIP%'
+    //                 AND a.cancel = 'N'
+    //                 AND a.bppbdate BETWEEN '$fromDate' AND '$toDate'
+    //                 {$whereMatclass}
+    //                 GROUP BY a.bcno, a.bppbno, IFNULL(mcnt.id, s.id_item), a.price, a.jenis_dok, a.remark, a.tujuan
+    //             ) as a
+    //             GROUP BY a.trans_no, a.unit, a.id_contents
+    //         ";
+    //     }
+
+    //     if (empty($queries)) {
+    //         return collect([]);
+    //     }
+
+    //     // Gabungkan seluruh array query
+    //     $unionSql = implode("\n UNION ALL \n", $queries);
+
+    //     // Final Wrapper menggunakan CTE sama seperti Pemasukan
+    //     $finalSql = "
+    //         WITH mr AS (
+    //             SELECT tanggal, curr, rate
+    //             FROM masterrate
+    //             WHERE TRIM(UPPER(v_codecurr)) = 'PAJAK'
+    //             GROUP BY tanggal, curr
+    //         )
+    //         SELECT
+    //             a.kode_kantor,
+    //             a.jenis_dokumen,
+    //             a.ws,
+    //             a.kategori_barang,
+    //             a.nomor_daftar,
+    //             a.tanggal_daftar,
+    //             a.nama_pengirim,
+    //             a.nomor_bpb,
+    //             a.tanggal_bpb,
+    //             a.id_item,
+    //             a.uraian_barang,
+    //             a.jenis_satuan,
+    //             a.jumlah_satuan,
+    //             a.kode_valuta,
+    //             a.nilai_barang,
+    //             COALESCE(mr.rate, 1) as kurs,
+    //             (a.nilai_barang * COALESCE(mr.rate, 1)) as nilai_barang_idr
+    //         FROM (
+    //             $unionSql
+    //         ) a
+    //         LEFT JOIN mr ON mr.tanggal = a.tanggal_daftar AND mr.curr = a.kode_valuta
+    //         ORDER BY a.tanggal_daftar ASC, a.nomor_daftar ASC, a.nomor_bpb ASC
+    //     ";
+
+    //     $result = DB::connection('mysql_sb')->select($finalSql);
+
+    //     return collect($result);
+    // }
+
     public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {
         $kategori = strtolower(trim($kategoriBarang));
@@ -359,8 +645,8 @@ class PengeluaranService
                         ac.kpno as kode_brg,
                         CONCAT_WS(' - ', msp.product_item, ac.styleno) AS itemdesc,
                         a.unit,
-                        SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
-                        SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
+                        SUM(ROUND(IFNULL(a.qty, 0))) as qty,
+                        SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang,
                         IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr,
                         a.id_item as id_contents,
                         'BARANG JADI' as matclass,
@@ -530,9 +816,9 @@ class PengeluaranService
                         mcnt.id as kode_brg,
                         s.itemdesc as itemdesc,
                         a.unit,
-                        SUM(ROUND(IFNULL(a.qty_bc, 0))) as qty,
-                        SUM(ROUND(IFNULL(a.price_bc, 0) * IFNULL(a.qty_bc, 0), 2)) as nilai_barang,
-                        IFNULL(NULLIF(TRIM(a.curr_bc), ''), a.curr) as curr,
+                        SUM(ROUND(IFNULL(a.qty, 0))) as qty,
+                        SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang,
+                        IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr,
                         mcnt.id as id_contents,
                         s.matclass,
                         (SELECT sub_ac.kpno
@@ -608,6 +894,7 @@ class PengeluaranService
 
         return collect($result);
     }
+
 
     public function getDataBc33($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     {

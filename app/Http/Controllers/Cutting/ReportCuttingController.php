@@ -4836,6 +4836,7 @@ order by  ws asc, color asc
                     wip_adjustment_fabric
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
+                    AND wip_adjustment_fabric.status = 'Y'
                 GROUP BY
                     $groupBy
             ) mut

@@ -1513,7 +1513,8 @@ class FGStokLaporanController extends Controller
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '{$tgl_akhir}' and
-                        type_report = 'TRANSIT_GUDANG_STOK'
+                        type_report = 'TRANSIT_GUDANG_STOK' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
 

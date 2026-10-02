@@ -2035,7 +2035,8 @@ class DcReportController extends Controller
                                 wip_adjustment
                         WHERE
                                 tgl_saldo <= '$dateTo' and
-                                type_report = 'DC'
+                                type_report = 'DC' and
+                                status = 'Y'
                         GROUP BY
                                 ws, color, size, panel, part
                         UNION ALL
@@ -3800,7 +3801,8 @@ class DcReportController extends Controller
                         wip_adjustment
                     WHERE
                         tgl_saldo <= '$dateTo' and
-                        type_report = 'DC'
+                        type_report = 'DC' and
+                        status = 'Y'
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL

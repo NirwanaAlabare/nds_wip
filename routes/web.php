@@ -2359,6 +2359,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete', 'delete')->name('delete-wip-adjustment');
         Route::post('/get-data', 'getData')->name('get-data-wip-adjustment');
         Route::post('/cancel', 'cancel')->name('cancel-wip-adjustment');
+        Route::get('/export-excel', 'exportExcel')->name('export-excel-wip-adjustment');
     });
 });
 

@@ -42,7 +42,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">Waktu Mulai</label>
-                        <input type="datetime" class="form-control" name="waktu_mulai" value="{{ $formCutScrap->waktu_mulai ? $formCutScrap->waktu_mulai : '' }}" readonly disabled>
+                        <input type="datetime" class="form-control" name="waktu_mulai" value="{{ $formCutScrap->waktu_mulai ? $formCutScrap->waktu_mulai : '' }}">
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">Waktu Selesai</label>
