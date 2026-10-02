@@ -211,6 +211,18 @@ function periodeClosing()
         : '-';
 }
 
+function periodeClosingMinDate()
+{
+    $lastClosing = DB::table('data_locks')
+        ->where('is_locked', true)
+        ->orderBy('end_date', 'desc')
+        ->value('end_date');
+
+    return $lastClosing
+        ? Carbon::parse($lastClosing)->addDay()->format('Y-m-d')
+        : null;
+}
+
 function checkCloseOrder($id)
 {
     return DB::connection("mysql_sb")->table('act_costing')
