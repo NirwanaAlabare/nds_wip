@@ -991,6 +991,34 @@ $(function () {
      *     IF(LEFT(B14,2)="GA","GAP",IF(LEFT(B14,2)="GP","OLD NAVY"))))
      * Yang tidak cocok dikosongkan (di Excel hasilnya FALSE), lalu diketik sendiri.
      */
+    /**
+     * Brand dari SO - diambil dari baris SJ/WS yang dipilih (act_costing.brand).
+     *
+     * Brand-nya per kontrak/style, jadi kalau baris Shipment Details sudah
+     * menyebut Style NO, yang dipakai brand milik style itu. Kalau belum,
+     * barulah dipakai brand invoice ini - itu pun cuma kalau seluruh barisnya
+     * memang satu brand; kalau bercampur, dibiarkan kosong supaya user yang
+     * menentukan daripada diisi brand yang salah.
+     */
+    function merekDariSo(styleNo) {
+        var gaya = $.trim(String(styleNo || '')).toUpperCase();
+        var merek = {};
+        invBaris.concat(invSo).forEach(function (r) {
+            var m = $.trim(String(r.brand == null ? '' : r.brand));
+            if (m === '') { return; }
+            var g = $.trim(String(r.styleno == null ? '' : r.styleno)).toUpperCase();
+            if (gaya !== '' && g !== gaya) { return; }
+            merek[m] = true;
+        });
+        var daftar = Object.keys(merek);
+        return daftar.length === 1 ? daftar[0] : '';
+    }
+
+    /** Brand untuk baris Shipment Details: dari SO dulu, baru tebakan lama. */
+    function merekBaris(styleNo) {
+        return merekDariSo(styleNo) || merekDariPurchaser($('#inv-purchaser').val());
+    }
+
     function merekDariPurchaser(nama) {
         var dua = String(nama || '').trim().toUpperCase().slice(0, 2);
         if (dua === 'OL' || dua === 'GP') { return 'OLD NAVY'; }
@@ -1012,7 +1040,7 @@ $(function () {
         return {
             _id: ++nomorKirim,
             dest_purchase: '', style_no: '',
-            brand: merekDariPurchaser($('#inv-purchaser').val()), _brandTangan: false,
+            brand: merekBaris(''), _brandTangan: false,
             chanel_description: '',
             currency: 'USD', _currTangan: false, payment_term: '', final_destination: '',
             country_origin: 'ID', ship_mode: 'OCEAN', term_of_sale: '',
@@ -1162,16 +1190,28 @@ $(function () {
         gambarKirim();
     });
 
-    // ---- Brand ikut nama Purchaser ----
-    // Baris yang brand-nya sudah diketik sendiri tidak ikut berubah.
-    $('#inv-purchaser').on('input', function () {
-        var merek = merekDariPurchaser($(this).val());
+    // ---- Brand ikut SO (act_costing), baru nama Purchaser ----
+    // Baris yang brand-nya sudah diketik sendiri tidak pernah ditimpa.
+    function selaraskanMerek() {
         var berubah = false;
         kirimBaris.forEach(function (r) {
-            if (!r._brandTangan && r.brand !== merek) { r.brand = merek; berubah = true; }
+            if (r._brandTangan) { return; }
+            var merek = merekBaris(r.style_no);
+            if (merek !== '' && r.brand !== merek) { r.brand = merek; berubah = true; }
         });
         if (berubah) { gambarKirim(); }
+    }
+
+    $('#inv-purchaser').on('input', selaraskanMerek);
+
+    // Style NO-nya diketik di modal: brandnya ikut style itu begitu diketik.
+    $('#k-style').on('input', function () {
+        var $b = $('#k-brand');
+        if ($b.data('tangan')) { return; }
+        var merek = merekBaris($(this).val());
+        if (merek !== '') { $b.val(merek); }
     });
+    $('#k-brand').on('input', function () { $(this).data('tangan', true); });
 
     // ---- Alamat ikut pilihan Shipper / Seller ----
     function ikutAlamat(selSelect, selAlamat) {

@@ -329,7 +329,7 @@ class InvoiceEximController extends Controller
         // baris-barisnya diringkas. MySQL menolak agregat yang membungkus
         // subquery berkorelasi (error 1111 "Invalid use of group function"),
         // jadi MAX(...) tidak boleh dipasang langsung di sekeliling SELECT itu.
-        $dalam = "SELECT a.so_no AS no_so, d.kpno AS ws, d.styleno,
+        $dalam = "SELECT a.so_no AS no_so, d.kpno AS ws, d.styleno, d.brand,
                          e.product_group, e.product_item, b.color,
                          d.curr, b.unit AS uom, b.qty, ROUND(b.price, 4) AS price,
                          b.id_so, b.id AS id_so_det, a.so_date,
@@ -374,7 +374,7 @@ class InvoiceEximController extends Controller
         // Harga satuannya nilai / qty - kalau size besar lebih mahal, totalnya
         // tetap persis jumlah nilai SO-nya.
         $sql = "SELECT MAX(x.no_so) AS no_so, '' AS sj, NULL AS bppbdate, '' AS shipping_number,
-                       x.ws, MAX(x.styleno) AS styleno,
+                       x.ws, MAX(x.styleno) AS styleno, MAX(x.brand) AS brand,
                        MAX(x.product_group) AS product_group,
                        MAX(x.product_item) AS product_item,
                        x.color, '' AS size,
@@ -3323,14 +3323,17 @@ class InvoiceEximController extends Controller
         $b += 2;
         $tulis('A' . $b, 'INVOICE NO :');
         $tulis('B' . $b . ':D' . $b, $data['noCetak']);
-        // DATE sejajar label SELLER (E) dan tanggalnya sejajar isi SELLER (F:H).
+        // DATE sejajar label pihak di kolom E, tanggalnya sejajar isinya (F:H).
         $tulis('E' . $b, 'DATE :');
         $tulis('F' . $b . ':H' . $b, $data['tanggal'] . '   |   ' . $data['labelVersi']);
 
         // ---------------- Pihak-pihak ----------------
         $pasangan = array(
-            array('SHIP FROM', $data['baris']['shipper'], 'SELLER', $data['baris']['seller']),
-            array('PURCHASER', $data['baris']['purchaser'], 'SHIP TO :', $data['baris']['receiver']),
+            // Labelnya saja yang berbeda; isinya tetap dari kolom yang sama.
+            array('SHIP FROM', $data['baris']['shipper'],
+                  'PURCHASER / INVOICE TO', $data['baris']['seller']),
+            array('ULTIMATE CONSIGNEE', $data['baris']['purchaser'],
+                  'SHIP TO :', $data['baris']['receiver']),
         );
         foreach ($pasangan as $p) {
             $b += 2;
@@ -4501,6 +4504,8 @@ class InvoiceEximController extends Controller
                        IF($fg, ROUND(c.price, 4), 0) AS unit_price,
                        IF($fg, ROUND(c.qty * ROUND(c.price, 4), 4), 0) AS total_price,
                        b.id_so, c.id AS id_bppb, c.id AS id_baris, c.grade,
+                       -- Brand per kontrak/style, dipakai mengisi Shipment Details.
+                       d.brand AS brand,
                        IF(c.grade = 'GRADE A', 'A', 'B') AS grade_kode,
                        UPPER(SUBSTRING_INDEX(c.bppbno_int, '/', 1)) AS tipe_sj,
                        IF($fg, 0, 1) AS harga_manual,

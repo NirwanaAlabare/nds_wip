@@ -38,10 +38,15 @@
     $adaNilai = function ($n) { return abs((float) $n) >= 0.005; };
 
     // Pihak-pihak: baris pertama = nama (ditebalkan) kalau namanya memang diisi.
+    //
+    // Yang berubah cuma LABELnya - isinya tetap dari kolom yang sama, jadi
+    // tidak ada data yang berpindah tempat:
+    //   seller_*    dicetak sebagai PURCHASER / INVOICE TO
+    //   purchaser_* dicetak sebagai ULTIMATE CONSIGNEE
     $pihak = array(
         array('SHIP FROM', $baris['shipper'], trim((string) $inv['shipper_nama']) !== ''),
-        array('SELLER', $baris['seller'], trim((string) $inv['seller_nama']) !== ''),
-        array('PURCHASER', $baris['purchaser'], trim((string) $inv['purchaser_nama']) !== ''),
+        array('PURCHASER / INVOICE TO', $baris['seller'], trim((string) $inv['seller_nama']) !== ''),
+        array('ULTIMATE CONSIGNEE', $baris['purchaser'], trim((string) $inv['purchaser_nama']) !== ''),
         array('SHIP TO', $baris['receiver'], trim((string) $inv['receiver_nama']) !== ''),
     );
 
@@ -176,7 +181,8 @@
         <span class="tanggal">&nbsp;&nbsp;|&nbsp;&nbsp;DATE : {{ $tanggal }}</span>
         <span class="tanggal">&nbsp;&nbsp;|&nbsp;&nbsp;{{ $labelVersi }}</span></div>
 
-    {{-- ===== Pihak-pihak: SHIP FROM | SELLER, lalu PURCHASER | SHIP TO ===== --}}
+    {{-- ===== Pihak-pihak: SHIP FROM | PURCHASER / INVOICE TO,
+             lalu ULTIMATE CONSIGNEE | SHIP TO ===== --}}
     @foreach (array(array($pihak[0], $pihak[1]), array($pihak[2], $pihak[3])) as $pasang)
         <div class="jarak"></div>
         <table class="blok">
