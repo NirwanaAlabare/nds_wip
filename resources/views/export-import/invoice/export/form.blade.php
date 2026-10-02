@@ -555,7 +555,12 @@
                         </div>
                         <div class="form-group">
                             <label for="k-brand">Brand</label>
-                            <input type="text" class="form-control" id="k-brand" maxlength="255" autocomplete="off">
+                            {{-- Pilihannya brand milik Seller yang dipilih (act_costing),
+                                 diisi lewat JS. Boleh diketik sendiri kalau brandnya
+                                 belum terdaftar di sana. --}}
+                            <select class="form-control" id="k-brand">
+                                <option value=""></option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="k-chanel">Chanel Description</label>
@@ -956,6 +961,7 @@ $(function () {
     var RUT_SJ     = @json(route('invoice-exim-sj'));
     var RUT_WS     = @json(route('invoice-exim-ws'));
     var RUT_NEGARA = @json(route('invoice-exim-kode-negara'));
+    var RUT_MEREK  = @json(route('invoice-exim-brand'));
     var NEGARA     = @json($negara);
 
     // Penanda mode. MODE_UBAH true berarti layar ini sedang mengubah invoice yang
@@ -1027,6 +1033,52 @@ $(function () {
         return '';
     }
 
+    // ---- Pilihan Brand: milik Seller yang dipilih (act_costing) ----
+    // Brandnya memang per customer, jadi daftarnya ikut Seller - bukan daftar
+    // seluruh brand, supaya pilihannya pendek dan brand customer lain tidak
+    // mungkin terpakai. Masih boleh diketik sendiri (select2 tags) kalau
+    // brandnya belum terdaftar di act_costing - invoice tidak boleh tertahan
+    // cuma karena master datanya belum lengkap.
+    var merekSeller = [];
+
+    /** Susun ulang pilihannya, nilainya dipertahankan. */
+    function isiPilihanMerek(nilai) {
+        var $s = $('#k-brand');
+        var isi = $.trim(String(nilai == null ? '' : nilai));
+        var daftar = merekSeller.slice();
+        // Brand yang sudah tersimpan tapi tidak ada di daftar tetap dipakai,
+        // supaya membuka invoice lama tidak diam-diam mengosongkannya.
+        if (isi !== '' && daftar.indexOf(isi) < 0) { daftar.unshift(isi); }
+        $s.empty().append($('<option>').val('').text(''));
+        daftar.forEach(function (m) { $s.append($('<option>').val(m).text(m)); });
+        // change.select2 - cuma menyegarkan tampilannya, tidak menyalakan
+        // penanda "diketik sendiri" seperti change biasa.
+        $s.val(isi).trigger('change.select2');
+    }
+
+    /** Ambil brand milik Seller yang sedang dipilih. */
+    function muatMerekSeller() {
+        var id = $('#inv-seller').val() || '';
+        if (id === '') {
+            merekSeller = [];
+            isiPilihanMerek($('#k-brand').val());
+            return;
+        }
+        $.getJSON(RUT_MEREK, { id_seller: id }).done(function (d) {
+            merekSeller = (d && d.brand) ? d.brand : [];
+            isiPilihanMerek($('#k-brand').val());
+        }).fail(function () {
+            // Daftarnya gagal diambil - isiannya tetap bisa diketik sendiri.
+            merekSeller = [];
+        });
+    }
+
+    $('#k-brand').select2({
+        theme: 'bootstrap4', width: '100%', tags: true,
+        placeholder: 'Select or type a brand',
+        dropdownParent: $('#modal-kirim')
+    });
+
     // ================= Shipment Details (baris 8-24) =================
     // Di halaman depan cuma tabelnya. Isiannya lewat modal - kalau dibentang
     // di sini, bagian Detail SJ dan Summary terdorong jauh ke bawah layar.
@@ -1067,9 +1119,17 @@ $(function () {
     function bukaKirim(i) {
         kirimSedang = i;
         var r = (i >= 0 && kirimBaris[i]) ? kirimBaris[i] : kirimKosong();
+        // Pilihan brandnya disusun lebih dulu - kalau optionnya belum ada,
+        // .val() di bawah ini tidak akan kena.
+        isiPilihanMerek(r.brand);
+        // Penanda "diketik sendiri" berlaku per baris, jadi direset tiap
+        // modal dibuka - kalau tidak, sekali diketik, baris berikutnya ikut
+        // terkunci dan Style NO tidak pernah mengisi brand lagi.
+        $('#k-brand').data('tangan', false);
         Object.keys(PETA_KIRIM).forEach(function (sel) {
             $(sel).val(r[PETA_KIRIM[sel]]);
         });
+        $('#k-brand').trigger('change.select2');
         $('#kirim-judul').text(i >= 0 ? 'Edit Shipment ' + (i + 1) : 'Add Shipment');
         modalKirim.show();
     }
@@ -1206,12 +1266,12 @@ $(function () {
 
     // Style NO-nya diketik di modal: brandnya ikut style itu begitu diketik.
     $('#k-style').on('input', function () {
-        var $b = $('#k-brand');
-        if ($b.data('tangan')) { return; }
+        if ($('#k-brand').data('tangan')) { return; }
         var merek = merekBaris($(this).val());
-        if (merek !== '') { $b.val(merek); }
+        if (merek !== '') { isiPilihanMerek(merek); }
     });
-    $('#k-brand').on('input', function () { $(this).data('tangan', true); });
+    // Isian pilihan - penandanya dari change, bukan input.
+    $('#k-brand').on('change', function () { $(this).data('tangan', true); });
 
     // ---- Alamat ikut pilihan Shipper / Seller ----
     function ikutAlamat(selSelect, selAlamat) {
@@ -1239,7 +1299,10 @@ $(function () {
     $('#inv-seller').on('change', function () {
         buyerIkutSeller('#so-buyer');
         buyerIkutSeller('#ws-buyer');
+        // Brandnya per customer - pilihannya ikut Seller yang dipilih.
+        muatMerekSeller();
     });
+    muatMerekSeller();
 
     // ================= Baris SJ (FG/OUT) =================
     // Ditahan di halaman ini saja, tidak lewat tabel temporary - alasannya sama
@@ -3262,7 +3325,11 @@ $(function () {
         // Currency & brand yang tersimpan dianggap sudah dipilih sendiri, supaya
         // tidak ditimpa otomatis dari SJ atau nama Purchaser.
         kirimBaris = @json($ubahKirim).map(function (r) {
-            return $.extend(kirimKosong(), r, { _currTangan: true, _brandTangan: true });
+            // Brand yang MEMANG terisi dikunci. Yang masih kosong jangan -
+            // invoice lama yang brandnya belum sempat diisi harus tetap bisa
+            // terisi otomatis dari SO-nya waktu dibuka lagi di sini.
+            var adaMerek = $.trim(String(r.brand == null ? '' : r.brand)) !== '';
+            return $.extend(kirimKosong(), r, { _currTangan: true, _brandTangan: adaMerek });
         });
         invBaris = @json($ubahBaris);
         // Baris SO yang tersimpan - itu yang menurunkan Invoice Summary.
@@ -3293,6 +3360,10 @@ $(function () {
         // sekarang 11%, jadi kotaknya ikut tercentang.
         $('#so-vat-11').prop('checked', vatUbah === 11 || vatUbah === 12);
         $('#inv-seller').trigger('change');   // Buyer di modal ikut Seller tersimpan
+        // Baris SJ & SO-nya baru terpasang di atas, jadi brand dari SO memang
+        // baru bisa dibaca sekarang - baris yang brandnya masih kosong ikut
+        // terisi. Yang sudah ada isinya terkunci, jadi tidak mungkin tertimpa.
+        selaraskanMerek();
     }
     gambarKirim();
     gambarRingkas();

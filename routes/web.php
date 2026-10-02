@@ -1891,6 +1891,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/local/create', 'createLocal')->name('invoice-exim-local-create');
         Route::get('/export/create', 'createExport')->name('invoice-exim-export-create');
         Route::get('/kode-negara', 'kodeNegara')->name('invoice-exim-kode-negara');
+        Route::get('/brand', 'daftarMerek')->name('invoice-exim-brand');
         Route::get('/nomor-invoice', 'nomorInvoice')->name('invoice-exim-nomor');
         Route::get('/sj', 'daftarSj')->name('invoice-exim-sj');
         Route::get('/ws', 'daftarWs')->name('invoice-exim-ws');
