@@ -584,20 +584,25 @@
             });
 
             try {
-                const res = await $.ajax({
-                    url: '{{ route('export-excel-wip-adjustment') }}',
-                    type: "GET",
-                    data: {
-                        dateFrom: $("#tgl-awal").val(),
-                        dateTo: $("#tgl-akhir").val(),
-                        type_report: type,
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    }
+                const params = new URLSearchParams({
+                    dateFrom: $("#tgl-awal").val(),
+                    dateTo: $("#tgl-akhir").val(),
+                    type_report: type,
                 });
+                const res = await fetch('{{ route('export-excel-wip-adjustment') }}?' + params);
 
                 Swal.close();
+
+                if (!res.ok) {
+                    const json = await res.json().catch(() => ({}));
+
+                    iziToast.warning({
+                        title: 'Perhatian',
+                        message: json.message ?? 'Export gagal',
+                        position: 'topCenter'
+                    });
+                    return;
+                }
 
                 iziToast.success({
                     title: 'Success',
@@ -605,7 +610,7 @@
                     position: 'topCenter'
                 });
 
-                const blob = new Blob([res]);
+                const blob = await res.blob();
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
                 link.download =

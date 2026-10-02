@@ -493,6 +493,13 @@ class WipAdjustmentController extends Controller
         $template = $this->templateFields[$typeReport];
         $data = $this->queryData($typeReport, $request->dateFrom, $request->dateTo);
 
+        if (!$data) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'Tidak ada data untuk diexport'
+            ], 422);
+        }
+
         $columns = [
             ['Tanggal Saldo', 'tgl_saldo', false],
             ['Jenis Report', 'type_report', false],
@@ -504,10 +511,6 @@ class WipAdjustmentController extends Controller
 
         foreach ($template['qty'] as $field) {
             $columns[] = [$this->exportLabel($field), $field, true];
-        }
-
-        if ($typeReport == 'CUTTING_FABRIC') {
-            $columns[] = ['Type', 'type', false];
         }
 
         $columns[] = ['Waktu Import', 'created_at', false];
