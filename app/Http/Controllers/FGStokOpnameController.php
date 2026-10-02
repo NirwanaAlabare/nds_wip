@@ -544,7 +544,7 @@ class FGStokOpnameController extends Controller
             FROM fg_stok_opname_detail d
             WHERE d.no_opname = ? AND d.cancel = 'N'
             GROUP BY d.no_carton, d.no_pallet
-            ORDER BY MIN(d.id) ASC
+            ORDER BY MIN(d.id) DESC
         ", [$no_opname]);
 
         return DataTables::of($data)

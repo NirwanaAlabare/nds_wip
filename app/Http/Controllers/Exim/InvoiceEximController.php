@@ -4562,23 +4562,30 @@ class InvoiceEximController extends Controller
                        a.kode_out AS shipping_number, '-' AS ws, d.lab_dip AS styleno,
                        '-' AS product_group, c.nama_kain AS product_item, d.warna AS color,
                        '-' AS size, f.currency AS curr,
-                       -- Yang ditagih pakai SATUAN, QTY & HARGA TAGIH (unit
-                       -- sales order), bukan yang shipment: satu SJ bisa dikirim
-                       -- dalam Yard tapi ditagih dalam Kilogram dengan harganya
-                       -- sendiri. Sama dengan yang dipakai Create Invoice di AR
-                       -- (Model_nag::cari_sj_knitting - kolom uom_so/qty_so/harga).
-                       h.nama_unit AS uom,
+                       -- SATUAN, QTY & HARGA ikut satuan SO - yang sama dengan
+                       -- satuan SJ-nya, bukan satuan tagih. Satu SO bisa ditagih
+                       -- dalam Kilogram padahal SO & SJ-nya Yard; cetakan EXIM
+                       -- harus menyebut Yard, karena itu yang benar-benar dikirim.
+                       --
+                       -- Create Invoice di AR TIDAK ikut: di sana yang ditarik
+                       -- memang satuan tagihnya (Model_nag::cari_sj_knitting -
+                       -- kolom uom_so/qty_so/harga, dari id_unit_sales_order).
+                       --
+                       -- Harga kirim yang kosong jatuh ke harga tagih, bukan ke
+                       -- nol: invoice tanpa harga lebih berbahaya daripada harga
+                       -- yang satuannya perlu dicek user.
+                       g.nama_unit AS uom,
                        CASE
-                           WHEN h.nama_unit = 'Meter' THEN b.meter
-                           WHEN h.nama_unit = 'Yard'  THEN b.yard
+                           WHEN g.nama_unit = 'Meter' THEN b.meter
+                           WHEN g.nama_unit = 'Yard'  THEN b.yard
                            ELSE b.qty_netto
                        END AS qty,
-                       ROUND(COALESCE(e.harga, 0), 4) AS unit_price,
+                       ROUND(COALESCE(e.harga_shipment, e.harga, 0), 4) AS unit_price,
                        ROUND((CASE
-                                  WHEN h.nama_unit = 'Meter' THEN b.meter
-                                  WHEN h.nama_unit = 'Yard'  THEN b.yard
+                                  WHEN g.nama_unit = 'Meter' THEN b.meter
+                                  WHEN g.nama_unit = 'Yard'  THEN b.yard
                                   ELSE b.qty_netto
-                              END) * ROUND(COALESCE(e.harga, 0), 4), 4) AS total_price,
+                              END) * ROUND(COALESCE(e.harga_shipment, e.harga, 0), 4), 4) AS total_price,
                        a.no_so AS id_so, a.id AS id_bppb, b.id AS id_baris,
                        'GRADE A' AS grade, 'A' AS grade_kode,
                        -- Knitting cuma punya OFC/OUT, dan harganya selalu ada
@@ -4591,12 +4598,13 @@ class InvoiceEximController extends Controller
                   LEFT JOIN master_kain_detail d ON d.id = b.detail_kain_id
                   INNER JOIN detail_so e ON e.id = b.detail_so_id
                   INNER JOIN sales_orders f ON f.id = a.no_so
-                  -- h = satuan TAGIH (id_unit_sales_order). Satuan kirim
-                  -- (id_unit_sales_order_shipment) sengaja tidak dipakai.
-                  LEFT JOIN master_unit h ON h.id = e.id_unit_sales_order
+                  -- g = satuan SO/kirim (id_unit_sales_order_shipment) - itu yang
+                  -- dipakai cetakan EXIM. Satuan tagih (id_unit_sales_order)
+                  -- tidak ikut dibaca di sini; yang memakainya Create Invoice AR.
+                  LEFT JOIN master_unit g ON g.id = e.id_unit_sales_order_shipment
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
-                   AND a.tipe_pengeluaran = 'Penjualan'
+                   AND a.tipe_pengeluaran IN ('Penjualan','Sample')
                    AND a.tgl_pengeluaran BETWEEN ? AND ?";
         $bind = array($tglAwal, $tglAkhir);
         if ($kodeKnitting !== '') {

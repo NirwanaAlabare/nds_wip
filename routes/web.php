@@ -176,6 +176,7 @@ use App\Http\Controllers\MaintenanceACFormController;
 use App\Http\Controllers\ReportBc\ReportBcController;
 use App\Http\Controllers\ReportBc\DashboardReportBcController;
 use App\Http\Controllers\FGStokPenerimaanPackingController;
+use App\Http\Controllers\WipAdjustmentController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -2348,6 +2349,16 @@ Route::middleware('auth')->group(function () {
         // report
         Route::get('/report-bc/pemasukan', 'getPemasukanData')->name('get_pemasukan_data');
         Route::get('/report-bc/pengeluaran', 'getPengeluaranData')->name('get_pengeluaran_data');
+    });
+
+    Route::controller(WipAdjustmentController::class)->prefix("wip-adjustment")->group(function () {
+        Route::get('/', 'index')->name("wip-adjustment");
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-wip-adjustment');
+        Route::post('/import-data', 'importData')->name('import-data-wip-adjustment');
+        Route::post('/store', 'store')->name('store-wip-adjustment');
+        Route::post('/delete', 'delete')->name('delete-wip-adjustment');
+        Route::post('/get-data', 'getData')->name('get-data-wip-adjustment');
+        Route::post('/cancel', 'cancel')->name('cancel-wip-adjustment');
     });
 });
 
