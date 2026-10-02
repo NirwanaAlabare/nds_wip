@@ -281,6 +281,8 @@ class PemasukanService
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
 
+        $tglFilterSup = '2024-01-01';
+
         // accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
 
@@ -408,9 +410,9 @@ class PemasukanService
                 AND so.cancel_h = 'N'
                 AND ac.aktif = 'Y'
                 AND sod.cancel = 'N'
-                AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
+                AND a.bpbno LIKE 'FG%'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
 
@@ -447,7 +449,7 @@ class PemasukanService
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
-                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND (a.tgl_terima < '$tglFilterSup' OR a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'))
                 GROUP BY ac.kpno, a.no_trans
             ";
 
@@ -484,7 +486,7 @@ class PemasukanService
                 AND ac.aktif = 'Y'
                 AND sd.cancel = 'N'
                 AND a.tgl_terima BETWEEN '$fromDate' AND '$toDate'
-                AND a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL')
+                AND (a.tgl_terima < '$tglFilterSup' OR a.sumber_pemasukan NOT IN ('EXPEDISI', 'EKSPEDISI', 'MUTASI INTERNAL'))
                 GROUP BY ac.kpno, a.no_trans
             ";
         }
