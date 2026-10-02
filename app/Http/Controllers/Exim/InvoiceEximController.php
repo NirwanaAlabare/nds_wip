@@ -202,6 +202,37 @@ class InvoiceEximController extends Controller
     }
 
     /**
+     * Daftar brand milik satu Seller - isian pilihan Brand di Shipment Details.
+     *
+     * Brand tersimpan per kontrak di act_costing, dan satu Seller bisa punya
+     * beberapa brand. Yang dikirim hanya milik Seller yang sedang dipilih,
+     * supaya pilihannya pendek dan brand customer lain tidak mungkin terpakai.
+     *
+     * Seller di layar ini dan act_costing.id_buyer sama-sama menunjuk
+     * mastersupplier tipe 'C', jadi id-nya memang bisa langsung dicocokkan.
+     */
+    public function daftarMerek(Request $request)
+    {
+        $idSeller = trim((string) $request->query('id_seller'));
+        if ($idSeller === '' || !$this->kolomAda('act_costing', 'brand')) {
+            return response()->json(array('status' => true, 'brand' => array()));
+        }
+
+        $out = array();
+        foreach ($this->koneksiAr()->select(
+            "SELECT DISTINCT TRIM(brand) AS brand
+               FROM act_costing
+              WHERE id_buyer = ? AND TRIM(IFNULL(brand, '')) <> ''
+              ORDER BY brand",
+            array($idSeller)
+        ) as $r) {
+            $out[] = (string) $r->brand;
+        }
+
+        return response()->json(array('status' => true, 'brand' => $out));
+    }
+
+    /**
      * Nomor invoice berikutnya, dibangkitkan (bukan diambil dari Booking
      * Invoice). Formatnya sama dengan yang dipakai AR:
      *
