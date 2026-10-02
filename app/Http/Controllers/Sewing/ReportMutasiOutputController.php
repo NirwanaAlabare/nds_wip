@@ -4727,15 +4727,16 @@ class ReportMutasiOutputController extends Controller
             SUM(saldo_akhir_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0) + COALESCE(defect_mending_adjust,0) + COALESCE(defect_mending_switching_in,0) - COALESCE(defect_mending_switching_out,0)) saldo_akhir_mending,
 
             SUM(qty_transit_terima_sewing_before) + SUM(qty_transit_terima_qc_finishing_before) + SUM(qty_transit_terima_finishing_before) - SUM(qty_transit_keluar_qc_reject_before) - SUM(qty_transit_keluar_packing_before) + SUM(qc_transit_terima_qc_reject_adjust_before) AS qty_transit_saldo_awal,
-            SUM(qty_sew_reject) - SUM(qty_reworked_qc) AS qty_transit_terima_sewing,
-            SUM(qty_fin_reject) - SUM(qty_reworked_finishing) AS qty_transit_terima_qc_finishing,
-            SUM(reject_sp) - SUM(qty_reworked_secondary) AS qty_transit_terima_finishing,
+            SUM(qty_sew_reject) AS qty_transit_terima_sewing,
+            SUM(qty_fin_reject) AS qty_transit_terima_qc_finishing,
+            -- SUM(reject_sp) AS qty_transit_terima_finishing,
+            SUM(reject_sp_pasang_kancing) + SUM(reject_sp_bartack) + SUM(reject_sp_heatseal) + SUM(reject_sp_snap) + SUM(reject_sp_embro) AS qty_transit_terima_finishing,
             SUM(qty_reject_in) AS qty_transit_keluar_qc_reject,
             SUM(qty_transit_keluar_packing) AS qty_transit_keluar_packing,
             SUM(qc_transit_terima_qc_reject_adjust) AS qty_transit_adjustment,
             (
                 SUM(qty_transit_terima_sewing_before) + SUM(qty_transit_terima_qc_finishing_before) + SUM(qty_transit_terima_finishing_before) - SUM(qty_transit_keluar_qc_reject_before) - SUM(qty_transit_keluar_packing_before) + SUM(qc_transit_terima_qc_reject_adjust_before)
-                + SUM(qty_sew_reject) - SUM(qty_reworked_qc) + SUM(qty_fin_reject) - SUM(qty_reworked_finishing) + SUM(reject_sp) - SUM(qty_reject_in) - SUM(qty_transit_keluar_packing) + SUM(qc_transit_terima_qc_reject_adjust)
+                + SUM(qty_sew_reject) + SUM(qty_fin_reject) + SUM(reject_sp) - SUM(qty_reject_in) - SUM(qty_transit_keluar_packing) + SUM(qc_transit_terima_qc_reject_adjust)
             ) AS qty_transit_keluar_saldo_akhir,
 
             SUM(saldo_awal_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0)) saldo_awal_reject,
