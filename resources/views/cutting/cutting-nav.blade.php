@@ -22,20 +22,26 @@
             </li>
             <li>
                 <a href="{{ route('cutting-piece') }}"
-                class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                Form Pieces <i class="fa-solid fa-shirt"></i>
-            </a>
+                    class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                    Form Pieces <i class="fa-solid fa-shirt"></i>
+                </a>
+            </li>
             <li>
                 <a href="{{ route('cutting-scrap') }}"
                     class="dropdown-item {{ $routeName == 'cutting-scrap' ? 'active' : '' }}">
                     Form Scrap <i class="fa-solid fa-bars-staggered"></i>
                 </a>
             </li>
-            </li>
             <li>
                 <a href="{{ route('form-cut-piping') }}"
                     class="dropdown-item {{ $routeName == 'form-cut-piping' ? 'active' : '' }}">
                     Piping <i class="fa-solid fa-paperclip"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('cutting-switching') }}"
+                    class="dropdown-item {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
+                    Switching <i class="fa-solid fa-shuffle"></i>
                 </a>
             </li>
         </ul>
@@ -266,14 +272,14 @@
         </ul>
     </li>
 @endrole
-@role('cutting')
+{{-- @role('cutting')
 <li class="nav-item">
     <a href="{{ route('cutting-switching') }}"
         class="nav-link {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
         Switching
     </a>
 </li>
-@endrole
+@endrole --}}
 @role('superadmin')
     <li class="nav-item">
         <a href="{{ route('cutting-tools') }}"
