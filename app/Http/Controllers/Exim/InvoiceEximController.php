@@ -4596,7 +4596,7 @@ class InvoiceEximController extends Controller
                   LEFT JOIN master_unit h ON h.id = e.id_unit_sales_order
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
-                   AND a.tipe_pengeluaran = 'Penjualan'
+                   AND a.tipe_pengeluaran IN ('Penjualan','Sample')
                    AND a.tgl_pengeluaran BETWEEN ? AND ?";
         $bind = array($tglAwal, $tglAkhir);
         if ($kodeKnitting !== '') {
