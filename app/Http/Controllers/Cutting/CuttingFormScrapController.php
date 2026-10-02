@@ -687,6 +687,7 @@ class CuttingFormScrapController extends Controller
             "id" => "required",
             "tanggal" => "required|date",
             "status" => "required|in:complete,incomplete",
+            "waktu_mulai" => "required|date",
             "waktu_selesai" => "nullable|required_if:status,complete|date",
             "ket" => "nullable|string",
             "details" => "sometimes|array",
@@ -709,14 +710,16 @@ class CuttingFormScrapController extends Controller
             );
         }
 
+        $waktuMulai = $validatedRequest["waktu_mulai"];
+
         $waktuSelesai = $validatedRequest["status"] == "complete"
             ? $validatedRequest["waktu_selesai"]
             : null;
 
-        if ($waktuSelesai && $formCutScrap->waktu_mulai > $waktuSelesai) {
+        if ($waktuSelesai && $waktuMulai > $waktuSelesai) {
             return array(
                 "status" => 400,
-                "message" => "Waktu selesai tidak bisa kurang dari <br> '".$formCutScrap->waktu_mulai."'",
+                "message" => "Waktu selesai tidak bisa kurang dari <br> '".($waktuMulai ?? $formCutScrap->waktu_mulai)."'",
                 "additional" => [],
             );
         }
@@ -733,6 +736,7 @@ class CuttingFormScrapController extends Controller
         try {
             $formCutScrap->update([
                 "tanggal" => $validatedRequest["tanggal"],
+                "waktu_mulai" => ($waktuMulai ?? $formCutScrap->waktu_mulai),
                 "waktu_selesai" => $waktuSelesai,
                 "status" => $validatedRequest["status"],
                 "process" => $validatedRequest["status"] == "incomplete" ? 3 : 4,
