@@ -433,6 +433,50 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bppbdate >= '{$tanggal_saldo_awal} 00:00:00'
                     AND bppbdate < '{$tgl_awal} 00:00:00'
                     AND id_supplier NOT IN (458 , 927 , 2053)
+                    AND bppbdate < '2026-09-01'
+                GROUP BY
+                    id_so_det
+
+                UNION ALL
+
+                SELECT
+                    data.id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0,
+                    SUM( data.qty ) AS pc_saldo_awal_masuk,
+                    0, 0, 0, 0
+                FROM (
+                    SELECT
+                        a.id,
+                        a.id_so_det,
+                        tgl_pengeluaran,
+                        a.qty
+                        from laravel_nds.fg_fg_out a
+                        inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
+                        inner join signalbit_erp.so on sd.id_so = so.id
+                        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                        inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
+                        left join signalbit_erp.master_size_new msn on sd.size = msn.size
+                        where tgl_pengeluaran >='{$tanggal_saldo_awal}' and tgl_pengeluaran < '{$tgl_awal}' and a.status = 'RETUR'
+                        and tgl_pengeluaran >= '2026-09-01'
+                        group by
+                        no_sb,
+                        tgl_pengeluaran,
+                        concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
+                        a.po,
+                        a.barcode,
+                        ac.kpno,
+                        sd.color,
+                        sd.size,
+                        no_carton,
+                        a.qty,
+                        a.notes,
+                        a.buyer,
+                        invno,
+                        remark,
+                        jenis_dok,
+                        a.created_at,
+                        a.created_by
+                ) data
                 GROUP BY
                     id_so_det
 
@@ -487,6 +531,50 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bppbno_int LIKE '%FG/RO%'
                     AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
                     AND b.id_supplier NOT IN (458 , 927 , 2053)
+                    AND bppbdate < '2026-09-01'
+                GROUP BY
+                    id_so_det
+                
+                UNION ALL
+
+                SELECT
+                    data.id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    SUM( data.qty ) AS pc_terima_return,
+                    0
+                FROM (
+                    SELECT
+                        a.id,
+                        a.id_so_det,
+                        tgl_pengeluaran,
+                        a.qty
+                        from laravel_nds.fg_fg_out a
+                        inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
+                        inner join signalbit_erp.so on sd.id_so = so.id
+                        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                        inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
+                        left join signalbit_erp.master_size_new msn on sd.size = msn.size
+                        where tgl_pengeluaran >='{$tgl_awal}' and tgl_pengeluaran <= '{$tgl_akhir}' and a.status = 'RETUR'
+                        and tgl_pengeluaran >= '2026-09-01'
+                        group by
+                        no_sb,
+                        tgl_pengeluaran,
+                        concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
+                        a.po,
+                        a.barcode,
+                        ac.kpno,
+                        sd.color,
+                        sd.size,
+                        no_carton,
+                        a.qty,
+                        a.notes,
+                        a.buyer,
+                        invno,
+                        remark,
+                        jenis_dok,
+                        a.created_at,
+                        a.created_by
+                ) data
                 GROUP BY
                     id_so_det
 
