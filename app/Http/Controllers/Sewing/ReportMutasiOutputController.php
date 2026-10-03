@@ -4601,13 +4601,13 @@ class ReportMutasiOutputController extends Controller
             )
 
             select
-            buyer,
-            ws,
-            styleno,
-            color,
-            size,
+            a.buyer,
+            a.ws,
+            a.styleno,
+            a.color,
+            a.size,
 
-            SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) saldo_awal_sewing,
+            (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN sewing_temp.saldo_awal ELSE SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) END) saldo_awal_sewing,
             SUM(qty_loading) qty_loading,
             SUM(terima_gudang) terima_gudang,
             SUM(qty_in_subcont) qty_in_subcont,
@@ -4623,8 +4623,14 @@ class ReportMutasiOutputController extends Controller
             SUM(COALESCE(sewing_adjust,0)) sewing_adjust,
             SUM(COALESCE(sewing_switching_in,0)) sewing_switching_in,
             SUM(COALESCE(sewing_switching_out,0)) sewing_switching_out,
-            SUM(saldo_akhir_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0) + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)) saldo_akhir_sewing,
-
+            (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN 
+                sewing_temp.saldo_awal + SUM(qty_loading) + SUM(input_rework_sewing) + SUM(input_rework_mending) + SUM(input_rework_mending)
+                - SUM(defect_sewing) - SUM(defect_spotcleaning) - SUM(defect_mending)
+                + SUM(qty_reworked_qc) - SUM(qty_sew_reject) - SUM(qty_sewing)
+                + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)
+            ELSE 
+                SUM(saldo_akhir_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0) + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)) 
+            END) saldo_akhir_sewing,
             SUM(saldo_awal_finishing + COALESCE(qc_finishing_adjust_before,0) + COALESCE(qc_finishing_switching_in_before,0) - COALESCE(qc_finishing_switching_out_before,0)) saldo_awal_finishing,
             SUM(input_rework_sewing_f) input_rework_sewing_f,
             SUM(input_rework_spotcleaning_f) input_rework_spotcleaning_f,
@@ -4822,7 +4828,9 @@ class ReportMutasiOutputController extends Controller
             0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out,
             qty_transit_keluar_packing_before, qty_transit_keluar_packing
             from query_keluar_packing
-            ) a GROUP BY buyer, ws, styleno, color, size
+            ) a 
+            LEFT JOIN laravel_nds.sewing_temp ON sewing_temp.buyer = a.buyer and sewing_temp.style = a.styleno and sewing_temp.ws = a.ws and sewing_temp.color = a.color and sewing_temp.size = a.size
+            GROUP BY a.buyer, a.ws, a.styleno, a.color, a.size
         ";
 
         return $query;
