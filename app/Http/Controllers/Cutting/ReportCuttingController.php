@@ -13333,7 +13333,7 @@ order by tanggal asc, no_form asc
                 $row->panel ?: '',
                 $row->nama_part ?: '',
                 (float) $row->saldo_awal_adjustment,
-                (float) $row->qty_cut - ($row->switching_out_cutt ?? 0) + ($row->switching_in_cutt ?? 0),
+                (float) $row->qty_cut,
                 (float) ($row->switching_out_cutt ?? 0),
                 (float) ($row->switching_in_cutt ?? 0),
                 (float) $row->qty_replace,

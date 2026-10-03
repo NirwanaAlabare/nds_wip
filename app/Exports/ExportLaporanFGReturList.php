@@ -71,6 +71,26 @@ from fg_fg_out a
 inner join ppic_master_so p on a.id_ppic_master_so = p.id
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where tgl_pengeluaran >='$this->from' and tgl_pengeluaran <= '$this->to' and a.status = 'RETUR'
+group by
+no_sb,
+tgl_pengeluaran,
+concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
+a.id_so_det,
+a.barcode,
+a.po,
+m.ws,
+m.color,
+m.size,
+m.dest,
+no_carton,
+a.qty,
+notes,
+a.buyer,
+invno,
+remark,
+jenis_dok,
+a.created_at,
+a.created_by
 order by a.created_at desc
         ");
 

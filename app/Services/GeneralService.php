@@ -26,7 +26,7 @@ class GeneralService
                 id_act_cost, ws, cost_no, tgl_kirim, styleno,
                 main_dest, brand, so_no, buyer, id_so_det, dest,
                 color, size, qty, price, reff_no,
-                styleno_prod, product_group, product_item, curr
+                styleno_prod, product_group, product_item, curr, cancel
             )
             -- Source SB Query
             select
@@ -49,7 +49,8 @@ class GeneralService
                 sd.styleno_prod,
                 mp.product_group,
                 mp.product_item,
-                ac.curr
+                ac.curr,
+                sd.cancel
             from signalbit_erp.jo_det jd
             inner join signalbit_erp.so on jd.id_so = so.id
             inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
@@ -79,7 +80,8 @@ class GeneralService
                 sd.styleno_prod,
                 mp.product_group,
                 mp.product_item,
-                ac.curr
+                ac.curr,
+                sd.cancel
             from
             (select so.*,jd.id_so from signalbit_erp.so left join signalbit_erp.jo_det jd on so.id = jd.id_so where jd.id_so is null) so
             inner join signalbit_erp.act_costing ac on so.id_cost = ac.id

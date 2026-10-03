@@ -46,6 +46,24 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
 where tgl_pengeluaran >='$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir' and a.status = 'RETUR'
+group by
+no_sb,
+tgl_pengeluaran,
+concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
+a.po,
+a.barcode,
+ac.kpno,
+sd.color,
+sd.size,
+no_carton,
+a.qty,
+a.notes,
+a.buyer,
+invno,
+remark,
+jenis_dok,
+a.created_at,
+a.created_by
 order by tgl_pengeluaran desc , po asc, color asc, msn.urutan asc
             ");
 
