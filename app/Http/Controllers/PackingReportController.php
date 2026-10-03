@@ -521,18 +521,21 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 UNION ALL
 
             /* ================= PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) ================= */
-                -- SELECT
-                --     id_so_det AS so_det_id,
-                --     0, 0, 0, 0, 0, 0, 0, 0, 0,
-                --     SUM( qty ) AS pc_terima_return,
-                --     0
-                -- FROM signalbit_erp.bppb b
-                --     WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
-                --     AND bppbno_int LIKE '%FG/RO%'
-                --     AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-                --     AND b.id_supplier NOT IN (458 , 927 , 2053)
-                -- GROUP BY
-                --     id_so_det
+                SELECT
+                    id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    SUM( qty ) AS pc_terima_return,
+                    0
+                FROM signalbit_erp.bppb b
+                    WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
+                    AND bppbno_int LIKE '%FG/RO%'
+                    AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    AND b.id_supplier NOT IN (458 , 927 , 2053)
+                    AND bppbdate < '2026-09-01'
+                GROUP BY
+                    id_so_det
+                
+                UNION ALL
 
                 SELECT
                     data.id_so_det AS so_det_id,
@@ -552,6 +555,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
                         left join signalbit_erp.master_size_new msn on sd.size = msn.size
                         where tgl_pengeluaran >='{$tgl_awal}' and tgl_pengeluaran <= '{$tgl_akhir}' and a.status = 'RETUR'
+                        and tgl_pengeluaran >= '2026-09-01'
                         group by
                         no_sb,
                         tgl_pengeluaran,
