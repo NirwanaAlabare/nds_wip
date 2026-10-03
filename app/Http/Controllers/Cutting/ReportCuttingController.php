@@ -9770,7 +9770,7 @@ order by tanggal asc, no_form asc
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                                LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = marker_input.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku < '".$start_date." 00:00:00' ELSE 1=1 END)
+                                LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = marker_input.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku < '".$start_date." 00:00:00' AND pcust.tanggal_berlaku <=  COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) ELSE 1=1 END)
                                 LEFT JOIN form_cut_input_detail_output
                                     ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
                                     AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
