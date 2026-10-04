@@ -112,6 +112,8 @@ class ReportMutasiOutputController extends Controller
                         LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
                         LEFT JOIN laravel_nds.master_part mp on mp.id = pd.master_part_id
                         LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = loading_line_qty.so_det_id
+                        WHERE
+                            (pd.ignore_part IS NULL OR pd.ignore_part < 1)
                         group by
                             so_det_id, mp.nama_part
                     ) loading
@@ -177,6 +179,8 @@ class ReportMutasiOutputController extends Controller
                         LEFT JOIN laravel_nds.part p_com ON p_com.id = pd_com.part_id
                         LEFT JOIN laravel_nds.master_part mp on mp.id = pd.master_part_id
                         LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = loading_line_qty.so_det_id
+                        WHERE
+                            (pd.ignore_part IS NULL OR pd.ignore_part < 1)
                         group by
                             so_det_id, mp.nama_part
                     ) loading
@@ -2079,14 +2083,14 @@ class ReportMutasiOutputController extends Controller
                     COALESCE(ss.qty_reject_in, 0) AS qty_reject_in,
                     COALESCE(ss.qty_rejected, 0) AS qty_rejected,
                     COALESCE(ss.qty_reworked, 0) AS qty_reworked,
-                    COALESCE(ss.qty_reworked_qc) AS qty_reworked_qc,
-                    COALESCE(ss.qty_reworked_secondary) AS qty_reworked_secondary,
-                    COALESCE(ss.qty_reworked_finishing) AS qty_reworked_finishing,
-                    COALESCE(ss.qty_reworked_pasang_kancing) AS qty_reworked_pasang_kancing,
-                    COALESCE(ss.qty_reworked_bartack) AS qty_reworked_bartack,
-                    COALESCE(ss.qty_reworked_heatseal) AS qty_reworked_heatseal,
-                    COALESCE(ss.qty_reworked_snap) AS qty_reworked_snap,
-                    COALESCE(ss.qty_reworked_embro) AS qty_reworked_embro,
+                    COALESCE(ss.qty_reworked_qc, 0) AS qty_reworked_qc,
+                    COALESCE(ss.qty_reworked_secondary, 0) AS qty_reworked_secondary,
+                    COALESCE(ss.qty_reworked_finishing, 0) AS qty_reworked_finishing,
+                    COALESCE(ss.qty_reworked_pasang_kancing, 0) AS qty_reworked_pasang_kancing,
+                    COALESCE(ss.qty_reworked_bartack, 0) AS qty_reworked_bartack,
+                    COALESCE(ss.qty_reworked_heatseal, 0) AS qty_reworked_heatseal,
+                    COALESCE(ss.qty_reworked_snap, 0) AS qty_reworked_snap,
+                    COALESCE(ss.qty_reworked_embro, 0) AS qty_reworked_embro,
                     (
                     COALESCE(su.qty_reject, 0)
                     + COALESCE(qty_reject_in_awal, 0)
@@ -4607,7 +4611,8 @@ class ReportMutasiOutputController extends Controller
             a.color,
             a.size,
 
-            (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN sewing_temp.saldo_awal ELSE SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) END) saldo_awal_sewing,
+            -- (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN sewing_temp.saldo_awal ELSE SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) END) saldo_awal_sewing,
+            SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) saldo_awal_sewing,
             SUM(qty_loading) qty_loading,
             SUM(terima_gudang) terima_gudang,
             SUM(qty_in_subcont) qty_in_subcont,
@@ -4623,14 +4628,15 @@ class ReportMutasiOutputController extends Controller
             SUM(COALESCE(sewing_adjust,0)) sewing_adjust,
             SUM(COALESCE(sewing_switching_in,0)) sewing_switching_in,
             SUM(COALESCE(sewing_switching_out,0)) sewing_switching_out,
-            (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN 
-                sewing_temp.saldo_awal + SUM(qty_loading) + SUM(input_rework_sewing) + SUM(input_rework_mending) + SUM(input_rework_mending)
-                - SUM(defect_sewing) - SUM(defect_spotcleaning) - SUM(defect_mending)
-                + SUM(qty_reworked_qc) - SUM(qty_sew_reject) - SUM(qty_sewing)
-                + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)
-            ELSE 
-                SUM(saldo_akhir_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0) + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)) 
-            END) saldo_akhir_sewing,
+            -- (CASE WHEN '$start_date' >= '2026-10-01' AND sewing_temp.saldo_awal IS NOT NULL THEN
+            --     sewing_temp.saldo_awal + SUM(qty_loading) + SUM(input_rework_sewing) + SUM(input_rework_mending) + SUM(input_rework_mending)
+            --     - SUM(defect_sewing) - SUM(defect_spotcleaning) - SUM(defect_mending)
+            --     + SUM(qty_reworked_qc) - SUM(qty_sew_reject) - SUM(qty_sewing)
+            --     + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)
+            -- ELSE
+            --     SUM(saldo_akhir_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0) + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0))
+            -- END) saldo_akhir_sewing,
+            SUM(saldo_akhir_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0) + COALESCE(sewing_adjust,0) + COALESCE(sewing_switching_in,0) - COALESCE(sewing_switching_out,0)) saldo_akhir_sewing,
             SUM(saldo_awal_finishing + COALESCE(qc_finishing_adjust_before,0) + COALESCE(qc_finishing_switching_in_before,0) - COALESCE(qc_finishing_switching_out_before,0)) saldo_awal_finishing,
             SUM(input_rework_sewing_f) input_rework_sewing_f,
             SUM(input_rework_spotcleaning_f) input_rework_spotcleaning_f,
@@ -4828,7 +4834,7 @@ class ReportMutasiOutputController extends Controller
             0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out,
             qty_transit_keluar_packing_before, qty_transit_keluar_packing
             from query_keluar_packing
-            ) a 
+            ) a
             LEFT JOIN laravel_nds.sewing_temp ON sewing_temp.buyer = a.buyer and sewing_temp.style = a.styleno and sewing_temp.ws = a.ws and sewing_temp.color = a.color and sewing_temp.size = a.size
             GROUP BY a.buyer, a.ws, a.styleno, a.color, a.size
         ";
