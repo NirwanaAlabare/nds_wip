@@ -72,6 +72,30 @@
             $('#tgl-awal').val(sevenDaysAgo.toISOString().slice(0, 10));
         });
 
+        const selectFilterColumns = {
+            16: [
+                { value: '', label: 'Semua' },
+                { value: '1', label: 'Aktif' },
+                { value: '0', label: 'Tidak Aktif' },
+            ],
+        };
+
+        $('#datatable thead tr').first().clone(false).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(index) {
+            const columnTitle = $('#datatable thead tr:first th').eq(index).text().trim();
+
+            if (selectFilterColumns[index]) {
+                const options = selectFilterColumns[index]
+                    .map((option) => `<option value="${option.value}">${option.label}</option>`)
+                    .join('');
+
+                $(this).html(`<select class="form-select form-select-sm" data-column="${index}" aria-label="Filter ${columnTitle}">${options}</select>`);
+                return;
+            }
+
+            $(this).html(`<input type="text" class="form-control form-control-sm" data-column="${index}" placeholder="Filter ${columnTitle}" aria-label="Filter ${columnTitle}">`);
+        });
+
         const datatable = $('#datatable').DataTable({
             processing: true,
             serverSide: true,
@@ -109,6 +133,14 @@
                     className: 'text-nowrap align-middle',
                 },
             ],
+        });
+
+        $('#datatable_wrapper').on('keyup change', '.dataTables_scrollHead thead tr:eq(1) input, .dataTables_scrollHead thead tr:eq(1) select', function() {
+            const columnIndex = Number(this.dataset.column);
+
+            if (datatable.column(columnIndex).search() !== this.value) {
+                datatable.column(columnIndex).search(this.value).draw();
+            }
         });
 
         function dataTableReload() {

@@ -28,11 +28,11 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Dari</label>
+                    <label class="form-label">Dari</label>
                     <input type="date" class="form-control" id="date_from">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Sampai</label>
+                    <label class="form-label">Sampai</label>
                     <input type="date" class="form-control" id="date_to">
                 </div>
                 <div class="col-md-3">
