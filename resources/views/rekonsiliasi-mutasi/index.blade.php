@@ -24,7 +24,7 @@
     <div class="card card-sb">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-balance-scale fa-sm"></i> Rekonsiliasi Mutasi Fabric</h5>
-            <span class="badge bg-secondary">Khusus admin_01</span>
+            <span class="badge bg-secondary">Akses terbatas</span>
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap align-items-end gap-3">

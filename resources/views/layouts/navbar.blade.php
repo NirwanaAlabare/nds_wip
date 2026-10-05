@@ -300,7 +300,7 @@
                                 <a href="{{ route('lap-mutasi-barcode') }}" class="dropdown-item">
                                     Mutasi Barcode
                                 </a>
-                                @if (auth()->check() && auth()->user()->username == 'admin_01')
+                                @if (auth()->check() && in_array(auth()->user()->username, \App\Http\Controllers\RekonsiliasiMutasiController::ALLOWED_USERNAMES, true))
                                     <div class="dropdown-divider"></div>
                                     <a href="{{ route('rekonsiliasi-mutasi') }}" class="dropdown-item">
                                         <i class="fas fa-balance-scale fa-sm"></i> Rekonsiliasi Mutasi
