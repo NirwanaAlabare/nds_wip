@@ -29,6 +29,29 @@
         background-color: #f0f4ff;
         border-color: #0d6efd;
     }
+
+    .navbar-nav .dropdown-menu {
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+    }
+
+    @media (max-width: 767.98px) {
+        /* 1. Izinkan kontainer navbar di HP agar memiliki scroll jika menu melebihi layar */
+        .navbar-collapse {
+            max-height: 75vh !important;
+            overflow-y: auto !important;
+        }
+
+        /* 2. Ubah dropdown dari posisi melayang (absolute) menjadi menyatu (static) */
+        .navbar-nav .dropdown-menu {
+            position: static !important;
+            float: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            background-color: transparent !important;
+            transform: none !important; /* Mencegah style bawaan Bootstrap Popper.js */
+        }
+    }
 </style>
 
 @yield('custom-link')
