@@ -479,7 +479,9 @@ class ReportBcController extends Controller
                 'nama_pengirim' => $row->nama_pengirim ?? '-',
                 'nomor_bpb' => $row->nomor_bpb ?? '-',
                 'tanggal_bpb' => ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-', // TERLEWAT SEBELUMNYA
-                'id_item' => $row->id_item ?? '-',
+                'id_item' => ($row->kategori_barang ?? null) === 'BARANG JADI'
+                    ? ($row->ws ?? $row->kode_brg ?? $row->id_item ?? '-')
+                    : (!empty($row->id_item) ? $row->id_item : ($row->ws ?? $row->kode_brg ?? '-')),
                 'uraian_barang' => $row->uraian_barang ?? '-',
                 'jenis_satuan' => $row->jenis_satuan ?? '-',
                 'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
@@ -550,7 +552,9 @@ class ReportBcController extends Controller
                 'nomor_bpb' => $row->nomor_bpb ?? '-',
                 'ws' => $row->ws ?? '-',
                 'tanggal_bpb' => ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-', // TERLEWAT SEBELUMNYA
-                'id_item' => $row->id_item ?? '-',
+                'id_item' => ($row->kategori_barang ?? null) === 'BARANG JADI'
+                    ? ($row->ws ?? $row->kode_brg ?? $row->id_item ?? '-')
+                    : (!empty($row->id_item) ? $row->id_item : ($row->ws ?? $row->kode_brg ?? '-')),
                 'uraian_barang' => $row->uraian_barang ?? '-',
                 'jenis_satuan' => $row->jenis_satuan ?? '-',
                 'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
