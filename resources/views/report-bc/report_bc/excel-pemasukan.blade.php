@@ -86,11 +86,11 @@ header("Content-Type: application/download");
                     <td>{{ $row->id_item ?? '-' }}</td>
                     <td>{{ $row->uraian_barang ?? '-' }}</td>
                     <td>{{ $row->jenis_satuan ?? '-' }}</td>
-                    <td class="text-right">{{ $row->jumlah_satuan ?? 0 }}</td>
+                    <td class="text-right">{{ \App\Services\ReportBc\ReportBcNumber::format($row->jumlah_satuan ?? 0) }}</td>
                     <td>{{ $row->kode_valuta ?? '-' }}</td>
                     <td class="text-right">{{ $row->nilai_barang ?? 0 }}</td>
                     <td class="text-right">{{ $row->kurs ?? 0 }}</td>
-                    <td class="text-right">{{ $row->nilai_barang_idr ?? 0 }}</td>
+                    <td class="text-right">{{ \App\Services\ReportBc\ReportBcNumber::format($row->nilai_barang_idr ?? 0) }}</td>
                 </tr>
             @empty
                 <tr>

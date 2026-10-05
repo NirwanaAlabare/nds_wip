@@ -484,11 +484,11 @@ class ReportBcController extends Controller
                     : (!empty($row->id_item) ? $row->id_item : ($row->ws ?? $row->kode_brg ?? '-')),
                 'uraian_barang' => $row->uraian_barang ?? '-',
                 'jenis_satuan' => $row->jenis_satuan ?? '-',
-                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'jumlah_satuan' => \App\Services\ReportBc\ReportBcNumber::format($row->jumlah_satuan ?? 0),
                 'kode_valuta' => $row->kode_valuta ?? '-',
                 'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
                 'kurs' => number_format($row->kurs ?? 0, 2),
-                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+                'nilai_barang_idr' => \App\Services\ReportBc\ReportBcNumber::format($row->nilai_barang_idr ?? 0),
                 'id_so_det' => $row->id_so_det,
             ];
         });
@@ -557,11 +557,11 @@ class ReportBcController extends Controller
                     : (!empty($row->id_item) ? $row->id_item : ($row->ws ?? $row->kode_brg ?? '-')),
                 'uraian_barang' => $row->uraian_barang ?? '-',
                 'jenis_satuan' => $row->jenis_satuan ?? '-',
-                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'jumlah_satuan' => \App\Services\ReportBc\ReportBcNumber::format($row->jumlah_satuan ?? 0),
                 'kode_valuta' => $row->kode_valuta ?? '-',
                 'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
                 'kurs' => number_format($row->kurs ?? 0, 2),
-                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+                'nilai_barang_idr' => \App\Services\ReportBc\ReportBcNumber::format($row->nilai_barang_idr ?? 0),
             ];
         });
 
@@ -621,11 +621,11 @@ class ReportBcController extends Controller
                 'id_item' => $row->id_item ?? '-',
                 'uraian_barang' => $row->uraian_barang ?? '-',
                 'jenis_satuan' => $row->jenis_satuan ?? '-',
-                'jumlah_satuan' => number_format($row->jumlah_satuan ?? 0, 2),
+                'jumlah_satuan' => \App\Services\ReportBc\ReportBcNumber::format($row->jumlah_satuan ?? 0),
                 'kode_valuta' => $row->kode_valuta ?? '-',
                 'nilai_barang' => number_format($row->nilai_barang ?? 0, 2),
                 'kurs' => number_format($row->kurs ?? 0, 2),
-                'nilai_barang_idr' => number_format($row->nilai_barang_idr ?? 0, 2),
+                'nilai_barang_idr' => \App\Services\ReportBc\ReportBcNumber::format($row->nilai_barang_idr ?? 0),
             ];
         });
 

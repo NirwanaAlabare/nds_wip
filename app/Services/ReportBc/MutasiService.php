@@ -1065,10 +1065,10 @@ class MutasiService
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
                 'PCS',
-                (float)($row->saldoawal),
-                (float)($row->qtyterima),
-                (float)($row->qtykeluar),
-                (float)($row->saldoakhir),
+                ReportBcNumber::format($row->saldoawal ?? 0),
+                ReportBcNumber::format($row->qtyterima ?? 0),
+                ReportBcNumber::format($row->qtykeluar ?? 0),
+                ReportBcNumber::format($row->saldoakhir ?? 0),
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
@@ -1155,10 +1155,10 @@ class MutasiService
                 $row->product_item ?? '-',
                 // $row->color ?? '-',
                 // $row->size ?? '-',
-                $row->saldoawal ?? '-',
-                $row->qtyterima ?? '-',
-                $row->qtykeluar ?? '-',
-                $row->saldoakhir ?? '-',
+                ReportBcNumber::format($row->saldoawal ?? 0),
+                ReportBcNumber::format($row->qtyterima ?? 0),
+                ReportBcNumber::format($row->qtykeluar ?? 0),
+                ReportBcNumber::format($row->saldoakhir ?? 0),
             ];
 
             $sheet->writeRow($rows, [ 'border' => 'thin', ] );
@@ -1241,13 +1241,13 @@ class MutasiService
                 $row->id_item ?? '-',
                 $row->itemdesc ?? '-',
                 $row->unit ?? '-',
-                number_format($row->saldoawal ?? 0, 2),
-                number_format($row->qtyterima ?? 0, 2),
-                number_format($row->qtykeluar ?? 0, 2),
-                number_format($row->penyesuaian ?? 0, 2),
-                number_format($row->saldoakhir ?? 0, 2),
-                number_format($row->stockopname ?? 0, 2),
-                number_format($row->selisih ?? 0, 2),
+                ReportBcNumber::format($row->saldoawal ?? 0),
+                ReportBcNumber::format($row->qtyterima ?? 0),
+                ReportBcNumber::format($row->qtykeluar ?? 0),
+                ReportBcNumber::format($row->penyesuaian ?? 0),
+                ReportBcNumber::format($row->saldoakhir ?? 0),
+                ReportBcNumber::format($row->stockopname ?? 0),
+                ReportBcNumber::format($row->selisih ?? 0),
                 $row->keterangan ?? '-'
             ];
 
@@ -1333,13 +1333,13 @@ class MutasiService
                 $row->kode_brg ?? '-',
                 $row->nama_brg ?? '-',
                 $row->unit ?? '-',
-                number_format($row->saldo_awal ?? 0, 2),
-                number_format($row->qtyrcv ?? 0, 2),
-                number_format($row->qtyout ?? 0, 2),
-                number_format($row->penyesuaian ?? 0, 2),
-                number_format($row->qty_akhir ?? 0, 2), // Saldo Akhir jadi Saldo Buku
-                number_format($row->stockopname ?? 0, 2),
-                number_format($row->selisih ?? 0, 2),
+                ReportBcNumber::format($row->saldo_awal ?? 0),
+                ReportBcNumber::format($row->qtyrcv ?? 0),
+                ReportBcNumber::format($row->qtyout ?? 0),
+                ReportBcNumber::format($row->penyesuaian ?? 0),
+                ReportBcNumber::format($row->qty_akhir ?? 0), // Saldo Akhir jadi Saldo Buku
+                ReportBcNumber::format($row->stockopname ?? 0),
+                ReportBcNumber::format($row->selisih ?? 0),
                 $row->keterangan ?? '-'
             ];
 
@@ -1425,13 +1425,13 @@ class MutasiService
                 $row->kode_brg ?? '-',
                 $row->nama_brg ?? '-',
                 $row->unit ?? '-',
-                number_format($row->saldo_awal ?? 0, 2),
-                number_format($row->qtyrcv ?? 0, 2),
-                number_format($row->qtyout ?? 0, 2),
-                number_format($row->penyesuaian ?? 0, 2),
-                number_format($row->qty_akhir ?? 0, 2), // Saldo Akhir jadi Saldo Buku
-                number_format($row->stockopname ?? 0, 2),
-                number_format($row->selisih ?? 0, 2),
+                ReportBcNumber::format($row->saldo_awal ?? 0),
+                ReportBcNumber::format($row->qtyrcv ?? 0),
+                ReportBcNumber::format($row->qtyout ?? 0),
+                ReportBcNumber::format($row->penyesuaian ?? 0),
+                ReportBcNumber::format($row->qty_akhir ?? 0), // Saldo Akhir jadi Saldo Buku
+                ReportBcNumber::format($row->stockopname ?? 0),
+                ReportBcNumber::format($row->selisih ?? 0),
                 $row->keterangan ?? '-'
             ];
 
@@ -2547,13 +2547,13 @@ class MutasiService
                 $row->ws ?? '-',             // Kode Brg diisi ws
                 $row->product_item ?? '-',   // Nama Brg diisi product item
                 'PCS',                       // Satuan (hardcode PCS sesuai format web)
-                number_format($row->saldoawal ?? 0, 2),
-                number_format($row->qtyterima ?? 0, 2),
-                number_format($row->qtykeluar ?? 0, 2),
-                number_format($row->penyesuaian ?? 0, 2),
-                number_format($row->saldoakhir ?? 0, 2), // Saldo Buku
-                number_format($row->stockopname ?? 0, 2),
-                number_format($row->selisih ?? 0, 2),
+                ReportBcNumber::format($row->saldoawal ?? 0),
+                ReportBcNumber::format($row->qtyterima ?? 0),
+                ReportBcNumber::format($row->qtykeluar ?? 0),
+                ReportBcNumber::format($row->penyesuaian ?? 0),
+                ReportBcNumber::format($row->saldoakhir ?? 0), // Saldo Buku
+                ReportBcNumber::format($row->stockopname ?? 0),
+                ReportBcNumber::format($row->selisih ?? 0),
                 $row->keterangan ?? '-'
             ];
 
