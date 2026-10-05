@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class RekonsiliasiMutasiController extends Controller
 {
     // User yang boleh membuka menu ini (juga dipakai navbar untuk menampilkan menunya)
-    public const ALLOWED_USERNAMES = ['admin_01', 'tian', 'eva', 'ibrahim'];
+    public const ALLOWED_USERNAMES = ['admin_01', 'tian', 'eva', 'ibrahim','nirwana_it'];
 
     public function __construct()
     {
