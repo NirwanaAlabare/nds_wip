@@ -47,26 +47,38 @@
                     <thead>
                         <tr>
                             <th>Tanggal</th>
+                            <th>Meja</th>
+                            <th>Worksheet</th>
                             <th>Buyer</th>
-                            <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Panel</th>
                             <th>Size</th>
-                            <th>Notes</th>
-                            <th>Marker Pcs</th>
-                            <th>Cutting Pcs</th>
-                            <th>Cutting Diff</th>
+                            <th>Destination</th>
+                            <th>Group</th>
+                            <th>Lot</th>
+                            <th>Cut Number</th>
+                            <th>No Form</th>
+                            <th>No Marker</th>
+                            <th>Panel</th>
+                            <th>Qty Form</th>
+                            <th>Qty Additional</th>
+                            <th>Qty Modify Size</th>
+                            <th>Switching Out</th>
+                            <th>Switching In</th>
+                            <th>Qty Aktual</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="8">Total</th>
-                            <th>Marker Pcs</th>
-                            <th>Cutting Pcs</th>
-                            <th>Cutting Diff</th>
+                            <th colspan="14">Total</th>
+                            <th>Qty Form</th>
+                            <th>Qty Additional</th>
+                            <th>Qty Modify Size</th>
+                            <th>Switching Out</th>
+                            <th>Switching In</th>
+                            <th>Qty Aktual</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -95,25 +107,31 @@
 
             $("#from").val(oneWeeksBeforeFull).trigger("change");
 
-            window.addEventListener("focus", () => {
-                $('#datatable').DataTable().ajax.reload(null, false);
-            });
+            // window.addEventListener("focus", () => {
+            //     $('#datatable').DataTable().ajax.reload(null, false);
+            // });
         });
 
         var listFilter = [
             'tanggal_filter',
-            'buyer_filter',
+            'meja_filter',
             'ws_filter',
+            'buyer_filter',
             'style_filter',
             'color_filter',
-            'panel_filter',
             'size_filter',
-            'notes_filter'
+            'dest_filter',
+            'group_roll_filter',
+            'lot_filter',
+            'no_cut_filter',
+            'no_form_filter',
+            'no_marker_filter',
+            'panel_filter'
         ];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 7) {
+            if (i <= 13) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="' + listFilter[i] +
                 '"/>');
@@ -145,52 +163,56 @@
                     d.dateTo = $('#to').val();
                 },
             },
-            columns: [{
-                    data: 'tgl_form_cut'
-                },
-                {
-                    data: 'buyer'
-                },
-                {
-                    data: 'act_costing_ws'
-                },
-                {
-                    data: 'style'
-                },
-                {
-                    data: 'color'
-                },
-                {
-                    data: 'panel'
-                },
-                {
-                    data: 'size'
-                },
-                {
-                    data: 'notes'
-                },
-                {
-                    data: 'marker_gelar'
-                },
-                {
-                    data: 'form_gelar'
-                },
-                {
-                    data: 'form_diff'
-                },
+            columns: [
+                { data: 'tanggal' },
+                { data: 'meja' },
+                { data: 'worksheet' },
+                { data: 'buyer' },
+                { data: 'style' },
+                { data: 'color' },
+                { data: 'size' },
+                { data: 'dest' },
+                { data: 'group_roll' },
+                { data: 'lot' },
+                { data: 'no_cut' },
+                { data: 'no_form' },
+                { data: 'no_marker' },
+                { data: 'panel' },
+                { data: 'qty_awal' },
+                { data: 'qty_additional' },
+                { data: 'qty_modify_size' },
+                { data: 'qty_switching_out' },
+                { data: 'qty_switching_in' },
+                { data: 'qty' },
             ],
             columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }],
+                    targets: [14, 15, 16, 17, 18, 19],
+                    className: "text-nowrap text-end",
+                    render: (data) => Number(data ?? 0),
+                },
+                {
+                    targets: "_all",
+                    defaultContent: "-",
+                    className: "text-nowrap"
+                }
+            ],
             footerCallback: async function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
 
+                const totalColumns = {
+                    14: 'qty_awal',
+                    15: 'qty_additional',
+                    16: 'qty_modify_size',
+                    17: 'qty_switching_out',
+                    18: 'qty_switching_in',
+                    19: 'qty',
+                };
+
                 $(api.column(0).footer()).html('Total');
-                $(api.column(8).footer()).html("...");
-                $(api.column(9).footer()).html("...");
-                $(api.column(10).footer()).html("...");
+                Object.keys(totalColumns).forEach((index) => {
+                    $(api.column(Number(index)).footer()).html("...");
+                });
 
                 $.ajax({
                     url: 'total-cutting',
@@ -199,24 +221,28 @@
                     data: {
                         'dateFrom': $('#from').val(),
                         'dateTo': $('#to').val(),
-                        'tgl_form_cut': $('#tanggal_filter').val(),
-                        'buyer': $('#buyer_filter').val(),
+                        'tanggal': $('#tanggal_filter').val(),
+                        'meja': $('#meja_filter').val(),
                         'ws': $('#ws_filter').val(),
+                        'buyer': $('#buyer_filter').val(),
                         'style': $('#style_filter').val(),
                         'color': $('#color_filter').val(),
-                        'panel': $('#panel_filter').val(),
                         'size': $('#size_filter').val(),
-                        'notes': $('#notes_filter').val()
+                        'dest': $('#dest_filter').val(),
+                        'group_roll': $('#group_roll_filter').val(),
+                        'lot': $('#lot_filter').val(),
+                        'no_cut': $('#no_cut_filter').val(),
+                        'no_form': $('#no_form_filter').val(),
+                        'no_marker': $('#no_marker_filter').val(),
+                        'panel': $('#panel_filter').val()
                     },
                     success: function(response) {
-                        console.log(response);
-
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(8).footer()).html(response[0]['marker_gelar']);
-                            $(api.column(9).footer()).html(response[0]['form_gelar']);
-                            $(api.column(10).footer()).html(response[0]['form_diff']);
+                            Object.entries(totalColumns).forEach(([index, key]) => {
+                                $(api.column(Number(index)).footer()).html(Number(response[0][key] ?? 0));
+                            });
                         }
                     },
                     error: function(jqXHR) {
