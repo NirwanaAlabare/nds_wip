@@ -415,9 +415,33 @@ class CuttingSwitchingController extends Controller
                 $fromForm = FormCutInput::find($fromOutput->form_cut_input_id);
                 $fromMarkerDetail = MarkerDetail::find($fromOutput->marker_input_detail_id);
 
+                if (!$fromForm || !$fromMarkerDetail) {
+                    DB::rollBack();
+                    return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
+                }
+
+                if (checkClosingDate($fromForm->waktu_selesai)) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Periode sudah ditutup."
+                    );
+                }
+
                 // 2. Ambil data tujuan (Destination)
                 $toForm = FormCutInput::find($transfer["form_cut_id"]);
                 $toMarkerDetail = MarkerDetail::find($transfer["marker_detail_id"]);
+
+                if (!$toForm || !$toMarkerDetail) {
+                    DB::rollBack();
+                    return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
+                }
+
+                if (checkClosingDate($toForm->waktu_selesai)) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Periode sudah ditutup."
+                    );
+                }
 
                 $qty = $transfer["qty"];
 
@@ -489,11 +513,23 @@ class CuttingSwitchingController extends Controller
                     "message" => "Form sudah memiliki Stocker."
                 );
             }
+            if (checkClosingDate($fromForm->waktu_selesai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Periode sudah ditutup."
+                );
+            }
             $checkStockerTo = Stocker::where("form_cut_id", $log->form_cut_input_id_tujuan)->first();
             if ($checkStockerTo) {
                 return array(
                     "status" => 400,
                     "message" => "Form sudah memiliki Stocker."
+                );
+            }
+            if (checkClosingDate($toForm->waktu_selesai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Periode sudah ditutup."
                 );
             }
 
