@@ -953,6 +953,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                         packing_packing_in.id_so_det
                 ) pack_in
                     ON p.id = pack_in.id_ppic_master_so
+                     AND p.id_so_det = pack_in.id_so_det
 
                 LEFT JOIN
                 (
@@ -962,11 +963,6 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                         a.id_so_det
 
                     FROM packing_packing_out_scan a
-
-                    -- INNER JOIN ppic_master_so p
-                    --     ON a.barcode = p.barcode
-                    --     AND a.po = p.po
-                    --     AND a.dest = p.dest
 
                     INNER JOIN ppic_master_so p
                         ON a.barcode = p.barcode
