@@ -2352,7 +2352,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/report-bc/pengeluaran', 'getPengeluaranData')->name('get_pengeluaran_data');
     });
 
-    Route::controller(WipAdjustmentController::class)->prefix("wip-adjustment")->group(function () {
+    Route::controller(WipAdjustmentController::class)->prefix("wip-adjustment")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name("wip-adjustment");
         Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-wip-adjustment');
         Route::post('/import-data', 'importData')->name('import-data-wip-adjustment');
