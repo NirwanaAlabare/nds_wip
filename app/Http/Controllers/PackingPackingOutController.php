@@ -963,10 +963,16 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
 
                     FROM packing_packing_out_scan a
 
+                    -- INNER JOIN ppic_master_so p
+                    --     ON a.barcode = p.barcode
+                    --     AND a.po = p.po
+                    --     AND a.dest = p.dest
+
                     INNER JOIN ppic_master_so p
                         ON a.barcode = p.barcode
                         AND a.po = p.po
                         AND a.dest = p.dest
+                        AND a.id_so_det = p.id_so_det
 
                     WHERE p.barcode = '$barcode'
                     AND p.po = '$cek_dest_po'
