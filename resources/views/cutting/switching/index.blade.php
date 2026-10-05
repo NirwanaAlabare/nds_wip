@@ -32,13 +32,12 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-success btn-sm" id="exportExcel" data-title="Report Log Switching Cutting" data-url="{{ route('export-cutting-switching') }}">
-                    <i class="fa fa-file-excel"></i> Export
-                </button>
-
                 <a href="{{ route('create-cutting-switching') }}" type="button" class="btn btn-sb btn-sm">
                     <i class="fa fa-plus"></i> Buat Switching
                 </a>
+                <button type="button" class="btn btn-success btn-sm" id="exportExcel" data-title="Report Log Switching Cutting" data-url="{{ route('export-cutting-switching') }}">
+                    <i class="fa fa-file-excel"></i> Export
+                </button>
             </div>
         </div>
     </div>

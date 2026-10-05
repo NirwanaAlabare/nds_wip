@@ -150,7 +150,7 @@ class PPIC_MasterSOController extends Controller
         $data_ws = DB::select("select ws isi, ws tampil from
 (select * from ppic_master_so p
 where  $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 group by ws
 order by ws asc");
 
@@ -221,7 +221,7 @@ order by ws asc");
 							ELSE 'Ok'
 					END AS keterangan
             from ppic_master_so_tmp tmp
-            left join master_sb_ws m on tmp.ws = m.ws
+            left join master_sb_ws m on tmp.ws = m.ws and (m.cancel IS NULL OR m.cancel != 'Y')
             and tmp.color = m.color
             and tmp.size = m.size
             and tmp.style = m.styleno
@@ -305,7 +305,7 @@ order by ws asc");
         $timestamp = Carbon::now();
 
         $cek = DB::select("select count(m.id_so_det)tot_avail from ppic_master_so_tmp tmp
-        left join master_sb_ws m on tmp.ws = m.ws
+        left join master_sb_ws m on tmp.ws = m.ws and (m.cancel IS NULL OR m.cancel != 'Y')
         and tmp.color = m.color
         and tmp.size = m.size
         and tmp.style = m.styleno
@@ -339,7 +339,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
                 '$timestamp',
                 tmp.created_by
                 from ppic_master_so_tmp tmp
-                left join master_sb_ws m on tmp.ws = m.ws
+                left join master_sb_ws m on tmp.ws = m.ws and (m.cancel IS NULL OR m.cancel != 'Y')
                                     and tmp.color = m.color
                                     and tmp.size = m.size
                                     and tmp.style = m.styleno
@@ -402,7 +402,7 @@ so_det_id,count(so_det_id) tot_p_line , created_by, created_at
 from output_rfts_packing a
 where created_at >= '$tgl_skrg'
 group by so_det_id, created_by ) a
-left join master_sb_ws m on a.so_det_id = m.id_so_det
+left join master_sb_ws m on a.so_det_id = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 left join
 	(
 	select group_concat(DISTINCT(po)) list_po, id_so_det from ppic_master_so
@@ -440,7 +440,7 @@ order by created_by asc
         a.created_by,
         a.created_at
         FROM ppic_master_so a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        inner join master_sb_ws m on a.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
         left join master_size_new msn on m.size = msn.size
         left join
             (
@@ -492,7 +492,7 @@ order by created_by asc
         $data = DB::select("
         select *,date_format(tgl_kirim, '%Y-%m-%d') tgl_kirim_fix
         from master_sb_ws
-        where tgl_kirim >= '2023-01-01'
+        where tgl_kirim >= '2023-01-01' and (master_sb_ws.cancel IS NULL OR master_sb_ws.cancel != 'Y')
         ");
 
         $excel = FastExcel::create('data');
@@ -576,7 +576,7 @@ order by created_by asc
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
 where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 where m.ws = '" . $request->cbows_edit_tgl . "'
 group by po
 order by po asc
@@ -606,7 +606,7 @@ order by po asc
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
 where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 where m.ws = '" . $request->cbows_hapus . "'
 group by po
 order by po asc
@@ -681,7 +681,7 @@ where po = '$po'
 group by id_ppic_master_so, po
 ) mut
 inner join ppic_master_so a on mut.id_ppic_master_so = a.id
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
+inner join master_sb_ws m on a.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 left join master_size_new msn on m.size = msn.size
 left join (select id,barcode, po, dest from packing_master_packing_list where po = '$po' group by barcode, po, dest) pl on  a.barcode = pl.barcode and a.po = pl.po and a.dest = pl.dest
 group by id_ppic_master_so
@@ -810,7 +810,7 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
 
         $update_tgl = DB::update("
             update ppic_master_so p
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
             set p.tgl_shipment = '$tgl_ubah'
             where p.created_by = '$user' and tgl_shipment >= '$tgl_skrg' and m.ws = '$ws' and po = '$po'
             ");
@@ -832,7 +832,7 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
     {
         $user = Auth::user()->name;
         $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp
-        left join master_sb_ws m on tmp.ws = m.ws
+        left join master_sb_ws m on tmp.ws = m.ws and (m.cancel IS NULL OR m.cancel != 'Y')
         and tmp.color = m.color
         and tmp.size = m.size
         and tmp.style = m.styleno
@@ -858,7 +858,7 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
     {
         $user = Auth::user()->name;
         $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp
-        left join master_sb_ws m on tmp.ws = m.ws
+        left join master_sb_ws m on tmp.ws = m.ws and (m.cancel IS NULL OR m.cancel != 'Y')
         and tmp.color = m.color
         and tmp.size = m.size
         and tmp.style = m.styleno

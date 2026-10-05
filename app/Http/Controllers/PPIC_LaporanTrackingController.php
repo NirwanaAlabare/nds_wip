@@ -1481,7 +1481,7 @@ class PPIC_LaporanTrackingController extends Controller
             m.reff_no,
             bppb.id_so_det, sum(bppb.qty) qty_fg from signalbit_erp.bppb
             left join laravel_nds.master_sb_ws m on bppb.id_so_det = m.id_so_det
-            where bppbno like '%FG%'  and cancel = 'N' and jenis_dok <> 'INHOUSE'
+            where bppbno like '%FG%'  and bppb.cancel = 'N' and jenis_dok <> 'INHOUSE'
             and buyer = '$buyer' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
             GROUP BY
             ws, color, size,styleno_prod, reff_no

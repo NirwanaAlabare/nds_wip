@@ -54,6 +54,9 @@
                                 <th>Style</th>
                                 <th>Color</th>
                                 <th>Panel</th>
+                                <th>Qty Awal</th>
+                                <th>Qty Switching Out</th>
+                                <th>Qty Switching In</th>
                                 <th>Qty Output</th>
                                 <th>Qty Manajemen Roll</th>
                                 <th>Difference</th>
@@ -91,6 +94,9 @@
                 { data: 'style', name: 'style' },
                 { data: 'color', name: 'color' },
                 { data: 'panel', name: 'panel' },
+                { data: 'qty_awal', name: 'qty_awal' },
+                { data: 'qty_switching_out', name: 'qty_switching_out' },
+                { data: 'qty_switching_in', name: 'qty_switching_in' },
                 { data: 'qty_output', name: 'qty_output' },
                 { data: 'qty_manajemen', name: 'qty_manajemen' },
                 {

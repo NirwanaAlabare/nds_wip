@@ -1,0 +1,3 @@
+@echo off
+powershell -NoProfile -Command "$filePath = 'D:\xampp\htdocs\nds_wip\storage\logs\laravel.log'; $outputPath = 'D:\xampp\htdocs\nds_wip\storage\logs\last100mblaravel.log'; $bytesToRead = 100MB; $fs = [System.IO.File]::OpenRead($filePath); if ($fs.Length -gt $bytesToRead) { $fs.Seek(-$bytesToRead, [System.IO.SeekOrigin]::End) } else { $fs.Seek(0, [System.IO.SeekOrigin]::Begin) }; $buffer = New-Object byte[] $bytesToRead; $bytesRead = $fs.Read($buffer, 0, $bytesToRead); $fs.Close(); [System.IO.File]::WriteAllBytes($outputPath, $buffer[0..($bytesRead-1)]); Write-Host 'Done extracting last 100MB!'"
+pause

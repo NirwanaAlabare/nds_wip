@@ -262,7 +262,7 @@
                             <th rowspan="2" class="align-middle">Jumlah</th>
                             <th rowspan="2" class="align-middle">Sat</th>
                             <th rowspan="2" class="align-middle">Val</th>
-                            <th rowspan="2" class="align-middle">Nilai</th>
+                            <th rowspan="2" class="align-middle">Nilai (IDR)</th>
                             <th rowspan="2" class="align-middle">Kategori</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
@@ -316,7 +316,7 @@
                     { data: 'jumlah_satuan', className: 'text-right font-weight-bold' },
                     { data: 'jenis_satuan', className: 'text-center' },
                     { data: 'kode_valuta', className: 'text-center' },
-                    { data: 'nilai_barang', className: 'text-right font-weight-bold' },
+                    { data: 'nilai_barang_idr', className: 'text-right font-weight-bold' },
                     { data: 'kategori_barang' },
                     { data: 'keterangan', defaultContent: '-' }
                 ]

@@ -48,7 +48,10 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>No. Form</th>
-                            <th>Output</th>
+                            <th>Qty Awal</th>
+                            <th>Switching Out</th>
+                            <th>Switching In</th>
+                            <th>Qty Output</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -159,6 +162,15 @@
                 },
                 {
                     data: 'no_form'
+                },
+                {
+                    data: 'qty_awal'
+                },
+                {
+                    data: 'qty_switching_out'
+                },
+                {
+                    data: 'qty_switching_in'
                 },
                 {
                     data: 'qty_aktual'

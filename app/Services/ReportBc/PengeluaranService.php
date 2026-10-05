@@ -723,7 +723,7 @@ class PengeluaranService
             ";
         }
 
-        // 2. FABRIC
+        // FABRIC
         if (in_array($kategori, ['all', 'fabric'])) {
             $queries[] = "
                 SELECT
@@ -781,7 +781,7 @@ class PengeluaranService
             ";
         }
 
-        // ACCESORIES / OTHER
+        // ACCESORIES
         if (in_array($kategori, ['all', 'accesories'])) {
             $whereMatclass = "";
             if ($kategori !== 'all') {
@@ -854,10 +854,8 @@ class PengeluaranService
             return collect([]);
         }
 
-        // Gabungkan seluruh array query
         $unionSql = implode("\n UNION ALL \n", $queries);
 
-        // Final Wrapper menggunakan CTE sama seperti Pemasukan
         $finalSql = "
             WITH mr AS (
                 SELECT tanggal, curr, rate
@@ -922,7 +920,7 @@ class PengeluaranService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            'a.qty',
+            DB::raw("ROUND(IFNULL(a.qty, 0)) as qty"),
             'a.curr',
             DB::raw("ROUND(a.qty * a.price, 2) as nilai_barang"),
             DB::raw("ROUND(a.qty * a.price, 2) as nilai_cmt"),
@@ -940,17 +938,24 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select(array_merge(
                     $selectCommon(
-                        "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                        "s.itemname",
+                        "ac.kpno",
+                        "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
                         "'BARANG JADI'",
-                        "s.id_item"
+                        "a.id_item"
                     ),
                     [DB::raw("$wsExpr as ws")]
                 ));
@@ -1121,7 +1126,7 @@ class PengeluaranService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            'a.qty',
+            DB::raw("ROUND(IFNULL(a.qty, 0)) as qty"),
             'a.curr',
             DB::raw("ROUND(a.qty * a.price, 2) as nilai_barang"),
             DB::raw("ROUND(a.qty * a.price, 2) as nilai_cmt"),
@@ -1144,16 +1149,23 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
                 ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
-                    "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                    "s.itemname",
+                    "ac.kpno",
+                    "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
                     "'BARANG JADI'",
-                    "s.id_item"
+                    "a.id_item"
                 ));
 
             $barangJadi = $mysql_sb->table(DB::raw("({$queryBarangJadi->toSql()}) as a"))
@@ -1313,8 +1325,7 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.bcno', '!=', '-')
-                ->where('a.cancel', 'N')
+            $query->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.1');
         };
 
@@ -1333,10 +1344,10 @@ class PengeluaranService
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.satuan), ''), a.unit) as unit"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.qty), ''), a.qty) as qty"),
+            'a.unit',
+            DB::raw("ROUND(IFNULL(NULLIF(TRIM(a.qty), ''), 0)) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(a.price) * IFNULL(NULLIF(TRIM(a.qty), ''), a.qty), 2) as nilai_barang"),
+            DB::raw("ROUND(ROUND(a.price) * IFNULL(NULLIF(TRIM(a.qty), ''), 0), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass")
         ];
@@ -1351,17 +1362,23 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 1) != 'P'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select(array_merge(
                     $selectCommon(
-                        "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                        "s.itemname",
-                        "s.id_item",
+                        "ac.kpno",
+                        "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
+                        "a.id_item",
                         "'BARANG JADI'"
                     ),
                     [DB::raw("$wsExpr as ws")]
@@ -1393,7 +1410,7 @@ class PengeluaranService
                     DB::raw("GROUP_CONCAT(DISTINCT a.itemdesc ORDER BY a.itemdesc SEPARATOR ', ') as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1463,7 +1480,7 @@ class PengeluaranService
                     DB::raw("MAX(a.itemdesc) as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1488,8 +1505,7 @@ class PengeluaranService
         $mysql_sb = DB::connection('mysql_sb');
 
         $baseFilter = function ($query) {
-            $query->where('a.bcno', '!=', '-')
-                ->where('a.cancel', 'N')
+            $query->where('a.cancel', 'N')
                 ->where('a.jenis_dok', 'BC 2.6.2');
         };
 
@@ -1508,10 +1524,10 @@ class PengeluaranService
             'd.supplier',
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.satuan), ''), a.unit) as unit"),
-            DB::raw("IFNULL(NULLIF(TRIM(a.qty), ''), a.qty) as qty"),
+            'a.unit',
+            DB::raw("ROUND(IFNULL(NULLIF(TRIM(a.qty), ''), 0)) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(a.price) * IFNULL(NULLIF(TRIM(a.qty), ''), a.qty), 2) as nilai_barang"),
+            DB::raw("ROUND(ROUND(a.price) * IFNULL(NULLIF(TRIM(a.qty), ''), 0), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass")
         ];
@@ -1526,17 +1542,23 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
-                ->whereRaw("SUBSTRING(a.bppbno, 4, 1) != 'P'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select(array_merge(
                     $selectCommon(
-                        "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                        "s.itemname",
-                        "s.id_item",
+                        "ac.kpno",
+                        "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
+                        "a.id_item",
                         "'BARANG JADI'"
                     ),
                     [DB::raw("$wsExpr as ws")]
@@ -1568,7 +1590,7 @@ class PengeluaranService
                     DB::raw("GROUP_CONCAT(DISTINCT a.itemdesc ORDER BY a.itemdesc SEPARATOR ', ') as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1638,7 +1660,7 @@ class PengeluaranService
                     DB::raw("MAX(a.itemdesc) as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1678,9 +1700,9 @@ class PengeluaranService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(a.qty * a.price)), 2) as nilai_barang"),
+            DB::raw("ROUND(SUM(a.qty * a.price), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass"),
             DB::raw("$wsExpr as ws")
@@ -1696,19 +1718,27 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.jenis_dok', 'BC 2.7')
-                ->whereRaw("a.cancel != 'Y'")
+                ->where('a.cancel', 'N')
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->where('a.bppbno_int', 'like', 'FG%')
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
+                ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN'])
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->select($selectCommon(
-                    "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                    "s.itemname",
-                    "s.id_item",
+                    "ac.kpno",
+                    "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
+                    "a.id_item",
                     "'BARANG JADI'"
                 ))
-                ->groupBy('a.bcno', 'a.bppbno', 's.goods_code', 's.itemname', 'a.price');
+                ->groupBy('a.bcno', 'a.bppbno', 'ac.kpno', 'msp.product_item', 'ac.styleno', 'a.price', 'a.remark', 'a.tujuan');
 
             $barangJadiDetail = $mysql_sb->table(DB::raw("({$queryBarangJadi->toSql()}) as a"))
                 ->mergeBindings($queryBarangJadi)
@@ -1736,7 +1766,7 @@ class PengeluaranService
                     DB::raw("GROUP_CONCAT(DISTINCT a.itemdesc ORDER BY a.itemdesc SEPARATOR ', ') as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1763,7 +1793,8 @@ class PengeluaranService
                 ->join('mastercontents as mcnt', 'swd.id_contents', '=', 'mcnt.id')
                 ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where('a.jenis_dok', 'BC 2.7')
-                ->whereRaw("a.cancel != 'Y'")
+                ->where('a.cancel', 'N')
+                ->whereNotIn('a.tujuan', ['DIKEMBALIKAN', 'DISUBKONTRAKKAN'])
                 ->where('a.bppbno_int', 'not like', 'FG%')
                 ->whereBetween($dateField, [$fromDate, $toDate]);
 
@@ -1807,7 +1838,7 @@ class PengeluaranService
                     DB::raw("MAX(a.itemdesc) as uraian_barang"),
                     DB::raw("MAX(a.unit) as unit"),
                     DB::raw("MAX(a.unit) as jenis_satuan"),
-                    DB::raw("SUM(a.qty) as qty"),
+                    DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
                     DB::raw("SUM(a.qty) as jumlah_satuan"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as curr"),
                     DB::raw("GROUP_CONCAT(DISTINCT a.curr) as kode_valuta"),
@@ -1853,9 +1884,9 @@ class PengeluaranService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(a.qty * a.price)), 2) as nilai_barang"),
+            DB::raw("ROUND(SUM(a.qty * a.price), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass"),
             DB::raw("$wsExpr as ws")
@@ -1976,9 +2007,9 @@ class PengeluaranService
             DB::raw("$kodeBrgExpr as kode_brg"),
             DB::raw("$itemdescExpr as itemdesc"),
             'a.unit',
-            DB::raw("SUM(a.qty) as qty"),
+            DB::raw("SUM(ROUND(IFNULL(a.qty, 0))) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(a.qty * a.price)), 2) as nilai_barang"),
+            DB::raw("ROUND(SUM(a.qty * a.price), 2) as nilai_barang"),
             DB::raw("$idContentsExpr as id_contents"),
             DB::raw("$matclassExpr as matclass"),
             DB::raw("$wsExpr as ws")
@@ -2066,18 +2097,25 @@ class PengeluaranService
 
         if (in_array($kategori, ['all', 'barang_jadi', 'barang jadi'])) {
             $queryBarangJadi = $mysql_sb->table('bppb as a')
-                ->join('masterstyle as s', 'a.id_item', '=', 's.id_item')
-                ->join('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
+                ->join('so_det as sd', 'a.id_so_det', '=', 'sd.id')
+                ->join('so', 'sd.id_so', '=', 'so.id')
+                ->join('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->leftJoin('masterproduct as msp', 'ac.id_product', '=', 'msp.id')
+                ->leftJoin('mastersupplier as d', 'a.id_supplier', '=', 'd.id_supplier')
                 ->where($baseFilter)
+                ->where('so.cancel_h', 'N')
+                ->where('ac.aktif', 'Y')
+                ->where('sd.cancel', 'N')
                 ->whereBetween($dateField, [$fromDate, $toDate])
                 ->whereRaw("a.bppbno_int LIKE 'FG%'")
+                ->whereRaw("IFNULL(d.supplier, '') != 'BARANG JADI STOCK'")
                 ->select($selectCommon(
-                    "IF(s.goods_code != '' AND s.goods_code != '-' AND s.goods_code != '0', s.goods_code, CONCAT('FG ', s.id_item))",
-                    "s.itemname",
-                    "s.id_item",
+                    "ac.kpno",
+                    "CONCAT_WS(' - ', msp.product_item, ac.styleno)",
+                    "a.id_item",
                     "'BARANG JADI'"
                 ))
-                ->groupBy('a.bcno', 'a.bppbno', 's.goods_code', 's.itemname', 'a.price', 'a.remark', 'a.tujuan');
+                ->groupBy('a.bcno', 'a.bppbno', 'ac.kpno', 'msp.product_item', 'ac.styleno', 'a.price', 'a.remark', 'a.tujuan');
 
             $barangJadiDetail = $mysql_sb->table(DB::raw("({$queryBarangJadi->toSql()}) as a"))
                 ->mergeBindings($queryBarangJadi)
@@ -2274,7 +2312,7 @@ class PengeluaranService
             'Jumlah',
             'Sat',
             'Val',
-            'Nilai',
+            'Nilai (IDR)',
             'Kategori',
             'Keterangan'
         ],
@@ -2335,7 +2373,7 @@ class PengeluaranService
                 (float) ($row->jumlah_satuan ?? 0),
                 $row->jenis_satuan ?? '-',
                 $row->kode_valuta ?? '-',
-                (float) ($row->nilai_barang ?? 0),
+                (float) ($row->nilai_barang_idr ?? 0),
                 $row->kategori_barang ?? '-',
                 $row->keterangan ?? '-'
             ];
@@ -2384,7 +2422,7 @@ class PengeluaranService
             'a.unit',
             DB::raw("SUM(a.qty) as qty"),
             DB::raw("IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr"),
-            DB::raw("ROUND(SUM(a.qty * a.price)), 2) as nilai_barang"),
+            DB::raw("ROUND(SUM(a.qty * a.price), 2) as nilai_barang"),
             DB::raw("$idItemExpr as id_item"),
             DB::raw("$matclassExpr as matclass"),
         ];
