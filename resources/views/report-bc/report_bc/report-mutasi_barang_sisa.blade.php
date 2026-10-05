@@ -100,13 +100,13 @@
                                     <td>{{ $row->kode_brg ?? '-' }}</td>
                                     <td>{{ $row->nama_brg ?? '-' }}</td>
                                     <td class="text-center">{{ $row->unit ?? '-' }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->saldo_awal ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyrcv ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->qtyout ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->penyesuaian ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->qty_akhir ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->stockopname ?? 0, 2) }}</td>
-                                    <td class="text-right font-weight-bold">{{ number_format($row->selisih ?? 0, 2) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->saldo_awal ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->qtyrcv ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->qtyout ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->penyesuaian ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->qty_akhir ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->stockopname ?? 0) }}</td>
+                                    <td class="text-right font-weight-bold">{{ \App\Services\ReportBc\ReportBcNumber::format($row->selisih ?? 0) }}</td>
                                     <td>{{ $row->keterangan ?? '-' }}</td>
                                 </tr>
                             @endforeach

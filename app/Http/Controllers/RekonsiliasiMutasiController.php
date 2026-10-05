@@ -8,12 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class RekonsiliasiMutasiController extends Controller
 {
+    // User yang boleh membuka menu ini (juga dipakai navbar untuk menampilkan menunya)
+    public const ALLOWED_USERNAMES = ['admin_01', 'tian', 'eva', 'ibrahim'];
+
     public function __construct()
     {
-        // Menu ini khusus user admin_01
         $this->middleware(function ($request, $next) {
-            if (optional(Auth::user())->username !== 'admin_01') {
-                abort(403, 'Menu Rekonsiliasi Mutasi khusus user admin_01.');
+            if (!in_array(optional(Auth::user())->username, self::ALLOWED_USERNAMES, true)) {
+                abort(403, 'Anda tidak punya akses ke menu Rekonsiliasi Mutasi.');
             }
 
             return $next($request);

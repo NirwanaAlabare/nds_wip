@@ -605,7 +605,7 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export', 'export')->name('export');
     });
 
-    //rekonsiliasi mutasi (khusus admin_01, dicek di controller)
+    //rekonsiliasi mutasi (akses terbatas, daftar user di RekonsiliasiMutasiController::ALLOWED_USERNAMES)
     Route::controller(RekonsiliasiMutasiController::class)->prefix("rekonsiliasi-mutasi")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('rekonsiliasi-mutasi');
         Route::get('/hitung', 'hitung')->name('rekonsiliasi-mutasi-hitung');
