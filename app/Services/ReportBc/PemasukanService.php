@@ -1592,7 +1592,7 @@ class PemasukanService
             'Jumlah',
             'Sat',
             'Val',
-            'Nilai',
+            'Nilai (IDR)',
             'Kategori',
             'Keterangan'
         ],
@@ -1653,7 +1653,7 @@ class PemasukanService
                 (float) ($row->jumlah_satuan ?? 0),
                 $row->jenis_satuan ?? '-',
                 $row->kode_valuta ?? '-',
-                (float) ($row->nilai_barang ?? 0),
+                (float) ($row->nilai_barang_idr ?? 0),
                 $row->kategori_barang ?? '-',
                 $row->keterangan ?? '-'
             ];
