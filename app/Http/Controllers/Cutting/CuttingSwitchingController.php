@@ -59,13 +59,13 @@ class CuttingSwitchingController extends Controller
                         form_cut_input_detail_output_logs.is_active like '%".$request->search['value']."%' OR
                         form_cut_input_detail_output_logs.created_by like '%".$request->search['value']."%' OR
                         form_cut_input_detail_output_logs.created_at like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.updated_at like '%".$request->search['value']."%' 
+                        form_cut_input_detail_output_logs.updated_at like '%".$request->search['value']."%'
                     )
                 ";
             }
 
             $data_spreading = DB::select("
-                select 
+                select
                     form_cut_input_detail_output_logs.group_roll_asal,
                     form_asal.no_form no_form_asal,
                     DATE(form_asal.waktu_selesai) tanggal_form_asal,
@@ -86,21 +86,21 @@ class CuttingSwitchingController extends Controller
                     form_cut_input_detail_output_logs.created_by,
                     form_cut_input_detail_output_logs.created_at,
                     form_cut_input_detail_output_logs.updated_at
-                from 
+                from
                     form_cut_input_detail_output_logs
                     LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
-                    LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id 
+                    LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                     LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
                     LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
                     LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
-                    LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id 
+                    LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                     LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
                     LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
-                where 
+                where
                     form_cut_input_detail_output_logs.id is not null
                     ".$additionalQuery."
                     ".$keywordQuery."
-                group by 
+                group by
                     form_cut_input_detail_output_logs.id
             ");
 
@@ -212,7 +212,7 @@ class CuttingSwitchingController extends Controller
 
         return view('cutting.switching.switching', ["page" => "dashboard-cutting"]);
     }
-    
+
     public function show($id = 0) {
         $form = FormCutInput::where("id", $id)->first();
 
@@ -292,6 +292,13 @@ class CuttingSwitchingController extends Controller
                 return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
             }
 
+            if (checkClosingDate($fromForm->waktu_selesai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Periode sudah ditutup."
+                );
+            }
+
             // 2. Ambil data tujuan (Destination)
             $toForm = FormCutInput::find($validatedRequest["form_cut_id"]);
             $toMarkerDetail = MarkerDetail::find($validatedRequest["marker_detail_id"]);
@@ -299,6 +306,13 @@ class CuttingSwitchingController extends Controller
             if (!$toForm || !$toMarkerDetail) {
                 DB::rollBack();
                 return response()->json(["status" => 404, "message" => "Data tujuan tidak ditemukan"], 404);
+            }
+
+            if (checkClosingDate($toForm->waktu_selesai)) {
+                return array(
+                    "status" => 400,
+                    "message" => "Periode sudah ditutup."
+                );
             }
 
             $qty = $validatedRequest["qty"];
@@ -567,7 +581,7 @@ class CuttingSwitchingController extends Controller
 
         // 2. Eksekusi SQL Query
         $data_spreading = DB::select("
-            select 
+            select
                 form_cut_input_detail_output_logs.group_roll_asal,
                 form_asal.no_form no_form_asal,
                 DATE(form_asal.waktu_selesai) tanggal_form_asal,
@@ -588,21 +602,21 @@ class CuttingSwitchingController extends Controller
                 form_cut_input_detail_output_logs.created_by,
                 form_cut_input_detail_output_logs.created_at,
                 form_cut_input_detail_output_logs.updated_at
-            from 
+            from
                 form_cut_input_detail_output_logs
                 LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
-                LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id 
+                LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                 LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
                 LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
                 LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
-                LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id 
+                LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                 LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
                 LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
-            where 
+            where
                 form_cut_input_detail_output_logs.id is not null
                 ".$additionalQuery."
                 ".$keywordQuery."
-            group by 
+            group by
                 form_cut_input_detail_output_logs.id
         ");
 
