@@ -26,11 +26,11 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-3">
-                        <label>Tanggal Dari</label>
+                        <label>Dari</label>
                         <input type="date" id="dateFrom" class="form-control" value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="col-md-3">
-                        <label>Tanggal Sampai</label>
+                        <label>Sampai</label>
                         <input type="date" id="dateTo" class="form-control" value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="col-md-3 d-flex align-items-end">

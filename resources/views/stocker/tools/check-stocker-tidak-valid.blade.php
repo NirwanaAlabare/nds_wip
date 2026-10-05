@@ -23,11 +23,11 @@
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Dari</label>
+                    <label class="form-label">Dari</label>
                     <input type="date" class="form-control" id="date_from" value="{{ date('Y-m-d', strtotime('-30 days')) }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Sampai</label>
+                    <label class="form-label">Sampai</label>
                     <input type="date" class="form-control" id="date_to" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="col-md-3 d-flex gap-2">
