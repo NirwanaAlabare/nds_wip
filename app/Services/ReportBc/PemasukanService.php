@@ -553,6 +553,7 @@ class PemasukanService
     {
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
+        $tglFilterSup = '2024-01-01';
 
         // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
@@ -576,7 +577,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(a.price * a.qty, 2) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -621,7 +622,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
-                    SUM(wd.qty_good) as qty,
+                    SUM(ROUND(IFNULL(wd.qty_good, 0))) as qty,
                     '-' as curr,
                     0 as nilai_barang,
                     0 as berat_bersih,
@@ -661,7 +662,7 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -684,11 +685,8 @@ class PemasukanService
                 AND sod.cancel = 'N'
                 AND a.jenis_dok = 'BC 2.3'
                 AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
-                AND a.invno NOT LIKE '%PJT%'
-                AND a.invno NOT LIKE '%PIB%'
-                AND a.invno NOT LIKE '%PIBK%'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
@@ -755,6 +753,7 @@ class PemasukanService
     {
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
+        $tglFilterSup = '2024-01-01';
 
         // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
@@ -778,7 +777,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -820,7 +819,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
-                    SUM(wd.qty_good) as qty,
+                    SUM(ROUND(IFNULL(wd.qty_good, 0))) as qty,
                     '-' as curr,
                     0 as nilai_barang,
                     0 as berat_bersih,
@@ -860,7 +859,7 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -883,9 +882,8 @@ class PemasukanService
                 AND sod.cancel = 'N'
                 AND a.jenis_dok = 'BC 2.6.2'
                 AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
-                AND d.supplier != 'BARANG JADI STOCK'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
@@ -952,6 +950,7 @@ class PemasukanService
     {
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
+        $tglFilterSup = '2024-01-01';
 
         // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
@@ -975,7 +974,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -1017,7 +1016,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
-                    SUM(wd.qty_good) as qty,
+                    SUM(ROUND(IFNULL(wd.qty_good, 0))) as qty,
                     '-' as curr,
                     0 as nilai_barang,
                     0 as berat_bersih,
@@ -1057,7 +1056,7 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -1080,9 +1079,8 @@ class PemasukanService
                 AND sod.cancel = 'N'
                 AND a.jenis_dok = 'BC 4.0'
                 AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
-                AND d.supplier != 'BARANG JADI STOCK'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
@@ -1149,6 +1147,7 @@ class PemasukanService
     {
         $kategori = strtolower(trim($kategoriBarang));
         $queries = [];
+        $tglFilterSup = '2024-01-01';
 
         // Accessories
         if (in_array($kategori, ['all', 'accesories', 'accessories', 'sample', 'bahan baku', 'bahan_baku'])) {
@@ -1172,7 +1171,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -1193,7 +1192,6 @@ class PemasukanService
                 LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
                 WHERE a.cancel = 'N'
                 AND a.jenis_dok = 'BC 2.7'
-                AND a.tujuan NOT REGEXP 'SUBKON'
                 AND a.bpbno_int NOT LIKE 'FG%'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
                 AND NOT (IFNULL(a.jenis_dok, '') = 'INHOUSE' AND s.matclass = 'SAMPLE')
@@ -1215,7 +1213,7 @@ class PemasukanService
                     mcnt.kode_contents as kode_brg,
                     s.itemdesc as itemdesc,
                     wd.unit as unit,
-                    SUM(wd.qty_good) as qty,
+                    SUM(ROUND(IFNULL(wd.qty_good, 0))) as qty,
                     '-' as curr,
                     0 as nilai_barang,
                     0 as berat_bersih,
@@ -1255,7 +1253,7 @@ class PemasukanService
                     ac.kpno as kode_brg,
                     CONCAT_WS(' - ', mp.product_item, ac.styleno) AS itemdesc,
                     a.unit,
-                    SUM(IF(a.qty = 0, IFNULL(a.qty_temp, 0), a.qty)) as qty,
+                    SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
                     SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
@@ -1277,11 +1275,9 @@ class PemasukanService
                 AND ac.aktif = 'Y'
                 AND sod.cancel = 'N'
                 AND a.jenis_dok = 'BC 2.7'
-                AND a.tujuan NOT REGEXP 'SUBKON'
                 AND a.bpbno_int LIKE 'FG%'
-                AND a.id_supplier NOT IN ('1038', '1039')
-                AND d.supplier != 'BARANG JADI STOCK'
                 AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                AND (a.bpbdate < '$tglFilterSup' OR a.id_supplier NOT IN ('1038', '1039'))
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
