@@ -3,6 +3,9 @@
 
 <table>
     @php
+        $totalAwal = 0;
+        $totalSwitchingOut = 0;
+        $totalSwitchingIn = 0;
         $totalOutput = 0;
 
         $currentMeja = "";
@@ -27,6 +30,9 @@
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">COLOR</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">PANEL</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">NO. FORM</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">OUTPUT AWAL</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">SWITCHING OUT</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">SWITCHING IN</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">OUTPUT</th>
     </tr>
     @foreach ($reportCutting as $cutting)
@@ -45,15 +51,24 @@
             <td>{{ $cutting->color }}</td>
             <td>{{ $cutting->panel }}</td>
             <td>{{ $cutting->no_form }}</td>
+            <td>{{ $cutting->qty_awal }}</td>
+            <td>{{ $cutting->qty_switching_out }}</td>
+            <td>{{ $cutting->qty_switching_in }}</td>
             <td>{{ $cutting->qty_aktual }}</td>
             @php
+                $totalAwal += $cutting->qty_awal;
+                $totalSwitchingOut += $cutting->qty_switching_out;
+                $totalSwitchingIn += $cutting->qty_switching_in;
                 $totalOutput += $cutting->qty_aktual;
             @endphp
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: bold;" colspan="7">TOTAL</th>
-        <th style="font-weight: bold;" colspan="2">{{ $totalOutput }}</th>
+        <th style="font-weight: bold;" colspan="8">TOTAL</th>
+        <th style="font-weight: bold;">{{ $totalAwal }}</th>
+        <th style="font-weight: bold;">{{ $totalSwitchingOut }}</th>
+        <th style="font-weight: bold;">{{ $totalSwitchingIn }}</th>
+        <th style="font-weight: bold;">{{ $totalOutput }}</th>
     </tr>
 </table>
 
