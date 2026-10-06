@@ -73,7 +73,8 @@ class SwitchingController extends Controller
 
     public function store(Request $request)
     {
-        $connection = $request->source == 'NDS' ? 'mysql' : 'mysql_sb';
+        // $connection = $request->source == 'NDS' ? 'mysql' : 'mysql_sb';
+        $connection = 'mysql';
 
         DB::connection($connection)
             ->table('wip_switching_adj')

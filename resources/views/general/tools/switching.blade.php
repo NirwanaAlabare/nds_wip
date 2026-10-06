@@ -133,10 +133,11 @@
             </div>
             <div class="col-12 col-md-2">
                 <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                    <select class="form-select w-auto mb-3" name="source" id="source">
+                    {{-- <select class="form-select w-auto mb-3" name="source" id="source">
                         <option value="NDS">NDS</option>
                         <option value="SignalBit">SignalBit</option>
-                    </select>
+                    </select> --}}
+                    <input type="hidden" value="NDS" name="source" id="source" readonly>
                     <select class="form-select w-auto mb-3" name="type_report" id="type_report">
                         <option value="CUTTING">CUTTING</option>
                         <option value="DC">DC</option>
@@ -233,13 +234,14 @@
                     <label class="form-label"><small>Tanggal Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
-                <div>
-                    <label class="form-label"><small>Source</small></label>
-                    <select name="source_list" id="source_list" class="form-control form-control-sm" style="width: 150px;">
+                {{-- <div> --}}
+                    {{-- <label class="form-label"><small>Source</small></label> --}}
+                    {{-- <select name="source_list" id="source_list" class="form-control form-control-sm" style="width: 150px;">
                         <option value="NDS">NDS</option>
                         <option value="SignalBit">SignalBit</option>
-                    </select>
-                </div>
+                    </select> --}}
+                    <input type="hidden" id="source_list" value="NDS">
+                {{-- </div> --}}
                 <div>
                     <button class="btn btn-primary btn-sm" onclick="listTableReload()"> <i class="fa fa-search"></i> </button>
                 </div>
