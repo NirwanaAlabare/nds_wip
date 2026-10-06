@@ -25,43 +25,56 @@ class Marketing_CostingController extends Controller
             $tgl_akhir = $request->tgl_akhir;
             $db = DB::connection('mysql_sb');
 
-            $data = $db->table('act_costing_new as a')
-                ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
-                ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
+            $data = $db->table('act_costing as a')
+                ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+                ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
                 ->select(
                     'a.id',
-                    'a.no_costing',
-                    'a.created_at',
+                    'a.cost_no',
+                    'a.cost_date',
+                    'a.deldate',
                     'b.Supplier as nama_buyer',
                     'a.brand',
-                    'a.season_id',
-                    'a.style',
-                    'a.marketing_order',
-                    'a.product_group',
-                    'a.product_item',
+                    'a.styleno',
+                    'a.mkt_order',
+                    'p.product_group',
+                    'p.product_item',
                     'a.main_dest',
                     'a.market',
                     'a.qty',
-                    'a.confirm_price',
+                    'a.cfm_price',
                     'p.product_group as product_group_text',
                     'p.product_item as product_item_text'
                 )->orderBy('a.id', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
-                $data->whereDate('a.created_at', '>=', $tgl_awal)
-                     ->whereDate('a.created_at', '<=', $tgl_akhir);
+                $data->whereDate('a.cost_date', '>=', $tgl_awal)
+                     ->whereDate('a.cost_date', '<=', $tgl_akhir);
+            }
+
+            if ($request->filled('buyers')) {
+                $data->whereIn('b.Id_Supplier', (array) $request->buyers);
             }
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('tgl_costing', function ($row) {
-                    return $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '-';
+                    return $row->cost_date ? date('d-m-Y', strtotime($row->cost_date)) : '-';
+                })
+                ->addColumn('due_date', function ($row) {
+                    return $row->deldate ? date('d M Y', strtotime($row->deldate)) : '-';
                 })
                 ->make(true);
         }
 
+        $buyers = DB::connection('mysql_sb')->table('mastersupplier')
+            ->select('Id_Supplier as id', 'Supplier as name')
+            ->where('tipe_sup', 'C')
+            ->orderBy('Supplier')
+            ->get();
 
         return view('marketing.costing.index', [
+            'buyers'               => $buyers,
             'containerFluid'       => true,
             'page' => 'dashboard-marketing',
             "subPageGroup" => "marketing-master",
@@ -136,197 +149,338 @@ class Marketing_CostingController extends Controller
 
     public function store(Request $request)
     {
-        $ym = date('ym');
+        $request->validate([
+            'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
+            'product_item' => ['required', 'exists:mysql_sb.masterproduct,id'],
+            'ship_mode' => ['required', 'exists:mysql_sb.mastershipmode,id'],
+            'curr' => ['required', 'exists:mysql_sb.masterpilihan,id'],
+            'qty_planned' => ['required', 'numeric', 'min:0'],
+            'qty' => ['required', 'numeric', 'min:0'],
+            'smv' => ['required', 'numeric', 'min:0'],
+            'deldate' => ['required', 'date'],
+            'upload_foto' => ['sometimes', 'array'],
+            'upload_foto.*' => ['image', 'max:10240'],
+        ]);
 
         $db = DB::connection('mysql_sb');
         $now = now();
+        $insertId = $db->transaction(function () use ($db, $request, $now) {
+            $numbers = $this->generateCostingNumbers($request->buyer, $now);
+            $currency = $db->table('masterpilihan')
+                ->where('id', $request->curr)
+                ->where('kode_pilihan', 'Curr')
+                ->value('nama_pilihan');
+            if (!$currency) {
+                throw new \RuntimeException('Currency yang dipilih tidak ditemukan.');
+            }
+            $marketingOrder = $db->table('master_mkt_order')
+                ->where('id', $request->marketing_order)
+                ->value('mkt_order');
 
-        $bln_thn = $now->format('my');
+            $productSet = is_array($request->product_set) ? implode(',', $request->product_set) : null;
+            $mainDest = is_array($request->main_dest) ? implode(', ', $request->main_dest) : $request->main_dest;
+            $id = $db->table('act_costing')->insertGetId([
+                'id_pre_cost' => 0,
+                'cost_no' => $numbers['cost_no'],
+                'cost_date' => $now,
+                'kpno' => $numbers['kpno'],
+                'id_smode' => $request->ship_mode,
+                'smv_min' => $request->smv,
+                'smv_sec' => 0,
+                'book_min' => 0,
+                'book_sec' => 0,
+                'notes' => Str::upper($request->notes ?? ''),
+                'deldate' => $request->deldate,
+                'attach_file' => null,
+                'status' => $request->status,
+                'status_order' => '',
+                'id_buyer' => $request->buyer,
+                'id_product' => $request->product_item,
+                'styleno' => Str::upper($request->style ?? ''),
+                'qty_planned' => $request->qty_planned,
+                'qty' => $request->qty,
+                'username' => Auth::user()->name,
+                'curr' => $currency,
+                'vat' => $request->vat,
+                'deal_allow' => 0,
+                'unit' => $request->unit,
+                'dateinput' => $now,
+                'ga_cost' => 0,
+                'cfm_price' => $request->confirm_price,
+                'comm_cost' => 0,
+                'brand' => Str::upper($request->brand ?? ''),
+                'main_dest' => $mainDest,
+                'aktif' => 'Y',
+                'type_ws' => $request->tipe_ws,
+                'mkt_order' => $marketingOrder,
+                'rate' => $request->rate_to_idr,
+                'costing_type' => $request->type,
+                'season_id' => $request->season_id,
+                'product_set' => $productSet,
+                'shipment_type' => $request->shipment_type,
+                'rate_from_idr' => $request->rate_from_idr,
+                'market' => Str::upper($request->market ?? ''),
+                'ga_percent' => 3,
+            ]);
 
-        $mattype_cost = 'CST-' . $now->format('Y');
-        $cek_cost = $db->table('tempbpb')->where('mattype', $mattype_cost)->first();
+            $pictureNames = $this->saveCostingPictures($request, $id);
+            if ($pictureNames) {
+                $db->table('act_costing')->where('id', $id)->update([
+                    'attach_file' => $pictureNames[0],
+                ]);
+            }
 
-        if (!$cek_cost) {
-            $next_costing = 1;
-            $db->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
-        } else {
-            $next_costing = $cek_cost->BPBNo + 1;
-            $db->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
-        }
+            $mandatoryOthers = $db->table('masterothers')->where('costing_header', 'Y')->get();
+            foreach ($mandatoryOthers as $other) {
+                $description = strtoupper(($other->otherscode ?? '') . ' ' . ($other->othersdesc ?? ''));
+                $this->insertNativeCostingDetail($id, 'Other Cost', [
+                    'item' => $other->id,
+                    'allowance' => str_contains($description, 'OVERHEAD') ? 6 : 0,
+                    'cons' => 1,
+                    'unit' => 'PCS',
+                    'curr' => $currency,
+                ]);
+            }
 
-        $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
-
-        $filename = null;
-
-        if ($request->hasFile('upload_foto')) {
-            $file = $request->file('upload_foto');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/costing'), $filename);
-        }
-
-        $product_set_val = null;
-        if ($request->has('product_set') && is_array($request->product_set)) {
-            $product_set_val = implode(',', $request->product_set);
-        }
-
-        $insertId = $db->table('act_costing_new')->insertGetId([
-            'no_costing'      => $cost_no,
-            'buyer'           => $request->buyer,
-            'brand'           => Str::upper($request->brand),
-            'product_group'   => $request->product_group,
-            'product_item'    => $request->product_item,
-            'style'           => Str::upper($request->style),
-            'ship_mode'       => $request->ship_mode,
-            'curr'            => $request->curr,
-            'type'            => $request->type,
-            'tipe_ws'         => $request->tipe_ws,
-            'product_set'      => $product_set_val,
-            'marketing_order' => $request->marketing_order,
-            'shipment_type'   => $request->shipment_type,
-            'notes'           => Str::upper($request->notes),
-            'qty'             => str_replace(',', '', $request->qty),
-            'smv'             => str_replace(',', '', $request->smv),
-            'vat'             => str_replace(',', '', $request->vat),
-            'rate_to_idr'     => str_replace(',', '', $request->rate_to_idr),
-            'rate_from_idr'   => str_replace(',', '', $request->rate_from_idr),
-            'foto'            => $filename,
-            'created_at'      => now(),
-            'updated_at'      => now(),
-            'created_by'      => Auth::user()->name,
-            'confirm_price'   => str_replace(',', '', $request->confirm_price),
-            'season_id'       => $request->season_id,
-            'main_dest'       => is_array($request->main_dest) ? implode(', ', $request->main_dest) : $request->main_dest,
-            'market'          => Str::upper($request->market ?? ''),
-            'deldate'         => $request->deldate,
-            'status'          => $request->status,
-            'unit'            => $request->unit,
-        ]);
-
-        $mandatory_others = $db->table('masterothers')->where('costing_header', 'Y')->get();
-
-        $detail_inserts = [];
-        foreach ($mandatory_others as $other) {
-            $nama_item = strtoupper(($other->otherscode ?? '') . ' ' . ($other->othersdesc ?? ''));
-            $overhead = str_contains($nama_item, 'OVERHEAD');
-
-            $detail_inserts[] = [
-                'id_costing'   => $insertId,
-                'type'         => 'Other Cost',
-                'item_id'      => $other->id,
-                'allowance'    => $overhead ? 6 : 0,
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ];
-        }
-
-        if (count($detail_inserts) > 0) {
-            $db->table('act_costing_detail_new')->insert($detail_inserts);
-        }
+            return $id;
+        });
 
         return redirect()->route('edit-costing', $insertId)->with('success', 'Costing berhasil dibuat');
+    }
+
+    private function generateCostingNumbers($buyerId, $now): array
+    {
+        $db = DB::connection('mysql_sb');
+        $buyerCode = $db->table('mastersupplier')
+            ->where('Id_Supplier', $buyerId)
+            ->value('supplier_code');
+        if (!$buyerCode) {
+            throw new \RuntimeException('Kode buyer tidak ditemukan untuk membuat KP No.');
+        }
+
+        $costSequence = $this->nextCostingSequence('CST-' . $now->format('Y'));
+        $kpSequence = $this->nextCostingSequence($buyerCode . '-' . $now->format('Y'));
+
+        return [
+            'cost_no' => 'CST/' . $now->format('my') . '/' . str_pad($costSequence, 5, '0', STR_PAD_LEFT),
+            'kpno' => $buyerCode . '/' . $now->format('my') . '/' . str_pad($kpSequence, 3, '0', STR_PAD_LEFT),
+        ];
+    }
+
+    private function nextCostingSequence(string $matter): int
+    {
+        $db = DB::connection('mysql_sb');
+        $counter = $db->table('tempbpb')->where('mattype', $matter)->lockForUpdate()->first();
+
+        if (!$counter) {
+            $db->table('tempbpb')->insert(['mattype' => $matter, 'BPBNo' => 1]);
+            return 1;
+        }
+
+        $next = (int) $counter->BPBNo + 1;
+        $db->table('tempbpb')->where('mattype', $matter)->update(['BPBNo' => $next]);
+        return $next;
+    }
+
+    private function costingDetailTable(string $category): string
+    {
+        return match ($category) {
+            'Fabric', 'Accessories Sewing', 'Accessories Packing' => 'act_costing_mat',
+            'Manufacturing' => 'act_costing_mfg',
+            'Other Cost' => 'act_costing_oth',
+            default => throw new \InvalidArgumentException('Kategori detail Costing tidak valid.'),
+        };
+    }
+
+    private function insertNativeCostingDetail($costingId, string $category, array $detail): int
+    {
+        $db = DB::connection('mysql_sb');
+        $table = $this->costingDetailTable($category);
+        $this->validateCostingItem($category, $detail['item']);
+        $headerCurrency = strtoupper((string) $db->table('act_costing')
+            ->where('id', $costingId)
+            ->value('curr'));
+        $currency = strtoupper((string) (($detail['curr'] ?? '') ?: $headerCurrency ?: 'IDR'));
+        $price = (float) ($detail['price'] ?? 0);
+
+        $insertData = [
+            'id_act_cost' => $costingId,
+            'id_item' => $detail['item'],
+            'price' => $price,
+            'cons' => $detail['cons'] ?? 0,
+            'unit' => $detail['unit'] ?? '',
+            'allowance' => $detail['allowance'] ?? 0,
+            'material_source' => $category === 'Other Cost' ? null : 'LOKAL',
+            'jenis_rate' => $headerCurrency === 'USD' ? 'J' : 'B',
+            'item_desc' => $detail['desc'] ?? null,
+            'supplier_id' => ($detail['supplier'] ?? null) ?: null,
+            'curr' => $currency,
+            'price_px_idr' => $detail['price_px_idr'] ?? 0,
+            'price_px_usd' => $detail['price_px_usd'] ?? 0,
+            'value_idr' => $detail['value_idr'] ?? 0,
+            'value_usd' => $detail['value_usd'] ?? 0,
+            'set' => $category === 'Other Cost' ? null : (($detail['set'] ?? null) ?: null),
+        ];
+        if ($table !== 'act_costing_mat') {
+            $insertData['smv'] = null;
+        }
+
+        return $db->table($table)->insertGetId($insertData);
+    }
+
+    private function validateCostingItem(string $category, $itemId): void
+    {
+        $db = DB::connection('mysql_sb');
+        if ($category === 'Manufacturing') {
+            $exists = $db->table('mastercf')->where('id', $itemId)->exists();
+        } elseif ($category === 'Other Cost') {
+            $exists = $db->table('masterothers')->where('id', $itemId)->exists();
+        } else {
+            $groupKeyword = match ($category) {
+                'Fabric' => 'FABRIC',
+                'Accessories Sewing' => 'SEWING',
+                'Accessories Packing' => 'PACKING',
+                default => '',
+            };
+            $exists = $db->table('mastercontents as c')
+                ->join('mastertype2 as t', 'c.id_type', '=', 't.id')
+                ->join('mastersubgroup as sg', 't.id_sub_group', '=', 'sg.id')
+                ->join('mastergroup as g', 'sg.id_group', '=', 'g.id')
+                ->where('c.id', $itemId)
+                ->whereRaw('UPPER(g.nama_group) LIKE ?', ['%' . $groupKeyword . '%'])
+                ->exists();
+        }
+
+        if (!$exists) {
+            throw new \InvalidArgumentException('Item tidak sesuai dengan kategori Costing.');
+        }
     }
 
     public function copyCosting($id)
     {
         $db = DB::connection('mysql_sb');
-
-        $original = $db->table('act_costing_new')->where('id', $id)->first();
+        $original = $db->table('act_costing')->where('id', $id)->first();
         if (!$original) {
             return redirect()->route('master-costing')->with('error', 'Data Costing tidak ditemukan.');
         }
 
         $now = now();
-        $bln_thn = $now->format('my');
-
-        $mattype_cost = 'CST-' . $now->format('Y');
-        $cek_cost = $db->table('tempbpb')->where('mattype', $mattype_cost)->first();
-
-        if (!$cek_cost) {
-            $next_costing = 1;
-            $db->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
-        } else {
-            $next_costing = $cek_cost->BPBNo + 1;
-            $db->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
-        }
-
-        $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
-
-        $newId = $db->table('act_costing_new')->insertGetId([
-            'no_costing'      => $cost_no,
-            'buyer'           => $original->buyer,
-            'brand'           => $original->brand,
-            'season_id'       => $original->season_id,
-            'product_group'   => $original->product_group,
-            'product_item'    => $original->product_item,
-            'style'           => $original->style,
-            'ship_mode'       => $original->ship_mode,
-            'curr'            => $original->curr,
-            'type'            => $original->type,
-            'tipe_ws'         => $original->tipe_ws,
-            'product_set'     => $original->product_set,
-            'marketing_order' => $original->marketing_order,
-            'shipment_type'   => $original->shipment_type,
-            'notes'           => $original->notes,
-            'qty'             => $original->qty,
-            'smv'             => $original->smv,
-            'vat'             => $original->vat,
-            'rate_to_idr'     => $original->rate_to_idr,
-            'rate_from_idr'   => $original->rate_from_idr,
-            'foto'            => $original->foto,
-            'confirm_price'   => $original->confirm_price,
-            'main_dest'       => $original->main_dest,
-            'market'          => $original->market,
-            'deldate'         => $original->deldate,
-            'status'          => $original->status,
-            'unit'            => $original->unit,
-            'created_at'      => $now,
-            'updated_at'      => $now,
-            'created_by'      => Auth::user()->name,
-        ]);
-
-        $originalDetails = $db->table('act_costing_detail_new')
-            ->where('id_costing', $id)
-            ->get();
-
-        $detailInserts = [];
-        foreach ($originalDetails as $det) {
-            $detailInserts[] = [
-                'id_costing'   => $newId,
-                'type'         => $det->type,
-                'item_id'      => $det->item_id,
-                'item_desc'    => $det->item_desc,
-                'supplier_id'  => $det->supplier_id,
-                'curr'         => $det->curr,
-                'price'        => $det->price,
-                'cons'         => $det->cons,
-                'unit'         => $det->unit,
-                'price_px_idr' => $det->price_px_idr,
-                'price_px_usd' => $det->price_px_usd,
-                'allowance'    => $det->allowance,
-                'set'          => $det->set,
-                'value_idr'    => $det->value_idr,
-                'value_usd'    => $det->value_usd,
-                'created_at'   => $now,
-                'updated_at'   => $now,
+        [$newId, $costNo] = $db->transaction(function () use ($db, $original, $id, $now) {
+            $numbers = $this->generateCostingNumbers($original->id_buyer, $now);
+            $header = [
+                'id_pre_cost' => 0,
+                'cost_no' => $numbers['cost_no'],
+                'cost_date' => $now,
+                'kpno' => $numbers['kpno'],
+                'id_smode' => $original->id_smode,
+                'smv_min' => $original->smv_min,
+                'smv_sec' => $original->smv_sec,
+                'book_min' => $original->book_min,
+                'book_sec' => $original->book_sec,
+                'notes' => $original->notes,
+                'deldate' => $original->deldate,
+                'attach_file' => $original->attach_file,
+                'status' => $original->status,
+                'status_order' => '',
+                'id_buyer' => $original->id_buyer,
+                'id_product' => $original->id_product,
+                'styleno' => $original->styleno,
+                'qty_planned' => $original->qty_planned,
+                'qty' => $original->qty,
+                'username' => Auth::user()->name,
+                'curr' => $original->curr,
+                'vat' => $original->vat,
+                'deal_allow' => $original->deal_allow,
+                'unit' => $original->unit,
+                'dateinput' => $now,
+                'ga_cost' => $original->ga_cost,
+                'cfm_price' => $original->cfm_price,
+                'comm_cost' => $original->comm_cost,
+                'brand' => $original->brand,
+                'main_dest' => $original->main_dest,
+                'aktif' => 'Y',
+                'type_ws' => $original->type_ws,
+                'mkt_order' => $original->mkt_order,
+                'rate' => $original->rate,
+                'costing_type' => $original->costing_type,
+                'season_id' => $original->season_id,
+                'product_set' => $original->product_set,
+                'shipment_type' => $original->shipment_type,
+                'rate_from_idr' => $original->rate_from_idr,
+                'market' => $original->market,
+                'ga_percent' => $original->ga_percent,
             ];
-        }
+            $newId = $db->table('act_costing')->insertGetId($header);
 
-        if (count($detailInserts) > 0) {
-            $db->table('act_costing_detail_new')->insert($detailInserts);
-        }
+            foreach (['act_costing_mat', 'act_costing_mfg', 'act_costing_oth'] as $table) {
+                $rows = $db->table($table)->where('id_act_cost', $id)->get();
+                foreach ($rows as $row) {
+                    $row = (array) $row;
+                    unset($row['id']);
+                    $row['id_act_cost'] = $newId;
+                    $db->table($table)->insert($row);
+                }
+            }
 
-        return redirect()->route('edit-costing', $newId)->with('success', "Costing berhasil dicopy! No. Costing baru: $cost_no");
+            $pictures = $db->table('act_costing_picture')
+                ->where('id_costing', $id)
+                ->get();
+            foreach ($pictures as $picture) {
+                $db->table('act_costing_picture')->insert([
+                    'id_costing' => $newId,
+                    'file_name' => $picture->file_name,
+                    'original_name' => $picture->original_name,
+                    'sort_order' => $picture->sort_order,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            return [$newId, $numbers['cost_no']];
+        });
+
+        return redirect()->route('edit-costing', $newId)->with('success', "Costing berhasil dicopy! No. Costing baru: $costNo");
     }
 
     public function edit($id)
     {
 
         $db = DB::connection('mysql_sb');
-        $costing = $db->table('act_costing_new')->where('id', $id)->first();
+        $costing = $db->table('act_costing as a')
+            ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
+            ->select('a.*', 'p.product_group', 'p.product_item as product_item_name')
+            ->where('a.id', $id)
+            ->first();
         if (!$costing) {
             return redirect()->route('master-costing')->with('error', 'Data Costing tidak ditemukan!');
         }
 
+        $currencyId = $db->table('masterpilihan')
+            ->where('kode_pilihan', 'Curr')
+            ->where('nama_pilihan', $costing->curr)
+            ->value('id');
+        $costing->no_costing = $costing->cost_no;
+        $costing->buyer = $costing->id_buyer;
+        $costing->buyer_code = $db->table('mastersupplier')
+            ->where('Id_Supplier', $costing->id_buyer)
+            ->value('supplier_code');
+        $costing->style = $costing->styleno;
+        $costing->ship_mode = $costing->id_smode;
+        $costing->curr = $currencyId;
+        $costing->type = $costing->costing_type ?? 'single';
+        $costing->tipe_ws = $costing->type_ws;
+        $costing->product_item = $costing->id_product;
+        $costing->marketing_order = $db->table('master_mkt_order')
+            ->where('mkt_order', $costing->mkt_order)
+            ->value('id');
+        $costing->rate_to_idr = $costing->rate;
+        $costing->confirm_price = $costing->cfm_price;
+        $costing->smv = $costing->smv_min;
+        $costing->foto = $costing->attach_file;
+        $costing->created_by = $costing->username;
+        $costing->created_at = $costing->dateinput;
+
+        $details = $this->getNativeCostingDetails($id, $costing->rate);
 
         $buyers = $db->table('mastersupplier')
                      ->where('tipe_sup', 'C')
@@ -361,46 +515,17 @@ class Marketing_CostingController extends Controller
         $set = $db->table('master_set')
            ->get();
 
-        $details = $db->table('act_costing_detail_new as det')
-            ->select(
-                'det.*',
-                's.Supplier as nama_supplier',
-                'set.nama as nama_set',
-                $db->raw("
-                    CASE
-                        WHEN det.type IN ('Fabric', 'Accessories Sewing', 'Accessories Packing')
-                            THEN CONCAT(mat_e.id, ' ', mat_a.nama_group, ' ', mat_s.nama_sub_group, ' ', mat_d.nama_type, ' ', mat_e.nama_contents)
-
-                        WHEN det.type = 'Other Cost'
-                            THEN CONCAT(o.otherscode, ' ', o.othersdesc)
-
-                        WHEN det.type = 'Manufacturing'
-                            THEN CONCAT(m.cfcode, ' ', m.cfdesc)
-
-                        ELSE det.item_id
-                    END as nama_item
-                ")
-            )
-            ->leftJoin('mastersupplier as s', 'det.supplier_id', '=', 's.Id_Supplier')
-            ->leftJoin('mastercontents as mat_e', function($join) {
-                $join->on('det.item_id', '=', 'mat_e.id')
-                     ->whereIn('det.type', ['Fabric', 'Accessories Sewing', 'Accessories Packing']);
-            })
-            ->leftJoin('mastertype2 as mat_d', 'mat_e.id_type', '=', 'mat_d.id')
-            ->leftJoin('mastersubgroup as mat_s', 'mat_d.id_sub_group', '=', 'mat_s.id')
-            ->leftJoin('mastergroup as mat_a', 'mat_s.id_group', '=', 'mat_a.id')
-            ->leftJoin('masterothers as o', function($join) {
-                $join->on('det.item_id', '=', 'o.id')
-                     ->where('det.type', '=', 'Other Cost');
-            })
-            ->leftJoin('mastercf as m', function($join) {
-                $join->on('det.item_id', '=', 'm.id')
-                     ->where('det.type', '=', 'Manufacturing');
-            })
-            ->leftJoin('master_set as set', 'det.set', '=', 'set.id')
-            ->where('det.id_costing', $id)
-            ->get()
-            ->groupBy('type');
+        $pictures = $db->table('act_costing_picture')
+            ->where('id_costing', $id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+        if ($pictures->isEmpty() && !empty($costing->foto)) {
+            $pictures = collect([(object) [
+                'file_name' => $costing->foto,
+                'original_name' => $costing->foto,
+            ]]);
+        }
 
         $suppliers = $db->table('mastersupplier')->orderBy('supplier', 'asc')->get();
 
@@ -421,6 +546,7 @@ class Marketing_CostingController extends Controller
             'units'       => $units,
             'suppliers'       => $suppliers,
             'details'        => $details,
+            'pictures'       => $pictures,
             'master_set'        => $master_set,
             'set'        => $set,
             'destinations'        => $destinations,
@@ -430,6 +556,124 @@ class Marketing_CostingController extends Controller
             "subPage" => "marketing-master-costing",
             'containerFluid' => true
         ]);
+    }
+
+    private function getNativeCostingDetails($costingId, $rateToIdr)
+    {
+        $db = DB::connection('mysql_sb');
+        $details = collect([
+            'Fabric' => collect(),
+            'Accessories Sewing' => collect(),
+            'Accessories Packing' => collect(),
+            'Manufacturing' => collect(),
+            'Other Cost' => collect(),
+        ]);
+        $rateToIdr = (float) $rateToIdr;
+
+        $materials = $db->table('act_costing_mat as d')
+            ->leftJoin('mastercontents as c', 'd.id_item', '=', 'c.id')
+            ->leftJoin('mastertype2 as t', 'c.id_type', '=', 't.id')
+            ->leftJoin('mastersubgroup as sg', 't.id_sub_group', '=', 'sg.id')
+            ->leftJoin('mastergroup as g', 'sg.id_group', '=', 'g.id')
+            ->leftJoin('mastersupplier as s', 'd.supplier_id', '=', 's.Id_Supplier')
+            ->leftJoin('master_set as ms', 'd.set', '=', 'ms.id')
+            ->where('d.id_act_cost', $costingId)
+            ->select('d.*', 'c.nama_contents', 'g.nama_group', 'sg.nama_sub_group', 't.nama_type', 's.Supplier as nama_supplier', 'ms.nama as nama_set')
+            ->get();
+
+        foreach ($materials as $detail) {
+            $groupName = strtoupper((string) $detail->nama_group);
+            $category = str_contains($groupName, 'FABRIC')
+                ? 'Fabric'
+                : (str_contains($groupName, 'SEWING')
+                    ? 'Accessories Sewing'
+                    : (str_contains($groupName, 'PACKING') ? 'Accessories Packing' : null));
+            if (!$category) {
+                continue;
+            }
+
+            $detail->type = $category;
+            $detail->item_id = $detail->id_item;
+            $detail->nama_item = trim(implode(' ', array_filter([
+                $detail->id_item,
+                $detail->nama_group,
+                $detail->nama_sub_group,
+                $detail->nama_type,
+                $detail->nama_contents,
+            ])));
+            $detail->item_desc = $detail->item_desc ?? '';
+            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $details[$category]->push($detail);
+        }
+
+        $manufacturing = $db->table('act_costing_mfg as d')
+            ->leftJoin('mastercf as m', 'd.id_item', '=', 'm.id')
+            ->leftJoin('mastersupplier as s', 'd.supplier_id', '=', 's.Id_Supplier')
+            ->leftJoin('master_set as ms', 'd.set', '=', 'ms.id')
+            ->where('d.id_act_cost', $costingId)
+            ->select('d.*', 'm.cfcode', 'm.cfdesc', 's.Supplier as nama_supplier', 'ms.nama as nama_set')
+            ->get();
+        foreach ($manufacturing as $detail) {
+            $detail->type = 'Manufacturing';
+            $detail->item_id = $detail->id_item;
+            $detail->nama_item = trim(($detail->cfcode ?? '') . ' ' . ($detail->cfdesc ?? ''));
+            $detail->item_desc = $detail->item_desc ?? '';
+            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $details['Manufacturing']->push($detail);
+        }
+
+        $otherCosts = $db->table('act_costing_oth as d')
+            ->leftJoin('masterothers as o', 'd.id_item', '=', 'o.id')
+            ->leftJoin('mastersupplier as s', 'd.supplier_id', '=', 's.Id_Supplier')
+            ->where('d.id_act_cost', $costingId)
+            ->select('d.*', 'o.otherscode', 'o.othersdesc', 's.Supplier as nama_supplier')
+            ->get();
+        foreach ($otherCosts as $detail) {
+            $detail->type = 'Other Cost';
+            $detail->item_id = $detail->id_item;
+            $detail->nama_item = trim(($detail->otherscode ?? '') . ' ' . ($detail->othersdesc ?? ''));
+            $detail->item_desc = $detail->item_desc ?? '';
+            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $details['Other Cost']->push($detail);
+        }
+
+        return $details;
+    }
+
+    private function normalizeNativeCostingDetail($detail, float $rateToIdr): void
+    {
+        $price = (float) ($detail->price ?? 0);
+        $isUsd = $detail->jenis_rate !== null
+            ? strtoupper((string) $detail->jenis_rate) === 'J'
+            : strtoupper((string) ($detail->curr ?? '')) === 'USD';
+        $priceIdr = $detail->price_px_idr ?? ($isUsd ? $price * $rateToIdr : $price);
+        $priceUsd = $detail->price_px_usd ?? ($isUsd ? $price : ($rateToIdr > 0 ? $price / $rateToIdr : 0));
+
+        $detail->price = $price;
+        $detail->price_px_idr = (float) $priceIdr;
+        $detail->price_px_usd = (float) $priceUsd;
+        $detail->cons = (float) ($detail->cons ?? 0);
+        $detail->allowance = (float) ($detail->allowance ?? 0);
+        $detail->value_idr = (float) ($detail->value_idr ?? ($detail->cons * $detail->price_px_idr));
+        $detail->value_usd = (float) ($detail->value_usd ?? ($detail->cons * $detail->price_px_usd));
+        $detail->set = $detail->set ?? '';
+    }
+
+    private function decorateLegacyCosting($costing): void
+    {
+        $costing->no_costing = $costing->cost_no;
+        $costing->buyer = $costing->nama_buyer ?? $costing->id_buyer;
+        $costing->style = $costing->styleno;
+        $costing->ship_mode = $costing->nama_ship_mode ?? $costing->id_smode;
+        $costing->type = $costing->costing_type ?? 'single';
+        $costing->rate_to_idr = $costing->rate;
+        $costing->confirm_price = $costing->cfm_price;
+        $costing->foto = $costing->attach_file;
+        $costing->created_by = $costing->username;
+        $costing->created_at = $costing->dateinput;
+        $costing->smv = $costing->smv_min;
+        $costing->product_item = $costing->nama_product_item ?? $costing->id_product;
+        $costing->nama_curr = $costing->nama_curr ?? $costing->curr;
     }
 
     public function getItemContents(Request $request)
@@ -496,29 +740,32 @@ class Marketing_CostingController extends Controller
 
     public function storeDetail(Request $request)
     {
-
+        $request->validate([
+            'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
+            'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
+            'item' => ['required', 'integer'],
+            'cons' => ['nullable', 'numeric'],
+            'price' => ['nullable', 'numeric'],
+            'allowance' => ['nullable', 'numeric'],
+            'set' => ['nullable', 'integer'],
+        ]);
         $db = DB::connection('mysql_sb');
         try {
-            $detailId = $db->table('act_costing_detail_new')->insertGetId([
-                'id_costing'   => $request->id_costing,
-                'type'         => $request->category,
-                'item_id'      => $request->item,
-                'item_desc'    => $request->desc,
-                'supplier_id'  => $request->supplier,
-                'curr'         => $request->curr,
-                'price'        => $request->price,
-                'cons'         => $request->cons,
-                'unit'         => $request->unit,
+            $detailId = $this->insertNativeCostingDetail($request->id_costing, $request->category, [
+                'item' => $request->item,
+                'desc' => $request->desc,
+                'supplier' => $request->supplier,
+                'curr' => $request->curr,
+                'price' => $request->price,
+                'cons' => $request->cons,
+                'unit' => $request->unit,
                 'price_px_idr' => $request->price_px_idr,
                 'price_px_usd' => $request->price_px_usd,
-                'allowance'    => $request->allowance,
-                'set'          => $request->set,
-                'value_idr'    => $request->value_idr,
-                'value_usd'    => $request->value_usd,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'allowance' => $request->allowance,
+                'set' => $request->set,
+                'value_idr' => $request->value_idr,
+                'value_usd' => $request->value_usd,
             ]);
-            $this->triggerAutoSyncSO($request->id_costing);
 
             return response()->json([
                 'status' => 200,
@@ -536,55 +783,79 @@ class Marketing_CostingController extends Controller
 
     public function updateHeader(Request $request, $id)
     {
+        $request->validate([
+            'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
+            'product_item' => ['required', 'exists:mysql_sb.masterproduct,id'],
+            'ship_mode' => ['required', 'exists:mysql_sb.mastershipmode,id'],
+            'curr' => ['required', 'exists:mysql_sb.masterpilihan,id'],
+            'qty_planned' => ['required', 'numeric', 'min:0'],
+            'qty' => ['required', 'numeric', 'min:0'],
+            'smv' => ['required', 'numeric', 'min:0'],
+            'deldate' => ['required', 'date'],
+            'upload_foto' => ['sometimes', 'array'],
+            'upload_foto.*' => ['image', 'max:10240'],
+            'clear_existing_pictures' => ['sometimes', 'boolean'],
+            'remove_picture_files' => ['sometimes', 'array'],
+            'remove_picture_files.*' => ['string', 'max:255'],
+        ]);
+
         $db = DB::connection('mysql_sb');
 
         try {
+            $currency = $db->table('masterpilihan')
+                ->where('id', $request->curr)
+                ->where('kode_pilihan', 'Curr')
+                ->value('nama_pilihan');
+            if (!$currency) {
+                throw new \RuntimeException('Currency yang dipilih tidak ditemukan.');
+            }
+            $marketingOrder = $db->table('master_mkt_order')
+                ->where('id', $request->marketing_order)
+                ->value('mkt_order');
+
             $updateData = [
-                'buyer'           => $request->buyer,
+                'id_buyer'        => $request->buyer,
                 'brand'           => Str::upper($request->brand),
                 'season_id'       => $request->season_id,
-                'product_group'   => $request->product_group,
-                'product_item'    => $request->product_item,
-                'style'           => Str::upper($request->style),
-                'ship_mode'       => $request->ship_mode,
+                'id_product'      => $request->product_item,
+                'styleno'         => Str::upper($request->style),
+                'id_smode'        => $request->ship_mode,
                 'main_dest'       => is_array($request->main_dest) ? implode(', ', $request->main_dest) : $request->main_dest,
                 'market'          => Str::upper($request->market),
-                'curr'            => $request->curr,
-                'marketing_order' => $request->marketing_order,
+                'curr'            => $currency,
+                'mkt_order'       => $marketingOrder,
                 'shipment_type'   => $request->shipment_type,
-                'type'            => $request->type,
-                'tipe_ws'         => $request->tipe_ws,
+                'costing_type'    => $request->type,
+                'type_ws'         => $request->tipe_ws,
                 'product_set'      => is_array($request->product_set) ? implode(',', $request->product_set) : null,
                 'notes'           => Str::upper($request->notes),
-                'qty'             => str_replace(',', '', $request->qty),
-                'smv'             => str_replace(',', '', $request->smv),
-                'vat'             => str_replace(',', '', $request->vat),
-                'rate_to_idr'     => str_replace(',', '', $request->rate_to_idr),
-                'rate_from_idr'   => str_replace(',', '', $request->rate_from_idr),
-                'confirm_price'   => str_replace(',', '', $request->confirm_price),
+                'qty'             => $request->qty,
+                'smv_min'         => $request->smv,
+                'vat'             => $request->vat,
+                'qty_planned'     => $request->qty_planned,
+                'rate'            => $request->rate_to_idr,
+                'rate_from_idr'   => $request->rate_from_idr,
+                'cfm_price'       => $request->confirm_price,
                 'deldate'         => $request->deldate,
                 'status'          => $request->status,
                 'unit'            => $request->unit,
-                'updated_at'      => now(),
+                'ga_percent'      => $request->ga_percent ?? 3,
             ];
 
-            if ($request->has('ga_percent')) {
-                $updateData['ga_percent'] = str_replace(',', '', $request->ga_percent);
+            if ($request->boolean('clear_existing_pictures')) {
+                $this->clearCostingPictures($id);
+                $updateData['attach_file'] = null;
+            } elseif ($request->filled('remove_picture_files')) {
+                $this->removeCostingPictures($id, $request->input('remove_picture_files', []));
             }
 
-            if ($request->hasFile('upload_foto')) {
-                $file = $request->file('upload_foto');
-
-                $filename = time() . '_' . $file->getClientOriginalName();
-
-                $file->move(public_path('uploads/costing'), $filename);
-
-                $updateData['foto'] = $filename;
+            $pictureNames = $this->saveCostingPictures($request, $id);
+            if ($pictureNames) {
+                $updateData['attach_file'] = $pictureNames[0];
             }
 
-            $db->table('act_costing_new')->where('id', $id)->update($updateData);
+            $db->table('act_costing')->where('id', $id)->update($updateData);
             $this->updateStyle($id, $request->style, $request->product_item);
-            $this->triggerAutoSyncSO($id);
 
             if ($request->ajax()) {
                 return response()->json([
@@ -603,6 +874,138 @@ class Marketing_CostingController extends Controller
                 ]);
             }
             return redirect()->back()->with('error', 'Gagal update: ' . $e->getMessage());
+        }
+    }
+
+    private function saveCostingPictures(Request $request, $costingId)
+    {
+        $files = array_filter((array) $request->file('upload_foto', []));
+        if (!$files) {
+            return [];
+        }
+
+        $directory = public_path('uploads/costing');
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            throw new \RuntimeException('Unable to create the costing image directory.');
+        }
+
+        $db = DB::connection('mysql_sb');
+        $hasPictures = $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->exists();
+        if (!$hasPictures) {
+            $legacyPicture = $db->table('act_costing')
+                ->where('id', $costingId)
+                ->value('attach_file');
+            if ($legacyPicture) {
+                $db->table('act_costing_picture')->insert([
+                    'id_costing' => $costingId,
+                    'file_name' => $legacyPicture,
+                    'original_name' => $legacyPicture,
+                    'sort_order' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        $lastOrder = $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->max('sort_order');
+        $nextOrder = $lastOrder === null ? 0 : $lastOrder + 1;
+        $savedNames = [];
+
+        foreach ($files as $file) {
+            $filename = Str::uuid() . '.' . $file->extension();
+            $file->move($directory, $filename);
+            $savedNames[] = $filename;
+
+            $db->table('act_costing_picture')->insert([
+                'id_costing' => $costingId,
+                'file_name' => $filename,
+                'original_name' => $file->getClientOriginalName(),
+                'sort_order' => $nextOrder++,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return $savedNames;
+    }
+
+    private function clearCostingPictures($costingId)
+    {
+        $db = DB::connection('mysql_sb');
+        $pictureNames = $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->pluck('file_name')
+            ->all();
+        $legacyPicture = $db->table('act_costing')
+            ->where('id', $costingId)
+            ->value('attach_file');
+
+        if ($legacyPicture) {
+            $pictureNames[] = $legacyPicture;
+        }
+
+        $db->table('act_costing_picture')->where('id_costing', $costingId)->delete();
+        $db->table('act_costing')->where('id', $costingId)->update(['attach_file' => null]);
+
+        $directory = public_path('uploads/costing');
+        foreach (array_unique(array_filter($pictureNames)) as $fileName) {
+            $safeFileName = basename($fileName);
+            $path = $directory . DIRECTORY_SEPARATOR . $safeFileName;
+            if (is_file($path) && !unlink($path)) {
+                throw new \RuntimeException('Gagal menghapus file gambar Costing: ' . $safeFileName);
+            }
+        }
+    }
+
+    private function removeCostingPictures($costingId, array $fileNames)
+    {
+        $db = DB::connection('mysql_sb');
+        $fileNames = array_values(array_unique(array_filter($fileNames)));
+        if (!$fileNames) {
+            return;
+        }
+
+        $pictures = $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->whereIn('file_name', $fileNames)
+            ->get(['file_name']);
+        $removedNames = $pictures->pluck('file_name')->all();
+        $legacyPicture = $db->table('act_costing')
+            ->where('id', $costingId)
+            ->value('attach_file');
+        if ($legacyPicture && in_array($legacyPicture, $fileNames, true)) {
+            $removedNames[] = $legacyPicture;
+        }
+
+        if (!$removedNames) {
+            return;
+        }
+
+        $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->whereIn('file_name', $removedNames)
+            ->delete();
+
+        $nextPicture = $db->table('act_costing_picture')
+            ->where('id_costing', $costingId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->value('file_name');
+        $db->table('act_costing')->where('id', $costingId)->update([
+            'attach_file' => $nextPicture,
+        ]);
+
+        $directory = public_path('uploads/costing');
+        foreach (array_unique($removedNames) as $fileName) {
+            $safeFileName = basename($fileName);
+            $path = $directory . DIRECTORY_SEPARATOR . $safeFileName;
+            if (is_file($path) && !unlink($path)) {
+                throw new \RuntimeException('Gagal menghapus file gambar Costing: ' . $safeFileName);
+            }
         }
     }
 
@@ -628,19 +1031,20 @@ class Marketing_CostingController extends Controller
         }
         $db->table('act_costing')->where('id', $so->id_cost)->update(['styleno' => $style]);
     }
-    public function destroyDetail($id)
+    public function destroyDetail(Request $request, $id)
     {
-
-        $db = DB::connection('mysql_sb');
-
+        $request->validate([
+            'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
+            'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
+        ]);
         try {
-            $detail = $db->table('act_costing_detail_new')->where('id', $id)->first();
-            $id_costing = $detail ? $detail->id_costing : null;
-
-            $db->table('act_costing_detail_new')->where('id', $id)->delete();
-
-            if ($id_costing) {
-                $this->triggerAutoSyncSO($id_costing);
+            $db = DB::connection('mysql_sb');
+            $deleted = $db->table($this->costingDetailTable($request->category))
+                ->where('id', $id)
+                ->where('id_act_cost', $request->id_costing)
+                ->delete();
+            if (!$deleted) {
+                return response()->json(['status' => 404, 'message' => 'Data detail tidak ditemukan.']);
             }
 
             return response()->json([
@@ -659,16 +1063,22 @@ class Marketing_CostingController extends Controller
     {
         $db = DB::connection('mysql_sb');
 
-        $costing = $db->table('act_costing_new as a')
-            ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
-            ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
-            ->leftJoin('mastershipmode as sm', 'a.ship_mode', '=', 'sm.id')
+        $costing = $db->table('act_costing as a')
+            ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+            ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
+            ->leftJoin('mastershipmode as sm', 'a.id_smode', '=', 'sm.id')
             ->select(
                 'a.*',
                 'b.Supplier as nama_buyer',
                 'p.product_item as nama_product_item',
-                'sm.shipmode as nama_ship_mode'
+                'sm.shipmode as nama_ship_mode',
+                'p.product_group',
+                'mp.nama_pilihan as nama_curr'
             )
+            ->leftJoin('masterpilihan as mp', function ($join) {
+                $join->on('a.curr', '=', 'mp.nama_pilihan')
+                    ->where('mp.kode_pilihan', '=', 'Curr');
+            })
             ->where('a.id', $id)
             ->first();
 
@@ -676,6 +1086,7 @@ class Marketing_CostingController extends Controller
             return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
         }
 
+        $this->decorateLegacyCosting($costing);
         $nama_destinasi = '-';
         if (!empty($costing->main_dest)) {
             $arr_id_dest = array_map('trim', explode(',', $costing->main_dest));
@@ -690,52 +1101,7 @@ class Marketing_CostingController extends Controller
             }
         }
         $costing->nama_dest = $nama_destinasi;
-        $details_raw = $db->table('act_costing_detail_new as ac')
-            ->leftJoin('mastersupplier as s', 'ac.supplier_id', '=', 's.Id_Supplier')
-            ->leftJoin('mastercf as cf', 'ac.item_id', '=', 'cf.id')
-            ->leftJoin('masterothers as ot', 'ac.item_id', '=', 'ot.id')
-            ->leftJoin('mastercontents as mc', 'ac.item_id', '=', 'mc.id')
-            ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
-            ->leftJoin('mastersubgroup as ms', 'mt.id_sub_group', '=', 'ms.id')
-            ->leftJoin('mastergroup as mg', 'ms.id_group', '=', 'mg.id')
-            ->leftJoin('master_set as set', 'ac.set', '=', 'set.id')
-            ->select(
-                'ac.*',
-                's.Supplier as nama_supplier',
-                'set.nama as nama_set',
-                $db->raw("
-                    CASE
-                        WHEN ac.type = 'Manufacturing' THEN CONCAT(cf.cfcode, ' ', cf.cfdesc)
-                        WHEN ac.type = 'Other Cost' THEN CONCAT(ot.otherscode, ' ', ot.othersdesc)
-                        ELSE CONCAT(mg.nama_group, ' ', ms.nama_sub_group, ' ', mt.nama_type, ' ', mc.nama_contents)
-                    END as nama_item
-                "),
-                $db->raw("
-                    CASE
-                        WHEN ac.type = 'Manufacturing' THEN cf.cfdesc
-                        WHEN ac.type = 'Other Cost' THEN ot.othersdesc
-                        ELSE mc.nama_contents
-                    END as item_desc
-                ")
-            )
-            ->where('ac.id_costing', $id)
-            ->orderBy('ac.id', 'asc')
-            ->get();
-
-        $details = [
-            'Fabric' => [],
-            'Accessories Sewing' => [],
-            'Accessories Packing' => [],
-            'Manufacturing' => [],
-            'Other Cost' => []
-        ];
-
-        foreach ($details_raw as $det) {
-            $cat = $det->type;
-            if (array_key_exists($cat, $details)) {
-                $details[$cat][] = $det;
-            }
-        }
+        $details = $this->getNativeCostingDetails($id, $costing->rate);
 
          $master_set = $db->table('master_set')
            ->get();
@@ -747,11 +1113,19 @@ class Marketing_CostingController extends Controller
         return $pdf->stream('Costing_'.$costing->no_costing.'.pdf');
     }
 
-    public function getDetailRow($id)
+    public function getDetailRow(Request $request, $id)
     {
+        $request->validate([
+            'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
+            'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
+        ]);
         $db = DB::connection('mysql_sb');
-        $data = $db->table('act_costing_detail_new')->where('id', $id)->first();
+        $data = $db->table($this->costingDetailTable($request->category))
+            ->where('id', $id)
+            ->where('id_act_cost', $request->id_costing)
+            ->first();
         if ($data) {
+            $data->item_id = $data->id_item;
             return response()->json(['status' => 200, 'data' => $data]);
         }
         return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
@@ -759,27 +1133,55 @@ class Marketing_CostingController extends Controller
 
     public function updateDetail(Request $request)
     {
+        $request->validate([
+            'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
+            'id_detail' => ['required', 'integer'],
+            'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
+            'item' => ['required', 'integer'],
+            'cons' => ['nullable', 'numeric'],
+            'price' => ['nullable', 'numeric'],
+            'allowance' => ['nullable', 'numeric'],
+            'set' => ['nullable', 'integer'],
+        ]);
         $db = DB::connection('mysql_sb');
-        $db->table('act_costing_detail_new')->where('id', $request->id_detail)->update([
-            'type' => $request->category,
-            'item_id' => $request->item,
-            'item_desc' => $request->desc,
-            'supplier_id' => $request->supplier,
-            'curr' => $request->curr,
+        $table = $this->costingDetailTable($request->category);
+        $detail = $db->table($table)
+            ->where('id', $request->id_detail)
+            ->where('id_act_cost', $request->id_costing)
+            ->first();
+        if (!$detail) {
+            return response()->json(['status' => 404, 'message' => 'Data detail tidak ditemukan.']);
+        }
+        $this->validateCostingItem($request->category, $request->item);
+
+        $headerCurrency = strtoupper((string) $db->table('act_costing')
+            ->where('id', $request->id_costing)
+            ->value('curr'));
+        $currency = strtoupper((string) $request->curr);
+        $updateData = [
+            'id_item' => $request->item,
             'price' => $request->price,
             'cons' => $request->cons,
             'unit' => $request->unit,
+            'allowance' => $request->allowance,
+            'material_source' => $request->category === 'Other Cost' ? null : 'LOKAL',
+            'jenis_rate' => $headerCurrency === 'USD' ? 'J' : 'B',
+            'item_desc' => $request->desc,
+            'supplier_id' => $request->supplier,
+            'curr' => $request->curr,
             'price_px_idr' => $request->price_px_idr,
             'price_px_usd' => $request->price_px_usd,
-            'allowance' => $request->allowance,
-            'set' => $request->set,
+            'set' => $request->category === 'Other Cost' ? null : $request->set,
             'value_idr' => $request->value_idr,
             'value_usd' => $request->value_usd,
-        ]);
-        $detail = $db->table('act_costing_detail_new')->where('id', $request->id_detail)->first();
-        if ($detail) {
-            $this->triggerAutoSyncSO($detail->id_costing);
+        ];
+        if ($table !== 'act_costing_mat') {
+            $updateData['smv'] = null;
         }
+        $db->table($table)
+            ->where('id', $request->id_detail)
+            ->where('id_act_cost', $request->id_costing)
+            ->update($updateData);
 
         return response()->json(['status' => 200, 'message' => 'Success']);
     }
@@ -1192,16 +1594,21 @@ class Marketing_CostingController extends Controller
     {
         $db = DB::connection('mysql_sb');
 
-        $costing = $db->table('act_costing_new as a')
-            ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
-            ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
-            ->leftJoin('mastershipmode as sm', 'a.ship_mode', '=', 'sm.id')
+        $costing = $db->table('act_costing as a')
+            ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+            ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
+            ->leftJoin('mastershipmode as sm', 'a.id_smode', '=', 'sm.id')
             ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id_season')
-            ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'sm.shipmode as nama_ship_mode', 'seas.season as nama_season')
+            ->leftJoin('masterpilihan as mp', function ($join) {
+                $join->on('a.curr', '=', 'mp.nama_pilihan')
+                    ->where('mp.kode_pilihan', '=', 'Curr');
+            })
+            ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'p.product_group', 'sm.shipmode as nama_ship_mode', 'seas.season as nama_season', 'mp.nama_pilihan as nama_curr')
             ->where('a.id', $id)->first();
 
         if (!$costing) return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
 
+        $this->decorateLegacyCosting($costing);
         $nama_destinasi = '-';
         if (!empty($costing->main_dest)) {
             $arr_id_dest = array_map('trim', explode(',', $costing->main_dest));
@@ -1210,22 +1617,7 @@ class Marketing_CostingController extends Controller
         }
         $costing->nama_dest = $nama_destinasi;
 
-        $details_raw = $db->table('act_costing_detail_new as ac')
-            ->leftJoin('mastersupplier as s', 'ac.supplier_id', '=', 's.Id_Supplier')
-            ->leftJoin('mastercf as cf', 'ac.item_id', '=', 'cf.id')
-            ->leftJoin('masterothers as ot', 'ac.item_id', '=', 'ot.id')
-            ->leftJoin('mastercontents as mc', 'ac.item_id', '=', 'mc.id')
-            ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
-            ->leftJoin('mastersubgroup as ms', 'mt.id_sub_group', '=', 'ms.id')
-            ->leftJoin('mastergroup as mg', 'ms.id_group', '=', 'mg.id')
-            ->leftJoin('master_set as set', 'ac.set', '=', 'set.id')
-            ->select('ac.*', 's.Supplier as nama_supplier', 'set.nama as nama_set',
-                $db->raw("CASE WHEN ac.type = 'Manufacturing' THEN CONCAT(cf.cfcode, ' ', cf.cfdesc) WHEN ac.type = 'Other Cost' THEN CONCAT(ot.otherscode, ' ', ot.othersdesc) ELSE CONCAT(mg.nama_group, ' ', ms.nama_sub_group, ' ', mt.nama_type, ' ', mc.nama_contents) END as nama_item"),
-                $db->raw("CASE WHEN ac.type = 'Manufacturing' THEN cf.cfdesc WHEN ac.type = 'Other Cost' THEN ot.othersdesc ELSE mc.nama_contents END as item_desc")
-            )->where('ac.id_costing', $id)->orderBy('ac.id', 'asc')->get();
-
-        $details = ['Fabric' => [], 'Accessories Sewing' => [], 'Accessories Packing' => [], 'Manufacturing' => [], 'Other Cost' => []];
-        foreach ($details_raw as $det) { if (array_key_exists($det->type, $details)) $details[$det->type][] = $det; }
+        $details = $this->getNativeCostingDetails($id, $costing->rate);
 
         $sum_fab_idr = 0; $sum_sew_idr = 0; $sum_pack_idr = 0; $sum_mfg_idr = 0; $sum_oth_norm_idr = 0;
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
@@ -1637,30 +2029,31 @@ class Marketing_CostingController extends Controller
             $tgl_akhir = $request->tgl_akhir;
             $db = DB::connection('mysql_sb');
 
-            $data = $db->table('act_costing_new as a')
-                ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
+            $data = $db->table('act_costing as a')
+                ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+                ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
                 ->select(
                     'a.id',
-                    'a.no_costing',
-                    'a.created_at',
+                    'a.cost_no as no_costing',
+                    'a.dateinput as created_at',
                     'b.Supplier as nama_buyer',
                     'a.brand',
-                    'a.style',
-                    'a.marketing_order',
-                    'a.product_group',
-                    'a.product_item',
+                    'a.styleno as style',
+                    'a.mkt_order as marketing_order',
+                    'p.product_group',
+                    'p.product_item',
                     'a.main_dest',
                     'a.market'
                 )
                 ->where(function($query) {
-                    $query->whereNull('a.approval')
-                          ->orWhere('a.approval', '!=', 'Y');
+                    $query->whereNull('a.app1')
+                          ->orWhere('a.app1', '!=', 'Y');
                 })
                 ->orderBy('a.id', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
-                $data->whereDate('a.created_at', '>=', $tgl_awal)
-                     ->whereDate('a.created_at', '<=', $tgl_akhir);
+                $data->whereDate('a.dateinput', '>=', $tgl_awal)
+                     ->whereDate('a.dateinput', '<=', $tgl_akhir);
             }
 
             return DataTables::of($data)
@@ -1684,29 +2077,17 @@ class Marketing_CostingController extends Controller
     {
         try {
             DB::connection('mysql_sb')
-                ->table('act_costing_new')
+                ->table('act_costing')
                 ->where('id', $id)
                 ->update([
-                    'approval' => 'Y',
-                    'approved_at' => now(),
-                    'approved_by' => Auth::user()->name
+                    'app1' => 'Y',
+                    'app1_date' => now(),
+                    'app1_by' => Auth::user()->name
                 ]);
 
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
-        }
-    }
-    private function triggerAutoSyncSO($id_costing)
-    {
-        $mysql_sb = DB::connection('mysql_sb');
-        $bom = $mysql_sb->table('bom_marketing')->where('id_costing', $id_costing)->first();
-
-        if ($bom) {
-            $sos = $mysql_sb->table('so')->where('id_bom', $bom->id)->where('cancel_h', 'N')->get();
-            foreach ($sos as $so) {
-                \App\Http\Controllers\Marketing_SOController::executeSyncBom($so->id);
-            }
         }
     }
 }

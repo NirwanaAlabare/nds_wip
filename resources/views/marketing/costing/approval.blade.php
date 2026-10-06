@@ -113,11 +113,11 @@
                     }
                 },
                 columns: [
-                    { data: 'no_costing', name: 'a.no_costing', className: 'text-center align-middle' },
-                    { data: 'tgl_costing', name: 'a.created_at', className: 'text-center align-middle' },
-                    { data: 'nama_buyer', name: 'a.buyer', className: 'align-middle' },
+                    { data: 'no_costing', name: 'a.cost_no', className: 'text-center align-middle' },
+                    { data: 'tgl_costing', name: 'a.dateinput', className: 'text-center align-middle' },
+                    { data: 'nama_buyer', name: 'a.id_buyer', className: 'align-middle' },
                     { data: 'brand', name: 'a.brand', className: 'align-middle' },
-                    { data: 'style', name: 'a.style', className: 'align-middle' },
+                    { data: 'style', name: 'a.styleno', className: 'align-middle' },
                     {
                         data: 'id',
                         name: 'a.id',
