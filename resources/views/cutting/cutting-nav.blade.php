@@ -214,6 +214,12 @@
                         Return Fabric Cutting <i class="fa fa-list"></i>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('report-switching-adjustment') }}"
+                        class="dropdown-item {{ $routeName == 'report-switching-adjustment' ? 'active' : '' }}">
+                        Switching Adjustment <i class="fa fa-list"></i>
+                    </a>
+                </li>
             </ul>
         </li>
     @endstrictmeja

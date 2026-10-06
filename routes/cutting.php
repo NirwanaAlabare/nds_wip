@@ -411,6 +411,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
             Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
             Route::get('/report_mutasi_wip_cutting_set', 'report_mutasi_wip_cutting_set')->name('report_mutasi_wip_cutting_set');
+            Route::get('/switching-adjustment', 'switchingAdjustment')->name('report-switching-adjustment');
+            Route::post('/switching-adjustment/export', 'switchingAdjustmentExport')->name('report-switching-adjustment-export');
 
 
             // export excel
