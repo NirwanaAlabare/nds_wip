@@ -253,7 +253,7 @@
                 <div class="d-flex justify-content-end flex-column gap-2 mb-3">
                     <div class="d-flex justify-content-end align-items-center gap-2">
                         <span style="width:12px; height:12px; background-color: #fac0c6;" class="rounded"></span>
-                        <span>Sudah discan di DC</span>
+                        <span>Sudah pernah discan di DC</span>
                     </div>
                 </div>
                 <div class="table-responsive">

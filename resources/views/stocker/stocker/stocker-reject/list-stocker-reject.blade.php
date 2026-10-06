@@ -69,7 +69,7 @@
                             <th class="text-center">Size</th>
                             <th class="text-center">Proses</th>
                             <th class="text-center">Qty Reject</th>
-                            <th class="text-center">Generated Qty</th>
+                            <th class="text-center">Qty Terbuat</th>
                             <th class="text-center">Status</th>
                         </tr>
                     </thead>
@@ -113,7 +113,7 @@
                             <th class="text-center">Size</th>
                             <th class="text-center">Proses</th>
                             <th class="text-center">Qty Reject</th>
-                            <th class="text-center">Generated Qty</th>
+                            <th class="text-center">Qty Terbuat</th>
                             <th class="text-center">Status</th>
                         </tr>
                     </thead>
@@ -301,8 +301,8 @@
             const statusBadge = (b) => {
                 if (b == null) return '-';
                 return b > 0
-                    ? `<span class="text-success fw-bold">AVAILABLE (${b})</span>`
-                    : `<span class="text-danger fw-bold">EXHAUSTED</span>`;
+                    ? `<span class="text-success fw-bold">TERSEDIA (${b})</span>`
+                    : `<span class="text-danger fw-bold">HABIS</span>`;
             };
 
             let totalQty  = 0;
@@ -544,9 +544,9 @@
                         render: (data) => {
                             if (data == null) return '-';
                             if (data > 0) {
-                                return `<span class="text-success fw-bold">AVAILABLE (${data})</span>`;
+                                return `<span class="text-success fw-bold">TERSEDIA (${data})</span>`;
                             }
-                            return `<span class="text-danger fw-bold">EXHAUSTED</span>`;
+                            return `<span class="text-danger fw-bold">HABIS</span>`;
                         },
                     },
                     {

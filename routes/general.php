@@ -138,7 +138,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/unlocked', 'unlocked')->name('unlocked-lock');
     });
 
-    Route::controller(SwitchingController::class)->prefix("switching")->group(function () {
+    Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {
         Route::get('/', 'index')->name("switching");
         Route::post('/store', 'store')->name('store-switching');
         Route::post('/delete', 'delete')->name('delete-switching');

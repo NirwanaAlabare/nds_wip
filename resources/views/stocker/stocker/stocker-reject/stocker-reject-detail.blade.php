@@ -20,7 +20,7 @@
         <div class="card">
             <div class="card-header bg-sb">
                 <h5 class="card-title">
-                    {{ $data->id_qr_stocker }}
+                    <i class="fa fa-ticket text-warning"></i> Stocker Asal : <b class='text-warning'>{{ $data->id_qr_stocker }}</b>
                 </h5>
             </div>
             <div class="card-body">
@@ -123,7 +123,7 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Stocker Source</th>
+                                <th>Stocker Asal</th>
                                 <th>Part Detail</th>
                                 <th>Secondary</th>
                                 <th>Size</th>
@@ -162,8 +162,8 @@
         </div>
         <div class="card">
             <div class="card-header bg-sb-secondary">
-                <h5 class="card-title">
-                    Stocker
+                <h5 class="card-title fw-bold">
+                    <i class="fa fa-list text-warning"></i> List Stocker Reject
                 </h5>
             </div>
             <div class="card-body">
@@ -198,7 +198,7 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Stocker Source</th>
+                                    <th>Stocker Asal</th>
                                     <th>Part Detail</th>
                                     <th>Secondary</th>
                                     <th>Size</th>
@@ -251,7 +251,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title">Generated Stocker</h5>
+                <h5 class="card-title fw-bold"><i class="fa fa-list-check text-warning"></i> List Stocker yang sudah Terbuat</h5>
                 <button type="button" class="btn btn-success btn-sm" onclick="exportGeneratedStocker()"><i class="fa fa-file-excel"></i> Export Excel</button>
             </div>
         </div>
@@ -389,8 +389,8 @@
 
             let stockerRejectForm = new FormData(document.getElementById("stocker-reject-form"));
 
-            let qty = $("#qty_input").val();
-            let qtyBalance = $("#qty_reject_balance").val();
+            let qty = Number($("#qty_input").val());
+            let qtyBalance = Number($("#qty_reject_balance").val());
 
             // Qty Sisa Reject Habis
             if (qtyBalance < 0) {

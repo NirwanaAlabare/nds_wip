@@ -30,6 +30,125 @@ use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 class ReportCuttingController extends Controller
 {
+    /**
+     * Satu-satunya sumber query Riwayat Switching Adjustment (tabel wip_switching_adjustment, type_report CUTTING).
+     * Dipakai oleh switchingAdjustment() (tabel) dan switchingAdjustmentExport() (Excel).
+     * Mengembalikan query builder (bukan hasil get()), supaya paging/search/filter kolom dikerjakan database.
+     */
+    public function wipSwitchingAdjustmentQuery($dateFrom, $dateTo) {
+        return DB::table("wip_switching_adj")->selectRaw("
+            id,
+            type_report,
+            from_tgl_saldo,
+            tgl_saldo,
+            from_no_ws,
+            from_buyer,
+            from_style,
+            from_color,
+            from_size,
+            from_panel,
+            from_part,
+            from_qty,
+            no_ws,
+            buyer,
+            style,
+            color,
+            size,
+            panel,
+            part,
+            qty,
+            status
+        ")->
+        where("type_report", "CUTTING")->
+        whereBetween("tgl_saldo", [$dateFrom, $dateTo]);
+    }
+
+    /**
+     * Riwayat Switching Adjustment : view (GET) dan data DataTables server-side (GET ajax).
+     */
+    public function switchingAdjustment(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = $this->wipSwitchingAdjustmentQuery(
+                $request->dateFrom ?: date("Y-m-d"),
+                $request->dateTo ?: date("Y-m-d")
+            );
+
+            return DataTables::query($query->orderByDesc('tgl_saldo')->orderByDesc('id'))->toJson();
+        }
+
+        return view('cutting.report.switching-adjustment', ["page" => "dashboard-cutting", "subPageGroup" => "cutting-report"]);
+    }
+
+    /**
+     * Export Excel Riwayat Switching Adjustment.
+     */
+    public function switchingAdjustmentExport(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        $dateFrom = $request->dateFrom ?: date("Y-m-d");
+        $dateTo = $request->dateTo ?: date("Y-m-d");
+
+        $query = $this->wipSwitchingAdjustmentQuery($dateFrom, $dateTo);
+
+        if ($request->filled('keyword')) {
+            $keyword = '%' . $request->keyword . '%';
+
+            $query->where(function ($q) use ($keyword) {
+                foreach ([
+                    'from_no_ws', 'from_buyer', 'from_style', 'from_color', 'from_size', 'from_panel', 'from_part',
+                    'no_ws', 'buyer', 'style', 'color', 'size', 'panel', 'part',
+                ] as $column) {
+                    $q->orWhere($column, 'like', $keyword);
+                }
+            });
+        }
+
+        $excel = FastExcel::create('riwayat-switching-adjustment.xlsx');
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(['Riwayat Switching Adjustment'], ['font-style' => 'bold', 'font-size' => 14]);
+        $sheet->writeRow(['Periode ' . $dateFrom . ' s/d ' . $dateTo], ['font-size' => 12]);
+        $sheet->writeRow(['']);
+
+        $sheet->writeRow([
+            'Tgl Saldo Asal', 'WS Asal', 'Buyer Asal', 'Style Asal', 'Color Asal', 'Size Asal', 'Panel Asal', 'Part Asal', 'Qty Asal',
+            'Tgl Saldo Tujuan', 'WS Tujuan', 'Buyer Tujuan', 'Style Tujuan', 'Color Tujuan', 'Size Tujuan', 'Panel Tujuan', 'Part Tujuan', 'Qty Tujuan',
+            'Status',
+        ], ['font-style' => 'bold', 'border' => 'thin']);
+
+        foreach ($query->orderByDesc('tgl_saldo')->orderByDesc('id')->cursor() as $row) {
+            $sheet->writeRow([
+                $row->from_tgl_saldo ?? '',
+                $row->from_no_ws ?? '',
+                $row->from_buyer ?? '',
+                $row->from_style ?? '',
+                $row->from_color ?? '',
+                $row->from_size ?? '',
+                $row->from_panel ?? '',
+                $row->from_part ?? '',
+                (float) ($row->from_qty ?? 0),
+                $row->tgl_saldo ?? '',
+                $row->no_ws ?? '',
+                $row->buyer ?? '',
+                $row->style ?? '',
+                $row->color ?? '',
+                $row->size ?? '',
+                $row->panel ?? '',
+                $row->part ?? '',
+                (float) ($row->qty ?? 0),
+                $row->status == 'Y' ? 'Active' : 'Cancel',
+            ], ['border' => 'thin']);
+        }
+
+        foreach (range('A', 'S') as $col) {
+            $sheet->setColWidth($col, 18);
+        }
+
+        return $excel->download();
+    }
+
     public function buildOutputCuttingVsManagementRollQuery($dateFrom = null, $dateTo = null)
     {
         $dateFrom = ($dateFrom ? $dateFrom : date("Y-m-d"));
