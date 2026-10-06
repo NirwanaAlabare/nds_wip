@@ -303,5 +303,12 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'undoReject' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/undoReject/undoReject.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 ];

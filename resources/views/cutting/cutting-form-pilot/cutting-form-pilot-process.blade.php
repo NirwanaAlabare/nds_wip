@@ -4,14 +4,37 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    {{-- Header Style --}}
+    @include('cutting.cutting-style')
 @endsection
 
 @section('content')
     <div class="row g-3 mb-3">
-        <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut Pilot - {{ strtoupper($formCutInputData->name) }}</h5>
-            <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
-            {{-- <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button> --}}
+        <!-- Wrapper Header dibuat Sticky/Fixed -->
+        <div class="sticky-header-wrapper mb-3" id="stickyFormHeader">
+            <div class="container-fluid d-flex justify-content-between align-items-center py-2 px-3">
+                <!-- Sisi Kiri: Judul & Tombol Utama -->
+                <div class="d-flex gap-2 align-items-center">
+                    <h5 class="mb-0 me-2">Form Cut Pilot - {{ strtoupper($formCutInputData->name) }}</h5>
+                    <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
+                    {{-- <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button> --}}
+                </div>
+
+                <!-- Sisi Kanan: Tempat Tombol Undo (Sejajar & Rapi) -->
+                {{-- <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-sm btn-danger fw-bold text-white"
+                            id="btn-undo"
+                            onclick="handleUndo()">
+                        <i class="fa fa-undo me-1"></i> UNDO
+                    </button>
+                    <button class="btn btn-sm bg-success fw-bold text-light"
+                            id="btn-redo"
+                            onclick="handleRedo()">
+                        <i class="fa fa-repeat me-1"></i> REDO
+                    </button>
+                </div> --}}
+            </div>
         </div>
         <div class="col-md-8">
             <div class="card card-sb" id="header-data-card">
@@ -3193,6 +3216,11 @@
                 } else {
                     $('#current_kepala_kain').val(0);
                     $('#current_kepala_kain').prop('readonly', false);
+                }
+
+                if (document.getElementById("current_lembar_gelaran").value > 0) {
+                    $('#current_lembar_gelaran').trigger("change");
+                    $('#stopLapButton').prop('disabled', false);
                 }
             }
 

@@ -2048,7 +2048,7 @@ class GeneralController extends Controller
                     )."
                     so_det_id,
                     master_plan_id,
-                    CONCAT(master_plan_id, ws, style, color, size) as grouping,
+                    CONCAT(master_plan_id, ws, style, color, size) `grouping`,
                     SUM(CASE WHEN status = 'RFT' THEN 1 ELSE 0 END) rft,
                     SUM(CASE WHEN status = 'defect' THEN 1 ELSE 0 END) defect,
                     SUM(CASE WHEN status = 'reworked' THEN 1 ELSE 0 END) rework,

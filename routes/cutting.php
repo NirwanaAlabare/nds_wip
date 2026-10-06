@@ -111,6 +111,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock');
             // unlock form
             Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
+            // undo step
+            Route::post('/undo-step', 'undoStep')->name('form-cut-undo');
+            Route::post('/redo-step', 'redoStep')->name('form-cut-redo');
         });
 
     // MANUAL :

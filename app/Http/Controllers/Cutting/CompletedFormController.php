@@ -316,7 +316,6 @@ class CompletedFormController extends Controller
 
         // Get Current Roll
         $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
             where('id', $validatedRequest['current_id'])->
             first();
 
@@ -348,7 +347,6 @@ class CompletedFormController extends Controller
         // Current Form Detail
         $detailBefore = FormCutInputDetail::selectRaw("form_cut_input_detail.*")
             ->where('form_cut_id', $validatedRequest['id'])
-            ->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])
             ->where('id', $validatedRequest['current_id'])
             ->first();
 
@@ -405,7 +403,6 @@ class CompletedFormController extends Controller
 
         // Update time record summary
         $updateTimeRecordSummary = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
             where('id', $validatedRequest['current_id'])->
             update([
                 "id_roll" => $validatedRequest['current_id_roll'],
@@ -474,7 +471,6 @@ class CompletedFormController extends Controller
         // Current Form Detail
         $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             where('form_cut_id', $validatedRequest['id'])->
-            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
             where('id', $validatedRequest['current_id'])->
             first();
 
@@ -542,7 +538,7 @@ class CompletedFormController extends Controller
             }
 
             // Form Cut Detail Reorder Group Stocker
-            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
+            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;
             foreach ($formCutDetails as $formCutDetail) {
@@ -557,13 +553,12 @@ class CompletedFormController extends Controller
 
             // Update Meja
             $updateFormCut = FormCutInput::where('id', $validatedRequest['id'])->
-                where('no_form', $validatedRequest['no_form_cut_input'])->
                 update([
                     "no_meja" => $validatedRequest['no_meja']
                 ]);
 
             // Form Recalculate
-            $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+            $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->first();
 
             if ($formCutInput) {
                 if ($request->p_act != $formCutInput->p_act || $request->comma_act != $formCutInput->comma_p_act) {
@@ -718,7 +713,7 @@ class CompletedFormController extends Controller
     public function updateDetail(Request $request, CuttingService $cuttingService) {
 
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
@@ -760,7 +755,7 @@ class CompletedFormController extends Controller
         }
 
         // Form Recalculate
-        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->first();
 
         if ($formCutInput) {
             if ($validatedRequest['p_act'] != $formCutInput->p_act || $validatedRequest['comma_act'] != $formCutInput->comma_p_act || $validatedRequest['l_act'] != $formCutInput->l_act) {
@@ -801,7 +796,7 @@ class CompletedFormController extends Controller
     public function updateHeader(Request $request) {
 
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->where("no_form", $request->no_form_cut_input)->first();
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
         if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
             return array(
                 "status" => 400,
@@ -842,7 +837,7 @@ class CompletedFormController extends Controller
         // }
 
         // Form Recalculate
-        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->first();
 
         if ($formCutInput) {
             if ($request->finish < ($request->start ?? $formCutInput->waktu_mulai)) {
