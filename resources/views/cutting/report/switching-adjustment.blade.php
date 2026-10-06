@@ -13,7 +13,7 @@
             <div class="d-flex flex-wrap align-items-end gap-3">
                 <div>
                     <label for="tgl-awal" class="form-label small">Tanggal Awal</label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-01') }}">
                 </div>
                 <div>
                     <label for="tgl-akhir" class="form-label small">Tanggal Akhir</label>
@@ -66,12 +66,6 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        // Default tanggal awal 7 hari lalu. Harus diisi sebelum DataTable dibuat, supaya request pertama
-        // sudah memakai tanggal ini (kalau kosong, controller memakai hari ini saja).
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        $('#tgl-awal').val(sevenDaysAgo.toISOString().slice(0, 10));
-
         const selectFilterColumns = {
             18: [
                 { value: '', label: 'Semua' },
