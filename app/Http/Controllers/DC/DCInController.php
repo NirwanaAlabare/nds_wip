@@ -24,471 +24,97 @@ use DB;
 
 class DCInController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Satu-satunya sumber query DC In (tabel, filter dropdown, total, export).
+     * Mengembalikan query builder di atas subquery `dc_in` (dc_in_input UNION ALL dc_in_dump)
+     * sehingga paging/sort/sum/distinct dikerjakan database, bukan PHP.
+     */
+    private function dcInQuery(Request $request, $from = null, $to = null)
     {
-        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+        $where = [];
+        $bindings = [];
 
-        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
-        if ($request->ajax()) {
-            ini_set('memory_limit', '1024M');
-            ini_set('max_execution_time', '3600');
-
-            $additionalQuery = '';
-
-            if ($request->dateFrom) {
-                $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "')";
+        // kondisi "ekspresi IN (?, ?, ...)"
+        $addIn = function ($expr, $values) use (&$where, &$bindings) {
+            $values = array_values(array_filter((array) $values, fn ($v) => $v !== null && $v !== ''));
+            if (count($values) < 1) {
+                return;
             }
-
-            if ($request->dateTo) {
-                $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "')";
+            $where[] = "$expr in (" . implode(',', array_fill(0, count($values), '?')) . ")";
+            foreach ($values as $v) {
+                $bindings[] = trim($v);
             }
+        };
 
-            if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-                $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
+        // kondisi "ekspresi LIKE ?"
+        $addLike = function ($expr, $value) use (&$where, &$bindings) {
+            if ($value !== null && $value !== '') {
+                $where[] = "$expr like ?";
+                $bindings[] = "%" . $value . "%";
             }
-            if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-                $additionalQuery .= " and p.buyer in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
-            }
-            if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-                $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
-            }
-            if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-                $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
-            }
-            if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-                $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
-            }
-            if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-                $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
-            }
-            if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
-                $additionalQuery .= " and pd.part_status in (" . addQuotesAround(implode("\n", $request->dc_filter_part_status)) . ")";
-            }
-            if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-                $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
-            }
-            if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
-                $additionalQuery .= " and p.panel_status in (" . addQuotesAround(implode("\n", $request->dc_filter_panel_status)) . ")";
-            }
-            if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
-            }
-            if ($request->size_filter && count($request->size_filter) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->size_filter)) . ")";
-            }
-            if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-                $additionalQuery .= " and f.no_cut in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
-            }
-            if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-                $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
-            }
-            if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-                $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
-            }
-            if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-                $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
-            }
-
-            $data_input = DB::select("
-                SELECT
-                    UPPER(a.id_qr_stocker) id_qr_stocker,
-                    (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                    a.tgl_trans,
-                    COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
-                    COALESCE(msb.color, s.color) color,
-                    COALESCE(msb.buyer, p.buyer) buyer,
-                    COALESCE(msb.styleno, p.style) style,
-                    a.qty_awal,
-                    a.qty_reject,
-                    a.qty_replace,
-                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
-                    a.tujuan,
-                    a.lokasi,
-                    a.tempat,
-                    a.created_at,
-                    a.user,
-                    s.shade,
-                    s.group_stocker,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-                    COALESCE(msb.size, s.size) size,
-                    mp.nama_part,
-                    UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
-                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
-                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
-                from
-                    dc_in_input a
-                    left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                    left join form_cut_input f on f.id = s.form_cut_id
-                    left join form_cut_reject fr on fr.id = s.form_reject_id
-                    left join form_cut_piece fp on fp.id = s.form_piece_id
-                    left join part_detail pd on s.part_detail_id = pd.id
-                    left join part p on pd.part_id = p.id
-                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                    left join part p_com on p_com.id = pd_com.part_id
-                    left join master_part mp on mp.id = pd.master_part_id
-                    left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-                where
-                    a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                    " . $additionalQuery . "
-                UNION ALL
-                select
-                    id_qr_stocker,
-                    'INJECT' tipe,
-                    DATE_FORMAT(tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                    tgl_trans,
-                    ws,
-                    color,
-                    buyer,
-                    style,
-                    qty_awal,
-                    qty_reject,
-                    qty_replace,
-                    qty_in,
-                    tujuan,
-                    lokasi,
-                    tempat,
-                    created_at,
-                    user,
-                    shade,
-                    group_stocker,
-                    `range` as stocker_range,
-                    no_cut,
-                    size,
-                    part as nama_part,
-                    part_status,
-                    panel,
-                    panel_status
-                from
-                    dc_in_dump
-                    where tgl_trans between '$request->dateFrom' and '$request->dateTo'
-                order by
-                    tgl_trans desc
-            ");
-
-            return DataTables::of($data_input)->toJson();
-        }
-
-        return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
-    }
-
-    public function filter_dc_in(Request $request)
-    {
-        $additionalQuery = '';
-
-        if ($request->dateFrom) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-        }
-
-        $data_input = collect(DB::select("
-            SELECT
-                UPPER(a.id_qr_stocker) id_qr_stocker,
-                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                a.tgl_trans,
-                COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
-                COALESCE(msb.color, s.color) color,
-                COALESCE(msb.buyer, p.buyer) buyer,
-                COALESCE(msb.styleno, p.style) style,
-                a.qty_awal,
-                a.qty_reject,
-                a.qty_replace,
-                (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
-                a.tujuan,
-                a.lokasi,
-                a.tempat,
-                a.created_at,
-                s.shade,
-                s.group_stocker,
-                a.user,
-                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-                COALESCE(msb.size, s.size) size,
-                mp.nama_part,
-                COALESCE(pcust.set_part_status, pd.part_status) part_status,
-                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
-                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
-            from
-                dc_in_input a
-                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                left join form_cut_input f on f.id = s.form_cut_id
-                left join form_cut_reject fr on fr.id = s.form_reject_id
-                left join form_cut_piece fp on fp.id = s.form_piece_id
-                left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on pd.part_id = p.id
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                left join part p_com on p_com.id = pd_com.part_id
-                left join master_part mp on mp.id = pd.master_part_id
-                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-            where
-                a.tgl_trans is not null
-                " . $additionalQuery . "
-            order by
-                a.tgl_trans desc
-        "));
-
-        $tipe = $data_input->groupBy("tipe")->keys();
-        $act_costing_ws = $data_input->groupBy("act_costing_ws")->keys();
-        $color = $data_input->groupBy("color")->keys();
-        $buyer = $data_input->groupBy("buyer")->keys();
-        $style = $data_input->groupBy("style")->keys();
-        $tujuan = $data_input->groupBy("tujuan")->keys();
-        $lokasi = $data_input->groupBy("lokasi")->keys();
-        $tempat = $data_input->groupBy("tempat")->keys();
-        $part = $data_input->groupBy("nama_part")->keys();
-        $panel = $data_input->groupBy("panel")->keys();
-        $no_cut = $data_input->groupBy("no_cut")->keys();
-        $size = $data_input->groupBy("size")->keys();
-
-        return  array(
-            "tipe" => $tipe,
-            "ws" => $act_costing_ws,
-            "color" => $color,
-            "buyer" => $buyer,
-            "style" => $style,
-            "tujuan" => $tujuan,
-            "lokasi" => $lokasi,
-            "tempat" => $tempat,
-            "part" => $part,
-            "panel" => $panel,
-            "no_cut" => $no_cut,
-            "size" => $size
-        );
-    }
-
-    public function total_dc_in(Request $request)
-    {
-        $additionalQuery = '';
-
-        if ($request->dateFrom) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-        }
-
-        if ($request->tgl_trans) {
-            $additionalQuery .= " and a.tgl_trans LIKE '%" . $request->tgl_trans . "%'";
-        }
-
-        if ($request->id_qr) {
-            $additionalQuery .= " and a.id_qr_stocker LIKE '%" . $request->id_qr . "%'";
-        }
-
-        if ($request->ws) {
-            $additionalQuery .= " and msb.ws LIKE '%" . $request->ws . "%'";
-        }
-
-        if ($request->style) {
-            $additionalQuery .= " and msb.styleno LIKE '%" . $request->style . "%'";
-        }
-
-        if ($request->color) {
-            $additionalQuery .= " and msb.color LIKE '%" . $request->color . "%'";
-        }
-
-        if ($request->part) {
-            $additionalQuery .= " and mp.nama_part LIKE '%" . $request->part . "%'";
-        }
-
-        // if ($request->size) {
-        //     $additionalQuery .= " and msb.size LIKE '%".$request->size."%'";
-        // }
-        if ($request->size_filter && count($request->size_filter) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->size_filter)) . ")";
-        }
-
-        if ($request->no_cut) {
-            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') LIKE '%" . $request->no_cut . "%'";
-        }
-
-        if ($request->tujuan) {
-            $additionalQuery .= " and a.tujuan LIKE '%" . $request->tujuan . "%'";
-        }
-
-        if ($request->tempat) {
-            $additionalQuery .= " and a.tempat LIKE '%" . $request->tempat . "%'";
-        }
-
-        if ($request->lokasi) {
-            $additionalQuery .= " and a.lokasi LIKE '%" . $request->lokasi . "%'";
-        }
-
-        if ($request->qty_awal) {
-            $additionalQuery .= " and a.qty_awal LIKE '%" . $request->qty_awal . "%'";
-        }
-
-        if ($request->qty_reject) {
-            $additionalQuery .= " and a.qty_awal LIKE '%" . $request->qty_reject . "%'";
-        }
-
-        if ($request->qty_replace) {
-            $additionalQuery .= " and a.qty_replace LIKE '%" . $request->qty_replace . "%'";
-        }
-
-        if ($request->qty_in) {
-            $additionalQuery .= " and (a.qty_awal - a.qty_reject + a.qty_replace) LIKE '%" . $request->qty_in . "%'";
-        }
-
-        if ($request->buyer) {
-            $additionalQuery .= " and msb.buyer LIKE '%" . $request->buyer . "%'";
-        }
-
-        if ($request->user) {
-            $additionalQuery .= " and a.user LIKE '%" . $request->user . "%'";
-        }
-
-        if ($request->created_at) {
-            $additionalQuery .= " and a.created_at LIKE '%" . $request->created_at . "%'";
-        }
-
-        if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
-        }
-        if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
-        }
-        if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
-        }
-        if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
-        }
-        if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and COALESCE(msb.color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
-        }
-        if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-            $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
-        }
-        if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-            $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
-        }
-        if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
-        }
-        if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
-        }
-        if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-            $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
-        }
-        if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-            $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
-        }
-        if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-            $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
-        }
-
-        $data_input = DB::select("
-            SELECT
-                SUM(a.qty_awal) qty_awal,
-                SUM(a.qty_reject) qty_reject,
-                SUM(a.qty_replace) qty_replace,
-                SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
-            from
-                dc_in_input a
-                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                left join form_cut_input f on f.id = s.form_cut_id
-                left join form_cut_reject fr on fr.id = s.form_reject_id
-                left join form_cut_piece fp on fp.id = s.form_piece_id
-                left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on pd.part_id = p.id
-                left join master_part mp on mp.id = pd.master_part_id
-            where
-                a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                " . $additionalQuery . "
-        ");
-
-        // dd("
-        //     SELECT
-        //         SUM(a.qty_awal) qty_awal,
-        //         SUM(a.qty_reject) qty_reject,
-        //         SUM(a.qty_replace) qty_replace,
-        //         SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
-        //     from
-        //         dc_in_input a
-        //         left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-        //         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //         left join form_cut_input f on f.id = s.form_cut_id
-        //         left join part_detail pd on s.part_detail_id = pd.id
-        //         left join part p on pd.part_id = p.id
-        //         left join master_part mp on mp.id = pd.master_part_id
-        //         ".$additionalQuery."
-        // ");
-
-        return $data_input;
-    }
-
-    public function exportExcel(Request $request)
-    {
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', '3600');
-
-        $from = $request->from ? $request->from : date('Y-m-d');
-        $to = $request->to ? $request->to : date('Y-m-d');
-
-        $additionalQuery = '';
+        };
 
         if ($from) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $from . "' ";
+            $where[] = "a.tgl_trans >= ?";
+            $bindings[] = $from;
         }
-
         if ($to) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $to . "' ";
+            $where[] = "a.tgl_trans <= ?";
+            $bindings[] = $to;
         }
 
-        if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
-        }
-        if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
-        }
-        if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
-        }
-        if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
-        }
-        if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
-        }
-        if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-            $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
-        }
-        if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
-            $additionalQuery .= " and pd.part_status in (" . addQuotesAround(implode("\n", $request->dc_filter_part_status)) . ")";
-        }
-        if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-            $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
-        }
-        if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
-            $additionalQuery .= " and p.panel_status in (" . addQuotesAround(implode("\n", $request->dc_filter_panel_status)) . ")";
-        }
-        if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
-        }
-        if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-            $additionalQuery .= " and f.no_cut in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
-        }
-        if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-            $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
-        }
-        if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-            $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
-        }
-        if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-            $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
-        }
+        // filter dropdown (multi select)
+        $addIn("(CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END)", $request->dc_filter_tipe);
+        $addIn("COALESCE(msb.buyer, p.buyer)", $request->dc_filter_buyer);
+        $addIn("COALESCE(msb.ws, s.act_costing_ws)", $request->dc_filter_ws);
+        $addIn("COALESCE(msb.styleno, p.style)", $request->dc_filter_style);
+        $addIn("COALESCE(msb.color, s.color)", $request->dc_filter_color);
+        $addIn("mp.nama_part", $request->dc_filter_part);
+        $addIn("pd.part_status", $request->dc_filter_part_status);
+        $addIn("p.panel", $request->dc_filter_panel);
+        $addIn("p.panel_status", $request->dc_filter_panel_status);
+        $addIn("COALESCE(msb.size, s.size)", $request->dc_filter_size);
+        $addIn("COALESCE(msb.size, s.size)", $request->size_filter);
+        $addIn("COALESCE(f.no_cut, fp.no_cut, '-')", $request->dc_filter_no_cut);
+        $addIn("a.tujuan", $request->dc_filter_tujuan);
+        $addIn("a.tempat", $request->dc_filter_tempat);
+        $addIn("a.lokasi", $request->dc_filter_lokasi);
 
-        $data = DB::select("
+        // filter teks per kolom
+        $addLike("a.tgl_trans", $request->tgl_trans);
+        $addLike("a.id_qr_stocker", $request->id_qr);
+        $addLike("COALESCE(msb.ws, s.act_costing_ws)", $request->ws);
+        $addLike("COALESCE(msb.styleno, p.style)", $request->style);
+        $addLike("COALESCE(msb.color, s.color)", $request->color);
+        $addLike("mp.nama_part", $request->part);
+        $addLike("COALESCE(f.no_cut, fp.no_cut, '-')", $request->no_cut);
+        $addLike("a.tujuan", $request->tujuan);
+        $addLike("a.tempat", $request->tempat);
+        $addLike("a.lokasi", $request->lokasi);
+        $addLike("a.qty_awal", $request->qty_awal);
+        $addLike("a.qty_reject", $request->qty_reject);
+        $addLike("a.qty_replace", $request->qty_replace);
+        $addLike("(a.qty_awal - a.qty_reject + a.qty_replace)", $request->qty_in);
+        $addLike("COALESCE(msb.buyer, p.buyer)", $request->buyer);
+        $addLike("a.user", $request->user);
+        $addLike("a.created_at", $request->created_at);
+
+        $additionalQuery = count($where) > 0 ? " and " . implode(" and ", $where) : "";
+
+        // bagian dc_in_dump (INJECT) hanya dibatasi tanggal
+        $dumpWhere = [];
+        $dumpBindings = [];
+        if ($from) {
+            $dumpWhere[] = "tgl_trans >= ?";
+            $dumpBindings[] = $from;
+        }
+        if ($to) {
+            $dumpWhere[] = "tgl_trans <= ?";
+            $dumpBindings[] = $to;
+        }
+        $dumpQuery = count($dumpWhere) > 0 ? "where " . implode(" and ", $dumpWhere) : "";
+
+        $sql = "
             SELECT
                 UPPER(a.id_qr_stocker) id_qr_stocker,
                 (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
@@ -506,9 +132,9 @@ class DCInController extends Controller
                 a.lokasi,
                 a.tempat,
                 a.created_at,
+                a.user,
                 s.shade,
                 s.group_stocker,
-                a.user,
                 CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
@@ -529,7 +155,7 @@ class DCInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
-                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= a.tgl_trans ELSE 1=1 END)
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 " . $additionalQuery . "
@@ -551,9 +177,9 @@ class DCInController extends Controller
                 lokasi,
                 tempat,
                 created_at,
+                user,
                 shade,
                 group_stocker,
-                user,
                 `range` as stocker_range,
                 no_cut,
                 size,
@@ -564,10 +190,75 @@ class DCInController extends Controller
                 panel_status
             from
                 dc_in_dump
-                where tgl_trans between '$from' and '$to'
-            order by
-                tgl_trans desc
-        ");
+            " . $dumpQuery . "
+        ";
+
+        return DB::query()->fromRaw("($sql) as dc_in", array_merge($bindings, $dumpBindings));
+    }
+
+    public function index(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+
+        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        if ($request->ajax()) {
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '3600');
+
+            // paging, sorting & searching dilakukan di database (butuh serverSide: true di DataTable)
+            // (client memakai ordering: false, jadi urutan default ditentukan di sini)
+            $query = $this->dcInQuery($request, $request->dateFrom, $request->dateTo)->orderByDesc('tgl_trans');
+
+            return DataTables::query($query)->toJson();
+        }
+
+        return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filter_dc_in(Request $request)
+    {
+        // hanya batasi tanggal, filter dropdown tidak ikut dipakai di sini
+        $base = $this->dcInQuery(new Request(), $request->dateFrom, $request->dateTo);
+
+        $distinct = fn ($column) => (clone $base)->whereNotNull($column)->distinct()->orderBy($column)->pluck($column)->values();
+
+        return array(
+            "tipe" => $distinct("tipe"),
+            "ws" => $distinct("act_costing_ws"),
+            "color" => $distinct("color"),
+            "buyer" => $distinct("buyer"),
+            "style" => $distinct("style"),
+            "tujuan" => $distinct("tujuan"),
+            "lokasi" => $distinct("lokasi"),
+            "tempat" => $distinct("tempat"),
+            "part" => $distinct("nama_part"),
+            "panel" => $distinct("panel"),
+            "no_cut" => $distinct("no_cut"),
+            "size" => $distinct("size")
+        );
+    }
+
+    public function total_dc_in(Request $request)
+    {
+        return $this->dcInQuery($request, $request->dateFrom, $request->dateTo)
+            ->selectRaw("
+                SUM(qty_awal) qty_awal,
+                SUM(qty_reject) qty_reject,
+                SUM(qty_replace) qty_replace,
+                SUM(qty_in) qty_in
+            ")
+            ->get();
+    }
+
+    public function exportExcel(Request $request)
+    {
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $data = $this->dcInQuery($request, $from, $to)->orderByDesc('tgl_trans')->get();
 
         // Calculate totals
         $totalQtyAwal = 0;
