@@ -112,8 +112,8 @@ Route::middleware('auth')->group(function () {
             // unlock form
             Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
             // undo step
-            Route::post('/undo-step', 'undoStep')->name('form-cut-undo');
-            Route::post('/redo-step', 'redoStep')->name('form-cut-redo');
+            Route::post('/undo-step', 'undoStep')->name('form-cut-undo')->middleware("role:superadmin");;
+            Route::post('/redo-step', 'redoStep')->name('form-cut-redo')->middleware("role:superadmin");;
         });
 
     // MANUAL :
