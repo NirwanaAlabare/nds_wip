@@ -21,18 +21,20 @@
                 </div>
 
                 <!-- Sisi Kanan: Tempat Tombol Undo (Sejajar & Rapi) -->
-                {{-- <div class="d-flex gap-2 align-items-center">
-                    <button class="btn btn-sm btn-danger fw-bold text-white"
-                            id="btn-undo"
-                            onclick="handleUndo()">
-                        <i class="fa fa-undo me-1"></i> UNDO
-                    </button>
-                    <button class="btn btn-sm bg-success fw-bold text-light"
-                            id="btn-redo"
-                            onclick="handleRedo()">
-                        <i class="fa fa-repeat me-1"></i> REDO
-                    </button>
-                </div> --}}
+                @role('superadmin') 
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm btn-danger fw-bold text-white"
+                                id="btn-undo"
+                                onclick="handleUndo()">
+                            <i class="fa fa-undo me-1"></i> UNDO
+                        </button>
+                        <button class="btn btn-sm bg-success fw-bold text-light"
+                                id="btn-redo"
+                                onclick="handleRedo()">
+                            <i class="fa fa-repeat me-1"></i> REDO
+                        </button>
+                    </div>
+                @endrole
             </div>
         </div>
         <div class="col-md-8">
