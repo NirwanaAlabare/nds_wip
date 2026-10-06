@@ -254,6 +254,13 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="9" class="text-end">Total</th>
+                                        <th id="total_qty">0</th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
 
@@ -682,6 +689,12 @@
             data: [],
             language: {
                 emptyTable: 'Belum ada data ditambahkan'
+            },
+            footerCallback: function () {
+                let total = this.api().column(9).data().reduce(function (sum, val) {
+                    return sum + (parseInt(val, 10) || 0);
+                }, 0);
+                $('#total_qty').text(total.toLocaleString('id-ID'));
             },
             columns: [
                 { data: 'no_transaksi_packing' },
