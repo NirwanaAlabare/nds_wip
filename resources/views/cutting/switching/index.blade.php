@@ -75,8 +75,8 @@
         const selectFilterColumns = {
             16: [
                 { value: '', label: 'Semua' },
-                { value: '1', label: 'Aktif' },
-                { value: '0', label: 'Tidak Aktif' },
+                { value: '1', label: 'Active' },
+                { value: '0', label: 'Cancel' },
             ],
         };
 
@@ -120,8 +120,8 @@
                 {
                     targets: [16],
                     render: (data) => Number(data) === 1
-                        ? '<span class="badge bg-success">Aktif</span>'
-                        : '<span class="badge bg-secondary">Tidak Aktif</span>',
+                        ? '<span class="badge bg-success">Active</span>'
+                        : '<span class="badge bg-secondary">Cancel</span>',
                 },
                 {
                     targets: [18, 19],
