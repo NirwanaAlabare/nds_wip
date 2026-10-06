@@ -718,7 +718,7 @@ class Bc27Service
 
 
                 //kode kantor bandung
-                $kantor = 60; 
+                $kantor = 60;
                 if($data_kantor){
                     $kantor = $data_kantor->id;
                 }
@@ -1649,56 +1649,58 @@ class Bc27Service
             if (!in_array($tujuanPengiriman, ["1", "2", "3", "4", "5"])) $tujuanPengiriman = "1";
 
             // --- Payload Final ---
+            $r = fn($v) => round((float) $v, 2);
+
             $payload = [
-                "idPlatform"           => config('ceisa.id_platform_live', config('ceisa.id_platform_dev', '')),
-                "asalData"             => "S",
-                "asuransi"             => $totalAsuransi > 0 ? $totalAsuransi : (float) ($draft['asuransi'] ?? 0),
-                "biayaPengurang"       => (float) ($draft['biayaPengurang'] ?? 0),
-                "biayaTambahan"        => (float) ($draft['biayaTambahan'] ?? 0),
-                "bruto"                => (float) ($draft['bruto'] ?? 0),
-                "cif"                  => $totalCif > 0 ? round($totalCif, 2) : round((float) ($draft['cif'] ?? 0), 2),
-                "dasarPengenaanPajak"  => (float) ($draft['dasarPengenaanPajak'] ?? 0),
-                "disclaimer"           => "0",
-                "freight"              => $totalFreight > 0 ? $totalFreight : (float) ($draft['freight'] ?? 0),
-                "hargaPenyerahan"      => (float) ($draft['hargaPenyerahan'] ?? $totalHargaPenyerahan),
-                "jabatanTtd"           => !empty($draft['jabatanTtd']) ? strval($draft['jabatanTtd']) : "-",
-                "jumlahKontainer"      => (int) ($draft['jumlahKontainer'] ?? count($payloadKontainer)),
-                "kodeDokumen"          => "27",
-                "kodeJenisTpb"         => $jenisTpb,
-                "kodeKantor"           => !empty($draft['kodeKantor']) ? strval($draft['kodeKantor']) : "050500",
-                "kodeKantorTujuan"     => !empty($draft['kodeKantorTujuan']) ? strval($draft['kodeKantorTujuan']) : (!empty($draft['kodeKantorBongkar']) ? strval($draft['kodeKantorBongkar']) : "050500"),
-                "kodeTps"              => !empty($draft['kodeTps']) ? strval($draft['kodeTps']) : "UTPK",
+                "idPlatform"       => config('ceisa.id_platform_dev', ''),
+                "asalData"         => "S",
+                "asuransi"         => $r($totalAsuransi > 0 ? $totalAsuransi : ($draft['asuransi'] ?? 0)),
+                "biayaPengurang"   => $r($draft['biayaPengurang'] ?? 0),
+                "biayaTambahan"    => $r($draft['biayaTambahan'] ?? 0),
+                "bruto"            => (float) ($draft['bruto'] ?? 0),
+                "cif"              => $r($totalCif > 0 ? $totalCif : ($draft['cif'] ?? 0)),
+                "dasarPengenaanPajak" => $r($draft['dasarPengenaanPajak'] ?? 0),
+                "disclaimer"       => "0",
+                "freight"          => $r($totalFreight > 0 ? $totalFreight : ($draft['freight'] ?? 0)),
+                "hargaPenyerahan"  => $r($draft['hargaPenyerahan'] ?? $totalHargaPenyerahan),
+                "jabatanTtd"       => !empty($draft['jabatanTtd']) ? strval($draft['jabatanTtd']) : "-",
+                "jumlahKontainer"  => (int) ($draft['jumlahKontainer'] ?? count($payloadKontainer)),
+                "kodeDokumen"      => "27",
+                "kodeJenisTpb"     => $jenisTpb,
+                "kodeKantor"       => !empty($draft['kodeKantor']) ? strval($draft['kodeKantor']) : "050500",
+                "kodeKantorTujuan" => !empty($draft['kodeKantorTujuan']) ? strval($draft['kodeKantorTujuan']) : (!empty($draft['kodeKantorBongkar']) ? strval($draft['kodeKantorBongkar']) : "050500"),
+                "kodeTps"          => !empty($draft['kodeTps']) ? strval($draft['kodeTps']) : "UTPK",
                 "kodeTujuanPengiriman" => $tujuanPengiriman,
-                "kodeTujuanTpb"        => !empty($draft['kodeTujuanTpb']) ? strval($draft['kodeTujuanTpb']) : "1",
-                "kodeValuta"           => !empty($draft['kodeValuta']) ? strval($draft['kodeValuta']) : "USD",
-                "kotaTtd"              => !empty($draft['kotaTtd']) ? strval($draft['kotaTtd']) : "kota_ttd",
-                "namaTtd"              => !empty($draft['namaTtd']) ? strval($draft['namaTtd']) : "nama_ttd",
-                "ndpbm"                => (float) ($draft['ndpbm'] ?? 0),
-                "netto"                => (float) ($draft['netto'] ?? 0),
-                "nik"                  => !empty($draft['nik']) ? strval($draft['nik']) : (!empty($entitasDraft[3]['nomorIdentitas']) ? strval($entitasDraft[3]['nomorIdentitas']) : "0000000000000000"),
-                "nilaiBarang"          => $nilaiBarangHeader,
-                "nilaiJasa"            => (float) ($draft['nilaiJasa'] ?? 0),
-                "nomorAju"             => $nomorAju,
-                "seri"                 => (int) ($draft['seri'] ?? 0),
-                "tanggalAju"           => $tanggalAju,
-                "tanggalTtd"           => !empty($draft['tanggalTtd']) ? strval($draft['tanggalTtd']) : date('Y-m-d'),
-                "uangMuka"             => (float) ($draft['uangMuka'] ?? $draft['nilaiUangMuka'] ?? 0),
-                "vd"                   => (float) ($draft['vd'] ?? 0),
-                "ppnPajak"             => (float) ($draft['nilaiPPN'] ?? 0),
-                "ppnbmPajak"           => (float) ($draft['nilaiPPnBM'] ?? 0),
-                "tarifPpnPajak"        => (float) ($draft['tarifPPN'] ?? 0),
-                "tarifPpnbmPajak"      => (float) ($draft['tarifPPnBM'] ?? 0),
-                "entitas"              => $payloadEntitas,
-                "dokumen"              => $payloadDokumen,
-                "pengangkut"           => [[
+                "kodeTujuanTpb"    => !empty($draft['kodeTujuanTpb']) ? strval($draft['kodeTujuanTpb']) : "1",
+                "kodeValuta"       => !empty($draft['kodeValuta']) ? strval($draft['kodeValuta']) : "USD",
+                "kotaTtd"          => !empty($draft['kotaTtd']) ? strval($draft['kotaTtd']) : "kota_ttd",
+                "namaTtd"          => !empty($draft['namaTtd']) ? strval($draft['namaTtd']) : "nama_ttd",
+                "ndpbm"            => (float) ($draft['ndpbm'] ?? 0),
+                "netto"            => (float) ($draft['netto'] ?? 0),
+                "nik"              => !empty($draft['nik']) ? strval($draft['nik']) : (!empty($entitasDraft[3]['nomorIdentitas']) ? strval($entitasDraft[3]['nomorIdentitas']) : "0000000000000000"),
+                "nilaiBarang"      => $r($nilaiBarangHeader),
+                "nilaiJasa"        => $r($draft['nilaiJasa'] ?? 0),
+                "nomorAju"         => $nomorAju,
+                "seri"             => (int) ($draft['seri'] ?? 0),
+                "tanggalAju"       => $tanggalAju,
+                "tanggalTtd"       => !empty($draft['tanggalTtd']) ? strval($draft['tanggalTtd']) : date('Y-m-d'),
+                "uangMuka"         => $r($draft['uangMuka'] ?? $draft['nilaiUangMuka'] ?? 0),
+                "vd"               => $r($draft['vd'] ?? 0),
+                "ppnPajak"         => $r($draft['nilaiPPN'] ?? 0),
+                "ppnbmPajak"       => $r($draft['nilaiPPnBM'] ?? 0),
+                "tarifPpnPajak"    => (float) ($draft['tarifPPN'] ?? 0),
+                "tarifPpnbmPajak"  => (float) ($draft['tarifPPnBM'] ?? 0),
+                "entitas"          => $payloadEntitas,
+                "dokumen"          => $payloadDokumen,
+                "pengangkut"       => [[
                     "namaPengangkut"  => !empty($draft['pengangkut']['nama']) ? strval($draft['pengangkut']['nama']) : "-",
                     "nomorPengangkut" => !empty($draft['pengangkut']['nomor']) ? strval($draft['pengangkut']['nomor']) : "-",
                     "seriPengangkut"  => "1"
                 ]],
-                "kontainer"            => $payloadKontainer,
-                "kemasan"              => $payloadKemasan,
-                "pungutan"             => $payloadPungutan,
-                "barang"               => $arrayBarang,
+                "kontainer"        => $payloadKontainer,
+                "kemasan"          => $payloadKemasan,
+                "pungutan"         => $payloadPungutan,
+                "barang"           => $arrayBarang,
             ];
 
             Log::info('Kirim Batch BC 2.7 CEISA Payload: ', $payload);
@@ -1713,7 +1715,7 @@ class Bc27Service
                                     ->get()->first();
 
                     //kode kantor bandung
-                    $kantor = 60; 
+                    $kantor = 60;
                     if($data_kantor){
                         $kantor = $data_kantor->id;
                     }
