@@ -1255,6 +1255,8 @@ public function savelokasiretur(Request $request)
                 ->update([
                     'qty_old' => DB::raw('qty'),
                     'qty' => $newQtyGood,
+                    // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                    'qty_temp' => $newQtyGood,
                 ]);
         }
 
@@ -1394,6 +1396,8 @@ public function saveuploadlokasirtr(Request $request)
             ->update([
                 'qty_old' => DB::raw('qty'),
                 'qty' => $newQtyGood,
+                // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                'qty_temp' => $newQtyGood,
             ]);
     }
 

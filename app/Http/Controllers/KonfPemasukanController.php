@@ -143,8 +143,10 @@ class KonfPemasukanController extends Controller
 
                 $bpbnya = $sqlbpb ? $sqlbpb[0]->bpbno_int : '-';
                 if ($bpbnya != '-') {
+                    // GK/RI dari Barcode menyimpan qty di qty_temp (qty = 0) sampai dikonfirmasi.
+                    // GK/RI dari Supplier langsung menyimpan qty (qty_temp = 0), jadi jangan ditimpa jadi 0.
                     DB::connection('mysql_sb')->update(
-                        "update bpb set qty = qty_temp where bpbno_int = ?",
+                        "update bpb set qty = qty_temp where bpbno_int = ? and COALESCE(qty_temp, 0) > 0",
                         [$id_bpb]
                     );
                 }

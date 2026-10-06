@@ -246,8 +246,10 @@ class WipAdjustmentController extends Controller
         $data = [];
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            // Lewati baris kosong
-            if (!array_filter($row, fn ($v) => trim((string) $v) !== '')) {
+            // Lewati baris kosong (hanya cek kolom template, kolom lain seperti note diabaikan)
+            $filled = array_filter($index, fn ($pos) => trim((string) ($row[$pos] ?? '')) !== '');
+
+            if (!$filled) {
                 continue;
             }
 
