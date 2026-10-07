@@ -369,7 +369,7 @@ class CuttingService
 
             $uniqueRollIds = array_unique($affectedRollIds);
             foreach ($uniqueRollIds as $rollId) {
-                $this->fixChainedQty($rollId);
+                $this->fixChainedQty($rollId, null);
             }
 
             DB::commit();
@@ -510,7 +510,7 @@ class CuttingService
 
             $uniqueRollIds = array_unique($affectedRollIds);
             foreach ($uniqueRollIds as $rollId) {
-                $this->fixChainedQty($rollId);
+                $this->fixChainedQty($rollId, null);
             }
 
             DB::commit();

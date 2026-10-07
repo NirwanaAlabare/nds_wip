@@ -344,6 +344,7 @@ class PenerimaanCuttingController extends Controller
 
         // Simpan Perubahan ke Database
         if ($penerimaanCutting->save()) {
+            $cuttingService->fixChainedQty($penerimaanCutting->id_roll, null);
             return response()->json([
                 'status'     => 200,
                 'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.',
