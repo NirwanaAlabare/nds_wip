@@ -95,7 +95,7 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
             left join master_sb_ws m on p.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.tgl_penerimaan >= '$this->from' and a.tgl_penerimaan <= '$this->to' AND sumber IN ('Sewing')
-            union
+            union all
             select
                 a.no_trans,
                 concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
@@ -118,7 +118,7 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.tgl_penerimaan >= '$this->from' and a.tgl_penerimaan <= '$this->to' and sumber = 'TEMPORARY PACKING' and a.line = 'TEMPORARY PACKING'
-            union
+            union all
             select
                 a.no_trans,
                 concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
