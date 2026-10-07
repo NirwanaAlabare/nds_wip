@@ -865,10 +865,10 @@ class CuttingFormScrapController extends Controller
             leftJoin("part", "part.id", "=", "part_detail.part_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             where("part.act_costing_ws", $request->act_costing_ws)->
-            when($request->color, function ($query) use ($request) {
-                // part.color bisa berisi gabungan beberapa color ("BLACK, WHITE")
-                $query->whereRaw("FIND_IN_SET(?, REPLACE(part.color, ', ', ','))", [$request->color]);
-            })->
+            // when($request->color, function ($query) use ($request) {
+            //     // part.color bisa berisi gabungan beberapa color ("BLACK, WHITE")
+            //     $query->whereRaw("FIND_IN_SET(?, REPLACE(part.color, ', ', ','))", [$request->color]);
+            // })->
             when($request->panel, function ($query) use ($request) {
                 $query->where("part.panel", $request->panel);
             })->
