@@ -45,7 +45,7 @@ class PackingPackingInController extends Controller
             left join master_sb_ws m on p.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
                 where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing')
-            union
+            union all
             select
             a.no_trans,
             concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
@@ -68,7 +68,7 @@ class PackingPackingInController extends Controller
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'TEMPORARY PACKING' and a.line = 'TEMPORARY PACKING'
-            union
+            union all
             select
             a.no_trans,
             concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
@@ -118,7 +118,7 @@ class PackingPackingInController extends Controller
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
                  where a.tujuan = 'Packing'
             having a.qty - coalesce(b.qty_in,0) > '0'
-            union
+            union all
             SELECT
             a.id,
             a.no_trans,
@@ -135,7 +135,7 @@ class PackingPackingInController extends Controller
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.po = 'TEMPORARY PACKING'
             having a.qty - coalesce(b.qty_in,0) > '0'
-            union
+            union all
             SELECT
             a.id,
             a.no_trans_out as no_trans,
@@ -198,7 +198,7 @@ class PackingPackingInController extends Controller
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
             having a.qty - coalesce(b.qty_in,0) != '0'
-			union
+			union all
             SELECT
             a.id,
             'TEMPORARY PACKING' line,
@@ -226,7 +226,7 @@ class PackingPackingInController extends Controller
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.po = 'TEMPORARY PACKING' AND a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
             having a.qty - coalesce(b.qty_in,0) != '0'
-            union
+            union all
             SELECT
             a.id,
             'FGS' line,

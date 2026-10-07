@@ -317,11 +317,11 @@ class PenerimaanCuttingController extends Controller
         // Cek jika sudah ada pemakaian (menggunakan id_roll dari database/request)
         $idRoll = $request->id_roll ?? $penerimaanCutting->id_roll;
         // $firstUsage = $cuttingService->isRollUsed($idRoll, true);
-        // if ($firstUsage && $tglTerimaBaru > $firstUsage) {
+        // if (checkClosingDate($firstUsage)) {
 
         //     return response()->json([
         //         'status'     => 400,
-        //         'message'    => 'Roll tidak dapat diubah ke tanggal setelah ada pemakaian.',
+        //         'message'    => 'Periode pemakaian sudah closing.',
         //         'table'      => 'datatable',
         //         'additional' => [],
         //     ], 400);
@@ -344,10 +344,16 @@ class PenerimaanCuttingController extends Controller
 
         // Simpan Perubahan ke Database
         if ($penerimaanCutting->save()) {
-            $cuttingService->fixChainedQty($penerimaanCutting->id_roll, null);
+            // Langsung calculate jika belum ada yang sudah close
+            $firstUsage = $cuttingService->isRollUsed($idRoll, true);
+            $checkClosing = checkClosingDate($firstUsage);
+            if (!$checkClosing) {
+                $cuttingService->fixChainedQty($penerimaanCutting->id_roll, null);
+            }
+
             return response()->json([
                 'status'     => 200,
-                'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.',
+                'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.'.($checkClosing ? "<br>Ada pemakaian yang masuk ke periode yang sudah ditutup." : ""),
                 'table'      => 'datatable',
                 'data'       => $penerimaanCutting
             ], 200);
