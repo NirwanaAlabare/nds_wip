@@ -57,9 +57,9 @@
                 <button type="button" class="btn btn-info btn-sm" onclick="rearrangeGroup('{{ $dataSpreading->id }}', '{{ $dataSpreading->no_form }}')">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Grouping
                 </button>
-                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
+                {{-- <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Size Qty
-                </button>
+                </button> --}}
             </div>
             <form action="#" method="post" id="stocker-form">
                 {{-- Stocker --}}
