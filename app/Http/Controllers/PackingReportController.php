@@ -1483,8 +1483,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_transaction_in,
                     0 as pc_switching_transaction_out_before,
                     0 as pc_switching_transaction_out,
-                    SUM(IF(tgl_penerimaan < '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok_before,
-                    SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS pc_terima_gudang_stok,
+                    SUM(IF(tgl_pengeluaran < '{$tgl_awal}', fg_stok_bppb.qty_out,0)) AS pc_terima_gudang_stok_before,
+                    SUM(IF(tgl_pengeluaran >= '{$tgl_awal}', fg_stok_bppb.qty_out,0)) AS pc_terima_gudang_stok,
                     0 as qty_terima_temporary_before,
                     0 as qty_terima_temporary,
                     0 as qty_keluar_gudang_stok_temporary_before,
@@ -1498,11 +1498,18 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary_before,
                     0 as qty_adjustment_packing_temporary
                 FROM
-                    packing_packing_in
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                   fg_stok_bppb
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_bppb.id_so_det
+                LEFT JOIN (
+                    SELECT
+                        fg_stok_bppb_id,
+                        SUM(qty) AS qty_in
+                    FROM packing_packing_in
+                    GROUP BY fg_stok_bppb_id
+                ) p ON p.fg_stok_bppb_id = fg_stok_bppb.id
                 WHERE
-                    tgl_penerimaan <= '{$tgl_akhir}' and
-                    sumber = 'FGS'
+                    tgl_pengeluaran <= '{$tgl_akhir}'
+                    AND tujuan = 'PACKING CENTRAL'
                 GROUP BY
                     master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
 
