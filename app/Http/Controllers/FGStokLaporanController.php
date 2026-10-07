@@ -1901,8 +1901,8 @@ class FGStokLaporanController extends Controller
                         0 qty_keluar_qa,
                         0 qty_keluar_ekspedisi_before,
                         0 qty_keluar_ekspedisi,
-                        SUM(IF(tgl_penerimaan < '{$tgl_awal}', packing_packing_in.qty,0)) AS qty_keluar_packing_central_before,
-                        SUM(IF(tgl_penerimaan >= '{$tgl_awal}', packing_packing_in.qty,0)) AS qty_keluar_packing_central,
+                        SUM(IF(tgl_pengeluaran < '{$tgl_awal}', fg_stok_bppb.qty_out,0)) AS qty_keluar_packing_central_before,
+                        SUM(IF(tgl_pengeluaran >= '{$tgl_awal}', fg_stok_bppb.qty_out,0)) AS qty_keluar_packing_central,
                         0 qty_in_temporary_packing_before,
                         0 qty_in_temporary_packing,
                         0 qty_in_packing_central_before,
@@ -1916,11 +1916,18 @@ class FGStokLaporanController extends Controller
                         0 qty_terima_qa_before,
                         0 qty_terima_qa
                     FROM
-                        packing_packing_in
-                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
+                        fg_stok_bppb
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_bppb.id_so_det
+                        LEFT JOIN (
+                            SELECT
+                                fg_stok_bppb_id,
+                                SUM(qty) AS qty_in
+                            FROM packing_packing_in
+                            GROUP BY fg_stok_bppb_id
+                        ) p ON p.fg_stok_bppb_id = fg_stok_bppb.id
                     WHERE
-                        tgl_penerimaan <= '{$tgl_akhir}' and
-                        sumber = 'FGS'
+                        tgl_pengeluaran <= '{$tgl_akhir}' 
+                        AND tujuan = 'PACKING CENTRAL'
                     GROUP BY
                         master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
 
