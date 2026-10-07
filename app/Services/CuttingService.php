@@ -369,7 +369,7 @@ class CuttingService
 
             $uniqueRollIds = array_unique($affectedRollIds);
             foreach ($uniqueRollIds as $rollId) {
-                $this->fixChainedQty($rollId);
+                $this->fixChainedQty($rollId, null);
             }
 
             DB::commit();
@@ -510,7 +510,7 @@ class CuttingService
 
             $uniqueRollIds = array_unique($affectedRollIds);
             foreach ($uniqueRollIds as $rollId) {
-                $this->fixChainedQty($rollId);
+                $this->fixChainedQty($rollId, null);
             }
 
             DB::commit();
@@ -1710,7 +1710,12 @@ class CuttingService
                     $currentDetail->sisa_kain = round($sisaKain, 2);
                     $currentDetail->short_roll = round($shortRoll, 2);
                     Log::channel("fixChainedQty")->info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                    $currentDetail->save();
+                    
+                    // Don't save when closed
+                    $checkClosing = checkClosingDate($formCut->waktu_selesai);
+                    if (!$checkClosing) {
+                        $currentDetail->save();
+                    }
                 }
 
                 if ($detail->type == "form_cut_piping") {
@@ -1723,7 +1728,12 @@ class CuttingService
                         $currentQty = $currentDetail->qty_sisa;
                         $currentIdRoll = $currentDetail->id_roll;
                         Log::channel("fixChainedQty")->info("Detail Value = piping : {$currentDetail->piping}, sisakain : {$currentDetail->qty_sisa}, shortroll : {$currentDetail->short_roll}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                        $currentDetail->save();
+                        
+                        // Don't save when closed
+                        $checkClosing = checkClosingDate($currentDetail->created_at);
+                        if (!$checkClosing) {
+                            $currentDetail->save();
+                        }
                     }
                 }
 
@@ -1738,6 +1748,12 @@ class CuttingService
                         $currentIdRoll = $currentDetail->id_roll;
                         Log::channel("fixChainedQty")->info("Detail Value = reject : {$currentDetail->qty_pakai}, sisakain : {$currentDetail->sisa_kain}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
                         $currentDetail->save();
+
+                        // Don't save when closed
+                        $checkClosing = checkClosingDate($currentDetail->created_at);
+                        if (!$checkClosing) {
+                            $currentDetail->save();
+                        }
                     }
                 }
 

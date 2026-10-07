@@ -65,13 +65,15 @@
 
     <div class="card">
         <div class="mx-3 my-3">
-            <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-arrow-right-arrow-left"></i> Switching</h5>
+            <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-arrow-right-arrow-left text-sb-secondary"></i> Switching Adjustment</h5>
         </div>
         <div class="row g-3 mx-2">
             <div class="col-12 col-md-5">
                 <div class="card">
                     <div class="card-header bg-sb">
-                        <h5 class="card-title text-light text-center">OUT</h5>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="card-title text-light text-center text-warning fw-bold">OUT</h5>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -150,7 +152,9 @@
             <div class="col-12 col-md-5">
                 <div class="card">
                     <div class="card-header bg-sb">
-                        <h5 class="card-title text-light text-center">IN</h5>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="card-title text-light text-center text-warning fw-bold">IN</h5>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -221,7 +225,7 @@
     <div class="card">
         <div class="card-header bg-sb-secondary">
             <h5 class="card-title">
-                <i class="fas fa-list fa-sm"></i> List Data
+                <i class="fas fa-list fa-sm text-warning"></i> List Data
             </h5>
         </div>
         <div class="card-body">
