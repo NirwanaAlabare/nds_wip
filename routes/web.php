@@ -1279,6 +1279,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/update-header/{id}', 'updateHeader')->name('update-costing-header');
         Route::delete('/delete-detail/{id}', 'destroyDetail')->name('delete-costing-detail');
         Route::get('/print-pdf/{id}', 'printPdf')->name('print-costing-pdf');
+        Route::get('/print-pdf-batch', 'printBatchPdf')->name('print-costing-batch-pdf');
+        Route::get('/timeline/{id}', 'costingTimeline')->name('costing-timeline');
+        Route::get('/{id}/items', 'costingItems')->name('costing-items');
         Route::get('get-detail-row-costing/{id}', 'getDetailRow')->name('get-detail-row-costing');
         Route::post('update-detail', 'updateDetail')->name('update-detail-costing');
         Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
@@ -1355,11 +1358,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-marketing-so');
         Route::get('/create', 'create')->name('create-so');
         Route::get('/detail/{id}', 'get_detail')->name('get-detail-so');
+        Route::get('/get-costing-data', 'getCostingData')->name('so-get-costing-data');
         Route::post('/get-product-items', 'getProductItems')->name('get-product-items');
         Route::post('/upload-excel', 'uploadExcelSO')->name('so-upload-excel');
         Route::get('/get-temp-data', 'getTempData')->name('so-get-temp-data');
         Route::post('/store', 'store')->name('so-store');
         Route::get('/get-detail-material/{id}', 'getDetailMaterialSo')->name('get-detail-material-so');
+        Route::get('/export-excel/{id}', 'exportExcelSO')->name('export-excel-so');
         Route::post('/store-detail', 'storeDetail')->name('store-bom-detail');
         Route::post('/so-get-item-contents', 'getItemContents')->name('so-get-item-contents');
         Route::post('/so-get-rule', 'getRuleBom')->name('so-get-rule');
@@ -2517,4 +2522,3 @@ Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->nam
 Route::middleware(['auth', 'role:export_import'])->group(function () {
     Route::resource('master-ceisa', \App\Http\Controllers\MasterCeisaCredentialController::class)->except(['create', 'show', 'edit']);
 });
-

@@ -9,6 +9,7 @@ use PDF;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\File;
+use App\Services\MarketingHistoryService;
 
 class Marketing_SOController extends Controller
 {
@@ -117,9 +118,20 @@ class Marketing_SOController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $mysql_sb = DB::connection('mysql_sb');
+
+        $id_costing = $request->id_costing;
+        $costingNo  = '-';
+        if ($id_costing) {
+            $costing = $mysql_sb->table('act_costing')->where('id', $id_costing)->first();
+            if ($costing) {
+                $costingNo = $costing->cost_no ?? '-';
+            }
+        }
+
+
 
         $buyers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'C')
             ->select('Id_Supplier', 'Supplier')->orderBy('Supplier', 'ASC')->get();
@@ -174,10 +186,10 @@ class Marketing_SOController extends Controller
             'master_sizes'    => $master_sizes,
             'masterUnits'    => $masterUnits,
             'suppliers' => $suppliers,
-            'master_colors' => $master_colors,
-            'master_sizes' => $master_sizes,
             'marketing_orders' => $marketing_orders,
             'master_set'     => $master_set,
+            'costingNo'      => $costingNo,
+            'costingId'      => $id_costing,
             'containerFluid' => true
         ]);
     }
@@ -204,6 +216,89 @@ class Marketing_SOController extends Controller
             'sizes' => $sizes,
             'existing' => $existing
         ]);
+    }
+
+    public function getCostingData(Request $request)
+    {
+        $idCosting = $request->input('id_costing');
+        if (!is_numeric($idCosting) || (int) $idCosting < 1) {
+            return response()->json(['status' => 400, 'message' => 'ID Costing kosong'], 400);
+        }
+        $idCosting = (int) $idCosting;
+
+        $db = DB::connection('mysql_sb');
+        $data = $db->table('act_costing as c')
+            ->leftJoin('mastersupplier as ms', 'c.id_buyer', '=', 'ms.Id_Supplier')
+            ->leftJoin('masterseason as seas', 'c.season_id', '=', 'seas.id_season')
+            ->leftJoin('mastershipmode as sm', 'c.id_smode', '=', 'sm.id')
+            ->leftJoin('masterpilihan as curr', function ($join) {
+                $join->on('curr.nama_pilihan', '=', 'c.curr')
+                    ->where('curr.kode_pilihan', '=', 'Curr');
+            })
+            ->leftJoin('master_mkt_order as mo', 'mo.mkt_order', '=', 'c.mkt_order')
+            ->leftJoin('masterproduct as mp', 'c.id_product', '=', 'mp.id')
+            ->where('c.id', $idCosting)
+            ->select(
+                'c.id',
+                'c.cost_no',
+                'c.kpno',
+                'c.id_buyer',
+                'ms.Supplier as buyer_name',
+                'ms.supplier_code as buyer_code',
+                'c.season_id',
+                'seas.season as season_name',
+                'seas.season_desc',
+                'c.styleno as style',
+                'c.brand',
+                'c.market',
+                'mo.id as marketing_order',
+                'mo.mkt_order as marketing_order_name',
+                'c.smv_min as smv',
+                'curr.id as id_currency',
+                'c.costing_type as type',
+                'c.type_ws as tipe_ws',
+                'c.qty_planned as planned_qty',
+                'c.unit',
+                'c.id_smode as ship_mode',
+                'sm.shipmode as ship_mode_name',
+                'c.status',
+                'c.main_dest',
+                'mp.product_group',
+                'mp.product_item as nama_product_item',
+                'mp.id as id_product_item',
+                'c.product_set',
+                'c.attach_file as gambar',
+                'c.cfm_price as confirm_price',
+                'c.app1'
+            )
+            ->first();
+
+        if (!$data) {
+            return response()->json(['status' => 404, 'message' => 'Data Costing tidak ditemukan'], 404);
+        }
+
+        $pictures = $db->table('act_costing_picture')
+            ->where('id_costing', $idCosting)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('file_name')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($pictures->isEmpty() && $data->gambar) {
+            $pictures->push($data->gambar);
+        }
+
+        $data->images = $pictures->map(function ($imageName) {
+            return '/nds_wip/public/uploads/costing/' . rawurlencode($imageName);
+        })->values();
+        $data->image_url = $data->images->first();
+        $data->kpno = $data->kpno ?: '-';
+        $data->approved = in_array(strtoupper((string) $data->app1), ['A', 'Y'], true);
+
+
+        return response()->json(['status' => 200, 'data' => $data]);
     }
 
     public function getProductItems(Request $request)
@@ -630,12 +725,24 @@ class Marketing_SOController extends Controller
     {
         $request->validate([
             'file_so' => 'required|mimes:xls,xlsx',
-            'id_bom'  => 'required'
         ]);
 
         $user_id = auth()->id();
         $file = $request->file('file_so');
-        $id_bom = $request->id_bom;
+        $mysql_sb = DB::connection('mysql_sb');
+
+        if ($request->filled('id_costing')) {
+            $costing = $mysql_sb->table('act_costing')->where('id', $request->id_costing)->first();
+            if (!$costing) {
+                return response()->json(['status' => 404, 'message' => 'Data Costing tidak ditemukan.'], 404);
+            }
+            if (!in_array(strtoupper((string) $costing->app1), ['A', 'Y'], true)) {
+                return response()->json(['status' => 422, 'message' => 'Costing belum disetujui App 1.'], 422);
+            }
+            $id_bom = null;
+        } else {
+            $id_bom = $request->id_bom;
+        }
 
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathname());
         $data = $spreadsheet->getActiveSheet()->toArray();
@@ -659,26 +766,30 @@ class Marketing_SOController extends Controller
             $master_sizes[strtoupper(trim($k))] = $v;
         }
 
-        // Tarik Data BOM (Warna & Size yang terdaftar)
-        $bom_colors = $mysql_sb->table('bom_marketing_detail')
-            ->where('id_bom_marketing', $id_bom)
-            ->whereNotNull('id_color')
-            ->where('id_color', '!=', '0')
-            ->where('id_color', '!=', '')
-            ->where('cancel', 'N')
-            ->pluck('id_color')
-            ->unique()
-            ->toArray();
+        // Direct Costing -> SO does not have a BOM color/size restriction.
+        $bom_colors = [];
+        $bom_sizes = [];
+        if ($id_bom) {
+            $bom_colors = $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $id_bom)
+                ->whereNotNull('id_color')
+                ->where('id_color', '!=', '0')
+                ->where('id_color', '!=', '')
+                ->where('cancel', 'N')
+                ->pluck('id_color')
+                ->unique()
+                ->toArray();
 
-        $bom_sizes = $mysql_sb->table('bom_marketing_detail')
-            ->where('id_bom_marketing', $id_bom)
-            ->whereNotNull('id_size')
-            ->where('id_size', '!=', '0')
-            ->where('id_size', '!=', '')
-            ->where('cancel', 'N')
-            ->pluck('id_size')
-            ->unique()
-            ->toArray();
+            $bom_sizes = $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $id_bom)
+                ->whereNotNull('id_size')
+                ->where('id_size', '!=', '0')
+                ->where('id_size', '!=', '')
+                ->where('cancel', 'N')
+                ->pluck('id_size')
+                ->unique()
+                ->toArray();
+        }
 
         for ($i = 1; $i < count($data); $i++) {
             $row = $data[$i];
@@ -782,17 +893,14 @@ class Marketing_SOController extends Controller
             }
         }
 
+        if ($request->filled('id_costing')) {
+            session(['so_upload_costing_id' => (string) $request->id_costing]);
+        }
+
         return response()->json([
             'status' => 200,
             'message' => 'Excel berhasil diproses.',
-            'debug' => [
-                'total_rows_excel' => count($data),
-                'total_inserted' => count($temp_data),
-                'bom_colors_count' => count($bom_colors),
-                'bom_sizes_count' => count($bom_sizes),
-                'headers' => $headers ?? [],
-                'row_1_data' => $data[1] ?? []
-            ]
+            'total_inserted' => count($temp_data),
         ]);
     }
 
@@ -800,15 +908,27 @@ class Marketing_SOController extends Controller
     public function getTempData(Request $request)
     {
         $user_id = auth()->id();
-        $id_bom = $request->id_bom;
         $mysql_sb = DB::connection('mysql_sb');
 
-        // Ambil Data Header BOM
-        $bom_header = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+        $isCostingFlow = $request->filled('id_costing');
+        if ($isCostingFlow) {
+            $id_bom = null;
+        } else {
+            $id_bom = $request->id_bom;
+        }
+
+        if (!$isCostingFlow && $id_bom) {
+            $bom_header = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+        } else {
+            $bom_header = null;
+        }
+
         $allowed_colors = $bom_header && $bom_header->colors ? json_decode($bom_header->colors, true) : [];
         $allowed_sizes  = $bom_header && $bom_header->sizes ? json_decode($bom_header->sizes, true) : [];
 
-        $bom_details = $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id_bom)->where('cancel', 'N') ->get();
+        $bom_details = $id_bom
+            ? $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id_bom)->where('cancel', 'N')->get()
+            : collect();
 
         $required_contents = [];
         $content_combinations = [];
@@ -907,22 +1027,21 @@ class Marketing_SOController extends Controller
 
         $has_bom_error = false;
 
-        if (count($missing_colors_names) > 0 || count($missing_sizes_names) > 0) {
+        if (!$isCostingFlow && (count($missing_colors_names) > 0 || count($missing_sizes_names) > 0)) {
             $has_bom_error = true;
         }
 
-        // ... (Logika validasi error BOM biarkan sama persis seperti sebelumnya) ...
         foreach ($pivot_data as &$row) {
             $id_color = (string)$row['id_color'];
 
-            $in_header_color = in_array($id_color, $allowed_colors);
+            $in_header_color = $isCostingFlow || in_array($id_color, $allowed_colors);
             $row['color_error'] = !$in_header_color;
 
             foreach ($available_sizes_array as $size_name) {
                 if (isset($row[$size_name])) {
                     $id_size = (string)$row['id_sizes'][$size_name];
-                    $in_header_size = in_array($id_size, $allowed_sizes);
-                    $is_valid = $in_header_color && $in_header_size;
+                    $in_header_size = $isCostingFlow || in_array($id_size, $allowed_sizes);
+                    $is_valid = $isCostingFlow || ($in_header_color && $in_header_size);
 
                     if ($is_valid) {
                         foreach ($required_contents as $content_id) {
@@ -1139,43 +1258,48 @@ class Marketing_SOController extends Controller
     //     }
     // }
 
-    private function generate_kode($id_buyer)
+    private function generate_kode($id_buyer, bool $includeCostingNumbers = true)
     {
 
         $mysql_sb = DB::connection('mysql_sb');
         $now = now();
         $bln_thn = $now->format('my');
 
-        // get untuk cost_no
-        $mattype_cost = 'CST-' . $now->format('Y');
-        $cek_cost = $mysql_sb->table('tempbpb')->where('mattype', $mattype_cost)->first();
+        $cost_no = null;
+        $kpno = null;
+        if ($includeCostingNumbers) {
+            $mattype_cost = 'CST-' . $now->format('Y');
+            $cek_cost = $mysql_sb->table('tempbpb')->where('mattype', $mattype_cost)->first();
 
-        if (!$cek_cost) {
-            $next_costing = 1;
-            $mysql_sb->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
-        } else {
-            $next_costing = $cek_cost->BPBNo + 1;
-            $mysql_sb->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
+            if (!$cek_cost) {
+                $next_costing = 1;
+                $mysql_sb->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
+            } else {
+                $next_costing = $cek_cost->BPBNo + 1;
+                $mysql_sb->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
+            }
+
+            $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
+
+            $buyer = $mysql_sb->table('mastersupplier')->where('Id_Supplier', $id_buyer)->first();
+            $kode_supplier = trim((string) ($buyer->supplier_code ?? ''));
+            if ($kode_supplier === '') {
+                throw new \RuntimeException('Kode supplier buyer wajib diisi untuk membuat WS/KP No.');
+            }
+
+            $mattype_kpno = $kode_supplier . '-' . $now->format('Y');
+            $cek_kpno = $mysql_sb->table('tempbpb')->where('mattype', $mattype_kpno)->first();
+
+            if (!$cek_kpno) {
+                $next_kpno = 1;
+                $mysql_sb->table('tempbpb')->insert(['mattype' => $mattype_kpno, 'BPBNo' => $next_kpno]);
+            } else {
+                $next_kpno = $cek_kpno->BPBNo + 1;
+                $mysql_sb->table('tempbpb')->where('mattype', $mattype_kpno)->update(['BPBNo' => $next_kpno]);
+            }
+
+            $kpno = "$kode_supplier/$bln_thn/" . str_pad($next_kpno, 3, '0', STR_PAD_LEFT);
         }
-
-        $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
-
-        // get untuk kpno/ws
-        $buyer = $mysql_sb->table('mastersupplier')->where('Id_Supplier', $id_buyer)->first();
-        $kode_supplier = $buyer ? $buyer->supplier_code : '';
-
-        $mattype_kpno = $kode_supplier . '-' . $now->format('Y');
-        $cek_kpno = $mysql_sb->table('tempbpb')->where('mattype', $mattype_kpno)->first();
-
-        if (!$cek_kpno) {
-            $next_kpno = 1;
-            $mysql_sb->table('tempbpb')->insert(['mattype' => $mattype_kpno, 'BPBNo' => $next_kpno]);
-        } else {
-            $next_kpno = $cek_kpno->BPBNo + 1;
-            $mysql_sb->table('tempbpb')->where('mattype', $mattype_kpno)->update(['BPBNo' => $next_kpno]);
-        }
-
-        $kpno = "$kode_supplier/$bln_thn/" . str_pad($next_kpno, 3, '0', STR_PAD_LEFT);
 
 
          // get untuk no so
@@ -1357,6 +1481,9 @@ class Marketing_SOController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('id_costing')) {
+            return $this->storeFromCosting($request);
+        }
 
         $mysql_sb = DB::connection('mysql_sb');
         $username = auth()->user()->name;
@@ -1445,7 +1572,15 @@ class Marketing_SOController extends Controller
 
             foreach ($temp_data as $no_po => $details) {
                 $total_qty_po = $details->sum('qty');
-                $kode = $this->generate_kode($request->id_buyer);
+                $wsBuyerId = $request->id_buyer ?: ($bom->id_buyer ?? null);
+                if (!$wsBuyerId) {
+                    throw new \RuntimeException('Buyer wajib dipilih untuk membuat WS/KP No.');
+                }
+
+                $kode = $this->generate_kode($wsBuyerId);
+                if (empty($kode['kpno'])) {
+                    throw new \RuntimeException('WS/KP No. gagal dibuat.');
+                }
 
                 // save ke act_costing
                 $curr_name = '';
@@ -1460,7 +1595,7 @@ class Marketing_SOController extends Controller
                     'cost_no'     => $kode['cost_no'],
                     'cost_date'   => now(),
                     'kpno'        => $kode['kpno'],
-                    'id_buyer'    => $request->id_buyer ?? ($act_costing_new ? $act_costing_new->id_buyer : null),
+                    'id_buyer'    => $wsBuyerId,
                     'styleno'     => $request->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
                     'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
                     'curr'        => $curr_name ?: ($act_costing_new ? $act_costing_new->curr : $request->id_currency),
@@ -1620,6 +1755,13 @@ class Marketing_SOController extends Controller
 
                 $this->logSo($id_so);
                 $this->logAllSoDet($id_so);
+                app(MarketingHistoryService::class)->record(
+                    (int) $id_cost,
+                    'so',
+                    'created',
+                    "Sales Order {$kode['so_no']} dibuat untuk PO {$no_po}.",
+                    (int) $id_so
+                );
 
                 $bom_items = $mysql_sb->select("
                     SELECT DISTINCT id_item
@@ -1710,6 +1852,172 @@ class Marketing_SOController extends Controller
         }
     }
 
+    private function storeFromCosting(Request $request)
+    {
+        $request->validate([
+            'id_costing' => ['required', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'images' => ['nullable', 'image', 'max:10240'],
+        ]);
+
+        $db = DB::connection('mysql_sb');
+        $user = auth()->user();
+        $userId = auth()->id();
+        $costingId = (string) $request->input('id_costing');
+
+        if (session('so_upload_costing_id') !== $costingId) {
+            return response()->json([
+                'status' => 409,
+                'message' => 'Upload Excel belum dilakukan untuk Costing ini. Silakan upload ulang.',
+            ], 409);
+        }
+
+        $tempDetails = $db->table('temp_so_detail')
+            ->where('user_id', $userId)
+            ->get()
+            ->groupBy('po');
+
+        if ($tempDetails->isEmpty()) {
+            return response()->json(['status' => 400, 'message' => 'Data Excel kosong.'], 400);
+        }
+
+        if (($request->input('po_type') ?? 'single') === 'multiple') {
+            $combinedPo = implode(', ', $tempDetails->keys()->toArray());
+            if (strlen($combinedPo) > 200) {
+                $combinedPo = substr($combinedPo, 0, 195) . '...';
+            }
+            $tempDetails = collect([$combinedPo => $tempDetails->flatten(1)]);
+        }
+
+        $costing = $db->table('act_costing')->where('id', $costingId)->first();
+        if (!$costing) {
+            return response()->json(['status' => 404, 'message' => 'Data Costing tidak ditemukan.'], 404);
+        }
+        if (!in_array(strtoupper((string) $costing->app1), ['A', 'Y'], true)) {
+            return response()->json(['status' => 422, 'message' => 'Costing belum diApprove.'], 422);
+        }
+        if ($db->table('so')->where('id_cost', $costingId)->where('cancel_h', 'N')->exists()) {
+            return response()->json(['status' => 409, 'message' => 'Sales Order untuk Costing ini sudah dibuat.'], 409);
+        }
+
+        $fileName = null;
+        $targetPath = public_path('uploads/so');
+        try {
+            $result = $db->transaction(function () use ($db, $request, $user, $userId, $costing, $costingId, $tempDetails, &$fileName, $targetPath) {
+                if ($request->hasFile('images')) {
+                    if (!File::isDirectory($targetPath)) {
+                        File::makeDirectory($targetPath, 0755, true, true);
+                    }
+                    $file = $request->file('images');
+                    $fileName = uniqid('so_', true) . '.' . $file->getClientOriginalExtension();
+                    $file->move($targetPath, $fileName);
+                }
+
+                $resultCount = $tempDetails->count();
+                foreach ($tempDetails as $po => $details) {
+                    $totalQty = $details->sum('qty');
+                    $codes = $this->generate_kode($costing->id_buyer, false);
+                    $now = now();
+
+                    $idSo = $db->table('so')->insertGetId([
+                        'id_cost' => $costingId,
+                        'buyerno' => $po,
+                        'so_no' => $codes['so_no'],
+                        'no_po' => $po,
+                        'so_date' => $now,
+                        'curr' => $costing->curr,
+                        'qty' => $totalQty,
+                        'username' => $user->username ?? $user->name,
+                        'd_insert' => $now,
+                        'id_bom' => null,
+                        'market' => $costing->market,
+                        'nm_file' => $fileName,
+                        'style' => $costing->styleno,
+                        'brand' => $costing->brand,
+                        'id_product' => $costing->id_product,
+                        'smv' => $costing->smv_min,
+                        'marketing_order' => $request->input('marketing_order'),
+                        'notes' => $request->input('notes', $costing->notes),
+                        'unit' => $costing->unit ?: 'PCS',
+                        'id_season' => $costing->season_id,
+                        'jns_so' => $request->input('jns_so'),
+                        'fob' => $request->input('fob', 0),
+                    ]);
+
+                    $idJo = $db->table('jo')->insertGetId([
+                        'jo_no' => $codes['jo_no'],
+                        'jo_date' => $now,
+                        'username' => $user->username ?? $user->name,
+                        'app' => 'A',
+                        'd_insert' => $now,
+                    ]);
+                    $db->table('jo_det')->insert([
+                        'id_so' => $idSo,
+                        'id_jo' => $idJo,
+                        'cancel' => 'N',
+                    ]);
+
+                    $detailsToInsert = [];
+                    foreach ($details as $detail) {
+                        $color = $db->table('master_colors_gmt')->where('id', $detail->id_color)->first();
+                        $size = $db->table('master_size_new')->where('id', $detail->size)->first();
+                        $detailsToInsert[] = [
+                            'id_so' => $idSo,
+                            'color' => $color->name ?? '-',
+                            'size' => $size->size ?? '-',
+                            'qty' => $detail->qty,
+                            'styleno_prod' => $detail->style,
+                            'reff_no' => $costing->styleno,
+                            'deldate_det' => $detail->ex_fty ? date('Y-m-d', strtotime($detail->ex_fty)) : null,
+                            'created_by' => $user->name,
+                            'created_date' => $now,
+                            'cancel' => 'N',
+                            'unit' => $costing->unit ?: 'PCS',
+                            'id_color' => $color->id ?? null,
+                            'id_size' => $size->id ?? null,
+                            'product_set' => $detail->product_set,
+                            'dest' => $detail->market ?: '-',
+                            'price' => $costing->cfm_price ?? 0,
+                            'sku' => '-',
+                            'fob' => $detail->fob,
+                        ];
+                    }
+                    $db->table('so_det')->insert($detailsToInsert);
+                    $this->logSo($idSo);
+                    $this->logAllSoDet($idSo);
+                    app(MarketingHistoryService::class)->record(
+                        (int) $costingId,
+                        'so',
+                        'created',
+                        "Sales Order {$codes['so_no']} dibuat untuk PO {$po}.",
+                        (int) $idSo
+                    );
+                }
+
+                $db->table('temp_so_detail')->where('user_id', $userId)->delete();
+                return $resultCount;
+            });
+
+            session()->forget('so_upload_costing_id');
+            return response()->json([
+                'status' => 200,
+                'message' => "Berhasil menyimpan {$result} Sales Order dari Costing {$costing->cost_no}.",
+            ]);
+        } catch (\Exception $e) {
+            if ($fileName && File::exists($targetPath . DIRECTORY_SEPARATOR . $fileName)) {
+                File::delete($targetPath . DIRECTORY_SEPARATOR . $fileName);
+            }
+
+            \Log::error('Gagal membuat SO dari Costing.', [
+                'id_costing' => $costingId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'status' => 500,
+                'message' => 'Gagal menyimpan Sales Order: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function get_detail($id)
     {
@@ -1728,7 +2036,7 @@ class Marketing_SOController extends Controller
         $details = $mysql_sb->table('so_det')
             ->leftJoin('master_size_new', 'so_det.id_size', '=', 'master_size_new.id')
             ->select(
-                'so_det.*', 
+                'so_det.*',
                 'master_size_new.urutan as size_urutan',
                 DB::raw('(SELECT COUNT(so_det_id) FROM laravel_nds.marker_input_detail WHERE so_det_id = so_det.id) AS cek_marker')
             )
@@ -2582,6 +2890,76 @@ class Marketing_SOController extends Controller
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
 
+    public function exportExcelSO($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $header = $mysql_sb->table('so')
+            ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+            ->leftJoin('mastersupplier as ms', 'ac.id_buyer', '=', 'ms.Id_Supplier')
+            ->select('so.so_no', 'so.no_po', 'so.style', 'so.market', 'ac.kpno', 'ms.Supplier as buyer')
+            ->where('so.id', $id)
+            ->first();
+
+        if (!$header) {
+            abort(404, 'Data SO tidak ditemukan.');
+        }
+
+        $details = $mysql_sb->table('so_det as sd')
+            ->leftJoin('master_colors_gmt as c', 'sd.id_color', '=', 'c.id')
+            ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
+            ->select(
+                'c.name as color',
+                'sd.dest',
+                's.size as size',
+                'sd.product_set',
+                'sd.qty',
+                'sd.deldate_det'
+            )
+            ->where('sd.id_so', $id)
+            ->where('sd.cancel', 'N')
+            ->orderBy('sd.product_set')
+            ->orderBy('c.name')
+            ->orderBy('s.urutan')
+            ->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Sales Order');
+        $sheet->fromArray([
+            ['Sales Order', $header->so_no],
+            ['No. PO', $header->no_po],
+            ['No. Worksheet', $header->kpno],
+            ['Buyer', $header->buyer],
+            ['Style', $header->style],
+            ['Market', $header->market],
+            [],
+            ['Color', 'Destination', 'Size', 'Product Set', 'Qty', 'Ex FTY']
+        ]);
+
+        $row = 9;
+        foreach ($details as $detail) {
+            $sheet->fromArray([
+                $detail->color,
+                $detail->dest,
+                $detail->size,
+                $detail->product_set,
+                $detail->qty,
+                $detail->deldate_det
+            ], null, 'A' . $row++);
+        }
+
+        foreach (range('A', 'F') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $filename = 'SO_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $header->so_no) . '.xlsx';
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
     // public function printPdfSO(Request $request, $id)
     // {
     //     $mysql_sb = DB::connection('mysql_sb');
@@ -2846,6 +3224,7 @@ class Marketing_SOController extends Controller
     //     return $pdf->stream(str_replace("/", "_", $fileName));
     // }
 
+
     public function getBomCostingData(Request $request)
     {
         $id_bom = $request->id_bom;
@@ -2858,27 +3237,44 @@ class Marketing_SOController extends Controller
 
         $data = $db->table('bom_marketing as b')
             ->leftJoin('act_costing_new as c', 'b.id_costing', '=', 'c.id')
+            ->leftJoin('mastersupplier as ms', 'c.buyer', '=', 'ms.Id_Supplier')
+            ->leftJoin('masterseason as seas', 'c.season_id', '=', 'seas.id_season')
+            ->leftJoin('mastershipmode as sm', 'c.ship_mode', '=', 'sm.id')
+            ->leftJoin('master_mkt_order as mo', 'c.marketing_order', '=', 'mo.id')
             ->where('b.id', $id_bom)
             ->select(
                 'b.id as id_bom',
+                'b.no_katalog_bom',
+                'c.no_costing',
                 'c.buyer as id_buyer',
+                'ms.Supplier as buyer_name',
                 'c.product_group',
                 'c.product_item as nama_product_item',
                 'c.brand',
                 'c.season_id',
+                'seas.season as season_name',
+                'seas.season_desc',
                 'c.style',
                 'c.market',
                 'c.marketing_order',
+                'mo.mkt_order as marketing_order_name',
                 'c.smv',
                 'c.curr as id_currency',
                 'c.type',
+                'c.tipe_ws',
+                'c.qty as planned_qty',
+                'c.unit',
+                'c.ship_mode',
+                'sm.shipmode as ship_mode_name',
+                'c.status',
+                'c.main_dest',
                 'c.product_set',
                 'c.foto as gambar'
             )
             ->first();
         if ($data) {
            if (!empty($data->gambar)) {
-                $url = url('uploads/costing/' . $data->gambar);
+                $url = 'nds_wip/public/uploads/costing/' . $data->gambar;
                 $data->image_url = str_replace('index.php/', '', $url);
             } else {
                 $data->image_url = null;
@@ -4082,39 +4478,39 @@ class Marketing_SOController extends Controller
 
                         if (in_array($det->type, ['Fabric', 'Accessories Sewing', 'Accessories Packing'])) {
                             $mysql_sb->table('act_costing_mat')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? 0, 
-                                'unit'            => $det->unit ?? '', 
-                                'allowance'       => $det->allowance ?? 0, 
-                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? 0,
+                                'unit'            => $det->unit ?? '',
+                                'allowance'       => $det->allowance ?? 0,
+                                'material_source' => $det->origin ?? 'LOKAL',
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }
                         elseif ($det->type == 'Manufacturing') {
                             $mysql_sb->table('act_costing_mfg')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'smv'             => null, 
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? 1, 
-                                'unit'            => $det->unit ?? 'PCS', 
-                                'allowance'       => $det->allowance ?? 0, 
-                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'smv'             => null,
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? 1,
+                                'unit'            => $det->unit ?? 'PCS',
+                                'allowance'       => $det->allowance ?? 0,
+                                'material_source' => $det->origin ?? 'LOKAL',
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }
                         elseif ($det->type == 'Other Cost') {
                             $mysql_sb->table('act_costing_oth')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'smv'             => null, 
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? null, 
-                                'unit'            => $det->unit ?? null, 
-                                'allowance'       => $det->allowance ?? null, 
-                                'material_source' => null, 
+                                'smv'             => null,
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? null,
+                                'unit'            => $det->unit ?? null,
+                                'allowance'       => $det->allowance ?? null,
+                                'material_source' => null,
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }

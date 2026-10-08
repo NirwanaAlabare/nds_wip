@@ -6,383 +6,479 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
-    <style>
-        :root {
-            --sb-navy: #0f172a;
-            --sb-blue: #3085d6;
-            --sb-blue-dark: #1e3a8a;
-            --sb-border: #e2e8f0;
-        }
+<style>
+    :root {
+        --sb-navy: #0f172a;
+        --sb-blue: #3085d6;
+        --sb-blue-dark: #1e3a8a;
+        --sb-border: #e2e8f0;
+    }
 
-        #card-preview .card-body {
-            max-height: 500px;
-            overflow-y: auto;
-            overflow-x: auto;
-            padding: 0;
-        }
-        #table-preview-so {
-            margin-bottom: 0 !important;
-        }
-        #table-preview-so thead th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background-color: var(--sb-navy) !important;
-        }
+    /* ============ CARD UTAMA & CONTAINER ============ */
+    .card-sb {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+    }
 
-        /* ============ CARD UTAMA ============ */
-        .card-sb {
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
-        }
+    .card-sb > .card-header {
+        background: #fff !important;
+        border: none;
+        padding: 1.2rem 1.4rem .4rem;
+        position: relative;
+    }
 
-        .card-sb > .card-header {
-            background: var(--sb-navy) !important;
-            border: none;
-            padding: 1.4rem 2rem;
-            position: relative;
-        }
+    .card-sb > .card-header::before {
+        content: none;
+    }
 
-        .card-sb > .card-header::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 5px;
-            background: repeating-linear-gradient(180deg, var(--sb-blue) 0px, var(--sb-blue) 10px, transparent 10px, transparent 20px);
-        }
+    .card-sb > .card-header .card-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: #64748b;
+        display: none;
+        margin-bottom: 4px;
+    }
 
-        .card-sb > .card-header .card-eyebrow {
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-            color: #5aa9f0;
-            display: block;
-            margin-bottom: 4px;
-        }
+    .card-sb > .card-header .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #294d68 !important;
+        margin: 0;
+    }
 
-        .card-sb > .card-header .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #f8fafc !important;
-            margin: 0;
-        }
+    /* Preview card header khusus (warning) */
+    .card-sb > .card-header.bg-warning {
+        background: linear-gradient(135deg, #f0ad4e, #d9822b) !important;
+    }
+    .card-sb > .card-header.bg-warning::before {
+        background: repeating-linear-gradient(180deg, #fff3cd 0px, #fff3cd 10px, transparent 10px, transparent 20px);
+    }
+    .card-sb > .card-header.bg-warning .card-title {
+        color: white !important;
+    }
 
-        /* Preview card pakai header kuning (khas "perlu perhatian") — tetap dibuat konsisten radius/eyebrow */
-        .card-sb > .card-header.bg-warning {
-            background: linear-gradient(135deg, #f0ad4e, #d9822b) !important;
-        }
-        .card-sb > .card-header.bg-warning::before {
-            background: repeating-linear-gradient(180deg, #fff3cd 0px, #fff3cd 10px, transparent 10px, transparent 20px);
-        }
-        .card-sb > .card-header.bg-warning .card-title {
-            color: white; !important;
-        }
+    .card-sb > .card-body {
+        background: #fff;
+        padding: 1rem 1.4rem 1.4rem;
+    }
 
-        .card-sb > .card-body {
-            background: #fbfcff;
-            padding: 1.75rem 2rem 2rem;
-        }
+    .card-footer.text-right {
+        border-top: 1px solid #eef1f5;
+        background: #fff;
+        padding: 1rem 2rem;
+    }
+    .card-footer .btn {
+        border-radius: 8px;
+        font-weight: 700;
+    }
+    .btn-success { background: linear-gradient(135deg, #22c55e, #15803d); border: none; }
 
-        /* ============ SECTION CARD (pengelompokan form) ============ */
-        .form-section {
-            background: #fff;
-            border: 1px solid #eef1f5;
-            border-radius: 14px;
-            padding: 1.3rem 1.5rem 1rem;
-            margin-bottom: 1.4rem;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-        }
+    #card-preview {
+        display: none;
+        margin: 0 1.4rem 1.4rem;
+    }
+    #card-preview .card-header { background: #294d68 !important; }
+    #card-preview .card-body {
+        max-height: 500px;
+        overflow: auto;
+        padding: 0;
+    }
+    #card-preview .table-responsive { overflow-x: auto; }
 
-        .form-section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--sb-navy);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 1.1rem;
-            padding-bottom: 0.7rem;
-            border-bottom: 1px solid #eef1f5;
-        }
+    /* ============ FORM & INPUT STYLING ============ */
+    .form-section-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sb-navy);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1.1rem;
+        padding-bottom: 0.7rem;
+        border-bottom: 1px solid #eef1f5;
+    }
+    .form-section-title i { color: var(--sb-blue); font-size: 13px; }
 
-        .form-section-title i { color: var(--sb-blue); font-size: 13px; }
+    .form-group label {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.3px;
+    }
 
-        .form-group label {
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #475569;
-            margin-bottom: 0.3rem;
-        }
+    .form-control,
+    .select2-container--bootstrap4 .select2-selection {
+        height: 42px;
+        min-height: 42px;
+        border-radius: 8px;
+        border: 1.5px solid var(--sb-border);
+        font-size: 12px;
+    }
+    .form-control:focus,
+    .select2-container--bootstrap4.select2-container--focus .select2-selection {
+        border-color: var(--sb-blue) !important;
+        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+    }
 
-        .form-control,
-        .select2-container--bootstrap4 .select2-selection {
-            border-radius: 8px;
-            border: 1.5px solid var(--sb-border);
-        }
-        .form-control:focus,
-        .select2-container--bootstrap4.select2-container--focus .select2-selection {
-            border-color: var(--sb-blue) !important;
-            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
-        }
+    .form-section.form-section-upload {
+        background: #f4f8fd;
+        border-color: #dbe7f7;
+    }
 
-        /* Section khusus upload (dibedakan warna agar terlihat sebagai area aksi) */
-        .form-section.form-section-upload {
-            background: #f4f8fd;
-            border-color: #dbe7f7;
-        }
+    .upload-preview-box {
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        min-height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
 
-        .upload-preview-box {
-            border: 1.5px dashed #cbd5e1;
-            border-radius: 12px;
-            background: #ffffff;
-            min-height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+    /* ============ TABLE PREVIEW ============ */
+    #table-preview-so {
+        width: 100%;
+        min-width: 1250px;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: none !important;
+        margin-bottom: 0;
+    }
 
-        /* ============ TABLE PREVIEW ============ */
-        #table-preview-so thead th,
-        #table-preview-so tfoot th {
-            font-size: 11.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
+    #table-preview-so thead th,
+    #table-preview-so tbody td,
+    #table-preview-so tfoot th {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
 
-        /* ============ FOOTER ============ */
-        .card-footer.text-right {
-            border-top: 1px solid #eef1f5;
-            background: #fff;
-            padding: 1rem 2rem;
-        }
-        .card-footer .btn {
-            border-radius: 8px;
-            font-weight: 700;
-        }
-        .btn-success { background: linear-gradient(135deg, #22c55e, #15803d); border: none; }
-    </style>
+    #table-preview-so thead th {
+        background-color: #294d68 !important;
+        color: #ffffff !important;
+        text-align: center !important;
+        border: none !important;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 10px 8px;
+    }
+
+    #table-preview-so tbody td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    #table-preview-so tfoot th {
+        padding: 10px 8px;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        background: #ffe0e0;
+        border-top: 0;
+    }
+
+    /* #table-preview-so .preview-col-style { width: 145px; }
+    #table-preview-so .preview-col-desc { width: 155px; }
+    #table-preview-so .preview-col-po { width: 135px; }
+    #table-preview-so .preview-col-market { width: 95px; }
+    #table-preview-so .preview-col-exfty { width: 105px; }
+    #table-preview-so .preview-col-fob { width: 85px; }
+    #table-preview-so .preview-col-set { width: 115px; }
+    #table-preview-so .preview-col-color { width: 125px; }
+    #table-preview-so .preview-col-size { width: 68px; min-width: 68px; }
+    #table-preview-so .preview-col-total { width: 100px; } */
+
+    #table-preview-so tbody td.preview-col-qty,
+    #table-preview-so tfoot th.preview-col-qty,
+    #table-preview-so tbody td.preview-col-total,
+    #table-preview-so tfoot th.preview-col-total {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    #table-preview-so thead th:first-child {
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    #table-preview-so thead th:last-child {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    /* ============ CUSTOM COMPONENTS / SO LAYOUT ============ */
+    .so-page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+    .so-page-heading h1 { margin: 0; color: #294d68; font-size: 22px; font-weight: 800; letter-spacing: .6px; }
+    .so-page-heading h1 i { font-size: 11px; vertical-align: middle; }
+    .so-page-heading p { margin: 4px 0 0; color: #294d68; font-size: 9px; font-weight: 600; }
+    .so-page-heading p i { margin-right: 6px; color: #a3b2c7; }
+    .so-costing-label { color: #64748b; font-size: 12px; font-weight: 700; }
+    .so-bom-picker .form-control, .so-bom-picker .btn { height: 36px; font-size: 12px; }
+    .so-source-fields { display: none !important; }
+    .so-section { margin-bottom: 14px; }
+
+    .so-section-toggle {
+        display: flex; align-items: center; justify-content: space-between; width: 100%;
+        padding: 8px 16px; border: 1px solid #526f86; border-radius: 8px;
+        background: #fff; color: #294d68; text-align: left; font-size: 15px; font-weight: 600;
+    }
+    .so-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .12); }
+
+    .so-chevron { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; background: #aabac5; color: #fff; font-size: 10px; }
+    .so-chevron i { transition: transform .2s ease; }
+    .so-section-toggle[aria-expanded="false"] .so-chevron i { transform: rotate(180deg); }
+
+    .so-summary-grid, .so-edit-grid {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px;
+        padding: 14px 12px 2px; border-radius: 8px; background: #fff;
+        box-shadow: 0 3px 8px rgba(30, 64, 90, .10);
+    }
+    .so-summary-item { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr); gap: 10px; align-items: center; min-height: 40px; padding: 5px 6px; border-bottom: 1px dotted #c7c7c7; color: #3b3336; font-size: 12px; }
+    .so-summary-item strong { overflow-wrap: anywhere; font-weight: 500; }
+    .so-summary-item strong::before { content: ': '; }
+
+    .so-edit-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 14px 12px 4px; }
+    .so-edit-grid .form-group { min-width: 0; margin-bottom: 12px; }
+    .so-edit-grid label { display: block; margin-bottom: 5px; color: #87919a; font-size: 11px; font-weight: 500; }
+    .so-notes-field { grid-column: span 2; }
+
+    .so-image-review { display: flex; min-height: 220px; align-items: center; justify-content: center; gap: 24px; padding: 12px; }
+    .so-image-nav { width: 34px; height: 34px; border: 0; border-radius: 50%; color: #7b8791; background: #f1f3f5; }
+    .so-image-preview { display: flex; min-width: 160px; min-height: 190px; align-items: center; justify-content: center; color: #64748b; font-size: 12px; }
+    .so-image-preview img { max-width: min(100%, 330px); max-height: 250px; object-fit: contain; }
+    .so-image-counter { min-width: 50px; color: #64748b; text-align: center; font-size: 11px; }
+
+    .so-upload-panel { margin-top: 2px; padding: 18px 12px; border: 1px solid #d0d0d0; border-radius: 4px; }
+    .so-upload-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+    .so-upload-toolbar .btn { border-radius: 24px; background: #294d68; border-color: #294d68; font-size: 11px; font-weight: 700; padding: 8px 22px; }
+
+    .so-file-dropzone { display: flex; min-height: 105px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 2px dashed #294d68; border-radius: 4px; color: #555; cursor: pointer; font-size: 10px; }
+    .so-file-dropzone > i { color: #294d68; font-size: 28px; margin-bottom: 4px; }
+    .so-file-dropzone small { font-size: 9px; }
+    .so-file-dropzone.dragging { background: #f1f7fc; }
+
+    .so-selected-file { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 9px 12px; border: 1px solid #d8dce0; border-radius: 8px; color: #607080; font-size: 11px; }
+    .so-selected-file > i { color: #15803d; font-size: 17px; }
+    .so-selected-file span { flex: 1; }
+    .so-selected-file button { width: 22px; height: 22px; border: 1px solid #333; border-radius: 5px; background: #fff; }
+
+    #btn-upload-so { height: 38px; font-size: 11px; font-weight: 700; }
+
+    /* ============ MEDIA QUERIES ============ */
+    @media (max-width: 767px) {
+        .so-page-heading { flex-direction: column; }
+        .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-summary-grid { column-gap: 8px; }
+        .so-summary-item { grid-template-columns: 1fr; gap: 2px; font-size: 11px; }
+        .so-summary-item strong::before { content: ''; }
+    }
+    @media (max-width: 480px) {
+        .so-summary-grid, .so-edit-grid { grid-template-columns: 1fr; }
+        .so-notes-field { grid-column: auto; }
+    }
+    /* table-preview-so font size nya kecilin dikit */
+    #table-preview-so td, #table-preview-so th {
+        font-size: 12px !important;
+    }
+</style>
 @endsection
 
 @section('content')
 <div class="card card-sb">
-    <div class="card-header">
-        <span class="card-eyebrow">Marketing &middot; Sales Order</span>
-        <h3 class="card-title" style="font-size: 1.1rem;">Create Sales Order</h3>
-    </div>
-    <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data">
+    <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data" novalidate>
         @csrf
-        <div class="card-body">
+        <div class="card-body so-create-body">
+            <div class="so-page-heading">
+                <div>
+                    <h1>Create Sales Order <i class="far fa-question-circle"></i></h1>
+                </div>
+                <div class="so-costing-label">Costing: {{ $costingNo }}</div>
+            </div>
+            <input type="hidden" name="id_costing" id="id_costing" value="{{ $costingId }}">
 
-            {{-- ============ SECTION: KATALOG BOM ============ --}}
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-book"></i>BOM</div>
-                <div class="row">
-                    <div class="col-md-6 form-group mb-0">
-                        <div class="d-flex align-items-center" style="gap: 5px;">
-                            <select name="id_bom" id="id_bom" class="form-control select2bs4">
-                                <option value="">Pilih BOM</option>
-                                @foreach($bom_catalog as $bom)
-                                    <option value="{{ $bom->id }}">
-                                        {{ "{$bom->no_katalog_bom} - {$bom->style}" }}
-                                    </option>
+            <div class="so-source-fields" aria-hidden="true">
+                <select name="id_buyer" id="id_buyer">
+                    <option value="">Pilih Buyer</option>
+                    @foreach ($buyers as $buyer)
+                        <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
+                    @endforeach
+                </select>
+                <input type="text" name="style" id="style">
+                <input type="text" name="market" id="market">
+                <input type="text" name="brand" id="brand">
+                <select name="product_group" id="product_group">
+                    <option value="">Pilih Product Group</option>
+                    @foreach($product_groups as $group)
+                        <option value="{{ $group->product_group }}">{{ $group->product_group }}</option>
+                    @endforeach
+                </select>
+                <select name="id_product_item" id="id_product_item"><option value="">Pilih Product Item</option></select>
+                <select name="marketing_order" id="marketing_order">
+                    <option value="">Pilih Marketing Order</option>
+                    @foreach ($marketing_orders as $mo)
+                        <option value="{{ $mo->id }}">{{ $mo->mkt_order }}</option>
+                    @endforeach
+                </select>
+                <input type="text" name="smv" id="smv">
+                <select name="type" id="type">
+                    <option value="single">SINGLE</option>
+                    <option value="multiple">MULTIPLE</option>
+                </select>
+                <select id="product_set" name="product_set[]" multiple>
+                    @isset($master_set)
+                        @foreach ($master_set as $m_set)
+                            <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
+                        @endforeach
+                    @endisset
+                </select>
+                <input type="text" name="confirm_price" id="confirm_price">
+                <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
+            </div>
+
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-information" aria-expanded="true">
+                    <span>Information Buyer</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-information" class="collapse show">
+                    <div class="so-summary-grid">
+                        <div class="so-summary-item"><span>Buyer Name</span><strong id="summary-buyer">-</strong></div>
+                        <div class="so-summary-item"><span>Season</span><strong id="summary-season">-</strong></div>
+                        <div class="so-summary-item"><span>Kode Buyer</span><strong id="summary-buyer-code">-</strong></div>
+                        <div class="so-summary-item"><span>Style</span><strong id="summary-style">-</strong></div>
+                        <div class="so-summary-item"><span>Brand</span><strong id="summary-brand">-</strong></div>
+                        <div class="so-summary-item"><span>QTY Planned</span><strong id="summary-planned-qty">-</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-product" aria-expanded="true">
+                    <span>Product &amp; Type</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-product" class="collapse show">
+                    <div class="so-summary-grid">
+                        <div class="so-summary-item"><span>Product Group</span><strong id="summary-product-group">-</strong></div>
+                        <div class="so-summary-item"><span>Product Items</span><strong id="summary-product-item">-</strong></div>
+                        <div class="so-summary-item"><span>Worksheet Type</span><strong id="summary-worksheet-type">-</strong></div>
+                        <div class="so-summary-item"><span>No Worksheet</span><strong id="summary-worksheet-no">-</strong></div>
+                        <div class="so-summary-item"><span>Costing Type</span><strong id="summary-costing-type">-</strong></div>
+                        <div class="so-summary-item"><span>No Costing</span><strong id="summary-costing-no">-</strong></div>
+                        <div class="so-summary-item"><span>Product Type</span><strong id="summary-product-type">-</strong></div>
+                        <div class="so-summary-item"><span>Unit</span><strong id="summary-unit">-</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-shipping" aria-expanded="true">
+                    <span>Shipping &amp; Destinations</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-shipping" class="collapse show">
+                    <div class="so-summary-grid">
+                        <div class="so-summary-item"><span>Ship Mode</span><strong id="summary-ship-mode">-</strong></div>
+                        <div class="so-summary-item"><span>Market</span><strong id="summary-market">-</strong></div>
+                        <div class="so-summary-item"><span>Destination</span><strong id="summary-destination">-</strong></div>
+                        <div class="so-summary-item"><span>Status</span><strong id="summary-status">-</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-review-image" aria-expanded="true">
+                    <span>Review Image</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-review-image" class="collapse show">
+                    <div class="so-image-review">
+                        <button type="button" class="so-image-nav" disabled aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
+                        <div class="so-image-preview">
+                            <img id="preview_images" src="" alt="Preview gambar Costing" hidden>
+                            <span id="text_preview">Gambar Costing akan ditampilkan di sini.</span>
+                        </div>
+                        <button type="button" class="so-image-nav" disabled aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div id="so-image-counter" class="so-image-counter"></div>
+                </div>
+            </section>
+
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-header-fields" aria-expanded="true">
+                    <span>Sales Order &amp; Purchase Order<span class="text-danger">*</span></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-header-fields" class="collapse show">
+                    <div class="so-edit-grid">
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select name="id_currency" id="id_currency" class="form-control select2bs4">
+                                <option value="">Choose Curr</option>
+                                @foreach($currency as $curr)
+                                    <option value="{{ $curr->id }}">{{ $curr->nama_pilihan }}</option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="redirect_to_edit_bom()">
-                                <i class="fas fa-edit"></i> Edit BOM
-                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Sales Order Type</label>
+                            <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
+                                <option value="">Choose Sales Order Type</option>
+                                <option value="FOB">FOB</option>
+                                <option value="CMT">CMT</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>FOB</label><input type="text" name="fob" id="fob" class="form-control input-decimal" placeholder="FOB">
+                        </div>
+                        <div class="form-group so-notes-field">
+                            <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes">
+                        </div>
+                        <div class="form-group">
+                            <label>Total (PCS)</label><input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" placeholder="QTY (PCS)" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Purchase Order</label><input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" placeholder="Total Purchase Order" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>PO System</label>
+                            <select name="po_type" id="po_type" class="form-control select2bs4" required>
+                                <option value="single">1 WS 1 PO</option>
+                                <option value="multiple">1 WS Beberapa PO</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {{-- ============ SECTION: INFORMASI DASAR ============ --}}
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-info-circle"></i> Info</div>
-                <div class="row">
-                    <div class="col-md-3 form-group">
-                        <label>Buyer <span class="text-danger">*</span></label>
-                        <select name="id_buyer" id="id_buyer" class="form-control select2bs4" >
-                            <option value="">Pilih Buyer</option>
-                            @foreach ($buyers as $buyer)
-                                <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Style <span class="text-danger">*</span></label>
-                        <input type="text" name="style" id="style" class="form-control" >
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Market <span class="text-danger">*</span></label>
-                        <input type="text" name="market" id="market" class="form-control" >
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Brand <span class="text-danger">*</span></label>
-                        <input type="text" name="brand" id="brand" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            {{-- ============ SECTION: PRODUK & MARKETING ============ --}}
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-tshirt"></i> Produk & Marketing</div>
-                <div class="row">
-                    <div class="col-md-3 form-group">
-                        <label>Product Group <span class="text-danger">*</span></label>
-                        <select name="product_group" id="product_group" class="form-control select2bs4">
-                            <option value="">Pilih Product Group</option>
-                            @foreach($product_groups as $group)
-                                <option value="{{ $group->product_group }}">{{ $group->product_group }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Product Item <span class="text-danger">*</span></label>
-                        <select name="id_product_item" id="id_product_item" class="form-control select2bs4">
-                            <option value="">Pilih Product Item</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Marketing Order <span class="text-danger">*</span></label>
-                        <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
-                            <option value="">Pilih Marketing Order</option>
-                            @foreach ($marketing_orders as $mo)
-                                <option value="{{ $mo->id }}">
-                                    {{ $mo->mkt_order }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>SMV <span class="text-danger">*</span></label>
-                        <input type="text" name="smv" id="smv" class="form-control input-decimal">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3 form-group">
-                        <label>Type</label>
-                         <select name="type" id="type" class="form-control select2bs4" required disabled>
-                            <option value="single">SINGLE</option>
-                            <option value="multiple">MULTIPLE</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Product Type</label>
-                        <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
-                            @isset($master_set)
-                                @foreach ($master_set as $m_set)
-                                    <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
-                                @endforeach
-                            @endisset
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ============ SECTION: HARGA & JENIS SO ============ --}}
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-money-bill-wave"></i> Harga & Jenis SO</div>
-                <div class="row">
-                    <div class="col-md-3 form-group">
-                        <label>Currency <span class="text-danger">*</span></label>
-                       <select name="id_currency" id="id_currency" class="form-control select2bs4">
-                            <option value="">Pilih Currency</option>
-                            @foreach($currency as $curr)
-                                <option value="{{ $curr->id }}">{{ $curr->nama_pilihan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group hidden">
-                        <label>Confirm Price <span class="text-danger">*</span></label>
-                        <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Jenis SO <span class="text-danger">*</span></label>
-                        <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
-                            <option value="">Pilih Jenis SO</option>
-                            <option value="FOB">FOB</option>
-                            <option value="CMT">CMT</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Notes <span class="text-danger"></span></label>
-                        <input type="text" name="notes" id="notes" class="form-control">
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>FOB</label>
-                        <input type="text" name="fob" id="fob" class="form-control input-decimal">
-                    </div>
-                </div>
-
-                {{-- <div class="row">
-                    <
-                     <div class="col-md-3 form-group hidden">
-                        <label>Price Costing</label>
-                        <input type="text" name="price_costing" id="price_costing" class="form-control input-decimal">
-                    </div>
-                </div> --}}
-            </div>
-
-            {{-- ============ SECTION: QTY & PO ============ --}}
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-calculator"></i> Qty & PO</div>
-                <div class="row">
-                    <div class="col-md-3 form-group">
-                        <label>Total Qty</label>
-                        <input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" readonly>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Jumlah PO</label>
-                        <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
-                    </div>
-                    <div class="col-md-3 form-group">
-                        <label>Sistem PO <span class="text-danger">*</span></label>
-                        <select name="po_type" id="po_type" class="form-control select2bs4" required>
-                            <option value="single">1 WS 1 PO</option>
-                            <option value="multiple">1 WS Beberapa PO</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ============ SECTION: GAMBAR & UPLOAD EXCEL ============ --}}
-            <div class="form-section form-section-upload">
-                <div class="form-section-title"><i class="fas fa-file-excel"></i> Gambar & Upload Data SO</div>
-                <div class="row">
-                    <div class="col-md-5">
-                        <div class="form-group mb-3">
-                            <label class="fw-bold"><i class="fas fa-image"></i> Gambar SO</label>
-                            <br>
-                            <span class="badge badge-info px-2 py-1"><i class="fas fa-magic"></i></span>
-                            <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
+            <section class="so-section">
+                <button type="button" class="so-section-toggle" data-target="#so-upload-file" aria-expanded="true">
+                    <span>Upload File<span class="text-danger">*</span></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-upload-file" class="collapse show">
+                    <div class="so-upload-panel">
+                        <div class="so-upload-toolbar">
+                            <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-primary btn-sm"><i class="fas fa-download mr-1"></i> Download Template Excel</a>
                         </div>
-
-                        <div class="form-group mb-0 mt-4 pt-2 border-top border-secondary">
-                            <label class="fw-bold"><i class="fas fa-file-excel text-success"></i> Upload File (Excel) <span class="text-danger">*</span></label>
-                            <div class="d-flex mb-2 mt-1">
-                                <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm">
-                                    <i class="fas fa-download"></i> Download Template Excel
-                                </a>
-                            </div>
-                            <input type="file" name="file_so" id="file_so" class="form-control p-1" accept=".xls,.xlsx">
+                        <input type="file" name="file_so" id="file_so" accept=".xls,.xlsx" hidden>
+                        <div id="so-file-dropzone" class="so-file-dropzone" role="button" tabindex="0">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Drag n Drop File Here Or <strong>Browse</strong></span>
+                            <small>Format .xlsx, max 50 MB</small>
                         </div>
-                    </div>
-
-                    <div class="col-md-7 form-group text-center d-flex flex-column mb-0">
-                        <label class="fw-bold text-secondary text-left mb-2">Preview Gambar Costing</label>
-                        <div class="upload-preview-box flex-grow-1">
-                            <img id="preview_images" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm border-0" style="max-height: 180px; object-fit: contain; display: none;">
-                            <span id="text_preview" class="text-muted font-italic">Pilih No Katalog BOM terlebih dahulu</span>
+                        <div id="so-selected-file" class="so-selected-file" hidden>
+                            <i class="fas fa-file-excel"></i><span id="so-selected-file-name"></span>
+                            <button type="button" id="so-remove-file" aria-label="Remove selected file"><i class="fas fa-times"></i></button>
                         </div>
+                        <button type="button" id="btn-upload-so" class="btn btn-secondary btn-block mt-3" disabled>Upload Now</button>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
 
         <div class="card card-sb" id="card-preview">
@@ -392,18 +488,18 @@
             <div class="card-body">
                 {{-- <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button> --}}
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm table-striped text-nowrap w-100" id="table-preview-so">
+                    <table class="table table-sm table-striped text-nowrap w-100" id="table-preview-so">
                         <thead class="bg-sb text-white text-center">
                             <tr>
-                                <th>Style</th>
-                                <th>Desc</th>
-                                <th>PO</th>
-                                <th>Market</th>
-                                <th>Ex Fty</th>
-                                <th>FOB</th>
-                                <th>Color</th>
-                                <th>Size</th>
-                                <th>Qty</th>
+                                <th class="preview-col-style">Style</th>
+                                <th class="preview-col-desc">Description</th>
+                                <th class="preview-col-po">Purchase Order</th>
+                                <th class="preview-col-market">Market</th>
+                                <th class="preview-col-exfty">Ex Fty</th>
+                                <th class="preview-col-fob">FOB</th>
+                                <th class="preview-col-set">Product Set</th>
+                                <th class="preview-col-color">Color</th>
+                                <th class="preview-col-total">Total</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -430,20 +526,7 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
     let previewTable = null;
-
-    function redirect_to_edit_bom() {
-        let id_bom = $('#id_bom').val();
-
-        if (!id_bom) {
-            Swal.fire('Peringatan!', 'Silakan pilih No Katalog BOM terlebih dahulu.', 'warning');
-            return;
-        }
-
-        let baseUrl = "{{ url('master-bom/edit') }}";
-        let urlEditBom = baseUrl + '/' + id_bom;
-
-        window.open(urlEditBom, '_blank');
-    }
+    let soFileUploaded = false;
 
     // function loadPreviewUpload() {
     //     let id_bom = $('#id_bom').val();
@@ -704,26 +787,36 @@
     // }
 
     function loadPreviewUpload() {
-        let id_bom = $('#id_bom').val();
-        if (!id_bom) return;
-
+        $('#card-preview').show();
         $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
 
         $.ajax({
             url: "{{ route('so-get-temp-data') }}",
             type: 'GET',
-            data: { id_bom: id_bom },
+            data: { id_costing: $('#id_costing').val() },
             success: function(res) {
                 if ($.fn.DataTable.isDataTable('#table-preview-so')) {
                     $('#table-preview-so').DataTable().destroy();
                 }
 
                 // Header: 8 kolom non-size (Style, Desc, PO, Market, Ex Fty, FOB, Product Set, Color) + size + Total
-                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>FOB</th><th>Product Set</th><th>Color</th>`;
+                let headerHtml = `<tr>
+                    <th class="preview-col-style">Style</th>
+                    <th class="preview-col-desc">Description</th>
+                    <th class="preview-col-po">Purchase Order</th>
+                    <th class="preview-col-market">Market</th>
+                    <th class="preview-col-exfty">Ex Fty</th>
+                    <th class="preview-col-fob">FOB</th>
+                    <th class="preview-col-set">Product Set</th>
+                    <th class="preview-col-color">Color</th>`;
+
                 res.available_sizes.forEach(size => {
-                    headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
+                    headerHtml += `<th class="preview-col-size">${size}</th>`;
                 });
-                headerHtml += `<th class="bg-primary text-white text-center">Total</th></tr>`;
+
+                headerHtml += `<th class="preview-col-total">Total</th>
+                </tr>`;
+
                 $('#table-preview-so thead').html(headerHtml);
 
                 let bodyHtml = '';
@@ -732,31 +825,30 @@
                         let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
 
                         bodyHtml += `<tr>
-                            <td>${row.style || '-'}</td>
-                            <td>${row.desc || '-'}</td>
-                            <td>${row.po || '-'}</td>
-                            <td>${row.market || '-'}</td>
-                            <td>${row.ex_fty || '-'}</td>
-                            <td>${row.fob || '-'}</td>
-                            <td>${row.product_set || '-'}</td>
-                            <td class="${colorErrorClass}">${row.color || '-'}</td>`;
+                            <td class="preview-col-style" title="${row.style || '-'}">${row.style || '-'}</td>
+                            <td class="preview-col-desc" title="${row.desc || '-'}">${row.desc || '-'}</td>
+                            <td class="preview-col-po" title="${row.po || '-'}">${row.po || '-'}</td>
+                            <td class="preview-col-market" title="${row.market || '-'}">${row.market || '-'}</td>
+                            <td class="preview-col-exfty">${row.ex_fty || '-'}</td>
+                            <td class="preview-col-fob text-right">${row.fob || '-'}</td>
+                            <td class="preview-col-set" title="${row.product_set || '-'}">${row.product_set || '-'}</td>
+                            <td class="preview-col-color ${colorErrorClass}" title="${row.color || '-'}">${row.color || '-'}</td>`;
 
                         let rowTotal = 0;
                         res.available_sizes.forEach(size => {
                             let val = row[size];
                             let qty = val ? Number(val).toLocaleString('id-ID') : '-';
                             let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
-                            bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
+                            bodyHtml += `<td class="preview-col-size preview-col-qty ${isError}">${qty}</td>`;
 
                             if (val && !isNaN(val)) {
                                 rowTotal += Number(val);
                             }
                         });
                         let rowTotalFormatted = rowTotal > 0 ? rowTotal.toLocaleString('id-ID') : '-';
-                        bodyHtml += `<td class="text-right fw-bold bg-light">${rowTotalFormatted}</td></tr>`;
+                        bodyHtml += `<td class="preview-col-total fw-bold">${rowTotalFormatted}</td></tr>`;
                     });
                 } else {
-                    // 9 kolom fix (8 non-size + Total) + jumlah size
                     let colCount = 9 + (res.available_sizes ? res.available_sizes.length : 0);
                     bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
                 }
@@ -764,17 +856,17 @@
 
                 if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
 
-                // Footer: HARUS 8 sel non-size (bukan 7) supaya sejajar dg 8 kolom body.
-                // Label "TOTAL" ditaruh di sel ke-8 (kolom Color), bukan ke-7.
                 let footerHtml = `<tr>
-                        <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
-                        <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
-                        <th class="bg-light"></th>
-                        <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
+                    <th class="text-left fw-bold">TOTAL</th>
+                    <th></th><th></th><th></th><th></th><th></th><th></th><th></th>`;
+
                 res.available_sizes.forEach(size => {
-                    footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
+                    footerHtml += `<th class="preview-col-size preview-col-qty fw-bold">0</th>`;
                 });
-                footerHtml += `<th class="text-right bg-primary text-white fw-bold">0</th></tr>`;
+
+                footerHtml += `<th class="preview-col-total fw-bold">0</th>
+                </tr>`;
+
                 $('#table-preview-so tfoot').html(footerHtml);
 
                 $('#total_qty').val(res.total_qty || 0);
@@ -783,7 +875,18 @@
                 if (res.data && res.data.length > 0) {
                     previewTable = $('#table-preview-so').DataTable({
                         "paging": false, "info": true, "searching": true, "ordering": false,
-                        "autoWidth": false, "responsive": false, "scrollX": true,
+                        "autoWidth": false, "responsive": false, "scrollX": false,
+                        "columnDefs": [
+                            { targets: 0, width: '145px' },
+                            { targets: 1, width: '155px' },
+                            { targets: 2, width: '135px' },
+                            { targets: 3, width: '95px' },
+                            { targets: 4, width: '105px' },
+                            { targets: 5, width: '85px' },
+                            { targets: 6, width: '115px' },
+                            { targets: 7, width: '125px' },
+                            { targets: '_all', className: 'text-center' }
+                        ],
                         "footerCallback": function (row, data, start, end, display) {
                             let api = this.api();
                             let intVal = function (i) {
@@ -852,9 +955,48 @@
     }
 
     $(document).ready(function() {
+        let costingImages = [];
+        let selectedCostingImage = 0;
+
+        function renderCostingImage() {
+            const $preview = $('#preview_images');
+            const hasImages = costingImages.length > 0;
+            $('#text_preview').text(hasImages ? '' : 'Gambar Costing tidak tersedia.')
+                .prop('hidden', hasImages);
+            $preview.prop('hidden', !hasImages);
+            $('#so-image-counter').text(hasImages ? `${selectedCostingImage + 1} / ${costingImages.length}` : '');
+            $('.so-image-nav').prop('disabled', costingImages.length < 2);
+
+            if (!hasImages) {
+                $preview.attr('src', '');
+                $('#image_costing_path').val('');
+                return;
+            }
+
+            selectedCostingImage = (selectedCostingImage + costingImages.length) % costingImages.length;
+            $preview.attr('src', costingImages[selectedCostingImage]);
+            $('#image_costing_path').val(costingImages[selectedCostingImage]);
+        }
+
+        $('.so-image-nav[aria-label="Previous image"]').on('click', function() {
+            selectedCostingImage--;
+            renderCostingImage();
+        });
+        $('.so-image-nav[aria-label="Next image"]').on('click', function() {
+            selectedCostingImage++;
+            renderCostingImage();
+        });
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
         $(document).on('select2:open', () => { document.querySelector('.select2-container--open .select2-search__field').focus(); });
+
+        $('.so-section-toggle').on('click', function() {
+            const $toggle = $(this);
+            const $section = $($toggle.attr('data-target'));
+            const isExpanded = $toggle.attr('aria-expanded') === 'true';
+            $section.collapse('toggle');
+            $toggle.attr('aria-expanded', String(!isExpanded));
+        });
 
         $('#product_group').on('change', function() {
             let selected_grup = $(this).val();
@@ -883,9 +1025,11 @@
                     }
 
                     select_item.trigger('change');
+                    $('#summary-product-item').text(select_item.find(':selected').text() || '-');
                 });
             } else {
                 select_item.empty().append('<option value="">Pilih Product Item</option>').trigger('change');
+                $('#summary-product-item').text('-');
             }
         });
 
@@ -912,35 +1056,50 @@
         //     }
         // });
 
-        $('#id_bom').on('change', function() {
-            let id_bom = $(this).val();
-            let hasData = $('#table-preview-so tbody tr td').length > 1;
-
-            if (id_bom && hasData) {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Memvalidasi ulang data...', showConfirmButton: false, timer: 2000 });
-                loadPreviewUpload();
-            } else if (!id_bom && hasData) {
-                $('#form-create-so button[type="submit"]').prop('disabled', true);
-                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Pilih BOM!', text: 'Silakan pilih Katalog BOM untuk memvalidasi data.', showConfirmButton: false, timer: 3000 });
-            }
+        $('#file_so').on('change', function() {
+            const file = this.files[0];
+            soFileUploaded = false;
+            $('#so-selected-file').prop('hidden', !file);
+            $('#so-selected-file-name').text(file ? file.name : '');
+            $('#btn-upload-so').prop('disabled', !file).text('Upload Now').removeClass('btn-success').addClass('btn-secondary');
         });
 
-        $('#file_so').off('change').on('change', function() {
-            let id_bom = $('#id_bom').val();
-            if (!id_bom) {
-                Swal.fire('Peringatan!', 'Silahkan pilih No Katalog BOM terlebih dahulu.', 'warning');
-                $(this).val('');
-                return;
-            }
+        $('#so-file-dropzone').on('click keydown', function(event) {
+            if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            $('#file_so').trigger('click');
+        }).on('dragover', function(event) {
+            event.preventDefault();
+            $(this).addClass('dragging');
+        }).on('dragleave drop', function(event) {
+            event.preventDefault();
+            $(this).removeClass('dragging');
+        }).on('drop', function(event) {
+            const files = event.originalEvent.dataTransfer.files;
+            if (!files.length) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(files[0]);
+            $('#file_so')[0].files = transfer.files;
+            $('#file_so').trigger('change');
+        });
 
-            let file = this.files[0];
+        $('#so-remove-file').on('click', function() {
+            $('#file_so').val('').trigger('change');
+        });
+
+        $('#btn-upload-so').on('click', function() {
+            const id_costing = $('#id_costing').val();
+
+            let file = $('#file_so')[0].files[0];
             if (!file) return;
 
-            let inputExcel = $(this);
+            let inputExcel = $('#file_so');
+            const uploadButton = $(this);
+            uploadButton.prop('disabled', true).text('Uploading...');
             inputExcel.prop('disabled', true);
             let formData = new FormData();
             formData.append('file_so', file);
-            formData.append('id_bom', id_bom);
+            formData.append('id_costing', id_costing);
             formData.append('_token', '{{ csrf_token() }}');
 
             Swal.fire({ title: 'Memproses Excel...', didOpen: () => { Swal.showLoading(); } });
@@ -953,6 +1112,8 @@
                 processData: false,
                 success: function(res) {
                     if (res.status === 200) {
+                        soFileUploaded = true;
+                        uploadButton.removeClass('btn-secondary').addClass('btn-success').text('Uploaded');
                         Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                         loadPreviewUpload();
                     }
@@ -969,7 +1130,7 @@
                 },
                 complete: function() {
                     inputExcel.prop('disabled', false);
-                    inputExcel.val('');
+                    if (!soFileUploaded) uploadButton.prop('disabled', false).text('Upload Now');
                 }
             });
         });
@@ -996,7 +1157,7 @@
             checkEmpty('#smv', 'SMV');
             checkEmpty('#id_currency', 'Currency');
             checkEmpty('#jns_so', 'Jenis SO');
-            checkEmpty('#id_bom', 'No Katalog BOM');
+            checkEmpty('#po_type', 'PO System');
 
             // if ($('#images').get(0).files.length === 0) {
             //     empty_input.push('Upload Gambar');
@@ -1040,18 +1201,10 @@
 
         $('#btn-back').on('click', function(e) { window.location.href = "{{ route('master-marketing-so') }}"; });
 
-        $('#id_bom').on('change', function() {
-            let id_bom = $(this).val();
-            let hasData = $('#table-preview-so tbody tr td').length > 1;
-
-            if (id_bom) {
-                $.ajax({
-                    url: "{{ route('so-get-bom-data') }}",
+        $.ajax({
+                    url: "{{ route('so-get-costing-data') }}",
                     type: "GET",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        id_bom: id_bom
-                    },
+                    data: { id_costing: $('#id_costing').val() },
                     success: function(res) {
                         if (res.status == 200) {
                             let data = res.data;
@@ -1064,30 +1217,44 @@
                             $('#id_buyer').val(data.id_buyer).trigger('change');
                             $('#marketing_order').val(data.marketing_order).trigger('change');
                             $('#id_currency').val(data.id_currency).trigger('change');
+                            $('#summary-buyer').text(data.buyer_name || $('#id_buyer option:selected').text() || '-');
+                            $('#summary-buyer-code').text(data.buyer_code || data.id_buyer || '-');
+                            $('#summary-season').text([data.season_name, data.season_desc].filter(Boolean).join(' - ') || data.season_id || '-');
+                            $('#summary-style').text(data.style || '-');
+                            $('#summary-brand').text(data.brand || '-');
+                            $('#summary-planned-qty').text(data.planned_qty ? Number(data.planned_qty).toLocaleString('id-ID') : '-');
+                            $('#summary-product-group').text(data.product_group || '-');
+                            $('#summary-worksheet-type').text(data.tipe_ws || '-');
+                            $('#summary-worksheet-no').text(data.kpno || '-');
+                            $('#summary-costing-type').text(data.type ? String(data.type).toUpperCase() : '-');
+                            $('#summary-costing-no').text(data.cost_no || '-');
+                            $('#summary-product-type').text('-');
+                            $('#summary-unit').text(data.unit || '-');
+                            $('#summary-ship-mode').text(data.ship_mode_name || data.ship_mode || '-');
+                            $('#summary-market').text(data.market || '-');
+                            $('#summary-destination').text(data.main_dest || '-');
+                            $('#summary-status').text(data.status || '-');
 
-                            if (data.image_url) {
-                                $('#preview_images').attr('src', data.image_url).show();
-                                $('#text_preview').hide();
-                                $('#image_costing_path').val(data.image_url);
-                            } else {
-                                $('#preview_images').hide().attr('src', '');
-                                $('#text_preview').text('Gambar Costing tidak tersedia.').show();
-                                $('#image_costing_path').val('');
-                            }
+                            costingImages = Array.isArray(data.images) && data.images.length
+                                ? data.images
+                                : (data.image_url ? [data.image_url] : []);
+                            selectedCostingImage = 0;
+                            renderCostingImage();
 
                             if (data.nama_product_item) {
                                 $('#id_product_item').attr('data-auto-select', data.nama_product_item);
                             }
 
                             $('#product_group').val(data.product_group).trigger('change');
-                            console.log(data);
                             $('#type').val(data.type).trigger('change');
 
                             if (data.product_set) {
                                 let selectedSets = data.product_set.split(',').map(item => item.trim());
                                 $('#product_set').val(selectedSets).trigger('change');
+                                $('#summary-product-type').text($('#product_set option:selected').map((_, option) => $(option).text()).get().join(', ') || '-');
                             } else {
                                 $('#product_set').val(null).trigger('change');
+                                $('#summary-product-type').text('-');
                             }
 
                         } else {
@@ -1095,25 +1262,9 @@
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'Gagal mengambil detail BOM/Costing dari server.', 'error');
+                        Swal.fire('Error', 'Gagal mengambil detail Costing dari server.', 'error');
                     }
                 });
-
-                if (hasData) {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Memvalidasi ulang data...', showConfirmButton: false, timer: 2000 });
-                    loadPreviewUpload();
-                }
-
-            } else {
-                $('#brand, #style, #market, #smv').val('');
-                $('#id_buyer, #product_group, #id_product_item, #marketing_order, #id_currency').val('').trigger('change');
-
-                if (hasData) {
-                    $('#form-create-so button[type="submit"]').prop('disabled', true);
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Pilih BOM!', text: 'Silakan pilih Katalog BOM untuk memvalidasi data.', showConfirmButton: false, timer: 3000 });
-                }
-            }
-        });
     });
 </script>
 @endsection

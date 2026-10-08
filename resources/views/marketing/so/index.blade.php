@@ -577,8 +577,8 @@
     </div>
     <div class="card-body">
         <div class="mb-3">
-            <a href="{{ route('create-so') }}" class="btn btn-outline-primary">
-                <i class="fas fa-plus"></i> Create SO
+            <a href="{{ route('master-costing') }}" class="btn btn-outline-primary">
+                <i class="fas fa-plus"></i> Create SO dari Costing
             </a>
         </div>
 
@@ -765,6 +765,7 @@
                                         <th class="sticky-col">PO</th>
                                         <th class="sticky-col">Market</th>
                                         <th class="sticky-col">Ex Fty</th>
+                                        <th class="sticky-col">FOB</th>
                                         <th class="sticky-col">Color</th>
                                         <th class="col-total">Total Qty</th>
                                     </tr>
@@ -1102,6 +1103,7 @@
                         po    : so_no || '-',
                         market: item.dest || '-',
                         ex_fty: item.deldate || '-',
+                        fob   : item.fob || 0,
                         color : item.color || '-',
                         size  : item.size || '-',
                         qty   : item.qty || 0,
@@ -1545,7 +1547,7 @@
             $('#preview-upload-thead-row th.col-size').remove();
 
             if (!rows || rows.length === 0) {
-                $('#preview-upload-tbody').html('<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada data</td></tr>');
+                $('#preview-upload-tbody').html('<tr><td colspan="8" class="text-center text-muted py-3">Tidak ada data</td></tr>');
                 return;
             }
 
@@ -1565,11 +1567,11 @@
 
             let grouped = {};
             rows.forEach(r => {
-                let key = [r.style, r.desc, r.po, r.market, r.color].join('||');
+                let key = [r.style, r.desc, r.po, r.market, r.fob, r.color].join('||');
                 if (!grouped[key]) {
                     grouped[key] = {
                         style: r.style, desc: r.desc, po: r.po, market: r.market,
-                        ex_fty: r.ex_fty, color: r.color, sizes: {}
+                        ex_fty: r.ex_fty, fob: r.fob, color: r.color, sizes: {}
                     };
                 }
                 grouped[key].sizes[r.size] = (grouped[key].sizes[r.size] || 0) + (parseInt(r.qty) || 0);
@@ -1599,6 +1601,7 @@
                         <td class="sticky-col">${g.po}</td>
                         <td class="sticky-col">${g.market}</td>
                         <td class="sticky-col">${g.ex_fty}</td>
+                        <td class="sticky-col">${g.fob || '-'}</td>
                         <td class="sticky-col">${g.color}</td>
                         ${sizeCells}
                         <td class="col-total">${total}</td>
@@ -1613,7 +1616,7 @@
 
             let footerHtml = `
                 <tr class="fw-bold table-dark">
-                    <td class="col-size fw-bold" colspan="6">Grand Total</td>
+                    <td class="col-size fw-bold" colspan="7">Grand Total</td>
                     ${footerSizeCells}
                     <td class="col-total">${grandTotal}</td>
                 </tr>`;

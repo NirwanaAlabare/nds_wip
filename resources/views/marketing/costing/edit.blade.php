@@ -17,13 +17,13 @@
         .costing-page-title { color: var(--costing-navy); font-size: 22px; font-weight: 700; margin: 0 0 4px; }
         .costing-page-subtitle { color: #6c757d; font-size: 11px; margin: 0 0 20px; font-weight: 500; }
 
-        .costing-section { margin-bottom: 20px; background: transparent; }
-        .costing-section-header { margin-bottom: 12px; }
+        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #d7e0e8; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(24, 63, 90, .04); }
+        .costing-section-header { margin: 0; }
         .costing-section-toggle {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; box-sizing: border-box; padding: 10px 15px;
-            border: 1px solid #ced4da; border-radius: 6px;
-            background: #fff; color: var(--costing-navy);
+            border: 0; border-radius: 0;
+            background: #f8fafc; color: var(--costing-navy);
             text-align: left; font-size: 15px; font-weight: 700; appearance: none;
         }
         .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
@@ -36,7 +36,7 @@
         .section-chevron-box i { transition: transform .2s ease; }
         .costing-section-toggle[aria-expanded="false"] .section-chevron-box i { transform: rotate(180deg); }
 
-        .costing-section-body { padding: 0 5px; }
+        .costing-section-body { padding: 14px 15px 4px; border-top: 1px solid #edf1f5; }
 
         .costing-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 15px; row-gap: 10px; }
         .costing-fields.five-columns { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -230,6 +230,11 @@
         .xl-pager .xl-page-btn.active { background: #274b63; color: #fff; font-weight: 700; }
         .xl-pager .xl-page-btn:disabled { opacity: .35; cursor: default; }
         .costing-category-content:not(.is-all-items) .costing-tab-panel table tfoot[id^="tfoot-"] tr:not(:last-child) { display: none; }
+
+        /* font size table costing-item-entry kecilin */
+        .costing-tab-panel table td, .costing-tab-panel table th {
+            font-size: 12px !important;
+        }
     </style>
 @endsection
 
@@ -511,7 +516,7 @@
                         </button>
                     </div>
                     <div id="section-image" class="collapse show">
-                        <div class="costing-section-body">
+                        <div class="costing-section-body mb-4">
                             <div class="row pt-3">
                                 <div class="col-md-4">
                                     <input type="file" name="upload_foto[]" id="upload_foto" accept="image/*" multiple hidden>
@@ -606,7 +611,7 @@
 
                         <div id="costing-item-entry" class="costing-item-entry" hidden>
                             <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
-                                <table class="table table-bordered table-sm table-striped w-100" style="font-size: 13px; min-width: 1250px;">
+                                <table class="table table-bordered table-sm table-striped w-100" style="font-size: 11px; min-width: 1250px;">
                                     <thead class="bg-sb text-white text-center">
                                         <tr>
                                             <th style="min-width: 120px;">Set</th>
@@ -687,7 +692,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                         </div>
 
 

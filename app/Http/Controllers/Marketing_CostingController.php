@@ -7,8 +7,10 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use App\Services\MarketingHistoryService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
@@ -24,10 +26,28 @@ class Marketing_CostingController extends Controller
             $tgl_awal = $request->tgl_awal;
             $tgl_akhir = $request->tgl_akhir;
             $db = DB::connection('mysql_sb');
+            $latestSalesOrders = $db->table('so')
+                ->select('id_cost', DB::raw('MAX(id) as latest_id'))
+                ->where('cancel_h', 'N')
+                ->groupBy('id_cost');
+            $latestBoms = $db->table('bom_marketing')
+                ->select('id_costing', DB::raw('MAX(id) as latest_id'))
+                ->where(function ($status) {
+                    $status->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+                })
+                ->groupBy('id_costing');
 
             $data = $db->table('act_costing as a')
                 ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
                 ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
+                ->leftJoinSub($latestSalesOrders, 'so_latest', function ($join) {
+                    $join->on('so_latest.id_cost', '=', 'a.id');
+                })
+                ->leftJoin('so as s', 's.id', '=', 'so_latest.latest_id')
+                ->leftJoinSub($latestBoms, 'bom_latest', function ($join) {
+                    $join->on('bom_latest.id_costing', '=', 'a.id');
+                })
+                ->leftJoin('bom_marketing as bm', 'bm.id', '=', 'bom_latest.latest_id')
                 ->select(
                     'a.id',
                     'a.cost_no',
@@ -36,6 +56,7 @@ class Marketing_CostingController extends Controller
                     'b.Supplier as nama_buyer',
                     'a.brand',
                     'a.styleno',
+                    'a.kpno',
                     'a.mkt_order',
                     'p.product_group',
                     'p.product_item',
@@ -43,9 +64,21 @@ class Marketing_CostingController extends Controller
                     'a.market',
                     'a.qty',
                     'a.cfm_price',
+                    'a.app1',
+                    'a.app1_by',
+                    'a.app1_date',
+                    'a.username',
+                    'a.dateinput',
                     'p.product_group as product_group_text',
-                    'p.product_item as product_item_text'
-                )->orderBy('a.id', 'desc');
+                    'p.product_item as product_item_text',
+                    's.id as so_id',
+                    's.so_no',
+                    's.d_insert as so_created_at',
+                    'bm.id as bom_id',
+                    'bm.no_katalog_bom as bom_no',
+                    'bm.created_at as bom_created_at'
+                )
+                ->orderBy('a.id', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
                 $data->whereDate('a.cost_date', '>=', $tgl_awal)
@@ -80,6 +113,28 @@ class Marketing_CostingController extends Controller
             "subPageGroup" => "marketing-master",
             "subPage" => "marketing-master-costing",
         ]);
+    }
+
+    public function costingTimeline(int $id)
+    {
+        $db = DB::connection('mysql_sb');
+        $costingExists = $db->table('act_costing')->where('id', $id)->exists();
+
+        if (!$costingExists) {
+            return response()->json(['message' => 'Data Costing tidak ditemukan.'], 404);
+        }
+
+        if (!Schema::connection('mysql_sb')->hasTable('mkt_hist')) {
+            return response()->json(['message' => 'Tabel mkt_hist belum tersedia. Jalankan script database costing_legacy_columns.sql terlebih dahulu.'], 503);
+        }
+
+        $history = $db->table('mkt_hist')
+            ->where('id_costing', $id)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get(['id', 'type', 'type_id', 'desc', 'user', 'created_at', 'action']);
+
+        return response()->json(['data' => $history]);
     }
 
     public function create()
@@ -233,7 +288,7 @@ class Marketing_CostingController extends Controller
             $mandatoryOthers = $db->table('masterothers')->where('costing_header', 'Y')->get();
             foreach ($mandatoryOthers as $other) {
                 $description = strtoupper(($other->otherscode ?? '') . ' ' . ($other->othersdesc ?? ''));
-                $this->insertNativeCostingDetail($id, 'Other Cost', [
+                $this->saveCostingDetail($id, 'Other Cost', [
                     'item' => $other->id,
                     'allowance' => str_contains($description, 'OVERHEAD') ? 6 : 0,
                     'cons' => 1,
@@ -241,6 +296,13 @@ class Marketing_CostingController extends Controller
                     'curr' => $currency,
                 ]);
             }
+
+            app(MarketingHistoryService::class)->record(
+                $id,
+                'costing',
+                'created',
+                "Costing {$numbers['cost_no']} dibuat."
+            );
 
             return $id;
         });
@@ -292,7 +354,7 @@ class Marketing_CostingController extends Controller
         };
     }
 
-    private function insertNativeCostingDetail($costingId, string $category, array $detail): int
+    private function saveCostingDetail($costingId, string $category, array $detail): int
     {
         $db = DB::connection('mysql_sb');
         $table = $this->costingDetailTable($category);
@@ -436,6 +498,14 @@ class Marketing_CostingController extends Controller
                 ]);
             }
 
+            app(MarketingHistoryService::class)->record(
+                $newId,
+                'costing',
+                'copied',
+                "Costing {$costNo} dibuat dari {$original->cost_no}.",
+                $newId
+            );
+
             return [$newId, $numbers['cost_no']];
         });
 
@@ -480,7 +550,7 @@ class Marketing_CostingController extends Controller
         $costing->created_by = $costing->username;
         $costing->created_at = $costing->dateinput;
 
-        $details = $this->getNativeCostingDetails($id, $costing->rate);
+        $details = $this->getCostingDetail($id, $costing->rate);
 
         $buyers = $db->table('mastersupplier')
                      ->where('tipe_sup', 'C')
@@ -558,7 +628,8 @@ class Marketing_CostingController extends Controller
         ]);
     }
 
-    private function getNativeCostingDetails($costingId, $rateToIdr)
+
+    private function getCostingDetail($costingId, $rateToIdr)
     {
         $db = DB::connection('mysql_sb');
         $details = collect([
@@ -602,7 +673,7 @@ class Marketing_CostingController extends Controller
                 $detail->nama_contents,
             ])));
             $detail->item_desc = $detail->item_desc ?? '';
-            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $this->collectCostingDetail($detail, $rateToIdr);
             $details[$category]->push($detail);
         }
 
@@ -618,7 +689,7 @@ class Marketing_CostingController extends Controller
             $detail->item_id = $detail->id_item;
             $detail->nama_item = trim(($detail->cfcode ?? '') . ' ' . ($detail->cfdesc ?? ''));
             $detail->item_desc = $detail->item_desc ?? '';
-            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $this->collectCostingDetail($detail, $rateToIdr);
             $details['Manufacturing']->push($detail);
         }
 
@@ -633,14 +704,14 @@ class Marketing_CostingController extends Controller
             $detail->item_id = $detail->id_item;
             $detail->nama_item = trim(($detail->otherscode ?? '') . ' ' . ($detail->othersdesc ?? ''));
             $detail->item_desc = $detail->item_desc ?? '';
-            $this->normalizeNativeCostingDetail($detail, $rateToIdr);
+            $this->collectCostingDetail($detail, $rateToIdr);
             $details['Other Cost']->push($detail);
         }
 
         return $details;
     }
 
-    private function normalizeNativeCostingDetail($detail, float $rateToIdr): void
+    private function collectCostingDetail($detail, float $rateToIdr): void
     {
         $price = (float) ($detail->price ?? 0);
         $isUsd = $detail->jenis_rate !== null
@@ -751,21 +822,25 @@ class Marketing_CostingController extends Controller
         ]);
         $db = DB::connection('mysql_sb');
         try {
-            $detailId = $this->insertNativeCostingDetail($request->id_costing, $request->category, [
-                'item' => $request->item,
-                'desc' => $request->desc,
-                'supplier' => $request->supplier,
-                'curr' => $request->curr,
-                'price' => $request->price,
-                'cons' => $request->cons,
-                'unit' => $request->unit,
-                'price_px_idr' => $request->price_px_idr,
-                'price_px_usd' => $request->price_px_usd,
-                'allowance' => $request->allowance,
-                'set' => $request->set,
-                'value_idr' => $request->value_idr,
-                'value_usd' => $request->value_usd,
-            ]);
+            $detailId = $db->transaction(function () use ($request) {
+                $detailId = $this->saveCostingDetail($request->id_costing, $request->category, [
+                    'item' => $request->item,
+                    'desc' => $request->desc,
+                    'supplier' => $request->supplier,
+                    'curr' => $request->curr,
+                    'price' => $request->price,
+                    'cons' => $request->cons,
+                    'unit' => $request->unit,
+                    'price_px_idr' => $request->price_px_idr,
+                    'price_px_usd' => $request->price_px_usd,
+                    'allowance' => $request->allowance,
+                    'set' => $request->set,
+                    'value_idr' => $request->value_idr,
+                    'value_usd' => $request->value_usd,
+                ]);
+
+                return $detailId;
+            });
 
             return response()->json([
                 'status' => 200,
@@ -854,8 +929,17 @@ class Marketing_CostingController extends Controller
                 $updateData['attach_file'] = $pictureNames[0];
             }
 
-            $db->table('act_costing')->where('id', $id)->update($updateData);
-            $this->updateStyle($id, $request->style, $request->product_item);
+            $db->transaction(function () use ($db, $id, $request, $updateData) {
+                $db->table('act_costing')->where('id', $id)->update($updateData);
+                $this->updateStyle($id, $request->style, $request->product_item);
+                $costNo = $db->table('act_costing')->where('id', $id)->value('cost_no');
+                app(MarketingHistoryService::class)->record(
+                    (int) $id,
+                    'costing',
+                    'updated',
+                    "Data Costing {$costNo} diperbarui."
+                );
+            });
 
             if ($request->ajax()) {
                 return response()->json([
@@ -1039,11 +1123,25 @@ class Marketing_CostingController extends Controller
         ]);
         try {
             $db = DB::connection('mysql_sb');
-            $deleted = $db->table($this->costingDetailTable($request->category))
-                ->where('id', $id)
-                ->where('id_act_cost', $request->id_costing)
-                ->delete();
-            if (!$deleted) {
+            $wasDeleted = $db->transaction(function () use ($db, $request, $id) {
+                $deleted = $db->table($this->costingDetailTable($request->category))
+                    ->where('id', $id)
+                    ->where('id_act_cost', $request->id_costing)
+                    ->delete();
+                if (!$deleted) {
+                    return false;
+                }
+                app(MarketingHistoryService::class)->record(
+                    (int) $request->id_costing,
+                    'costing_item',
+                    'item_deleted',
+                    "Item kategori {$request->category} dihapus dari Costing.",
+                    (int) $id
+                );
+
+                return true;
+            });
+            if (!$wasDeleted) {
                 return response()->json(['status' => 404, 'message' => 'Data detail tidak ditemukan.']);
             }
 
@@ -1061,8 +1159,57 @@ class Marketing_CostingController extends Controller
 
     public function printPdf($id)
     {
-        $db = DB::connection('mysql_sb');
+        $pdfData = $this->getCostingPdfData($id);
+        if (!$pdfData) {
+            return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
+        }
 
+        $pdf = Pdf::loadView('marketing.costing.pdf', $pdfData)
+                ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Costing_'.$pdfData['costing']->no_costing.'.pdf');
+    }
+
+    public function printBatchPdf(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'distinct', 'exists:mysql_sb.act_costing,id'],
+        ]);
+
+        $documents = [];
+        $styles = '';
+        foreach ($validated['ids'] as $id) {
+            $pdfData = $this->getCostingPdfData($id);
+            if (!$pdfData) {
+                abort(404, 'Data Costing tidak ditemukan.');
+            }
+
+            $html = view('marketing.costing.pdf', $pdfData)->render();
+            if (!preg_match('/<style\b[^>]*>(.*?)<\/style>/is', $html, $styleMatch)
+                || !preg_match('/<body\b[^>]*>(.*?)<\/body>/is', $html, $bodyMatch)) {
+                throw new \RuntimeException('Template PDF Costing tidak memiliki struktur dokumen yang valid.');
+            }
+            if ($styles === '') {
+                $styles = $styleMatch[1];
+            }
+            if ($documents) {
+                $documents[] = '<div style="page-break-before: always;"></div>';
+            }
+            $documents[] = $bodyMatch[1];
+        }
+
+        $combinedHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $styles
+            . '</style></head><body>' . implode("\n", $documents) . '</body></html>';
+
+        return Pdf::loadHTML($combinedHtml)
+            ->setPaper('a4', 'landscape')
+            ->stream('Costing_Batch.pdf');
+    }
+
+    private function getCostingPdfData($id)
+    {
+        $db = DB::connection('mysql_sb');
         $costing = $db->table('act_costing as a')
             ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
             ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
@@ -1081,36 +1228,66 @@ class Marketing_CostingController extends Controller
             })
             ->where('a.id', $id)
             ->first();
-
         if (!$costing) {
-            return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
+            return null;
         }
 
         $this->decorateLegacyCosting($costing);
-        $nama_destinasi = '-';
+        $costing->nama_dest = '-';
         if (!empty($costing->main_dest)) {
-            $arr_id_dest = array_map('trim', explode(',', $costing->main_dest));
-
+            $destinationIds = array_map('trim', explode(',', $costing->main_dest));
             $destinations = $db->table('master_destination')
-                ->whereIn('id', $arr_id_dest)
+                ->whereIn('id', $destinationIds)
                 ->pluck('country_name')
                 ->toArray();
-
-            if (count($destinations) > 0) {
-                $nama_destinasi = implode(', ', $destinations);
+            if ($destinations) {
+                $costing->nama_dest = implode(', ', $destinations);
             }
         }
-        $costing->nama_dest = $nama_destinasi;
-        $details = $this->getNativeCostingDetails($id, $costing->rate);
 
-         $master_set = $db->table('master_set')
-           ->get();
+        return [
+            'costing' => $costing,
+            'details' => $this->getCostingDetail($id, $costing->rate),
+            'master_set' => $db->table('master_set')->get(),
+        ];
+    }
 
+    public function costingItems($id)
+    {
+        $costing = DB::connection('mysql_sb')->table('act_costing')
+            ->select('id', 'cost_no', 'rate')
+            ->where('id', $id)
+            ->first();
 
-        $pdf = Pdf::loadView('marketing.costing.pdf', compact('costing', 'details', 'master_set'))
-                ->setPaper('a4', 'landscape');
+        if (!$costing) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data Costing tidak ditemukan.',
+            ], 404);
+        }
 
-        return $pdf->stream('Costing_'.$costing->no_costing.'.pdf');
+        $details = $this->getCostingDetail($costing->id, $costing->rate);
+        $items = [];
+        foreach ($details as $category => $rows) {
+            $items[$category] = $rows->map(function ($row) {
+                return [
+                    'item' => $row->nama_item,
+                    'desc' => $row->item_desc,
+                    'set' => $row->nama_set ?? '',
+                    'supplier' => $row->nama_supplier ?? '',
+                    'cons' => $row->cons,
+                    'curr' => $row->curr ?? '',
+                    'price' => $row->price,
+                    'unit' => $row->unit ?? '',
+                ];
+            })->values();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'cost_no' => $costing->cost_no,
+            'items' => $items,
+        ]);
     }
 
     public function getDetailRow(Request $request, $id)
@@ -1130,6 +1307,7 @@ class Marketing_CostingController extends Controller
         }
         return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
     }
+
 
     public function updateDetail(Request $request)
     {
@@ -1617,7 +1795,7 @@ class Marketing_CostingController extends Controller
         }
         $costing->nama_dest = $nama_destinasi;
 
-        $details = $this->getNativeCostingDetails($id, $costing->rate);
+        $details = $this->getCostingDetail($id, $costing->rate);
 
         $sum_fab_idr = 0; $sum_sew_idr = 0; $sum_pack_idr = 0; $sum_mfg_idr = 0; $sum_oth_norm_idr = 0;
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
@@ -2076,14 +2254,30 @@ class Marketing_CostingController extends Controller
     public function submitApproval(Request $request, $id)
     {
         try {
-            DB::connection('mysql_sb')
+            $db = DB::connection('mysql_sb');
+            $costing = $db
                 ->table('act_costing')
                 ->where('id', $id)
-                ->update([
-                    'app1' => 'Y',
-                    'app1_date' => now(),
-                    'app1_by' => Auth::user()->name
-                ]);
+                ->first(['cost_no']);
+            if (!$costing) {
+                return response()->json(['status' => 404, 'message' => 'Data Costing tidak ditemukan.'], 404);
+            }
+
+            $db->transaction(function () use ($db, $id, $costing) {
+                $db->table('act_costing')
+                    ->where('id', $id)
+                    ->update([
+                        'app1' => 'Y',
+                        'app1_date' => now(),
+                        'app1_by' => Auth::user()->name
+                    ]);
+                app(MarketingHistoryService::class)->record(
+                    (int) $id,
+                    'costing',
+                    'approved',
+                    "Costing {$costing->cost_no} disetujui."
+                );
+            });
 
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);
         } catch (\Exception $e) {

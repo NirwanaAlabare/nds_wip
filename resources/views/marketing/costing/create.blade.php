@@ -17,13 +17,13 @@
         .costing-page-title { color: var(--costing-navy); font-size: 22px; font-weight: 700; margin: 0 0 4px; }
         .costing-page-subtitle { color: #6c757d; font-size: 11px; margin: 0 0 20px; font-weight: 500; }
 
-        .costing-section { margin-bottom: 20px; background: transparent; }
-        .costing-section-header { margin-bottom: 12px; }
+        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #d7e0e8; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(24, 63, 90, .04); }
+        .costing-section-header { margin: 0; }
         .costing-section-toggle {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; box-sizing: border-box; padding: 10px 15px;
-            border: 1px solid #ced4da; border-radius: 6px;
-            background: #fff; color: var(--costing-navy);
+            border: 0; border-radius: 0;
+            background: #f8fafc; color: var(--costing-navy);
             text-align: left; font-size: 15px; font-weight: 700; appearance: none;
         }
         .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
@@ -36,7 +36,7 @@
         .section-chevron-box i { transition: transform .2s ease; }
         .costing-section-toggle[aria-expanded="false"] .section-chevron-box i { transform: rotate(180deg); }
 
-        .costing-section-body { padding: 0 5px; }
+        .costing-section-body { padding: 14px 15px 4px; border-top: 1px solid #edf1f5; }
 
         .costing-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 15px; row-gap: 10px; }
         .costing-fields.five-columns { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -69,6 +69,7 @@
             border: 1px dashed #6f42c1; border-radius: 5px; padding: 10px;
             min-height: 70px; display: flex; flex-wrap: wrap; gap: 6px;
         }
+        .costing-picture-clear { margin-top: 8px; }
 
         .costing-picture-carousel { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 250px;}
         .costing-picture-main { max-height: 250px; max-width: 100%; object-fit: contain; }
@@ -395,6 +396,9 @@
                                     </div>
 
                                     <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
+                                    <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear mb-4" disabled>
+                                        <i class="fas fa-trash-alt"></i> Clear All
+                                    </button>
                                 </div>
                                 <div class="col-md-8">
                                     <div class="costing-picture-carousel">
@@ -403,7 +407,7 @@
 
                                             <div class="main-img-container" style="min-height: 250px; display:flex; align-items:center;">
                                                 <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
-                                                <span id="no_img_text" class="text-muted" style="font-size: 11px;">No image selected</span>
+                                                <span id="no_img_text" class="text-muted" style="font-size: 11px;">Belum ada gambar yang dipilih</span>
                                             </div>
 
                                             <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
@@ -454,6 +458,7 @@
             $('#no_img_text').prop('hidden', hasImages);
             $mainImage.prop('hidden', !hasImages);
             $('#picture-prev, #picture-next').prop('disabled', costingImageUrls.length < 2);
+            $('#clear-pictures').prop('disabled', !hasImages);
 
             if (!hasImages) {
                 $mainImage.attr('src', '');
@@ -553,6 +558,14 @@
 
         $('#upload_foto').on('change', function() {
             setCostingFiles(this.files);
+        });
+
+        $('#clear-pictures').on('click', function() {
+            costingImageUrls.forEach(image => URL.revokeObjectURL(image.url));
+            costingImageUrls = [];
+            activeCostingImage = 0;
+            $('#upload_foto').val('');
+            renderCostingImages();
         });
 
         $('#picture-prev').on('click', function() {
