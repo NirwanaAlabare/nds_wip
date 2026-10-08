@@ -4793,7 +4793,13 @@ class InvoiceEximController extends Controller
                   LEFT JOIN master_unit g ON g.id = e.id_unit_sales_order_shipment
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
-                   AND a.tipe_pengeluaran IN ('Penjualan','Sample')
+                   -- Pengiriman ke subkontraktor ikut ditagihkan, sama seperti
+                   -- di garment. Dicocokkan dengan ILIKE berawalan: tujuannya
+                   -- sering ditulis menyambung di belakang (mis. '... CMT'),
+                   -- dan di PostgreSQL LIKE biasa peka huruf besar-kecil -
+                   -- beda satu huruf saja SJ-nya hilang tanpa jejak.
+                   AND (a.tipe_pengeluaran IN ('Penjualan','Sample')
+                        OR a.tipe_pengeluaran ILIKE 'Pengiriman ke Subkontraktor%')
                    AND a.tgl_pengeluaran BETWEEN ? AND ?";
         $bind = array($tglAwal, $tglAkhir);
         if ($kodeKnitting !== '') {

@@ -608,7 +608,13 @@
                     </div>
 
                     {{-- ----- Ringkasan nilai di dalam modal ----- --}}
-                    <div class="row justify-content-end">
+                    {{-- Ketentuan SJ ditaruh di ruang kosong sebelah Invoice
+                         Summary - terbaca tepat waktu user memilih SJ, bukan
+                         sesudah daftarnya kosong dan dia bingung sendiri. --}}
+                    <div class="row justify-content-between">
+                        <div class="col-xl-7 col-lg-7 col-md-12">
+                            @include('export-import.invoice._ketentuan_sj')
+                        </div>
                         {{-- Lebarnya disamakan dengan Invoice Summary di modal Add SJ
                              Invoice Export - isinya sama-sama satu kolom angka. --}}
                         <div class="col-xl-4 col-lg-5 col-md-8">

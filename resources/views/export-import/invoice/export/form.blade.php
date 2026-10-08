@@ -856,7 +856,13 @@
                          Sama persis dengan modal Add SJ di Invoice Local: di sinilah
                          DP, DP/CBD, Return dan VAT diketik, lalu dibawa ke form utama
                          waktu Apply. Angkanya memakai harga CM. --}}
-                    <div class="row justify-content-end">
+                    {{-- Ketentuan SJ ditaruh di ruang kosong sebelah Invoice
+                         Summary - terbaca tepat waktu user memilih SJ, bukan
+                         sesudah daftarnya kosong dan dia bingung sendiri. --}}
+                    <div class="row justify-content-between">
+                        <div class="col-xl-7 col-lg-7 col-md-12">
+                            @include('export-import.invoice._ketentuan_sj')
+                        </div>
                         <div class="col-xl-4 col-lg-5 col-md-8">
                             <div class="card">
                                 <div class="card-header">

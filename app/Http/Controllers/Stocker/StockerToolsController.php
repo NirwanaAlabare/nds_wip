@@ -462,8 +462,8 @@ class StockerToolsController extends Controller
         } catch (\Throwable $e) {
             return [
                 "status" => 400,
-                "message" => 'Terjadi Kesalahan',
-                "additional" => [],
+                "message" => 'Terjadi Kesalahan '.$e->getMessage(),
+                "additional" => $e->getTrace(),
             ];
         }
     }

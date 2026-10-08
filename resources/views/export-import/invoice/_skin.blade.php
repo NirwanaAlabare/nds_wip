@@ -3185,4 +3185,30 @@
   .nag-skin .dn-filter-tombol { width: 100%; }
   .nag-skin .dn-filter-tombol .btn { flex: 1 1 0; }
 }
+
+/* Ketentuan SJ yang bisa ditarik - mengisi ruang kosong di sebelah Invoice
+   Summary di modal Add SJ, jadi aturannya terbaca tepat waktu user memilih. */
+:is(#modal-add-so,#modal-add-ws) .dn-ketentuan .card-body { padding: 10px 14px 6px; }
+:is(#modal-add-so,#modal-add-ws) .dn-ket-judul {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #1e3a5f;
+  margin-bottom: 4px;
+}
+:is(#modal-add-so,#modal-add-ws) .dn-ket-judul-2 { margin-top: 10px; }
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #475569;
+}
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket li { margin-bottom: 2px; }
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket b { color: #1e3a5f; font-weight: 600; }
+/* Layar sempit: kedua kolomnya menumpuk, jangan sampai berdempetan. */
+@media (max-width: 767.98px) {
+  :is(#modal-add-so,#modal-add-ws) .dn-ket-kolom + .dn-ket-kolom { margin-top: 10px; }
+}
 </style>
