@@ -391,6 +391,11 @@
                                 <th>UOM</th>
                                 <th>Qty</th>
                                 <th>Unit Price</th>
+                                {{-- Nilai TAGIH knitting - disembunyikan kalau barisnya
+                                     memang tidak punya (garment). --}}
+                                <th class="dn-sel-tagih">UOM Billing</th>
+                                <th class="dn-sel-tagih">Qty Billing</th>
+                                <th class="dn-sel-tagih">Unit Price Billing</th>
                                 <th style="width:52px" class="dn-tengah">Action</th>
                             </tr>
                         </thead>
@@ -401,7 +406,7 @@
                                 <td colspan="4" id="inv-sj-jumlah-sj"></td>
                                 <td colspan="7" class="dn-angka">Total Qty</td>
                                 <td class="dn-angka dn-sj-jumlah-qty" id="inv-sj-jumlah-qty">0.00</td>
-                                <td colspan="2"></td>
+                                <td colspan="5"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -455,12 +460,14 @@
                          kotak isian: semua angka di sini hasil hitungan, jadi tidak
                          boleh terlihat seolah bisa diketik. Potongan ditandai minus,
                          Grand Total ditonjolkan karena itu angka yang diputuskan. --}}
-                    <table class="dn-rekap">
+                    <table class="dn-rekap" id="inv-rekap-tabel">
                         <thead>
                             <tr>
                                 <th></th>
                                 <th>CM <span class="dn-rekap-curr" id="inv-curr-cm"></span></th>
                                 <th>FOB <span class="dn-rekap-curr" id="inv-curr-fob"></span></th>
+                                {{-- Nilai TAGIH knitting - lihat rekapTagih(). --}}
+                                <th class="dn-sel-tagih">Billing <span class="dn-rekap-curr" id="inv-curr-tagih"></span></th>
                             </tr>
                         </thead>
                         {{-- Dilipat secara bawaan: yang diputuskan sebelum simpan cukup
@@ -470,36 +477,43 @@
                                 <th>Total</th>
                                 <td id="inv-total-cm">0.00</td>
                                 <td id="inv-total-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-total-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-kurang">
                                 <th>Discount</th>
                                 <td id="inv-disc-cm">0.00</td>
                                 <td id="inv-disc-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-disc-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-kurang">
                                 <th>Down Payment</th>
                                 <td id="inv-dp-cm">0.00</td>
                                 <td id="inv-dp-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-dp-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-kurang">
                                 <th>DP/CBD from Invoice</th>
                                 <td id="inv-dpcbd-cm">0.00</td>
                                 <td id="inv-dpcbd-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-dpcbd-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-kurang">
                                 <th>Return</th>
                                 <td id="inv-retur-cm">0.00</td>
                                 <td id="inv-retur-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-retur-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-sub">
                                 <th>Total Without Tax</th>
                                 <td id="inv-twot-cm">0.00</td>
                                 <td id="inv-twot-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-twot-tagih">0.00</td>
                             </tr>
                             <tr class="dn-rekap-tambah">
                                 <th id="inv-label-vat">VAT</th>
                                 <td id="inv-vat-cm">0.00</td>
                                 <td id="inv-vat-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-vat-tagih">0.00</td>
                             </tr>
                         </tbody>
                         <tfoot>
@@ -507,6 +521,7 @@
                                 <th>Grand Total</th>
                                 <td id="inv-grand-cm">0.00</td>
                                 <td id="inv-grand-fob">0.00</td>
+                                <td class="dn-sel-tagih" id="inv-grand-tagih">0.00</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -833,6 +848,10 @@
                                             <th class="dn-angka">Rows</th>
                                             <th class="dn-angka">Total Qty</th>
                                             <th class="dn-angka">Total Price</th>
+                                            {{-- Nilai TAGIH - cuma muncul kalau ada baris knitting. --}}
+                                            <th class="dn-kol-tagih">UOM Billing</th>
+                                            <th class="dn-angka dn-kol-tagih">Total Qty Billing</th>
+                                            <th class="dn-angka dn-kol-tagih">Total Price Billing</th>
                                             <th style="width:52px" class="dn-tengah">
                                                 <input type="checkbox" id="so-cek-semua" title="Select all">
                                             </th>
@@ -840,7 +859,7 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="dn-kosong" colspan="14">No SJ yet. Set the filter above, then press Search.</td>
+                                            <td class="dn-kosong" colspan="17">No SJ yet. Set the filter above, then press Search.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1543,7 +1562,7 @@ $(function () {
         segarkanJumlahSj();
         var $b = $('#inv-table-sj tbody').empty();
         if (!invBaris.length) {
-            $b.html('<tr><td class="dn-kosong" colspan="14">'
+            $b.html('<tr><td class="dn-kosong" colspan="17">'
                 + '<div class="dn-kosong-isi">'
                 + '<i class="fas fa-truck"></i>'
                 + '<span>No SJ selected yet.</span>'
@@ -1564,6 +1583,9 @@ $(function () {
                     + '<td>' + teksAman(r.uom) + '</td>'
                     + '<td class="dn-angka">' + angka(r.qty) + '</td>'
                     + '<td class="dn-angka">' + selHarga(r, i) + '</td>'
+                    + '<td class="dn-sel-tagih">' + teksAman(r.uom_tagih) + '</td>'
+                    + '<td class="dn-angka dn-sel-tagih">' + angka(r.qty_tagih) + '</td>'
+                    + '<td class="dn-angka dn-sel-tagih">' + angka(r.unit_price_tagih) + '</td>'
                     + '<td class="dn-tengah dn-aksi-sel"><button type="button" class="btn btn-dn-buang btn-buang-sj"'
                     + ' data-i="' + i + '" title="Remove this row"><i class="fas fa-times"></i></button></td>'
                     + '</tr>';
@@ -1571,6 +1593,12 @@ $(function () {
         }
         segarkanTanggalInvoice();
         gambarRingkas();
+        // Kolom nilai tagih cuma dipakai knitting - ditentukan dari barisnya,
+        // bukan dari pilihan profit center, jadi tidak ada yang perlu disetel.
+        $('#inv-table-sj').toggleClass('is-knit', invBaris.some(function (r) {
+            return $.trim(String(r.uom_tagih == null ? '' : r.uom_tagih)) !== ''
+                || (parseFloat(r.total_price_tagih) || 0) > 0;
+        }));
     }
 
     /** Invoice Date ikut tanggal SJ - kotaknya readonly, jadi tidak ada yang
@@ -2503,6 +2531,33 @@ $(function () {
         tulis('#inv-grand-cm', twotCm + vatCm);
         tulis('#inv-grand-fob', twotFob + vatFob);
 
+        // Nilai TAGIH knitting. Potongannya sama persis dengan kolom di
+        // sebelahnya - yang berbeda cuma dasar nilainya, jadi tidak ada angka
+        // yang harus diketik dua kali.
+        var totalTagih = 0, discTagih = 0, adaTagih = false;
+        invBaris.forEach(function (r) {
+            var harga = parseFloat(r.total_price_tagih) || 0;
+            if (harga > 0 || $.trim(String(r.uom_tagih == null ? '' : r.uom_tagih)) !== '') {
+                adaTagih = true;
+            }
+            totalTagih += harga;
+            discTagih += (parseFloat(r.disc) || 0) / 100 * harga;
+        });
+        $('#inv-rekap-tabel').toggleClass('is-knit', adaTagih);
+        if (adaTagih) {
+            var twotTagih = totalTagih - discTagih - dp - dpcbd - retur;
+            var vatTagih  = twotTagih * tarif;
+            tulis('#inv-total-tagih', totalTagih);
+            tulis('#inv-disc-tagih', discTagih);
+            tulis('#inv-dp-tagih', dp);
+            tulis('#inv-dpcbd-tagih', dpcbd);
+            tulis('#inv-retur-tagih', retur);
+            tulis('#inv-twot-tagih', twotTagih);
+            tulis('#inv-vat-tagih', vatTagih);
+            tulis('#inv-grand-tagih', twotTagih + vatTagih);
+            $('#inv-curr-tagih').text($('#inv-curr-cm').text());
+        }
+
         // Mata uangnya ikut ditulis di judul kolom - angka tanpa mata uang itu
         // ambigu. Diambil dari baris shipment pertama, kalau kosong dari SJ.
         var curr = (kirimBaris[0] && kirimBaris[0].currency)
@@ -2704,7 +2759,10 @@ $(function () {
             var fg = $.trim(String(r.shipping_number || ''));
             var kunci = kunciKelompok(r);
             if (!peta[kunci]) {
-                peta[kunci] = { fg: fg, baris: [], qty: 0, nilai: 0, warna: [], dipilih: 0, manual: 0,
+                peta[kunci] = { fg: fg, baris: [], qty: 0, nilai: 0,
+                    // Nilai tagih knitting - kosong untuk garment.
+                    qtyTagih: 0, nilaiTagih: 0, uomTagih: '',
+                    warna: [], dipilih: 0, manual: 0,
                     tgl: tglSj(r) };
                 hasil.push(peta[kunci]);
             }
@@ -2714,6 +2772,12 @@ $(function () {
             g._g = i;
             g.baris.forEach(function (r) {
                 g.qty += parseFloat(r.qty) || 0;
+                g.qtyTagih += parseFloat(r.qty_tagih) || 0;
+                g.nilaiTagih += parseFloat(r.total_price_tagih) || 0;
+                var ut = $.trim(String(r.uom_tagih == null ? '' : r.uom_tagih));
+                if (ut !== '' && g.uomTagih.indexOf(ut) === -1) {
+                    g.uomTagih = g.uomTagih === '' ? ut : g.uomTagih + ', ' + ut;
+                }
                 if (Number(r.harga_manual) === 1) { g.manual++; }
                 var tp = parseFloat(r.total_price);
                 if (isNaN(tp)) { tp = (parseFloat(r.qty) || 0) * (parseFloat(r.unit_price) || 0); }
@@ -2732,12 +2796,17 @@ $(function () {
         var $b = $('#so-table-sj tbody').empty();
         sjGrup = kelompokSj(daftar);
         if (!sjGrup.length) {
-            $b.html('<tr><td class="dn-kosong" colspan="14">No SJ found for this filter.</td></tr>');
+            $b.html('<tr><td class="dn-kosong" colspan="17">No SJ found for this filter.</td></tr>');
             aturKunciTanggal();
             segarkanCekSemua();
             infoPilih();
             return;
         }
+        // Ditentukan dari datanya, bukan dari pilihan di layar: cuma baris
+        // knitting yang punya nilai tagih, jadi tabel garment tidak ikut melebar.
+        $('#modal-add-so').toggleClass('is-knit', sjGrup.some(function (g) {
+            return g.uomTagih !== '' || g.nilaiTagih > 0;
+        }));
         $b.html(sjGrup.map(function (g) {
             var penuh = g.dipilih > 0 && g.dipilih === g.baris.length;
             return '<tr' + (g.dipilih ? ' class="is-terpilih"' : '') + '>'
@@ -2755,6 +2824,9 @@ $(function () {
                 + '<td class="dn-angka">' + angka(g.qty) + '</td>'
                 + '<td class="dn-angka">' + (g.manual === g.baris.length && !g.nilai
                     ? '<span class="dn-lain">priced later</span>' : angka(g.nilai)) + '</td>'
+                + '<td class="dn-kol-tagih">' + teksAman(g.uomTagih) + '</td>'
+                + '<td class="dn-angka dn-kol-tagih">' + angka(g.qtyTagih) + '</td>'
+                + '<td class="dn-angka dn-kol-tagih">' + angka(g.nilaiTagih) + '</td>'
                 + '<td class="dn-tengah"><input type="checkbox" class="so-cek" data-g="' + g._g + '"'
                 + (penuh ? ' checked' : '') + '></td>'
                 + '</tr>';
@@ -2842,7 +2914,7 @@ $(function () {
     $('#so-btn-cari').on('click', function () {
         var $tb = $(this);
         $tb.prop('disabled', true);
-        $('#so-table-sj tbody').html('<tr><td class="dn-kosong" colspan="14">Loading...</td></tr>');
+        $('#so-table-sj tbody').html('<tr><td class="dn-kosong" colspan="17">Loading...</td></tr>');
         $.getJSON(RUT_SJ, {
             tgl_awal: tglIso('#so-tgl-awal'),
             tgl_akhir: tglIso('#so-tgl-akhir'),
@@ -2857,7 +2929,7 @@ $(function () {
                 Swal.fire({ icon: 'warning', title: 'Partial result', text: res.pesan, customClass: { popup: 'dn-swal' } });
             }
         }).fail(function (x) {
-            $('#so-table-sj tbody').html('<tr><td class="dn-kosong" colspan="14">Could not load SJ.</td></tr>');
+            $('#so-table-sj tbody').html('<tr><td class="dn-kosong" colspan="17">Could not load SJ.</td></tr>');
             var p = (x.responseJSON && x.responseJSON.pesan) ? x.responseJSON.pesan : 'Please try again.';
             Swal.fire({ icon: 'error', title: 'Search failed', text: p, customClass: { popup: 'dn-swal' } });
         }).always(function () { $tb.prop('disabled', false); });

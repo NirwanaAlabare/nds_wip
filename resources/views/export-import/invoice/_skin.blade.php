@@ -3186,6 +3186,65 @@
   .nag-skin .dn-filter-tombol .btn { flex: 1 1 0; }
 }
 
+/* Kolom nilai TAGIH di daftar Add SJ. Knitting punya dua angka - kirim &
+   tagih - dan keduanya perlu terbaca berdampingan, seperti layar knitting AR
+   lama. Garment tidak punya nilai tagih, jadi kolomnya disembunyikan supaya
+   tabelnya tidak melebar tanpa guna.
+
+   Selektornya disamakan dengan modal Add WS - kelasnya memang belum dipakai
+   di sana, tapi kalau nanti WS ikut punya dua nilai, gayanya sudah sama. */
+:is(#modal-add-so,#modal-add-ws) .dn-kol-tagih { display: none; }
+:is(#modal-add-so,#modal-add-ws).is-knit .dn-kol-tagih { display: table-cell; }
+/* Dibedakan tipis dari kolom kirim di sebelahnya - sekilas kelihatan mana
+   yang mana, tanpa harus membaca judul kolomnya lagi. */
+:is(#modal-add-so,#modal-add-ws).is-knit thead .dn-kol-tagih { color: #0f766e; }
+:is(#modal-add-so,#modal-add-ws).is-knit tbody .dn-kol-tagih { background: #f0fdfa; }
+
+/* Kolom nilai TAGIH di tabel Detail SJ halaman utama. Aturannya sama dengan
+   di modal: disembunyikan sampai ada baris yang memang punya nilai tagih,
+   penandanya kelas is-knit di tabelnya sendiri. */
+:is(#inv-table-sj,#inv-rekap-tabel) .dn-sel-tagih { display: none; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit .dn-sel-tagih { display: table-cell; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit thead .dn-sel-tagih { color: #0f766e; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit tbody .dn-sel-tagih { background: #f0fdfa; }
+/* Rekap Export: Grand Total ada di tfoot, jadi ikut diurus terpisah. */
+#inv-rekap-tabel.is-knit tfoot .dn-sel-tagih { display: table-cell; }
+
+/* Rekap Invoice Local waktu knitting: SATU kartu dengan dua kolom angka -
+   Shipment & Billing - sejajar baris demi baris. Dibuat begini, bukan dua
+   kartu bersebelahan: kartu terpisah tingginya ikut isinya masing-masing,
+   jadi barisnya tidak akan pernah lurus. */
+.dn-ringkas .dn-nilai-tagih,
+.dn-ringkas .dn-judul-nilai { display: none; }
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih { display: block; }
+.dn-ringkas.is-dua-nilai .dn-judul-nilai { display: flex; }
+/* Label & kedua angkanya dibagi tiga sama rata. Label tidak perlu selebar
+   waktu cuma satu angka - ruangnya lebih berguna untuk angkanya. */
+.dn-ringkas.is-dua-nilai .col-sm-5,
+.dn-ringkas.is-dua-nilai .dn-nilai-kirim,
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih {
+  flex: 0 0 33.3333%;
+  max-width: 33.3333%;
+}
+.dn-ringkas .dn-judul-nilai > div {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #64748b;
+  text-align: right;
+  padding-bottom: 2px;
+}
+.dn-ringkas .dn-judul-nilai .dn-nilai-tagih { color: #0f766e; }
+/* Angka Billing diberi latar tipis - sama penandanya dengan kolom tagih di
+   tabel, jadi satu arti satu warna di seluruh layar. */
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih .form-control { background: #f0fdfa; }
+/* Kartunya ikut melebar sedikit - dua kolom angka tidak muat di lebar untuk
+   satu, tapi jangan sampai separuh layar jadi ruang kosong. */
+@media (min-width: 992px) {
+  #inv-rekap-kolom.is-dua-nilai { flex: 0 0 50%; max-width: 50%; }
+}
+
 /* Ketentuan SJ yang bisa ditarik - mengisi ruang kosong di sebelah Invoice
    Summary di modal Add SJ, jadi aturannya terbaca tepat waktu user memilih. */
 :is(#modal-add-so,#modal-add-ws) .dn-ketentuan .card-body { padding: 10px 14px 6px; }

@@ -36,6 +36,8 @@
         /* Sedikit lebih kecil dari judul Debit Note (30px) - teks "COMMERCIAL INVOICE" lebih panjang. */
         .judul { text-align: center; font-size: 24px; font-weight: bold; color: #e2231a; margin-top: 18px; }
         .nomor { text-align: center; font-size: 16px; font-weight: bold; margin-top: 2px; }
+        .versi-knit { text-align: center; font-size: 11px; font-weight: bold; letter-spacing: 1px;
+                      color: #555; margin-top: 3px; }
 
         /* ---- Blok pihak & pengapalan ----
            Garis merah di kiri judul dibuat sebagai kolom sendiri (td.garis) yang
@@ -109,6 +111,10 @@
     {{-- ---------------- Judul ---------------- --}}
     <div class="judul">{{ trim($data_invoice['type'] . ' INVOICE') }}</div>
     <div class="nomor">{{ $data_invoice['no_invoice'] }}</div>
+    {{-- Penanda versi: knitting dicetak dua kali - nilai kirim & nilai tagih -
+         dan bentuknya sama persis. Tanpa penanda di kertasnya sendiri, kedua
+         berkas ini tidak mungkin dibedakan lagi setelah dicetak. --}}
+    <div class="versi-knit">{{ $versi_knit ?? 'SHIPMENT' }}</div>
 
     {{-- ---------------- Pengirim & penerima ---------------- --}}
     {{-- Kolom: [garis][CONSIGNOR][sekat][sela][garis][CONSIGNEE / BILL TO].
