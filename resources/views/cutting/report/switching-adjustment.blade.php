@@ -6,14 +6,14 @@
 @endsection
 
 @section('content')
-    <h5 class="text-sb fw-bold"><i class="fa fa-shuffle text-sb-secondary"></i> Riwayat Switching Cutting</h5>
+    <h5 class="text-sb fw-bold"><i class="fa fa-list text-sb-secondary"></i> Riwayat Switching Adjustment</h5>
 
     <div class="card card-body mb-3">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
             <div class="d-flex flex-wrap align-items-end gap-3">
                 <div>
                     <label for="tgl-awal" class="form-label small">Tanggal Awal</label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-01') }}">
                 </div>
                 <div>
                     <label for="tgl-akhir" class="form-label small">Tanggal Akhir</label>
@@ -32,10 +32,10 @@
             </div>
 
             <div class="d-flex gap-2">
-                <a href="{{ route('create-cutting-switching') }}" type="button" class="btn btn-sb btn-sm">
-                    <i class="fa fa-plus"></i> Buat Switching
+                <a href="{{ route('switching') }}" type="button" class="btn btn-sb btn-sm" target="_blank">
+                    <i class="fa fa-plus"></i> Buat Adjustment Switching
                 </a>
-                <button type="button" class="btn btn-success btn-sm" id="exportExcel" data-title="Report Log Switching Cutting" data-url="{{ route('export-cutting-switching') }}">
+                <button type="button" class="btn btn-success btn-sm" id="exportExcel" data-title="Riwayat Switching Adjustment" data-url="{{ route('report-switching-adjustment-export') }}">
                     <i class="fa fa-file-excel"></i> Export
                 </button>
             </div>
@@ -48,9 +48,9 @@
                 <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Group Roll</th><th>Tanggal Asal</th><th>No. Form Asal</th><th>WS Asal</th><th>Style Asal</th><th>Color Asal</th><th>Panel Asal</th><th>Size Asal</th>
-                            <th>Tanggal Tujuan</th><th>No. Form Tujuan</th><th>WS Tujuan</th><th>Style Tujuan</th><th>Color Tujuan</th><th>Panel Tujuan</th><th>Size Tujuan</th>
-                            <th>Qty Transfer</th><th>Status</th><th>Created By</th><th>Created At</th><th>Updated At</th>
+                            <th>Tgl Saldo Asal</th><th>WS Asal</th><th>Buyer Asal</th><th>Style Asal</th><th>Color Asal</th><th>Size Asal</th><th>Panel Asal</th><th>Part Asal</th><th>Qty Asal</th>
+                            <th>Tgl Saldo Tujuan</th><th>WS Tujuan</th><th>Buyer Tujuan</th><th>Style Tujuan</th><th>Color Tujuan</th><th>Size Tujuan</th><th>Panel Tujuan</th><th>Part Tujuan</th><th>Qty Tujuan</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                 </table>
@@ -66,17 +66,11 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        $(document).ready(() => {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            $('#tgl-awal').val(sevenDaysAgo.toISOString().slice(0, 10));
-        });
-
         const selectFilterColumns = {
-            16: [
+            18: [
                 { value: '', label: 'Semua' },
-                { value: '1', label: 'Active' },
-                { value: '0', label: 'Cancel' },
+                { value: 'Y', label: 'Active' },
+                { value: 'N', label: 'Cancel' },
             ],
         };
 
@@ -103,29 +97,31 @@
             scrollX: true,
             pageLength: 50,
             ajax: {
-                url: '{{ route('cutting-switching') }}',
+                url: '{{ route('report-switching-adjustment') }}',
                 data: (data) => {
                     data.dateFrom = $('#tgl-awal').val();
                     data.dateTo = $('#tgl-akhir').val();
                 },
             },
             columns: [
-                { data: 'group_roll_asal' }, { data: 'tanggal_form_asal' }, { data: 'no_form_asal' }, { data: 'ws_asal' },
-                { data: 'styleno_asal' }, { data: 'color_asal' }, { data: 'panel_asal' }, { data: 'size_asal' },
-                { data: 'tanggal_form_tujuan' }, { data: 'no_form_tujuan' }, { data: 'ws_tujuan' }, { data: 'styleno_tujuan' },
-                { data: 'color_tujuan' }, { data: 'panel_tujuan' }, { data: 'size_tujuan' }, { data: 'qty_transfer', className: 'text-end' },
-                { data: 'is_active', className: 'text-center' }, { data: 'created_by' }, { data: 'created_at' }, { data: 'updated_at' },
+                { data: 'from_tgl_saldo' }, { data: 'from_no_ws' }, { data: 'from_buyer' }, { data: 'from_style' },
+                { data: 'from_color' }, { data: 'from_size' }, { data: 'from_panel' }, { data: 'from_part' }, { data: 'from_qty' },
+                { data: 'tgl_saldo' }, { data: 'no_ws' }, { data: 'buyer' }, { data: 'style' },
+                { data: 'color' }, { data: 'size' }, { data: 'panel' }, { data: 'part' }, { data: 'qty' },
+                { data: 'status' },
             ],
             columnDefs: [
                 {
-                    targets: [16],
-                    render: (data) => Number(data) === 1
-                        ? '<span class="badge bg-success">Active</span>'
-                        : '<span class="badge bg-secondary">Cancel</span>',
+                    targets: [8, 17],
+                    className: 'text-end',
+                    render: (data) => data === null || data === undefined || data === '' ? '-' : Number(data),
                 },
                 {
-                    targets: [18, 19],
-                    render: (data) => data ? formatDateTime(data) : '-',
+                    targets: [18],
+                    className: 'text-center',
+                    render: (data) => data === 'Y'
+                        ? '<span class="badge bg-success">Aktif</span>'
+                        : '<span class="badge bg-secondary">Cancel</span>',
                 },
                 {
                     targets: '_all',

@@ -18,187 +18,95 @@ use DB;
 
 class SecondaryInhouseOutController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Satu-satunya sumber query list Secondary Inhouse Out (tabel, filter dropdown, total, export list & export detail).
+     * Mengembalikan query builder di atas subquery `sec_out` sehingga paging/sort/sum/distinct
+     * dikerjakan database, bukan PHP.
+     *
+     * Catatan kolom: `panel` & `nama_part` adalah versi tampil di tabel (dengan status),
+     * sedangkan `panel_only` & `nama_part_only` adalah nilai polos (dipakai export).
+     */
+    private function secondaryInhouseOutQuery(Request $request, $from = null, $to = null)
     {
-        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
-        $tglskrg = date('Y-m-d');
+        $where = [];
+        $bindings = [];
 
-        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
-        // dd($data_rak);
-        if ($request->ajax()) {
-            $additionalQuery = '';
+        // kondisi "ekspresi IN (?, ?, ...)"
+        $addIn = function ($expr, $values) use (&$where, &$bindings) {
+            $values = array_values(array_filter((array) $values, fn ($v) => $v !== null && $v !== ''));
+            if (count($values) < 1) {
+                return;
+            }
+            $where[] = "$expr in (" . implode(',', array_fill(0, count($values), '?')) . ")";
+            foreach ($values as $v) {
+                $bindings[] = trim($v);
+            }
+        };
 
-            if ($request->dateFrom) {
-                $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-            }
+        $tipeExpr = "(CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END)";
+        $panelRaw = "(CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END)";
+        $panelStatusRaw = "(CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)";
+        $panelExpr = "CONCAT($panelRaw, (CASE WHEN $panelStatusRaw IS NOT NULL THEN CONCAT(' - ', $panelStatusRaw) ELSE '' END))";
+        $partStatusExpr = "UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))";
+        $partExpr = "CONCAT(mp.nama_part, (CASE WHEN $partStatusExpr != '-' THEN CONCAT(' - ', $partStatusExpr) ELSE '' END))";
+        $tujuanExpr = "COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan)";
+        $lokasiExpr = "COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi)";
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-            }
-
-            // Filter
-            $keywordQuery = '';
-            if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
-                $keywordQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
-            }
-            if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
-                $keywordQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
-            }
-            if ($request->sec_filter_ws && count($request->sec_filter_ws) > 0) {
-                $keywordQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
-            }
-            if ($request->sec_filter_style && count($request->sec_filter_style) > 0) {
-                $keywordQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
-            }
-            if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
-                $keywordQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
-            }
-            if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
-                $keywordQuery .= " and CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
-            }
-            if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-                $keywordQuery .= " and CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
-            }
-            if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
-                $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
-            }
-            if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
-                $keywordQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
-            }
-            if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
-                $keywordQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
-            }
-            if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
-                $keywordQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
-            }
-            if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
-                $keywordQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
-            }
-            if ($request->size_filter && count($request->size_filter) > 0) {
-                $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
-            }
-
-            $data_input = DB::select("
-                SELECT
-                    a.*,
-                    (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
-                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
-                    a.tgl_trans,
-                    s.act_costing_ws,
-                    s.color,
-                    p.buyer,
-                    p.style,
-                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
-                    COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
-                    COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
-                    COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                    COALESCE(a.qty_in) qty_in,
-                    a.created_at,
-                    COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
-                    COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
-                    dc.tempat,
-                    COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                    COALESCE(msb.size, s.size) AS size,
-                    a.user,
-                    (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
-                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
-                    CONCAT(
-                        s.range_awal, ' - ', s.range_akhir,
-                        CASE
-                        WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
-                            THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
-                        ELSE ' (0)'
-                        END
-                    ) AS stocker_range_old,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
-                FROM secondary_inhouse_input a
-                LEFT JOIN (
-                    SELECT
-                        secondary_inhouse_input.id_qr_stocker,
-                        MAX(qty_awal) as qty_awal,
-                        SUM(qty_reject) qty_reject,
-                        SUM(qty_replace) qty_replace,
-                        (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
-                        MAX(secondary_inhouse_input.urutan) AS max_urutan,
-                        GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
-                        GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
-                    FROM secondary_inhouse_input
-                    LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                    LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
-                    LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                    GROUP BY id_qr_stocker
-                    having MAX(secondary_inhouse_input.urutan) is not null
-                ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
-                LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
-                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
-                LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
-                LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
-                LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-                left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on p.id = pd.part_id
-                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                left join part p_com on p_com.id = pd_com.part_id
-                LEFT JOIN master_part mp ON mp.id = pd.master_part_id
-                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
-                left join master_secondary mms on mms.id = pds.master_secondary_id
-                left join master_secondary ms on ms.id = pd.master_secondary_id
-                LEFT JOIN (
-                    SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
-                    FROM dc_in_input
-                ) dc ON a.id_qr_stocker = dc.id_qr_stocker
-                WHERE
-                    a.tgl_trans IS NOT NULL
-                    -- AND (
-                    --     a.urutan IS NULL
-                    --     OR a.urutan = mx.max_urutan
-                    -- )
-                    $additionalQuery
-                    $keywordQuery
-                ORDER BY a.tgl_trans DESC
-            ");
-
-            return DataTables::of($data_input)->toJson();
+        if ($from) {
+            $where[] = "a.tgl_trans >= ?";
+            $bindings[] = $from;
+        }
+        if ($to) {
+            $where[] = "a.tgl_trans <= ?";
+            $bindings[] = $to;
         }
 
-        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
-    }
+        // filter dropdown (multi select), memakai ekspresi yang sama dengan kolom yang ditampilkan
+        $addIn($tipeExpr, $request->sec_filter_tipe);
+        $addIn("p.buyer", $request->sec_filter_buyer);
+        $addIn("s.act_costing_ws", $request->sec_filter_ws);
+        $addIn("p.style", $request->sec_filter_style);
+        $addIn("s.color", $request->sec_filter_color);
+        $addIn($panelExpr, $request->sec_filter_panel);
+        $addIn($partExpr, $request->sec_filter_part);
+        $addIn("COALESCE(msb.size, s.size)", $request->sec_filter_size);
+        $addIn("COALESCE(msb.size, s.size)", $request->size_filter);
+        $addIn("COALESCE(f.no_cut, fp.no_cut, '-')", $request->sec_filter_no_cut);
+        $addIn($tujuanExpr, $request->sec_filter_tujuan);
+        $addIn("dc.tempat", $request->sec_filter_tempat);
+        $addIn($lokasiExpr, $request->sec_filter_lokasi);
 
-    public function filterSecondaryInhouse(Request $request)
-    {
-        $additionalQuery = '';
+        $additionalQuery = count($where) > 0 ? " and " . implode(" and ", $where) : "";
 
-        if ($request->dateFrom) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-        }
-
-        $data_input = collect(DB::select("
+        $sql = "
             SELECT
-                (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
+                a.id,
+                a.id_qr_stocker,
+                $tipeExpr AS tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
                 a.tgl_trans,
                 s.act_costing_ws,
                 s.color,
                 p.buyer,
                 p.style,
-                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
+                $panelExpr panel,
+                $panelRaw panel_only,
+                $panelStatusRaw panel_status,
                 COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                 COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                 COALESCE(a.qty_in) qty_in,
                 a.created_at,
-                COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
-                COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
+                $tujuanExpr as tujuan,
+                $lokasiExpr lokasi,
                 dc.tempat,
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
                 a.user,
                 (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
-                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
+                $partExpr nama_part,
+                mp.nama_part nama_part_only,
+                $partStatusExpr part_status,
                 CONCAT(
                     s.range_awal, ' - ', s.range_akhir,
                     CASE
@@ -207,7 +115,8 @@ class SecondaryInhouseOutController extends Controller
                     ELSE ' (0)'
                     END
                 ) AS stocker_range_old,
-                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
+                s.notes
             FROM secondary_inhouse_input a
             LEFT JOIN (
                 SELECT
@@ -246,425 +155,50 @@ class SecondaryInhouseOutController extends Controller
             ) dc ON a.id_qr_stocker = dc.id_qr_stocker
             WHERE
                 a.tgl_trans IS NOT NULL
-                -- AND (
-                --  a.urutan IS NULL
-                --  OR a.urutan = mx.max_urutan
-                -- )
+                and (s.cancel IS NULL OR s.cancel != 'y')
                 $additionalQuery
-            ORDER BY a.tgl_trans DESC
-        "));
+        ";
 
-        $tipe = $data_input->groupBy("tipe")->keys();
-        $act_costing_ws = $data_input->groupBy("act_costing_ws")->keys();
-        $color = $data_input->groupBy("color")->keys();
-        $buyer = $data_input->groupBy("buyer")->keys();
-        $style = $data_input->groupBy("style")->keys();
-        $tujuan = $data_input->groupBy("tujuan")->keys();
-        $lokasi = $data_input->groupBy("lokasi")->keys();
-        $lokasi_rak = $data_input->groupBy("lokasi_rak")->keys();
-        $panel = $data_input->groupBy("panel")->keys();
-        $part = $data_input->groupBy("nama_part")->keys();
-        $no_cut = $data_input->groupBy("no_cut")->keys();
-        $size = $data_input->groupBy("size")->keys();
-
-        return  array(
-            "tipe" => $tipe,
-            "ws" => $act_costing_ws,
-            "color" => $color,
-            "buyer" => $buyer,
-            "style" => $style,
-            "tujuan" => $tujuan,
-            "lokasi" => $lokasi,
-            "lokasi_rak" => $lokasi_rak,
-            "panel" => $panel,
-            "part" => $part,
-            "no_cut" => $no_cut,
-            "size" => $size
-        );
+        return DB::query()->fromRaw("($sql) as sec_out", $bindings);
     }
 
-    public function total_secondary_inhouse_out(Request $request)
+    /**
+     * Satu-satunya sumber query detail (rekap per WS/buyer/style/color/lokasi) Secondary Inhouse Out.
+     */
+    private function secondaryInhouseOutDetailQuery(Request $request, $from = null, $to = null)
     {
-        $tipeCase = "(CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END)";
-        $panelExpr = "CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END))";
-        $namaPartExpr = "CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END))";
-        $sizeExpr = "COALESCE(msb.size, s.size)";
-        $noCutExpr = "COALESCE(f.no_cut, fp.no_cut, '-')";
-        $stockerRangeExpr = "CONCAT(s.range_awal, ' - ', s.range_akhir)";
-        $createdAtExpr = "DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i:%s')";
+        $where = [];
+        $bindings = [];
 
-        // Date Filter
-        $additionalQuery = '';
-
-        if ($request->dateFrom) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-        }
-
-        // Global Filter
-        if ($request->filter) {
-            $additionalQuery .= " and (
-                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->filter . "%'
-                OR a.id_qr_stocker LIKE '%" . $request->filter . "%'
-                OR " . $tipeCase . " LIKE '%" . $request->filter . "%'
-                OR s.act_costing_ws LIKE '%".$request->filter."%'
-                OR p.style LIKE '%".$request->filter."%'
-                OR s.color LIKE '%".$request->filter."%'
-                OR " . $panelExpr . " LIKE '%".$request->filter."%'
-                OR " . $namaPartExpr . " LIKE '%".$request->filter."%'
-                OR " . $sizeExpr . " LIKE '%".$request->filter."%'
-                OR " . $noCutExpr . " LIKE '%".$request->filter."%'
-                OR dc.tujuan LIKE '%".$request->filter."%'
-                OR dc.lokasi LIKE '%".$request->filter."%'
-                OR (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) LIKE '%".$request->filter."%'
-                OR " . $stockerRangeExpr . " LIKE '%".$request->filter."%'
-                OR a.qty_awal LIKE '%".$request->filter."%'
-                OR a.qty_reject LIKE '%".$request->filter."%'
-                OR a.qty_replace LIKE '%".$request->filter."%'
-                OR a.qty_in LIKE '%".$request->filter."%'
-                OR p.buyer LIKE '%".$request->filter."%'
-                OR a.user LIKE '%".$request->filter."%'
-                OR " . $createdAtExpr . " LIKE '%".$request->filter."%'
-            )";
-        }
-
-        // Header Filter
-        if ($request->tgl_trans_fix) {
-            $additionalQuery .= " and  DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->tgl_trans_fix . "%' ";
-        }
-        if ($request->id_qr_stocker) {
-            $additionalQuery .= " and a.id_qr_stocker LIKE '%" . $request->id_qr_stocker . "%' ";
-        }
-        if ($request->tipe) {
-            $additionalQuery .= " and " . $tipeCase . " LIKE '%" . $request->tipe . "%' ";
-        }
-        if ($request->act_costing_ws) {
-            $additionalQuery .= " and s.act_costing_ws LIKE '%".$request->act_costing_ws."%' ";
-        }
-        if ($request->style) {
-            $additionalQuery .= " and p.style LIKE '%".$request->style."%' ";
-        }
-        if ($request->color) {
-            $additionalQuery .= " and s.color LIKE '%".$request->color."%' ";
-        }
-        if ($request->panel) {
-            $additionalQuery .= " and " . $panelExpr . " LIKE '%".$request->panel."%' ";
-        }
-        if ($request->nama_part) {
-            $additionalQuery .= " and " . $namaPartExpr . " LIKE '%".$request->nama_part."%' ";
-        }
-        if ($request->size) {
-            $additionalQuery .= " and " . $sizeExpr . " LIKE '%".$request->size."%' ";
-        }
-        if ($request->no_cut) {
-            $additionalQuery .= " and " . $noCutExpr . " LIKE '%".$request->no_cut."%' ";
-        }
-        if ($request->tujuan) {
-            $additionalQuery .= " and dc.tujuan LIKE '%".$request->tujuan."%' ";
-        }
-        if ($request->lokasi) {
-            $additionalQuery .= " and dc.lokasi LIKE '%".$request->lokasi."%' ";
-        }
-        if ($request->urutan) {
-            $additionalQuery .= " and (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) LIKE '%".$request->urutan."%' ";
-        }
-        if ($request->stocker_range) {
-            $additionalQuery .= " and " . $stockerRangeExpr . " LIKE '%".$request->stocker_range."%' ";
-        }
-        if ($request->qty_in) {
-            $additionalQuery .= " and a.qty_in LIKE '%".$request->qty_in."%' ";
-        }
-        if ($request->buyer) {
-            $additionalQuery .= " and p.buyer LIKE '%".$request->buyer."%' ";
-        }
-        if ($request->user) {
-            $additionalQuery .= " and a.user LIKE '%".$request->user."%' ";
-        }
-        if ($request->created_at) {
-            $additionalQuery .= " and " . $createdAtExpr . " LIKE '%".$request->created_at."%' ";
-        }
-
-        // Filter
-        $keywordQuery = '';
-
-        if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
-            $keywordQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
-        }
-        if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
-            $keywordQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
-        }
-        if ($request->sec_filter_ws && count($request->sec_filter_ws) > 0) {
-            $keywordQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
-        }
-        if ($request->sec_filter_style && count($request->sec_filter_style) > 0) {
-            $keywordQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
-        }
-        if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
-            $keywordQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
-        }
-        if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
-            $keywordQuery .= " and CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
-        }
-        if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-            $keywordQuery .= " and CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
-        }
-        if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
-            $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
-        }
-        if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
-            $keywordQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
-        }
-        if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
-            $keywordQuery .= " and dc.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
-        }
-        if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
-            $keywordQuery .= " and dc.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
-        }
-        if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
-            $keywordQuery .= " and dc.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
-        }
-        if ($request->size_filter && count($request->size_filter) > 0) {
-            $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
-        }
-
-        $data_input = DB::select("
-            SELECT
-                SUM(qty_awal) as total_qty_awal,
-                SUM(qty_reject) as total_qty_reject,
-                SUM(qty_replace) as total_qty_replace,
-                SUM(qty_in) as total_qty_in
-            FROM (
-                SELECT
-                    (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
-                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
-                    a.tgl_trans,
-                    s.act_costing_ws,
-                    s.color,
-                    p.buyer,
-                    p.style,
-                    CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
-                    COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
-                    COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
-                    COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                    COALESCE(a.qty_in) qty_in,
-                    a.created_at,
-                    COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
-                    COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
-                    dc.tempat,
-                    COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                    COALESCE(msb.size, s.size) AS size,
-                    a.user,
-                    (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
-                    CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
-                    CONCAT(
-                        s.range_awal, ' - ', s.range_akhir,
-                        CASE
-                        WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
-                            THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
-                        ELSE ' (0)'
-                        END
-                    ) AS stocker_range_old,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
-                FROM secondary_inhouse_input a
-                LEFT JOIN (
-                    SELECT
-                        secondary_inhouse_input.id_qr_stocker,
-                        MAX(qty_awal) as qty_awal,
-                        SUM(qty_reject) qty_reject,
-                        SUM(qty_replace) qty_replace,
-                        (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
-                        MAX(secondary_inhouse_input.urutan) AS max_urutan,
-                        GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
-                        GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
-                    FROM secondary_inhouse_input
-                    LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                    LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
-                    LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                    GROUP BY id_qr_stocker
-                    having MAX(secondary_inhouse_input.urutan) is not null
-                ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
-                LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
-                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
-                LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
-                LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
-                LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-                left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on p.id = pd.part_id
-                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-                left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                left join part p_com on p_com.id = pd_com.part_id
-                LEFT JOIN master_part mp ON mp.id = pd.master_part_id
-                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
-                left join master_secondary mms on mms.id = pds.master_secondary_id
-                left join master_secondary ms on ms.id = pd.master_secondary_id
-                LEFT JOIN (
-                    SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
-                    FROM dc_in_input
-                ) dc ON a.id_qr_stocker = dc.id_qr_stocker
-                WHERE
-                    a.tgl_trans IS NOT NULL
-                    -- AND (
-                    --     a.urutan IS NULL
-                    --     OR a.urutan = mx.max_urutan
-                    -- )
-                    $additionalQuery
-                    $keywordQuery
-                ORDER BY a.tgl_trans DESC
-            ) dc
-        ");
-
-        return $data_input ? ($data_input[0] ?? null) : null;
-    }
-
-    public function detail_stocker_inhouse(Request $request)
-    {
-        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
-
-        if ($request->ajax()) {
-            $additionalQuery = '';
-
-            if ($request->dateFrom) {
-                $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "') ";
+        $addIn = function ($expr, $values) use (&$where, &$bindings) {
+            $values = array_values(array_filter((array) $values, fn ($v) => $v !== null && $v !== ''));
+            if (count($values) < 1) {
+                return;
             }
-
-            if ($request->dateTo) {
-                $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "') ";
+            $where[] = "$expr in (" . implode(',', array_fill(0, count($values), '?')) . ")";
+            foreach ($values as $v) {
+                $bindings[] = trim($v);
             }
+        };
 
-            if ($request->detail_sec_filter_buyer && count($request->detail_sec_filter_buyer) > 0) {
-                $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->detail_sec_filter_buyer)).")";
-            }
-            if ($request->detail_sec_filter_ws && count($request->detail_sec_filter_ws) > 0) {
-                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_sec_filter_ws)).")";
-            }
-            if ($request->detail_sec_filter_style && count($request->detail_sec_filter_style) > 0) {
-                $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->detail_sec_filter_style)).")";
-            }
-            if ($request->detail_sec_filter_color && count($request->detail_sec_filter_color) > 0) {
-                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_sec_filter_color)).")";
-            }
-            if ($request->detail_sec_filter_lokasi && count($request->detail_sec_filter_lokasi) > 0) {
-                $additionalQuery .= " and COALESCE(mx.proses, dc.lokasi) in (".addQuotesAround(implode("\n", $request->detail_sec_filter_lokasi)).")";
-            }
-
-            $data_detail = DB::select("
-                select
-                    act_costing_ws, buyer, color, style as styleno, COALESCE(SUM(qty_awal), 0) qty_in, COALESCE(sum(qty_reject), 0) qty_reject, COALESCE(sum(qty_replace), 0) qty_replace, COALESCE(sum(qty_in), 0) qty_out, COALESCE(sum(qty_awal) - sum(qty_in), 0) balance, lokasi
-                from
-                    (
-                        SELECT
-                            (CASE WHEN fp.id > 0 THEN 'PIECE'
-                                    WHEN fr.id > 0 THEN 'REJECT'
-                                    ELSE 'NORMAL' END) AS tipe,
-                            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
-                            a.tgl_trans,
-                            s.act_costing_ws,
-                            s.color,
-                            p.buyer,
-                            p.style,
-                            COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
-                            COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
-                            COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                            COALESCE(mx.qty_akhir, a.qty_in) qty_in,
-                            a.created_at,
-                            COALESCE(mx.tujuan, dc.tujuan) as tujuan,
-                            COALESCE(mx.proses, dc.lokasi) lokasi,
-                            dc.tempat,
-                            COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                            COALESCE(msb.size, s.size) AS size,
-                            a.user,
-                            mp.nama_part,
-                            CONCAT(
-                                s.range_awal, ' - ', s.range_akhir,
-                                CASE
-                                WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
-                                    THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
-                                ELSE ' (0)'
-                                END
-                            ) AS stocker_range_old,
-                            CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
-                        FROM secondary_inhouse_input a
-                        LEFT JOIN (
-                            SELECT
-                                secondary_inhouse_input.id_qr_stocker,
-                                MAX(qty_awal) as qty_awal,
-                                SUM(qty_reject) qty_reject,
-                                SUM(qty_replace) qty_replace,
-                                (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
-                                MAX(secondary_inhouse_input.urutan) AS max_urutan,
-                                GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
-                                GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
-                            FROM secondary_inhouse_input
-                            LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                            LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
-                            LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                            GROUP BY id_qr_stocker
-                            having MAX(secondary_inhouse_input.urutan) is not null
-                        ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
-                        LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
-                        LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
-                        LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
-                        LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
-                        LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-                        LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
-                        LEFT JOIN part p ON pd.part_id = p.id
-                        LEFT JOIN master_part mp ON mp.id = pd.master_part_id
-                        LEFT JOIN (
-                            SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
-                            FROM dc_in_input
-                        ) dc ON a.id_qr_stocker = dc.id_qr_stocker
-                        WHERE
-                            a.tgl_trans IS NOT NULL
-                            AND (
-                                a.urutan IS NULL
-                                OR a.urutan = mx.max_urutan
-                            )
-                            $additionalQuery
-                        GROUP BY
-                            a.id_qr_stocker
-                    ) a
-                GROUP BY
-                    act_costing_ws,buyer,style,color,lokasi
-            ");
-
-            return DataTables::of($data_detail)->toJson();
+        if ($from) {
+            $where[] = "(a.tgl_trans >= ?)";
+            $bindings[] = $from;
+        }
+        if ($to) {
+            $where[] = "(a.tgl_trans <= ?)";
+            $bindings[] = $to;
         }
 
-        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
-    }
+        $addIn("p.buyer", $request->detail_sec_filter_buyer);
+        $addIn("s.act_costing_ws", $request->detail_sec_filter_ws);
+        $addIn("p.style", $request->detail_sec_filter_style);
+        $addIn("s.color", $request->detail_sec_filter_color);
+        $addIn("COALESCE(mx.proses, dc.lokasi)", $request->detail_sec_filter_lokasi);
 
-    public function filterDetailSecondaryInhouse(Request $request)
-    {
-        $additionalQuery = '';
+        $additionalQuery = count($where) > 0 ? " and " . implode(" and ", $where) : "";
 
-        if ($request->dateFrom) {
-            $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "') ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "') ";
-        }
-
-        if ($request->detail_sec_filter_buyer && count($request->detail_sec_filter_buyer) > 0) {
-            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->detail_sec_filter_buyer)).")";
-        }
-        if ($request->detail_sec_filter_ws && count($request->detail_sec_filter_ws) > 0) {
-            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_sec_filter_ws)).")";
-        }
-        if ($request->detail_sec_filter_style && count($request->detail_sec_filter_style) > 0) {
-            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->detail_sec_filter_style)).")";
-        }
-        if ($request->detail_sec_filter_color && count($request->detail_sec_filter_color) > 0) {
-            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_sec_filter_color)).")";
-        }
-        if ($request->detail_sec_filter_lokasi && count($request->detail_sec_filter_lokasi) > 0) {
-            $additionalQuery .= " and COALESCE(mx.proses, dc.lokasi) in (".addQuotesAround(implode("\n", $request->detail_sec_filter_lokasi)).")";
-        }
-
-        $data_detail = collect(DB::select("
+        $sql = "
             select
                 act_costing_ws, buyer, color, style as styleno, COALESCE(SUM(qty_awal), 0) qty_in, COALESCE(sum(qty_reject), 0) qty_reject, COALESCE(sum(qty_replace), 0) qty_replace, COALESCE(sum(qty_in), 0) qty_out, COALESCE(sum(qty_awal) - sum(qty_in), 0) balance, lokasi
             from
@@ -692,7 +226,8 @@ class SecondaryInhouseOutController extends Controller
                         CONCAT(
                             s.range_awal, ' - ', s.range_akhir,
                             CASE
-                            WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                            WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                                THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
                             ELSE ' (0)'
                             END
                         ) AS stocker_range_old,
@@ -739,20 +274,111 @@ class SecondaryInhouseOutController extends Controller
                 ) a
             GROUP BY
                 act_costing_ws,buyer,style,color,lokasi
-        "));
+        ";
 
-        $act_costing_ws = $data_detail->groupBy("act_costing_ws")->keys();
-        $color = $data_detail->groupBy("color")->keys();
-        $buyer = $data_detail->groupBy("buyer")->keys();
-        $style = $data_detail->groupBy("styleno")->keys();
-        $lokasi = $data_detail->groupBy("lokasi")->keys();
+        return DB::query()->fromRaw("($sql) as sec_out_detail", $bindings);
+    }
 
-        return  array(
-            "ws" => $act_costing_ws,
-            "color" => $color,
-            "buyer" => $buyer,
-            "style" => $style,
-            "lokasi" => $lokasi
+    public function index(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+        $tglskrg = date('Y-m-d');
+
+        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        // dd($data_rak);
+        if ($request->ajax()) {
+            // paging, sorting & searching dilakukan di database (client memakai ordering: false, jadi urutan default di sini)
+            $query = $this->secondaryInhouseOutQuery($request, $request->dateFrom, $request->dateTo)->orderByDesc('tgl_trans');
+
+            return DataTables::query($query)->toJson();
+        }
+
+        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filterSecondaryInhouse(Request $request)
+    {
+        // hanya batasi tanggal, filter dropdown tidak ikut dipakai di sini
+        $base = $this->secondaryInhouseOutQuery(new Request(), $request->dateFrom, $request->dateTo);
+
+        $distinct = fn ($column) => (clone $base)->whereNotNull($column)->distinct()->orderBy($column)->pluck($column)->values();
+
+        return array(
+            "tipe" => $distinct("tipe"),
+            "ws" => $distinct("act_costing_ws"),
+            "color" => $distinct("color"),
+            "buyer" => $distinct("buyer"),
+            "style" => $distinct("style"),
+            "tujuan" => $distinct("tujuan"),
+            "tempat" => $distinct("tempat"),
+            "lokasi" => $distinct("lokasi"),
+            "panel" => $distinct("panel"),
+            "part" => $distinct("nama_part"),
+            "no_cut" => $distinct("no_cut"),
+            "size" => $distinct("size")
+        );
+    }
+
+    public function total_secondary_inhouse_out(Request $request)
+    {
+        $query = $this->secondaryInhouseOutQuery($request, $request->dateFrom, $request->dateTo);
+
+        // filter header per kolom & pencarian global (mengikuti kolom yang tampil di tabel)
+        $columns = [
+            'tgl_trans_fix', 'id_qr_stocker', 'tipe', 'act_costing_ws', 'style', 'color', 'panel', 'nama_part',
+            'size', 'no_cut', 'tujuan', 'lokasi', 'urutan', 'stocker_range', 'qty_awal', 'qty_reject', 'qty_replace',
+            'qty_in', 'buyer', 'user', 'created_at',
+        ];
+
+        foreach ($columns as $column) {
+            if ($request->filled($column)) {
+                $query->where($column, 'like', '%' . $request->input($column) . '%');
+            }
+        }
+
+        if ($request->filled('filter')) {
+            $keyword = '%' . $request->input('filter') . '%';
+
+            $query->where(function ($q) use ($columns, $keyword) {
+                foreach ($columns as $column) {
+                    $q->orWhere($column, 'like', $keyword);
+                }
+            });
+        }
+
+        return $query->selectRaw("
+            SUM(qty_awal) as total_qty_awal,
+            SUM(qty_reject) as total_qty_reject,
+            SUM(qty_replace) as total_qty_replace,
+            SUM(qty_in) as total_qty_in
+        ")->first();
+    }
+
+    public function detail_stocker_inhouse(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+
+        if ($request->ajax()) {
+            $query = $this->secondaryInhouseOutDetailQuery($request, $request->dateFrom, $request->dateTo);
+
+            return DataTables::query($query)->toJson();
+        }
+
+        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filterDetailSecondaryInhouse(Request $request)
+    {
+        $base = $this->secondaryInhouseOutDetailQuery($request, $request->dateFrom, $request->dateTo);
+
+        $distinct = fn ($column) => (clone $base)->whereNotNull($column)->distinct()->orderBy($column)->pluck($column)->values();
+
+        return array(
+            "ws" => $distinct("act_costing_ws"),
+            "color" => $distinct("color"),
+            "buyer" => $distinct("buyer"),
+            "style" => $distinct("styleno"),
+            "lokasi" => $distinct("lokasi")
         );
     }
 
@@ -1378,90 +1004,7 @@ class SecondaryInhouseOutController extends Controller
         $from = $request->from ? $request->from : date('Y-m-d');
         $to = $request->to ? $request->to : date('Y-m-d');
 
-        $additionalQuery = "";
-
-        if ($request->from) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->from . "' ";
-        }
-
-        if ($request->to) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->to . "' ";
-        }
-
-        $data = DB::select("
-            SELECT
-                a.*,
-                (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
-                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
-                a.tgl_trans,
-                s.act_costing_ws,
-                s.color,
-                p.buyer,
-                p.style,
-                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
-                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status,
-                COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
-                COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
-                COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                COALESCE(a.qty_in) qty_in,
-                (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
-                a.created_at,
-                COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
-                COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
-                dc.tempat,
-                COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                COALESCE(msb.size, s.size) AS size,
-                a.user,
-                mp.nama_part,
-                UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
-                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
-                s.notes
-            FROM secondary_inhouse_input a
-            LEFT JOIN (
-                SELECT
-                    secondary_inhouse_input.id_qr_stocker,
-                    MAX(qty_awal) as qty_awal,
-                    SUM(qty_reject) qty_reject,
-                    SUM(qty_replace) qty_replace,
-                    (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
-                    MAX(secondary_inhouse_input.urutan) AS max_urutan,
-                    GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
-                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
-                FROM secondary_inhouse_input
-                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
-                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                GROUP BY id_qr_stocker
-                having MAX(secondary_inhouse_input.urutan) is not null
-            ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
-            LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
-            LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
-            LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
-            LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
-            LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-            left join part_detail pd on s.part_detail_id = pd.id
-            left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd_com.id = pd.from_part_detail
-            left join part p_com on p_com.id = pd_com.part_id
-            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-            LEFT JOIN master_part mp ON mp.id = pd.master_part_id
-            left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
-            left join master_secondary mms on mms.id = pds.master_secondary_id
-            left join master_secondary ms on ms.id = pd.master_secondary_id
-            LEFT JOIN (
-                SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
-                FROM dc_in_input
-            ) dc ON a.id_qr_stocker = dc.id_qr_stocker
-            WHERE
-                a.tgl_trans IS NOT NULL
-                and (s.cancel IS NULL OR s.cancel != 'y')
-                -- AND (
-                --  a.urutan IS NULL
-                --  OR a.urutan = mx.max_urutan
-                -- )
-                $additionalQuery
-            ORDER BY a.tgl_trans DESC
-        ");
+        $data = $this->secondaryInhouseOutQuery($request, $request->from, $request->to)->orderByDesc('tgl_trans')->get();
 
         // Create Excel file using FastExcel
         $excel = FastExcel::create('Secondary InHouse Out Report');
@@ -1506,9 +1049,9 @@ class SecondaryInhouseOutController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    $row->nama_part ? preg_replace('/\s+/', ' ', $row->nama_part) : "-",
+                    $row->nama_part_only ? preg_replace('/\s+/', ' ', $row->nama_part_only) : "-",
                     $row->part_status ?? "-",
-                    $row->panel ? preg_replace('/\s+/', ' ', $row->panel) : "-",
+                    $row->panel_only ? preg_replace('/\s+/', ' ', $row->panel_only) : "-",
                     $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
@@ -1690,48 +1233,7 @@ class SecondaryInhouseOutController extends Controller
         $from = $request->from ? $request->from : date('Y-m-d');
         $to = $request->to ? $request->to : date('Y-m-d');
 
-        $additionalQuery = "";
-
-        if ($request->from) {
-            $additionalQuery .= " and a.tgl_trans >= '" . $request->from . "' ";
-        }
-
-        if ($request->to) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->to . "' ";
-        }
-
-        $data = DB::select("
-            SELECT
-                a.*,
-                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
-                a.tgl_trans,
-                s.act_costing_ws,
-                s.color,
-                p.buyer,
-                p.style,
-                CONCAT((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), (CASE WHEN (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) IS NOT NULL THEN CONCAT(' - ', (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END)) ELSE '' END)) panel,
-                COALESCE(msb.size, s.size) AS size,
-                a.user,
-                CONCAT(mp.nama_part, (CASE WHEN UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) != '-' THEN CONCAT(' - ', UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-'))) ELSE '' END)) nama_part,
-                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
-                COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
-                (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe
-            FROM secondary_inhouse_input a
-            LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
-            LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
-            LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
-            LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
-            LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-            LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
-            LEFT JOIN part p ON pd.part_id = p.id
-            LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
-            LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
-            LEFT JOIN master_part mp ON mp.id = pd.master_part_id
-            WHERE a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-            ".$additionalQuery."
-            ORDER BY a.tgl_trans DESC
-        ");
+        $data = $this->secondaryInhouseOutQuery($request, $request->from, $request->to)->orderByDesc('tgl_trans')->get();
 
         // Create Excel file using FastExcel
         $excel = FastExcel::create('Secondary InHouse Out Detail Report');

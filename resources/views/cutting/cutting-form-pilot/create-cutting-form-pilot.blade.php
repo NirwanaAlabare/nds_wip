@@ -9,14 +9,39 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    {{-- Header Style --}}
+    @include('cutting.cutting-style')
 @endsection
 
 @section('content')
     <div class="row g-3">
-        <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut Pilot</h5>
-            <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Buat Form Cut Pilot</button>
-            {{-- <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button> --}}
+        <!-- Wrapper Header dibuat Sticky/Fixed -->
+        <div class="sticky-header-wrapper mb-3" id="stickyFormHeader">
+            <div class="container-fluid d-flex justify-content-between align-items-center py-2 px-3">
+                <!-- Sisi Kiri: Judul & Tombol Utama -->
+                <div class="d-flex gap-2 align-items-center">
+                    <h5 class="mb-0 me-2">Form Cut Pilot {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
+                    <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
+                    {{-- <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button> --}}
+                </div>
+
+                <!-- Sisi Kanan: Tempat Tombol Undo (Sejajar & Rapi) -->
+                @role('superadmin') 
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm btn-danger fw-bold text-white"
+                                id="btn-undo"
+                                onclick="handleUndo()">
+                            <i class="fa fa-undo me-1"></i> UNDO
+                        </button>
+                        <button class="btn btn-sm bg-success fw-bold text-light"
+                                id="btn-redo"
+                                onclick="handleRedo()">
+                            <i class="fa fa-repeat me-1"></i> REDO
+                        </button>
+                    </div>
+                @endrole
+            </div>
         </div>
         <div class="col-md-6">
             <div class="card card-sb d-none" id="header-data-card">
@@ -397,6 +422,9 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    {{-- Lock Form and Unlock Form --}}
+    @include('cutting.cutting-script')
 
     <!-- Marker Script -->
     <script>

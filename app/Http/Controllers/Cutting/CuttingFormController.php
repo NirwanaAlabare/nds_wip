@@ -905,7 +905,7 @@ class CuttingFormController extends Controller
         $lap = 1;
 
         // Set Current Group and Qty
-        $beforeData = DB::table("form_cut_input_detail")->select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('created_at', 'desc')->first();
+        $beforeData = DB::table("form_cut_input_detail")->select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('created_at', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
@@ -1457,5 +1457,35 @@ class CuttingFormController extends Controller
         } else {
             return response()->json(['message' => 'Unauthorized: Invalid credentials'], 401);
         }
+    }
+
+    public function undoStep(Request $request) {
+        $id = $request->id;
+
+        if ($id) {
+            $cuttingService = new CuttingService();
+
+            return $cuttingService->undoStep($id);
+        }
+
+        return response()->json([
+            'status' => 400,
+            'message' => "Data tidak ditemukan",
+        ], 400);
+    }
+
+    public function redoStep(Request $request) {
+        $id = $request->id;
+
+        if ($id) {
+            $cuttingService = new CuttingService();
+
+            return $cuttingService->redoStep($id);
+        }
+
+        return response()->json([
+            'status' => 400,
+            'message' => "Data tidak ditemukan",
+        ], 400);
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Part\PartForm;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
 use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Cutting\FormCutInputDetailOutputLog;
 use App\Models\Cutting\FormCutInputDetailDelete;
@@ -22,6 +23,518 @@ use Carbon\Carbon;
 
 class CuttingService
 {
+    private function sanitizePayloadDates(array $data): array
+    {
+        // Hapus relasi Eloquent yang sering ikut ter-serialize
+        unset(
+            $data['form_cut_input_detail_laps'],
+            $data['form_cut_input_detail'],
+            $data['marker_details'],
+            $data['marker'],
+            $data['form_cut_inputs']
+        );
+
+        // Format kolom timestamp ISO-8601 (UTC) ke Local Timezone (WIB)
+        $dateColumns = ['created_at', 'updated_at', 'deleted_at', 'edited_at'];
+
+        foreach ($dateColumns as $column) {
+            if (!empty($data[$column])) {
+                $data[$column] = Carbon::parse($data[$column])
+                    ->setTimezone(config('app.timezone', 'Asia/Jakarta')) // Pergeseran +7 jam ke WIB
+                    ->format('Y-m-d H:i:s');
+            }
+        }
+
+        return $data;
+    }
+
+    public function undoStep($id) 
+    {
+        $user = Auth::user();
+
+        DB::beginTransaction();
+
+        try {
+            $currentForm = FormCutInput::find($id);
+
+            if (!$currentForm) {
+                return response()->json([
+                    "status" => 400,
+                    "message" => "Form tidak ditemukan",
+                ], 400);
+            }
+
+            if (in_array($currentForm->status, ["SPREADING", "SELESAI PENGERJAAN"])) {
+                return response()->json([
+                    "status" => 400,
+                    "message" => "Form tidak dapat diundo.",
+                ], 400);
+            }
+
+            $affectedRollIds = [];
+
+            switch ($currentForm->status) {
+                case "PENGERJAAN MARKER":
+                    $currentMarker = $currentForm->marker;
+
+                    if ($currentMarker) {
+                        $hasOtherForm = $currentMarker->formCutInputs()
+                            ->where("id", "!=", $currentForm->id)
+                            ->exists();
+
+                        if ($hasOtherForm) {
+                            return response()->json([
+                                "status" => 400,
+                                "message" => "Marker tidak dapat dihapus/diundo karena sedang digunakan oleh Form Cut lain.",
+                            ], 400);
+                        }
+
+                        $currentMarkerDetails = $currentMarker->markerDetails;
+
+                        DB::table('form_cut_undo_redo_logs')->insert([
+                            'form_cut_input_id'   => $currentForm->id,
+                            'step_type'           => 'marker',
+                            'payload'             => json_encode([
+                                'marker'         => $currentMarker->toArray(),
+                                'marker_details' => $currentMarkerDetails ? $currentMarkerDetails->toArray() : []
+                            ]),
+                            'created_by'          => $user->id ?? null,
+                            'created_by_username' => $user->username ?? null,
+                            'created_at'          => now(),
+                            'updated_at'          => now(),
+                        ]);
+
+                        $currentForm->marker_id = null;
+                        $currentForm->id_marker = null;
+
+                        if ($currentMarkerDetails && $currentMarkerDetails->count() > 0) {
+                            foreach ($currentMarkerDetails as $currentMarkerDetail) {
+                                $currentMarkerDetail->delete();
+                            }
+                        }
+
+                        $currentMarker->delete();
+
+                    } else {
+                        $currentForm->status = 'SPREADING';
+                    }
+                    break;
+
+                case "PENGERJAAN FORM CUTTING":
+                    DB::table('form_cut_undo_redo_logs')->insert([
+                        'form_cut_input_id'   => $currentForm->id,
+                        'step_type'           => 'status_change',
+                        'payload'             => json_encode([
+                            'from_status' => $currentForm->status,
+                            'to_status'   => 'SPREADING'
+                        ]),
+                        'created_by'          => $user->id ?? null,
+                        'created_by_username' => $user->username ?? null,
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ]);
+
+                    $currentForm->status = 'SPREADING';
+                    break;
+
+                case "PENGERJAAN FORM CUTTING DETAIL":
+                    $targetStatus = ($currentForm->tipe_form_cut == "MANUAL")
+                        ? 'PENGERJAAN MARKER'
+                        : 'PENGERJAAN FORM CUTTING';
+
+                    DB::table('form_cut_undo_redo_logs')->insert([
+                        'form_cut_input_id'   => $currentForm->id,
+                        'step_type'           => 'status_change',
+                        'payload'             => json_encode([
+                            'from_status' => $currentForm->status,
+                            'to_status'   => $targetStatus
+                        ]),
+                        'created_by'          => $user->id ?? null,
+                        'created_by_username' => $user->username ?? null,
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ]);
+
+                    $currentForm->status = $targetStatus;
+                    break;
+
+                case "PENGERJAAN FORM CUTTING SPREAD":
+                    $formDetails = $currentForm->formCutInputDetails;
+
+                    if ($formDetails->isEmpty()) {
+                        $currentForm->status = 'PENGERJAAN FORM CUTTING DETAIL';
+                    } else {
+                        $currentFormDetail = $formDetails->sortByDesc("created_at")->first();
+
+                        if ($currentFormDetail) {
+                            $isDeleted = false;
+
+                            switch ($currentFormDetail->status) {
+                                case "complete":
+                                    DB::table('form_cut_undo_redo_logs')->insert([
+                                        'form_cut_input_id'   => $currentForm->id,
+                                        'step_type'           => 'detail_spread',
+                                        'payload'             => json_encode([
+                                            'detail'        => $currentFormDetail->toArray(),
+                                            'status_before' => 'complete'
+                                        ]),
+                                        'created_by'          => $user->id ?? null,
+                                        'created_by_username' => $user->username ?? null,
+                                        'created_at'          => now(),
+                                        'updated_at'          => now(),
+                                    ]);
+
+                                    $currentFormDetail->status = "not complete";
+                                    break;
+
+                                case "not complete":
+                                    if (!empty($currentFormDetail->id_roll)) {
+                                        $affectedRollIds[] = $currentFormDetail->id_roll;
+                                    }
+
+                                    $laps = $currentFormDetail->formCutInputDetailLaps;
+
+                                    if ($laps && $laps->count() > 0) {
+                                        $lastLap = $laps->last();
+
+                                        DB::table('form_cut_undo_redo_logs')->insert([
+                                            'form_cut_input_id'   => $currentForm->id,
+                                            'step_type'           => 'detail_lap',
+                                            'payload'             => json_encode([
+                                                'detail_id' => $currentFormDetail->id,
+                                                'id_roll'   => $currentFormDetail->id_roll,
+                                                'lastLap'   => $lastLap->toArray()
+                                            ]),
+                                            'created_by'          => $user->id ?? null,
+                                            'created_by_username' => $user->username ?? null,
+                                            'created_at'          => now(),
+                                            'updated_at'          => now(),
+                                        ]);
+
+                                        $lastLap->delete();
+                                    } else {
+                                        $checkExtensionTimeRecord = FormCutInputDetail::where("form_cut_id", $currentFormDetail->form_cut_id)
+                                            ->where("id_roll", $currentFormDetail->id_roll)
+                                            ->where("qty", ">", $currentFormDetail->qty)
+                                            ->where("created_at", "<=", $currentFormDetail->created_at)
+                                            ->where("id", "!=", $currentFormDetail->id)
+                                            ->where("status", "extension complete")
+                                            ->orderBy("created_at", "desc")
+                                            ->first();
+
+                                        DB::table('form_cut_undo_redo_logs')->insert([
+                                            'form_cut_input_id'   => $currentForm->id,
+                                            'step_type'           => 'detail_spread',
+                                            'payload'             => json_encode([
+                                                'detail'               => $currentFormDetail->toArray(),
+                                                'status_before'        => 'not complete',
+                                                'extension_record_id'  => $checkExtensionTimeRecord ? $checkExtensionTimeRecord->id : null
+                                            ]),
+                                            'created_by'          => $user->id ?? null,
+                                            'created_by_username' => $user->username ?? null,
+                                            'created_at'          => now(),
+                                            'updated_at'          => now(),
+                                        ]);
+
+                                        $checkSimilarTimeRecord = DB::table("form_cut_input_detail")
+                                            ->where("form_cut_id", $currentFormDetail->form_cut_id)
+                                            ->where("id_roll", $currentFormDetail->id_roll)
+                                            ->where("qty", $currentFormDetail->qty)
+                                            ->where("id", "!=", $currentFormDetail->id)
+                                            ->first();
+
+                                        if (!$checkSimilarTimeRecord) {
+                                            $formCutDetailRoll = ScannedItem::where("id_roll", $currentFormDetail->id_roll)->first();
+                                            if ($formCutDetailRoll) {
+                                                $formCutDetailRoll->qty_pakai = max(0, $formCutDetailRoll->qty_pakai - round($currentFormDetail->total_pemakaian_roll, 2));
+                                                $formCutDetailRoll->qty += round(($currentFormDetail->qty ?? 0) - ($currentFormDetail->sisa_kain ?? 0), 2);
+                                                $formCutDetailRoll->save();
+                                            }
+                                        }
+
+                                        if ($checkExtensionTimeRecord) {
+                                            $checkExtensionTimeRecord->status = 'extension';
+                                            $checkExtensionTimeRecord->save();
+                                        }
+
+                                        $currentFormDetail->delete();
+                                        $isDeleted = true;
+                                    }
+                                    break;
+
+                                case "extension complete":
+                                    DB::table('form_cut_undo_redo_logs')->insert([
+                                        'form_cut_input_id'   => $currentForm->id,
+                                        'step_type'           => 'detail_spread',
+                                        'payload'             => json_encode([
+                                            'detail'        => $currentFormDetail->toArray(),
+                                            'status_before' => 'extension complete'
+                                        ]),
+                                        'created_by'          => $user->id ?? null,
+                                        'created_by_username' => $user->username ?? null,
+                                        'created_at'          => now(),
+                                        'updated_at'          => now(),
+                                    ]);
+
+                                    $currentFormDetail->status = "extension";
+                                    break;
+
+                                case "extension":
+                                    DB::table('form_cut_undo_redo_logs')->insert([
+                                        'form_cut_input_id'   => $currentForm->id,
+                                        'step_type'           => 'detail_spread',
+                                        'payload'             => json_encode([
+                                            'detail'        => $currentFormDetail->toArray(),
+                                            'status_before' => 'extension'
+                                        ]),
+                                        'created_by'          => $user->id ?? null,
+                                        'created_by_username' => $user->username ?? null,
+                                        'created_at'          => now(),
+                                        'updated_at'          => now(),
+                                    ]);
+
+                                    $needExtensionDetail = $formDetails->firstWhere("id", $currentFormDetail->id_sambungan);
+                                    if ($needExtensionDetail) {
+                                        $needExtensionDetail->status = "not complete";
+                                        $needExtensionDetail->save();
+
+                                        if (!empty($needExtensionDetail->id_roll)) {
+                                            $affectedRollIds[] = $needExtensionDetail->id_roll;
+                                        }
+                                    }
+
+                                    if (!empty($currentFormDetail->id_roll)) {
+                                        $affectedRollIds[] = $currentFormDetail->id_roll;
+                                    }
+
+                                    $checkSimilarTimeRecord = DB::table("form_cut_input_detail")
+                                        ->where("form_cut_id", $currentFormDetail->form_cut_id)
+                                        ->where("id_roll", $currentFormDetail->id_roll)
+                                        ->where("qty", $currentFormDetail->qty)
+                                        ->where("id", "!=", $currentFormDetail->id)
+                                        ->first();
+
+                                    if (!$checkSimilarTimeRecord) {
+                                        $formCutDetailRoll = ScannedItem::where("id_roll", $currentFormDetail->id_roll)->first();
+                                        if ($formCutDetailRoll) {
+                                            $formCutDetailRoll->qty_pakai = max(0, $formCutDetailRoll->qty_pakai - round($currentFormDetail->total_pemakaian_roll, 2));
+                                            $formCutDetailRoll->qty += round($currentFormDetail->total_pemakaian_roll, 2);
+                                            $formCutDetailRoll->save();
+                                        }
+                                    }
+
+                                    $currentFormDetail->delete();
+                                    $isDeleted = true;
+                                    break;
+
+                                case "need extension":
+                                    DB::table('form_cut_undo_redo_logs')->insert([
+                                        'form_cut_input_id'   => $currentForm->id,
+                                        'step_type'           => 'detail_spread',
+                                        'payload'             => json_encode([
+                                            'detail'        => $currentFormDetail->toArray(),
+                                            'status_before' => 'need extension'
+                                        ]),
+                                        'created_by'          => $user->id ?? null,
+                                        'created_by_username' => $user->username ?? null,
+                                        'created_at'          => now(),
+                                        'updated_at'          => now(),
+                                    ]);
+
+                                    $extensionDetail = $formDetails->firstWhere("id_sambungan", $currentFormDetail->id);
+                                    if ($extensionDetail) {
+                                        if (!empty($extensionDetail->id_roll)) {
+                                            $affectedRollIds[] = $extensionDetail->id_roll;
+                                        }
+                                        $extensionDetail->delete();
+                                    }
+
+                                    $currentFormDetail->status = "not complete";
+                                    break;
+
+                                default:
+                                    $currentForm->status = 'PENGERJAAN FORM CUTTING DETAIL';
+                                    break;
+                            }
+
+                            if (!$isDeleted) {
+                                $currentFormDetail->save();
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            $currentForm->save();
+
+            $uniqueRollIds = array_unique($affectedRollIds);
+            foreach ($uniqueRollIds as $rollId) {
+                $this->fixChainedQty($rollId, null);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                "status" => 200,
+                "message" => "Status form di undo ke '" . $currentForm->status . "'",
+            ], 200);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error("Undo Form Cut Error: " . $e->getMessage(), [
+                'form_cut_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                "status" => 500,
+                "message" => "Terjadi kesalahan saat melakukan undo: " . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function redoStep($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $currentForm = FormCutInput::find($id);
+
+            if (!$currentForm) {
+                return response()->json([
+                    "status"  => 400,
+                    "message" => "Form tidak ditemukan",
+                ], 400);
+            }
+
+            $lastLog = DB::table('form_cut_undo_redo_logs')
+                ->where('form_cut_input_id', $currentForm->id)
+                ->orderByDesc('id')
+                ->first();
+
+            if (!$lastLog) {
+                return response()->json([
+                    "status"  => 400,
+                    "message" => "Tidak ada riwayat undo yang dapat di-redo.",
+                ], 400);
+            }
+
+            $payload = json_decode($lastLog->payload, true);
+            $affectedRollIds = [];
+
+            switch ($lastLog->step_type) {
+
+                case 'marker':
+                    if (isset($payload['marker'])) {
+                        $markerData = $this->sanitizePayloadDates($payload['marker']);
+                        $newMarker = Marker::updateOrCreate(['id' => $markerData['id'] ?? null], $markerData);
+
+                        $currentForm->id_marker = $newMarker->id;
+                        if (array_key_exists('marker_id', $currentForm->getAttributes())) {
+                            $currentForm->marker_id = $newMarker->id;
+                        }
+                    }
+
+                    if (isset($payload['marker_details']) && is_array($payload['marker_details'])) {
+                        foreach ($payload['marker_details'] as $detailData) {
+                            $detailData = $this->sanitizePayloadDates($detailData);
+                            MarkerDetail::updateOrCreate(['id' => $detailData['id'] ?? null], $detailData);
+                        }
+                    }
+
+                    $currentForm->status = 'PENGERJAAN MARKER';
+                    break;
+
+                case 'detail_lap':
+                    if (isset($payload['lastLap'])) {
+                        $lapData = $this->sanitizePayloadDates($payload['lastLap']);
+                        FormCutInputDetailLap::updateOrCreate(['id' => $lapData['id'] ?? null], $lapData);
+
+                        if (!empty($payload['id_roll'])) {
+                            $affectedRollIds[] = $payload['id_roll'];
+                        }
+                    }
+                    break;
+
+                case 'detail_spread':
+                    if (isset($payload['detail'])) {
+                        $detailData = $this->sanitizePayloadDates($payload['detail']);
+                        $statusBefore = $payload['status_before'] ?? 'not complete';
+                        $extensionRecordId = $payload['extension_record_id'] ?? null;
+
+                        $detailId = $detailData['id'] ?? null;
+                        $searchKey = $detailId ? ['id' => $detailId] : ['form_cut_id' => $currentForm->id];
+
+                        $restoredDetail = FormCutInputDetail::updateOrCreate($searchKey, $detailData);
+
+                        if ($extensionRecordId) {
+                            $extRecord = FormCutInputDetail::find($extensionRecordId);
+                            if ($extRecord) {
+                                $extRecord->status = 'extension complete';
+                                $extRecord->save();
+                            }
+                        }
+
+                        if (!empty($restoredDetail->id_roll)) {
+                            $affectedRollIds[] = $restoredDetail->id_roll;
+
+                            $formCutDetailRoll = ScannedItem::where("id_roll", $restoredDetail->id_roll)->first();
+                            if ($formCutDetailRoll) {
+                                $pemakaian = round($restoredDetail->total_pemakaian_roll ?? 0, 2);
+                                $sisaAwal = round(($restoredDetail->qty ?? 0) - ($restoredDetail->sisa_kain ?? 0), 2);
+
+                                $formCutDetailRoll->qty_pakai = round($formCutDetailRoll->qty_pakai + $pemakaian, 2);
+
+                                $reduceQty = ($statusBefore == 'extension complete' || $statusBefore == 'extension')
+                                    ? $pemakaian
+                                    : $sisaAwal;
+
+                                $formCutDetailRoll->qty = max(0, round($formCutDetailRoll->qty - $reduceQty, 2));
+                                $formCutDetailRoll->save();
+                            }
+                        }
+                    }
+                    break;
+
+                case 'status_change':
+                    if (isset($payload['from_status'])) {
+                        $currentForm->status = $payload['from_status'];
+                    }
+                    break;
+            }
+
+            $currentForm->save();
+
+            DB::table('form_cut_undo_redo_logs')->where('id', $lastLog->id)->delete();
+
+            $uniqueRollIds = array_unique($affectedRollIds);
+            foreach ($uniqueRollIds as $rollId) {
+                $this->fixChainedQty($rollId, null);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                "status"  => 200,
+                "message" => "Redo berhasil. Status form kembali ke '" . $currentForm->status . "'",
+            ], 200);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error("Redo Form Cut Error: " . $e->getMessage(), [
+                'form_cut_id' => $id,
+                'trace'       => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                "status"  => 500,
+                "message" => "Terjadi kesalahan saat melakukan redo: " . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function isRollUsed($idRoll, $time = false) {
         $isRollUsed = FormCutInputDetail::where("id_roll", $idRoll)->exists() ||
                     Piping::where("id_roll", $idRoll)->exists() ||
@@ -1197,7 +1710,12 @@ class CuttingService
                     $currentDetail->sisa_kain = round($sisaKain, 2);
                     $currentDetail->short_roll = round($shortRoll, 2);
                     Log::channel("fixChainedQty")->info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                    $currentDetail->save();
+                    
+                    // Don't save when closed
+                    $checkClosing = checkClosingDate($formCut->waktu_selesai);
+                    if (!$checkClosing) {
+                        $currentDetail->save();
+                    }
                 }
 
                 if ($detail->type == "form_cut_piping") {
@@ -1210,7 +1728,12 @@ class CuttingService
                         $currentQty = $currentDetail->qty_sisa;
                         $currentIdRoll = $currentDetail->id_roll;
                         Log::channel("fixChainedQty")->info("Detail Value = piping : {$currentDetail->piping}, sisakain : {$currentDetail->qty_sisa}, shortroll : {$currentDetail->short_roll}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                        $currentDetail->save();
+                        
+                        // Don't save when closed
+                        $checkClosing = checkClosingDate($currentDetail->created_at);
+                        if (!$checkClosing) {
+                            $currentDetail->save();
+                        }
                     }
                 }
 
@@ -1225,6 +1748,12 @@ class CuttingService
                         $currentIdRoll = $currentDetail->id_roll;
                         Log::channel("fixChainedQty")->info("Detail Value = reject : {$currentDetail->qty_pakai}, sisakain : {$currentDetail->sisa_kain}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
                         $currentDetail->save();
+
+                        // Don't save when closed
+                        $checkClosing = checkClosingDate($currentDetail->created_at);
+                        if (!$checkClosing) {
+                            $currentDetail->save();
+                        }
                     }
                 }
 
@@ -1454,7 +1983,7 @@ class CuttingService
                 $formCutInputData = FormCutInput::where("id", $id)->first();
 
                 // Last Detail
-                $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->orderBy("created_at", "desc")->first();
+                $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->orderBy("created_at", "desc")->first();
 
                 if ($lastDetail) {
 

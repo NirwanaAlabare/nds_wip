@@ -1087,12 +1087,13 @@
             let idRollOriElement = document.getElementById('current_id_roll_ori');
 
             if (idRollElement.value.length > 0 && idRollElement.value != '-') {
-                if (idRollElement.value != idRollOriElement.value) {
-                    getScannedItem(idRollElement.value);
-                } else {
-                    $("#current_unit").val($("#current_unit_ori").val()).trigger("change");
-                    $("#current_qty_real").val($("#current_qty_ori").val()).trigger("change");
-                }
+                getScannedItem(idRollElement.value);
+                // if (idRollElement.value != idRollOriElement.value) {
+                //     getScannedItem(idRollElement.value);
+                // } else {
+                //     $("#current_unit").val($("#current_unit_ori").val()).trigger("change");
+                //     $("#current_qty_real").val($("#current_qty_ori").val()).trigger("change");
+                // }
             }
         }
 
