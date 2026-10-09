@@ -28,7 +28,7 @@
                     <td>{{ $row->ws }}</td>
                     <td>{{ $row->styleno }}</td>
                     <td>{{ $row->color }}</td>
-                    <td>{{ $row->size }}</td>
+                    <td data-type="s">{{ $row->size }}</td>
                     <td>{{ $row->jumlah }}</td>
                 </tr>
             @endforeach
