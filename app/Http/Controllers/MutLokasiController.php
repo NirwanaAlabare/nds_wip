@@ -844,6 +844,19 @@ public function simpanbarcodemutasi(Request $request)
     $cek_barcode = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi_temp where idbpb_det = '" . $validatedRequest['no_barcode'] . "'");
     $no_barcode = $cek_barcode ? $cek_barcode[0]->idbpb_det : 0;
 
+    // Barcode masih tertahan di draft (temp) user lain, mis. form create/edit mutasi yang ditinggal tanpa disimpan.
+    // Jangan dianggap berhasil, karena daftar scan hanya menampilkan temp milik user yang login.
+    if ($cek_barcode && $cek_barcode[0]->created_by != Auth::user()->name) {
+        return array(
+            "status" => 409,
+            "result" => "locked",
+            "message" => "Masih ada di draft mutasi milik " . $cek_barcode[0]->created_by
+                . " sejak " . Carbon::parse($cek_barcode[0]->created_at)->format('d-m-Y H:i')
+                . " (belum disimpan / dibatalkan)",
+            "additional" => [],
+        );
+    }
+
     $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $validatedRequest['no_barcode'] . "' ORDER BY id ASC LIMIT 1");
     $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
     $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
@@ -878,15 +891,25 @@ public function simpanbarcodemutasi(Request $request)
             if ($MutasiDetailTempStore) {
                 return array(
                     "status" => 200,
+                    "result" => "saved",
                     "message" => "",
                     "additional" => [],
                 );
             }
         }
+
+        return array(
+            "status" => 400,
+            "result" => "failed",
+            "message" => "Qty barcode kosong, tidak bisa ditambahkan",
+            "additional" => [],
+        );
     }else{
+        // Sudah ada di daftar scan user ini sendiri
         return array(
             "status" => 200,
-            "message" => "",
+            "result" => "exists",
+            "message" => "Sudah ada di daftar",
             "additional" => [],
         );
     }
