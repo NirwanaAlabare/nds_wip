@@ -1568,6 +1568,14 @@
                     });
                 },
                 success: function(response){
+                    if (response.status != 200) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
@@ -1584,10 +1592,11 @@
                     $('#importExcel').modal('hide');
                 },
                 error: function(xhr){
+                    let message = xhr.message || 'Terjadi kesalahan saat menyimpan data';
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                        text: 'Gagal simpan data'
+                        html: 'Gagal simpan data <br>' + message
                     });
                 }
             });

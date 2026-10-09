@@ -2417,15 +2417,13 @@ class PartController extends Controller
             $header = array_map('strtolower', array_map('trim', $data[0]));
 
             // Mapping index kolom dari header
-            $colWs         = array_search('ws', $header);
+            $colWs         = array_search('worksheet', $header);
             $colBuyer      = array_search('buyer', $header);
             $colStyle      = array_search('style', $header);
             $colColor      = array_search('color', $header);
             $colPanel      = array_search('panel', $header);
             $colPart       = array_search('part', $header);
-            $colPartStatus = array_search('part_status', $header);
-
-            
+            $colPartStatus = array_search('part status', $header);
 
             // Validasi keberadaan kolom di header Excel
             if (
@@ -2490,7 +2488,7 @@ class PartController extends Controller
 
                 // Push ke array preview jika semua data valid
                 $previewData[] = [
-                    'row'             => $i + 1,                     
+                    'row'             => $i + 1,
                     'ws'              => $currentPart->act_costing_ws,
                     'buyer'           => $currentPart->buyer,
                     'style'           => $currentPart->style,

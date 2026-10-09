@@ -247,7 +247,10 @@
                                 <b>Summary</b><span>Per product</span></a></li>
                             <li id="det-pdf-knit-baris"><a class="dropdown-item" href="#" id="det-btn-pdf-knit"
                                 target="_blank" rel="noopener">
-                                <b>Knitting</b><span>Consignor / consignee form</span></a></li>
+                                <b>Knitting &ndash; Shipment</b><span>Qty &amp; price as shipped</span></a></li>
+                            <li id="det-pdf-knitb-baris"><a class="dropdown-item" href="#" id="det-btn-pdf-knitb"
+                                target="_blank" rel="noopener">
+                                <b>Knitting &ndash; Billing</b><span>Qty &amp; price as billed</span></a></li>
                         </ul>
                     </div>
                     {{-- PDF Classic: tampilan tanpa CARING, untuk pembanding. --}}
@@ -358,8 +361,10 @@ $(function () {
         var rute = pdf ? [RUT_PDF, RUT_PDF_R, RUT_PDF_K] : [RUT_XLS, RUT_XLS_R, RUT_XLS_K];
         var buka = pdf ? ' target="_blank" rel="noopener"' : '';
         var ekor = lama ? '&gaya=lama' : '';
-        function item(url, judul, ket) {
-            return '<li><a class="dropdown-item" href="' + url + '?id=' + id + ekor + '"' + buka + '>'
+        // tambahan: ruas alamat ekstra (dipakai versi cetakan knitting).
+        function item(url, judul, ket, tambahan) {
+            return '<li><a class="dropdown-item" href="' + url + '?id=' + id + ekor
+                + (tambahan || '') + '"' + buka + '>'
                 + '<b>' + judul + '</b><span>' + ket + '</span></a></li>';
         }
         var judulTombol = lama ? 'Print PDF Classic - without CARING'
@@ -375,9 +380,13 @@ $(function () {
             + '<ul class="dropdown-menu dn-menu-versi">'
             + item(rute[0], 'Detail', 'Per style &amp; colour')
             + item(rute[1], 'Summary', 'Per product')
-            // Bentuk knitting cuma untuk invoice NAK.
+            // Bentuk knitting cuma untuk invoice NAK, dan ada DUA: knitting
+            // memang punya dua angka (nilai kirim & nilai tagih). Bentuk
+            // dokumennya sama persis - yang berbeda cuma angkanya.
             + (String(pc || '').trim().toUpperCase() === 'NAK'
-                ? item(rute[2], 'Knitting', 'Consignor / consignee form') : '')
+                ? item(rute[2], 'Knitting &ndash; Shipment', 'Qty &amp; price as shipped')
+                  + item(rute[2], 'Knitting &ndash; Billing', 'Qty &amp; price as billed', '&versi=tagih')
+                : '')
             + '</ul></div>';
     }
 
@@ -584,6 +593,7 @@ $(function () {
         $('#det-btn-pdf-rinci').attr('href', RUT_PDF + '?id=' + encodeURIComponent(id));
         $('#det-btn-pdf-ringkas').attr('href', RUT_PDF_R + '?id=' + encodeURIComponent(id));
         $('#det-btn-pdf-knit').attr('href', RUT_PDF_K + '?id=' + encodeURIComponent(id));
+        $('#det-btn-pdf-knitb').attr('href', RUT_PDF_K + '?id=' + encodeURIComponent(id) + '&versi=tagih');
         // Ditentukan lagi setelah profit center-nya diketahui.
         $('#det-btn-pdfl-rinci').attr('href', RUT_PDF + '?id=' + encodeURIComponent(id) + '&gaya=lama');
         $('#det-btn-pdfl-ringkas').attr('href', RUT_PDF_R + '?id=' + encodeURIComponent(id) + '&gaya=lama');
@@ -591,7 +601,7 @@ $(function () {
         $('#det-btn-xls-rinci').attr('href', RUT_XLS + '?id=' + encodeURIComponent(id));
         $('#det-btn-xls-ringkas').attr('href', RUT_XLS_R + '?id=' + encodeURIComponent(id));
         $('#det-btn-xls-knit').attr('href', RUT_XLS_K + '?id=' + encodeURIComponent(id));
-        $('#det-pdf-knit-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden', true);
+        $('#det-pdf-knit-baris, #det-pdf-knitb-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden', true);
         // Panel History ditutup lagi & dikosongkan - isinya milik invoice tadi.
         $('#det-riw').prop('hidden', true);
         $('#det-btn-lipat-riw').attr('aria-expanded', 'false').data('inv', id);
@@ -608,7 +618,7 @@ $(function () {
             // Invoice yang dibatalkan boleh dilihat, tapi tidak boleh dicetak.
             var batal = String(h.status || '').toUpperCase() === 'CANCEL';
             $('#det-btn-pdf, #det-btn-pdfl, #det-btn-xls').toggleClass('d-none', batal);
-            $('#det-pdf-knit-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden',
+            $('#det-pdf-knit-baris, #det-pdf-knitb-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden',
                 String(h.profit_center || '').trim().toUpperCase() !== 'NAK');
 
             // Invoice Date yang diisi di form; kalau invoice lama belum punya,

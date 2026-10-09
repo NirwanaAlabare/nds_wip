@@ -529,6 +529,16 @@ class InvoiceEximController extends Controller
         // kolomnya diisi tanda "-" supaya cetakan knitting tetap bisa dibuka.
         $po = $this->kolomAda(self::TABEL_DET, 'po_konsumen') ? 'po_konsumen' : "'-'";
 
+        // Nilai tagih knitting - kolomnya ada setelah migrasi 20261008. Selama
+        // belum ada, keempatnya dikosongkan di sini supaya cetakan versi tagih
+        // tetap terbuka (angkanya nol) daripada layarnya error.
+        $tagih = $this->kolomAda(self::TABEL_DET, 'uom_tagih')
+            ? "uom_tagih, qty_tagih,
+               FORMAT(ROUND(unit_price_tagih, 3), 3) AS unit_price_tagih,
+               FORMAT(total_price_tagih, 2) AS total_price_tagih"
+            : "NULL AS uom_tagih, 0 AS qty_tagih,
+               '0.000' AS unit_price_tagih, '0.00' AS total_price_tagih";
+
         $det = array();
         foreach ($db->select(
             // Format angkanya dibuat sama persis dengan Model_nag::report_invoice_detail
@@ -536,7 +546,8 @@ class InvoiceEximController extends Controller
             "SELECT styleno, product_group, product_item, color, size, qty,
                     FORMAT(ROUND(unit_price, 3), 3) AS unit_price, disc,
                     FORMAT(total_price, 2) AS total_price, uom, curr, id_bppb,
-                    $po AS po_konsumen
+                    $po AS po_konsumen,
+                    $tagih
                FROM " . self::TABEL_DET . " WHERE id_book_invoice = ? ORDER BY id_bppb ASC",
             array($id)
         ) as $r) {
@@ -636,7 +647,12 @@ class InvoiceEximController extends Controller
             "SELECT styleno, product_group, product_item, color, '' AS size, qty,
                     FORMAT(ROUND(unit_price, 3), 3) AS unit_price, disc,
                     FORMAT(total_price, 2) AS total_price, uom, curr,
-                    NULL AS id_bppb, NULL AS po_konsumen
+                    NULL AS id_bppb, NULL AS po_konsumen,
+                    -- Baris SO belum punya nilai tagih: itu datang dari SJ-nya.
+                    -- Tetap disebut supaya bentuk barisnya sama dengan baris SJ,
+                    -- dan cetakan versi tagih tidak mencari kunci yang tidak ada.
+                    NULL AS uom_tagih, 0 AS qty_tagih,
+                    '0.000' AS unit_price_tagih, '0.00' AS total_price_tagih
                FROM " . self::TABEL_SO . " WHERE id_book_invoice = ? ORDER BY id ASC",
             array($id)
         ) as $r) {
@@ -741,7 +757,8 @@ class InvoiceEximController extends Controller
     public function pdfLocalKnitting(Request $request)
     {
         $data = $this->dataCetakLocal($request->query('id'));
-        $data = array_merge($data, $this->knittingCetakLocal($data));
+        $versi = $this->versiKnitting($request);
+        $data = array_merge($data, $this->knittingCetakLocal($data, $versi));
 
         // &gaya=lama = PDF Classic (tanpa CARING, pakai kop surat lama).
         if ($this->gayaLama($request)) {
@@ -765,10 +782,33 @@ class InvoiceEximController extends Controller
 
         return response($mpdf->Output('', 'S'), 200, array(
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $this->namaBerkas($data) . '_knitting.pdf"',
+            'Content-Disposition' => 'inline; filename="' . $this->namaBerkas($data)
+                . '_' . $this->kolomKnitting($versi)['berkas'] . '.pdf"',
         ));
     }
 
+    /**
+     * Versi cetakan knitting: 'tagih' atau 'kirim'.
+     *
+     * Tanpa parameter = 'kirim', sama dengan cetakan yang selama ini dipakai -
+     * jadi tautan lama tetap menghasilkan berkas yang sama persis.
+     */
+    private function versiKnitting(Request $request)
+    {
+        return strtolower(trim((string) $request->query('versi'))) === 'tagih' ? 'tagih' : 'kirim';
+    }
+
+    /** Kolom yang dibaca cetakan knitting menurut versinya. */
+    private function kolomKnitting($versi)
+    {
+        return $versi === 'tagih'
+            ? array('uom' => 'uom_tagih', 'qty' => 'qty_tagih',
+                    'unit_price' => 'unit_price_tagih', 'total_price' => 'total_price_tagih',
+                    'label' => 'BILLING', 'berkas' => 'knitting_billing')
+            : array('uom' => 'uom', 'qty' => 'qty',
+                    'unit_price' => 'unit_price', 'total_price' => 'total_price',
+                    'label' => 'SHIPMENT', 'berkas' => 'knitting');
+    }
     /**
      * Bahan tambahan untuk PDF knitting.
      *
@@ -778,27 +818,39 @@ class InvoiceEximController extends Controller
      * belum diisi, bloknya tidak dicetak - lebih baik kosong daripada salah
      * nomor rekening.
      */
-    private function knittingCetakLocal(array $data)
+    private function knittingCetakLocal(array $data, $versi = 'kirim')
     {
         $inv = $data['data_invoice'];
+        // Knitting punya dua angka. Yang dibaca ditentukan versinya, dan
+        // sisanya - pengelompokan, bank, alamat - sama persis, jadi kedua
+        // cetakannya tidak mungkin berbeda bentuk.
+        $kol = $this->kolomKnitting($versi);
         $angka = function ($teks) { return (float) str_replace(',', '', (string) $teks); };
         $tulis = function ($n) { return number_format((float) $n, 2, ',', '.'); };
+        // Baris cetakan datang dari beberapa sumber (baris SJ, baris SO, dan
+        // invoice lama yang disimpan sebelum kolom tagih ada). Dibaca lewat satu
+        // pintu supaya kolom yang belum ada tidak menggagalkan cetakannya -
+        // angkanya nol lebih baik daripada layar error.
+        $isi = function ($r, $k, $bawaan = '') {
+            return isset($r[$k]) && $r[$k] !== null ? $r[$k] : $bawaan;
+        };
 
         $grup = array();
         foreach ($data['data_invoice_detail'] as $r) {
-            $po = trim((string) $r['po_konsumen']);
-            $kunci = $r['product_item'] . '|' . $r['color'] . '|' . $po . '|' . $r['unit_price'];
+            $po = trim((string) $isi($r, 'po_konsumen'));
+            $kunci = $isi($r, 'product_item') . '|' . $isi($r, 'color') . '|' . $po
+                   . '|' . $isi($r, $kol['unit_price'], 0);
             if (!isset($grup[$kunci])) {
                 $grup[$kunci] = array(
-                    'produk' => trim((string) $r['product_item']),
-                    'warna'  => trim((string) $r['color']),
+                    'produk' => trim((string) $isi($r, 'product_item')),
+                    'warna'  => trim((string) $isi($r, 'color')),
                     'po'     => $po === '' ? '-' : $po,
                     'qty'    => 0,
                     'total'  => 0,
                 );
             }
-            $grup[$kunci]['qty']   += (float) $r['qty'];
-            $tp = $angka($r['total_price']);
+            $grup[$kunci]['qty']   += (float) $isi($r, $kol['qty'], 0);
+            $tp = $angka($isi($r, $kol['total_price'], 0));
             $grup[$kunci]['total'] += $tp;
         }
 
@@ -822,7 +874,7 @@ class InvoiceEximController extends Controller
         // Satuan & mata uang dipakai di judul kolom, jadi diambil yang pertama.
         $uom = $curr = '';
         foreach ($data['data_invoice_detail'] as $r) {
-            if ($uom === '')  { $uom  = trim((string) $r['uom']); }
+            if ($uom === '')  { $uom  = trim((string) $isi($r, $kol['uom'])); }
             if ($curr === '') { $curr = trim((string) $r['curr']); }
         }
 
@@ -834,6 +886,9 @@ class InvoiceEximController extends Controller
 
         return array(
             'baris_knit'   => $baris,
+            // Dicetak di dokumennya - dua berkas ini mudah tertukar kalau
+            // tidak ada yang membedakan di kertasnya sendiri.
+            'versi_knit'   => $kol['label'],
             'kol_uom'      => $uom !== '' ? $uom : '-',
             'kol_curr'     => $curr !== '' ? $curr : (string) $inv['curr'],
             'tgl_knit'     => $this->tanggalKnitting($inv['tgl_inv']),
@@ -1520,7 +1575,8 @@ class InvoiceEximController extends Controller
     public function excelLocalKnitting(Request $request)
     {
         $data = $this->dataCetakLocal($request->query('id'));
-        $data = array_merge($data, $this->knittingCetakLocal($data));
+        $versi = $this->versiKnitting($request);
+        $data = array_merge($data, $this->knittingCetakLocal($data, $versi));
         $inv  = $data['data_invoice'];
         $TIPIS = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN;
         $ANGKA = '#,##0.00';
@@ -1635,7 +1691,8 @@ class InvoiceEximController extends Controller
         $atur->setPrintArea('A1:G' . $b);
         $s->getSheetView()->setZoomScale(90);
 
-        return $this->kirimExcel($ss, $this->namaBerkas($data) . '_knitting.xlsx');
+        return $this->kirimExcel($ss, $this->namaBerkas($data)
+            . '_' . $this->kolomKnitting($versi)['berkas'] . '.xlsx');
     }
 
 
@@ -1719,6 +1776,8 @@ class InvoiceEximController extends Controller
     /** Tabel booking EXIM - dibuat lewat migrations/20260916_invoice_exim_booking.sql */
     const TABEL_DET = 'tbl_book_invoice_exim_det';
     const TABEL_POT = 'tbl_book_invoice_exim_pot';
+    /** Ringkasan nilai TAGIH - knitting saja (migrations/20261008). */
+    const TABEL_POT_TAGIH = 'tbl_book_invoice_exim_pot_tagih';
     /** Baris SO (WS) Invoice Export - lihat migrations/20260928_invoice_exim_so.sql. */
     const TABEL_SO  = 'tbl_book_invoice_exim_so';
 
@@ -2027,12 +2086,27 @@ class InvoiceEximController extends Controller
         // supaya penyimpanan tetap jalan.
         $adaPo = $this->kolomAda(self::TABEL_DET, 'po_konsumen');
         $adaJasa = $this->kolomAda(self::TABEL_DET, 'service_charge');
+        // Nilai tagih knitting - kolomnya ada setelah migrasi 20261008.
+        $adaTagih = $this->kolomAda(self::TABEL_DET, 'uom_tagih');
 
         $det = array();
         foreach ($s['asli'] as $r) {
             $baris = array();
             if ($adaPo) {
                 $baris['po_konsumen'] = isset($r['po_konsumen']) ? $r['po_konsumen'] : null;
+            }
+            // Knitting punya dua angka: kolom utama berisi nilai KIRIM, dan
+            // keempat kolom ini nilai TAGIH-nya. Garment tidak punya, jadi
+            // satuannya NULL dan angkanya 0 - bukan disalin dari nilai kirim,
+            // supaya "tidak punya nilai tagih" tetap bisa dibedakan.
+            if ($adaTagih) {
+                $baris['uom_tagih'] = isset($r['uom_tagih']) && trim((string) $r['uom_tagih']) !== ''
+                    ? $r['uom_tagih'] : null;
+                $baris['qty_tagih'] = isset($r['qty_tagih']) ? (float) $r['qty_tagih'] : 0;
+                $baris['unit_price_tagih'] = isset($r['unit_price_tagih'])
+                    ? (float) $r['unit_price_tagih'] : 0;
+                $baris['total_price_tagih'] = isset($r['total_price_tagih'])
+                    ? (float) $r['total_price_tagih'] : 0;
             }
             // Cuma FG/OUT yang punya costing, jadi baris lain memang NULL.
             if ($adaJasa) {
@@ -2097,6 +2171,72 @@ class InvoiceEximController extends Controller
         return $baris;
     }
 
+    /**
+     * Ringkasan nilai TAGIH - khusus knitting, yang memang punya dua angka.
+     *
+     * Potongannya (diskon per baris, DP, DP/CBD, Return, tarif VAT) sama persis
+     * dengan ringkasan utama: yang berbeda cuma dasar nilainya. Kalau
+     * potongannya ikut dipisah, user harus mengetik angka yang sama dua kali.
+     *
+     * @return array|null null = barisnya memang tidak punya nilai tagih
+     */
+    private function barisPotonganTagih($idBook, $noInvoice, array $s, $user, $now)
+    {
+        $total = 0.0;
+        $discount = 0.0;
+        $ada = false;
+        foreach ($s['asli'] as $r) {
+            $harga = isset($r['total_price_tagih']) ? (float) $r['total_price_tagih'] : 0.0;
+            if ($harga > 0 || (isset($r['uom_tagih']) && trim((string) $r['uom_tagih']) !== '')) {
+                $ada = true;
+            }
+            $total += $harga;
+            $disc = isset($s['diskon'][(string) $r['id_baris']])
+                ? (float) $s['diskon'][(string) $r['id_baris']] : 0.0;
+            $discount += $disc / 100 * $harga;
+        }
+        if (!$ada) {
+            return null;
+        }
+
+        $twot = $total - $discount - (float) $s['dp'] - (float) $s['dp_cbd'] - (float) $s['retur'];
+        $vat  = $twot * ((float) $s['vat_persen'] / 100);
+
+        return array(
+            'id_book_invoice' => $idBook,
+            'no_invoice'      => $noInvoice,
+            'total'           => round($total, 4),
+            'discount'        => round($discount, 4),
+            'dp'              => round($s['dp'], 4),
+            'dp_cbd'          => round($s['dp_cbd'], 4),
+            'retur'           => round($s['retur'], 4),
+            'twot'            => round($twot, 4),
+            'vat_persen'      => $s['vat_persen'],
+            'vat'             => round($vat, 4),
+            'grand_total'     => round($twot + $vat, 4),
+            'created_by'      => $user,
+            'created_at'      => $now,
+        );
+    }
+
+    /**
+     * Tulis ringkasan nilai tagih kalau memang ada.
+     *
+     * Barisnya dibuang dulu: jalur Edit memang menulis ulang, dan invoice yang
+     * SJ-nya berganti dari knitting ke garment tidak boleh meninggalkan
+     * ringkasan tagih yang sudah tidak berlaku.
+     */
+    private function tulisPotonganTagih($db, $idBook, $noInvoice, array $s, $user, $now)
+    {
+        if (!$this->tabelAda(self::TABEL_POT_TAGIH)) {
+            return;
+        }
+        $db->table(self::TABEL_POT_TAGIH)->where('id_book_invoice', $idBook)->delete();
+        $baris = $this->barisPotonganTagih($idBook, $noInvoice, $s, $user, $now);
+        if ($baris) {
+            $db->table(self::TABEL_POT_TAGIH)->insert($baris);
+        }
+    }
     public function simpanLocal(Request $request)
     {
         $db = $this->koneksiAr();
@@ -2147,6 +2287,7 @@ class InvoiceEximController extends Controller
                     $so = $this->barisSo($idBook, $noInvoice, $s, $user, $now);
                     if ($so) { $db->table(self::TABEL_SO)->insert($so); }
                     $db->table(self::TABEL_POT)->insert($this->barisPotongan($idBook, $noInvoice, $s, $user, $now));
+                    $this->tulisPotonganTagih($db, $idBook, $noInvoice, $s, $user, $now);
 
                     // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
                     $this->selaraskanInvno($db, $idBook, $noInvoice);
@@ -2802,6 +2943,7 @@ class InvoiceEximController extends Controller
         $pot['total_fob']       = round($s['total_fob'], 4);
         $pot['grand_total_fob'] = round($s['grand_fob'], 4);
         $db->table(self::TABEL_POT)->insert($pot);
+        $this->tulisPotonganTagih($db, $idBook, $noInvoice, $s, $user, $now);
     }
 
     /**
@@ -3841,6 +3983,7 @@ class InvoiceEximController extends Controller
                 $so = $this->barisSo($idBook, $noInvoice, $s, $user, $now);
                 if ($so) { $db->table(self::TABEL_SO)->insert($so); }
                 $db->table(self::TABEL_POT)->insert($this->barisPotongan($idBook, $noInvoice, $s, $user, $now));
+                $this->tulisPotonganTagih($db, $idBook, $noInvoice, $s, $user, $now);
 
                 // Barisnya baru saja ditulis ulang, jadi keadaan sebelumnya hanya
                 // tersimpan di riwayat - potretnya diambil sesudah semuanya masuk.
@@ -3942,6 +4085,17 @@ class InvoiceEximController extends Controller
     const KOLOM_INVNO_NAK = 'no_invoice';
 
     /**
+     * Tabel SJ knitting menurut awalan nomor SJ-nya.
+     *
+     * Keduanya punya penomoran id sendiri-sendiri, jadi id saja tidak cukup
+     * untuk menunjuk satu baris - harus berpasangan dengan awalannya.
+     */
+    const TABEL_SJ_NAK = array(
+        'OFC' => 'official_out_h',
+        'GG'  => 'gp_out_greige_h',
+    );
+
+    /**
      * Tandai SJ knitting dengan nomor invoicenya.
      *
      * Dipanggil SESUDAH invoicenya tersimpan, bukan di dalam transaksi: SJ
@@ -3964,21 +4118,28 @@ class InvoiceEximController extends Controller
         try {
             $nak = DB::connection(self::KONEKSI_NAK);
             $kolom = self::KOLOM_INVNO_NAK;
-            $ada = $nak->select(
-                "SELECT 1 FROM information_schema.columns
-                  WHERE table_name = 'official_out_h' AND column_name = ? LIMIT 1",
-                array($kolom)
-            );
-            if (!$ada) {
-                Log::warning('Invoice EXIM: kolom official_out_h.' . $kolom . ' tidak ada,'
-                    . ' nomor invoice tidak ditandai di SJ knitting.');
-                return;
-            }
 
-            $nak->update("UPDATE official_out_h SET $kolom = NULL WHERE $kolom = ?", array($no));
-            if ($idSj) {
-                $isi = implode(',', array_map('intval', $idSj));
-                $nak->update("UPDATE official_out_h SET $kolom = ? WHERE id IN ($isi)", array($no));
+            foreach (self::TABEL_SJ_NAK as $awalan => $tabel) {
+                $ada = $nak->select(
+                    "SELECT 1 FROM information_schema.columns
+                      WHERE table_name = ? AND column_name = ? LIMIT 1",
+                    array($tabel, $kolom)
+                );
+                if (!$ada) {
+                    Log::warning('Invoice EXIM: kolom ' . $tabel . '.' . $kolom . ' tidak ada,'
+                        . ' nomor invoice tidak ditandai di SJ ' . $awalan . '.');
+                    continue;
+                }
+
+                // Dilepas dulu di SEMUA tabel: waktu invoice di-update, SJ-nya
+                // bisa berpindah sumber - dari GG/OUT ke OFC/OUT atau sebaliknya.
+                $nak->update("UPDATE $tabel SET $kolom = NULL WHERE $kolom = ?", array($no));
+
+                $milik = isset($idSj[$awalan]) ? $idSj[$awalan] : array();
+                if ($milik) {
+                    $isi = implode(',', array_map('intval', $milik));
+                    $nak->update("UPDATE $tabel SET $kolom = ? WHERE id IN ($isi)", array($no));
+                }
             }
         } catch (\Throwable $e) {
             // Invoicenya sudah tersimpan - gagal menandai tidak boleh membatalkannya.
@@ -3993,14 +4154,20 @@ class InvoiceEximController extends Controller
         if (!$this->tabelAda(self::TABEL_DET)) {
             return array();
         }
+        // Dikelompokkan menurut awalan nomor SJ-nya: id GG/OUT tidak boleh
+        // ditulis ke tabel OFC/OUT - yang tertandai nanti baris milik SJ lain
+        // yang kebetulan ber-id sama.
         $out = array();
         foreach ($this->koneksiAr()->select(
-            "SELECT DISTINCT id_bppb FROM " . self::TABEL_DET . "
+            "SELECT DISTINCT id_bppb, bppb_number FROM " . self::TABEL_DET . "
               WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'",
             array((int) $idBook)
         ) as $r) {
             $id = trim((string) $r->id_bppb);
-            if ($id !== '' && ctype_digit($id)) { $out[] = $id; }
+            if ($id === '' || !ctype_digit($id)) { continue; }
+            $awalan = strtoupper(trim((string) strtok((string) $r->bppb_number, '/')));
+            if (!isset(self::TABEL_SJ_NAK[$awalan])) { continue; }
+            $out[$awalan][] = $id;
         }
         return $out;
     }
@@ -4561,7 +4728,10 @@ class InvoiceEximController extends Controller
         $terpakai = array();
 
         foreach (array_chunk($id, 1000) as $bagian) {
-            $sql = "SELECT DISTINCT x.id_baris
+            // Nomor SJ-nya ikut dibaca: knitting punya DUA sumber (OFC/OUT &
+            // GG/OUT) yang penomoran barisnya sendiri-sendiri, jadi id_baris
+            // saja bisa bertabrakan dan menyembunyikan SJ yang belum terpakai.
+            $sql = "SELECT DISTINCT x.id_baris, x.bppb_number
                       FROM " . self::TABEL_DET . " x
                       INNER JOIN tbl_book_invoice bi ON bi.id = x.id_book_invoice
                      WHERE x.asal = ?
@@ -4573,7 +4743,7 @@ class InvoiceEximController extends Controller
                 $bind[] = $abaikan;
             }
             foreach ($this->koneksiAr()->select($sql, $bind) as $r) {
-                $terpakai[(string) $r->id_baris] = true;
+                $terpakai[$this->kunciBaris($r->id_baris, $r->bppb_number)] = true;
             }
         }
 
@@ -4583,11 +4753,25 @@ class InvoiceEximController extends Controller
 
         $sisa = array();
         foreach ($rows as $r) {
-            if (!isset($terpakai[(string) $r['id_baris']])) {
+            if (!isset($terpakai[$this->kunciBaris($r['id_baris'], $r['sj'])])) {
                 $sisa[] = $r;
             }
         }
         return $sisa;
+    }
+
+    /**
+     * Penanda satu baris SJ: id barisnya + awalan nomor SJ-nya.
+     *
+     * Awalannya ikut karena satu asal bisa punya lebih dari satu tabel sumber
+     * dengan penomoran sendiri-sendiri - knitting punya OFC/OUT dan GG/OUT.
+     * Tanpa awalan, baris GG/OUT bernomor sama dengan baris OFC/OUT yang sudah
+     * terpakai akan ikut hilang dari daftar.
+     */
+    private function kunciBaris($idBaris, $noSj)
+    {
+        $awalan = strtoupper(trim((string) strtok((string) $noSj, '/')));
+        return $awalan . '|' . (string) $idBaris;
     }
 
     private function kolomAda($tabel, $kolom)
@@ -4720,7 +4904,15 @@ class InvoiceEximController extends Controller
         }
 
         // po_konsumen ikut dibawa: dipakai kolom PO di PDF khusus knitting.
-        $sql = "SELECT f.po_konsumen AS po_konsumen,
+        //
+        // Kalau PO konsumennya belum ada isinya - NULL, kosong, '-', atau masih
+        // ditulis 'TBA' - yang dipakai PO buyer. Cetakan tanpa nomor PO sama
+        // saja tidak berguna buat customer, dan 'TBA' bukan nomor.
+        $sql = "SELECT CASE
+                           WHEN UPPER(TRIM(COALESCE(f.po_konsumen, ''))) IN ('', '-', 'TBA')
+                               THEN f.po_buyer
+                           ELSE f.po_konsumen
+                       END AS po_konsumen,
                        f.kode_so AS no_so, a.kode_out AS sj, a.tgl_pengeluaran AS bppbdate,
                        a.kode_out AS shipping_number, '-' AS ws, d.lab_dip AS styleno,
                        '-' AS product_group, c.nama_kain AS product_item, d.warna AS color,
@@ -4749,6 +4941,24 @@ class InvoiceEximController extends Controller
                                   WHEN g.nama_unit = 'Yard'  THEN b.yard
                                   ELSE b.qty_netto
                               END) * ROUND(COALESCE(e.harga_shipment, e.harga, 0), 4), 4) AS total_price,
+                       -- Nilai TAGIH - satuan & harga dari id_unit_sales_order.
+                       -- Knitting memang punya dua angka (lihat layar knitting AR
+                       -- lama: kolom Total Price & Total Price Shipment, dan dua
+                       -- kartu Total / Total Shipment). Dua-duanya dibawa supaya
+                       -- layar & cetakannya bisa menampilkan keduanya tanpa
+                       -- menanyakan ulang ke database.
+                       h.nama_unit AS uom_tagih,
+                       CASE
+                           WHEN h.nama_unit = 'Meter' THEN b.meter
+                           WHEN h.nama_unit = 'Yard'  THEN b.yard
+                           ELSE b.qty_netto
+                       END AS qty_tagih,
+                       ROUND(COALESCE(e.harga, 0), 4) AS unit_price_tagih,
+                       ROUND((CASE
+                                  WHEN h.nama_unit = 'Meter' THEN b.meter
+                                  WHEN h.nama_unit = 'Yard'  THEN b.yard
+                                  ELSE b.qty_netto
+                              END) * ROUND(COALESCE(e.harga, 0), 4), 4) AS total_price_tagih,
                        a.no_so AS id_so, a.id AS id_bppb, b.id AS id_baris,
                        'GRADE A' AS grade, 'A' AS grade_kode,
                        -- Knitting cuma punya OFC/OUT, dan harganya selalu ada
@@ -4771,7 +4981,8 @@ class InvoiceEximController extends Controller
                   -- dari daftar, dan penyaringan barisnya persis seperti dulu.
                   INNER JOIN detail_so ea ON ea.id = b.detail_so_id
                   LEFT JOIN LATERAL (
-                      SELECT ds.harga, ds.harga_shipment, ds.id_unit_sales_order_shipment
+                      SELECT ds.harga, ds.harga_shipment,
+                             ds.id_unit_sales_order, ds.id_unit_sales_order_shipment
                         FROM detail_so ds
                        WHERE ds.sales_order_id = f.id
                          AND ds.master_kain_id = b.kain_id
@@ -4784,16 +4995,26 @@ class InvoiceEximController extends Controller
                   LEFT JOIN LATERAL (
                       SELECT COALESCE(ek.harga, ea.harga) AS harga,
                              COALESCE(ek.harga_shipment, ea.harga_shipment) AS harga_shipment,
+                             COALESCE(ek.id_unit_sales_order, ea.id_unit_sales_order)
+                                 AS id_unit_sales_order,
                              COALESCE(ek.id_unit_sales_order_shipment,
                                       ea.id_unit_sales_order_shipment)
                                  AS id_unit_sales_order_shipment
                   ) e ON TRUE
-                  -- g = satuan kirim SO itu. Satuan tagih (id_unit_sales_order)
-                  -- tidak dibaca di sini; yang memakainya Create Invoice AR.
+                  -- g = satuan KIRIM SO itu, h = satuan TAGIH-nya. Keduanya dari
+                  -- baris SO yang sama, jadi qty & harganya tidak mungkin
+                  -- tercampur antar SO.
                   LEFT JOIN master_unit g ON g.id = e.id_unit_sales_order_shipment
+                  LEFT JOIN master_unit h ON h.id = e.id_unit_sales_order
                   LEFT JOIN master_konsumen k ON k.id = f.konsumen_id
                  WHERE a.status_inv IS NULL
-                   AND a.tipe_pengeluaran IN ('Penjualan','Sample')
+                   -- Pengiriman ke subkontraktor ikut ditagihkan, sama seperti
+                   -- di garment. Dicocokkan dengan ILIKE berawalan: tujuannya
+                   -- sering ditulis menyambung di belakang (mis. '... CMT'),
+                   -- dan di PostgreSQL LIKE biasa peka huruf besar-kecil -
+                   -- beda satu huruf saja SJ-nya hilang tanpa jejak.
+                   AND (a.tipe_pengeluaran IN ('Penjualan','Sample')
+                        OR a.tipe_pengeluaran ILIKE 'Pengiriman ke Subkontraktor%')
                    AND a.tgl_pengeluaran BETWEEN ? AND ?";
         $bind = array($tglAwal, $tglAkhir);
         if ($kodeKnitting !== '') {
@@ -4805,6 +5026,95 @@ class InvoiceEximController extends Controller
             $bind = array_merge($bind, array_values($idBaris));
         }
         $sql .= " ORDER BY a.kode_out ASC";
+
+        $baris = $this->baris(DB::connection(self::KONEKSI_NAK)->select($sql, $bind), 'NAK');
+
+        // Knitting punya DUA sumber SJ: OFC/OUT (official_out_h, di atas) dan
+        // GG/OUT (gp_out_greige_h - keluaran greige). Bentuk barisnya dibuat
+        // sama persis, jadi layar, penyimpanan & cetakan tidak perlu tahu
+        // bedanya - yang membedakan cuma awalan nomor SJ-nya.
+        return array_merge($baris, $this->sjGreige($tglAwal, $tglAkhir, $kodeKnitting, $idBaris));
+    }
+
+    /**
+     * SJ knitting dari keluaran greige (GG/OUT).
+     *
+     * Bentuk barisnya dibuat persis sama dengan sjKnitting() supaya keduanya
+     * bisa digabung begitu saja.
+     *
+     * Bedanya dengan OFC/OUT:
+     *   - SO-nya disambung lewat KODE (gp_out_greige_h.no_so = sales_orders.kode_so),
+     *     bukan lewat id. Yang dikirim keluar tetap sales_orders.id supaya
+     *     bentuknya sama dengan baris OFC.
+     *   - Konsumennya lewat tujuan pengiriman, bukan dari SO.
+     *   - Satuannya dari barcode-nya sendiri, dan harganya cuma satu - jadi
+     *     nilai tagih & nilai kirimnya memang sama.
+     *   - Cuma 'Penjualan' yang ditarik.
+     */
+    private function sjGreige($tglAwal, $tglAkhir, $kodeKnitting, array $idBaris = array())
+    {
+        $bind = array($tglAwal, $tglAkhir);
+        $saring = '';
+        if ($kodeKnitting !== '') {
+            $saring .= " AND mk.kode_konsumen = ?";
+            $bind[] = $kodeKnitting;
+        }
+        if ($idBaris) {
+            $saring .= " AND b.id IN (" . implode(',', array_fill(0, count($idBaris), '?')) . ")";
+            $bind = array_merge($bind, array_values($idBaris));
+        }
+
+        $sql = "
+            SELECT MAX(po_konsumen) AS po_konsumen,
+                   MAX(no_so) AS no_so, MAX(sj) AS sj, MAX(bppbdate) AS bppbdate,
+                   MAX(shipping_number) AS shipping_number,
+                   '-' AS ws, '-' AS styleno, '-' AS product_group,
+                   MAX(product_item) AS product_item, '-' AS color, '-' AS size,
+                   MAX(curr) AS curr,
+                   MAX(uom) AS uom, SUM(qty) AS qty,
+                   ROUND(MAX(harga), 4) AS unit_price,
+                   ROUND(SUM(qty) * ROUND(MAX(harga), 4), 4) AS total_price,
+                   -- Greige harganya cuma satu, jadi nilai tagih = nilai kirim.
+                   MAX(uom) AS uom_tagih, SUM(qty) AS qty_tagih,
+                   ROUND(MAX(harga), 4) AS unit_price_tagih,
+                   ROUND(SUM(qty) * ROUND(MAX(harga), 4), 4) AS total_price_tagih,
+                   MAX(id_so) AS id_so, MAX(id_bppb) AS id_bppb,
+                   MIN(barcode_id) AS id_baris,
+                   'GRADE A' AS grade, 'A' AS grade_kode,
+                   MAX(tipe_sj) AS tipe_sj, 0 AS harga_manual
+              FROM (
+                SELECT b.id AS barcode_id,
+                       i.kode_so AS no_so, a.no_bppb AS sj, a.tgl_bppb AS bppbdate,
+                       a.no_bppb AS shipping_number, c.nama_kain AS product_item,
+                       i.currency AS curr,
+                       MAX(b.unit) AS uom, SUM(b.qty) AS qty,
+                       MAX(COALESCE(e.harga, 0)) AS harga,
+                       -- id SO, bukan kodenya: baris OFC pun menyimpan id, dan
+                       -- kolom id_so memang angka.
+                       i.id AS id_so, a.id AS id_bppb, b.id_item AS kain_id,
+                       UPPER(SPLIT_PART(a.no_bppb, '/', 1)) AS tipe_sj,
+                       -- Aturan PO-nya sama dengan OFC/OUT.
+                       CASE
+                           WHEN UPPER(TRIM(COALESCE(i.po_konsumen, ''))) IN ('', '-', 'TBA')
+                               THEN i.po_buyer
+                           ELSE i.po_konsumen
+                       END AS po_konsumen
+                  FROM gp_out_greige_h a
+                  INNER JOIN gp_out_greige_barcode b ON b.out_greige_id = a.id
+                  INNER JOIN master_kain c ON c.id = b.id_item
+                  INNER JOIN sales_orders i ON i.kode_so = a.no_so
+                  INNER JOIN detail_so e ON e.sales_order_id = i.id
+                                        AND e.master_kain_id = b.id_item
+                  INNER JOIN master_tujuan_pengiriman mtp ON mtp.tujuan_pengiriman = a.tujuan
+                  INNER JOIN master_konsumen mk ON mk.id = mtp.id_konsumen
+                 WHERE a.status_inv IS NULL
+                   AND a.tipe_pengeluaran = 'Penjualan'
+                   AND a.tgl_bppb BETWEEN ? AND ?" . $saring . "
+                 GROUP BY b.id, i.kode_so, a.no_bppb, a.tgl_bppb, c.nama_kain,
+                          i.currency, i.id, a.id, b.id_item, i.po_konsumen, i.po_buyer
+              ) x
+             GROUP BY kain_id, harga, sj
+             ORDER BY MIN(sj) ASC";
 
         return $this->baris(DB::connection(self::KONEKSI_NAK)->select($sql, $bind), 'NAK');
     }
