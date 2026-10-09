@@ -91,6 +91,53 @@ class GeneralController extends Controller
         return $formCuts ? json_encode($formCuts) : null;
     }
 
+    public function getNoFormCutAllSelect(Request $request)
+    {
+        // Get No. Form Cutting List (normal, reject, piece) for select2 (server side)
+        $search = $request->q;
+        $page = $request->page && $request->page > 0 ? intval($request->page) : 1;
+        $perPage = 20;
+
+        // Wajib mengetik dulu, data terlalu banyak untuk ditampilkan semua
+        if (!$search) {
+            return response()->json([
+                "items" => [],
+                "more_pages" => false,
+            ]);
+        }
+
+        $formNormal = DB::table("form_cut_input")->
+            selectRaw("id as form_cut_id, no_form, updated_at, 'normal' AS type")->
+            whereRaw("updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')")->
+            where("no_form", "like", "%".$search."%");
+
+        $formReject = DB::table("form_cut_reject")->
+            selectRaw("id as form_cut_id, no_form, updated_at, 'reject' AS type")->
+            whereRaw("updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')")->
+            where("no_form", "like", "%".$search."%");
+
+        $formPiece = DB::table("form_cut_piece")->
+            selectRaw("id as form_cut_id, no_form, updated_at, 'piece' AS type")->
+            whereRaw("updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')")->
+            where("no_form", "like", "%".$search."%");
+
+        $formCuts = DB::query()->
+            fromSub($formNormal->unionAll($formReject)->unionAll($formPiece), "forms")->
+            orderBy("updated_at", "desc")->
+            paginate($perPage, ["*"], "page", $page);
+
+        return response()->json([
+            "items" => $formCuts->map(function ($formCut) {
+                return [
+                    "id" => $formCut->form_cut_id,
+                    "text" => $formCut->no_form,
+                    "type" => $formCut->type,
+                ];
+            }),
+            "more_pages" => $formCuts->hasMorePages(),
+        ]);
+    }
+
     public function getFormGroup(Request $request)
     {
         // Get Form's Grouping List
@@ -146,6 +193,59 @@ class GeneralController extends Controller
             ->get();
 
         return $stockers ? json_encode($stockers) : null;
+    }
+
+    public function getFormStockerSelect(Request $request)
+    {
+        // Get Form's Stocker for select2 (server side)
+        $search = $request->q;
+        $page = $request->page && $request->page > 0 ? intval($request->page) : 1;
+        $perPage = 20;
+
+        // Wajib mengetik dulu, data terlalu banyak untuk ditampilkan semua
+        if (!$search) {
+            return response()->json([
+                "items" => [],
+                "more_pages" => false,
+            ]);
+        }
+
+        // Define current form cut type (different table)
+        $formType = 'stocker_input.form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'stocker_input.form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'stocker_input.form_piece_id';
+                break;
+            default :
+                $formType = 'stocker_input.form_cut_id';
+                break;
+        }
+
+        // Stocker Query (search pakai HAVING agar stocker_ids dalam satu grup tetap utuh)
+        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, COALESCE(master_sb_ws.size, stocker_input.size) size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+            ->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")
+            ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->where($formType, $request->form_cut_id)
+            ->where('stocker_input.group_stocker', $request->form_group)
+            ->groupByRaw($formType.', stocker_input.group_stocker, stocker_input.so_det_id, stocker_input.ratio')
+            ->when($search, function ($query) use ($search) {
+                $query->havingRaw('id_qr_stocker LIKE ? OR size LIKE ?', ["%".$search."%", "%".$search."%"]);
+            })
+            ->orderBy('stocker_input.so_det_id', 'asc')
+            ->paginate($perPage, ["*"], "page", $page);
+
+        return response()->json([
+            "items" => $stockers->map(function ($stocker) {
+                return [
+                    "id" => $stocker->stocker_ids,
+                    "text" => $stocker->id_qr_stocker." || Size '".$stocker->size."' || Ratio ".($stocker->ratio ? $stocker->ratio : null),
+                ];
+            }),
+            "more_pages" => $stockers->hasMorePages(),
+        ]);
     }
 
     public function getBuyers(Request $request)

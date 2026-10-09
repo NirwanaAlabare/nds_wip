@@ -28,10 +28,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
         // get no form for select2
         Route::get('/get-no-form-cut-select', 'getNoFormCutSelect')->name('get-no-form-cut-select');
+        // get no form (normal, reject, piece) for select2
+        Route::get('/get-no-form-cut-all-select', 'getNoFormCutAllSelect')->name('get-no-form-cut-all-select');
         // get group
         Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
         // get stocker
         Route::get('/get-form-stocker', 'getFormStocker')->name('get-form-stocker');
+        // get stocker for select2
+        Route::get('/get-form-stocker-select', 'getFormStockerSelect')->name('get-form-stocker-select');
 
         // new general
         // get buyers

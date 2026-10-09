@@ -241,7 +241,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
-                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList();getFormStockerList();setFormType();">
+                        <select name="no_form" id="no_form" class="form-control" style="width: 100%;"  onchange="getFormGroupList();getFormStockerList();setFormType();">
                             <option value="">Pilih Form</option>
                         </select>
                     </div>
@@ -257,7 +257,7 @@
                     </div>
                     <div>
                         <label class="form-label">Stocker</label>
-                        <select name="form_stocker" id="form_stocker" class="form-control select2bs4form" style="width: 100%;">
+                        <select name="form_stocker" id="form_stocker" class="form-control" style="width: 100%;">
                             <option value="">Pilih Form Stocker</option>
                         </select>
                     </div>
@@ -567,7 +567,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
-                        <select name="no_form_recalc" id="no_form_recalc" class="form-control select2bs4recalc" style="width: 100%;">
+                        <select name="no_form_recalc" id="no_form_recalc" class="form-control" style="width: 100%;">
                             <option value="">Pilih Form</option>
                         </select>
                     </div>
@@ -591,7 +591,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
-                        <select name="no_form_undo_stocker_additional" id="no_form_undo_stocker_additional" class="form-control select2bs4undostockeradditional" style="width: 100%;"  onchange="setFormType('_undo_stocker_additional');">
+                        <select name="no_form_undo_stocker_additional" id="no_form_undo_stocker_additional" class="form-control" style="width: 100%;"  onchange="setFormType('_undo_stocker_additional');">
                             <option value="">Pilih Form</option>
                         </select>
                     </div>
@@ -734,17 +734,79 @@
             theme: 'bootstrap4',
             dropdownParent: $('#resetStockerModal')
         });
-        $('.select2bs4recalc').select2({
+        $('#form_stocker').select2({
             theme: 'bootstrap4',
-            dropdownParent: $('#recalculateStockerTransaction')
+            dropdownParent: $('#resetStockerModal'),
+            placeholder: 'Pilih Form Stocker',
+            allowClear: true,
+            minimumInputLength: 1,
+            ajax: {
+                url: '{{ route('get-form-stocker-select') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                        page: params.page || 1,
+                        form_cut_id: $('#no_form').val(),
+                        form_group: $('#form_group').val() ? $('#form_group').val() : null,
+                        form_type: getFormType('#no_form')
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.items || [],
+                        pagination: {
+                            more: data.more_pages
+                        }
+                    };
+                }
+            }
         });
+        // No. Form (normal, reject, piece) select2 server side
+        function initFormSelect(selector, modal) {
+            $(selector).select2({
+                theme: 'bootstrap4',
+                dropdownParent: $(modal),
+                placeholder: 'Pilih Form',
+                allowClear: true,
+                minimumInputLength: 1,
+                ajax: {
+                    url: '{{ route('get-no-form-cut-all-select') }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.items || [],
+                            pagination: {
+                                more: data.more_pages
+                            }
+                        };
+                    }
+                }
+            });
+        }
+
+        // Tipe form (normal / reject / piece) diambil dari data select2 hasil server side
+        function getFormType(selector) {
+            const selected = $(selector).select2('data')[0];
+
+            return selected && selected.type ? selected.type : '';
+        }
+
+        initFormSelect('#no_form', '#resetStockerModal');
+        initFormSelect('#no_form_recalc', '#recalculateStockerTransaction');
+        initFormSelect('#no_form_undo_stocker_additional', '#undoStockerAdditionalModal');
+
         $('.select2bs4restorestockerlog').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#restoreStockerLogModal')
-        });
-        $('.select2bs4undostockeradditional').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $('#undoStockerAdditionalModal')
         });
         $('.select2bs4stockerorder').select2({
             theme: 'bootstrap4',
@@ -760,50 +822,9 @@
         });
 
         $(document).ready(function () {
-            getFormList();
             getFormListModifySizeQty();
             getFormListSeparateStocker();
         });
-
-        function getFormList() {
-            document.getElementById("loading").classList.remove("d-none");
-
-            $.ajax({
-                type: "get",
-                url: "{{ route('get-no-form-cut') }}",
-                dataType: "json",
-                success: function (response) {
-                    if (response) {
-                        $('#no_form').empty();
-                        $('#no_form').append('<option value="">Pilih Form</option>');
-                        $.each(response, function (key, value) {
-                            $('#no_form').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
-                        });
-
-                        $('#no_form_recalc').empty();
-                        $('#no_form_recalc').append('<option value="">Pilih Form</option>');
-                        $.each(response, function (key, value) {
-                            $('#no_form_recalc').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
-                        });
-
-                        $('#no_form_undo_stocker_additional').empty();
-                        $('#no_form_undo_stocker_additional').append('<option value="">Pilih Form</option>');
-                        $.each(response, function (key, value) {
-                            $('#no_form_undo_stocker_additional').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
-                        });
-                    }
-
-                    document.getElementById("form_type").value = "";
-
-                    document.getElementById("loading").classList.add("d-none");
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr);
-
-                    document.getElementById("loading").classList.add("d-none");
-                }
-            });
-        }
 
         function getFormListModifySizeQty() {
             $.ajax({
@@ -853,8 +874,8 @@
             });
         }
 
-        function setFormType(suffix = null) {
-            const formType = $('#no_form'+suffix+' option:selected').attr('data-type');
+        function setFormType(suffix = '') {
+            const formType = getFormType('#no_form'+suffix);
             $('#form_type'+suffix+'').val(formType);
         }
 
@@ -867,7 +888,7 @@
                 data: {
                     form_cut_id: $("#no_form").val(),
                     form_group: $('#form_group').val() ? $('#form_group').val() : null,
-                    form_type: $('#no_form option:selected').attr('data-type')
+                    form_type: getFormType('#no_form')
                 },
                 dataType: "json",
                 success: function (response) {
@@ -890,34 +911,8 @@
         }
 
         function getFormStockerList() {
-            document.getElementById("loading").classList.remove("d-none");
-
-            $.ajax({
-                type: "get",
-                url: "{{ route('get-form-stocker') }}",
-                data: {
-                    form_cut_id: $('#no_form').val(),
-                    form_group:$('#form_group').val() ? $('#form_group').val() : null,
-                    form_type: $('#no_form option:selected').attr('data-type')
-                },
-                dataType: "json",
-                success: function (response) {
-                    if (response) {
-                        $('#form_stocker').empty();
-                        $('#form_stocker').append('<option value="">Pilih Form Stocker</option>');
-                        $.each(response, function (key, value) {
-                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + ' || Size \'' + value.size + '\' || Ratio ' + (value.ratio ? value.ratio : null) + '</option>');
-                        });
-                    }
-
-                    document.getElementById("loading").classList.add("d-none");
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr);
-
-                    document.getElementById("loading").classList.add("d-none");
-                }
-            });
+            // Data stocker diambil server side oleh select2, cukup kosongkan pilihan saat form / group berubah
+            $('#form_stocker').val(null).trigger('change');
         }
 
         function resetStockerForm() {
@@ -942,7 +937,7 @@
                 url: "{{ route('reset-stocker-form') }}",
                 data: {
                     form_cut_id: $('#no_form').val(),
-                    form_type: $('#no_form option:selected').attr('data-type'),
+                    form_type: getFormType('#no_form'),
                     no_form: $('#no_form option:selected').text(),
                     form_group: $('#form_group').val() ? $('#form_group').val() : null,
                     form_stocker: $('#form_stocker').val()
