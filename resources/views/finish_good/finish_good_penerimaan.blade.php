@@ -409,6 +409,9 @@
 
         .fgin-table .col-no {
             width: 44px;
+        }
+
+        .fgin-table td.col-no {
             color: #adb5bd;
         }
 
