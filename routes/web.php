@@ -1058,6 +1058,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/search_po', 'search_po')->name('fg_in_search_po');
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+        Route::post('/check_fg_in', 'check_fg_in')->name('check-fg-in');
         Route::post('/store', 'store')->name('store-fg-in');
         Route::get('/export_excel_fg_in_list', 'export_excel_fg_in_list')->name('export_excel_fg_in_list');
         Route::get('/export_excel_fg_in_summary', 'export_excel_fg_in_summary')->name('export_excel_fg_in_summary');
