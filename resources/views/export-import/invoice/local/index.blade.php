@@ -182,6 +182,11 @@
                                         <th class="dn-angka">Unit Price</th>
                                         <th class="dn-angka">Discount (%)</th>
                                         <th class="dn-angka">Total Price</th>
+                                        {{-- Nilai TAGIH knitting - lihat _skin. --}}
+                                        <th class="det-sel-tagih">UOM Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Qty Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Unit Price Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Total Price Billing</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -638,6 +643,12 @@ $(function () {
                 + barisInfo('Created', (h.booking_by || '-') + (h.booking_date ? '  ·  ' + tglJam(h.booking_date) : '')));
 
             var baris = res.baris || [];
+            // Ditentukan dari datanya: invoice garment tidak punya nilai tagih,
+            // dan tabelnya tidak perlu melebar tanpa guna.
+            $('#det-tabel').toggleClass('is-knit', baris.some(function (r) {
+                return $.trim(String(r.uom_tagih == null ? '' : r.uom_tagih)) !== ''
+                    || (parseFloat(r.total_price_tagih) || 0) > 0;
+            }));
             $('#det-tabel tbody').html(baris.length
                 ? baris.map(function (r) {
                     return '<tr>'
@@ -654,24 +665,37 @@ $(function () {
                         + '<td class="dn-angka">' + uang(r.unit_price) + '</td>'
                         + '<td class="dn-angka">' + uang(r.disc) + '</td>'
                         + '<td class="dn-angka">' + uang(r.total_price) + '</td>'
+                        + '<td class="det-sel-tagih">' + teks(r.uom_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.qty_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.unit_price_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.total_price_tagih) + '</td>'
                         + '</tr>';
                 }).join('')
-                : '<tr><td class="dn-kosong" colspan="13">No detail row.</td></tr>');
+                : '<tr><td class="dn-kosong" colspan="17">No detail row.</td></tr>');
 
             var p = res.pot || {};
-            function baut(label, nilai, kelas) {
+            // Ringkasan nilai tagih - cuma ada untuk invoice knitting.
+            var pt = res.pot_tagih || null;
+            function baut(label, nilai, kelas, nilai2) {
                 return '<div' + (kelas ? ' class="' + kelas + '"' : '') + '>'
-                    + '<span>' + label + '</span><b>' + uang(nilai || 0) + '</b></div>';
+                    + '<span>' + label + '</span><b>' + uang(nilai || 0) + '</b>'
+                    + (pt ? '<b class="det-nilai-tagih">' + uang(nilai2 || 0) + '</b>' : '')
+                    + '</div>';
             }
+            var pt2 = pt || {};
             $('#det-ringkas').html(''
-                + baut('Total', p.total)
-                + baut('Discount', p.discount)
-                + baut('Down Payment', p.dp)
-                + baut('DP/CBD from Invoice', p.dp_cbd)
-                + baut('Return', p.retur)
-                + baut('Total Without Tax', p.twot)
-                + baut('VAT' + (parseFloat(p.vat_persen) ? ' (' + parseFloat(p.vat_persen) + '%)' : ''), p.vat));
-            $('#det-ringkas-grand').html(baut('Grand Total', p.grand_total, 'dn-det-grand'));
+                + (pt ? '<div class="det-judul-nilai"><span></span>'
+                        + '<b>Shipment</b><b class="det-nilai-tagih">Billing</b></div>' : '')
+                + baut('Total', p.total, '', pt2.total)
+                + baut('Discount', p.discount, '', pt2.discount)
+                + baut('Down Payment', p.dp, '', pt2.dp)
+                + baut('DP/CBD from Invoice', p.dp_cbd, '', pt2.dp_cbd)
+                + baut('Return', p.retur, '', pt2.retur)
+                + baut('Total Without Tax', p.twot, '', pt2.twot)
+                + baut('VAT' + (parseFloat(p.vat_persen) ? ' (' + parseFloat(p.vat_persen) + '%)' : ''),
+                       p.vat, '', pt2.vat));
+            $('#det-ringkas-grand').html(baut('Grand Total', p.grand_total, 'dn-det-grand',
+                pt2.grand_total));
             // Tiap invoice dibuka dalam keadaan terlipat lagi.
             $('#det-ringkas').prop('hidden', true);
             $('#det-btn-lipat-rekap').attr('aria-expanded', 'false');

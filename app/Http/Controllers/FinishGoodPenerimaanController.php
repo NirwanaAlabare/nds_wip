@@ -268,23 +268,48 @@ having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_sca
 
         if ($request->ajax()) {
 
-            $data_preview = DB::select("WITH pl AS (
+            $data_preview = $this->getPreviewData($po, $dest);
+
+            // Paging & filter dikerjakan di browser (client-side), jadi kirim semua data sekali saja
+            return response()->json(['data' => $data_preview]);
+        }
+    }
+
+    // Data karton yang sudah full scan tapi belum full FG IN.
+    // Dipakai untuk preview dan dipanggil ulang saat simpan, supaya data yang disimpan selalu data terbaru.
+    // Patokan scan sama dengan halaman Packing List: dihitung per barcode + no_carton.
+    private function getPreviewData($po, $dest)
+    {
+        return DB::select("WITH pl AS (
     SELECT * FROM packing_master_packing_list
-    WHERE po = '$po' AND dest = '$dest'
+    WHERE po = ? AND dest = ?
 ),
 a AS (
-    SELECT id_ppic, no_carton, COUNT(*) AS tot_scan
+    SELECT barcode, no_carton, COUNT(*) AS tot_scan
     FROM packing_packing_out_scan
-    WHERE po = '$po' AND dest = '$dest'
-    GROUP BY id_ppic, no_carton
+    WHERE po = ? AND dest = ?
+    GROUP BY barcode, no_carton
 ),
 b AS (
-    SELECT id_ppic_master_so, no_carton, SUM(qty) AS tot_fg
+    SELECT barcode, no_carton, SUM(qty) AS tot_fg
     FROM fg_fg_in
-    WHERE po = '$po' AND dest = '$dest' AND status = 'NORMAL'
-    GROUP BY id_ppic_master_so, no_carton
+    WHERE po = ? AND dest = ? AND status = 'NORMAL'
+    GROUP BY barcode, no_carton
+),
+-- Karton full = semua baris packing list-nya qty = qty scan (status 'Pass' di halaman Packing List)
+c AS (
+    SELECT STRAIGHT_JOIN
+        pl.no_carton,
+        MIN(pl.qty = COALESCE(a.tot_scan, 0))  AS carton_full,
+        SUM(pl.qty)                            AS carton_qty,
+        SUM(COALESCE(a.tot_scan, 0))           AS carton_scan
+    FROM pl
+    LEFT JOIN a ON pl.barcode = a.barcode AND pl.no_carton = a.no_carton
+    GROUP BY pl.no_carton
 )
-SELECT
+-- STRAIGHT_JOIN: paksa mulai dari pl (index po,dest). Tanpa ini optimizer mulai dari a lalu cari
+-- packing list lewat index no_carton saja (semua PO), query jadi belasan detik.
+SELECT STRAIGHT_JOIN
     pl.id_so_det,
     pl.no_carton,
     pl.barcode,
@@ -293,7 +318,7 @@ SELECT
     m.color,
     m.size,
     m.ws,
-    pl.qty,
+    pl.qty - COALESCE(b.tot_fg, 0)              AS qty,      -- qty sisa, supaya yang sudah FG IN sebagian tidak masuk dobel
     a.tot_scan,
     COALESCE(b.tot_fg, 0)                       AS tot_fg,
     a.tot_scan - COALESCE(b.tot_fg, 0)          AS selisih,
@@ -301,19 +326,23 @@ SELECT
     m.dest,
     m.price,
     m.curr,
-    pl.id_ppic_master_so
+    pl.id_ppic_master_so,
+    c.carton_full,
+    c.carton_qty,
+    c.carton_scan
 FROM pl
-LEFT JOIN a  ON pl.id_ppic_master_so = a.id_ppic
+LEFT JOIN a  ON pl.barcode = a.barcode
              AND pl.no_carton = a.no_carton
-LEFT JOIN b  ON pl.id_ppic_master_so = b.id_ppic_master_so
+LEFT JOIN b  ON pl.barcode = b.barcode
              AND pl.no_carton = b.no_carton
+INNER JOIN c ON pl.no_carton = c.no_carton
 INNER JOIN ppic_master_so p  ON pl.id_ppic_master_so = p.id
 INNER JOIN master_sb_ws m    ON pl.id_so_det = m.id_so_det
-WHERE pl.qty = a.tot_scan                        -- carton sudah full scan
+WHERE pl.qty = a.tot_scan                        -- baris sudah full scan (karton belum tentu, lihat carton_full)
   AND COALESCE(b.tot_fg, 0) < a.tot_scan        -- tapi fg belum full
 GROUP BY pl.no_carton, m.id_so_det
 ORDER BY pl.no_carton
-            ");
+        ", [$po, $dest, $po, $dest, $po, $dest]);
 
             // SELECT
             // a.id_so_det,
@@ -348,19 +377,161 @@ ORDER BY pl.no_carton
             // inner join master_sb_ws m on a.id_so_det = m.id_so_det
             // group by a.id_so_det
             // having coalesce(sum(a.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
+    }
 
-            return DataTables::of($data_preview)->toJson();
-        }
+    // Dipanggil sebelum swal konfirmasi: bandingkan karton yang dicentang dengan data FG IN terbaru
+    public function check_fg_in(Request $request)
+    {
+        $poArray = explode('_', $request->cbopo ?? '');
+        $po = $poArray[0];
+        $dest = $poArray[1] ?? null;
+
+        [$rows, $skipped] = $this->resolveSelected($po, $dest, $this->selectedKeys($request));
+
+        return response()->json($this->summarizeRows($rows, $skipped));
     }
 
     public function store(Request $request)
     {
-        $timestamp = Carbon::now();
-        $user = Auth::user()->name;
-        $tgl_skrg = date('Y-m-d');
         $poArray = explode('_', $_POST['cbopo']);
         $po = $poArray[0];
         $dest = $poArray[1];
+
+        // Kunci per PO: simpan bersamaan (user lain / klik ganda) harus antri,
+        // jadi pengecekan FG IN di bawah selalu melihat data yang sudah tersimpan sebelumnya
+        $lockName = 'fg_in_' . md5($po);
+        $lock = DB::selectOne("SELECT GET_LOCK(?, 30) AS acquired", [$lockName]);
+
+        if (! $lock || $lock->acquired != 1) {
+            return array(
+                "status" => 400,
+                "message" => 'PO ini sedang disimpan oleh proses lain, silakan coba lagi.',
+            );
+        }
+
+        try {
+            // Browser hanya mengirim key baris yang dicentang (no_carton__id_so_det) dari semua halaman,
+            // qty/harga diambil ulang dari database supaya karton yang sudah FG IN tidak tersimpan dobel
+            [$rows, $skipped] = $this->resolveSelected($po, $dest, $this->selectedKeys($request));
+
+            if ($rows->isEmpty()) {
+                return array_merge([
+                    "status" => 200,
+                    "message" => 'Tidak ada data yang disimpan',
+                ], $this->summarizeRows($rows, $skipped));
+            }
+
+            $bpbno_int = $this->saveFgIn($po, $dest, $rows);
+
+            return array_merge([
+                "status" => 201,
+                "message" => 'No Transaksi : ' . $bpbno_int . ' Sudah Terbuat',
+                "no_transaksi" => $bpbno_int,
+            ], $this->summarizeRows($rows, $skipped));
+        } finally {
+            DB::select("SELECT RELEASE_LOCK(?)", [$lockName]);
+        }
+    }
+
+    private function selectedKeys(Request $request)
+    {
+        $keys = json_decode($request->input('selected_keys', '[]'), true);
+
+        return is_array($keys) ? array_map('strval', $keys) : [];
+    }
+
+    // Cocokkan key yang dicentang dengan data terbaru. Yang lolos akan disimpan,
+    // sisanya dilewati per karton beserta alasannya (sudah FG IN / karton belum full / data berubah)
+    private function resolveSelected($po, $dest, array $selectedKeys)
+    {
+        $selected = array_flip($selectedKeys);
+        $preview  = collect($this->getPreviewData($po, $dest));
+
+        // Karton yang belum full (patokan Packing List) tidak boleh disimpan walau ikut terkirim
+        $rows = $preview->filter(function ($row) use ($selected) {
+            return $row->qty > 0
+                && $row->carton_full == 1
+                && isset($selected[$row->no_carton . '__' . $row->id_so_det]);
+        })->values();
+
+        $validKeys = $rows->map(fn ($row) => $row->no_carton . '__' . $row->id_so_det)->flip();
+        $skippedCartons = collect($selectedKeys)
+            ->reject(fn ($key) => isset($validKeys[$key]))
+            ->map(fn ($key) => substr($key, 0, strrpos($key, '__')))
+            ->unique()
+            ->values();
+
+        if ($skippedCartons->isEmpty()) {
+            return [$rows, []];
+        }
+
+        $fgIn = DB::table('fg_fg_in')
+            ->selectRaw('no_carton, GROUP_CONCAT(DISTINCT no_sb) AS no_sb, MAX(tgl_penerimaan) AS tgl_penerimaan, GROUP_CONCAT(DISTINCT created_by) AS created_by, SUM(qty) AS qty')
+            ->where('po', $po)
+            ->where('dest', $dest)
+            ->where('status', 'NORMAL')
+            ->whereIn('no_carton', $skippedCartons->all())
+            ->groupBy('no_carton')
+            ->get()
+            ->keyBy('no_carton');
+        $previewCartons = $preview->keyBy('no_carton');
+        $validCartons   = $rows->keyBy('no_carton');
+
+        $skipped = $skippedCartons->map(function ($noCarton) use ($fgIn, $previewCartons, $validCartons) {
+            $fg = $fgIn->get($noCarton);
+            $previewRow = $previewCartons->get($noCarton);
+
+            if ($fg) {
+                return [
+                    'no_carton' => $noCarton,
+                    'reason'    => $validCartons->has($noCarton) ? 'Sebagian sudah FG IN' : 'Sudah FG IN',
+                    'no_sb'     => $fg->no_sb,
+                    'tgl'       => $fg->tgl_penerimaan,
+                    'user'      => $fg->created_by,
+                    'qty'       => (int) $fg->qty,
+                ];
+            }
+
+            return [
+                'no_carton' => $noCarton,
+                'reason'    => $previewRow && $previewRow->carton_full != 1 ? 'Karton belum full' : 'Data karton berubah',
+            ];
+        })->values()->all();
+
+        return [$rows, $skipped];
+    }
+
+    // Ringkasan untuk swal konfirmasi & hasil simpan
+    private function summarizeRows($rows, $skipped)
+    {
+        // Urutan size sama dengan halaman Packing List (master_size_new.urutan), size yang tidak terdaftar di akhir
+        $urutan = DB::table('master_size_new')->pluck('urutan', 'size');
+        $sizeOrder = fn ($size) => $urutan[$size] ?? PHP_INT_MAX;
+
+        return [
+            'total_carton' => $rows->pluck('no_carton')->unique()->count(),
+            'total_qty'    => (int) $rows->sum('qty'),
+            'sizes'        => $rows->groupBy('size')->map(fn ($items, $size) => [
+                'size' => $size,
+                'qty'  => (int) $items->sum('qty'),
+            ])->sortBy(fn ($item) => $sizeOrder($item['size']))->values(),
+            'cartons'      => $rows->groupBy('no_carton')->map(fn ($items, $noCarton) => [
+                'no_carton' => $noCarton,
+                'qty'       => (int) $items->sum('qty'),
+                'sizes'     => $items->sortBy(fn ($row) => $sizeOrder($row->size))
+                    ->map(fn ($row) => ['size' => $row->size, 'qty' => (int) $row->qty])->values(),
+            ])->values(),
+            'keys'         => $rows->map(fn ($row) => $row->no_carton . '__' . $row->id_so_det)->values(),
+            'skipped'      => $skipped,
+        ];
+    }
+
+    // Simpan ke bpb (SB), packing_master_carton & fg_fg_in. Mengembalikan no transaksi (bpbno_int).
+    private function saveFgIn($po, $dest, $rows)
+    {
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $tgl_skrg = date('Y-m-d');
 
         $cek_sb = DB::connection('mysql_sb')->select("select count(id) tot from bpb where bpbdate = '$tgl_skrg'
         and po_fg = '$po' and status_input = 'nds'");
@@ -387,84 +558,76 @@ ORDER BY pl.no_carton
             $bpbno_int = $cek_no_sb[0]->bpbno_int;
         }
 
-        $JmlArray               = $_POST['txtqty'] ?? [];
-        $id_so_detArray         = $_POST['id_so_det'] ?? [];
-        $priceArray             = $_POST['price'] ?? [];
-        $currArray              = $_POST['curr'] ?? [];
-        $id_ppic_master_soArray = $_POST['id_ppic_master_so'] ?? [];
-        $barcodeArray           = $_POST['barcode'] ?? [];
-        $no_cartonArray         = $_POST['no_carton'] ?? [];
         $tgl_penerimaan         = date('Y-m-d');
-        $insert_fg_in_sb        = false;
 
-        foreach ($JmlArray as $key => $value) {
-            if (
-                $value != '0' && $value != ''
-                && isset($no_cartonArray[$key], $id_so_detArray[$key], $barcodeArray[$key])
-            ) {
-                $txtqty            = $JmlArray[$key];
-                $id_so_det         = $id_so_detArray[$key];
-                $price             = $priceArray[$key];
-                $curr              = $currArray[$key];
-                $id_ppic_master_so = $id_ppic_master_soArray[$key];
-                $barcode           = $barcodeArray[$key];
-                $no_carton         = $no_cartonArray[$key]; {
-                    $cek = DB::connection('mysql_sb')->select("select count(id_so_det) cek from masterstyle where id_so_det = '$id_so_det'");
-                    $cek_data = $cek[0]->cek;
-                    if ($cek_data == '0') {
-                        $ins_m_style = DB::connection('mysql_sb')->insert("insert into masterstyle
+        // bpb SB cuma 1 baris per id_so_det, jadi qty dijumlah dulu per id_so_det (bukan query per karton)
+        foreach ($rows->groupBy('id_so_det') as $id_so_det => $rowsSoDet) {
+            $txtqty = $rowsSoDet->sum('qty');
+            $price  = $rowsSoDet->first()->price;
+            $curr   = $rowsSoDet->first()->curr;
+
+            $cek = DB::connection('mysql_sb')->select("select count(id_so_det) cek from masterstyle where id_so_det = '$id_so_det'");
+            $cek_data = $cek[0]->cek;
+            if ($cek_data == '0') {
+                $ins_m_style = DB::connection('mysql_sb')->insert("insert into masterstyle
 				(Styleno,Buyerno,DelDate,unit,itemname,Color,Size,id_so_det,KPNo,country,goods_code)
 				select Styleno,so.Buyerno,DelDate_det,sod.unit,product_item,Color,Size,sod.id,KPNo,sod.dest,product_group from
 				so_det sod inner join so on sod.id_so=so.id
 				inner join act_costing ac on ac.id=so.id_cost
 				inner join masterproduct mp on ac.id_product=mp.id
 				where sod.cancel='N' and sod.id='$id_so_det'");
-                        $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
-                        $id_item = $cek_id_item[0]->id_item;
-                    } else {
-                        $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
-                        $id_item = $cek_id_item[0]->id_item;
-                    }
+                $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
+                $id_item = $cek_id_item[0]->id_item;
+            } else {
+                $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
+                $id_item = $cek_id_item[0]->id_item;
+            }
 
-                    $cek_id_sb = DB::connection('mysql_sb')->select("select id from bpb where bpbdate = '$tgl_skrg'
-                    and po_fg = '$po' and status_input = 'nds' and id_so_det = '$id_so_det' and id_item = '$id_item' ");
-                    $id_sb = $cek_id_sb ? $cek_id_sb[0]->id : 0;
+            $cek_id_sb = DB::connection('mysql_sb')->select("select id from bpb where bpbdate = '$tgl_skrg'
+            and po_fg = '$po' and status_input = 'nds' and id_so_det = '$id_so_det' and id_item = '$id_item' ");
+            $id_sb = $cek_id_sb ? $cek_id_sb[0]->id : 0;
 
-                    if ($id_sb == '0') {
-                        $insert_fg_in_sb =  DB::connection('mysql_sb')->insert("insert into bpb(bpbno,bpbno_int,bpbdate,id_supplier,grade,invno,jenis_dok,id_item,id_so_det,qty,unit,price,curr,username,status_input,po_fg,jenis_trans)
-                        values('FG$bpbno','$bpbno_int','$tgl_penerimaan','435','GRADE A','-','INHOUSE','$id_item','$id_so_det','$txtqty','PCS','$price','$curr','$user','nds','$po','Hasil Produksi') ");
-                    } else {
-                        $insert_fg_in_sb =  DB::connection('mysql_sb')->update("update bpb set qty = qty + $txtqty where id = '$id_sb' ");
-                    }
-
-                    $update_karton =  DB::update("
-                    update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
-
-                    $insert_fg_in_nds =  DB::insert("
-                    insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,status,created_by,updated_at,created_at)
-                    values('$bpbno_int','$tgl_skrg','$id_ppic_master_so','$id_so_det','$barcode','$txtqty','$po','$no_carton','-','-','$dest','NORMAL','$user','$timestamp','$timestamp')
-                    ");
-                }
+            if ($id_sb == '0') {
+                DB::connection('mysql_sb')->insert("insert into bpb(bpbno,bpbno_int,bpbdate,id_supplier,grade,invno,jenis_dok,id_item,id_so_det,qty,unit,price,curr,username,status_input,po_fg,jenis_trans)
+                values('FG$bpbno','$bpbno_int','$tgl_penerimaan','435','GRADE A','-','INHOUSE','$id_item','$id_so_det','$txtqty','PCS','$price','$curr','$user','nds','$po','Hasil Produksi') ");
+            } else {
+                DB::connection('mysql_sb')->update("update bpb set qty = qty + $txtqty where id = '$id_sb' ");
             }
         }
 
-        if ($insert_fg_in_sb !== false) {
-            return array(
-                "status" => 201,
-                "message" => 'No Transaksi :
-                 ' . $bpbno_int . '
-                 Sudah Terbuat',
-                "additional" => [],
-                'table' => 'datatable_preview',
-                "callback" => "dataTablePreviewReload();dataTableReload();"
-            );
-        } else {
-            return array(
-                "status" => 200,
-                "message" => 'Tidak ada Data',
-                "additional" => [],
-            );
+        // Update status karton & insert fg_fg_in secara batch
+        foreach ($rows->pluck('no_carton')->unique()->chunk(500) as $cartonChunk) {
+            DB::table('packing_master_carton')
+                ->where('po', $po)
+                ->whereIn('no_carton', $cartonChunk->values()->all())
+                ->update(['status' => 'transfer']);
         }
+
+        $fg_in = $rows->map(function ($row) use ($bpbno_int, $tgl_skrg, $po, $dest, $user, $timestamp) {
+            return [
+                'no_sb'             => $bpbno_int,
+                'tgl_penerimaan'    => $tgl_skrg,
+                'id_ppic_master_so' => $row->id_ppic_master_so,
+                'id_so_det'         => $row->id_so_det,
+                'barcode'           => $row->barcode,
+                'qty'               => $row->qty,
+                'po'                => $po,
+                'no_carton'         => $row->no_carton,
+                'lokasi'            => '-',
+                'notes'             => '-',
+                'dest'              => $dest,
+                'status'            => 'NORMAL',
+                'created_by'        => $user,
+                'updated_at'        => $timestamp,
+                'created_at'        => $timestamp,
+            ];
+        });
+
+        foreach ($fg_in->chunk(500) as $fgInChunk) {
+            DB::table('fg_fg_in')->insert($fgInChunk->values()->all());
+        }
+
+        return $bpbno_int;
     }
 
     public function export_excel_fg_in_list(Request $request)

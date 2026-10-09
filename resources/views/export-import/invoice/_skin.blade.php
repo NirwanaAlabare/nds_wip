@@ -3245,6 +3245,30 @@
   #inv-rekap-kolom.is-dua-nilai { flex: 0 0 50%; max-width: 50%; }
 }
 
+/* Panel detail di daftar: aturannya sama - nilai tagih muncul cuma kalau
+   invoicenya memang punya, supaya invoice garment tidak ikut melebar. */
+#det-tabel .det-sel-tagih { display: none; }
+#det-tabel.is-knit .det-sel-tagih { display: table-cell; }
+#det-tabel.is-knit thead .det-sel-tagih { color: #0f766e; }
+#det-tabel.is-knit tbody .det-sel-tagih { background: #f0fdfa; }
+/* Ringkasannya: satu baris label + dua angka, sejajar seperti di layar Create. */
+#det-ringkas > div,
+#det-ringkas-grand > div { display: flex; align-items: baseline; }
+#det-ringkas > div > span,
+#det-ringkas-grand > div > span { flex: 1 1 auto; }
+#det-ringkas > div > b,
+#det-ringkas-grand > div > b { flex: 0 0 110px; text-align: right; }
+#det-ringkas .det-nilai-tagih,
+#det-ringkas-grand .det-nilai-tagih { color: #0f766e; }
+#det-ringkas .det-judul-nilai b {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+#det-ringkas .det-judul-nilai .det-nilai-tagih { color: #0f766e; }
+
 /* Ketentuan SJ yang bisa ditarik - mengisi ruang kosong di sebelah Invoice
    Summary di modal Add SJ, jadi aturannya terbaca tepat waktu user memilih. */
 :is(#modal-add-so,#modal-add-ws) .dn-ketentuan .card-body { padding: 10px 14px 6px; }
