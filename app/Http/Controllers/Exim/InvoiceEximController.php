@@ -1748,10 +1748,15 @@ class InvoiceEximController extends Controller
             return response()->json(array('status' => false, 'pesan' => 'Invoice not found.'), 404);
         }
 
+        // Nilai tagih knitting ikut dikirim - panel detail harus memperlihatkan
+        // angka yang sama dengan layar Create/Edit dan cetakannya.
+        $tagih = $this->kolomAda(self::TABEL_DET, 'uom_tagih')
+            ? ", uom_tagih, qty_tagih, unit_price_tagih, total_price_tagih" : "";
+
         $baris = $db->select(
             "SELECT asal, so_number, bppb_number, sj_date, shipp_number, ws, styleno,
                     product_group, product_item, color, size, curr, uom,
-                    qty, unit_price, disc, total_price
+                    qty, unit_price, disc, total_price" . $tagih . "
                FROM " . self::TABEL_DET . "
               WHERE id_book_invoice = ?
               ORDER BY id",
@@ -1765,11 +1770,20 @@ class InvoiceEximController extends Controller
             array($id)
         );
 
+        // Ringkasan nilai tagih - cuma ada untuk invoice knitting.
+        $potTagih = $this->tabelAda(self::TABEL_POT_TAGIH)
+            ? $db->select(
+                "SELECT total, discount, dp, dp_cbd, retur, twot, vat_persen, vat, grand_total
+                   FROM " . self::TABEL_POT_TAGIH . " WHERE id_book_invoice = ? LIMIT 1",
+                array($id))
+            : array();
+
         return response()->json(array(
-            'status' => true,
-            'header' => (array) $header[0],
-            'baris'  => array_map(function ($r) { return (array) $r; }, $baris),
-            'pot'    => $pot ? (array) $pot[0] : null,
+            'status'    => true,
+            'header'    => (array) $header[0],
+            'baris'     => array_map(function ($r) { return (array) $r; }, $baris),
+            'pot'       => $pot ? (array) $pot[0] : null,
+            'pot_tagih' => $potTagih ? (array) $potTagih[0] : null,
         ));
     }
 
