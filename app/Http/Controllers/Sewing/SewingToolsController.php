@@ -76,10 +76,11 @@ class SewingToolsController extends Controller
                 LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_rfts.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
+                AND (master_plan.cancel IS NULL OR master_plan.cancel != 'Y')
             GROUP BY
                 output_rfts.id
         "));
@@ -102,10 +103,11 @@ class SewingToolsController extends Controller
                 LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_defects.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
+                AND (master_plan.cancel IS NULL OR master_plan.cancel != 'Y')
             GROUP BY
                 output_defects.id
         "));
@@ -128,10 +130,11 @@ class SewingToolsController extends Controller
                 LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_rejects.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
+                AND (master_plan.cancel IS NULL OR master_plan.cancel != 'Y')
             GROUP BY
                 output_rejects.id
         "));
@@ -863,7 +866,15 @@ class SewingToolsController extends Controller
         $department = 'packing_po';
 
         if ($ids) {
-            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+
+            // Master Plan Cancel
+            if ($restoreData->contains(fn ($restore) => $restore->plan_cancel == 'Y')) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Data tidak dapat direstore karena master plan sudah di-cancel.',
+                ], 400);
+            }
 
             $rft = [];
             $rftNds = [];
@@ -3144,6 +3155,7 @@ class SewingToolsController extends Controller
                     "man_power" => $masterPlan->man_power,
                     "plan_target" => $masterPlan->plan_target,
                     "sewing_line" => $lineTo,
+                    "cancel" => "N",
                 ]);
 
                 if ($newMasterPlan) {
@@ -3715,7 +3727,7 @@ class SewingToolsController extends Controller
                     $rfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept." as output_rfts")
                         ->select("output_rfts.*")
                         ->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id");
-                        
+
                     if ($request->dept == "_packing_po") {
                         $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by_line")
                             ->leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts.po_id");
@@ -5202,11 +5214,19 @@ class SewingToolsController extends Controller
 
         if ($ids) {
             if ($department == "packing_po") {
-                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
             } else if ($department == "packing") {
-                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.id in (".$ids.")")->get();
+                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.id in (".$ids.")")->get();
             } else {
-                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.id in (".$ids.")")->get();
+                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.id in (".$ids.")")->get();
+            }
+
+            // Master Plan Cancel
+            if ($restoreData->contains(fn ($restore) => $restore->plan_cancel == 'Y')) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat direstore karena master plan sudah di-cancel."
+                ];
             }
 
             $rft = [];
@@ -5701,12 +5721,20 @@ class SewingToolsController extends Controller
 
         if ($kodeNumbering) {
             if ($department == "packing_po") {
-                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing_po.kode_numbering")->get();
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing_po.kode_numbering")->get();
             } else if ($department == "packing") {
-                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.kode_numbering is not null and output_undo_packing.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing.kode_numbering")->get();
+                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.kode_numbering is not null and output_undo_packing.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing.kode_numbering")->get();
             } else {
-                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.kode_numbering is not null and output_undo.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo.kode_numbering")->get();
+                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.kode_numbering is not null and output_undo.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo.kode_numbering")->get();
             }
+            // Master Plan Cancel
+            if ($restoreData->contains(fn ($restore) => $restore->plan_cancel == 'Y')) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat direstore karena master plan sudah di-cancel."
+                ];
+            }
+
             $rft = [];
             $rftNds = [];
             $defect = [];
@@ -6768,10 +6796,11 @@ class SewingToolsController extends Controller
                     LEFT JOIN master_plan   ON master_plan.id         = $table.master_plan_id
                     WHERE $table.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
                         AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.sewing_line != $lineSelect OR master_plan.id IS NULL)
+                        AND (master_plan.cancel IS NULL OR master_plan.cancel != 'Y')
                         $lineFilter
                     GROUP BY $table.id
                 ) output
-                LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
+                LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan AND (actual.cancel IS NULL OR actual.cancel != 'Y')
                 LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
                 LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
                 LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
