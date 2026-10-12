@@ -171,44 +171,45 @@ class TransferOutput extends Component
         // if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->kodeNumbering) {
                 $output = DB::table("year_sequence")->selectRaw("
-                    year_sequence.id,
-                    year_sequence.id_year_sequence,
-                    year_sequence.so_det_id,
-                    act_costing.id id_ws,
-                    so_det.color,
-                    so_det.size,
-                    so_det.dest
-                ")->
-                leftJoin("signalbit_erp.so_det", "so_det.id", "=", "year_sequence.so_det_id")->
-                leftJoin("signalbit_erp.so", "so.id", "=", "so_det.id_so")->
-                leftJoin("signalbit_erp.act_costing", "act_costing.id", "=","so.id_cost")->
-                whereRaw("year_sequence.id_year_sequence in (".$newKodeNumbering.")")->
-                groupBy("year_sequence.id")->
-                get();
+                        year_sequence.id,
+                        year_sequence.id_year_sequence,
+                        year_sequence.so_det_id,
+                        act_costing.id id_ws,
+                        so_det.color,
+                        so_det.size,
+                        so_det.dest
+                    ")->
+                    leftJoin("signalbit_erp.so_det", "so_det.id", "=", "year_sequence.so_det_id")->
+                    leftJoin("signalbit_erp.so", "so.id", "=", "so_det.id_so")->
+                    leftJoin("signalbit_erp.act_costing", "act_costing.id", "=","so.id_cost")->
+                    whereRaw("year_sequence.id_year_sequence in (".$newKodeNumbering.")")->
+                    groupBy("year_sequence.id")->
+                    get();
 
                 $this->toSoDet = MasterPlan::selectRaw("
-                    so_det.id,
-                    so_det.color,
-                    so_det.size,
-                    so_det.dest
-                ")->
-                leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-                leftJoin("so", "so.id_cost", "=", "act_costing.id")->
-                leftJoin("so_det", "so_det.id_so", "=", "so.id")->
-                whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-                whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
-                whereRaw("so_det.color = master_plan.color")->
-                groupBy("so_det.id")->
-                get();
+                        so_det.id,
+                        so_det.color,
+                        so_det.size,
+                        so_det.dest
+                    ")->
+                    leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                    leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                    leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                    whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                    whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
+                    whereRaw("so_det.color = master_plan.color")->
+                    whereRaw("(master_plan.cancel IS NULL OR master_plan.cancel != 'Y')")->
+                    groupBy("so_det.id")->
+                    get();
 
                 $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
-                    user_sb_wip.id,
-                    userpassword.username
-                ")->
-                leftJoin("user_sb_wip", "user_sb_wip.line_id", "=", "userpassword.line_id")->
-                where("userpassword.username", $this->toLine)->
-                orderBy("user_sb_wip.id", "desc")->
-                first();
+                        user_sb_wip.id,
+                        userpassword.username
+                    ")->
+                    leftJoin("user_sb_wip", "user_sb_wip.line_id", "=", "userpassword.line_id")->
+                    where("userpassword.username", $this->toLine)->
+                    orderBy("user_sb_wip.id", "desc")->
+                    first();
 
                 $messageSuccess = "";
                 $messageNotFound = "";
@@ -283,6 +284,7 @@ class TransferOutput extends Component
                                     ->where("tgl_plan", $this->toDate)
                                     ->where("id_ws", $rft->id_ws)
                                     ->where("color", $rft->color)
+                                    ->whereRaw("(master_plan.cancel IS NULL OR master_plan.cancel != 'Y')")
                                     ->first();
 
                                 if ($masterPlanRft) {
@@ -322,6 +324,7 @@ class TransferOutput extends Component
                                     ->where("tgl_plan", $this->toDate)
                                     ->where("id_ws", $defect->id_ws)
                                     ->where("color", $defect->color)
+                                    ->whereRaw("(master_plan.cancel IS NULL OR master_plan.cancel != 'Y')")
                                     ->first();
 
                                 if ($masterPlanDefect) {
@@ -361,6 +364,7 @@ class TransferOutput extends Component
                                     ->where("tgl_plan", $this->toDate)
                                     ->where("id_ws", $reject->id_ws)
                                     ->where("color", $reject->color)
+                                    ->whereRaw("(master_plan.cancel IS NULL OR master_plan.cancel != 'Y')")
                                     ->first();
 
                                 if ($masterPlanReject) {
