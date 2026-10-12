@@ -514,7 +514,7 @@ class InvoiceEximController extends Controller
                LEFT JOIN mastersupplier cb ON cb.Id_Supplier = b.id_customer
                LEFT JOIN tbl_type t        ON t.id           = b.id_type
               WHERE b.id = ?
-                AND b.shipp = ?
+                AND " . $this->kolomShipp() . " = ?
                 AND UPPER(b.status) <> 'CANCEL'
                 -- Invoice yang dibuat dari WS saja belum punya baris SJ.
                 AND (EXISTS (SELECT 1 FROM " . self::TABEL_DET . " d WHERE d.id_book_invoice = b.id)"
@@ -1746,7 +1746,7 @@ class InvoiceEximController extends Controller
                LEFT JOIN mastersupplier cs ON cs.Id_Supplier = b.id_customer_ship
                LEFT JOIN tbl_type t        ON t.id           = b.id_type
               WHERE b.id = ?
-                AND b.shipp = ?
+                AND " . $this->kolomShipp() . " = ?
                 AND EXISTS (SELECT 1 FROM " . self::TABEL_DET . " d WHERE d.id_book_invoice = b.id)
               LIMIT 1",
             array($id, self::SHIPP_LOCAL)
@@ -3173,7 +3173,7 @@ class InvoiceEximController extends Controller
                   FROM tbl_book_invoice b
                  INNER JOIN " . self::TABEL_EXP_H . " h ON h.id_book_invoice = b.id
                   LEFT JOIN tbl_type t ON t.id = b.id_type
-                 WHERE b.id = ? AND b.shipp = ?";
+                 WHERE b.id = ? AND " . $this->kolomShipp() . " = ?";
         if ($tolakCancel) {
             $sql .= " AND UPPER(b.status) <> 'CANCEL'";
         }
@@ -3884,7 +3884,7 @@ class InvoiceEximController extends Controller
              . ")";
         $bind = array($id);
         if ($shipp !== null) {
-            $sql .= " AND b.shipp = ?";
+            $sql .= " AND " . $this->kolomShipp() . " = ?";
             $bind[] = $shipp;
         }
         $h = $this->koneksiAr()->select($sql . " LIMIT 1", $bind);
@@ -5522,6 +5522,30 @@ class InvoiceEximController extends Controller
         return $iso === null ? (string) $nilai : date('j M Y', strtotime($iso));
     }
 
+    /**
+     * Local atau Export sebuah invoice - dibaca dari NOMORNYA, bukan dari
+     * kolom shipp.
+     *
+     * Nomor invoice bentuknya 0080/L/NAK/1026: ruas kedua L (Local) atau E
+     * (Export). Untuk NAK, tipe invoice masih boleh diubah sesudah nomornya
+     * terbit - yang ikut berubah cuma b.shipp, nomornya tetap. Akibatnya
+     * booking Local 0080/L/NAK/1026 pindah sendiri ke daftar Invoice Export
+     * padahal nomornya tetap /L/, dan di daftar Local-nya hilang.
+     *
+     * Kolom shipp tetap dipakai kalau nomornya BELUM ADA - booking baru - atau
+     * bentuknya lain. Tanpa itu booking yang belum bernomor hilang dari kedua
+     * daftar sekaligus.
+     *
+     * @param string $alias alias tabel tbl_book_invoice di query pemanggil
+     */
+    private function kolomShipp($alias = 'b')
+    {
+        $ruas = "UPPER(SUBSTRING_INDEX(SUBSTRING_INDEX($alias.no_invoice, '/', 2), '/', -1))";
+        return "(CASE WHEN $ruas = 'L' THEN '" . self::SHIPP_LOCAL . "'
+                      WHEN $ruas = 'E' THEN 'Export'
+                      ELSE $alias.shipp END)";
+    }
+
     private function ambilData(Request $request, $jenis)
     {
         if (!$this->tabelAda(self::TABEL_DET)) {
@@ -5561,7 +5585,7 @@ class InvoiceEximController extends Controller
                   LEFT JOIN tbl_type t        ON t.id           = b.id_type"
              . ($pakaiExport ? " LEFT JOIN " . self::TABEL_EXP_H . " h ON h.id_book_invoice = b.id" : '')
              . ($pakaiPot ? " LEFT JOIN " . self::TABEL_POT . " p ON p.id_book_invoice = b.id" : '')
-             . " WHERE b.shipp = ?
+             . " WHERE " . $this->kolomShipp() . " = ?
                    AND (EXISTS (SELECT 1 FROM " . self::TABEL_DET . " d
                                  WHERE d.id_book_invoice = b.id)"
              . ($adaTabelSo
