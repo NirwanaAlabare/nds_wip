@@ -46,6 +46,26 @@
             vertical-align: middle;
         }
 
+        #list-table .col-check,
+        .dataTables_scrollHead .col-check {
+            width: 40px;
+            min-width: 40px;
+            padding-left: .5rem !important;
+            padding-right: .5rem !important;
+            text-align: center;
+        }
+
+        .check-all-adjustment,
+        .check-adjustment {
+            float: none;
+            margin: 0 !important;
+            position: static;
+            vertical-align: middle;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
         th.search-cell {
             padding-left: .5rem !important;
             padding-right: .5rem !important;
@@ -191,6 +211,11 @@
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-danger btn-sm" id="btnCancelSelected" onclick="cancelSelected()" disabled>
+                        <i class="fa fa-times"></i> Cancel Multiple (<span id="selectedCount">0</span>)
+                    </button>
                 </div>
 
                 <!-- Button kanan -->
@@ -393,10 +418,28 @@
         // Jenis report yang sedang tampil di tabel (bukan yang sedang dipilih di dropdown)
         let currentListType;
 
+        function isClosingRow(row) {
+            return lastClosing && row.tgl_saldo_raw <= lastClosing;
+        }
+
+        function isCancelable(row) {
+            return row.status !== 'N' && !isClosingRow(row);
+        }
+
         function buildListTable(type) {
             currentListType = type;
 
             const columns = [
+                {
+                    title: '<input type="checkbox" class="form-check-input check-all-adjustment">',
+                    data: null,
+                    className: 'text-center col-check',
+                    width: '40px',
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'}>`;
+                    }
+                },
                 { title: 'Tanggal Saldo', data: 'tgl_saldo' },
                 { title: 'Jenis Report', data: 'type_report' },
                 ...listColumns[type].map(([title, data, isNumber]) => ({
@@ -420,11 +463,10 @@
                     className: 'text-center',
                     searchable: false,
                     render: function (data, type, row) {
-                        const isClosing = lastClosing && row.tgl_saldo_raw <= lastClosing;
-                        const disabled = row.status === 'N' || isClosing;
+                        const isClosing = isClosingRow(row);
 
                         return `
-                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${disabled ? 'disabled' : ''}
+                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${isCancelable(row) ? '' : 'disabled'}
                                 ${isClosing ? 'title="Periode sudah closing"' : ''}>
                                 <i class="fa fa-times"></i> Cancel
                             </button>
@@ -469,9 +511,11 @@
                 searching: true,
                 scrollY: '300px',
                 scrollX: true,
-                scrollCollapse: true,
+                scrollCollapse: false,
                 drawCallback: function () {
+                    fitTableHeight();
                     this.api().columns.adjust();
+                    updateSelectedState();
                 },
                 ajax: {
                     method: 'POST',
@@ -497,17 +541,44 @@
             });
         }
 
+        // Tinggi area scroll tabel mengikuti sisa layar sampai bawah (minimal 300px)
+        function fitTableHeight() {
+            const $body = $('#list-table').closest('.dataTables_scrollBody');
+
+            if (!$body.length) return;
+
+            const reserved = 110; // info "Showing ..." + padding card + footer
+            const height = Math.max(300, window.innerHeight - $body.offset().top - reserved);
+
+            $body.css({ 'height': height + 'px', 'max-height': height + 'px' });
+        }
+
+        $(window).on('resize', function () {
+            fitTableHeight();
+            listTable?.columns.adjust();
+        });
+
         buildListTable($('#type_report_filter').val());
 
-        // Cancel 1 baris gabungan (semua type_report di baris itu jadi status N)
-        $('#list-table').on('click', '.btn-cancel-adjustment', function () {
-            const row = listTable.row($(this).closest('tr')).data();
+        // Data yang dikirim per baris gabungan (semua type_report di baris itu jadi status N)
+        function cancelPayload(row) {
+            return {
+                id: row.id,
+                tgl_saldo: row.tgl_saldo_raw,
+                no_ws: row.no_ws,
+                buyer: row.buyer,
+                style: row.style,
+                color: row.color,
+                size: row.size,
+                panel: row.panel,
+                part: row.part,
+            };
+        }
 
+        function cancelAdjustment(rows, html) {
             Swal.fire({
                 title: 'Cancel Adjustment?',
-                html: currentListType === 'CUTTING_FABRIC'
-                    ? `WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
-                    : `WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>Tanggal saldo ${row.tgl_saldo}`,
+                html: html,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, cancel',
@@ -524,15 +595,7 @@
                     },
                     data: {
                         type_report: currentListType,
-                        id: row.id,
-                        tgl_saldo: row.tgl_saldo_raw,
-                        no_ws: row.no_ws,
-                        buyer: row.buyer,
-                        style: row.style,
-                        color: row.color,
-                        size: row.size,
-                        panel: row.panel,
-                        part: row.part,
+                        rows: rows.map(cancelPayload),
                     },
                     beforeSend: function () {
                         showLoading();
@@ -553,7 +616,49 @@
                     }
                 });
             });
+        }
+
+        // Cancel 1 baris
+        $('#list-table').on('click', '.btn-cancel-adjustment', function () {
+            const row = listTable.row($(this).closest('tr')).data();
+
+            cancelAdjustment([row], currentListType === 'CUTTING_FABRIC'
+                ? `WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
+                : `WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>Tanggal saldo ${row.tgl_saldo}`);
         });
+
+        // Multi cancel: baris yang diceklis
+        function getSelectedRows() {
+            return $('#list-table .check-adjustment:checked').map(function () {
+                return listTable.row($(this).closest('tr')).data();
+            }).get();
+        }
+
+        function updateSelectedState() {
+            const $checks = $('#list-table .check-adjustment:not(:disabled)');
+            const selected = $checks.filter(':checked').length;
+
+            $('#selectedCount').text(selected);
+            $('#btnCancelSelected').prop('disabled', selected === 0);
+            $('.check-all-adjustment')
+                .prop('checked', $checks.length > 0 && selected === $checks.length)
+                .prop('indeterminate', selected > 0 && selected < $checks.length);
+        }
+
+        $(document).on('change', '.check-all-adjustment', function () {
+            $('#list-table .check-adjustment:not(:disabled)').prop('checked', this.checked);
+            updateSelectedState();
+        });
+
+        $('#list-table').on('change', '.check-adjustment', updateSelectedState);
+
+        function cancelSelected() {
+            const rows = getSelectedRows();
+
+            if (!rows.length) return;
+
+            cancelAdjustment(rows, `<b>${rows.length}</b> data terpilih akan dicancel.`);
+        }
 
         function listTableReload() {
             const type = $('#type_report_filter').val();

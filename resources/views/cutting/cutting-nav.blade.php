@@ -38,12 +38,14 @@
                     Piping <i class="fa-solid fa-paperclip"></i>
                 </a>
             </li>
+            @strictmeja
             <li>
                 <a href="{{ route('cutting-switching') }}"
                     class="dropdown-item {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
                     Switching <i class="fa-solid fa-shuffle"></i>
                 </a>
             </li>
+            @endstrictmeja
         </ul>
     </li>
 
