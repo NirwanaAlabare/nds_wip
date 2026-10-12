@@ -711,8 +711,10 @@ class WipAdjustmentController extends Controller
         }
 
         $connection = $type == 'CUTTING_FABRIC' ? 'mysql' : $this->connection($type);
+        $username = Auth::user()->username;
+        $now = now();
 
-        $updated = DB::connection($connection)->transaction(function () use ($connection, $type, $rows) {
+        $updated = DB::connection($connection)->transaction(function () use ($connection, $type, $rows, $username, $now) {
             $updated = 0;
 
             foreach ($rows as $row) {
@@ -736,7 +738,11 @@ class WipAdjustmentController extends Controller
                     }
                 }
 
-                $updated += $query->update(['status' => 'N']);
+                $updated += $query->update([
+                    'status'     => 'N',
+                    'updated_by' => $username,
+                    'updated_at' => $now,
+                ]);
             }
 
             return $updated;
