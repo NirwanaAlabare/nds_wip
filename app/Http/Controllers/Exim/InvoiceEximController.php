@@ -335,8 +335,8 @@ class InvoiceEximController extends Controller
     }
 
     /**
-     * Baris SO garment, diringkas per WS + warna. Kolomnya sengaja senama
-     * dengan baris SJ:
+     * Baris SO garment, diringkas per WS + warna + satuan. Kolomnya sengaja
+     * senama dengan baris SJ:
      *
      *   no_so, ws, styleno, product_group, product_item, color, size,
      *   curr, uom, qty, unit_price, total_price
@@ -350,9 +350,10 @@ class InvoiceEximController extends Controller
      */
     private function wsGarment($tglAwal, $tglAkhir, $buyer, array $idBaris = array(), array $ws = array())
     {
-        // Satu baris = satu WS + satu WARNA. Size sengaja digabung: yang ditagih
-        // per warna, dan qty-nya pun diketik ulang (pengiriman bisa sebagian),
-        // jadi rincian per size tidak menambah apa-apa selain baris.
+        // Satu baris = satu WS + satu WARNA + satu SATUAN. Size sengaja
+        // digabung: yang ditagih per warna, dan qty-nya pun diketik ulang
+        // (pengiriman bisa sebagian), jadi rincian per size tidak menambah
+        // apa-apa selain baris.
         //
         // Harga satuannya dihitung dari nilai / qty - kalau size besar lebih
         // mahal, totalnya tetap persis jumlah nilai SO-nya.
@@ -398,9 +399,16 @@ class InvoiceEximController extends Controller
             $bind = array_merge($bind, array_values($idBaris));
         }
 
-        // Satu baris = satu WS + satu WARNA. Size sengaja digabung: yang ditagih
-        // per warna, dan qty-nya pun diketik ulang (pengiriman bisa sebagian),
-        // jadi rincian per size tidak menambah apa-apa selain baris.
+        // Satu baris = satu WS + satu WARNA + satu SATUAN. Size sengaja
+        // digabung: yang ditagih per warna, dan qty-nya pun diketik ulang
+        // (pengiriman bisa sebagian), jadi rincian per size tidak menambah
+        // apa-apa selain baris.
+        //
+        // SATUANNYA ikut mengelompokkan, karena satu WS + warna bisa punya
+        // baris SO bersatuan berbeda - mis. 22 PCS strike off + 2 YRD kain.
+        // Tanpa itu keduanya menyatu jadi satu baris qty 24 dengan satuan
+        // diambil MAX(uom): PCS ditambah YRD, dan yang satu lagi hilang dari
+        // layar.
         //
         // Harga satuannya nilai / qty - kalau size besar lebih mahal, totalnya
         // tetap persis jumlah nilai SO-nya.
@@ -426,8 +434,8 @@ class InvoiceEximController extends Controller
                        MAX(x.so_date) AS so_date,
                        MAX(x.service_charge) AS service_charge
                   FROM ($dalam) AS x
-              GROUP BY x.ws, x.color
-              ORDER BY x.ws, x.color";
+              GROUP BY x.ws, x.color, x.uom
+              ORDER BY x.ws, x.color, x.uom";
 
         return $this->baris($this->koneksiAr()->select($sql, $bind), 'WS');
     }
@@ -1748,10 +1756,15 @@ class InvoiceEximController extends Controller
             return response()->json(array('status' => false, 'pesan' => 'Invoice not found.'), 404);
         }
 
+        // Nilai tagih knitting ikut dikirim - panel detail harus memperlihatkan
+        // angka yang sama dengan layar Create/Edit dan cetakannya.
+        $tagih = $this->kolomAda(self::TABEL_DET, 'uom_tagih')
+            ? ", uom_tagih, qty_tagih, unit_price_tagih, total_price_tagih" : "";
+
         $baris = $db->select(
             "SELECT asal, so_number, bppb_number, sj_date, shipp_number, ws, styleno,
                     product_group, product_item, color, size, curr, uom,
-                    qty, unit_price, disc, total_price
+                    qty, unit_price, disc, total_price" . $tagih . "
                FROM " . self::TABEL_DET . "
               WHERE id_book_invoice = ?
               ORDER BY id",
@@ -1765,11 +1778,20 @@ class InvoiceEximController extends Controller
             array($id)
         );
 
+        // Ringkasan nilai tagih - cuma ada untuk invoice knitting.
+        $potTagih = $this->tabelAda(self::TABEL_POT_TAGIH)
+            ? $db->select(
+                "SELECT total, discount, dp, dp_cbd, retur, twot, vat_persen, vat, grand_total
+                   FROM " . self::TABEL_POT_TAGIH . " WHERE id_book_invoice = ? LIMIT 1",
+                array($id))
+            : array();
+
         return response()->json(array(
-            'status' => true,
-            'header' => (array) $header[0],
-            'baris'  => array_map(function ($r) { return (array) $r; }, $baris),
-            'pot'    => $pot ? (array) $pot[0] : null,
+            'status'    => true,
+            'header'    => (array) $header[0],
+            'baris'     => array_map(function ($r) { return (array) $r; }, $baris),
+            'pot'       => $pot ? (array) $pot[0] : null,
+            'pot_tagih' => $potTagih ? (array) $potTagih[0] : null,
         ));
     }
 

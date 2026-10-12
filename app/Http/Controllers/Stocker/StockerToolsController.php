@@ -446,13 +446,17 @@ class StockerToolsController extends Controller
         ]);
 
         $file = $request->file('file');
-        $nama_file = rand() . $file->getClientOriginalName();
+        $nama_file = rand() . '_' . $file->getClientOriginalName();
         $file->move('file_upload', $nama_file);
 
+        // 1. Mulai Transaksi Database
+        DB::beginTransaction();
+
         try {
-            DB::transaction(function () use ($nama_file) {
-                Excel::import(new ImportStockerManual, public_path('/file_upload/' . $nama_file));
-            });
+            Excel::import(new ImportStockerManual, public_path('/file_upload/' . $nama_file));
+
+            // 2. Commit jika semua baris berhasil tanpa error
+            DB::commit();
 
             return [
                 "status" => 200,
@@ -460,9 +464,12 @@ class StockerToolsController extends Controller
                 "additional" => [],
             ];
         } catch (\Throwable $e) {
+            // 3. Rollback SEMUA data jika ada 1 saja baris/proses yang error
+            DB::rollBack();
+
             return [
                 "status" => 400,
-                "message" => 'Terjadi Kesalahan '.$e->getMessage(),
+                "message" => 'Terjadi Kesalahan: ' . $e->getMessage(),
                 "additional" => $e->getTrace(),
             ];
         }

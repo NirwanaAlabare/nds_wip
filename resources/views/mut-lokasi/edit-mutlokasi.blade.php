@@ -263,7 +263,8 @@ $('#txt_tgl_mut_icon').on('click', function () {
 
 
 // === ambil data barcode
-function getdatabarcode(no_barcode = null) {
+// silent: dipakai saat Multi Barcode, notifikasi dikumpulkan jadi satu di akhir
+function getdatabarcode(no_barcode = null, silent = false) {
     let barcode = no_barcode ?? $('#txt_barcode').val();
 
     if (!barcode) return Promise.resolve({ status: 'skip' });
@@ -276,12 +277,14 @@ function getdatabarcode(no_barcode = null) {
         dataType: 'json'
     }).then(function (res) {
         if (!res || res.length === 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Data Barcode ' + barcode + ' tidak ditemukan!'
-            });
-            resetBarcodeInputs();
+            if (!silent) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Data Barcode ' + barcode + ' tidak ditemukan!'
+                });
+                resetBarcodeInputs();
+            }
             return { status: 'notfound', barcode };
         }
 
@@ -289,26 +292,50 @@ function getdatabarcode(no_barcode = null) {
         return { status: 'ok', barcode, rawData: res };
     }).catch(function (xhr, status, error) {
         console.error("AJAX Error:", status, error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal koneksi ke server!' });
-        resetBarcodeInputs();
+        if (!silent) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal koneksi ke server!' });
+            resetBarcodeInputs();
+        }
         return { status: 'error', barcode, msg: error };
     });
 }
 
 
 // === simpan data barcode
-function savedatabarcode(data) {
+// Selalu resolve dengan respons server (tidak pernah reject), supaya Multi Barcode bisa melaporkan hasil per barcode.
+// status 200 = masuk daftar (result 'saved' / 'exists'), selain itu tidak ditambahkan (mis. masih di draft user lain).
+function savedatabarcode(data, silent = false) {
     return $.ajax({
         url: '{{ route("simpan-scan-barcode-mutasi") }}',
         type: 'GET',
         dataType: 'json',
         data: data,
-        success: function(res) {
-            if (res?.status == 200) {
-                dataTableReload();
-                resetBarcodeInputs();
-            }
+    }).then(function(res) {
+        if (res?.status == 200) {
+            dataTableReload();
+            resetBarcodeInputs();
+        } else if (!silent) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Barcode ' + data.no_barcode + ' tidak ditambahkan',
+                text: res?.message || 'Gagal menyimpan barcode.'
+            });
+            resetBarcodeInputs();
         }
+
+        return res;
+    }, function(xhr) {
+        let res = {
+            status: xhr.status || 500,
+            message: (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barcode.'
+        };
+
+        if (!silent) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+            resetBarcodeInputs();
+        }
+
+        return res;
     });
 }
 
@@ -409,10 +436,10 @@ $('#btnSendBarcode').on('click', function () {
         let results = [];
 
         for (let bc of barcodes) {
-            let res = await getdatabarcode(bc);
+            let res = await getdatabarcode(bc, true);
             if (res.status === 'ok' && res.rawData) {
                 let d = res.rawData;
-                await savedatabarcode({
+                let saved = await savedatabarcode({
                     lokasi_tujuan: lokasi_tujuan,
                     no_barcode: d.no_barcode,
                     qty: d.qty,
@@ -427,26 +454,56 @@ $('#btnSendBarcode').on('click', function () {
                     itemdesc: d.itemdesc,
                     no_ws: d.no_ws,
                     no_dok: d.no_dok
-                });
-                results.push({ status: 'success', barcode: bc });
+                }, true);
+
+                // Hanya dianggap berhasil kalau server benar-benar memasukkan barcode ke daftar
+                if (saved?.status == 200 && saved.result === 'exists') {
+                    results.push({ status: 'exists', barcode: bc });
+                } else if (saved?.status == 200) {
+                    results.push({ status: 'success', barcode: bc });
+                } else {
+                    results.push({ status: 'failed', barcode: bc, message: saved?.message || 'Gagal menyimpan barcode.' });
+                }
             } else {
                 results.push(res);
             }
         }
 
         Swal.close();
-
-        let success = results.filter(r => r.status === 'success').map(r => r.barcode);
-        let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
-
-        let msg = "";
-        if (success.length) msg += "✅ Berhasil: " + success.join(", ") + "<br>";
-        if (notfound.length) msg += "❌ Tidak ditemukan: " + notfound.join(", ") + "<br>";
-
-        Swal.fire({ icon: 'info', title: 'Hasil Proses', html: msg });
         $('#txt_barcodes').val('');
+        Swal.fire({
+            icon: results.some(r => r.status !== 'success' && r.status !== 'exists') ? 'warning' : 'success',
+            title: 'Hasil Proses',
+            html: batchResultHtml(results),
+        });
     })();
 });
+
+// Ringkasan hasil Multi Barcode, barcode yang gagal dikelompokkan per alasan (mis. per pemilik draft)
+function batchResultHtml(results) {
+    let esc = (text) => $('<div>').text(text).html();
+    let list = (status) => results.filter(r => r.status === status).map(r => r.barcode);
+    let line = (icon, label, barcodes) => barcodes.length
+        ? `<div class="mb-2">${icon} <b>${label} (${barcodes.length})</b><br>${esc(barcodes.join(', '))}</div>`
+        : '';
+
+    let failedByReason = {};
+    results.filter(r => r.status === 'failed').forEach(r => {
+        (failedByReason[r.message] = failedByReason[r.message] || []).push(r.barcode);
+    });
+
+    let html = line('✅', 'Berhasil ditambahkan', list('success'))
+        + line('ℹ️', 'Sudah ada di daftar', list('exists'));
+
+    Object.keys(failedByReason).forEach(reason => {
+        html += line('⛔', 'Tidak ditambahkan - ' + esc(reason), failedByReason[reason]);
+    });
+
+    html += line('❌', 'Tidak ditemukan / stok kosong', list('notfound'))
+        + line('⚠️', 'Gagal koneksi', list('error'));
+
+    return `<div class="text-start" style="font-size:.9rem">${html}</div>`;
+}
 
 function GantilokasiTujuan(){
     let lokasi_tujuan = $('#txt_lokasi_tujuan').val().trim();
