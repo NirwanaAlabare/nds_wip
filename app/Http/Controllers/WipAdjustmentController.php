@@ -136,7 +136,7 @@ class WipAdjustmentController extends Controller
             'qty' => [
                 'qty cutting' => 'cutting',
             ],
-            'required' => ['no_ws', 'buyer', 'style', 'color', 'size', 'panel', 'part'],
+            'required' => ['no_ws', 'buyer', 'style', 'color', 'size', 'panel'],
             'type_map' => [
                 'cutting' => 'CUTTING',
             ],
@@ -268,7 +268,9 @@ class WipAdjustmentController extends Controller
             $item['tgl_saldo'] = $tglSaldo;
 
             foreach ($template['text'] as $field) {
-                $item[$field] = trim((string) ($row[$index[$field]] ?? ''));
+                $value = trim((string) ($row[$index[$field]] ?? ''));
+
+                $item[$field] = $value === '' && !in_array($field, $template['required']) ? null : $value;
             }
 
             foreach ($template['required'] as $field) {

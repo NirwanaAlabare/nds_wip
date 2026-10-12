@@ -511,8 +511,9 @@
                 searching: true,
                 scrollY: '300px',
                 scrollX: true,
-                scrollCollapse: true,
+                scrollCollapse: false,
                 drawCallback: function () {
+                    fitTableHeight();
                     this.api().columns.adjust();
                     updateSelectedState();
                 },
@@ -539,6 +540,23 @@
                 ]
             });
         }
+
+        // Tinggi area scroll tabel mengikuti sisa layar sampai bawah (minimal 300px)
+        function fitTableHeight() {
+            const $body = $('#list-table').closest('.dataTables_scrollBody');
+
+            if (!$body.length) return;
+
+            const reserved = 110; // info "Showing ..." + padding card + footer
+            const height = Math.max(300, window.innerHeight - $body.offset().top - reserved);
+
+            $body.css({ 'height': height + 'px', 'max-height': height + 'px' });
+        }
+
+        $(window).on('resize', function () {
+            fitTableHeight();
+            listTable?.columns.adjust();
+        });
 
         buildListTable($('#type_report_filter').val());
 
