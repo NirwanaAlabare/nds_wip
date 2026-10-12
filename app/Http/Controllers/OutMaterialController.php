@@ -818,7 +818,9 @@ class OutMaterialController extends Controller
                 'no_po_subkon' => $request['txt_po_sub'],
             ]);
 
-            $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.np_curr, a.np_tgl_in, a.np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at,np_curr,np_tgl_in,np_price from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN (select a.* from whs_lokasi_inmaterial a INNER JOIN data_stock_fabric b on b.no_barcode = a.no_barcode and b.kode_lok = a.kode_lok) b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
+            // no_roll_buyer: data penerimaan (b) hanya ketemu kalau roll masih di rak penerimaan GK/IN.
+            // Roll yang sudah dipindah lewat Mutasi Lokasi tidak ketemu, jadi ambil dari data penerimaan barcode itu (rak mana pun).
+            $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, COALESCE(NULLIF(b.no_roll_buyer, ''), (select x.no_roll_buyer from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll and x.no_roll_buyer <> '' order by x.id limit 1)) no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.np_curr, a.np_tgl_in, a.np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at,np_curr,np_tgl_in,np_price from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN (select a.* from whs_lokasi_inmaterial a INNER JOIN data_stock_fabric b on b.no_barcode = a.no_barcode and b.kode_lok = a.kode_lok) b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
             $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
             $qtyReqChanged = false;
@@ -1775,6 +1777,7 @@ public function pdfoutmaterial(Request $request, $id)
                         "no_rak" => $request["rak"][$i] ?? null,
                         "no_lot" => $request["no_lot"][$i] ?? null,
                         "no_roll" => $request["no_roll"][$i] ?? null,
+                        "no_roll_buyer" => $no_roll_buyer,
                         "item_desc" => $request["itemdesc"][$i] ?? null,
                         "qty_stok" => $request["qty_stok"][$i] ?? null,
                         "satuan" => $request["unit"][$i] ?? null,
@@ -1915,6 +1918,7 @@ public function pdfoutmaterial(Request $request, $id)
                             "no_rak" => $request["rak"][$key] ?? null,
                             "no_lot" => $request["no_lot"][$key] ?? null,
                             "no_roll" => $request["no_roll"][$key] ?? null,
+                            "no_roll_buyer" => $no_roll_buyer,
                             "item_desc" => $request["itemdesc"][$key] ?? null,
                             "qty_stok" => $request["qty_stok"][$key] ?? null,
                             "satuan" => $request["unit"][$key] ?? null,
