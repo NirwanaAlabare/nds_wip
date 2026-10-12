@@ -5109,8 +5109,8 @@ class InvoiceEximController extends Controller
                        i.kode_so AS no_so, a.no_bppb AS sj, a.tgl_bppb AS bppbdate,
                        a.no_bppb AS shipping_number, c.nama_kain AS product_item,
                        i.currency AS curr,
-                       MAX(b.unit) AS uom, SUM(b.qty) AS qty,
-                       MAX(COALESCE(e.harga, 0)) AS harga,
+                       b.unit AS uom, b.qty AS qty,
+                       COALESCE(e.harga, 0) AS harga,
                        -- id SO, bukan kodenya: baris OFC pun menyimpan id, dan
                        -- kolom id_so memang angka.
                        i.id AS id_so, a.id AS id_bppb, b.id_item AS kain_id,
@@ -5125,15 +5125,33 @@ class InvoiceEximController extends Controller
                   INNER JOIN gp_out_greige_barcode b ON b.out_greige_id = a.id
                   INNER JOIN master_kain c ON c.id = b.id_item
                   INNER JOIN sales_orders i ON i.kode_so = a.no_so
-                  INNER JOIN detail_so e ON e.sales_order_id = i.id
-                                        AND e.master_kain_id = b.id_item
-                  INNER JOIN master_tujuan_pengiriman mtp ON mtp.tujuan_pengiriman = a.tujuan
-                  INNER JOIN master_konsumen mk ON mk.id = mtp.id_konsumen
+                  -- LATERAL ... LIMIT 1, bukan JOIN biasa: barcode greige TIDAK
+                  -- menyimpan id detail SO (barcode OFC menyimpannya), jadi
+                  -- harganya dicari lewat SO + kain. Satu kain bisa punya
+                  -- beberapa baris detail SO - warna berbeda - dan nama tujuan
+                  -- pengiriman pun bisa terdaftar lebih dari sekali. Dengan JOIN
+                  -- biasa satu barcode berlipat sebanyak pasangan yang ketemu,
+                  -- dan qty-nya ikut dijumlahkan berkali-kali. Diambil satu
+                  -- saja, yang harganya tertinggi - sama dengan pilihan MAX().
+                  INNER JOIN LATERAL (
+                      SELECT ds.harga
+                        FROM detail_so ds
+                       WHERE ds.sales_order_id = i.id
+                         AND ds.master_kain_id = b.id_item
+                    ORDER BY ds.harga DESC NULLS LAST, ds.id
+                       LIMIT 1
+                  ) e ON TRUE
+                  INNER JOIN LATERAL (
+                      SELECT k.kode_konsumen
+                        FROM master_tujuan_pengiriman mtp
+                  INNER JOIN master_konsumen k ON k.id = mtp.id_konsumen
+                       WHERE mtp.tujuan_pengiriman = a.tujuan
+                    ORDER BY mtp.id
+                       LIMIT 1
+                  ) mk ON TRUE
                  WHERE a.status_inv IS NULL
                    AND a.tipe_pengeluaran = 'Penjualan'
                    AND a.tgl_bppb BETWEEN ? AND ?" . $saring . "
-                 GROUP BY b.id, i.kode_so, a.no_bppb, a.tgl_bppb, c.nama_kain,
-                          i.currency, i.id, a.id, b.id_item, i.po_konsumen, i.po_buyer
               ) x
              GROUP BY kain_id, harga, sj
              ORDER BY MIN(sj) ASC";
