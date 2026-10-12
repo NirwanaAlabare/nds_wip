@@ -177,6 +177,8 @@ use App\Http\Controllers\ReportBc\ReportBcController;
 use App\Http\Controllers\ReportBc\DashboardReportBcController;
 use App\Http\Controllers\FGStokPenerimaanPackingController;
 use App\Http\Controllers\WipAdjustmentController;
+use App\Http\Controllers\PackingOutScanController;
+use App\Http\Controllers\PackingListController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -824,6 +826,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
         Route::get('/stok_temporary_transfer_garment', 'stok_temporary_transfer_garment')->name('stok-temporary-transfer-garment');
         Route::get('/get_stok_temporary_count', 'get_stok_temporary_count')->name('get_stok_temporary_count');
+        Route::get('/export_excel_stok_temporary', 'export_excel_stok_temporary')->name('export_excel_stok_temporary');
         Route::post('/get_ws_trf_garment_temporary', 'get_ws_trf_garment_temporary')->name('get_ws_trf_garment_temporary');
         Route::post('/get_color_trf_garment_temporary', 'get_color_trf_garment_temporary')->name('get_color_trf_garment_temporary');
         Route::post('/get_size_trf_garment_temporary', 'get_size_trf_garment_temporary')->name('get_size_trf_garment_temporary');
@@ -875,6 +878,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/getcolor_packing_out_kirim_gudang_stok', 'getcolor_packing_out_kirim_gudang_stok')->name('getcolor_packing_out_kirim_gudang_stok');
         Route::post('/getsize_packing_out_kirim_gudang_stok', 'getsize_packing_out_kirim_gudang_stok')->name('getsize_packing_out_kirim_gudang_stok');
         Route::post('/getqty_packing_out_kirim_gudang_stok', 'getqty_packing_out_kirim_gudang_stok')->name('getqty_packing_out_kirim_gudang_stok');
+    });
+
+    Route::controller(PackingOutScanController::class)->prefix("packing-out-scan")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-out-scan');
+        Route::get('/create', 'create')->name('create-packing-out-scan');
+        Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
+        Route::post('/store', 'store')->name('store-packing-out-scan');
+        Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
+    });
+
+    Route::controller(PackingListController::class)->prefix("packing-list")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-list-karton');
+        Route::get('/create', 'create')->name('create-packing-list-karton');
+        Route::get('/get_po_detail', 'get_po_detail')->name('get-po-detail-packing-list-karton');
+        Route::get('/show_preview_packing_list', 'show_preview_packing_list')->name('show_preview_packing_list');
     });
 
     Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
