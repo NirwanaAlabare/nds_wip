@@ -1,30 +1,33 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
         :root { --costing-navy: #183f5a; --costing-border: #dce4ec; }
-        .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); }
-        .costing-crumb { background: var(--costing-navy); color: #dbe8ee; padding: 8px 10px; font-size: 10px; }
-        .costing-crumb b { color: #fff; }
+        .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); font-family: 'Poppins', sans-serif; }
+        .costing-crumb { background: var(--costing-navy); color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 16px; font-weight: 500; }
+        .costing-crumb a { color: #b4b4b4; text-decoration: none; }
+        .costing-crumb a:hover { color: #fff; text-decoration: underline; }
+        .costing-crumb b { color: #fff; font-weight: 500; }
         .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--costing-navy); font-size: 14px; font-weight: 700; }
 
-        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 8px 28px rgba(30, 41, 59, .08); background: #fff;}
-        .costing-create-card > .card-body { padding: 20px 24px; }
+        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); background: #fff;}
+        .costing-create-card > .card-body { padding: 20px 24px 32px; }
 
-        .costing-page-title { color: var(--costing-navy); font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+        .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; margin: 0 0 4px; }
         .costing-page-subtitle { color: #6c757d; font-size: 11px; margin: 0 0 20px; font-weight: 500; }
 
-        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #d7e0e8; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(24, 63, 90, .04); }
+        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #284a63; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(24, 63, 90, .16), 0 1px 2px rgba(24, 63, 90, .06); }
         .costing-section-header { margin: 0; }
         .costing-section-toggle {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; box-sizing: border-box; padding: 10px 15px;
             border: 0; border-radius: 0;
-            background: #f8fafc; color: var(--costing-navy);
-            text-align: left; font-size: 15px; font-weight: 700; appearance: none;
+            background: #f8fafc; color: #284a63;
+            text-align: left; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500; appearance: none;
         }
         .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
         .costing-section-toggle .required-mark { color: #dc3545; margin-left: 2px;}
@@ -42,7 +45,8 @@
         .costing-fields.five-columns { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
         .costing-field { min-width: 0; margin-bottom: 10px; }
-        .costing-field label { display: block; margin-bottom: 6px; color: #84909a; font-size: 11px; font-weight: 700; }
+        .costing-field label { display: block; min-height: 27px; margin-bottom: 6px; color: #ababab; font-size: 18px; }
+        .costing-create-page .costing-field label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
         .costing-field .form-control,
         .costing-field .select2-container--bootstrap4 .select2-selection { height: 36px; min-height: 36px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 12px; color: #495057; font-weight: 600;}
         .costing-field input.form-control::placeholder { color: #adb5bd; font-weight: 500; }
@@ -50,6 +54,7 @@
 
         .costing-field .select2-container { width: 100% !important; }
         .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 6px 12px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0 12px; }
         .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding-left: 0; line-height: 22px; color: #495057; font-weight: 600; }
         .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 4px; right: 5px; }
 
@@ -109,10 +114,14 @@
 
         /* ---- tab kategori ---- */
         .costing-category-tabs { display: flex; margin: 30px 0 20px; border-bottom: 1px solid #e3e8ee; overflow-x: auto; }
-        .costing-category-tab { flex: 1 1 0; min-width: 130px; padding: 11px 12px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #c3ccd5; font-size: 13px; font-weight: 700; text-align: center; white-space: nowrap; transition: color .15s ease; }
+        .costing-category-tab { flex: 0 0 auto; min-width: max-content; padding: 11px 20px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #d3d3d3; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 600; text-align: center; white-space: nowrap; transition: color .15s ease; }
         .costing-category-tab:hover { color: #6f8799; }
         .costing-category-tab:focus { outline: 0; }
-        .costing-category-tab.active { color: var(--costing-navy); border-bottom-color: var(--costing-navy); }
+        .costing-category-tab.active { color: #284a63; border-bottom-color: #284a63; }
+        .costing-next-wrap { display: flex; justify-content: flex-end; padding: 0 0 24px; }
+        .costing-next-tab { min-width: 88px; padding: 8px 20px; border: 0; border-radius: 20px; background: #ff6b00; color: #fff; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; box-shadow: 0 3px 8px rgba(30, 41, 59, .16); }
+        .costing-next-tab:hover:not(:disabled) { background: #e85f00; }
+        .costing-next-tab:disabled { cursor: not-allowed; opacity: .55; }
 
         /* ---- toolbar Add Item ---- */
         .costing-detail-toolbar { display: flex; align-items: flex-end; gap: 12px; margin: 0 0 14px; flex-wrap: wrap; }
@@ -193,7 +202,7 @@
 
         @media (max-width: 575px) {
             .costing-detail-toolbar .costing-field { width: 100%; }
-            .costing-create-card > .card-body { padding: 14px 12px; }
+            .costing-create-card > .card-body { padding: 14px 12px 26px; }
         }
         /* ===== Excel-like grid ===== */
         .costing-tab-panel table tbody td { position: relative; }
@@ -240,11 +249,11 @@
 
 @section('content')
 <div class="costing-create-page">
-    <div class="costing-crumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>Edit Costing</b></div>
-    <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a>
+    {{-- <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a> --}}
 
     <div class="card costing-create-card">
         <div class="card-body">
+            <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Edit Costing</b></div>
             <h1 class="costing-page-title">Edit Costing <span class="costing-no">{{ $costing->no_costing }}</span></h1>
             <p class="costing-page-subtitle"></p>
 
@@ -875,6 +884,9 @@
                     </div>
                 </div>
             </div>
+            <div class="costing-next-wrap">
+                <button type="button" id="costing-next-tab" class="costing-next-tab">Next</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1215,6 +1227,12 @@
             loadProductItems($('#product_group').val());
         }
 
+        const $categoryTabs = $('.costing-category-tab');
+        function updateNextTabButton() {
+            const activeIndex = $categoryTabs.index($('.costing-category-tab.active').first());
+            $('#costing-next-tab').prop('disabled', activeIndex < 0 || activeIndex >= $categoryTabs.length - 1);
+        }
+
         $('#category').on('change', function() {
             let cat = $(this).val();
             let select_item = $('#txt_item');
@@ -1224,6 +1242,7 @@
             $(`.costing-category-tab[data-category="${cat}"]`).addClass('active').attr('aria-selected', 'true');
             $('.costing-tab-panel').removeClass('active')
                 .filter(`[data-panel-category="${cat}"]`).addClass('active');
+            updateNextTabButton();
 
             if (cat === 'Other Cost') {
                 $('#txt_set, #txt_supplier, #txt_curr, #txt_unit').prop('disabled', true);
@@ -1271,6 +1290,13 @@
         $('.costing-category-tab[data-category]').on('click', function() {
             $('#category').val($(this).data('category')).trigger('change');
         });
+        $('#costing-next-tab').on('click', function() {
+            const activeIndex = $categoryTabs.index($('.costing-category-tab.active').first());
+            const nextTab = $categoryTabs.get(activeIndex + 1);
+            if (!nextTab) return;
+            nextTab.click();
+            nextTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        });
         $('#toggle-add-costing-item').on('click', function() {
             saveDetail();
         });
@@ -1279,6 +1305,7 @@
             $(this).addClass('active').attr('aria-selected', 'true');
             $('#costing-category-content').addClass('is-all-items');
             $('#txt_item, #toggle-add-costing-item').prop('disabled', true);
+            updateNextTabButton();
         });
 
         $('#category').val('Fabric').trigger('change');

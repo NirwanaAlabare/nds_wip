@@ -258,6 +258,7 @@ class Marketing_SOController extends Controller
                 'c.costing_type as type',
                 'c.type_ws as tipe_ws',
                 'c.qty_planned as planned_qty',
+                'c.deldate as delivery_date',
                 'c.unit',
                 'c.id_smode as ship_mode',
                 'sm.shipmode as ship_mode_name',
@@ -1759,7 +1760,7 @@ class Marketing_SOController extends Controller
                     (int) $id_cost,
                     'so',
                     'created',
-                    "Sales Order {$kode['so_no']} dibuat untuk PO {$no_po}.",
+                    "Sales Order {$kode['so_no']} dibuat untuk Purchase Order {$no_po}.",
                     (int) $id_so
                 );
 
@@ -1988,7 +1989,7 @@ class Marketing_SOController extends Controller
                         (int) $costingId,
                         'so',
                         'created',
-                        "Sales Order {$codes['so_no']} dibuat untuk PO {$po}.",
+                        "Sales Order {$codes['so_no']} dibuat untuk Purchase Order {$po}.",
                         (int) $idSo
                     );
                 }

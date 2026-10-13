@@ -207,9 +207,9 @@
     </div>
     <div class="card-body">
         <div class="mb-3">
-            <a href="{{ route('create-bom') }}" class="btn btn-outline-primary">
-                <i class="fas fa-plus"></i>
-                Create BOM
+            <a href="{{ route('master-costing') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right"></i>
+                Buat BOM dari Listing Costing
             </a>
         </div>
 

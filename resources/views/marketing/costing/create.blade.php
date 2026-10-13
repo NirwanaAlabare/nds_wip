@@ -1,30 +1,33 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
         :root { --costing-navy: #183f5a; --costing-border: #dce4ec; }
-        .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); }
-        .costing-crumb { background: var(--costing-navy); color: #dbe8ee; padding: 8px 10px; font-size: 10px; }
-        .costing-crumb b { color: #fff; }
+        .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); font-family: 'Poppins', sans-serif; }
+        .costing-crumb { background: var(--costing-navy); color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 16px; font-weight: 500; }
+        .costing-crumb a { color: #b4b4b4; text-decoration: none; }
+        .costing-crumb a:hover { color: #fff; text-decoration: underline; }
+        .costing-crumb b { color: #fff; font-weight: 500; }
         .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--costing-navy); font-size: 14px; font-weight: 700; }
 
-        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 8px 28px rgba(30, 41, 59, .08); background: #fff;}
-        .costing-create-card > .card-body { padding: 20px 24px; }
+        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); background: #fff;}
+        .costing-create-card > .card-body { padding: 20px 24px 32px; }
 
-        .costing-page-title { color: var(--costing-navy); font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+        .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; margin: 0 0 4px; }
         .costing-page-subtitle { color: #6c757d; font-size: 11px; margin: 0 0 20px; font-weight: 500; }
 
-        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #d7e0e8; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(24, 63, 90, .04); }
+        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #284a63; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(24, 63, 90, .16), 0 1px 2px rgba(24, 63, 90, .06); }
         .costing-section-header { margin: 0; }
         .costing-section-toggle {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; box-sizing: border-box; padding: 10px 15px;
             border: 0; border-radius: 0;
-            background: #f8fafc; color: var(--costing-navy);
-            text-align: left; font-size: 15px; font-weight: 700; appearance: none;
+            background: #f8fafc; color: #284a63;
+            text-align: left; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500; appearance: none;
         }
         .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
         .costing-section-toggle .required-mark { color: #dc3545; margin-left: 2px;}
@@ -36,21 +39,25 @@
         .section-chevron-box i { transition: transform .2s ease; }
         .costing-section-toggle[aria-expanded="false"] .section-chevron-box i { transform: rotate(180deg); }
 
-        .costing-section-body { padding: 14px 15px 4px; border-top: 1px solid #edf1f5; }
+        .costing-section-body { padding: 14px 15px 14px; border-top: 1px solid #edf1f5; }
 
         .costing-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 15px; row-gap: 10px; }
         .costing-fields.five-columns { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
         .costing-field { min-width: 0; margin-bottom: 10px; }
-        .costing-field label { display: block; margin-bottom: 6px; color: #84909a; font-size: 11px; font-weight: 700; }
+        .costing-field label { display: flex; align-items: flex-start; min-height: 27px; margin-bottom: 6px; color: #ababab; font-size: 18px; }
+        .costing-create-page .costing-field label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
         .costing-field .form-control,
-        .costing-field .select2-container--bootstrap4 .select2-selection { height: 36px; min-height: 36px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 12px; color: #495057; font-weight: 600;}
+        .costing-field .select2-container--bootstrap4 .select2-selection { height: 44px; min-height: 44px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 12px; color: #495057; font-weight: 600; }
+        .costing-field .form-control,
+        .costing-field .select2-container--bootstrap4 .select2-selection { box-shadow: 0 2px 4px rgba(30, 41, 59, .10); }
         .costing-field input.form-control::placeholder { color: #adb5bd; font-weight: 500; }
         .costing-field input.form-control { padding: 6px 12px; }
 
         .costing-field .select2-container { width: 100% !important; }
         .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 6px 12px; }
-        .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding-left: 0; line-height: 22px; color: #495057; font-weight: 600; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0 12px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding-left: 0; line-height: 30px; color: #495057; font-weight: 600; }
         .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 4px; right: 5px; }
 
         .costing-field .form-control:focus { border-color: #8aa8bc; box-shadow: 0 0 0 2px rgba(39, 75, 99, .08); }
@@ -103,13 +110,13 @@
 
 @section('content')
 <div class="costing-create-page">
-    <div class="costing-crumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>Create Costing</b></div>
-    <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a>
+    {{-- <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a> --}}
 
     <div class="card costing-create-card">
         <form action="{{ route('store-costing') }}" method="POST" id="form-costing" enctype="multipart/form-data">
             @csrf
             <div class="card-body">
+                <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Create Costing</b></div>
                 <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle text-muted" style="font-size: 14px;"></i></h1>
                 <p class="costing-page-subtitle"></p>
 

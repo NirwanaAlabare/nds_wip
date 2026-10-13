@@ -28,7 +28,7 @@
             border: 0;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 5px 12px -3px rgba(15, 23, 42, .18), 0 2px 4px rgba(15, 23, 42, .07);
         }
 
         .card-sb > .card-body {
@@ -79,12 +79,24 @@
         .costing-table thead th { color: #475569 !important; font-size: 10px !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: none !important; }
         .costing-table tbody td { font-size: 10px !important; color: #334155; }
         .costing-table tbody tr:hover { background-color: #f8fafc; }
+        .costing-table tbody tr.costing-row-approved > td { background-color: #dcfce7 !important; }
+        .costing-table tbody tr.costing-row-pending > td { background-color: #fef3c7 !important; }
+        .costing-table tbody tr.costing-row-approved:hover > td { background-color: #bbf7d0 !important; }
+        .costing-table tbody tr.costing-row-pending:hover > td { background-color: #fde68a !important; }
+        .approval-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 10px; color: #475569; font-size: 11px; }
+        .approval-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .approval-legend-swatch { width: 10px; height: 10px; border: 1px solid #e2e8f0; border-radius: 50%; }
+        .approval-legend-swatch.approved { background: #dcfce7; border-color: #86efac; }
+        .approval-legend-swatch.pending { background: #fef3c7; border-color: #fcd34d; }
         .costing-table input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #334155; border-radius: 3px; }
 
         .date-badge { background-color: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 10px; display: inline-block; }
 
         /* ============ ACTION BUTTONS & BOTTOM BAR ============ */
         .action-round { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; color: #fff !important; font-size: 13px; text-decoration: none; border: none; transition: 0.2s; cursor: pointer; }
+        .action-round.action-so-outline { background: #fff; border: 1.5px solid #f59e0b; color: #f59e0b !important; }
+        .action-round.action-bom-outline { background: #fff; border: 1.5px solid #a855f7; color: #a855f7 !important; }
+        .action-round.action-status-disabled { opacity: .55; }
         .action-round:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .action-round:disabled { cursor: not-allowed; box-shadow: none; }
         .action-round.dropdown-toggle::after { display: none !important; } /* Sembunyikan panah dropdown bawaan */
@@ -95,36 +107,59 @@
         .costing-actions-menu.show { display: block; }
         .costing-actions-menu .dropdown-item { font-size: 11px !important; }
 
-        .costing-timeline { padding: 16px 24px; background: #fff; border: none; display: block; border-radius: 8px; }
-        .timeline-vertical { display: flex; flex-direction: column; gap: 24px; text-align: left; }
-        .timeline-v-item { display: flex; align-items: flex-start; gap: 16px; position: relative; }
-        .timeline-v-item:not(:last-child)::after { content: ""; position: absolute; left: 17px; top: 38px; bottom: -24px; width: 2px; background: #e2e8f0; z-index: 0; }
-
-        .timeline-v-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; font-size: 14px; }
-        .timeline-v-icon.bg-blue-light { background: #e0f2fe; color: #0284c7; }
-        .timeline-v-icon.bg-gray-light { background: #f1f5f9; color: #64748b; }
-
-        .timeline-v-content { font-size: 10px !important; color: #334155; padding-top: 6px; line-height: 1.6; }
-        .timeline-v-content b { color: #0f172a; font-weight: 700; }
-
-        .timeline-v-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin: 0 4px; }
-        .timeline-v-badge i { font-size: 6px; margin-right: 6px; }
-        .badge-awaiting { background: #f1f5f9; color: #475569; }
-        .badge-awaiting i { color: #94a3b8; }
-        .badge-approved { background: #dcfce7; color: #16a34a; }
-        .badge-approved i { color: #22c55e; }
-
-        .timeline-v-note { margin-top: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 6px; font-size: 12px; color: #64748b; display: inline-flex; gap: 8px; align-items: flex-start; }
+        .costing-timeline { display: block; padding: 16px 24px; border: 0; border-radius: 0; background: #f6f8fb; }
+        .timeline-vertical { display: flex; flex-direction: column; gap: 18px; text-align: left; }
+        .timeline-v-item { position: relative; display: flex; align-items: flex-start; gap: 16px; min-height: 24px; }
+        .timeline-v-item:not(:last-child)::after { position: absolute; top: 24px; bottom: -18px; left: 11px; z-index: 0; width: 2px; background: #d9e0e9; content: ""; }
+        .timeline-v-icon { z-index: 1; display: flex; flex: 0 0 24px; width: 24px; height: 24px; align-items: center; justify-content: center; border: 2px solid #e4e9f0; border-radius: 50%; background: #dce3ec; color: #64748b; font-size: 10px; }
+        .timeline-v-icon.is-created { border-color: #e4e0ff; background: #dcd6ff; color: #334155; }
+        .timeline-v-icon.is-approved { border-color: #dbeafe; background: #dbeafe; color: #2563eb; }
+        .timeline-v-content { min-width: 0; padding-top: 2px; color: #334155; font-size: 14px !important; line-height: 1.55; }
+        .timeline-v-content b { color: #111827; font-weight: 600; }
+        .timeline-v-date { color: #64748b; white-space: nowrap; }
+        .timeline-v-costno { color: #526b84; }
+        .timeline-v-badge { display: inline-flex; align-items: center; margin: 0 3px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; line-height: 1.3; white-space: nowrap; }
+        .timeline-v-badge i { margin-right: 5px; font-size: 6px; }
+        .badge-awaiting { background: #e9edf3; color: #596579; }
+        .badge-awaiting i { color: #7b8798; }
+        .badge-approved { background: #e1f7eb; color: #16804a; }
+        .badge-approved i { color: #2ca66a; }
+        .timeline-v-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 6px; padding-left: 16px; color: #536174; font-size: 13px; font-style: italic; }
+        .timeline-v-note i { padding-top: 3px; color: #8793a5; font-size: 12px; }
 
         .btn-add-new { background-color: #1e293b; color: white; border-radius: 20px; padding: 8px 24px; font-size: 12px; font-weight: 600; border: none; box-shadow: 0 4px 10px rgba(30, 41, 59, 0.2); transition: 0.2s; }
         .btn-add-new:hover { background-color: #0f172a; color: white; transform: translateY(-1px); }
 
         /* DataTables DOM Overrides */
         #table-costing_wrapper .dataTables_filter { display: none; }
-        #table-costing_wrapper .dataTables_length select { border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 8px; font-size: 11px; height: 26px; }
+        #table-costing_wrapper .dataTables_length select {
+            box-sizing: border-box;
+            min-width: 58px;
+            height: 28px;
+            padding: 2px 22px 2px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 20px;
+            background-position: right 6px center;
+        }
         #table-costing_wrapper .dataTables_length, #table-costing_wrapper .dataTables_info { font-size: 11px; color: #475569; margin: 0; }
-        #table-costing_wrapper .dataTables_paginate .paginate_button { padding: 4px 10px; border: 0 !important; font-size: 11px; color: #475569 !important; border-radius: 4px; margin: 0 2px; }
+        #table-costing_wrapper .dataTables_length label { display: flex; align-items: center; gap: 6px; margin: 0; line-height: 28px; }
+        #table-costing_wrapper .dataTables_info { padding-top: 0; line-height: 28px; }
+        #table-costing_wrapper .dataTables_length select { margin: 0; vertical-align: middle; }
+        #table-costing_wrapper .dataTables_paginate .paginate_button { padding: 0; border: 0 !important; font-size: 10px; color: #475569 !important; border-radius: 4px; margin: 0 1px; }
+        #table-costing_wrapper .dataTables_paginate .page-link {
+            min-width: 26px;
+            height: 26px;
+            padding: 4px 6px;
+            border: 0;
+            border-radius: 4px !important;
+            font-size: 10px;
+            line-height: 18px;
+            text-align: center;
+        }
         #table-costing_wrapper .dataTables_paginate .paginate_button.current { background: #1e293b !important; color: white !important; font-weight: 600; box-shadow: none; border-radius: 4px; }
+        #table-costing_wrapper .dataTables_paginate .paginate_button.current .page-link { background: #1e293b !important; color: #fff !important; }
         #table-costing_wrapper .dataTables_paginate .paginate_button:hover:not(.current) { background: #f1f5f9 !important; color: #0f172a !important; }
 
         /* Settings Popover */
@@ -174,6 +209,15 @@
         .costing-info-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 190px; padding: 24px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc; color: #64748b; text-align: center; }
         .costing-info-empty i { margin-bottom: 10px; color: #94a3b8; font-size: 28px; }
         .costing-info-empty strong { margin-bottom: 4px; color: #334155; font-size: 14px; }
+        .swal2-popup.batch-print-modal { width: min(480px, calc(100vw - 32px)) !important; padding: 24px; border-radius: 12px; }
+        .batch-print-modal .swal2-title { margin: 0 0 8px; color: #284a63; font-size: 22px; }
+        .batch-print-modal .swal2-html-container { margin: 0 0 18px; color: #64748b; font-size: 14px; line-height: 1.5; }
+        .batch-print-modal .swal2-radio { display: flex; width: 100%; flex-direction: column; align-items: stretch; gap: 8px; margin: 1em 0 3px; }
+        .batch-print-modal .swal2-radio label { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0; padding: 10px 12px; border: 1px solid #dce4ec; border-radius: 8px; color: #334155; font-size: 14px; line-height: 1.4; text-align: left; }
+        .batch-print-modal .swal2-radio label:has(input:checked) { border-color: #284a63; background: #f1f6fa; }
+        .batch-print-modal .swal2-radio input { margin: 0; }
+        .batch-print-modal .swal2-actions { gap: 8px; margin-top: 20px; }
+        .batch-print-modal .swal2-styled { min-width: 88px; border-radius: 20px; font-size: 13px; }
         @media (max-width: 575px) {
             .swal2-popup.costing-info-modal { width: 96vw !important; border-radius: 6px; }
             .costing-info-modal .swal2-html-container, .costing-info-modal .swal2-actions { padding: 0 16px 16px; }
@@ -188,12 +232,12 @@
 
 @section('content')
     <div class="costing-page">
-        <div class="costing-crumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <b>Costing</b></div>
         {{-- <a href="javascript:history.back()" class="costing-back"><i class="fas fa-chevron-left"></i> Back</a> --}}
 
         <div class="card card-sb">
             <div class="card-body">
-                <h1 class="costing-title">Marketing List</h1>
+                <div class="costing-crumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <b>Costing</b></div>
+                <h1 class="costing-title mt-3">Marketing List</h1>
 
                 <div class="list-shell">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -246,9 +290,14 @@
                         <button type="button" id="clear-filters" class="clear-filters" disabled>Clear all</button>
                     </div>
 
-                    <div class="selected-wrapper">
+                    {{-- <div class="selected-wrapper">
                         <span>Selected</span>
                         <span class="selected-badge" id="selected-count">0</span>
+                    </div> --}}
+
+                    <div class="approval-legend" aria-label="Legend status approval">
+                        <span class="approval-legend-item"><span class="approval-legend-swatch approved"></span> Sudah approval</span>
+                        <span class="approval-legend-item"><span class="approval-legend-swatch pending"></span> Belum approval</span>
                     </div>
 
                     <div class="table-responsive">
@@ -296,8 +345,8 @@
             <div id="column-order" class="column-order-list"></div>
 
             <span class="settings-label mt-3">Amount format</span>
-            <button type="button" class="settings-choice amount-format active" data-format="compact">10.5k</button>
-            <button type="button" class="settings-choice amount-format" data-format="full">10,500</button>
+            <button type="button" class="settings-choice amount-format" data-format="compact">10.5k</button>
+            <button type="button" class="settings-choice amount-format active" data-format="full">10,500</button>
 
             <span class="settings-label mt-3">Date format</span>
             <button type="button" class="settings-choice date-format active" data-format="DD/MM/YYYY">DD/MM/YYYY</button>
@@ -331,7 +380,7 @@
         const defaultColumnOrder = Array.from({ length: 15 }, (_, index) => index);
         let pendingColumnOrder = defaultColumnOrder.slice();
         let appliedColumnOrder = defaultColumnOrder.slice();
-        let amountFormat = 'compact';
+        let amountFormat = 'full';
         let dateFormat = 'DD/MM/YYYY';
         let activeCostingMenu = null;
 
@@ -346,7 +395,14 @@
                 scrollCollapse: true,
                 pageLength: 10,
                 lengthMenu: [[10, 15, 25, 50], [10, 15, 25, 50]],
-                // dom: '<"top">rt<"bottom d-flex justify-content-between align-items-center mt-3"<"d-flex align-items-center gap-3"l i>p><"clear">',
+                dom: 'rt<"d-flex justify-content-between align-items-center mt-3"<"d-flex align-items-center gap-3"li>p>',
+                rowCallback: function (row, data) {
+                    const approvedStatus = String(data.app1 || '').trim().toUpperCase();
+                    const approved = ['A', 'Y'].includes(approvedStatus);
+                    $(row)
+                        .toggleClass('costing-row-approved', approved)
+                        .toggleClass('costing-row-pending', !approved);
+                },
                 // language: {
                 //     lengthMenu: "Item Per Page _MENU_",
                 //     info: "Of _MAX_",
@@ -456,7 +512,7 @@
                             const hasBom = Boolean(row.bom_id);
 
                             const soCreateUrl = "{{ route('create-so') }}?id_costing=" + encodeURIComponent(data);
-                            const bomCreateUrl = "{{ route('create-bom') }}";
+                            const bomCreateUrl = "{{ route('create-bom') }}?id_costing=" + encodeURIComponent(data) + "&id_so=" + encodeURIComponent(row.so_id);
 
                             const soPdfUrl = hasSo ? "{{ route('print-pdf-so', ':id') }}".replace(':id', row.so_id) : '';
                             const soExcelUrl = hasSo ? "{{ route('export-excel-so', ':id') }}".replace(':id', row.so_id) : '';
@@ -494,10 +550,10 @@
                                     </div>
                                 </div>`;
                             } else if (approved) {
-                                soMenu = `<a href="${soCreateUrl}" class="action-round" style="background:#f59e0b;" title="Create SO"><i class="fas fa-clipboard-list"></i></a>`;
+                                soMenu = `<a href="${soCreateUrl}" class="action-round action-so-outline" title="Create SO"><i class="fas fa-clipboard-list"></i></a>`;
                             } else {
                                 // Tampilan Disabled (Belum Approve)
-                                soMenu = `<button class="action-round" style="background:#f1f5f9; color:#cbd5e1 !important;" disabled title="Belum bisa membuat SO"><i class="fas fa-clipboard-list"></i></button>`;
+                                soMenu = `<button class="action-round action-so-outline action-status-disabled" disabled title="Belum bisa membuat SO"><i class="fas fa-clipboard-list"></i></button>`;
                             }
 
                             // 3. Tombol BOM (Ungu)
@@ -516,13 +572,11 @@
                                     </div>
                                 </div>`;
                             } else if (canCreateBom) {
-                                bomMenu = `<a href="${bomCreateUrl}" class="action-round" style="background:#a855f7;" title="Create BOM"><i class="fas fa-layer-group"></i></a>`;
+                                bomMenu = `<a href="${bomCreateUrl}" class="action-round action-bom-outline" title="Create BOM"><i class="fas fa-layer-group"></i></a>`;
                             } else {
-                                // Tampilan Disabled (Belum Approve / Belum ada SO)
-                                bomMenu = `<button class="action-round" style="background:#f1f5f9; color:#cbd5e1 !important;" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group"></i></button>`;
+                                bomMenu = `<button class="action-round action-bom-outline action-status-disabled" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group"></i></button>`;
                             }
 
-                            // 4. Extra Button (Contoh Worksheet dsb yang di gambar abu-abu)
                             let extraBtn = `<button class="action-round" style="background:#f8fafc; color:#cbd5e1 !important; border: 1px dashed #cbd5e1;" disabled><i class="fas fa-table"></i></button>`;
 
                             return `<div class="costing-actions">${costingBtn}${soMenu}${bomMenu}${extraBtn}</div>`;
@@ -623,7 +677,7 @@
                 $.getJSON(timelineUrl)
                     .done(function (response) {
                         if (row.child.isShown()) {
-                            row.child(renderCostingTimeline(response.data || []), 'costing-timeline-row').show();
+                            row.child(renderCostingTimeline(response.data || [], response.costing || {}), 'costing-timeline-row').show();
                         }
                     })
                     .fail(function (xhr) {
@@ -773,6 +827,8 @@
                     title: 'Batch Print',
                     text: `${selectedIds.length} Costing dipilih. Pilih format PDF:`,
                     input: 'radio',
+                    width: 480,
+                    customClass: { popup: 'batch-print-modal' },
                     inputOptions: {
                         merge: 'Gabungkan menjadi satu PDF',
                         separate: 'Buka PDF masing-masing'
@@ -949,9 +1005,9 @@
                 $('#column-toggles input').prop('checked', true).trigger('change');
                 pendingColumnOrder = defaultColumnOrder.slice();
                 renderColumnOrder();
-                $('.amount-format').removeClass('active').filter('[data-format="compact"]').addClass('active');
+                $('.amount-format').removeClass('active').filter('[data-format="full"]').addClass('active');
                 $('.date-format').removeClass('active').filter('[data-format="DD/MM/YYYY"]').addClass('active');
-                amountFormat = 'compact';
+                amountFormat = 'full';
                 dateFormat = 'DD/MM/YYYY';
                 $('#sticky-header').prop('checked', false);
             });
@@ -998,9 +1054,9 @@
             return $('<div>').text(value == null || value === '' ? '-' : String(value)).html();
         }
 
-        function renderTimelineStep(label, isComplete, date, actor) {
+        function renderTimelineStep(label, isComplete, date, user) {
             const detail = isComplete
-                ? `<span class="costing-timeline-date">${escapeCostingHtml(date || 'Selesai')}</span>${actor ? `<span class="costing-timeline-actor">${escapeCostingHtml(actor)}</span>` : ''}`
+                ? `<span class="costing-timeline-date">${escapeCostingHtml(date || 'Selesai')}</span>${user ? `<span class="costing-timeline-user">${escapeCostingHtml(user)}</span>` : ''}`
                 : '<span class="costing-timeline-date">Belum dibuat</span>';
 
             return `<div class="costing-timeline-step ${isComplete ? 'is-complete' : ''}">
@@ -1010,7 +1066,7 @@
             </div>`;
         }
 
-        function renderCostingTimeline(events) {
+        function renderCostingTimeline(events, costing) {
             const formatDateTime = (val) => {
                 if (!val) return '';
                 const d = new Date(String(val).replace(' ', 'T'));
@@ -1023,32 +1079,78 @@
                 return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} @ ${hours}:${mins} ${ampm}`;
             };
 
-            if (!events.length) {
-                return '<div class="costing-timeline text-muted">Belum ada riwayat untuk Costing ini.</div>';
-            }
-
-            const actionIcons = {
-                created: 'fa-plus',
-                copied: 'fa-copy',
-                updated: 'fa-pen',
-                approved: 'fa-check',
-                item_added: 'fa-plus',
-                item_updated: 'fa-pen',
-                item_deleted: 'fa-trash'
-            };
+            const costNo = escapeCostingHtml(costing.cost_no || 'Costing');
+            const hasSalesOrder = events.some(event => String(event.type).toLowerCase() === 'so');
+            const approved = Boolean(costing.approved);
             const items = events.map(event => {
-                const icon = actionIcons[event.action] || 'fa-history';
-                const actor = event.user ? `<b>${escapeCostingHtml(event.user)}</b> ` : '';
-                const description = escapeCostingHtml(event.desc || event.action || 'Aktivitas Costing');
+                const action = String(event.action || '').toLowerCase();
+                const type = String(event.type || '').toLowerCase();
+                const username = event.user || 'Marketing Staff';
+                const user = `<b>${escapeCostingHtml(username)}</b>`;
                 const date = formatDateTime(event.created_at);
+                let icon = 'fa-clock';
+                let iconClass = '';
+                let description;
+
+                if (action === 'created' && type !== 'so') {
+                    icon = 'fa-plus';
+                    iconClass = 'is-created';
+                    description = `${user} created costing <span class="timeline-v-costno">${costNo}</span>`;
+                } else if (action === 'approved') {
+                    icon = 'fa-clipboard-check';
+                    iconClass = 'is-approved';
+                    description = `${user} changed status from <span class="timeline-v-badge badge-awaiting"><i class="fas fa-square"></i>Awaiting Approval</span> to <span class="timeline-v-badge badge-approved"><i class="fas fa-circle"></i>Approved</span>`;
+                } else if (action === 'copied') {
+                    icon = 'fa-copy';
+                    const sourceMatch = String(event.desc || '').match(/(?:dibuat|disalin) dari\s+(.+?)[.!]?$/i);
+                    const source = sourceMatch ? ` from <span class="timeline-v-costno">${escapeCostingHtml(sourceMatch[1])}</span>` : '';
+                    description = `${user} copied costing <span class="timeline-v-costno">${costNo}</span>${source}`;
+                } else if (action === 'updated' && type === 'costing') {
+                    icon = 'fa-pen';
+                    description = `${user} updated costing <span class="timeline-v-costno">${costNo}</span>`;
+                } else if (type === 'so') {
+                    icon = 'fa-file-alt';
+                    const soMatch = String(event.desc || '').match(/Sales Order\s+(.+?)\s+dibuat untuk (?:Purchase Order|PO)\s+(.+?)[.!]?$/i);
+                    description = soMatch
+                        ? `${user} created Sales Order <span class="timeline-v-costno">${escapeCostingHtml(soMatch[1])}</span> for Purchase Order <span class="timeline-v-costno">${escapeCostingHtml(soMatch[2])}</span>`
+                        : `${user} ${escapeCostingHtml(event.desc || 'created a Sales Order.')}`;
+                } else {
+                    const actionIcons = {
+                        updated: 'fa-pen',
+                        item_added: 'fa-plus',
+                        item_updated: 'fa-pen',
+                        item_deleted: 'fa-trash'
+                    };
+                    icon = actionIcons[action] || icon;
+                    description = `${user} ${escapeCostingHtml(event.desc || event.action || 'updated costing')}`;
+                }
+
+                const dateText = date ? `<span class="timeline-v-date"> on ${escapeCostingHtml(date)}</span>` : '';
+                const note = action === 'approved'
+                    ? '<div class="timeline-v-note"><i class="far fa-comment-alt"></i><span>This request has been approved.</span></div>'
+                    : '';
 
                 return `<div class="timeline-v-item">
-                    <div class="timeline-v-icon bg-blue-light"><i class="fas ${icon}"></i></div>
-                    <div class="timeline-v-content">${description}&nbsp;${actor}${event.created_at ? `<div class="costing-timeline-date">${event.created_at}</div>` : ''}</div>
+                    <div class="timeline-v-icon ${iconClass}"><i class="fas ${icon}"></i></div>
+                    <div class="timeline-v-content">${description}${dateText}${note}</div>
                 </div>`;
-            }).join('');
+            });
 
-            return `<div class="costing-timeline"><div class="timeline-vertical">${items}</div></div>`;
+            if (approved && !hasSalesOrder) {
+                const readyDate = formatDateTime(costing.approved_at);
+                const readyDateText = readyDate ? `<span class="timeline-v-date"> on ${escapeCostingHtml(readyDate)}</span>` : '';
+                items.push(`<div class="timeline-v-item">
+                    <div class="timeline-v-icon"><i class="fas fa-plus"></i></div>
+                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> is <span class="timeline-v-badge badge-approved"><i class="fas fa-circle"></i>Approved</span> and ready to be created as a Sales Order${readyDateText}</div>
+                </div>`);
+            } else if (!approved) {
+                items.push(`<div class="timeline-v-item">
+                    <div class="timeline-v-icon"><i class="fas fa-plus"></i></div>
+                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> is <span class="timeline-v-badge badge-awaiting"><i class="fas fa-square"></i>Awaiting Approval</span></div>
+                </div>`);
+            }
+
+            return `<div class="costing-timeline"><div class="timeline-vertical">${items.join('')}</div></div>`;
         }
 
         function showCostingDetailTable(title, columns, rows, summary) {

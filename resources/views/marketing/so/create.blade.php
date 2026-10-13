@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -19,7 +20,7 @@
         border: none;
         border-radius: 18px;
         overflow: hidden;
-        box-shadow: 0 10px 40px rgba(30, 41, 59, 0.08);
+        box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07);
     }
 
     .card-sb > .card-header {
@@ -80,14 +81,17 @@
     #card-preview {
         display: none;
         margin: 0 1.4rem 1.4rem;
+        width: calc(100% - 2.8rem);
+        border-radius: 12px;
+        box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07);
     }
     #card-preview .card-header { background: #294d68 !important; }
     #card-preview .card-body {
-        max-height: 500px;
-        overflow: auto;
-        padding: 0;
+        max-height: none;
+        overflow: visible;
+        padding: 0 1rem 1rem;
     }
-    #card-preview .table-responsive { overflow-x: auto; }
+    #card-preview .table-responsive { overflow: visible; }
 
     /* ============ FORM & INPUT STYLING ============ */
     .form-section-title {
@@ -145,7 +149,7 @@
     /* ============ TABLE PREVIEW ============ */
     #table-preview-so {
         width: 100%;
-        min-width: 1250px;
+        min-width: 100%;
         table-layout: fixed;
         border-collapse: separate;
         border-spacing: 0;
@@ -156,6 +160,7 @@
     #table-preview-so thead th,
     #table-preview-so tbody td,
     #table-preview-so tfoot th {
+        box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -174,7 +179,7 @@
     }
 
     #table-preview-so tbody td {
-        padding: 8px;
+        padding: 8px 10px;
         font-size: 12px;
     }
 
@@ -187,17 +192,6 @@
         border-top: 0;
     }
 
-    /* #table-preview-so .preview-col-style { width: 145px; }
-    #table-preview-so .preview-col-desc { width: 155px; }
-    #table-preview-so .preview-col-po { width: 135px; }
-    #table-preview-so .preview-col-market { width: 95px; }
-    #table-preview-so .preview-col-exfty { width: 105px; }
-    #table-preview-so .preview-col-fob { width: 85px; }
-    #table-preview-so .preview-col-set { width: 115px; }
-    #table-preview-so .preview-col-color { width: 125px; }
-    #table-preview-so .preview-col-size { width: 68px; min-width: 68px; }
-    #table-preview-so .preview-col-total { width: 100px; } */
-
     #table-preview-so tbody td.preview-col-qty,
     #table-preview-so tfoot th.preview-col-qty,
     #table-preview-so tbody td.preview-col-total,
@@ -206,57 +200,92 @@
         font-variant-numeric: tabular-nums;
     }
 
+    #table-preview-so .preview-col-total {
+        background-color: #dc3545 !important;
+        color: #ffffff !important;
+    }
+
     #table-preview-so thead th:first-child {
         border-top-left-radius: 8px;
         border-bottom-left-radius: 8px;
     }
 
-    #table-preview-so thead th:last-child {
+    /* #table-preview-so thead th:last-child {
         border-top-right-radius: 8px;
         border-bottom-right-radius: 8px;
-    }
+    } */
 
     /* ============ CUSTOM COMPONENTS / SO LAYOUT ============ */
     .so-page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
-    .so-page-heading h1 { margin: 0; color: #294d68; font-size: 22px; font-weight: 800; letter-spacing: .6px; }
+    .so-create-body { font-family: 'Poppins', sans-serif; }
+    .so-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+    .so-breadcrumb a { color: #b4b4b4; text-decoration: none; }
+    .so-breadcrumb a:hover { color: #fff; text-decoration: underline; }
+    .so-breadcrumb strong { color: #fff; font-weight: 500; }
+    .so-page-heading h1 { margin: 0; color: #284a63; font-size: 32px; font-weight: 700; letter-spacing: 0; }
     .so-page-heading h1 i { font-size: 11px; vertical-align: middle; }
-    .so-page-heading p { margin: 4px 0 0; color: #294d68; font-size: 9px; font-weight: 600; }
+    .so-page-heading p { margin: 4px 0 0; color: #294d68; font-size: 11px; font-weight: 500; }
     .so-page-heading p i { margin-right: 6px; color: #a3b2c7; }
     .so-costing-label { color: #64748b; font-size: 12px; font-weight: 700; }
     .so-bom-picker .form-control, .so-bom-picker .btn { height: 36px; font-size: 12px; }
     .so-source-fields { display: none !important; }
-    .so-section { margin-bottom: 14px; }
+    .so-summary-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
+    .so-summary-card { min-width: 0; min-height: 76px; padding: 10px 14px; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+    .so-summary-card > span { display: block; margin-bottom: 4px; color: #9a9a9a; font-size: 12px; }
+    .so-summary-card > strong { display: block; overflow: hidden; color: #284a63; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .so-summary-card.is-navy { border-color: #294d68; background: #294d68; color: #fff; }
+    .so-summary-card.is-navy > span, .so-summary-card.is-navy > strong { color: #fff; }
+    .so-summary-card.is-orange { border-color: #ffad2f; background: #ffad2f; }
+    .so-summary-card.is-orange > span, .so-summary-card.is-orange > strong { color: #fff; }
+    .so-summary-card.is-blue { border-color: #49a8f4; background: #49a8f4; }
+    .so-summary-card.is-blue > span, .so-summary-card.is-blue > strong { color: #fff; }
+    .so-top-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; margin-bottom: 14px; }
+    .so-info-column { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+    .so-overview-section { min-width: 0; overflow: hidden; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+    .so-overview-title { margin: 0 12px; padding: 9px 0 7px; border-bottom: 1px solid #dce4ec; color: #284a63; font-size: 16px; font-weight: 500; }
+    .so-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; padding: 8px 12px 10px; }
+    .so-summary-item { display: flex; min-width: 0; min-height: 33px; flex-direction: column; justify-content: center; gap: 2px; padding: 3px 0; border-bottom: 1px solid #e7e7e7; color: #3b3336; font-size: 12px; }
+    .so-summary-item > span { overflow: hidden; color: #ababab; font-size: 11px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+    .so-summary-item strong { overflow: hidden; color: #284a63; font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .so-review-section { display: flex; min-height: 100%; flex-direction: column; }
+    .so-review-section .so-image-review { flex: 1; }
+    .so-section {
+        margin-bottom: 14px;
+        overflow: hidden;
+        border: 1px solid #284a63;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06);
+    }
 
     .so-section-toggle {
         display: flex; align-items: center; justify-content: space-between; width: 100%;
-        padding: 8px 16px; border: 1px solid #526f86; border-radius: 8px;
-        background: #fff; color: #294d68; text-align: left; font-size: 15px; font-weight: 600;
+        padding: 8px 16px; border: 0; border-radius: 0;
+        background: #fff; color: #284a63; text-align: left; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500;
     }
     .so-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .12); }
+    .so-section > .collapse.show { border-top: 1px solid #edf1f5; }
 
     .so-chevron { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; background: #aabac5; color: #fff; font-size: 10px; }
     .so-chevron i { transition: transform .2s ease; }
     .so-section-toggle[aria-expanded="false"] .so-chevron i { transform: rotate(180deg); }
 
-    .so-summary-grid, .so-edit-grid {
-        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px;
-        padding: 14px 12px 2px; border-radius: 8px; background: #fff;
-        box-shadow: 0 3px 8px rgba(30, 64, 90, .10);
+    .so-edit-grid {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 18px;
+        padding: 14px 12px 4px; border-radius: 0; background: #fff;
     }
-    .so-summary-item { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr); gap: 10px; align-items: center; min-height: 40px; padding: 5px 6px; border-bottom: 1px dotted #c7c7c7; color: #3b3336; font-size: 12px; }
-    .so-summary-item strong { overflow-wrap: anywhere; font-weight: 500; }
-    .so-summary-item strong::before { content: ': '; }
-
-    .so-edit-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 14px 12px 4px; }
     .so-edit-grid .form-group { min-width: 0; margin-bottom: 12px; }
-    .so-edit-grid label { display: block; margin-bottom: 5px; color: #87919a; font-size: 11px; font-weight: 500; }
+    .so-edit-grid label { display: block; min-height: 27px; margin-bottom: 5px; color: #ababab; font-size: 14px; }
+    .so-create-body .so-edit-grid label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection__rendered { color: #ababab; font-size: 14px; font-weight: 500; line-height: 40px; }
     .so-notes-field { grid-column: span 2; }
 
-    .so-image-review { display: flex; min-height: 220px; align-items: center; justify-content: center; gap: 24px; padding: 12px; }
+    .so-image-review { display: flex; min-height: 270px; align-items: center; justify-content: center; gap: 24px; padding: 12px; }
     .so-image-nav { width: 34px; height: 34px; border: 0; border-radius: 50%; color: #7b8791; background: #f1f3f5; }
     .so-image-preview { display: flex; min-width: 160px; min-height: 190px; align-items: center; justify-content: center; color: #64748b; font-size: 12px; }
     .so-image-preview img { max-width: min(100%, 330px); max-height: 250px; object-fit: contain; }
-    .so-image-counter { min-width: 50px; color: #64748b; text-align: center; font-size: 11px; }
+    .so-image-counter { min-width: 50px; color: #64748b; text-align: center; font-size: 11px; margin-bottom: 10px; }
+    .so-overview-section .so-image-counter { margin-bottom: 12px; }
 
     .so-upload-panel { margin-top: 2px; padding: 18px 12px; border: 1px solid #d0d0d0; border-radius: 4px; }
     .so-upload-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
@@ -277,13 +306,13 @@
     /* ============ MEDIA QUERIES ============ */
     @media (max-width: 767px) {
         .so-page-heading { flex-direction: column; }
+        .so-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .so-top-layout { grid-template-columns: 1fr; }
+        .so-review-section { min-height: 280px; }
         .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .so-summary-grid { column-gap: 8px; }
-        .so-summary-item { grid-template-columns: 1fr; gap: 2px; font-size: 11px; }
-        .so-summary-item strong::before { content: ''; }
     }
     @media (max-width: 480px) {
-        .so-summary-grid, .so-edit-grid { grid-template-columns: 1fr; }
+        .so-summary-cards, .so-overview-grid, .so-edit-grid { grid-template-columns: 1fr; }
         .so-notes-field { grid-column: auto; }
     }
     /* table-preview-so font size nya kecilin dikit */
@@ -298,11 +327,14 @@
     <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data" novalidate>
         @csrf
         <div class="card-body so-create-body">
+            {{-- <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <a href="{{ route('master-marketing-so') }}">Sales Order</a> &nbsp;›&nbsp; <strong>Create Sales Order</strong></div>
+             --}}
+            <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>Create Sales Order</strong></div>
             <div class="so-page-heading">
                 <div>
                     <h1>Create Sales Order <i class="far fa-question-circle"></i></h1>
+                    <p><i class="fas fa-cog"></i>Untuk Menambah Data SO</p>
                 </div>
-                <div class="so-costing-label">Costing: {{ $costingNo }}</div>
             </div>
             <input type="hidden" name="id_costing" id="id_costing" value="{{ $costingId }}">
 
@@ -345,59 +377,67 @@
                 <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
             </div>
 
-            <section class="so-section">
-                <button type="button" class="so-section-toggle" data-target="#so-information" aria-expanded="true">
-                    <span>Information Buyer</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
-                </button>
-                <div id="so-information" class="collapse show">
-                    <div class="so-summary-grid">
-                        <div class="so-summary-item"><span>Buyer Name</span><strong id="summary-buyer">-</strong></div>
-                        <div class="so-summary-item"><span>Season</span><strong id="summary-season">-</strong></div>
-                        <div class="so-summary-item"><span>Kode Buyer</span><strong id="summary-buyer-code">-</strong></div>
-                        <div class="so-summary-item"><span>Style</span><strong id="summary-style">-</strong></div>
-                        <div class="so-summary-item"><span>Brand</span><strong id="summary-brand">-</strong></div>
-                        <div class="so-summary-item"><span>QTY Planned</span><strong id="summary-planned-qty">-</strong></div>
-                    </div>
+            <div class="so-summary-cards" aria-label="Ringkasan Costing">
+                <div class="so-summary-card">
+                    <span>No Costing</span>
+                    <strong id="summary-costing-no">-</strong>
                 </div>
-            </section>
-
-            <section class="so-section">
-                <button type="button" class="so-section-toggle" data-target="#so-product" aria-expanded="true">
-                    <span>Product &amp; Type</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
-                </button>
-                <div id="so-product" class="collapse show">
-                    <div class="so-summary-grid">
-                        <div class="so-summary-item"><span>Product Group</span><strong id="summary-product-group">-</strong></div>
-                        <div class="so-summary-item"><span>Product Items</span><strong id="summary-product-item">-</strong></div>
-                        <div class="so-summary-item"><span>Worksheet Type</span><strong id="summary-worksheet-type">-</strong></div>
-                        <div class="so-summary-item"><span>No Worksheet</span><strong id="summary-worksheet-no">-</strong></div>
-                        <div class="so-summary-item"><span>Costing Type</span><strong id="summary-costing-type">-</strong></div>
-                        <div class="so-summary-item"><span>No Costing</span><strong id="summary-costing-no">-</strong></div>
-                        <div class="so-summary-item"><span>Product Type</span><strong id="summary-product-type">-</strong></div>
-                        <div class="so-summary-item"><span>Unit</span><strong id="summary-unit">-</strong></div>
-                    </div>
+                <div class="so-summary-card">
+                    <span>No Worksheet</span>
+                    <strong id="summary-worksheet-no">-</strong>
                 </div>
-            </section>
-
-            <section class="so-section">
-                <button type="button" class="so-section-toggle" data-target="#so-shipping" aria-expanded="true">
-                    <span>Shipping &amp; Destinations</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
-                </button>
-                <div id="so-shipping" class="collapse show">
-                    <div class="so-summary-grid">
-                        <div class="so-summary-item"><span>Ship Mode</span><strong id="summary-ship-mode">-</strong></div>
-                        <div class="so-summary-item"><span>Market</span><strong id="summary-market">-</strong></div>
-                        <div class="so-summary-item"><span>Destination</span><strong id="summary-destination">-</strong></div>
-                        <div class="so-summary-item"><span>Status</span><strong id="summary-status">-</strong></div>
-                    </div>
+                <div class="so-summary-card is-navy">
+                    <span>QTY Planned</span>
+                    <strong id="summary-planned-qty">-</strong>
                 </div>
-            </section>
+                <div class="so-summary-card is-orange">
+                    <span>Delivery Date</span>
+                    <strong id="summary-delivery-date">-</strong>
+                </div>
+                <div class="so-summary-card is-blue">
+                    <span>Ex Factory Date</span>
+                    <strong id="summary-exfty-date">-</strong>
+                </div>
+            </div>
 
-            <section class="so-section">
-                <button type="button" class="so-section-toggle" data-target="#so-review-image" aria-expanded="true">
-                    <span>Review Image</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
-                </button>
-                <div id="so-review-image" class="collapse show">
+            <div class="so-top-layout">
+                <div class="so-info-column">
+                    <section class="so-overview-section">
+                        <h2 class="so-overview-title">Information Buyer</h2>
+                        <div id="so-information" class="so-overview-grid">
+                            <div class="so-summary-item"><span>Buyer Name</span><strong id="summary-buyer">-</strong></div>
+                            <div class="so-summary-item"><span>Kode Buyer</span><strong id="summary-buyer-code">-</strong></div>
+                            <div class="so-summary-item"><span>Brand</span><strong id="summary-brand">-</strong></div>
+                            <div class="so-summary-item"><span>Season</span><strong id="summary-season">-</strong></div>
+                            <div class="so-summary-item"><span>Style</span><strong id="summary-style">-</strong></div>
+                        </div>
+                    </section>
+
+                    <section class="so-overview-section">
+                        <h2 class="so-overview-title">Product &amp; Type</h2>
+                        <div id="so-product" class="so-overview-grid">
+                            <div class="so-summary-item"><span>Product Group</span><strong id="summary-product-group">-</strong></div>
+                            <div class="so-summary-item"><span>Product Items</span><strong id="summary-product-item">-</strong></div>
+                            <div class="so-summary-item"><span>Product Type</span><strong id="summary-product-type">-</strong></div>
+                            <div class="so-summary-item"><span>Unit</span><strong id="summary-unit">-</strong></div>
+                            <div class="so-summary-item"><span>Costing Type</span><strong id="summary-costing-type">-</strong></div>
+                            <div class="so-summary-item"><span>Worksheet Type</span><strong id="summary-worksheet-type">-</strong></div>
+                        </div>
+                    </section>
+
+                    <section class="so-overview-section">
+                        <h2 class="so-overview-title">Shipping &amp; Destinations</h2>
+                        <div id="so-shipping" class="so-overview-grid">
+                            <div class="so-summary-item"><span>Ship Mode</span><strong id="summary-ship-mode">-</strong></div>
+                            <div class="so-summary-item"><span>Market</span><strong id="summary-market">-</strong></div>
+                            <div class="so-summary-item"><span>Destination</span><strong id="summary-destination">-</strong></div>
+                            <div class="so-summary-item"><span>Status</span><strong id="summary-status">-</strong></div>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="so-overview-section so-review-section">
+                    <h2 class="so-overview-title">Review Image</h2>
                     <div class="so-image-review">
                         <button type="button" class="so-image-nav" disabled aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
                         <div class="so-image-preview">
@@ -407,8 +447,8 @@
                         <button type="button" class="so-image-nav" disabled aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
                     </div>
                     <div id="so-image-counter" class="so-image-counter"></div>
-                </div>
-            </section>
+                </section>
+            </div>
 
             <section class="so-section">
                 <button type="button" class="so-section-toggle" data-target="#so-header-fields" aria-expanded="true">
@@ -475,7 +515,7 @@
                             <i class="fas fa-file-excel"></i><span id="so-selected-file-name"></span>
                             <button type="button" id="so-remove-file" aria-label="Remove selected file"><i class="fas fa-times"></i></button>
                         </div>
-                        <button type="button" id="btn-upload-so" class="btn btn-secondary btn-block mt-3" disabled>Upload Now</button>
+                        <button type="button" id="btn-upload-so" class="btn btn-primary btn-block mt-3" disabled>Upload Now</button>
                     </div>
                 </div>
             </section>
@@ -528,267 +568,16 @@
     let previewTable = null;
     let soFileUploaded = false;
 
-    // function loadPreviewUpload() {
-    //     let id_bom = $('#id_bom').val();
-    //     if (!id_bom) return;
-
-    //     $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
-
-    //     $.ajax({
-    //         url: "{{ route('so-get-temp-data') }}",
-    //         type: 'GET',
-    //         data: { id_bom: id_bom },
-    //         success: function(res) {
-    //             if ($.fn.DataTable.isDataTable('#table-preview-so')) {
-    //                 $('#table-preview-so').DataTable().destroy();
-    //             }
-
-    //             let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
-    //             res.available_sizes.forEach(size => {
-    //                 headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
-    //             });
-    //             headerHtml += `</tr>`;
-    //             $('#table-preview-so thead').html(headerHtml);
-
-    //             let bodyHtml = '';
-    //             if(res.data && res.data.length > 0) {
-    //                 res.data.forEach(row => {
-    //                     let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
-
-    //                     bodyHtml += `<tr>
-    //                         <td>${row.style || '-'}</td>
-    //                         <td>${row.desc || '-'}</td>
-    //                         <td>${row.po || '-'}</td>
-    //                         <td>${row.market || '-'}</td>
-    //                         <td>${row.ex_fty || '-'}</td>
-    //                         <td class="${colorErrorClass}">${row.color || '-'}</td>`;
-
-    //                     res.available_sizes.forEach(size => {
-    //                         let val = row[size];
-    //                         let qty = val ? Number(val).toLocaleString('id-ID') : '-';
-    //                         let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
-    //                         bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
-    //                     });
-    //                     bodyHtml += `</tr>`;
-    //                 });
-    //             } else {
-    //                 let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
-    //                 bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
-    //             }
-    //             $('#table-preview-so tbody').html(bodyHtml);
-
-    //             if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
-
-    //             let footerHtml = `<tr>
-    //                     <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
-    //                     <th class="bg-light"></th><th class="bg-light"></th>
-    //                     <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
-    //             res.available_sizes.forEach(size => {
-    //                 footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
-    //             });
-    //             footerHtml += `</tr>`;
-    //             $('#table-preview-so tfoot').html(footerHtml);
-
-    //             $('#total_qty').val(res.total_qty || 0);
-    //             $('#jumlah_po').val(res.jumlah_po || 0);
-
-    //             if (res.data && res.data.length > 0) {
-    //                 previewTable = $('#table-preview-so').DataTable({
-    //                     "paging": false, "info": true, "searching": true, "ordering": false,
-    //                     "autoWidth": false, "responsive": false, "scrollX": true,
-    //                     "footerCallback": function (row, data, start, end, display) {
-    //                         let api = this.api();
-    //                         let intVal = function (i) {
-    //                             if (typeof i === 'string') {
-    //                                 let val = i.replace(/\./g, '');
-    //                                 return val === '-' ? 0 : val * 1;
-    //                             }
-    //                             return typeof i === 'number' ? i : 0;
-    //                         };
-
-    //                         let startColIndex = 6;
-    //                         let numSizes = res.available_sizes.length;
-    //                         for (let i = 0; i < numSizes; i++) {
-    //                             let colIndex = startColIndex + i;
-    //                             let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-    //                             $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
-    //                         }
-    //                     },
-    //                     "drawCallback": function(settings) {
-    //                         let api = this.api();
-    //                         setTimeout(function() { api.columns.adjust(); }, 10);
-    //                     }
-    //                 });
-    //             }
-
-    //             let btnSubmit = $('#form-create-so button[type="submit"]');
-
-    //             if (res.has_bom_error) {
-    //                 btnSubmit.prop('disabled', true);
-
-    //                 // if ($('#btn-fix-bom').length === 0) {
-    //                 //     $('#table-preview-so').before(`<button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>`);
-    //                 // }
-
-    //                 Swal.fire({
-    //                     toast: true, position: 'top-end', icon: 'error',
-    //                     title: 'Warna/Size tidak terdaftar di BOM!',
-    //                     text: 'Silakan klik Edit BOM untuk mengubah Material.',
-    //                     showConfirmButton: false, timer: 5000
-    //                 });
-    //             } else {
-    //                 btnSubmit.prop('disabled', false);
-    //                 $('#btn-fix-bom').remove();
-    //             }
-    //         },
-    //         error: function(xhr) {
-    //             $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
-    //         }
-    //     });
-    // }
-
-    // function loadPreviewUpload() {
-    //     let id_bom = $('#id_bom').val();
-    //     if (!id_bom) return;
-
-    //     $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
-
-    //     $.ajax({
-    //         url: "{{ route('so-get-temp-data') }}",
-    //         type: 'GET',
-    //         data: { id_bom: id_bom },
-    //         success: function(res) {
-    //             if ($.fn.DataTable.isDataTable('#table-preview-so')) {
-    //                 $('#table-preview-so').DataTable().destroy();
-    //             }
-
-    //             let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
-    //             res.available_sizes.forEach(size => {
-    //                 headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
-    //             });
-    //             headerHtml += `</tr>`;
-    //             $('#table-preview-so thead').html(headerHtml);
-
-    //             let bodyHtml = '';
-    //             if(res.data && res.data.length > 0) {
-    //                 res.data.forEach(row => {
-    //                     let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
-
-    //                     bodyHtml += `<tr>
-    //                         <td>${row.style || '-'}</td>
-    //                         <td>${row.desc || '-'}</td>
-    //                         <td>${row.po || '-'}</td>
-    //                         <td>${row.market || '-'}</td>
-    //                         <td>${row.ex_fty || '-'}</td>
-    //                         <td class="${colorErrorClass}">${row.color || '-'}</td>`;
-
-    //                     res.available_sizes.forEach(size => {
-    //                         let val = row[size];
-    //                         let qty = val ? Number(val).toLocaleString('id-ID') : '-';
-    //                         let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
-    //                         bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
-    //                     });
-    //                     bodyHtml += `</tr>`;
-    //                 });
-    //             } else {
-    //                 let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
-    //                 bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
-    //             }
-    //             $('#table-preview-so tbody').html(bodyHtml);
-
-    //             if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
-
-    //             let footerHtml = `<tr>
-    //                     <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
-    //                     <th class="bg-light"></th><th class="bg-light"></th>
-    //                     <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
-    //             res.available_sizes.forEach(size => {
-    //                 footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
-    //             });
-    //             footerHtml += `</tr>`;
-    //             $('#table-preview-so tfoot').html(footerHtml);
-
-    //             $('#total_qty').val(res.total_qty || 0);
-    //             $('#jumlah_po').val(res.jumlah_po || 0);
-
-    //             if (res.data && res.data.length > 0) {
-    //                 previewTable = $('#table-preview-so').DataTable({
-    //                     "paging": false, "info": true, "searching": true, "ordering": false,
-    //                     "autoWidth": false, "responsive": false, "scrollX": true,
-    //                     "footerCallback": function (row, data, start, end, display) {
-    //                         let api = this.api();
-    //                         let intVal = function (i) {
-    //                             if (typeof i === 'string') {
-    //                                 let val = i.replace(/\./g, '');
-    //                                 return val === '-' ? 0 : val * 1;
-    //                             }
-    //                             return typeof i === 'number' ? i : 0;
-    //                         };
-
-    //                         let startColIndex = 6;
-    //                         let numSizes = res.available_sizes.length;
-    //                         for (let i = 0; i < numSizes; i++) {
-    //                             let colIndex = startColIndex + i;
-    //                             let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-    //                             $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
-    //                         }
-    //                     },
-    //                     "drawCallback": function(settings) {
-    //                         let api = this.api();
-    //                         setTimeout(function() { api.columns.adjust(); }, 10);
-    //                     }
-    //                 });
-    //             }
-
-    //             let btnSubmit = $('#form-create-so button[type="submit"]');
-
-    //             if (res.has_bom_error) {
-    //                 btnSubmit.prop('disabled', true);
-
-    //                 let htmlError = '';
-
-    //                 if (res.missing_colors && res.missing_colors.length > 0) {
-    //                     htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Warna di BOM tapi TIDAK ADA di Excel:</b></p>
-    //                                   <p class="mb-3 text-dark">` + res.missing_colors.join(', ') + `</p>`;
-    //                 }
-    //                 if (res.missing_sizes && res.missing_sizes.length > 0) {
-    //                     htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
-    //                                   <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
-    //                 }
-
-    //                 if (htmlError !== '') {
-    //                     Swal.fire({
-    //                         icon: 'error',
-    //                         title: 'Data Excel Kurang Lengkap!',
-    //                         html: htmlError + '<br><small><b>Solusi:</b> Update File Excel Anda <b>ATAU</b> hapus warna/size tersebut dari BOM.</small>',
-    //                         confirmButtonText: 'Tutup'
-    //                     });
-    //                 } else {
-    //                     // if ($('#btn-fix-bom').length === 0) {
-    //                     //     $('#table-preview-so').before(`<button type="button" id="btn-fix-bom" class="btn btn-danger mb-2" onclick="redirect_to_edit_bom()"><i class="fas fa-tools"></i> Terdapat Material Belum Terdaftar (Klik untuk Fix di Tab Baru)</button>`);
-    //                     // }
-
-    //                     Swal.fire({
-    //                         toast: true, position: 'top-end', icon: 'error',
-    //                         title: 'Warna/Size tidak terdaftar di BOM!',
-    //                         text: 'Silakan klik Edit BOM untuk menambah material.',
-    //                         showConfirmButton: false, timer: 5000
-    //                     });
-    //                 }
-    //             } else {
-    //                 btnSubmit.prop('disabled', false);
-    //                 $('#btn-fix-bom').remove();
-    //             }
-    //         },
-    //         error: function(xhr) {
-    //             $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
-    //         }
-    //     });
-    // }
+    function formatSummaryDate(value) {
+        if (!value) return '-';
+        const match = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : String(value);
+    }
 
     function loadPreviewUpload() {
         $('#card-preview').show();
         $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+        $('#summary-exfty-date').text('-');
 
         $.ajax({
             url: "{{ route('so-get-temp-data') }}",
@@ -821,6 +610,8 @@
 
                 let bodyHtml = '';
                 if (res.data && res.data.length > 0) {
+                    const exFactoryDate = res.data.find(row => row.ex_fty);
+                    $('#summary-exfty-date').text(formatSummaryDate(exFactoryDate ? exFactoryDate.ex_fty : null));
                     res.data.forEach(row => {
                         let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
 
@@ -874,8 +665,13 @@
 
                 if (res.data && res.data.length > 0) {
                     previewTable = $('#table-preview-so').DataTable({
-                        "paging": false, "info": true, "searching": true, "ordering": false,
-                        "autoWidth": false, "responsive": false, "scrollX": false,
+                        "paging": false,
+                        "info": true,
+                        "searching": true,
+                        "ordering": false,
+                        "autoWidth": false,
+                        "responsive": false,
+                        "scrollX": false,
                         "columnDefs": [
                             { targets: 0, width: '145px' },
                             { targets: 1, width: '155px' },
@@ -1061,7 +857,7 @@
             soFileUploaded = false;
             $('#so-selected-file').prop('hidden', !file);
             $('#so-selected-file-name').text(file ? file.name : '');
-            $('#btn-upload-so').prop('disabled', !file).text('Upload Now').removeClass('btn-success').addClass('btn-secondary');
+            $('#btn-upload-so').prop('disabled', !file).text('Upload Now').removeClass('btn-success').addClass('btn-primary');
         });
 
         $('#so-file-dropzone').on('click keydown', function(event) {
@@ -1113,7 +909,7 @@
                 success: function(res) {
                     if (res.status === 200) {
                         soFileUploaded = true;
-                        uploadButton.removeClass('btn-secondary').addClass('btn-success').text('Uploaded');
+                        uploadButton.removeClass('btn-primary').addClass('btn-success').text('Uploaded');
                         Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                         loadPreviewUpload();
                     }
@@ -1199,72 +995,73 @@
             });
         });
 
-        $('#btn-back').on('click', function(e) { window.location.href = "{{ route('master-marketing-so') }}"; });
+        $('#btn-back').on('click', function(e) { window.location.href = "{{ route('master-costing') }}"; });
 
         $.ajax({
-                    url: "{{ route('so-get-costing-data') }}",
-                    type: "GET",
-                    data: { id_costing: $('#id_costing').val() },
-                    success: function(res) {
-                        if (res.status == 200) {
-                            let data = res.data;
+            url: "{{ route('so-get-costing-data') }}",
+            type: "GET",
+            data: { id_costing: $('#id_costing').val() },
+            success: function(res) {
+                if (res.status == 200) {
+                    let data = res.data;
 
-                            $('#brand').val(data.brand);
-                            $('#style').val(data.style);
-                            $('#market').val(data.market);
-                            $('#smv').val(data.smv);
+                    $('#brand').val(data.brand);
+                    $('#style').val(data.style);
+                    $('#market').val(data.market);
+                    $('#smv').val(data.smv);
 
-                            $('#id_buyer').val(data.id_buyer).trigger('change');
-                            $('#marketing_order').val(data.marketing_order).trigger('change');
-                            $('#id_currency').val(data.id_currency).trigger('change');
-                            $('#summary-buyer').text(data.buyer_name || $('#id_buyer option:selected').text() || '-');
-                            $('#summary-buyer-code').text(data.buyer_code || data.id_buyer || '-');
-                            $('#summary-season').text([data.season_name, data.season_desc].filter(Boolean).join(' - ') || data.season_id || '-');
-                            $('#summary-style').text(data.style || '-');
-                            $('#summary-brand').text(data.brand || '-');
-                            $('#summary-planned-qty').text(data.planned_qty ? Number(data.planned_qty).toLocaleString('id-ID') : '-');
-                            $('#summary-product-group').text(data.product_group || '-');
-                            $('#summary-worksheet-type').text(data.tipe_ws || '-');
-                            $('#summary-worksheet-no').text(data.kpno || '-');
-                            $('#summary-costing-type').text(data.type ? String(data.type).toUpperCase() : '-');
-                            $('#summary-costing-no').text(data.cost_no || '-');
-                            $('#summary-product-type').text('-');
-                            $('#summary-unit').text(data.unit || '-');
-                            $('#summary-ship-mode').text(data.ship_mode_name || data.ship_mode || '-');
-                            $('#summary-market').text(data.market || '-');
-                            $('#summary-destination').text(data.main_dest || '-');
-                            $('#summary-status').text(data.status || '-');
+                    $('#id_buyer').val(data.id_buyer).trigger('change');
+                    $('#marketing_order').val(data.marketing_order).trigger('change');
+                    $('#id_currency').val(data.id_currency).trigger('change');
+                    $('#summary-buyer').text(data.buyer_name || $('#id_buyer option:selected').text() || '-');
+                    $('#summary-buyer-code').text(data.buyer_code || data.id_buyer || '-');
+                    $('#summary-season').text([data.season_name, data.season_desc].filter(Boolean).join(' - ') || data.season_id || '-');
+                    $('#summary-style').text(data.style || '-');
+                    $('#summary-brand').text(data.brand || '-');
+                    $('#summary-planned-qty').text(data.planned_qty ? Number(data.planned_qty).toLocaleString('id-ID') : '-');
+                    $('#summary-delivery-date').text(formatSummaryDate(data.delivery_date));
+                    $('#summary-product-group').text(data.product_group || '-');
+                    $('#summary-worksheet-type').text(data.tipe_ws || '-');
+                    $('#summary-worksheet-no').text(data.kpno || '-');
+                    $('#summary-costing-type').text(data.type ? String(data.type).toUpperCase() : '-');
+                    $('#summary-costing-no').text(data.cost_no || '-');
+                    $('#summary-product-type').text('-');
+                    $('#summary-unit').text(data.unit || '-');
+                    $('#summary-ship-mode').text(data.ship_mode_name || data.ship_mode || '-');
+                    $('#summary-market').text(data.market || '-');
+                    $('#summary-destination').text(data.main_dest || '-');
+                    $('#summary-status').text(data.status || '-');
 
-                            costingImages = Array.isArray(data.images) && data.images.length
-                                ? data.images
-                                : (data.image_url ? [data.image_url] : []);
-                            selectedCostingImage = 0;
-                            renderCostingImage();
+                    costingImages = Array.isArray(data.images) && data.images.length
+                        ? data.images
+                        : (data.image_url ? [data.image_url] : []);
+                    selectedCostingImage = 0;
+                    renderCostingImage();
 
-                            if (data.nama_product_item) {
-                                $('#id_product_item').attr('data-auto-select', data.nama_product_item);
-                            }
-
-                            $('#product_group').val(data.product_group).trigger('change');
-                            $('#type').val(data.type).trigger('change');
-
-                            if (data.product_set) {
-                                let selectedSets = data.product_set.split(',').map(item => item.trim());
-                                $('#product_set').val(selectedSets).trigger('change');
-                                $('#summary-product-type').text($('#product_set option:selected').map((_, option) => $(option).text()).get().join(', ') || '-');
-                            } else {
-                                $('#product_set').val(null).trigger('change');
-                                $('#summary-product-type').text('-');
-                            }
-
-                        } else {
-                            Swal.fire('Peringatan!', res.message, 'warning');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Gagal mengambil detail Costing dari server.', 'error');
+                    if (data.nama_product_item) {
+                        $('#id_product_item').attr('data-auto-select', data.nama_product_item);
                     }
-                });
+
+                    $('#product_group').val(data.product_group).trigger('change');
+                    $('#type').val(data.type).trigger('change');
+
+                    if (data.product_set) {
+                        let selectedSets = data.product_set.split(',').map(item => item.trim());
+                        $('#product_set').val(selectedSets).trigger('change');
+                        $('#summary-product-type').text($('#product_set option:selected').map((_, option) => $(option).text()).get().join(', ') || '-');
+                    } else {
+                        $('#product_set').val(null).trigger('change');
+                        $('#summary-product-type').text('-');
+                    }
+
+                } else {
+                    Swal.fire('Peringatan!', res.message, 'warning');
+                }
+            },
+            error: function() {
+                Swal.fire('Error', 'Gagal mengambil detail Costing dari server.', 'error');
+            }
+        });
     });
 </script>
 @endsection

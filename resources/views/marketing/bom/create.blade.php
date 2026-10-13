@@ -2,10 +2,6 @@
 
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
     <style>
         :root {
             --sb-navy: #0f172a;
@@ -13,17 +9,6 @@
             --sb-blue-dark: #1e3a8a;
             --sb-border: #e2e8f0;
         }
-
-        #itemTable { table-layout: fixed; width: 100%; }
-        #itemTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .select2-container { width: 100% !important; }
-        .select2-selection__rendered { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
-        .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
-            white-space: normal !important; word-wrap: break-word !important; height: auto !important;
-            line-height: 1.5 !important; padding-top: 5px !important; padding-bottom: 5px !important;
-        }
-        .select2-results__option { white-space: normal !important; word-wrap: break-word !important; }
-        .select2-container .select2-selection--single { height: auto !important; }
 
         /* ============ CARD UTAMA ============ */
         .card-sb,
@@ -141,26 +126,30 @@
         }
         .form-section-title i { color: var(--sb-blue); font-size: 12.5px; }
 
-        /* ============ TABLE ITEM ============ */
-        #itemTable thead th,
-        #table-added-items thead th {
-            background: var(--sb-navy) !important;
-            color: #f8fafc !important;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border-color: #1e293b;
-            vertical-align: middle;
-        }
-        #table-added-items thead tr.filter-row th {
-            background: #f8fafc !important;
-        }
-
         /* ============ MODAL TAMBAH WARNA/SIZE ============ */
         .modal-content {
             border: none;
             border-radius: 14px;
             overflow: hidden;
+        }
+        #bom-item-modal .modal-dialog {
+            width: calc(100% - 1rem);
+            max-width: 1140px;
+            margin: .5rem auto;
+        }
+        #bom-item-modal .modal-content {
+            max-height: calc(100vh - 1rem);
+            display: flex;
+            flex-direction: column;
+        }
+        #bom-item-modal .modal-body {
+            min-height: 0;
+            overflow-y: auto;
+        }
+        #bom-item-modal .modal-footer {
+            flex: 0 0 auto;
+            background: #fff;
+            border-top: 1px solid #e1e7ef;
         }
         .modal-header.bg-sb {
             background: var(--sb-navy) !important;
@@ -170,6 +159,426 @@
             border-radius: 8px;
             font-weight: 700;
         }
+
+        .card.card-primary > .card-header.bom-create-header {
+            padding: 0.9rem 1.4rem;
+            background: #fff !important;
+        }
+        .card.card-primary > .card-header.bom-create-header::before {
+            content: none;
+        }
+        .card.card-primary > .card-header.bom-create-header .card-title {
+            color: #294d68 !important;
+            font-size: 1.1rem;
+        }
+
+        .bom-summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .bom-summary-card {
+            min-width: 0;
+            min-height: 64px;
+            padding: 9px 12px;
+            border: 1px solid #e1e7ef;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 3px 8px rgba(30, 41, 59, .10);
+        }
+        .bom-summary-card span,
+        .bom-summary-item span {
+            display: block;
+            overflow: hidden;
+            color: #ababab;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .bom-summary-card strong {
+            display: block;
+            overflow: hidden;
+            margin-top: 3px;
+            color: #284a63;
+            font-size: 14px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .bom-top-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .bom-info-column {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .bom-overview-section {
+            min-width: 0;
+            overflow: hidden;
+            border: 1px solid #e1e7ef;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 3px 8px rgba(30, 41, 59, .10);
+        }
+        .bom-overview-title {
+            margin: 0 12px;
+            padding: 8px 0 6px;
+            border-bottom: 1px solid #dce4ec;
+            color: #284a63;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .bom-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 20px;
+            padding: 6px 12px 8px;
+        }
+        .bom-summary-item {
+            display: flex;
+            min-width: 0;
+            min-height: 30px;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+            padding: 3px 0;
+            border-bottom: 1px solid #e7e7e7;
+        }
+        .bom-summary-item strong {
+            overflow: hidden;
+            color: #284a63;
+            font-size: 11px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .bom-review-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .bom-image-review {
+            display: flex;
+            min-height: 205px;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 10px;
+        }
+        .bom-image-nav {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 50%;
+            background: #f1f3f5;
+            color: #7b8791;
+        }
+        .bom-image-preview {
+            display: flex;
+            min-width: 120px;
+            min-height: 160px;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 11px;
+            text-align: center;
+        }
+        .bom-image-preview img {
+            max-width: min(100%, 300px);
+            max-height: 190px;
+            object-fit: contain;
+        }
+        .bom-image-thumbnails {
+            display: flex;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 10px 6px;
+            overflow-x: auto;
+        }
+        .bom-image-thumbnail {
+            display: flex;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            border: 1px solid #d8e0e9;
+            border-radius: 4px;
+            background: #fff;
+            opacity: .72;
+        }
+        .bom-image-thumbnail.is-active {
+            border-color: #3b82f6;
+            opacity: 1;
+        }
+        .bom-image-thumbnail img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .bom-image-counter {
+            min-height: 18px;
+            margin-bottom: 8px;
+            color: #64748b;
+            font-size: 10px;
+            text-align: center;
+        }
+        .bom-breakdown-wrap {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 140px;
+            margin: 0 10px 10px;
+        }
+        #bom-breakdown-table {
+            margin-bottom: 0;
+            font-size: 10px;
+            min-width: 560px;
+            table-layout: fixed;
+        }
+        #bom-breakdown-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #294d68;
+            color: #fff;
+            white-space: nowrap;
+        }
+        #bom-breakdown-table tfoot th {
+            position: sticky;
+            bottom: 0;
+            background: #e9f5ff;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        #bom-breakdown-table th,
+        #bom-breakdown-table td {
+            padding: 4px 6px;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        #bom-breakdown-table .bom-breakdown-total { background: #a8c9ff; font-weight: 700; }
+        #bom-breakdown-table .bom-breakdown-label { text-align: left; }
+        #section-list-item {
+            overflow: hidden;
+            border: 1px solid #e1e7ef;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(30, 41, 59, .08);
+        }
+        #section-list-item > .card-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid #dce4ec;
+            background: #fff;
+        }
+        #section-list-item > .card-body { padding: 8px 12px 12px; background: #fff; }
+        #bom-content-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            border-bottom: 1px solid #dce4ec;
+        }
+        #bom-content-tabs .nav-link {
+            padding: 8px 20px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            color: #9aa1a8;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        #bom-content-tabs .nav-link.active {
+            border-bottom-color: #294d68;
+            background: transparent;
+            color: #294d68;
+            font-weight: 700;
+        }
+        .bom-content-table {
+            min-width: 1250px;
+            margin-bottom: 0;
+            font-size: 10px;
+        }
+        .bom-content-table thead th {
+            padding: 6px 8px;
+            border-color: #c9d9f2;
+            background: #cfe0ff;
+            color: #26394c;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+            position: relative;
+        }
+        .bom-content-table thead th .bom-column-heading {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bom-content-table thead th .bom-column-dot {
+            width: 5px;
+            height: 5px;
+            flex: 0 0 5px;
+            border-radius: 50%;
+        }
+        .bom-content-table thead th.th-costing .bom-column-dot { background: #8b5cf6; }
+        .bom-content-table thead th.th-so .bom-column-dot { background: #2878ee; }
+        .bom-content-table thead th.th-input .bom-column-dot { background: #f59e0b; }
+        .bom-content-table thead th.th-auto .bom-column-dot { background: #94a3b8; }
+        .bom-content-table thead th .bom-column-edit {
+            margin-left: 2px;
+            color: #172b46;
+            font-size: 11px;
+        }
+        .bom-content-table tbody td {
+            padding: 5px 7px;
+            border-color: #e1e5ea;
+            vertical-align: middle;
+        }
+        .bom-content-table tbody tr:hover { background: #f5f8fc; }
+        .bom-saved-item-value {
+            min-height: 18px;
+            padding: 2px 0;
+            border-bottom: 1px solid #e1e5ea;
+            white-space: normal;
+        }
+        .bom-saved-item-value:last-child { border-bottom: 0; }
+
+        /* ============ GRID EDIT ALA EXCEL ============ */
+        .bom-cell {
+            position: relative;
+            margin: 0 -4px;
+            padding: 2px 4px;
+            outline: none;
+            cursor: cell;
+            user-select: none;
+        }
+        .bom-cell.is-dirty { background: #fff7e6; }
+        .bom-cell.is-pasted { background: #e0ecff; box-shadow: inset 0 0 0 1px #3b82f6; }
+        .bom-cell.is-error { background: #fee2e2; box-shadow: inset 0 0 0 1px #ef4444; }
+        .bom-cell.is-selected { background: #dbeafe; }
+        .bom-cell.is-fill-preview { box-shadow: inset 0 0 0 1px #2563eb; background: #eff6ff; }
+        .bom-cell.is-active { box-shadow: inset 0 0 0 2px #2563eb; }
+        .bom-cell.is-editing { padding: 0; box-shadow: inset 0 0 0 2px #2563eb; }
+        .bom-cell-input {
+            width: 100%;
+            min-width: 70px;
+            height: 20px !important;
+            padding: 0 4px !important;
+            border-radius: 0;
+            font-size: 10px;
+        }
+        select.bom-cell-input { min-width: 160px; }
+        .bom-fill-handle {
+            position: absolute;
+            right: -4px;
+            bottom: -4px;
+            z-index: 2;
+            width: 7px;
+            height: 7px;
+            border: 1px solid #fff;
+            background: #2563eb;
+            cursor: crosshair;
+        }
+        .bom-auto { background: #f1f5f9; margin: 0 -4px; padding: 2px 4px; }
+        .bom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            color: #687582;
+            font-size: 10px;
+        }
+        .bom-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .bom-legend .bom-column-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .bom-legend-box { width: 11px; height: 11px; border: 1px solid #cbd5e1; border-radius: 2px; }
+        .bom-content-row {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .bom-content-row > span { min-width: 0; }
+        .bom-content-add {
+            display: inline-flex !important;
+            width: 25px;
+            height: 25px;
+            min-width: 25px;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            border: 0;
+            border-radius: 4px;
+            background: #10264e;
+            color: #fff;
+            line-height: 1;
+            box-shadow: none;
+        }
+        .bom-content-add:hover,
+        .bom-content-add:focus {
+            background: #1d3d70;
+            color: #fff;
+        }
+        .bom-content-add:disabled { opacity: .45; }
+        #section-list-item .dataTables_scroll { width: 100%; }
+        #section-list-item .dataTables_scrollHead,
+        #section-list-item .dataTables_scrollBody { width: 100% !important; }
+        #section-list-item .dataTables_scrollBody { overflow-y: auto !important; }
+        #section-list-item .dataTables_info,
+        #section-list-item .dataTables_length,
+        #section-list-item .dataTables_paginate {
+            padding-top: 8px;
+            color: #687582;
+            font-size: 10px;
+        }
+        #section-list-item .dataTables_paginate .paginate_button {
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+        #section-list-item .dataTables_length select {
+            height: 25px;
+            margin: 0 4px;
+            padding: 2px 18px 2px 5px;
+            font-size: 10px;
+        }
+        .bom-rule-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .bom-rule-options label {
+            display: flex;
+            min-height: 46px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0;
+            padding: 8px;
+            border: 1px solid #dce4ec;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+        #bom-modal-items select, #bom-modal-items input { min-width: 110px; }
+        @media (max-width: 991.98px) {
+            .bom-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .bom-top-layout { grid-template-columns: 1fr; }
+            .bom-rule-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 575.98px) {
+            .bom-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #section-list-item > .card-body { padding: 6px; }
+            #bom-content-tabs .nav-link { padding: 8px 12px; }
+            .bom-content-table { min-width: 1000px; }
+        }
+
+        .bom-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+        .bom-breadcrumb a { color: #b4b4b4; text-decoration: none; }
+        .bom-breadcrumb a:hover { color: #fff; text-decoration: underline; }
+        .bom-breadcrumb strong { color: #fff; font-weight: 500; }
     </style>
 @endsection
 
@@ -178,707 +587,1490 @@
     @csrf
 
     <div class="card card-primary ">
-        <div class="card-header bg-sb">
+        <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>Create BOM</strong></div>
+        <div class="card-header bg-sb bom-create-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="card-eyebrow">Marketing &middot; BOM</span>
-                    <h5 class="card-title">
-                        Katalog BOM
-                    </h5>
+                    <h5 class="card-title">Create BOM</h5>
+                    <br>
+                    <small class="text-muted"><i class="fas fa-info-circle"></i> Unit: Menambahkan BOM</small>
                 </div>
-                <a href="{{ route('master-bom') }}" class="btn btn-sm btn-primary">
-                    <i class="fa fa-reply"></i> Kembali ke BOM
-                </a>
+                <input type="hidden" name="id_costing" id="id_costing" value="{{ $selectedCostingId }}">
             </div>
         </div>
         <div class="card-body">
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-info-circle"></i> Informasi Katalog</div>
-            <div class="row">
-                <div class="col-md-3">
-                    <label class="form-label"><small class="fw-bold">No Costing <span class="text-danger">*</span></small></label>
-                    <select name="id_costing" id="id_costing" class="form-control select2bs4">
-                        <option value="">Pilih Costing</option>
-                        @if(isset($costings))
-                            @foreach ($costings as $cost)
-                                <option value="{{ $cost->id }}"
-                                        data-buyer="{{ $cost->buyer ?? '' }}"
-                                        data-style="{{ $cost->style ?? '' }}"
-                                        data-market="{{ $cost->market ?? '' }}">
-                                    {{ $cost->no_costing }} - {{ $cost->style }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
+            <div class="bom-summary-cards" aria-label="Ringkasan BOM">
+                <div class="bom-summary-card"><span>No Costing</span><strong id="bom-summary-costing">{{ $selectedCostingNo }}</strong></div>
+                <div class="bom-summary-card"><span>No Worksheet</span><strong id="bom-summary-worksheet">-</strong></div>
+                <div class="bom-summary-card"><span>No Sales Order</span><strong id="bom-summary-so">-</strong></div>
+                <div class="bom-summary-card"><span>No Purchase Order</span><strong id="bom-summary-po">-</strong></div>
+                <div class="bom-summary-card">
+                    <span>No BOM
+                        <i id="bom-status-badge" class="badge {{ $existingBomId ? 'badge-success' : 'badge-warning' }} ml-1"
+                           title="{{ $existingBomId ? 'BOM sudah tersimpan' : 'Nomor perkiraan, BOM dibuat saat item pertama ditambahkan' }}">{{ $existingBomId ? 'Tersimpan' : 'Draft' }}</i>
+                    </span>
+                    <strong id="bom-summary-bom">{{ $nextBomNo }}</strong>
                 </div>
+            </div>
+            <div class="bom-top-layout">
+                <div class="bom-info-column">
+                    <section class="bom-overview-section">
+                        <h2 class="bom-overview-title">Information Buyer</h2>
+                        <div class="bom-overview-grid">
+                            <div class="bom-summary-item"><span>Buyer Name</span><strong id="bom-summary-buyer">-</strong></div>
+                            <div class="bom-summary-item"><span>Kode Buyer</span><strong id="bom-summary-buyer-code">-</strong></div>
+                            <div class="bom-summary-item"><span>Brand</span><strong id="bom-summary-brand">-</strong></div>
+                            <div class="bom-summary-item"><span>Season</span><strong id="bom-summary-season">-</strong></div>
+                            <div class="bom-summary-item"><span>Style</span><strong id="bom-summary-style">-</strong></div>
+                            <div class="bom-summary-item"><span>QTY Planned</span><strong id="bom-summary-planned-qty">-</strong></div>
+                        </div>
+                    </section>
+                    <section class="bom-overview-section">
+                        <h2 class="bom-overview-title">Product &amp; Type</h2>
+                        <div class="bom-overview-grid">
+                            <div class="bom-summary-item"><span>Product Group</span><strong id="bom-summary-product-group">-</strong></div>
+                            <div class="bom-summary-item"><span>Product Items</span><strong id="bom-summary-product-item">-</strong></div>
+                            <div class="bom-summary-item"><span>Product Type</span><strong id="bom-summary-product-type">-</strong></div>
+                            <div class="bom-summary-item"><span>Unit</span><strong id="bom-summary-unit">-</strong></div>
+                            <div class="bom-summary-item"><span>Costing Type</span><strong id="bom-summary-costing-type">-</strong></div>
+                            <div class="bom-summary-item"><span>Worksheet Type</span><strong id="bom-summary-worksheet-type">-</strong></div>
+                        </div>
+                    </section>
+                    <section class="bom-overview-section">
+                        <h2 class="bom-overview-title">Shipping &amp; Destinations</h2>
+                        <div class="bom-overview-grid">
+                            <div class="bom-summary-item"><span>Ship Mode</span><strong id="bom-summary-ship-mode">-</strong></div>
+                            <div class="bom-summary-item"><span>Shipment Type</span><strong id="bom-summary-shipment-type">-</strong></div>
+                            <div class="bom-summary-item"><span>Main Destination</span><strong id="bom-summary-destination">-</strong></div>
+                            <div class="bom-summary-item"><span>Market</span><strong id="bom-summary-market">-</strong></div>
+                        </div>
+                    </section>
+                </div>
+                <div class="bom-info-column">
+                    <section class="bom-overview-section bom-review-section">
+                        <h2 class="bom-overview-title">Review Image</h2>
+                        <div class="bom-image-review">
+                            <button type="button" class="bom-image-nav" id="bom-image-prev" aria-label="Previous image" disabled><i class="fas fa-chevron-left"></i></button>
+                            <div class="bom-image-preview">
+                                <img id="bom-preview-image" src="" alt="Preview gambar Costing" hidden>
+                                <span id="bom-image-empty">Informasi gambar Costing belum tersedia.</span>
+                            </div>
+                            <button type="button" class="bom-image-nav" id="bom-image-next" aria-label="Next image" disabled><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="bom-image-thumbnails" id="bom-image-thumbnails"></div>
+                        <div class="bom-image-counter" id="bom-image-counter"></div>
+                    </section>
+                    <section class="bom-overview-section">
+                        <h2 class="bom-overview-title">Breakdown Order</h2>
+                        <div class="bom-breakdown-wrap">
+                            <table class="table table-sm table-bordered" id="bom-breakdown-table">
+                                <thead></thead>
+                                <tbody><tr><td class="text-muted">Memuat detail dari Sales Order terkait Costing.</td></tr></tbody>
+                                <tfoot></tfoot>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
 
-                <div class="col-md-3">
-                    <label class="form-label"><small class="fw-bold">Buyer <span class="text-danger">*</span></small></label>
-                    <select name="id_buyer" id="id_buyer" class="form-control select2bs4">
-                        <option value="">Pilih Buyer</option>
-                        @foreach ($buyers as $buyer)
-                            <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label"><small class="fw-bold">Style <span class="text-danger">*</span></small></label>
-                    <input type="text" class="form-control" name="style" id="style">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label"><small class="fw-bold">Market</small></label>
-                    <input type="text" class="form-control" name="market" id="market">
-                </div>
-            </div>
-            </div>
-
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-palette"></i> Master Warna & Size</div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Color <span class="text-danger">*</span></small>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalColor">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                    <select id="colorList" name="colors[]" class="form-control select2bs4" multiple>
-                        @foreach ($master_colors as $color)
-                            <option value="{{ $color->id }}">{{ $color->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Size <span class="text-danger">*</span></small>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSize">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                    <select id="sizeList" name="sizes[]" class="form-control select2bs4" multiple>
-                        @foreach ($master_sizes as $size)
-                            <option value="{{ $size->id }}">{{ $size->size }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            </div>
-            <div class="row mt-1">
-                <div class="col-12 text-right">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="confirmCatalog()" id="btn-confirmation"><i class="fas fa-check-circle"></i> Konfirmasi Katalog</button>
-                </div>
-            </div>
+            <input type="hidden" name="buyer" id="id_buyer">
+            <input type="hidden" name="style" id="style">
+            <input type="hidden" name="market" id="market">
+            <div id="bom-selected-colors"></div>
+            <div id="bom-selected-sizes"></div>
         </div>
     </div>
 
-    <div class="card mt-3 card-success" id="section-list-item" style="display: none;">
-        <div class="card-header bg-sb text-light">
-            <span class="card-eyebrow">Marketing &middot; BOM</span>
-            <h5 class="card-title mb-0"><i class="fas fa-list"></i> List Item</h5>
-        </div>
-        <div class="card-body">
-            <div class="form-section">
-                <div class="form-section-title"><i class="fas fa-box-open"></i> Detail Item</div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label><small class="fw-bold">Supplier</small></label>
-                        <select name="id_supplier" class="form-control select2bs4">
-                            <option value="">Pilih Supplier</option>
-                            @foreach ($suppliers as $sup)
-                                <option value="{{ $sup->Id_Supplier }}">{{ $sup->Supplier }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label><small class="fw-bold">Category</small></label>
-                        <select name="category" id="category" class="form-control select2bs4" onchange="get_item_contents()">
-                            <option value="">Pilih Category</option>
-                            <option value="Material">Material</option>
-                            <option value="Manufacturing">Manufacturing</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label><small class="fw-bold">Item Contents *</small></label>
-                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()" disabled>
-                            <option value="">Pilih Kategori Terlebih Dahulu</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label><small class="fw-bold">Rule BOM *</small></label>
-                        <select name="rule_bom" id="rule_bom" class="form-control select2bs4" onchange="get_list_data()">
-                            <option value="">Pilih Rule</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label><small class="fw-bold">Unit</small></label>
-                        <select name="unit" id="unit" class="form-control select2bs4">
-                            <option value="">Pilih Unit</option>
-                            @foreach ($masterUnits as $data)
-                                <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label><small class="fw-bold">Shell</small></label>
-                        <select name="shell" id="shell" class="form-control select2bs4">
-                            <option value="">Pilih Shell</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><small class="fw-bold">Notes</small></label>
-                        <textarea name="notes" class="form-control" rows="7" placeholder="Input catatan..."></textarea>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-            <div class="table-responsive mt-3">
-                <table class="table table-bordered table-sm w-100" id="itemTable">
-                    <thead class="text-center">
-                        <tr>
-                            <th width="25%">Color | Size</th>
-                            <th>Item</th>
-                            <th width="15%">Cons</th>
-                            <th width="15%">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn btn-success btn-md">
-                    <i class="fas fa-save"></i> Simpan
+    <section class="card mt-3" id="section-list-item" style="display: none;">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
+            <h5 class="card-title mb-0">Summary Detail</h5>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" aria-label="Tutup Summary Detail">
+                    <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
         </div>
-    </div>
-
-    <div class="card card-outline card-info mt-3" id="section_table_list_item" style="display: none;">
-        <div class="card-header">
-            <h5 class="card-title fw-bold"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm table-striped table-bordered mb-0 w-100" id="table-added-items">
-                    <thead>
-                        <tr class="text-center">
-                            <th width="5%">No</th>
-                            <th width="20%">Content</th>
-                            <th>Item Description</th>
-                            <th width="15%">Color</th>
-                            <th width="15%">Size</th>
-                            <th width="10%">Qty</th>
-                            <th width="10%">Price</th>
-                            <th width="10%">Unit</th>
-                        </tr>
-                        <tr class="filter-row">
-                            <th></th>
-                            <th><input type="text" class="form-control form-control-sm column-search" data-column="1" placeholder="Filter Content..."></th>
-                            <th><input type="text" class="form-control form-control-sm column-search" data-column="2" placeholder="Filter Item..."></th>
-                            <th><input type="text" class="form-control form-control-sm column-search" data-column="3" placeholder="Filter Color..."></th>
-                            <th><input type="text" class="form-control form-control-sm column-search" data-column="4" placeholder="Filter Size..."></th>
-                            <th></th>
-                            <th></th>
-                            <th><input type="text" class="form-control form-control-sm column-search" data-column="7" placeholder="Filter Unit..."></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+        <div class="card-body">
+            <div class="bom-legend mb-2">
+                <span><i class="bom-column-dot" style="background:#8b5cf6"></i>Costing</span>
+                <span><i class="bom-column-dot" style="background:#2878ee"></i>SO</span>
+                <span><i class="bom-column-dot" style="background:#f59e0b"></i>Input</span>
+                <span><i class="bom-column-dot" style="background:#94a3b8"></i>Auto</span>
             </div>
+            <ul class="nav nav-tabs" id="bom-content-tabs" role="tablist"></ul>
+            <div class="tab-content pt-3" id="bom-content-panels"></div>
+            {{-- <div class="bom-legend mt-2">
+                <span><i class="bom-legend-box" style="background:#fff"></i>Editable</span>
+                <span><i class="bom-legend-box" style="background:#f1f5f9"></i>Auto calculated</span>
+                <span><i class="bom-legend-box" style="background:#fff7e6"></i>Belum disimpan</span>
+                <span><i class="bom-legend-box" style="background:#e0ecff;border-color:#3b82f6"></i>Just Pasted</span>
+                <span><i class="bom-legend-box" style="background:#fee2e2;border-color:#ef4444"></i>Error</span>
+                <span class="ml-auto">Klik sel lalu ketik / double-click untuk edit, Ctrl+C &amp; Ctrl+V dari Excel, tarik kotak biru di pojok sel untuk copy ke bawah.</span>
+            </div> --}}
         </div>
+    </section>
+
+    <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
+        <a href="{{ route('master-bom') }}" class="btn btn-danger px-4" style="border-radius: 8px;">Cancel</a>
+        <button type="submit" class="btn btn-success px-4" id="bom-grid-save" style="border-radius: 8px;">Save</button>
     </div>
 </form>
 
-<div class="modal fade" id="modalColor" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md">
+<div class="modal fade" id="bom-item-modal" tabindex="-1" role="dialog" aria-labelledby="bom-item-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form action="{{ route('store-color') }}" method="post" onsubmit="submitColor(this, event)">
-                @csrf
-                <div class="modal-header bg-sb text-light py-2">
-                    <h6 class="modal-title"><i class="fas fa-palette"></i> Tambah Warna</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="bom-item-modal-title">Add Items BOM</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <span class="badge badge-primary">1</span>
+                    <strong>Definition Item</strong>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <label for="bom-modal-shell">Shell</label>
+                            <select id="bom-modal-shell" class="form-control">
+                                <option value="">Pilih Shell</option>
+                                @foreach ($shells as $shell)
+                                    <option value="{{ $shell->id }}">{{ $shell->nama_panel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="bom-modal-unit">Unit</label>
+                            <select id="bom-modal-unit" class="form-control">
+                                <option value="">Pilih Unit</option>
+                                @foreach ($masterUnits as $unit)
+                                    <option value="{{ $unit->nama_pilihan }}">{{ $unit->nama_pilihan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="bom-modal-notes">Notes</label>
+                            <input type="text" id="bom-modal-notes" class="form-control" maxlength="1000" placeholder="Notes">
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <input type="text" name="color_name" id="inputNewColor" class="form-control form-control-sm" placeholder="RED, BLUE..." required>
+                <div class="mb-3">
+                    <span class="badge badge-primary">2</span>
+                    <strong>Rule BOM</strong>
+                    <div class="bom-rule-options mt-2">
+                        <label><input type="radio" name="bom-modal-rule" value="All Color All Size" checked> All Color All Size</label>
+                        <label><input type="radio" name="bom-modal-rule" value="All Color Range Size"> All Color Range Size</label>
+                        <label><input type="radio" name="bom-modal-rule" value="Per Color All Size"> Per Color All Size</label>
+                        <label><input type="radio" name="bom-modal-rule" value="Per Color Range Size"> Per Color Range Size</label>
+                    </div>
                 </div>
-                <div class="modal-footer py-1">
-                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
-                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
+                <div>
+                    <span class="badge badge-primary">3</span>
+                    <strong>Preview List Items</strong>
+
+                    <div class="d-flex align-items-center flex-wrap gap-2 mt-2 mb-2 p-2 bg-light border rounded">
+                        <span class="badge badge-primary px-2 py-1" id="bom-modal-selected-badge">Selected 0</span>
+                        <div class="flex-grow-1" style="min-width: 160px;">
+                            <select id="bom-batch-item-desc" class="form-control form-control-sm">
+                                <option value="">Choose Item Description</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 140px;">
+                            <select id="bom-batch-color-select" class="form-control form-control-sm">
+                                <option value="">Choose Color</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 120px;">
+                            <select id="bom-batch-size-select" class="form-control form-control-sm">
+                                <option value="">Choose Size</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" id="bom-batch-update-btn">Update</button>
+                    </div>
+
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-bordered" id="bom-modal-items">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="bom-modal-check-all"></th>
+                                    <th class="th-costing">NO</th>
+                                    <th class="th-so">ITEMS DESCRIPTION</th>
+                                    <th class="th-input">COLOR MATERIALS</th>
+                                    <th class="th-auto">SIZE</th>
+                                    <th class="th-costing">CONS/PC</th>
+                                </tr>
+                            </thead>
+                            <tbody><tr><td colspan="6" class="text-center text-muted">Pilih rule BOM untuk memuat item.</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
-            </form>
+                <input type="hidden" id="bom-modal-content-id">
+                <input type="hidden" id="bom-modal-content-category">
+                <input type="hidden" id="bom-modal-supplier">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bom-modal-save"><i class="fas fa-save"></i> Save</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalSize" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form action="{{ route('store-size') }}" method="post" onsubmit="submitSize(this, event)">
-                @csrf
-                <div class="modal-header bg-sb text-light py-2">
-                    <h6 class="modal-title"><i class="fas fa-ruler"></i> Tambah Size</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" name="size_name" id="inputNewSize" class="form-control form-control-sm" placeholder="S, M, L..." required>
-                </div>
-                <div class="modal-footer py-1">
-                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
-                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('custom-script')
 <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
-    let currentBomId = null;
-    let tableAddedItems = null;
+    let currentBomId = @json($existingBomId);
+    let bomCostingImages = [];
+    let bomSelectedImage = 0;
+    let bomCostingRequest = null;
+    let bomSelectedColors = [];
+    let bomSelectedSizes = [];
+    let bomSelectedCombinations = [];
+    let bomCostingContents = [];
+    let bomModalItems = [];
+    let bomModalRequest = null;
+    let bomHeaderRequest = null;
+    let bomContentTables = [];
+    let bomSavedItems = [];
+
+    const BOM_EDIT_FIELDS = ['qty', 'unit', 'allowance', 'id_supplier', 'price'];
+    const BOM_NUMBER_RULES = {
+        qty: value => value > 0,
+        allowance: value => value >= 0 && value <= 100,
+        price: value => value >= 0
+    };
+    const bomUnitOptions = @json($unitOptions);
+    const bomSupplierOptions = @json($supplierOptions);
+    let bomGridState = new Map();
+    let bomSelection = null;
+    let bomDragMode = null;
+    let bomFillTargetRow = null;
+    let bomEditing = null;
 
     $(document).ready(function() {
-        $('.select2bs4').select2({ theme: 'bootstrap4' });
-
-        $('#form-bom').on('submit', function(e) {
-            e.preventDefault();
-            submitMainForm(this);
+        $('#bom-image-prev').on('click', function() {
+            bomSelectedImage--;
+            renderBomCostingImage();
         });
-
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-container--open .select2-search__field').focus();
+        $('#bom-image-next').on('click', function() {
+            bomSelectedImage++;
+            renderBomCostingImage();
         });
-
-        $('#item_contents, #rule_bom, #colorList, #sizeList').on('change', function() {
-            get_list_data();
+        $(document).on('click', '.bom-image-thumbnail', function() {
+            bomSelectedImage = Number($(this).data('image-index'));
+            renderBomCostingImage();
         });
+        $(document).on('click', '.bom-content-add', function() {
+            openBomItemModal($(this).data('content'));
+        });
+        $(document).on('shown.bs.tab', '#bom-content-tabs [data-bs-toggle="tab"]', function(event) {
+            const pane = $(event.target).attr('href');
+            const $table = $(pane).find('.bom-content-table');
+            initializeBomContentTable($table);
+            if ($.fn.DataTable.isDataTable($table)) {
+                $table.DataTable().columns.adjust().draw(false);
+            }
+        });
+        $('input[name="bom-modal-rule"]').on('change', renderBomModalRows);
+        $('#bom-modal-save').on('click', saveBomJoItems);
+        initializeBomGridEvents();
+        $('#form-bom').on('submit', function(event) {
+            event.preventDefault();
+            saveBomGridChanges();
+        });
+        $(window).on('beforeunload', function(event) {
+            if (getBomDirtyItems().length || hasBomGridErrors()) {
+                event.preventDefault();
+                return '';
+            }
+        });
+        $('#id_costing').on('change', loadBomCostingOverview);
 
-        $(document).on('change', '.qty_input', function() {
-            let val = parseFloat(this.value);
+        if ($('#id_costing').val()) {
+            loadBomCostingOverview();
+        } else {
+            renderBomBreakdown([]);
+        }
+    });
 
-            if (isNaN(val) || val <= 0) {
-                this.value = '';
-                iziToast.warning({
-                    title: 'Peringatan',
-                    message: 'Qty tidak boleh 0 atau minus',
-                    position: 'topRight'
+    function renderBomCostingImage() {
+        let hasImages = bomCostingImages.length > 0;
+        $('#bom-image-empty').text(hasImages ? '' : 'Gambar Costing tidak tersedia.')
+            .prop('hidden', hasImages);
+        $('#bom-preview-image').prop('hidden', !hasImages);
+        $('#bom-image-counter').text(hasImages ? `${bomSelectedImage + 1} / ${bomCostingImages.length}` : '');
+        $('#bom-image-prev, #bom-image-next').prop('disabled', bomCostingImages.length < 2);
+
+        if (!hasImages) {
+            $('#bom-preview-image').attr('src', '');
+            $('#bom-image-thumbnails').empty();
+            return;
+        }
+
+        bomSelectedImage = (bomSelectedImage + bomCostingImages.length) % bomCostingImages.length;
+        $('#bom-preview-image').attr('src', bomCostingImages[bomSelectedImage]);
+        let thumbnailsHtml = '';
+        bomCostingImages.forEach(function(image, index) {
+            thumbnailsHtml += `<button type="button" class="bom-image-thumbnail ${index === bomSelectedImage ? 'is-active' : ''}" data-image-index="${index}" aria-label="Tampilkan gambar ${index + 1}">
+                <img src="${image}" alt="">
+            </button>`;
+        });
+        $('#bom-image-thumbnails').html(thumbnailsHtml);
+    }
+
+    function loadBomCostingOverview() {
+        let idCosting = $('#id_costing').val();
+        if (bomCostingRequest) bomCostingRequest.abort();
+
+        if (!idCosting) {
+            $('.bom-summary-card strong:not(#bom-summary-costing):not(#bom-summary-bom), .bom-summary-item strong').text('-');
+            $('#id_buyer, #style, #market').val('');
+            $('#bom-selected-colors, #bom-selected-sizes').empty();
+            bomSelectedColors = [];
+            bomSelectedSizes = [];
+            bomSelectedCombinations = [];
+            bomCostingImages = [];
+            bomSelectedImage = 0;
+            renderBomCostingImage();
+            $('#bom-image-empty').text('Informasi gambar Costing belum tersedia.').prop('hidden', false);
+            $('#bom-summary-so, #bom-summary-po').text('-');
+            renderBomBreakdown([]);
+            bomCostingContents = [];
+            bomSavedItems = [];
+            return;
+        }
+
+        $('.bom-summary-card strong:not(#bom-summary-costing):not(#bom-summary-bom), .bom-summary-item strong').text('-');
+        $('#bom-summary-so, #bom-summary-po').text('-');
+        $('#id_buyer, #style, #market').val('');
+        $('#bom-selected-colors, #bom-selected-sizes').empty();
+        bomSelectedColors = [];
+        bomSelectedSizes = [];
+        bomSelectedCombinations = [];
+        bomCostingImages = [];
+        bomSelectedImage = 0;
+        renderBomCostingImage();
+
+        bomCostingRequest = $.ajax({
+            url: "{{ route('bom-get-costing-overview') }}",
+            type: 'GET',
+            data: {
+                id_costing: idCosting,
+                id_so: @json($selectedSoId)
+            },
+            success: function(res) {
+                if (res.status !== 200 || !res.data) {
+                    Swal.fire('Gagal', res.message || 'Data Costing tidak dapat dimuat.', 'error');
+                    return;
+                }
+
+                let data = res.data;
+                const setSummary = (selector, value) => $(selector).text(value || '-');
+                $('#id_buyer').val(data.id_buyer).trigger('change');
+                $('#style').val(data.style || '');
+                $('#market').val(data.market || '');
+                setSummary('#bom-summary-costing', data.cost_no);
+                setSummary('#bom-summary-worksheet', data.kpno);
+                setSummary('#bom-summary-so', data.so_no);
+                setSummary('#bom-summary-po', data.no_po);
+                setSummary('#bom-summary-buyer', data.buyer_name || $('#id_buyer option:selected').text());
+                setSummary('#bom-summary-buyer-code', data.buyer_code || data.id_buyer);
+                setSummary('#bom-summary-brand', data.brand);
+                setSummary('#bom-summary-season', [data.season_name, data.season_desc].filter(Boolean).join(' - ') || data.season_id);
+                setSummary('#bom-summary-style', data.style);
+                setSummary('#bom-summary-planned-qty', data.planned_qty ? Number(data.planned_qty).toLocaleString('id-ID') : '-');
+                setSummary('#bom-summary-product-group', data.product_group);
+                setSummary('#bom-summary-product-item', data.nama_product_item);
+                setSummary('#bom-summary-product-type', data.type_product);
+                setSummary('#bom-summary-unit', data.unit);
+                setSummary('#bom-summary-costing-type', data.type ? String(data.type).toUpperCase() : '-');
+                setSummary('#bom-summary-worksheet-type', data.tipe_ws);
+                setSummary('#bom-summary-ship-mode', data.ship_mode_name || data.ship_mode);
+                setSummary('#bom-summary-shipment-type', data.shipment_type);
+                setSummary('#bom-summary-destination', data.main_dest);
+                setSummary('#bom-summary-market', data.market);
+
+                bomCostingImages = Array.isArray(data.images) ? data.images : (data.image_url ? [data.image_url] : []);
+                bomSelectedImage = 0;
+                renderBomCostingImage();
+                bomSelectedColors = Array.isArray(data.colors) ? data.colors : [];
+                bomSelectedSizes = Array.isArray(data.sizes) ? data.sizes : [];
+                bomSelectedCombinations = Array.isArray(data.combinations) ? data.combinations : [];
+                bomCostingContents = Array.isArray(data.costing_contents) ? data.costing_contents : [];
+                bomSavedItems = [];
+                bomGridState = new Map();
+                renderBomContents(bomCostingContents, bomSavedItems);
+                $('#section-list-item').show();
+                $('#bom-selected-colors').empty();
+                $('#bom-selected-sizes').empty();
+                bomSelectedColors.forEach(function(color) {
+                    $('<input>').attr({ type: 'hidden', name: 'colors[]', value: color.id }).appendTo('#bom-selected-colors');
                 });
-            } else {
-                this.value = Math.round(val * 10000000000) / 10000000000;
+                bomSelectedSizes.forEach(function(size) {
+                    $('<input>').attr({ type: 'hidden', name: 'sizes[]', value: size.id }).appendTo('#bom-selected-sizes');
+                });
+                renderBomBreakdown(Array.isArray(data.combinations) ? data.combinations : []);
+                if (currentBomId) {
+                    loadBomSavedItems().fail(function(xhr) {
+                        Swal.fire('Gagal', xhr?.responseJSON?.message || 'Item BOM yang sudah tersimpan gagal dimuat.', 'error');
+                    });
+                }
+            },
+            error: function(xhr, status) {
+                if (status !== 'abort') {
+                    Swal.fire('Gagal', xhr.responseJSON?.message || 'Gagal mengambil informasi Costing.', 'error');
+                }
+            },
+            complete: function() {
+                bomCostingRequest = null;
+            }
+        });
+    }
+
+    function renderBomBreakdown(combinations) {
+        let $thead =$('#bom-breakdown-table thead').empty();
+        let $tbody =$('#bom-breakdown-table tbody').empty();
+        let $tfoot =$('#bom-breakdown-table tfoot').empty();
+        let sizesById = new Map();
+        let colorsById = new Map();
+
+        if (!combinations.length) {
+            let $header =$('<tr>');
+            $('<th>').text('No').appendTo($header);
+            $('<th>').text('Description').appendTo($header);
+            $('<th>').text('Color').appendTo($header);
+            $thead.append($header);
+            $('<tr>').append($('<td>').attr('colspan', 3).addClass('text-muted')
+                    .text('Belum ada detail Color dan Size pada Sales Order.')
+            ).appendTo($tbody);
+            return;
+        }
+
+        combinations.forEach(function(combination) {
+            if (combination.size_id !== null && combination.size_id !== undefined) {
+                sizesById.set(String(combination.size_id), {
+                    id: combination.size_id,
+                    name: combination.size_name || '-',
+                    order: Number(combination.size_order) || 0
+                });
+            }
+            if (combination.color_id !== null && combination.color_id !== undefined) {
+                colorsById.set(String(combination.color_id), {
+                    id: combination.color_id,
+                    name: combination.color_name || '-'
+                });
             }
         });
 
-        $(document).on('keypress', '.qty_input', function(e) {
-            if (e.which == 45) { return false; }
+        let sizes = Array.from(sizesById.values()).sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        let colors = Array.from(colorsById.values());
+        let quantities = new Map();
+        combinations.forEach(function(combination) {
+            let key = `${combination.color_id ?? ''}_${combination.size_id ?? ''}`;
+            quantities.set(key, (quantities.get(key) || 0) + (Number(combination.qty) || 0));
         });
-    });
 
-    function confirmCatalog() {
+        let $header =$('<tr>');
+        $('<th>').text('No').appendTo($header);
+        $('<th>').text('Description').appendTo($header);
+        $('<th>').text('Color').appendTo($header);
+        sizes.forEach(size => $('<th>').text(size.name).appendTo($header));
+        $('<th>').text('Total').appendTo($header);
+        $thead.append($header);
+
+        let sizeTotals = new Map(sizes.map(size => [String(size.id), 0]));
+        let grandTotal = 0;
+        colors.forEach(function(color, index) {
+            let $row =$('<tr>');
+            $('<td>').text(index + 1).appendTo($row);
+            $('<td>').addClass('bom-breakdown-label').text('--').appendTo($row);
+            $('<td>').addClass('bom-breakdown-label').text(color.name).appendTo($row);
+            let rowTotal = 0;
+            sizes.forEach(function(size) {
+                let qty = quantities.get(`${color.id}_${size.id}`) || 0;
+                rowTotal += qty;
+                sizeTotals.set(String(size.id), sizeTotals.get(String(size.id)) + qty);
+                $('<td>').text(qty ? qty.toLocaleString('id-ID') : '-').appendTo($row);
+            });
+            grandTotal += rowTotal;
+            $('<td>').addClass('bom-breakdown-total').text(rowTotal.toLocaleString('id-ID')).appendTo($row);
+            $tbody.append($row);
+        });
+
+        let $totalRow =$('<tr>');
+        $('<th>').attr('colspan', 3).addClass('text-left').text('TOTAL').appendTo($totalRow);
+        sizes.forEach(function(size) {
+            $('<th>').text(sizeTotals.get(String(size.id)).toLocaleString('id-ID')).appendTo($totalRow);
+        });
+        $('<th>').text(grandTotal.toLocaleString('id-ID')).appendTo($totalRow);
+        $tfoot.append($totalRow);
+    }
+
+    function createBomHeader() {
         let emptyFields = [];
         let costing = $('#id_costing').val();
+        let salesOrder = @json($selectedSoId);
         let buyer = $('#id_buyer').val();
         let style = $('#style').val();
-        let selectedColors = $('#colorList').select2('data');
-        let selectedSizes = $('#sizeList').select2('data');
+        let selectedColors = bomSelectedColors;
+        let selectedSizes = bomSelectedSizes;
 
         if (!costing) emptyFields.push('No Costing');
+        if (!salesOrder) emptyFields.push('Sales Order');
         if (!buyer) emptyFields.push('Buyer');
         if (!style || style.trim() === '') emptyFields.push('Style');
-        if (selectedColors.length === 0) emptyFields.push('Master Color');
-        if (selectedSizes.length === 0) emptyFields.push('Master Size');
+        if (selectedColors.length === 0) emptyFields.push('Color dari Sales Order');
+        if (selectedSizes.length === 0) emptyFields.push('Size dari Sales Order');
 
         if (emptyFields.length > 0) {
             let errHtml = emptyFields.map(e => `<li>${e}</li>`).join('');
             Swal.fire({
                 icon: 'warning',
                 title: 'Data Belum Lengkap!',
-                html: `Silakan lengkapi data berikut sebelum membuat katalog:<br><br><ul class="text-left" style="font-size: 14px;">${errHtml}</ul>`,
+                html: `Tidak dapat membuat BOM. Pastikan data berikut tersedia:<br><br><ul class="text-left" style="font-size: 14px;">${errHtml}</ul>`,
                 confirmButtonText: 'Mengerti'
             });
-            return;
+            return null;
         }
 
-        let total_data = selectedColors.length * selectedSizes.length;
+        return $.post("{{ route('store-bom-header') }}", {
+            _token: "{{ csrf_token() }}",
+            id_costing: costing,
+            id_so: salesOrder,
+            buyer: buyer,
+            style: style,
+            market: $('#market').val(),
+            colors: selectedColors.map(color => color.id),
+            sizes: selectedSizes.map(size => size.id)
+        });
+    }
 
-        Swal.fire({
-            title: 'Konfirmasi Katalog',
-            html: `Apakah Anda yakin ingin membuat katalog ? <br> (Terdapat ${total_data} kombinasi data)`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Simpan Katalog',
-            cancelButtonText: 'Cek Lagi'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Sedang memproses...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
+    function activateBomHeader(res) {
+        currentBomId = res.id;
+        $('#bom-summary-bom').text(res.no_katalog_bom || '-');
+        $('#bom-status-badge').removeClass('badge-warning').addClass('badge-success')
+            .text('Tersimpan').attr('title', 'BOM sudah tersimpan');
 
-                $.post("{{ route('store-bom-header') }}", {
-                    _token: "{{ csrf_token() }}",
-                    id_costing: costing,
-                    buyer: buyer,
-                    style: style,
-                    market: $('#market').val(),
-                    colors: $('#colorList').val(),
-                    sizes: $('#sizeList').val()
-                }, function(res) {
-                    if(res.status == 200) {
-                        let editUrl = "{{ route('edit-bom', ':id') }}";
-                        editUrl = editUrl.replace(':id', res.id);
-                        window.location.href = editUrl;
-                    } else {
-                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan saat menyimpan.', 'error');
-                    }
-                }).fail(function() {
-                    Swal.fire('Error', 'Gagal terhubung ke server.', 'error');
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('id_bom', res.id);
+            window.history.replaceState(null, '', url.toString());
+        } catch (error) {
+        }
+    }
+
+    function renderBomContents(contents, savedItems) {
+        const categories = ['Fabric', 'Accessories Sewing', 'Accessories Packing', 'Other Cost'];
+        bomContentTables.forEach(function(table) {
+            if ($.fn.DataTable.isDataTable(table)) $(table).DataTable().destroy();
+        });
+        bomContentTables = [];
+        const $tabs =$('#bom-content-tabs').empty();
+        const $panels =$('#bom-content-panels').empty();
+        let hasContents = false;
+
+        categories.forEach(function(category, index) {
+            const paneId = `bom-content-pane-${index}`;
+            const $tab = $('<li>').addClass('nav-item');$('<a>').addClass(`nav-link ${index === 0 ? 'active' : ''}`)
+                .attr({
+                    href: `#${paneId}`,
+                    'data-bs-toggle': 'tab',
+                    role: 'tab',
+                    'aria-controls': paneId,
+                    'aria-selected': index === 0 ? 'true' : 'false'
+                })
+                .text(category)
+                .appendTo($tab);
+            $tabs.append($tab);
+
+            const $pane =$('<div>').addClass(`tab-pane fade ${index === 0 ? 'show active' : ''}`)
+                .attr({ id: paneId, role: 'tabpanel' });
+            const tableId = `bom-content-table-${index}`;
+            const $table =$('<table>').attr('id', tableId).addClass('table table-sm table-bordered bom-content-table w-100');
+            bomContentTables.push(`#${tableId}`);
+
+            $('<thead>').append($('<tr>').append(
+                $('<th>').html('<input type="checkbox" aria-label="Pilih semua baris">'),
+                createBomColumnHeader('NO', 'th-costing', false),
+                createBomColumnHeader('CONTENT', 'th-costing', false),
+                createBomColumnHeader('ITEMS DESCRIPTION', 'th-so', false),
+                createBomColumnHeader('COLOR MATERIALS', 'th-so', false),
+                createBomColumnHeader('ORIG QTY', 'th-so', false),
+                createBomColumnHeader('CONS/PC', 'th-input', true),
+                createBomColumnHeader('UNIT', 'th-input', true),
+                createBomColumnHeader('QTY REQ', 'th-auto', false),
+                createBomColumnHeader('LOSS %', 'th-input', true),
+                createBomColumnHeader('VALUE', 'th-auto', false),
+                createBomColumnHeader('TOTAL QTY REQ', 'th-auto', false),
+                createBomColumnHeader('UNIT', 'th-auto', false),
+                createBomColumnHeader('SUPPLIER', 'th-input', true),
+                createBomColumnHeader('PRICE', 'th-input', true),
+                createBomColumnHeader('PRICE COSTING', 'th-costing', false),
+                createBomColumnHeader('ACTION', 'th-costing', false)
+            )).appendTo($table);
+
+            const $tbody = $('<tbody>').appendTo($table);
+            const categoryContents = contents.filter(content => content.tab === category);
+            let rowNumber = 1;
+            if (categoryContents.length) {
+                hasContents = true;
+                categoryContents.forEach(function(content) {
+                    const contentItems = (savedItems || []).filter(function(item) {
+                        return String(item.id_contents) === String(content.content_id);
+                    });
+                    const $button =$('<button>').attr({
+                        type: 'button',
+                        title: content.content_id
+                            ? 'Tambah item BOM untuk content ini'
+                            : 'Other Cost tidak memiliki content yang dapat disinkronkan ke BOM JO'
+                    }).addClass('btn btn-sm btn-primary bom-content-add')
+                        .append($('<i>').addClass('fas fa-plus'))
+                        .data('content', content);
+                    if (!content.content_id) $button.prop('disabled', true);
+
+                    const $description = $('<td>').text('-');
+                    const $colorMaterials = $('<td>').text('-');
+                    const $origQty = $('<td>').addClass('text-right').text('-');
+                    const $cons = $('<td>').addClass('text-right')
+                        .text(Number(content.cons || 0).toLocaleString('id-ID'));
+                    const $consUnit = $('<td>').text(content.unit || '-');
+                    const $qtyReq = $('<td>').addClass('text-right').text('-');
+                    const $loss = $('<td>').addClass('text-right').text('-');
+                    const $value = $('<td>').addClass('text-right').text('-');
+                    const $totalQty = $('<td>').addClass('text-right').text('-');
+                    const $totalUnit = $('<td>').text(content.unit || '-');
+                    const $supplier = $('<td>').text('-');
+                    const $price = $('<td>').addClass('text-right').text('-');
+                    const $priceCosting = $('<td>').addClass('text-right')
+                        .text(content.price_costing !== null && content.price_costing !== undefined ? formatBomNumber(content.price_costing) : '-');
+
+                    contentItems.forEach(function(item) {
+                        const id = String(item.id);
+                        appendBomSavedItemValue($description, item.size_name || 'ALL');
+                        appendBomSavedItemValue($colorMaterials, item.color_name || 'ALL');
+                        appendBomSavedItemValue($origQty, formatBomNumber(bomGridState.get(id)?.origQty || 0));
+                        appendBomGridCell($cons, id, 'qty');
+                        appendBomGridCell($consUnit, id, 'unit');
+                        appendBomAutoCell($qtyReq, id, 'qty_req');
+                        appendBomGridCell($loss, id, 'allowance');
+                        appendBomAutoCell($value, id, 'value');
+                        appendBomAutoCell($totalQty, id, 'total_qty');
+                        appendBomAutoCell($totalUnit, id, 'unit');
+                        appendBomGridCell($supplier, id, 'id_supplier');
+                        appendBomGridCell($price, id, 'price');
+                        appendBomSavedItemValue($priceCosting, content.price_costing !== null && content.price_costing !== undefined ? formatBomNumber(content.price_costing) : '-');
+                    });
+
+                    $('<tr>').addClass(contentItems.length ? 'bom-content-has-items' : '').append(
+                        $('<td>').html('<input type="checkbox">'),
+                        $('<td>').text(rowNumber++),
+                        $('<td>').append(
+                            $('<div>').addClass('bom-content-row').append(
+                                $('<span>').text(content.content_name || '-'),
+                                $button
+                            )
+                        ),
+                        $description,
+                        $colorMaterials,
+                        $origQty,
+                        $cons,
+                        $consUnit,
+                        $qtyReq,
+                        $loss,
+                        $value,
+                        $totalQty,
+                        $totalUnit,
+                        $supplier,
+                        $price,
+                        $priceCosting,
+                        $('<td>').addClass('text-center').text('-')
+                    ).appendTo($tbody);
                 });
             }
+            $pane.append($table);
+            $panels.append($pane);
         });
-    }
 
-    function get_item_contents() {
-        let kategori = $('#category').val();
+        bomSelection = null;
+        $panels.find('.bom-cell').each(function() { paintBomCell($(this)); });
+        $panels.find('.bom-auto').each(function() { paintBomAutoCell($(this)); });
+        initializeBomContentTable($('#bom-content-pane-0 .bom-content-table'));
 
-        if (!kategori) {
-            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
-            $('#rule_bom').html('<option value="">Pilih Rule</option>');
-            $("#itemTable tbody").empty();
-            return;
+        if (!hasContents) {
+            $panels.prepend($('<div>').addClass('alert alert-info')
+                .text('Costing ini belum memiliki content Fabric/Accessories untuk ditambahkan ke BOM JO.'));
         }
-
-        $('#item_contents').html('<option value="">Memuat data...</option>').prop('disabled', true);
-
-        $.post("{{ route('get-item-contents-bom') }}", {
-            _token: "{{ csrf_token() }}",
-            kategori: kategori
-        }, function(res) {
-            $('#item_contents').html(res).prop('disabled', false).trigger('change');
-            $('#rule_bom').html('<option value="">Pilih Rule</option>');
-            $("#itemTable tbody").empty();
-        }).fail(function() {
-            Swal.fire('Error', 'Gagal mengambil data item contents', 'error');
-            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
-        });
     }
 
-    function get_rule() {
-        let id_contents = $('#item_contents').val();
-        if (!id_contents) return $('#rule_bom').html('<option value="">Pilih Rule</option>');
-
-        $.post("{{ route('get-rule-bom') }}", {
-            _token: "{{ csrf_token() }}",
-            id_contents: id_contents
-        }, function(res) {
-            $("#rule_bom").html(res).trigger('change');
-            get_list_data();
-        });
-    }
-
-    function get_list_data() {
-        let id_contents = $('#item_contents').val();
-        let category = $('#category').val();
-        let rule = $('#rule_bom').val();
-
-        let selected_colors = $('#colorList').select2('data');
-        let selected_sizes = $('#sizeList').select2('data');
-
-        if (!id_contents || !rule) {
-            $("#itemTable tbody").empty();
-            return;
+    function appendBomSavedItemValue($cell, value) {
+        if ($cell.children('.bom-saved-item-value').length === 0) {
+            $cell.empty();
         }
-
-        let proses = false;
-        if (rule === "All Color All Size") proses = true;
-        else if (rule === "All Color Range Size") proses = (selected_sizes.length > 0);
-        else if (rule === "Per Color All Size") proses = (selected_colors.length > 0);
-        else proses = (selected_colors.length > 0 && selected_sizes.length > 0);
-
-        if (!proses) {
-            $("#itemTable tbody").empty();
-            return;
-        }
-
-        $.post("{{ route('get-list-data-bom') }}", {
-            _token: "{{ csrf_token() }}",
-            id_contents: id_contents,
-            category: category
-        }, function(res) {
-            let tbody = $("#itemTable tbody");
-            tbody.empty();
-
-            let rows = [];
-            if (rule === "All Color All Size") {
-                rows.push({ label: "All Color | All Size", cId: null, sId: null });
-            } else if (rule === "All Color Range Size") {
-                selected_sizes.forEach(s => rows.push({ label: `All Color | ${s.text}`, cId: null, sId: s.id }));
-            } else if (rule === "Per Color All Size") {
-                selected_colors.forEach(c => rows.push({ label: `${c.text} | All Size`, cId: c.id, sId: null }));
-            } else {
-                selected_colors.forEach(c => {
-                    selected_sizes.forEach(s => rows.push({ label: `${c.text} | ${s.text}`, cId: c.id, sId: s.id }));
-                });
-            }
-
-            let itemOptions = '<option value="">Pilih Item</option>';
-            res.items.forEach(i => itemOptions += `<option value="${i.isi}">${i.tampil}</option>`);
-
-            rows.forEach((data, index) => {
-                let idx = index + 1;
-                let row = `<tr>
-                    <td class="align-middle">
-                        <input type="hidden" name="id_color[${idx}]" value="${data.cId ?? ''}">
-                        <input type="hidden" name="id_size[${idx}]" value="${data.sId ?? ''}">
-                        <small class="fw-bold">${data.label}</small>
-                    </td>
-                    <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
-                    <td><input type="number" step="0.0000000001" name="qty_input[${idx}]" class="form-control form-control-sm text-right qty_input" placeholder="0.0000000000"></td>
-                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-right price_input" placeholder="0.0000"></td>
-                </tr>`;
-                tbody.append(row);
-            });
-
-            $('.select2-item').select2({ theme: 'bootstrap4', width: '100%' });
-        });
+        return $('<div>').addClass('bom-saved-item-value').text(value).appendTo($cell);
     }
 
-    function submitColor(form, evt) {
-        evt.preventDefault();
-        submitAddMaster(form, '#colorList', '#inputNewColor', '#modalColor');
-    }
-
-    function submitSize(form, evt) {
-        evt.preventDefault();
-        submitAddMaster(form, '#sizeList', '#inputNewSize', '#modalSize');
-    }
-
-    function submitAddMaster(form, targetSelect, inputId, modalId) {
-        $.ajax({
-            url: $(form).attr('action'),
-            type: 'POST',
-            data: new FormData(form),
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res.status == 200) {
-                    let id   = res.data.id;
-                    let name = res.data.name;
-
-                    if ($(targetSelect + " option[value='" + id + "']").length == 0) {
-                        let newOption = new Option(name, id, true, true);
-                        $(targetSelect).append(newOption).trigger('change');
-                    } else {
-                        $(targetSelect).val(id).trigger('change');
-                    }
-
-                    $(modalId).modal('hide');
-                    form.reset();
-                    Swal.fire({ icon: 'success', title: 'Data Tersimpan', timer: 1000, showConfirmButton: false });
-                }
-            }
-        });
-    }
-
-    function submitMainForm(form) {
+    function loadBomSavedItems() {
         if (!currentBomId) {
-            Swal.fire('Peringatan', 'Mohon konfirmasi katalog terlebih dahulu!', 'warning');
+            return $.Deferred().reject(new Error('Header BOM belum tersedia.')).promise();
+        }
+
+        return $.ajax({
+            url: "{{ route('get-items', ':id') }}".replace(':id', currentBomId),
+            method: 'GET',
+            data: { start: 0, length: -1 },
+            dataType: 'json'
+        }).done(function(res) {
+            if (!res || !Array.isArray(res.data)) {
+                throw new Error('Format daftar item BOM tidak valid.');
+            }
+            const activeTab = $('#bom-content-tabs .nav-link.active').attr('href');
+            bomSavedItems = res.data;
+            syncBomGridState(bomSavedItems);
+            renderBomContents(bomCostingContents, bomSavedItems);
+            if (activeTab) {
+                $('#bom-content-tabs .nav-link[href="' + activeTab + '"]').tab('show');
+            }
+        });
+    }
+
+    function createBomColumnHeader(label, typeClass, editable) {
+        const $heading = $('<span>').addClass('bom-column-heading').append(
+            $('<span>').addClass('bom-column-dot').attr('aria-hidden', 'true'),
+            $('<span>').text(label)
+        );
+        if (editable) {
+            $heading.append($('<i>').addClass('fas fa-pen bom-column-edit').attr({
+                'aria-hidden': 'true',
+                title: 'Kolom dapat diedit'
+            }));
+        }
+        return $('<th>').addClass(typeClass).append($heading);
+    }
+
+    function initializeBomContentTable($table) {
+        if (!$table.length || $.fn.DataTable.isDataTable($table)) return;
+
+        $table.DataTable({
+            autoWidth: false,
+            ordering: false,
+            searching: false,
+            responsive: false,
+            scrollX: true,
+            pageLength: 4,
+            lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
+            dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
+            language: {
+                lengthMenu: 'Item Per Page _MENU_',
+                info: 'Of _TOTAL_',
+                infoEmpty: 'Of 0',
+                zeroRecords: 'Belum ada content dari Costing.',
+                emptyTable: 'Belum ada content dari Costing.',
+                paginate: {
+                    previous: '<i class="fas fa-chevron-left"></i>',
+                    next: '<i class="fas fa-chevron-right"></i>'
+                }
+            },
+            columnDefs: [
+                { targets: [0, 1, 16], className: 'text-center' },
+                { targets: 0, width: '30px' }
+            ]
+        }).on('draw.dt', function() {
+            bomSelection = null;
+            paintBomSelection();
+        });
+    }
+
+    function formatBomNumber(value, grouping = true) {
+        return Number(value || 0).toLocaleString('id-ID', { maximumFractionDigits: 4, useGrouping: grouping });
+    }
+
+    function parseBomNumber(text) {
+        let value = String(text ?? '').replace(/[\s%]/g, '');
+        if (value === '') return null;
+        const lastComma = value.lastIndexOf(',');
+        const lastDot = value.lastIndexOf('.');
+        if (lastComma > -1 && lastDot > -1) {
+            value = lastComma > lastDot ? value.replace(/\./g, '').replace(',', '.') : value.replace(/,/g, '');
+        } else if (lastComma > -1) {
+            value = value.split(',').length > 2 ? value.replace(/,/g, '') : value.replace(',', '.');
+        } else if (value.split('.').length > 2) {
+            value = value.replace(/\./g, '');
+        }
+        return /^-?\d*\.?\d+$/.test(value) ? Number(value) : null;
+    }
+
+    function findBomOption(options, text) {
+        const needle = String(text ?? '').trim().toUpperCase();
+        return options.find(option => option.id === needle)
+            || options.find(option => String(option.name).trim().toUpperCase() === needle)
+            || null;
+    }
+
+    function getBomOrigQty(item) {
+        return bomSelectedCombinations.reduce(function(total, combination) {
+            const colorMatch = item.id_color === null || item.id_color === undefined || String(combination.color_id) === String(item.id_color);
+            const sizeMatch = item.id_size === null || item.id_size === undefined || item.id_size === '' || String(combination.size_id) === String(item.id_size);
+            return colorMatch && sizeMatch ? total + (Number(combination.qty) || 0) : total;
+        }, 0);
+    }
+
+    function isBomFieldDirty(record, field) {
+        return record.values[field] !== record.original[field];
+    }
+
+    function getBomDirtyItems() {
+        return Array.from(bomGridState.entries())
+            .filter(([, record]) => BOM_EDIT_FIELDS.some(field => isBomFieldDirty(record, field)))
+            .map(([id, record]) => ({
+                id: id,
+                qty: record.values.qty,
+                unit: record.values.unit,
+                allowance: record.values.allowance,
+                id_supplier: record.values.id_supplier || null,
+                price: record.values.price
+            }));
+    }
+
+    function hasBomGridErrors() {
+        return Array.from(bomGridState.values()).some(record => record.errors.size > 0);
+    }
+
+    function syncBomGridState(items) {
+        const next = new Map();
+        items.forEach(function(item) {
+            const id = String(item.id);
+            const original = {
+                qty: Number(item.qty) || 0,
+                unit: item.unit_name ? String(item.unit_name) : '',
+                allowance: Number(item.allowance) || 0,
+                id_supplier: item.id_supplier ? String(item.id_supplier) : '',
+                price: Number(item.price) || 0
+            };
+            const previous = bomGridState.get(id);
+            const keepEdits = previous && (previous.errors.size > 0 || BOM_EDIT_FIELDS.some(field => isBomFieldDirty(previous, field)));
+            const record = keepEdits
+                ? Object.assign(previous, { original: original })
+                : { original: original, values: Object.assign({}, original), text: {}, errors: new Set(), pasted: new Set() };
+            record.labels = { unit: item.unit_name || '', id_supplier: item.supplier_name || '' };
+            record.origQty = getBomOrigQty(item);
+            next.set(id, record);
+        });
+        bomGridState = next;
+    }
+
+    function getBomCellText(record, field) {
+        if (Object.prototype.hasOwnProperty.call(record.text, field)) return record.text[field];
+        const value = record.values[field];
+        if (field === 'unit' || field === 'id_supplier') {
+            const option = findBomOption(field === 'unit' ? bomUnitOptions : bomSupplierOptions, value);
+            if (option) return option.name;
+            return value !== '' && value === record.original[field] && record.labels[field] ? record.labels[field] : '-';
+        }
+        return formatBomNumber(value);
+    }
+
+    function getBomCellRawValue(record, field) {
+        if (Object.prototype.hasOwnProperty.call(record.text, field)) return record.text[field];
+        if (field === 'unit' || field === 'id_supplier') {
+            const text = getBomCellText(record, field);
+            return text === '-' ? '' : text;
+        }
+        return formatBomNumber(record.values[field], false);
+    }
+
+    function calculateBomRow(record) {
+        const qtyReq = record.origQty * record.values.qty;
+        const value = qtyReq * record.values.allowance / 100;
+        return { qty_req: qtyReq, value: value, total_qty: qtyReq + value };
+    }
+
+    function appendBomGridCell($cell, id, field) {
+        return appendBomSavedItemValue($cell, '').addClass('bom-cell')
+            .attr({ 'data-id': id, 'data-field': field, tabindex: -1 });
+    }
+
+    function appendBomAutoCell($cell, id, key) {
+        return appendBomSavedItemValue($cell, '').addClass('bom-auto')
+            .attr({ 'data-id': id, 'data-auto': key });
+    }
+
+    function paintBomCell($cell) {
+        const record = bomGridState.get($cell.attr('data-id'));
+        const field = $cell.attr('data-field');
+        if (!record || $cell.hasClass('is-editing')) return;
+        const hasError = record.errors.has(field);
+        $cell.text(getBomCellText(record, field))
+            .toggleClass('is-error', hasError)
+            .toggleClass('is-pasted', !hasError && record.pasted.has(field))
+            .toggleClass('is-dirty', !hasError && isBomFieldDirty(record, field));
+    }
+
+    function paintBomAutoCell($cell) {
+        const record = bomGridState.get($cell.attr('data-id'));
+        const key = $cell.attr('data-auto');
+        if (!record) return;
+        $cell.text(key === 'unit' ? getBomCellText(record, 'unit') : formatBomNumber(calculateBomRow(record)[key]));
+    }
+
+    function paintBomRow(id) {
+        $(`.bom-cell[data-id="${id}"]`).each(function() { paintBomCell($(this)); });
+        $(`.bom-auto[data-id="${id}"]`).each(function() { paintBomAutoCell($(this)); });
+    }
+
+    function setBomCellValue(id, field, raw, pasted) {
+        const record = bomGridState.get(String(id));
+        if (!record) return;
+        const text = String(raw ?? '').trim();
+        let value = null;
+        let valid;
+        if (field === 'unit' || field === 'id_supplier') {
+            if (text === '' || text === '-') {
+                value = '';
+                valid = field === 'id_supplier';
+            } else {
+                const option = findBomOption(field === 'unit' ? bomUnitOptions : bomSupplierOptions, text);
+                value = option ? option.id : (text.toUpperCase() === String(record.labels[field]).toUpperCase() ? record.original[field] : null);
+                valid = value !== null;
+            }
+        } else {
+            value = parseBomNumber(text);
+            valid = value !== null && BOM_NUMBER_RULES[field](value);
+        }
+
+        if (valid) {
+            record.values[field] = value;
+            delete record.text[field];
+            record.errors.delete(field);
+        } else {
+            record.text[field] = text;
+            record.errors.add(field);
+        }
+        pasted ? record.pasted.add(field) : record.pasted.delete(field);
+        paintBomRow(id);
+    }
+
+    function getBomGridIds($table) {
+        return $table.find('tbody .bom-cell[data-field="qty"]').map((_, cell) => $(cell).attr('data-id')).get();
+    }
+
+    function getBomCellAt($table, ids, row, col) {
+        return $table.find(`tbody .bom-cell[data-id="${ids[row]}"][data-field="${BOM_EDIT_FIELDS[col]}"]`);
+    }
+
+    function getBomCellPosition($cell) {
+        const $table = $cell.closest('table');
+        return {
+            $table: $table,
+            row: getBomGridIds($table).indexOf($cell.attr('data-id')),
+            col: BOM_EDIT_FIELDS.indexOf($cell.attr('data-field'))
+        };
+    }
+
+    function getBomSelectionRect() {
+        return {
+            top: Math.min(bomSelection.anchor.row, bomSelection.focus.row),
+            bottom: Math.max(bomSelection.anchor.row, bomSelection.focus.row),
+            left: Math.min(bomSelection.anchor.col, bomSelection.focus.col),
+            right: Math.max(bomSelection.anchor.col, bomSelection.focus.col)
+        };
+    }
+
+    function forEachBomSelectedCell(callback) {
+        const ids = getBomGridIds(bomSelection.$table);
+        const rect = getBomSelectionRect();
+        for (let row = rect.top; row <= rect.bottom; row++) {
+            for (let col = rect.left; col <= rect.right; col++) {
+                callback(ids[row], BOM_EDIT_FIELDS[col], row, col);
+            }
+        }
+    }
+
+    function paintBomSelection() {
+        $('.bom-cell.is-selected, .bom-cell.is-active, .bom-cell.is-fill-preview').removeClass('is-selected is-active is-fill-preview');
+        $('.bom-fill-handle').remove();
+        if (!bomSelection || !$.contains(document, bomSelection.$table[0])) {
+            bomSelection = null;
             return;
         }
 
-        let content = $('#item_contents').val();
-        let rule = $('#rule_bom').val();
-        let supplier = $('select[name="id_supplier"]').val();
-
-        if (!content || !rule || !supplier) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Data Belum Lengkap!',
-                text: 'Content, Rule BOM, dan Supplier wajib diisi.'
-            });
-            return false;
-        }
-
-        let rowCount = $("#itemTable tbody tr").length;
-        if (rowCount === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Item Kosong!',
-                text: 'Silakan tambahkan minimal satu item ke dalam list.'
-            });
-            return false;
-        }
-
-        let isTableValid = true;
-        $("#itemTable tbody tr").each(function(index) {
-            let itemId = $(this).find('[name^="id_item"]').val();
-            let qty    = $(this).find('[name^="qty_input"]').val();
-
-            if (!itemId || itemId === "" || !qty || parseFloat(qty) <= 0) {
-                isTableValid = false;
-                $(this).addClass('table-danger');
-            } else {
-                $(this).removeClass('table-danger');
-            }
+        const ids = getBomGridIds(bomSelection.$table);
+        const rect = getBomSelectionRect();
+        forEachBomSelectedCell(function(id, field) {
+            bomSelection.$table.find(`tbody .bom-cell[data-id="${id}"][data-field="${field}"]`).addClass('is-selected');
         });
-
-        if (!isTableValid) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Data Tidak Valid',
-                text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.'
-            });
-            return false;
-        }
-
-        Swal.fire({
-            title: 'Simpan Item BOM?',
-            text: "Item ini akan ditambahkan ke list bawah.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            confirmButtonText: 'Ya, Simpan'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-                let formData = new FormData(form);
-                formData.append('id_bom_marketing', currentBomId);
-
-                // Tambahkan manual array colors/sizes krn Select2-nya sudah disabled
-                let colors = $('#colorList').val();
-                let sizes = $('#sizeList').val();
-                if(colors) colors.forEach(id => formData.append('colors[]', id));
-                if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
-
-                $.ajax({
-                    url: $(form).attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(res) {
-                        if (res.status == 200) {
-                            Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
-
-                            $('#category, #item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
-                            $(form).find('textarea[name="notes"]').val('');
-                            $("#itemTable tbody").empty();
-
-                            loadSubmittedItems(currentBomId);
-                        } else {
-                            Swal.fire('Gagal!', res.message, 'error');
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
-                    }
-                });
-            }
-        });
-    }
-
-    function loadSubmittedItems(idHeader) {
-        if (!idHeader) return;
-
-        let url = "{{ route('get-items', ':id') }}";
-        url = url.replace(':id', idHeader);
-
-        if ($.fn.DataTable.isDataTable('#table-added-items')) {
-            tableAddedItems.ajax.url(url).load();
-        } else {
-            tableAddedItems = $('#table-added-items').DataTable({
-                processing: true,
-                serverSide: true,
-                orderCellsTop: true,
-                ajax: url,
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-                    {
-                        data: 'content_name',
-                        name: 'content_name',
-                        render: function(data) {
-                            return `<b>${data ? data : '-'}</b>`;
-                        }
-                    },
-                    { data: 'item_name', name: 'item_name' },
-                    { data: 'color_name', name: 'color_name', className: 'text-center' },
-                    { data: 'size_name', name: 'size_name', className: 'text-center' },
-                    {
-                        data: 'qty',
-                        name: 'qty',
-                        className: 'text-right font-weight-bold',
-                        searchable: false,
-                        render: function(data) {
-                            let nilai = parseFloat(data);
-                            if (isNaN(nilai)) return '0.0000000000';
-
-                            let stringNilai = nilai.toString();
-                            if (stringNilai.indexOf('.') === -1) return nilai.toFixed(10);
-
-                            let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,10})?/)[0];
-                            return parseFloat(hasilPotong).toFixed(10);
-                        }
-                    },
-                    {
-                        data: 'price',
-                        name: 'price',
-                        className: 'text-right font-weight-bold',
-                        searchable: false,
-                        render: function(data) {
-                            let nilai = parseFloat(data);
-                            return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
-                        }
-                    },
-                    { data: 'unit_name', name: 'unit_name', className: 'text-center font-italic' }
-                ],
-                language: { emptyTable: "Belum ada item yang ditambahkan." },
-                autoWidth: false,
-                responsive: true
-            });
-
-            $('.column-search').on('keyup change clear', function() {
-                let colIdx = $(this).data('column');
-                if (tableAddedItems.column(colIdx).search() !== this.value) {
-                    tableAddedItems.column(colIdx).search(this.value).draw();
+        if (bomDragMode === 'fill' && bomFillTargetRow !== null) {
+            const from = Math.min(bomFillTargetRow, rect.top);
+            const to = Math.max(bomFillTargetRow, rect.bottom);
+            for (let row = from; row <= to; row++) {
+                for (let col = rect.left; col <= rect.right; col++) {
+                    getBomCellAt(bomSelection.$table, ids, row, col).addClass('is-fill-preview');
                 }
-            });
+            }
+        }
+
+        const $active = getBomCellAt(bomSelection.$table, ids, bomSelection.focus.row, bomSelection.focus.col).addClass('is-active');
+        if (!bomEditing) $active.trigger('focus');
+        getBomCellAt(bomSelection.$table, ids, rect.bottom, rect.right).append($('<span>').addClass('bom-fill-handle'));
+    }
+
+    function moveBomSelection(rowDelta, colDelta, extend) {
+        if (!bomSelection) return;
+        const rowCount = getBomGridIds(bomSelection.$table).length;
+        const next = {
+            row: Math.min(Math.max(bomSelection.focus.row + rowDelta, 0), rowCount - 1),
+            col: Math.min(Math.max(bomSelection.focus.col + colDelta, 0), BOM_EDIT_FIELDS.length - 1)
+        };
+        bomSelection.focus = next;
+        if (!extend) bomSelection.anchor = Object.assign({}, next);
+        paintBomSelection();
+    }
+
+    function startBomEdit($cell, initialText) {
+        if (!$cell || !$cell.length) return;
+        commitBomEdit();
+        const record = bomGridState.get($cell.attr('data-id'));
+        const field = $cell.attr('data-field');
+        let $input;
+        if (field === 'unit' || field === 'id_supplier') {
+            const options = field === 'unit' ? bomUnitOptions : bomSupplierOptions;
+            $input = $('<select>').addClass('form-control form-control-sm bom-cell-input')
+                .append($('<option>').val('').text(field === 'unit' ? 'Pilih Unit' : '- Tanpa Supplier -'));
+            options.forEach(option => $input.append($('<option>').val(option.id).text(option.name)));
+            $input.val(record.values[field]);
+        } else {
+            $input = $('<input>').attr({ type: 'text', inputmode: 'decimal' })
+                .addClass('form-control form-control-sm bom-cell-input')
+                .val(initialText !== undefined ? initialText : getBomCellRawValue(record, field));
+        }
+        bomEditing = { $cell: $cell, $input: $input };
+        $('.bom-fill-handle').remove();
+        $cell.addClass('is-editing').empty().append($input);
+        $input.trigger('focus');
+        if ($input.is('input')) {
+            const input = $input[0];
+            initialText === undefined ? input.select() : input.setSelectionRange(input.value.length, input.value.length);
         }
     }
 
-    $('#id_costing').on('change', function() {
-        let selected = $(this).find('option:selected');
+    function commitBomEdit() {
+        if (!bomEditing) return;
+        const { $cell, $input } = bomEditing;
+        bomEditing = null;
+        $cell.removeClass('is-editing');
+        setBomCellValue($cell.attr('data-id'), $cell.attr('data-field'), $input.val(), false);
+    }
 
-        if ($(this).val()) {
-            let buyer = selected.data('buyer');
-            let style = selected.data('style');
-            let market = selected.data('market');
+    function cancelBomEdit() {
+        if (!bomEditing) return;
+        const { $cell } = bomEditing;
+        bomEditing = null;
+        $cell.removeClass('is-editing');
+        paintBomCell($cell);
+        paintBomSelection();
+    }
 
-            $('#id_buyer').val(buyer).trigger('change');
-            $('#style').val(style);
-            $('#market').val(market);
+    function applyBomFill(targetRow) {
+        const ids = getBomGridIds(bomSelection.$table);
+        const rect = getBomSelectionRect();
+        const height = rect.bottom - rect.top + 1;
+        const rows = [];
+        if (targetRow > rect.bottom) {
+            for (let row = rect.bottom + 1; row <= targetRow; row++) rows.push([row, rect.top + (row - rect.bottom - 1) % height]);
+        } else if (targetRow < rect.top) {
+            for (let row = rect.top - 1; row >= targetRow; row--) rows.push([row, rect.bottom - (rect.top - 1 - row) % height]);
         }
-    });
+        if (!rows.length) return;
+
+        rows.forEach(function([row, sourceRow]) {
+            const sourceRecord = bomGridState.get(ids[sourceRow]);
+            for (let col = rect.left; col <= rect.right; col++) {
+                const field = BOM_EDIT_FIELDS[col];
+                setBomCellValue(ids[row], field, getBomCellRawValue(sourceRecord, field), true);
+            }
+        });
+        bomSelection.anchor = { row: targetRow > rect.bottom ? rect.top : rect.bottom, col: rect.left };
+        bomSelection.focus = { row: targetRow, col: rect.right };
+    }
+
+    function initializeBomGridEvents() {
+        $(document).on('mousedown', '.bom-fill-handle', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            bomDragMode = 'fill';
+            bomFillTargetRow = null;
+        });
+
+        $(document).on('mousedown', '.bom-cell', function(event) {
+            if (event.button !== 0 || $(this).hasClass('is-editing')) return;
+            event.preventDefault();
+            commitBomEdit();
+            const position = getBomCellPosition($(this));
+            const cell = { row: position.row, col: position.col };
+            if (event.shiftKey && bomSelection && bomSelection.$table[0] === position.$table[0]) {
+                bomSelection.focus = cell;
+            } else {
+                bomSelection = { $table: position.$table, anchor: cell, focus: Object.assign({}, cell) };
+            }
+            bomDragMode = 'select';
+            paintBomSelection();
+        });
+
+        $(document).on('mouseenter', '.bom-cell', function() {
+            if (!bomDragMode || !bomSelection) return;
+            const position = getBomCellPosition($(this));
+            if (position.$table[0] !== bomSelection.$table[0]) return;
+            if (bomDragMode === 'select') {
+                bomSelection.focus = { row: position.row, col: position.col };
+            } else {
+                bomFillTargetRow = position.row;
+            }
+            paintBomSelection();
+        });
+
+        $(document).on('mouseup', function() {
+            if (!bomDragMode) return;
+            if (bomDragMode === 'fill' && bomFillTargetRow !== null && bomSelection) applyBomFill(bomFillTargetRow);
+            bomDragMode = null;
+            bomFillTargetRow = null;
+            paintBomSelection();
+        });
+
+        $(document).on('mousedown', function(event) {
+            if ($(event.target).closest('.bom-cell, .bom-fill-handle').length) return;
+            commitBomEdit();
+            if (bomSelection) {
+                bomSelection = null;
+                paintBomSelection();
+            }
+        });
+
+        $(document).on('dblclick', '.bom-cell', function() {
+            if (!$(this).hasClass('is-editing')) startBomEdit($(this));
+        });
+
+        $(document).on('keydown', '.bom-cell-input', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                commitBomEdit();
+                moveBomSelection(1, 0, false);
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                commitBomEdit();
+                moveBomSelection(0, event.shiftKey ? -1 : 1, false);
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                cancelBomEdit();
+            }
+        });
+
+        $(document).on('blur', '.bom-cell-input', function() {
+            commitBomEdit();
+        });
+
+        $(document).on('keydown', function(event) {
+            if (!bomSelection || bomEditing || $(event.target).is('input, select, textarea')) return;
+            const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+            const ids = getBomGridIds(bomSelection.$table);
+            if (moves[event.key]) {
+                event.preventDefault();
+                moveBomSelection(moves[event.key][0], moves[event.key][1], event.shiftKey);
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                moveBomSelection(0, event.shiftKey ? -1 : 1, false);
+            } else if (event.key === 'Enter' || event.key === 'F2') {
+                event.preventDefault();
+                startBomEdit(getBomCellAt(bomSelection.$table, ids, bomSelection.focus.row, bomSelection.focus.col));
+            } else if (event.key === 'Delete' || event.key === 'Backspace') {
+                event.preventDefault();
+                forEachBomSelectedCell((id, field) => setBomCellValue(id, field, '', false));
+                paintBomSelection();
+            } else if (event.key === 'Escape') {
+                bomSelection = null;
+                paintBomSelection();
+            } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                const $cell = getBomCellAt(bomSelection.$table, ids, bomSelection.focus.row, bomSelection.focus.col);
+                const isSelect = ['unit', 'id_supplier'].includes($cell.attr('data-field'));
+                event.preventDefault();
+                startBomEdit($cell, isSelect ? undefined : event.key);
+            }
+        });
+
+        $(document).on('copy', function(event) {
+            if (!bomSelection || bomEditing || $(event.target).is('input, select, textarea')) return;
+            const ids = getBomGridIds(bomSelection.$table);
+            const rect = getBomSelectionRect();
+            const lines = [];
+            for (let row = rect.top; row <= rect.bottom; row++) {
+                const record = bomGridState.get(ids[row]);
+                const values = [];
+                for (let col = rect.left; col <= rect.right; col++) values.push(getBomCellRawValue(record, BOM_EDIT_FIELDS[col]));
+                lines.push(values.join('\t'));
+            }
+            event.originalEvent.clipboardData.setData('text/plain', lines.join('\n'));
+            event.preventDefault();
+        });
+
+        $(document).on('paste', function(event) {
+            if (!bomSelection || bomEditing || $(event.target).is('input, select, textarea')) return;
+            const text = event.originalEvent.clipboardData.getData('text/plain');
+            if (!text) return;
+            event.preventDefault();
+
+            const matrix = text.replace(/\r/g, '').replace(/\n$/, '').split('\n').map(line => line.split('\t'));
+            const ids = getBomGridIds(bomSelection.$table);
+            const rect = getBomSelectionRect();
+            if (matrix.length === 1 && matrix[0].length === 1) {
+                forEachBomSelectedCell((id, field) => setBomCellValue(id, field, matrix[0][0], true));
+            } else {
+                let lastRow = rect.top;
+                let lastCol = rect.left;
+                matrix.forEach(function(values, rowOffset) {
+                    const row = rect.top + rowOffset;
+                    if (row >= ids.length) return;
+                    values.forEach(function(value, colOffset) {
+                        const col = rect.left + colOffset;
+                        if (col >= BOM_EDIT_FIELDS.length) return;
+                        setBomCellValue(ids[row], BOM_EDIT_FIELDS[col], value, true);
+                        lastRow = Math.max(lastRow, row);
+                        lastCol = Math.max(lastCol, col);
+                    });
+                });
+                bomSelection.anchor = { row: rect.top, col: rect.left };
+                bomSelection.focus = { row: lastRow, col: lastCol };
+            }
+            paintBomSelection();
+        });
+    }
+
+    function saveBomGridChanges() {
+        commitBomEdit();
+        if (!currentBomId) {
+            Swal.fire('Belum ada item', 'Tambahkan item BOM melalui tombol + pada content terlebih dahulu.', 'warning');
+            return;
+        }
+        if (hasBomGridErrors()) {
+            Swal.fire('Data belum valid', 'Perbaiki sel bertanda merah. Cons/PC harus lebih dari 0, Loss % antara 0-100, Price tidak boleh minus, Unit wajib dipilih, dan Unit/Supplier harus sesuai master.', 'warning');
+            return;
+        }
+        const items = getBomDirtyItems();
+        if (!items.length) {
+            Swal.fire('Tidak ada perubahan', 'Belum ada nilai yang diubah pada tabel.', 'info');
+            return;
+        }
+
+        $('#bom-grid-save').prop('disabled', true);
+        $.ajax({
+            url: "{{ route('update-items-batch-bom') }}",
+            method: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id_bom_marketing: currentBomId,
+                items: items
+            }
+        }).done(function(res) {
+            if (res.status !== 200) {
+                Swal.fire('Gagal', res.message || 'Perubahan BOM gagal disimpan.', 'error');
+                return;
+            }
+            bomGridState = new Map();
+            loadBomSavedItems()
+                .done(() => Swal.fire('Berhasil', res.message, 'success'))
+                .fail(xhr => Swal.fire('Tersimpan', xhr?.responseJSON?.message || 'Perubahan tersimpan, tetapi tabel belum berhasil dimuat ulang.', 'warning'));
+        }).fail(function(xhr) {
+            const errors = xhr.responseJSON?.errors;
+            Swal.fire('Gagal', errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Perubahan BOM gagal disimpan.'), 'error');
+        }).always(function() {
+            $('#bom-grid-save').prop('disabled', false);
+        });
+    }
+
+    function openBomItemModal(content) {
+        if (!currentBomId) {
+            if (bomHeaderRequest) return;
+            Swal.fire({
+                icon: 'question',
+                title: 'Buat BOM sekarang?',
+                html: `BOM untuk Sales Order <b>${$('<div>').text($('#bom-summary-so').text()).html()}</b> belum dibuat.<br>` +
+                    'Header BOM akan disimpan dulu, lalu Anda bisa menambahkan item.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, buat BOM',
+                cancelButtonText: 'Batal'
+            }).then(function(result) {
+                if (result.isConfirmed) createBomHeaderThenOpenModal(content);
+            });
+            return;
+        }
+        loadBomModalContent(content);
+    }
+
+    function createBomHeaderThenOpenModal(content) {
+        if (bomHeaderRequest) return;
+        const request = createBomHeader();
+        if (!request) return;
+        bomHeaderRequest = request;
+        Swal.fire({ title: 'Menyiapkan BOM...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        request.done(function(res) {
+            Swal.close();
+            if (res.status !== 200 || !res.id) {
+                Swal.fire('Gagal', res.message || 'Gagal membuat BOM.', 'error');
+                return;
+            }
+            activateBomHeader(res);
+            loadBomSavedItems().always(function() {
+                loadBomModalContent(content);
+            });
+        }).fail(function(xhr) {
+            Swal.fire('Gagal', xhr.responseJSON?.message || 'Gagal membuat header BOM.', 'error');
+        }).always(function() {
+            bomHeaderRequest = null;
+        });
+    }
+
+    function loadBomModalContent(content) {
+        if (bomModalRequest) bomModalRequest.abort();
+
+        $('#bom-item-modal-title').text(`Add Items BOM - ${content.content_name || content.label}`);
+        $('#bom-modal-content-id').val(content.content_id);
+        $('#bom-modal-content-category').val(content.category);
+        $('#bom-modal-supplier').val(content.supplier_id || '');
+        $('#bom-modal-shell, #bom-modal-unit').val('');
+        $('#bom-modal-notes').val('');
+        $('input[name="bom-modal-rule"][value="All Color All Size"]').prop('checked', true);
+        $('#bom-modal-items tbody').html('<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat item...</td></tr>');
+        $('#bom-item-modal').modal('show');
+
+        bomModalRequest = $.post("{{ route('get-list-data-bom') }}", {
+            _token: "{{ csrf_token() }}",
+            id_contents: content.content_id,
+            category: content.category
+        }).done(function(res) {
+            bomModalItems = Array.isArray(res.items) ? res.items : [];
+            renderBomModalRows();
+        }).fail(function(xhr, status) {
+            if (status !== 'abort') {
+                $('#bom-modal-items tbody').html('<tr><td colspan="6" class="text-center text-danger">Gagal mengambil daftar item.</td></tr>');
+                Swal.fire('Gagal', xhr.responseJSON?.message || 'Tidak dapat mengambil daftar item.', 'error');
+            }
+        }).always(function() {
+            bomModalRequest = null;
+        });
+    }
+
+    function renderBomModalRows() {
+        const rule = $('input[name="bom-modal-rule"]:checked').val();
+        const colors = bomSelectedColors;
+        const sizes = bomSelectedSizes;
+        const rows = [];
+        if (rule === 'All Color All Size') {
+            rows.push({ colorId: null, sizeId: null, color: 'ALL', size: 'ALL' });
+        } else if (rule === 'All Color Range Size') {
+            sizes.forEach(size => rows.push({ colorId: null, sizeId: size.id, color: 'ALL', size: size.name }));
+        } else if (rule === 'Per Color All Size') {
+            colors.forEach(color => rows.push({ colorId: color.id, sizeId: null, color: color.name, size: 'ALL' }));
+        } else {
+            bomSelectedCombinations.forEach(combination => {
+                if (combination.color_id === null || combination.size_id === null) return;
+                rows.push({
+                    colorId: combination.color_id,
+                    sizeId: combination.size_id,
+                    color: combination.color_name || '-',
+                    size: combination.size_name || '-'
+                });
+            });
+        }
+
+        const $tbody =$('#bom-modal-items tbody').empty();
+        if (!rows.length || !bomModalItems.length) {
+            $('<tr>').append($('<td>').attr('colspan', 6).addClass('text-center text-muted')
+                .text(!rows.length ? 'SO belum memiliki kombinasi Color/Size.' : 'Tidak ada item untuk content ini.'))
+                .appendTo($tbody);
+            return;
+        }
+
+        rows.forEach(function(row, index) {
+            const $item =$('<select>').addClass('form-control form-control-sm bom-modal-item-select')
+                .append($('<option>').val('').text('Choose Item Description'));
+            bomModalItems.forEach(item => $item.append($('<option>').val(item.isi).text(item.tampil)));
+
+            $('<tr>').attr({'data-id-color': row.colorId || '','data-id-size': row.sizeId || ''}).append($('<td>').html('<input type="checkbox" class="bom-row-checkbox">'),
+                $('<td>').text(index + 1),
+                $('<td>').append($item),
+                $('<td>').text(row.color),$('<td>').text(row.size),
+                $('<td>').append($('<input>').attr({
+                    type: 'number',
+                    min: '0.0000000001',
+                    step: '0.0000000001',
+                    placeholder: '0.0000000000'
+                }).addClass('form-control form-control-sm bom-modal-qty'))
+            ).appendTo($tbody);
+        });
+    }
+
+    function saveBomJoItems() {
+        const rule = $('input[name="bom-modal-rule"]:checked').val();
+        const items = [];
+        let invalid = false;
+        $('#bom-modal-items tbody tr').each(function() {
+            const idItem = $(this).find('.bom-modal-item-select').val();
+            const qty = Number($(this).find('.bom-modal-qty').val());
+            if (!idItem || !Number.isFinite(qty) || qty <= 0) {
+                invalid = true;
+                $(this).addClass('table-danger');
+                return;
+            }
+            $(this).removeClass('table-danger');
+            items.push({
+                id_item: idItem,
+                qty: qty,
+                id_color: $(this).attr('data-id-color') || null,
+                id_size: $(this).attr('data-id-size') || null
+            });
+        });
+
+        const unit = $('#bom-modal-unit').val();
+        if (invalid || !items.length || !unit) {
+            Swal.fire('Data belum lengkap', 'Pilih item, isi Cons/PC lebih dari 0, dan pilih Unit untuk setiap baris.', 'warning');
+            return;
+        }
+
+        $('#bom-modal-save').prop('disabled', true);
+        $.ajax({
+            url: "{{ route('store-bom-jo-items') }}",
+            method: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id_bom_marketing: currentBomId,
+                id_so: @json($selectedSoId),
+                id_contents: $('#bom-modal-content-id').val(),
+                id_supplier: $('#bom-modal-supplier').val() || null,
+                rule_bom: rule,
+                shell: $('#bom-modal-shell').val() || null,
+                unit: unit,
+                notes: $('#bom-modal-notes').val(),
+                items: items
+            },
+            success: function(res) {
+                if (res.status !== 200) {
+                    Swal.fire('Gagal', res.message || 'Item gagal disimpan ke BOM JO.', 'error');
+                    return;
+                }
+                $('#bom-item-modal').modal('hide');
+                loadBomSavedItems()
+                    .done(function() {
+                        Swal.fire('Berhasil', res.message, 'success');
+                    })
+                    .fail(function(xhr) {
+                        Swal.fire('Item tersimpan', xhr.responseJSON?.message || 'Item tersimpan, tetapi tabel belum berhasil dimuat ulang.', 'warning');
+                    });
+            },
+            error: function(xhr) {
+                Swal.fire('Gagal', xhr.responseJSON?.message || 'Item gagal disimpan ke BOM JO.', 'error');
+            },
+            complete: function() {
+                $('#bom-modal-save').prop('disabled', false);
+            }
+        });
+    }
 </script>
 @endsection

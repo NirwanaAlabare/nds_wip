@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Export_excel_bom_listing;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Connection;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -98,44 +99,265 @@ class Marketing_BomController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $mysql_sb = DB::connection('mysql_sb');
-
-        $buyers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'C')
-            ->select('Id_Supplier', 'Supplier')->orderBy('Supplier', 'ASC')->get();
-
-        $suppliers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'S')
-            ->select('Id_Supplier', 'Supplier')->orderBy('Supplier', 'ASC')->get();
-
-        $masterUnits = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
-        $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
-        $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
-
-        $used_costings = $mysql_sb->table('bom_marketing')->whereNotNull('id_costing')->pluck('id_costing')->toArray();
-
-        $costings = $mysql_sb->table('act_costing_new')
-            ->select('id', 'no_costing', 'style', 'market', 'buyer')
-            ->where('approval', 'Y');
-
-        if (!empty($used_costings)) {
-            $costings = $costings->whereNotIn('id', $used_costings);
+        if (!$request->filled('id_costing') || !is_numeric($request->query('id_costing'))) {
+            return redirect()->route('master-costing')
+                ->with('warning', 'Buat BOM melalui tombol Create BOM pada listing Costing.');
         }
 
-        $costings = $costings->orderBy('id', 'desc')->get();
+        $mysql_sb = DB::connection('mysql_sb');
+        $selectedCostingNo = $mysql_sb->table('act_costing')
+            ->where('id', (int) $request->query('id_costing'))
+            ->value('cost_no');
+
+        if (!$selectedCostingNo) {
+            return redirect()->route('master-costing')
+                ->with('error', 'Data Costing tidak ditemukan.');
+        }
+        $existingBom = null;
+        if (is_numeric($request->query('id_bom'))) {
+            $existingBom = $mysql_sb->table('bom_marketing')
+                ->where('id', (int) $request->query('id_bom'))
+                ->where('id_costing', (int) $request->query('id_costing'))
+                ->where(function ($q) {
+                    $q->whereNull('cancel')->orWhere('cancel', 'N');
+                })
+                ->select('id', 'no_katalog_bom')
+                ->first();
+        }
+        $existingBom = $existingBom ?: $this->findActiveBomForSalesOrder(
+            $mysql_sb,
+            (int) $request->query('id_costing'),
+            $request->query('id_so')
+        );
+        $nextBomNo = $existingBom->no_katalog_bom ?? $this->nextBomCatalogNumber($mysql_sb);
+
+        $masterUnits = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
+        $shells = $mysql_sb->table('masterpanel')->orderBy('id')->get();
+        $unitOptions = $masterUnits
+            ->map(fn ($unit) => ['id' => $unit->nama_pilihan, 'name' => $unit->nama_pilihan])
+            ->values();
+        $supplierOptions = $mysql_sb->table('mastersupplier')
+            ->where('tipe_sup', 'S')
+            ->select('Id_Supplier as id', 'Supplier as name')
+            ->orderBy('Supplier')
+            ->get()
+            ->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name])
+            ->values();
 
         return view('marketing.bom.create', [
             'page'           => 'dashboard-marketing',
             'subPageGroup'   => 'marketing-master',
             'subPage'        => 'marketing-master-bom',
-            'buyers'         => $buyers,
-            'suppliers'      => $suppliers,
-            'master_colors'  => $master_colors,
-            'master_sizes'   => $master_sizes,
             'masterUnits'    => $masterUnits,
-            'costings' => $costings,
+            'selectedCostingId' => (int) $request->query('id_costing'),
+            'selectedCostingNo' => $selectedCostingNo,
+            'nextBomNo' => $nextBomNo,
+            'existingBomId' => $existingBom->id ?? null,
+            'selectedSoId' => $request->query('id_so'),
+            'shells' => $shells,
+            'unitOptions' => $unitOptions,
+            'supplierOptions' => $supplierOptions,
             'containerFluid' => true
         ]);
+    }
+
+    private function findActiveBomForSalesOrder(Connection $connection, int $idCosting, $idSo)
+    {
+        $query = $connection->table('so')
+            ->join('bom_marketing as b', 'so.id_bom', '=', 'b.id')
+            ->where('so.id_cost', $idCosting)
+            ->where('so.cancel_h', 'N')
+            ->where('b.id_costing', $idCosting)
+            ->where(function ($q) {
+                $q->whereNull('b.cancel')->orWhere('b.cancel', 'N');
+            })
+            ->select('b.id', 'b.no_katalog_bom');
+
+        if (is_numeric($idSo) && (int) $idSo > 0) {
+            $query->where('so.id', (int) $idSo);
+        } else {
+            $query->orderByDesc('so.id');
+        }
+
+        return $query->first();
+    }
+
+    public function getCostingOverview(Request $request)
+    {
+        $idCosting = $request->input('id_costing');
+        if (!is_numeric($idCosting) || (int) $idCosting < 1) {
+            return response()->json(['status' => 400, 'message' => 'ID Costing kosong'], 400);
+        }
+
+        $db = DB::connection('mysql_sb');
+        $data = $db->table('act_costing as c')
+            ->leftJoin('mastersupplier as ms', 'c.id_buyer', '=', 'ms.Id_Supplier')
+            ->leftJoin('masterseason as seas', 'c.season_id', '=', 'seas.id_season')
+            ->leftJoin('mastershipmode as sm', 'c.id_smode', '=', 'sm.id')
+            ->leftJoin('masterproduct as mp', 'c.id_product', '=', 'mp.id')
+            ->where('c.id', (int) $idCosting)
+            ->select(
+                'c.cost_no',
+                'c.kpno',
+                'c.id_buyer',
+                'ms.Supplier as buyer_name',
+                'ms.supplier_code as buyer_code',
+                'c.season_id',
+                'seas.season as season_name',
+                'seas.season_desc',
+                'c.styleno as style',
+                'c.brand',
+                'c.market',
+                'c.costing_type as type',
+                'c.type_ws as tipe_ws',
+                'c.qty_planned as planned_qty',
+                'c.shipment_type',
+                'c.unit',
+                'c.id_smode as ship_mode',
+                'sm.shipmode as ship_mode_name',
+                'c.main_dest',
+                'mp.product_group',
+                'mp.product_item as nama_product_item',
+                'c.attach_file as gambar'
+            )
+            ->first();
+
+        if (!$data) {
+            return response()->json(['status' => 404, 'message' => 'Data Costing tidak ditemukan'], 404);
+        }
+
+        $salesOrderQuery = $db->table('so')
+            ->leftJoin('act_costing as ac', 'so.id_cost', '=', 'ac.id')
+            ->where('so.id_cost', (int) $idCosting)
+            ->where('so.cancel_h', 'N')
+            ->select('so.id', 'so.so_no', 'so.no_po', 'ac.kpno');
+
+        if ($request->filled('id_so')) {
+            if (!is_numeric($request->input('id_so')) || (int) $request->input('id_so') < 1) {
+                return response()->json(['status' => 400, 'message' => 'ID Sales Order tidak valid'], 400);
+            }
+            $salesOrderQuery->where('so.id', (int) $request->input('id_so'));
+        } else {
+            $salesOrderQuery->orderByDesc('so.id');
+        }
+
+        $salesOrder = $salesOrderQuery->first();
+        $data->kpno = $salesOrder->kpno ?? null;
+        $data->so_no = $salesOrder->so_no ?? null;
+        $data->no_po = $salesOrder->no_po ?? null;
+        $data->so_id = $salesOrder->id ?? null;
+
+        $combinations = collect();
+        if ($salesOrder) {
+            $combinations = $db->table('so_det as sd')
+                ->leftJoin('master_colors_gmt as mc', 'sd.id_color', '=', 'mc.id')
+                ->leftJoin('master_size_new as ms', 'sd.id_size', '=', 'ms.id')
+                ->where('sd.id_so', $salesOrder->id)
+                ->where('sd.cancel', 'N')
+                ->select(
+                    'sd.id_color as color_id',
+                    'mc.name as color_name',
+                    'sd.id_size as size_id',
+                    'ms.size as size_name',
+                    'ms.urutan as size_order',
+                    DB::raw('SUM(COALESCE(sd.qty, 0)) as qty')
+                )
+                ->groupBy('sd.id_color', 'mc.name', 'sd.id_size', 'ms.size', 'ms.urutan')
+                ->orderBy('sd.id_color')
+                ->orderBy('ms.urutan')
+                ->get();
+        }
+
+        $data->colors = $combinations->whereNotNull('color_id')
+            ->unique('color_id')
+            ->map(fn ($combination) => [
+                'id' => $combination->color_id,
+                'name' => $combination->color_name,
+            ])->values();
+        $data->sizes = $combinations->whereNotNull('size_id')
+            ->unique('size_id')
+            ->map(fn ($combination) => [
+                'id' => $combination->size_id,
+                'name' => $combination->size_name,
+            ])->values();
+        $data->combinations = $combinations->filter(function ($combination) {
+            return $combination->color_id !== null || $combination->size_id !== null;
+        })->values();
+
+        $pictures = $db->table('act_costing_picture')
+            ->where('id_costing', (int) $idCosting)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('file_name')
+            ->filter()
+            ->unique()
+            ->values();
+        if ($pictures->isEmpty() && $data->gambar) {
+            $pictures->push($data->gambar);
+        }
+        $data->images = $pictures->map(fn ($imageName) => '/nds_wip/public/uploads/costing/' . rawurlencode($imageName))->values();
+        $data->image_url = $data->images->first();
+
+        $data->costing_contents = $db->table('act_costing_mat as d')
+            ->join('mastercontents as c', 'd.id_item', '=', 'c.id')
+            ->join('mastertype2 as t', 'c.id_type', '=', 't.id')
+            ->join('mastersubgroup as sg', 't.id_sub_group', '=', 'sg.id')
+            ->join('mastergroup as g', 'sg.id_group', '=', 'g.id')
+            ->where('d.id_act_cost', (int) $idCosting)
+            ->select(
+                'd.id as costing_detail_id',
+                'd.id_item as content_id',
+                'd.item_desc',
+                'd.cons',
+                'd.unit',
+                'd.supplier_id',
+                'd.price as price_costing',
+                'c.nama_contents as content_name',
+                't.nama_type as type_name',
+                'sg.nama_sub_group as subgroup_name',
+                'g.nama_group as group_name'
+            )
+            ->orderBy('d.id')
+            ->get()
+            ->map(function ($content) {
+                $group = strtoupper((string) $content->group_name);
+                $content->tab = str_contains($group, 'FABRIC')
+                    ? 'Fabric'
+                    : (str_contains($group, 'SEWING')
+                        ? 'Accessories Sewing'
+                        : (str_contains($group, 'PACKING') ? 'Accessories Packing' : null));
+                $content->category = 'Material';
+                $content->label = trim(implode(' ', array_filter([
+                    $content->group_name,
+                    $content->subgroup_name,
+                    $content->type_name,
+                    $content->content_name,
+                ])));
+
+                return $content;
+            })
+            ->filter(fn ($content) => $content->tab !== null)
+            ->values();
+        $otherCosts = $db->table('act_costing_oth as d')
+            ->leftJoin('masterothers as o', 'd.id_item', '=', 'o.id')
+            ->where('d.id_act_cost', (int) $idCosting)
+            ->select('d.id as costing_detail_id', 'd.item_desc', 'd.cons', 'd.unit', 'o.othersdesc as content_name')
+            ->orderBy('d.id')
+            ->get()
+            ->map(function ($content) {
+                $content->content_id = null;
+                $content->tab = 'Other Cost';
+                $content->category = null;
+                $content->supplier_id = null;
+                $content->label = $content->content_name ?: 'Other Cost';
+
+                return $content;
+            });
+        $data->costing_contents = $data->costing_contents->concat($otherCosts)->values();
+
+        return response()->json(['status' => 200, 'data' => $data]);
     }
 
     public function edit($id)
@@ -211,23 +433,30 @@ class Marketing_BomController extends Controller
         $mysql_sb->beginTransaction();
 
         try {
-            $monthYear = Carbon::now()->format('my');
-            $prefix = 'BOM/' . $monthYear . '/';
-
-            $lastBom = $mysql_sb->table('bom_marketing')
-                ->where('no_katalog_bom', 'LIKE', $prefix . '%')
-                ->orderBy('id', 'desc')
+            $salesOrder = $mysql_sb->table('so')
+                ->where('id', (int) $request->id_so)
+                ->where('id_cost', (int) $request->id_costing)
+                ->where('cancel_h', 'N')
                 ->first();
-
-            if ($lastBom && !empty($lastBom->no_katalog_bom)) {
-                $full_no_katalog_bom = explode('/', $lastBom->no_katalog_bom);
-                $last_no_urut = (int) end($full_no_katalog_bom);
-                $nomor_urut = $last_no_urut + 1;
-            } else {
-                $nomor_urut = 1;
+            if (!$salesOrder) {
+                throw new \RuntimeException('Sales Order terpilih tidak valid untuk Costing ini.');
+            }
+            if (!$mysql_sb->table('jo_det')->where('id_so', $salesOrder->id)->exists()) {
+                throw new \RuntimeException('Job Order belum tersedia untuk Sales Order terpilih.');
             }
 
-            $no_katalog_bom = $prefix . str_pad($nomor_urut, 4, '0', STR_PAD_LEFT);
+            $existingBom = $this->findActiveBomForSalesOrder($mysql_sb, (int) $request->id_costing, $salesOrder->id);
+            if ($existingBom) {
+                $mysql_sb->commit();
+                return response()->json([
+                    'status'  => 200,
+                    'id'      => $existingBom->id,
+                    'no_katalog_bom' => $existingBom->no_katalog_bom,
+                    'message' => 'BOM sudah ada: ' . $existingBom->no_katalog_bom
+                ]);
+            }
+
+            $no_katalog_bom = $this->nextBomCatalogNumber($mysql_sb);
 
             $colors_json = $request->has('colors') ? json_encode($request->colors) : null;
             $sizes_json = $request->has('sizes') ? json_encode($request->sizes) : null;
@@ -246,10 +475,15 @@ class Marketing_BomController extends Controller
                 'created_by'     => $username,
             ]);
 
+            $mysql_sb->table('so')
+                ->where('id', $salesOrder->id)
+                ->update(['id_bom' => $id_bom]);
+
             $mysql_sb->commit();
             return response()->json([
                 'status'  => 200,
                 'id'      => $id_bom,
+                'no_katalog_bom' => $no_katalog_bom,
                 'message' => 'BOM berhasil dibuat: ' . $no_katalog_bom
             ]);
 
@@ -257,6 +491,182 @@ class Marketing_BomController extends Controller
             $mysql_sb->rollback();
             return response()->json(['status' => 500, 'message' => 'Gagal simpan BOM: ' . $e->getMessage()]);
         }
+    }
+
+    public function storeJoItems(Request $request)
+    {
+        $validated = $request->validate([
+            'id_bom_marketing' => ['required', 'integer', 'exists:mysql_sb.bom_marketing,id'],
+            'id_so' => ['required', 'integer', 'exists:mysql_sb.so,id'],
+            'id_contents' => ['required', 'integer', 'exists:mysql_sb.mastercontents,id'],
+            'rule_bom' => ['required', 'in:All Color All Size,All Color Range Size,Per Color All Size,Per Color Range Size'],
+            'unit' => ['required', 'string', 'exists:mysql_sb.masterpilihan,nama_pilihan,kode_pilihan,Satuan'],
+            'shell' => ['nullable', 'integer', 'exists:mysql_sb.masterpanel,id'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id_item' => ['required', 'integer', 'exists:mysql_sb.masteritem,id_item'],
+            'items.*.qty' => ['required', 'numeric', 'gt:0'],
+            'items.*.id_color' => ['nullable', 'integer'],
+            'items.*.id_size' => ['nullable', 'integer'],
+            'id_supplier' => ['nullable', 'integer', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
+        ]);
+
+        $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb->beginTransaction();
+
+        try {
+            $bom = $mysql_sb->table('bom_marketing')
+                ->where('id', $validated['id_bom_marketing'])
+                ->first();
+            $salesOrder = $mysql_sb->table('so')
+                ->where('id', $validated['id_so'])
+                ->where('id_bom', $validated['id_bom_marketing'])
+                ->where('cancel_h', 'N')
+                ->first();
+            if (!$bom || !$salesOrder || !$mysql_sb->table('jo_det')->where('id_so', $salesOrder->id)->exists()) {
+                throw new \RuntimeException('SO/JO tidak terhubung dengan BOM yang sedang dibuka.');
+            }
+            if ((int) $bom->id_costing !== (int) $salesOrder->id_cost ||
+                !$mysql_sb->table('act_costing_mat')
+                    ->where('id_act_cost', $bom->id_costing)
+                    ->where('id_item', $validated['id_contents'])
+                    ->exists()) {
+                throw new \RuntimeException('Content yang dipilih tidak terdaftar pada Costing terkait.');
+            }
+
+            $soColors = $mysql_sb->table('so_det')
+                ->where('id_so', $salesOrder->id)
+                ->where('cancel', 'N')
+                ->whereNotNull('id_color')
+                ->pluck('id_color')
+                ->map(fn ($id) => (string) $id)
+                ->unique()
+                ->all();
+            $soSizes = $mysql_sb->table('so_det')
+                ->where('id_so', $salesOrder->id)
+                ->where('cancel', 'N')
+                ->whereNotNull('id_size')
+                ->pluck('id_size')
+                ->map(fn ($id) => (string) $id)
+                ->unique()
+                ->all();
+            $soCombinations = $mysql_sb->table('so_det')
+                ->where('id_so', $salesOrder->id)
+                ->where('cancel', 'N')
+                ->whereNotNull('id_color')
+                ->whereNotNull('id_size')
+                ->select('id_color', 'id_size')
+                ->distinct()
+                ->get();
+            if ($soCombinations->isEmpty()) {
+                throw new \RuntimeException('Sales Order belum memiliki kombinasi Color dan Size yang lengkap.');
+            }
+
+            $rule = $validated['rule_bom'];
+            $insertRows = [];
+            foreach ($validated['items'] as $item) {
+                $itemMatchesContent = $mysql_sb->table('masteritem as mi')
+                    ->join('masterdesc as md', 'mi.id_gen', '=', 'md.id')
+                    ->join('mastercolor as mc', 'md.id_color', '=', 'mc.id')
+                    ->join('masterweight as mw', 'mc.id_weight', '=', 'mw.id')
+                    ->join('masterlength as ml', 'mw.id_length', '=', 'ml.id')
+                    ->join('masterwidth as mwid', 'ml.id_width', '=', 'mwid.id')
+                    ->where('mi.id_item', $item['id_item'])
+                    ->where('mwid.id_contents', $validated['id_contents'])
+                    ->exists();
+                if (!$itemMatchesContent) {
+                    throw new \RuntimeException('Item yang dipilih tidak sesuai dengan Content.');
+                }
+                $colorId = $item['id_color'] ?? null;
+                $sizeId = $item['id_size'] ?? null;
+                $targetCombinations = collect();
+                if ($rule === 'All Color All Size') {
+                    $targetCombinations = $soCombinations;
+                } elseif ($rule === 'All Color Range Size') {
+                    if ($colorId !== null || $sizeId === null ||
+                        !in_array((string) $sizeId, $soSizes, true)) {
+                        throw new \RuntimeException('Rule All Color Range Size harus memilih Size dari Sales Order.');
+                    }
+                    $targetCombinations = $soCombinations
+                        ->where('id_size', $sizeId)
+                        ->values();
+                } elseif ($rule === 'Per Color All Size') {
+                    if ($colorId === null || $sizeId !== null ||
+                        !in_array((string) $colorId, $soColors, true)) {
+                        throw new \RuntimeException('Rule Per Color All Size harus memilih Color dari Sales Order.');
+                    }
+                    $targetCombinations = $soCombinations
+                        ->where('id_color', $colorId)
+                        ->values();
+                } else {
+                    if ($colorId === null || $sizeId === null ||
+                        !$soCombinations->contains(function ($combination) use ($colorId, $sizeId) {
+                            return (string) $combination->id_color === (string) $colorId
+                                && (string) $combination->id_size === (string) $sizeId;
+                        })) {
+                        throw new \RuntimeException('Kombinasi Color dan Size tidak terdaftar pada Sales Order.');
+                    }
+                    $targetCombinations = $soCombinations
+                        ->where('id_color', $colorId)
+                        ->where('id_size', $sizeId)
+                        ->values();
+                }
+
+                if ($targetCombinations->isEmpty()) {
+                    throw new \RuntimeException('Rule BOM tidak memiliki kombinasi Color/Size yang cocok pada Sales Order.');
+                }
+
+                foreach ($targetCombinations as $combination) {
+                    $insertRows[] = [
+                        'id_bom_marketing' => $bom->id,
+                        'id_contents' => $validated['id_contents'],
+                        'id_item' => $item['id_item'],
+                        'id_color' => $combination->id_color,
+                        'id_size' => $combination->id_size,
+                        'id_supplier' => $validated['id_supplier'] ?? null,
+                        'category' => 'Material',
+                        'rule_bom' => $rule,
+                        'qty' => $item['qty'],
+                        'price' => 0,
+                        'unit' => $validated['unit'],
+                        'shell' => $validated['shell'] ?? null,
+                        'notes' => $validated['notes'] ?? null,
+                        'cancel' => 'N',
+                        'created_at' => now(),
+                    ];
+                }
+            }
+
+            $mysql_sb->table('bom_marketing_detail')->insert($insertRows);
+            $syncResult = \App\Http\Controllers\Marketing_SOController::executeSyncBom($salesOrder->id);
+            if (($syncResult['status'] ?? 500) !== 200) {
+                throw new \RuntimeException($syncResult['message'] ?? 'Gagal menyinkronkan item ke BOM JO.');
+            }
+
+            $mysql_sb->commit();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Item berhasil ditambahkan dan disinkronkan ke BOM JO.',
+                'sync' => $syncResult,
+            ]);
+        } catch (\Throwable $e) {
+            $mysql_sb->rollBack();
+            return response()->json(['status' => 500, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function nextBomCatalogNumber(Connection $connection): string
+    {
+        $prefix = 'BOM/' . Carbon::now()->format('my') . '/';
+        $lastBomNo = $connection->table('bom_marketing')
+            ->where('no_katalog_bom', 'LIKE', $prefix . '%')
+            ->orderByDesc('id')
+            ->value('no_katalog_bom');
+
+        $lastSequence = $lastBomNo ? (int) last(explode('/', $lastBomNo)) : 0;
+
+        return $prefix . str_pad($lastSequence + 1, 4, '0', STR_PAD_LEFT);
     }
 
 
@@ -604,12 +1014,15 @@ class Marketing_BomController extends Controller
                 ->leftJoin('masterpilihan as cur', 'd.id_currency', '=', 'cur.id')
                 ->leftJoin('master_set as st', 'd.id_set', '=', 'st.id')
                 ->leftJoin('masterpanel as mp', 'd.shell', '=', 'mp.id')
+                ->leftJoin('mastersupplier as sup', 'd.id_supplier', '=', 'sup.Id_Supplier')
                 ->select(
                     'd.*',
                     'mp.nama_panel',
+                    'sup.Supplier as supplier_name',
                     'c.name as color_name',
                     's.size as size_name',
-                    'u.nama_pilihan as unit_name',
+                    // Unit disimpan sebagai nama; join ID hanya untuk data lama yang terlanjur tersimpan sebagai ID.
+                    $mysql_sb->raw('COALESCE(u.nama_pilihan, d.unit) as unit_name'),
                     'cur.nama_pilihan as currency',
                     $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
                     $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) END) as content_name"),
@@ -730,6 +1143,66 @@ class Marketing_BomController extends Controller
             return response()->json(['status' => 200, 'message' => 'Item berhasil diupdate']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function updateItemsBatch(Request $request)
+    {
+        $validated = $request->validate([
+            'id_bom_marketing' => ['required', 'integer', 'exists:mysql_sb.bom_marketing,id'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.qty' => ['required', 'numeric', 'gt:0'],
+            'items.*.unit' => ['required', 'string', 'exists:mysql_sb.masterpilihan,nama_pilihan,kode_pilihan,Satuan'],
+            'items.*.allowance' => ['required', 'numeric', 'min:0', 'max:100'],
+            'items.*.id_supplier' => ['nullable', 'integer', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb->beginTransaction();
+
+        try {
+            $ids = collect($validated['items'])->pluck('id')->unique();
+            $ownedCount = $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $validated['id_bom_marketing'])
+                ->where('cancel', 'N')
+                ->whereIn('id', $ids)
+                ->count();
+            if ($ownedCount !== $ids->count()) {
+                throw new \RuntimeException('Sebagian item tidak terdaftar pada BOM yang sedang dibuka.');
+            }
+
+            foreach ($validated['items'] as $item) {
+                $mysql_sb->table('bom_marketing_detail')->where('id', $item['id'])->update([
+                    'qty' => $item['qty'],
+                    'unit' => $item['unit'],
+                    'allowance' => $item['allowance'],
+                    'id_supplier' => $item['id_supplier'] ?? null,
+                    'price' => $item['price'],
+                ]);
+            }
+
+            $salesOrders = $mysql_sb->table('so')
+                ->where('id_bom', $validated['id_bom_marketing'])
+                ->where('cancel_h', 'N')
+                ->pluck('id');
+            foreach ($salesOrders as $soId) {
+                $syncResult = \App\Http\Controllers\Marketing_SOController::executeSyncBom($soId);
+                if (($syncResult['status'] ?? 500) !== 200) {
+                    throw new \RuntimeException($syncResult['message'] ?? 'Gagal menyinkronkan item ke BOM JO.');
+                }
+            }
+
+            $mysql_sb->commit();
+
+            return response()->json([
+                'status' => 200,
+                'message' => count($validated['items']) . ' item BOM berhasil disimpan.',
+            ]);
+        } catch (\Throwable $e) {
+            $mysql_sb->rollBack();
+            return response()->json(['status' => 500, 'message' => $e->getMessage()], 500);
         }
     }
 

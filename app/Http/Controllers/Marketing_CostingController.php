@@ -118,9 +118,11 @@ class Marketing_CostingController extends Controller
     public function costingTimeline(int $id)
     {
         $db = DB::connection('mysql_sb');
-        $costingExists = $db->table('act_costing')->where('id', $id)->exists();
+        $costing = $db->table('act_costing')
+            ->where('id', $id)
+            ->first(['cost_no', 'app1', 'app1_date', 'app1_by']);
 
-        if (!$costingExists) {
+        if (!$costing) {
             return response()->json(['message' => 'Data Costing tidak ditemukan.'], 404);
         }
 
@@ -134,7 +136,15 @@ class Marketing_CostingController extends Controller
             ->orderBy('id')
             ->get(['id', 'type', 'type_id', 'desc', 'user', 'created_at', 'action']);
 
-        return response()->json(['data' => $history]);
+        return response()->json([
+            'data' => $history,
+            'costing' => [
+                'cost_no' => $costing->cost_no,
+                'approved' => in_array(strtoupper((string) $costing->app1), ['A', 'Y'], true),
+                'approved_at' => $costing->app1_date,
+                'approved_by' => $costing->app1_by,
+            ],
+        ]);
     }
 
     public function create()
@@ -427,8 +437,48 @@ class Marketing_CostingController extends Controller
         }
 
         $now = now();
-        [$newId, $costNo] = $db->transaction(function () use ($db, $original, $id, $now) {
+        $copiedFiles = [];
+
+        try {
+            [$newId, $costNo] = $db->transaction(function () use ($db, $original, $id, $now, &$copiedFiles) {
             $numbers = $this->generateCostingNumbers($original->id_buyer, $now);
+            $pictures = $db->table('act_costing_picture')
+                ->where('id_costing', $id)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
+
+            if ($pictures->isEmpty() && $original->attach_file) {
+                $pictures = collect([(object) [
+                    'file_name' => $original->attach_file,
+                    'original_name' => $original->attach_file,
+                    'sort_order' => 0,
+                ]]);
+            }
+
+            $directory = public_path('uploads/costing');
+            $newPictures = [];
+            foreach ($pictures as $picture) {
+                $sourceName = basename($picture->file_name);
+                $sourcePath = $directory . DIRECTORY_SEPARATOR . $sourceName;
+                if (!$sourceName || !is_file($sourcePath)) {
+                    throw new \RuntimeException('File gambar Costing tidak ditemukan: ' . $sourceName);
+                }
+
+                $extension = pathinfo($sourceName, PATHINFO_EXTENSION);
+                $newName = (string) Str::uuid() . ($extension ? '.' . $extension : '');
+                $destinationPath = $directory . DIRECTORY_SEPARATOR . $newName;
+                if (!copy($sourcePath, $destinationPath)) {
+                    throw new \RuntimeException('Gagal menyalin gambar Costing: ' . $sourceName);
+                }
+                $copiedFiles[] = $destinationPath;
+                $newPictures[] = [
+                    'file_name' => $newName,
+                    'original_name' => $picture->original_name ?: $sourceName,
+                    'sort_order' => $picture->sort_order,
+                ];
+            }
+
             $header = [
                 'id_pre_cost' => 0,
                 'cost_no' => $numbers['cost_no'],
@@ -441,7 +491,7 @@ class Marketing_CostingController extends Controller
                 'book_sec' => $original->book_sec,
                 'notes' => $original->notes,
                 'deldate' => $original->deldate,
-                'attach_file' => $original->attach_file,
+                'attach_file' => $newPictures[0]['file_name'] ?? null,
                 'status' => $original->status,
                 'status_order' => '',
                 'id_buyer' => $original->id_buyer,
@@ -484,15 +534,12 @@ class Marketing_CostingController extends Controller
                 }
             }
 
-            $pictures = $db->table('act_costing_picture')
-                ->where('id_costing', $id)
-                ->get();
-            foreach ($pictures as $picture) {
+            foreach ($newPictures as $picture) {
                 $db->table('act_costing_picture')->insert([
                     'id_costing' => $newId,
-                    'file_name' => $picture->file_name,
-                    'original_name' => $picture->original_name,
-                    'sort_order' => $picture->sort_order,
+                    'file_name' => $picture['file_name'],
+                    'original_name' => $picture['original_name'],
+                    'sort_order' => $picture['sort_order'],
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
@@ -502,12 +549,24 @@ class Marketing_CostingController extends Controller
                 $newId,
                 'costing',
                 'copied',
-                "Costing {$costNo} dibuat dari {$original->cost_no}.",
+                "Costing {$numbers['cost_no']} disalin dari {$original->cost_no}.",
                 $newId
             );
 
             return [$newId, $numbers['cost_no']];
-        });
+            });
+        } catch (\Throwable $exception) {
+            foreach ($copiedFiles as $copiedFile) {
+                if (is_file($copiedFile) && !unlink($copiedFile)) {
+                    logger()->error('Failed to remove copied Costing image after copy failure.', [
+                        'path' => $copiedFile,
+                        'exception' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            throw $exception;
+        }
 
         return redirect()->route('edit-costing', $newId)->with('success', "Costing berhasil dicopy! No. Costing baru: $costNo");
     }
@@ -937,7 +996,7 @@ class Marketing_CostingController extends Controller
                     (int) $id,
                     'costing',
                     'updated',
-                    "Data Costing {$costNo} diperbarui."
+                    "Costing {$costNo} diperbarui."
                 );
             });
 

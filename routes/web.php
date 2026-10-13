@@ -1298,13 +1298,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/store-size', [Marketing_BomController::class, 'storeSize'])->name('store-size');
         Route::post('/get-rule-bom', [Marketing_BomController::class, 'getRuleBom'])->name('get-rule-bom');
         Route::post('/get-list-data-bom', [Marketing_BomController::class, 'getListData'])->name('get-list-data-bom');
+        Route::get('/get-costing-overview', [Marketing_BomController::class, 'getCostingOverview'])->name('bom-get-costing-overview');
         Route::get('/detail/{id}', [Marketing_BomController::class, 'showDetail'])->name('show-detail-bom');
         Route::post('/store-header', [Marketing_BomController::class, 'storeHeader'])->name('store-bom-header');
         Route::post('/store-detail', [Marketing_BomController::class, 'storeDetail'])->name('store-bom');
+        Route::post('/store-jo-items', [Marketing_BomController::class, 'storeJoItems'])->name('store-bom-jo-items');
         Route::get('/get-items/{id}', 'getItems')->name('get-items');
         Route::get('/edit/{id}', 'edit')->name('edit-bom');
         Route::get('/get-item-row/{id}', [Marketing_BomController::class, 'getItemRow'])->name('get-item-row-bom');
         Route::post('/update-item-row/{id}', [Marketing_BomController::class, 'updateItemRow'])->name('update-item-row-bom');
+        Route::post('/update-items-batch', [Marketing_BomController::class, 'updateItemsBatch'])->name('update-items-batch-bom');
         Route::post('/delete-batch-bom', [Marketing_BomController::class, 'deleteBatch'])->name('delete-batch-bom');
         Route::get('/export-excel-bom', [Marketing_BomController::class, 'exportExcel'])->name('export-excel-bom');
         Route::post('/get-item-contents', [Marketing_BomController::class, 'getItemContents'])->name('get-item-contents-bom');
