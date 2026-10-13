@@ -376,19 +376,31 @@ class Marketing_BomController extends Controller
         }
 
 
+        $mysql_sb->beginTransaction();
         try {
             $colors = $request->colors ? array_values(array_unique($request->colors)) : [];
-            $new_sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+            $new_sizes  = $request->sizes ? array_values(array_unique(array_map('strval', $request->sizes))) : [];
 
             $old_bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
-            $old_sizes = $old_bom->sizes ? json_decode($old_bom->sizes, true) : [];
+            $old_sizes = ($old_bom && $old_bom->sizes) ? (json_decode($old_bom->sizes, true) ?: []) : [];
+            $old_sizes = array_values(array_map('strval', (array) $old_sizes));
 
-            if (count($old_sizes) === count($new_sizes) && $old_sizes !== $new_sizes) {
+            // Hanya size yang benar-benar diganti (dihapus -> ditambah) yang di-replace.
+            // Jangan mapping per posisi: kalau urutan beda, replace berantai (S->XS, M->S, ...)
+            // bikin semua item & so_det jadi satu size yang sama.
+            $removed_sizes = array_values(array_diff($old_sizes, $new_sizes));
+            $added_sizes   = array_values(array_diff($new_sizes, $old_sizes));
+
+            // Replace otomatis hanya kalau persis 1 size diganti (1 dihapus + 1 ditambah).
+            // Kalau lebih dari 1 sekaligus, pasangan lama->baru tidak bisa dipastikan.
+            $multi_replace = count($removed_sizes) > 1 && count($removed_sizes) === count($added_sizes);
+
+            if (count($removed_sizes) === 1 && count($added_sizes) === 1) {
 
                 $affected_sos = $mysql_sb->table('so')->where('id_bom', $id_bom)->pluck('id');
 
-                foreach ($old_sizes as $idx => $old_size_id) {
-                    $new_size_id = $new_sizes[$idx];
+                foreach ($removed_sizes as $idx => $old_size_id) {
+                    $new_size_id = $added_sizes[$idx];
 
                     if ($old_size_id != $new_size_id) {
 
@@ -432,7 +444,9 @@ class Marketing_BomController extends Controller
             $this->triggerAutoSyncSO($id_bom);
 
             $mysql_sb->commit();
-            return response()->json(['status' => 200, 'message' => 'Size berhasil di-replace!']);
+            return response()->json(['status' => 200, 'message' => $multi_replace
+                ? 'Header diupdate. Lebih dari 1 size diganti sekaligus, jadi size di item BOM & SO tidak di-replace otomatis (ganti satu per satu).'
+                : 'Header BOM berhasil diupdate!']);
         } catch (\Exception $e) {
             $mysql_sb->rollback();
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);

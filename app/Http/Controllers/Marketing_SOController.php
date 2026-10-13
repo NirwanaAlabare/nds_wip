@@ -140,7 +140,10 @@ class Marketing_SOController extends Controller
         $bom_catalog = $mysql_sb->table('bom_marketing')
             ->select('id', 'no_katalog_bom', 'style')
             ->whereNotNull('no_katalog_bom')
-            ->where('approval', 'Y');
+            ->where('approval', 'Y')
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            });
 
         if (!empty($used_boms)) {
             $bom_catalog = $bom_catalog->whereNotIn('id', $used_boms);
@@ -694,10 +697,7 @@ class Marketing_SOController extends Controller
             $fob_raw = $row[7] ?? null;
             $fob = null;
             if ($fob_raw !== null && $fob_raw !== '') {
-                $fob_clean = trim($fob_raw, " \t\n\r\0\x0B\xC2\xA0");
-                $fob_clean = preg_replace('/\s+/u', '', $fob_clean);
-                $fob_clean = str_replace(',', '', $fob_clean);
-                $fob = is_numeric($fob_clean) ? $fob_clean : null;
+                $fob = $this->parseDecimal($fob_raw);
             }
 
             // =======================================================
@@ -957,6 +957,36 @@ class Marketing_SOController extends Controller
             'missing_colors'  => $missing_colors_names,
             'missing_sizes'   => $missing_sizes_names
         ]);
+    }
+
+    /**
+     * Parse angka dari Excel yang bisa format Indonesia ("18,8", "1.234,5")
+     * maupun format US ("18.8", "1,234.5"). Return string numerik atau null.
+     */
+    private function parseDecimal($raw)
+    {
+        if (is_int($raw) || is_float($raw)) return (string) $raw;
+
+        $s = preg_replace('/[\s\x{00A0}]+/u', '', (string) $raw);
+        if ($s === '') return null;
+
+        $lastComma = strrpos($s, ',');
+        $lastDot   = strrpos($s, '.');
+
+        if ($lastComma !== false && $lastDot !== false) {
+            // dua-duanya ada: yang paling belakang = desimal
+            $s = $lastComma > $lastDot
+                ? str_replace(',', '.', str_replace('.', '', $s))   // 1.234,5
+                : str_replace(',', '', $s);                         // 1,234.5
+        } elseif ($lastComma !== false) {
+            // cuma koma: "1,234" / "1,234,567" = ribuan, selain itu desimal ("18,8", "18,75")
+            $s = preg_match('/^-?\d{1,3}(,\d{3})+$/', $s) ? str_replace(',', '', $s) : str_replace(',', '.', $s);
+        } elseif ($lastDot !== false && preg_match('/^-?\d{1,3}(\.\d{3}){2,}$/', $s)) {
+            // "1.234.567" = ribuan format Indonesia
+            $s = str_replace('.', '', $s);
+        }
+
+        return is_numeric($s) ? $s : null;
     }
     // public function getTempData(Request $request)
     // {
@@ -3875,12 +3905,23 @@ class Marketing_SOController extends Controller
 
         try {
             // 1. Validasi Awal SO & JO + lock
+            // rollBack sebelum return supaya level transaksi tidak bocor
+            // (fungsi ini dipanggil di dalam transaksi lain, mis. storeDetailEdit di BOM)
             $so = $mysql_sb->table('so')->where('id', $id)->lockForUpdate()->first();
-            if (!$so) return ['status' => 400, 'message' => 'SO tidak ditemukan'];
-            if (!$so->id_bom) return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
+            if (!$so) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'SO tidak ditemukan'];
+            }
+            if (!$so->id_bom) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
+            }
 
             $jo_det = $mysql_sb->table('jo_det')->where('id_so', $id)->first();
-            if (!$jo_det) return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
+            if (!$jo_det) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
+            }
 
             $id_jo = $jo_det->id_jo;
             $id_bom = $so->id_bom;

@@ -9,8 +9,13 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
 class DefectSpotcleaningInReportController extends Controller
 {
@@ -98,10 +103,17 @@ class DefectSpotcleaningInReportController extends Controller
         $start = $request->start_date; $end = $request->end_date;
         $data = collect($this->getDefectInData($start, $end, $request->buyer));
 
-        return Excel::download(new class($data, $start, $end) implements FromCollection, WithHeadings, WithStyles {
+        return Excel::download(new class($data, $start, $end) extends DefaultValueBinder implements FromCollection, WithHeadings, WithStyles, WithCustomValueBinder {
             protected $data, $start, $end;
             public function __construct($data, $start, $end) { $this->data = $data; $this->start = $start; $this->end = $end; }
             public function collection() { return $this->data; }
+            public function bindValue(Cell $cell, $value) {
+                if ($cell->getColumn() === 'E' && $cell->getRow() > 5) {
+                    $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                    return true;
+                }
+                return parent::bindValue($cell, $value);
+            }
             public function headings(): array {
                 return [ ["NIRWANA ALABARE GARMENT"], ["REPORT DEFECT SPOTCLEANING (IN)"], ["Periode: $this->start s/d $this->end"], [""],
                     ["Buyer", "WS", "Style", "Color", "Size", "Jumlah Defect Spotcleaning IN"] ];
@@ -110,6 +122,7 @@ class DefectSpotcleaningInReportController extends Controller
                 $sheet->mergeCells('A1:F1'); $sheet->mergeCells('A2:F2'); $sheet->mergeCells('A3:F3');
                 $sheet->getStyle('A1:A3')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
                 $sheet->getStyle('A5:F5')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+                $sheet->getStyle('E6:E' . $sheet->getHighestRow())->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
             }
         }, 'Report_Defect_Spotcleaning_IN_'.date('Ymd_His').'.xlsx');
     }
