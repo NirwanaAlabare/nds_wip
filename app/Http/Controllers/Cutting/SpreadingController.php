@@ -943,7 +943,7 @@ class SpreadingController extends Controller
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
                     0 qty_awal,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
+                    ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     CASE
                         WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
@@ -1396,7 +1396,7 @@ class SpreadingController extends Controller
                     COALESCE(modify_size_qty.difference_qty, 0),
                     COALESCE(modify_size_qty.modified_qty, 0),
                     0 qty_awal,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) qty_additional,
+                    ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
                     CASE
                         WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
