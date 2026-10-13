@@ -1521,7 +1521,7 @@ class SpreadingController extends Controller
             LEFT JOIN part on part.act_costing_ws = cutting.worksheet and part.panel = cutting.panel
             LEFT JOIN part_detail on part_detail.part_id = part.id
             LEFT JOIN master_part on master_part.id = part_detail.master_part_id
-            LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color AND pcust.tanggal_berlaku <= '".$dateTo."'
+            LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= cutting.tanggal ELSE 1=1 END)
             WHERE
                 (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
             GROUP BY
