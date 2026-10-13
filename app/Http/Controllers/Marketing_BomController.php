@@ -376,19 +376,27 @@ class Marketing_BomController extends Controller
         }
 
 
+        $mysql_sb->beginTransaction();
         try {
             $colors = $request->colors ? array_values(array_unique($request->colors)) : [];
-            $new_sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+            $new_sizes  = $request->sizes ? array_values(array_unique(array_map('strval', $request->sizes))) : [];
 
             $old_bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
-            $old_sizes = $old_bom->sizes ? json_decode($old_bom->sizes, true) : [];
+            $old_sizes = ($old_bom && $old_bom->sizes) ? (json_decode($old_bom->sizes, true) ?: []) : [];
+            $old_sizes = array_values(array_map('strval', (array) $old_sizes));
 
-            if (count($old_sizes) === count($new_sizes) && $old_sizes !== $new_sizes) {
+            // Hanya size yang benar-benar diganti (dihapus -> ditambah) yang di-replace.
+            // Jangan mapping per posisi: kalau urutan beda, replace berantai (S->XS, M->S, ...)
+            // bikin semua item & so_det jadi satu size yang sama.
+            $removed_sizes = array_values(array_diff($old_sizes, $new_sizes));
+            $added_sizes   = array_values(array_diff($new_sizes, $old_sizes));
+
+            if (count($removed_sizes) > 0 && count($removed_sizes) === count($added_sizes)) {
 
                 $affected_sos = $mysql_sb->table('so')->where('id_bom', $id_bom)->pluck('id');
 
-                foreach ($old_sizes as $idx => $old_size_id) {
-                    $new_size_id = $new_sizes[$idx];
+                foreach ($removed_sizes as $idx => $old_size_id) {
+                    $new_size_id = $added_sizes[$idx];
 
                     if ($old_size_id != $new_size_id) {
 

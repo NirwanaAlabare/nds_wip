@@ -295,7 +295,17 @@
                         success: function (res) {
                             document.getElementById("loading").classList.add("d-none");
 
-                            if (res) {
+                            if (res && res.status == 400) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Info',
+                                    html: res.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else if (res) {
                                 console.log(res);
                                 let messageRft = (res.rft.length)+" RFT <br>";
                                 let messageDefect = (res.defect.length)+" Defect <br>";

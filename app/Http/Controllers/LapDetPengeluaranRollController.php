@@ -36,7 +36,7 @@ class LapDetPengeluaranRollController extends Controller
             }
 
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+            $data_pemasukan = DB::connection('mysql_sb')->select("select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, COALESCE(NULLIF(b.no_roll_buyer, ''), (select x.no_roll_buyer from whs_lokasi_inmaterial x where x.no_barcode = b.id_roll and x.no_roll_buyer <> '' order by x.id limit 1)) no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
 left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
@@ -48,7 +48,7 @@ left join act_costing ac on so.id_cost=ac.id
 where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $request->dateFrom . "' and '" . $request->dateTo . "' GROUP BY b.id order by a.no_bppb) a
 UNION
 select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb, '-' no_po,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
-rak_asal,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+rak_asal,' FABRIC WAREHOUSE RACK') rak, COALESCE(NULLIF(b.no_roll_buyer, ''), (select x.no_roll_buyer from whs_lokasi_inmaterial x where x.no_barcode = b.idbpb_det and x.no_roll_buyer <> '' order by x.id limit 1)) no_roll_buyer
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
 inner join masteritem s on b.id_item=s.id_item 
@@ -87,7 +87,7 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $requ
     // SQL export ini juga dipakai menu Rekonsiliasi Mutasi, supaya angka keduanya selalu sama.
     public function exportSql($from, $to)
     {
-        return "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+        return "select * from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,IFNULL(ro.no_po,'-') no_po,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.no_rak,' FABRIC WAREHOUSE RACK') rak, COALESCE(NULLIF(b.no_roll_buyer, ''), (select x.no_roll_buyer from whs_lokasi_inmaterial x where x.no_barcode = b.id_roll and x.no_roll_buyer <> '' order by x.id limit 1)) no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
 left join whs_bppb_ro ro on ro.no_bppb = b.no_bppb and ro.id_jo = b.id_jo and ro.id_item = b.id_item
@@ -99,7 +99,7 @@ left join act_costing ac on so.id_cost=ac.id
 where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $from . "' and '" . $to . "' GROUP BY b.id order by a.no_bppb) a
 UNION
 select * from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb, no_po,'' no_req,'Mutasi Lokasi' tujuan,b.idbpb_det no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,b.id_jo,ac.kpno ws,goods_code, itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
-rak_asal,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
+rak_asal,' FABRIC WAREHOUSE RACK') rak, COALESCE(NULLIF(b.no_roll_buyer, ''), (select x.no_roll_buyer from whs_lokasi_inmaterial x where x.no_barcode = b.idbpb_det and x.no_roll_buyer <> '' order by x.id limit 1)) no_roll_buyer
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
 inner join masteritem s on b.id_item=s.id_item 

@@ -52,7 +52,9 @@ class DokumenPabeanController extends Controller
                 ->join('mastersupplier as ms', "{$tbl}.id_supplier", '=', 'ms.id_supplier')
                 ->leftJoin('bpb_ceisa as bc', function($join) use ($tbl, $fldno, $fldno_int) {
                     $join->on("bc.bpbno", '=', "{$tbl}.{$fldno}")
-                         ->orOn("bc.bpbno", '=', "{$tbl}.{$fldno_int}");
+                        ->orOn("bc.bpbno", '=', "{$tbl}.{$fldno_int}")
+                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno_int}")
+                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno}");
                 })
                 ->select(
                     "{$tbl}.*",
@@ -674,11 +676,11 @@ class DokumenPabeanController extends Controller
                                 ->get()->first();
 
                 //kode kantor bandung
-                $kantor = 60; 
+                $kantor = 60;
                 if($data_kantor){
                     $kantor = $data_kantor->id;
                 }
-                
+
                 $db->table('bpb')
                     ->where(function($query) use ($id) {
                         $query->where('bpbno', $id)->orWhere('bpbno_int', $id);
@@ -2039,7 +2041,7 @@ class DokumenPabeanController extends Controller
                                 ->get()->first();
 
                 //kode kantor bandung
-                $kantor = 60; 
+                $kantor = 60;
                 if($data_kantor){
                     $kantor = $data_kantor->id;
                 }
@@ -2491,7 +2493,7 @@ class DokumenPabeanController extends Controller
             ], 500);
         }
     }
-    
+
 
 }
 
