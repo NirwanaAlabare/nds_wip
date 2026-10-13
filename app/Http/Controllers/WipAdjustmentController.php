@@ -244,6 +244,33 @@ class WipAdjustmentController extends Controller
         }
 
         $data = [];
+        $closing = [];
+        $wsField = in_array('no_ws', $template['text']) ? 'no_ws' : 'ws';
+
+        // WS di file harus ada di master_sb_ws (dicek sekali untuk semua WS unik)
+        $wsList = [];
+
+        foreach (array_slice($rows, 1) as $row) {
+            $ws = trim((string) ($row[$index[$wsField]] ?? ''));
+
+            if ($ws !== '' && !str_contains($ws, ',')) {
+                $wsList[$ws] = true;
+            }
+        }
+
+        $validWs = [];
+
+        foreach (array_chunk(array_map('strval', array_keys($wsList)), 500) as $chunk) {
+            $found = DB::connection('mysql')
+                ->table('master_sb_ws')
+                ->whereIn('ws', $chunk)
+                ->distinct()
+                ->pluck('ws');
+
+            foreach ($found as $ws) {
+                $validWs[strtoupper($ws)] = true;
+            }
+        }
 
         foreach (array_slice($rows, 1) as $i => $row) {
             // Lewati baris kosong (hanya cek kolom template, kolom lain seperti note diabaikan)
@@ -263,6 +290,8 @@ class WipAdjustmentController extends Controller
 
             if (!$tglSaldo) {
                 $errors[] = 'Tanggal saldo tidak valid';
+            } elseif ($closing[$tglSaldo] ??= checkClosingDate($tglSaldo)) {
+                $errors[] = 'Periode ' . date('d-m-Y', strtotime($tglSaldo)) . ' sudah closing';
             }
 
             $item['tgl_saldo'] = $tglSaldo;
@@ -277,6 +306,13 @@ class WipAdjustmentController extends Controller
                 if ($item[$field] === '') {
                     $errors[] = strtoupper(str_replace('no_', '', $field)) . ' wajib diisi';
                 }
+            }
+
+            // WS gabungan (mengandung koma) tidak diterima
+            if (str_contains((string) $item[$wsField], ',')) {
+                $errors[] = 'WS tidak boleh mengandung koma';
+            } elseif ($item[$wsField] !== '' && !isset($validWs[strtoupper((string) $item[$wsField])])) {
+                $errors[] = 'WS ' . $item[$wsField] . ' tidak ditemukan di master WS';
             }
 
             foreach ($template['qty'] as $headerName => $field) {
