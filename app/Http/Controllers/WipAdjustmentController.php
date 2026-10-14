@@ -374,7 +374,9 @@ class WipAdjustmentController extends Controller
     // Simpan Cutting Fabric: 1 baris Excel = 1 baris wip_adjustment_fabric
     private function simpanImportFabric($data)
     {
-        // id_roll F2 yang ada di mut_cut_fab_saldo_tmp => REKAP
+        // Pasangan id_roll F2 + ws yang ada di mut_cut_fab_saldo_tmp => REKAP
+        $rekapKey = fn ($idRoll, $ws) => strtoupper(trim((string) $idRoll)) . '|' . strtoupper(trim((string) $ws));
+
         $rollF2 = array_values(array_unique(array_filter(
             array_column($data, 'id_roll'),
             fn ($idRoll) => strtoupper(substr($idRoll, 0, 2)) === 'F2'
@@ -386,14 +388,15 @@ class WipAdjustmentController extends Controller
             $found = DB::connection('mysql')
                 ->table('mut_cut_fab_saldo_tmp')
                 ->whereIn('id_roll', $chunk)
+                ->select('id_roll', 'ws')
                 ->distinct()
-                ->pluck('id_roll')
-                ->all();
+                ->get();
 
-            $rollRekap = array_merge($rollRekap, $found);
+            foreach ($found as $row) {
+                $rollRekap[$rekapKey($row->id_roll, $row->ws)] = true;
+            }
         }
 
-        $rollRekap = array_flip($rollRekap);
         $username = Auth::user()->username;
         $now = now();
         $insert = [];
@@ -410,7 +413,7 @@ class WipAdjustmentController extends Controller
                 'id_item'             => $item['id_item'],
                 'satuan'              => $item['satuan'],
                 'qty'                 => $item['fabric'],
-                'type'                => isset($rollRekap[$item['id_roll']]) ? 'REKAP' : 'NON REKAP',
+                'type'                => isset($rollRekap[$rekapKey($item['id_roll'], $item['ws'])]) ? 'REKAP' : 'NON REKAP',
                 'status'              => 'Y',
                 'created_by_username' => $username,
                 'created_at'          => $now,
