@@ -2885,7 +2885,7 @@ class SewingToolsController extends Controller
                         $row->allocation_output_packing ?? "-",
                     ];
 
-                    $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    $sheet->writeRow($rowArr, null, ['C' => ['format' => '@'], 'E' => ['format' => '@'], 'F' => ['format' => '@']])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 }
             });
 
@@ -5173,7 +5173,7 @@ class SewingToolsController extends Controller
                     $row->keterangan        ?? '',
                     $row->output_created_at ?? '',
                     $row->output_updated_at ?? '',
-                ]);
+                ], null, ['D' => ['format' => '@'], 'F' => ['format' => '@'], 'G' => ['format' => '@']]);
             }
         });
 
@@ -5680,7 +5680,7 @@ class SewingToolsController extends Controller
                     $row->updated_at            ?? '',
                     $row->output_created_at     ?? '',
                     $row->output_updated_at     ?? '',
-                ]);
+                ], null, ['D' => ['format' => '@'], 'F' => ['format' => '@'], 'G' => ['format' => '@']]);
             }
         });
 
@@ -6520,7 +6520,7 @@ class SewingToolsController extends Controller
                 $row->packing_keluar                  ?? 0,
                 $row->pc_terima                       ?? 0,
                 $row->pc_packing_scan                 ?? 0,
-            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            ], null, ['D' => ['format' => '@'], 'F' => ['format' => '@'], 'G' => ['format' => '@']])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         }
 
         $filename = 'Inject_Mutasi_Sewing_' . $tglAwal . '_sd_' . $tglAkhir . '.xlsx';
