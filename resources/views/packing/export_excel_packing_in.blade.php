@@ -2,10 +2,10 @@
 <html lang="en">
 <table class="table">
     <tr>
-        <td colspan='13'>Laporan Packing Terima</td>
+        <td colspan='16'>Laporan Packing Terima</td>
     </tr>
     <tr>
-        <td colspan='13'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='16'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <tr>
