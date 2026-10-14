@@ -13250,13 +13250,13 @@ order by tanggal asc, no_form asc
         foreach ($data as $row) {
 
             $rows = [
-                $row->ws ?: '',
-                $row->buyer ?: '',
-                $row->styleno ?: '',
-                $row->color ?: '',
-                $row->size ?: '',
-                $row->panel ?: '',
-                $row->nama_part ?: '',
+                $row->ws ?: '-',
+                $row->buyer ?: '-',
+                $row->styleno ?: '-',
+                $row->color ?: '-',
+                $row->size ?: '-',
+                $row->panel ?: '-',
+                $row->nama_part ?: '-',
                 (float) $row->saldo_awal_adjustment,
                 (float) $row->qty_cut,
                 (float) ($row->switching_out_cutt ?? 0),
