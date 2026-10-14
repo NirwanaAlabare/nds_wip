@@ -4637,7 +4637,7 @@ order by  ws asc, color asc
                     0 sr_before,
                     0 qty_retur_before,
                     null type
-                FROM mut_cut_fab_saldo_tmp
+                FROM mut_cut_fab_saldo_tmp_adj
                 WHERE tgl_trans BETWEEN ? AND ?
                 GROUP BY $groupBy
 
@@ -4657,7 +4657,7 @@ order by  ws asc, color asc
                     0 sr_before,
                     0 qty_retur_before,
                     null type
-                FROM mut_cut_fab_saldo_tmp
+                FROM mut_cut_fab_saldo_tmp_adj
                 WHERE tgl_trans = ?
                 GROUP BY $groupBy
 
@@ -4677,7 +4677,7 @@ order by  ws asc, color asc
                     SUM(sr) sr_before,
                     SUM(qty_retur) qty_retur_before,
                     null type
-                FROM mut_cut_fab_saldo_tmp
+                FROM mut_cut_fab_saldo_tmp_adj
                 WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
                 GROUP BY $groupBy
 
@@ -4723,7 +4723,14 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment,
                     0 saldo,
                     wip_adjustment_fabric.satuan,
-                    (CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP' THEN ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) ELSE ROUND(SUM(IF((wip_adjustment_fabric.tgl_saldo < '2026-07-01' OR wip_adjustment_fabric.tgl_saldo > '2026-09-01') AND wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) END) qty_adjustment_before,
+                    (
+                        CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP'
+                            THEN
+                                ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2)
+                            ELSE
+                                ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01' AND wip_adjustment_fabric.tgl_saldo < '{$start_date}', wip_adjustment_fabric.qty, 0)), 2)
+                        END
+                    ) qty_adjustment_before,
                     -- ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before_old,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                     COALESCE(
@@ -4762,6 +4769,44 @@ order by  ws asc, color asc
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
                     AND wip_adjustment_fabric.status = 'Y'
+                GROUP BY
+                    $groupBy
+
+                UNION ALL
+
+                -- ADJUSTMENT CURRENT PREV
+                SELECT
+                    wip_adjustment_fabric.ws,
+                    wip_adjustment_fabric.id_roll,
+                    wip_adjustment_fabric.id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    0 qty_pakai,
+                    0 qty_pakai_adjustment,
+                    0 sr,
+                    0 sr_adjustment,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    0 qty_retur_adjustment,
+                    0 saldo,
+                    wip_adjustment_fabric.satuan,
+                    SUM(COALESCE(wip_adjustment_fabric.qty, 0)) qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    type
+                FROM
+                    wip_adjustment_fabric
+                WHERE
+                    wip_adjustment_fabric.tgl_saldo = '{$prev_date}'
+                    AND wip_adjustment_fabric.tgl_saldo >= '2026-09-01'
+                    AND wip_adjustment_fabric.status = 'Y'
+                    AND (wip_adjustment_fabric.type = 'REKAP' OR wip_adjustment_fabric.type IS NULL)
                 GROUP BY
                     $groupBy
             ) mut
