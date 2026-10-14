@@ -402,6 +402,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
             Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
             Route::get('/report_cutting_mutasi_fabric_proporsional', 'report_cutting_mutasi_fabric_proporsional')->name('report_cutting_mutasi_fabric_proporsional');
+            Route::post('/report_cutting_mutasi_fabric_proporsional/generate_saldo', 'generate_saldo_mutasi_fabric_proporsional')->name('generate_saldo_mutasi_fabric_proporsional');
             Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
             Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
             Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');

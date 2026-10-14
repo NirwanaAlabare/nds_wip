@@ -4923,6 +4923,23 @@ order by  ws asc, color asc
         );
     }
 
+    public function generate_saldo_mutasi_fabric_proporsional(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        DB::statement('CALL sp_mut_cut_fab_saldo_adj_new(?, ?)', [$request->start_date, $request->end_date]);
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Generate saldo berhasil',
+        ]);
+    }
+
     // public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
     // {
     //     return Excel::download(new export_excel_report_cutting_mutasi_fabric_proporsional($request->start_date, $request->end_date, $request->cbotipe), 'Laporan_Penerimaan FG_Stok.xlsx');
