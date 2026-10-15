@@ -305,6 +305,12 @@
             <button type="button" class="btn btn-dn-kosongkan btn-sm" id="btn-kosongkan-sj" disabled>
                 <i class="fas fa-eraser"></i> Clear All
             </button>
+            {{-- Baris summary tambahan: diketik sendiri, tidak punya SJ di
+                 belakangnya. Dipakai kalau barisnya perlu dipecah atau
+                 ditambah di luar yang bisa diturunkan dari SJ. --}}
+            <button type="button" class="btn btn-dn-tambah btn-sm" id="btn-ringkas-tambah">
+                <i class="fa fa-plus"></i> Add Row
+            </button>
             {{-- Satu tombol, dua sumber: SJ (barangnya sudah keluar) atau WS
                  (SJ-nya belum terbit). Pilihannya ditanyakan waktu diklik. --}}
             <button type="button" class="btn btn-dn-create btn-sm" id="inv-btn-so">
@@ -430,6 +436,8 @@
                             <th>Disc (%)</th>
                             <th>Total (CM)</th>
                             <th>Total (FOB)</th>
+                            {{-- Kolom aksi: isinya cuma untuk baris tambahan. --}}
+                            <th><span class="sr-only">Action</span></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2271,9 +2279,9 @@ $(function () {
     // dari warna yang ada di Detail SJ - jadi tidak mungkin ada warna yang
     // kelewat atau baris summary yang tidak punya FG/OUT.
     //
-    // Yang diketik user disimpan per warna, bukan per nomor baris. Kalau daftar
-    // SJ berubah dan urutan warnanya bergeser, ketikannya tetap menempel di
-    // warna yang benar.
+    // Yang diketik user disimpan per warna+harga, bukan per nomor baris. Kalau
+    // daftar SJ berubah dan urutan barisnya bergeser, ketikannya tetap
+    // menempel di baris yang benar.
     var ringkasIsi = {};
 
     /**
@@ -2289,18 +2297,56 @@ $(function () {
         return nama !== '' ? nama : '-';
     }
 
+    /**
+     * Harga satuan sebagai bagian kunci baris summary - 4 angka di belakang
+     * koma, sama seperti unit cost yang tersimpan. Server memakai rumus yang
+     * sama (hargaKunci di InvoiceEximController).
+     */
+    function kunciHarga(v) {
+        var n = parseFloat(String(v == null ? '' : v).replace(/,/g, ''));
+        if (isNaN(n)) { n = 0; }
+        return (Math.round(n * 10000) / 10000).toFixed(4);
+    }
+
+    // Pemisah di dalam kunci baris - aksara kendali, tidak mungkin ada di
+    // nama warna.
+    var PISAH = '\u001f';
+
+    /**
+     * Penentu baris summary: warna + harga satuannya.
+     *
+     * Dulu warnanya saja. Tapi satu warna bisa keluar dengan dua harga - mis.
+     * ukuran besar lebih mahal - dan kalau digabung jadi satu baris, harganya
+     * jadi rata-rata dan tidak cocok lagi dengan SJ-nya. Sekarang dua harga =
+     * dua baris, dan tim AR tinggal merapikannya kalau perlu.
+     */
+    function kunciRingkas(r) { return kunciWarna(r) + PISAH + kunciHarga(r.unit_price); }
+    function warnaDariKunci(k) { return String(k).split(PISAH)[0]; }
+    function hargaDariKunci(k) {
+        var p = String(k).split(PISAH);
+        return p.length > 1 ? p[1] : '0.0000';
+    }
+
+    // Baris yang ditambah sendiri lewat Add Row. Kuncinya diawali '+', jadi
+    // tidak mungkin bentrok dengan kunci warna+harga.
+    var barisTambahan = [];
+    var nomorTambahan = 0;
+    function barisManual(k) { return String(k).charAt(0) === '+'; }
+
     function warnaUrut() {
         var out = [];
         semuaBaris().forEach(function (r) {
-            var w = kunciWarna(r);
+            var w = kunciRingkas(r);
             if (out.indexOf(w) === -1) { out.push(w); }
         });
-        return out;
+        // Baris tambahan selalu di bawah - nomor urutnya pun begitu di server.
+        return out.concat(barisTambahan);
     }
 
-    /** Baris (SJ maupun SO) dengan warna tertentu. */
+    /** Baris (SJ maupun SO) milik satu baris summary. Baris tambahan: kosong. */
     function sjWarna(w) {
-        return semuaBaris().filter(function (r) { return kunciWarna(r) === w; });
+        if (barisManual(w)) { return []; }
+        return semuaBaris().filter(function (r) { return kunciRingkas(r) === w; });
     }
 
     /**
@@ -2322,9 +2368,14 @@ $(function () {
 
     function isiWarna(w) {
         if (!ringkasIsi[w]) {
+            // qty_invoiced & unit_cost_cm dibiarkan KOSONG selama belum
+            // diketik: kosong berarti "ikut SJ", jadi angkanya ikut berubah
+            // kalau baris SJ-nya ditambah atau dibuang.
             ringkasIsi[w] = {
-                color_code: '', color_name: w, total_pieces: '', total_pieces_unit: uomWarna(w),
-                unit_cost_fob: '', disc: ''
+                color_code: '', color_name: barisManual(w) ? '' : warnaDariKunci(w),
+                total_pieces: '', total_pieces_unit: barisManual(w) ? 'PCS' : uomWarna(w),
+                qty_invoiced: '', unit_cost_cm: '',
+                unit_cost_fob: '', disc: '', manual: barisManual(w)
             };
         }
         return ringkasIsi[w];
@@ -2336,13 +2387,43 @@ $(function () {
      * berbeda (mis. ukuran besar lebih mahal), totalnya tetap persis jumlah
      * nilai SJ. Server menghitung dengan cara yang sama waktu Save.
      */
-    function cmWarna(w) {
+    function cmSj(w) {
         var qty = 0, kotor = 0;
         sjWarna(w).forEach(function (x) {
             qty   += parseFloat(x.qty) || 0;
             kotor += parseFloat(x.total_price) || 0;
         });
         return { qty: qty, kotor: kotor, unit: qty ? Math.round(kotor / qty * 10000) / 10000 : 0 };
+    }
+
+    /** Angka yang benar-benar dipakai baris ini - ketikan menang atas SJ. */
+    function angkaIsi(v) {
+        var n = parseFloat(String(v == null ? '' : v).replace(/,/g, ''));
+        return isNaN(n) ? 0 : n;
+    }
+    function diketik(v) { return $.trim(String(v == null ? '' : v)) !== ''; }
+
+    /**
+     * Qty, nilai kotor & unit cost CM yang dipakai baris summary.
+     *
+     * Bawaannya dari SJ. Begitu Qty Invoiced atau Unit Cost (CM)-nya diketik
+     * sendiri - termasuk baris tambahan yang memang tidak punya SJ - yang
+     * dipakai ketikannya, dan nilainya qty x unit cost. Selama belum diketik,
+     * nilai SJ yang dipakai apa adanya supaya tidak ada selisih pembulatan.
+     * Server memakai aturan yang sama waktu Save.
+     */
+    function cmWarna(w) {
+        var r = isiWarna(w);
+        var c = cmSj(w);
+        var adaQty  = diketik(r.qty_invoiced);
+        var adaUnit = diketik(r.unit_cost_cm);
+        var qty  = adaQty  ? angkaIsi(r.qty_invoiced) : c.qty;
+        var unit = adaUnit ? angkaIsi(r.unit_cost_cm) : c.unit;
+        return {
+            qty: qty,
+            unit: unit,
+            kotor: (adaQty || adaUnit || r.manual) ? qty * unit : c.kotor
+        };
     }
 
     /**
@@ -2370,7 +2451,7 @@ $(function () {
         var warna = warnaUrut();
         var $b = $('#inv-table-ringkas tbody').empty();
         if (!warna.length) {
-            $b.html('<tr><td class="dn-kosong" colspan="10">'
+            $b.html('<tr><td class="dn-kosong" colspan="11">'
                 + '<div class="dn-kosong-isi">'
                 + '<i class="fas fa-palette"></i>'
                 + '<span>No colour yet - colours follow the SJ or WS rows you pick.</span>'
@@ -2384,12 +2465,17 @@ $(function () {
             var h = hitungWarna(w);
             var qty = h.qty, cm = h.cm, fob = h.fob;
 
-            function isi(kunci, kelas, tipe) {
+            // bawaan dipakai kalau kotaknya belum pernah diketik - Qty Invoiced
+            // & Unit Cost (CM) memang bawaannya ikut SJ, ketikan baru menimpa.
+            function isi(kunci, kelas, tipe, bawaan) {
+                var nilai = (bawaan !== undefined && !diketik(r[kunci])) ? bawaan : r[kunci];
                 return '<input type="' + (tipe || 'text') + '" class="form-control form-control-sm dn-ringkas-isi '
                     + (kelas || '') + '" data-w="' + teksAman(w) + '" data-kunci="' + kunci + '"'
-                    + ' value="' + teksAman(r[kunci]) + '" autocomplete="off"'
-                    + (kunci === 'color_code' ? ' maxlength="255"' : '') + '>';
+                    + ' value="' + teksAman(nilai) + '" autocomplete="off"'
+                    + (kunci === 'color_code' || kunci === 'color_name' ? ' maxlength="255"' : '') + '>';
             }
+            /** Angka untuk kotak type=number - tanpa pemisah ribuan. */
+            function angkaKotak(n) { return String(Math.round((parseFloat(n) || 0) * 10000) / 10000); }
             // Kotak terkunci: tampil seragam dengan kotak isian, tapi tidak bisa
             // diubah dan dilewati tombol Tab.
             function kunci(nilai, kelas, hasil) {
@@ -2402,7 +2488,8 @@ $(function () {
             //   satuan asli SJ (YRD, KG, PCS, ...) -> ikut Qty Invoiced, terkunci.
             //   SET                                -> diketik sendiri, wajib diisi.
             var set = r.total_pieces_unit === 'SET';
-            var uomAsli = uomWarna(w);
+            // Baris tambahan tidak punya SJ, jadi satuan aslinya PCS.
+            var uomAsli = r.manual ? 'PCS' : uomWarna(w);
             if (!set) {
                 r.total_pieces_unit = uomAsli;
                 r.total_pieces = String(Math.round(qty * 10000) / 10000);
@@ -2424,21 +2511,28 @@ $(function () {
                       + ' title="Follows Qty Invoiced (Each)">')
                 + '</div>';
 
-            // Dikunci : Color Name (dari warna SJ), Qty Invoiced (jumlah FG/OUT),
-            //           Unit Cost CM (harga SO - dasar penagihan AR), kedua Total,
-            //           Total Pieces kalau satuannya PCS.
-            // Diketik : Color Code, Total Pieces (SET), Unit Cost FOB, Disc.
-            return '<tr>'
+            // Semua kolom boleh diketik - tim AR yang merapikan barisnya kalau
+            // bentuk tagihannya perlu beda dengan SJ. Bawaannya tetap dari SJ:
+            // Color Name dari warnanya, Qty Invoiced dari jumlah FG/OUT, Unit
+            // Cost (CM) dari harga SO-nya. Yang tetap terkunci cuma hasil
+            // hitungan: kedua Total, dan Total Pieces kalau satuannya bukan SET.
+            var c = cmWarna(w);
+            return '<tr' + (r.manual ? ' class="dn-ringkas-tambahan"' : '') + '>'
                 + '<td class="dn-tengah"><b>' + (k + 1) + '</b></td>'
                 + '<td>' + isi('color_code') + '</td>'
-                + '<td>' + kunci(r.color_name) + '</td>'
+                + '<td>' + isi('color_name') + '</td>'
                 + '<td>' + satuan + '</td>'
-                + '<td>' + kunci(angka(qty), 'dn-angka-input', 'qty') + '</td>'
-                + '<td>' + kunci(cmWarna(w).unit, 'dn-angka-input') + '</td>'
+                + '<td>' + isi('qty_invoiced', 'dn-angka-input', 'number', angkaKotak(c.qty)) + '</td>'
+                + '<td>' + isi('unit_cost_cm', 'dn-angka-input', 'number', angkaKotak(c.unit)) + '</td>'
                 + '<td>' + isi('unit_cost_fob', 'dn-angka-input', 'number') + '</td>'
                 + '<td>' + isi('disc', 'dn-angka-input', 'number') + '</td>'
                 + '<td>' + kunci(angka(cm), 'dn-angka-input dn-hasil', 'cm') + '</td>'
                 + '<td>' + kunci(angka(fob), 'dn-angka-input dn-hasil', 'fob') + '</td>'
+                + '<td>' + (r.manual
+                    ? '<button type="button" class="btn btn-danger btn-sm dn-ringkas-buang"'
+                      + ' data-w="' + teksAman(w) + '" title="Remove this row">'
+                      + '<i class="fas fa-times"></i></button>'
+                    : '') + '</td>'
                 + '</tr>';
         }).join(''));
 
@@ -2447,18 +2541,47 @@ $(function () {
 
     $('#inv-table-ringkas').on('input', '.dn-ringkas-isi', function () {
         var w = String($(this).data('w'));
-        isiWarna(w)[$(this).data('kunci')] = $(this).val();
+        var r = isiWarna(w);
+        r[$(this).data('kunci')] = $(this).val();
 
         // Tabel tidak digambar ulang supaya kursor tidak lompat - cukup kotak
         // hasil hitungan di baris ini yang disegarkan. Tanpa ini Total (CM) &
         // Total (FOB) di baris ini diam di angka lama sampai ada yang menggambar
         // ulang tabelnya.
+        var c = cmWarna(w);
         var h = hitungWarna(w);
         var $tr = $(this).closest('tr');
+        // Total Pieces mengikuti Qty Invoiced selama satuannya bukan SET - jadi
+        // ikut berubah begitu qty-nya diketik ulang.
+        if (r.total_pieces_unit !== 'SET') {
+            r.total_pieces = String(Math.round(c.qty * 10000) / 10000);
+            $tr.find('[data-kunci="total_pieces"][readonly]').val(angka(c.qty));
+        }
         $tr.find('[data-hasil="cm"]').val(angka(h.cm));
         $tr.find('[data-hasil="fob"]').val(angka(h.fob));
 
         hitungSemua(true);
+    });
+
+    // ---- Add Row: baris summary yang diketik sendiri ----
+    // Barisnya tidak punya SJ di belakangnya, jadi semua angkanya dari layar.
+    // Letaknya selalu di bawah baris yang diturunkan dari SJ.
+    $('#btn-ringkas-tambah').on('click', function () {
+        nomorTambahan++;
+        var k = '+' + nomorTambahan;
+        barisTambahan.push(k);
+        isiWarna(k);
+        gambarRingkas();
+        $('#inv-table-ringkas tbody tr').last().find('[data-kunci="color_code"]').trigger('focus');
+    });
+
+    // Buang baris tambahan. Baris yang diturunkan dari SJ tidak punya tombol
+    // ini - membuangnya berarti nilai SJ-nya hilang dari tagihan.
+    $('#inv-table-ringkas').on('click', '.dn-ringkas-buang', function () {
+        var k = String($(this).data('w'));
+        barisTambahan = barisTambahan.filter(function (x) { return x !== k; });
+        delete ringkasIsi[k];
+        gambarRingkas();
     });
 
     // Ganti satuan Total Pieces. Satuan asli: angkanya ikut Qty Invoiced. SET:
@@ -3064,9 +3187,10 @@ $(function () {
             if (!milik.length) { return; }
             var r = isiWarna(w);
 
-            if (!r.color_name) { r.color_name = w; }
-            // Unit Cost (CM) tidak disimpan di sini - selalu dihitung dari SJ
-            // lewat cmWarna(), jadi ikut benar saat baris SJ ditambah/dibuang.
+            if (!r.color_name) { r.color_name = warnaDariKunci(w); }
+            // Qty Invoiced & Unit Cost (CM) tidak diisikan ke sini - selama
+            // kotaknya belum diketik, angkanya dihitung dari SJ lewat cmWarna()
+            // supaya ikut benar saat baris SJ ditambah/dibuang.
             // Harga FOB di SO belum bisa dijadikan patokan - ditampilkan apa
             // adanya (sering kosong) dan memang untuk diubah sendiri.
             if (!r.unit_cost_fob && milik[0].fob) { r.unit_cost_fob = milik[0].fob; }
@@ -3122,6 +3246,9 @@ $(function () {
             invBaris = [];
             invSo = [];
             ringkasIsi = {};
+            // Baris summary yang ditambah sendiri ikut dibuang - tanpa SJ
+            // barisnya tidak punya arti.
+            barisTambahan = [];
 
             // Centang di modal Add SJ ikut dilepas. Tanpa ini, membuka modal lalu
             // langsung menekan Apply memasukkan lagi semua baris tadi - tanda
@@ -3361,15 +3488,25 @@ $(function () {
                 baris_ws: invSo.map(function (r) {
                     return { id_so_det: r.id_so_det, qty: r.qty };
                 }),
-                // Isian per warna. Qty & Unit Cost (CM) tidak dikirim: dihitung
-                // ulang di server dari SJ.
+                // Isian per baris summary. Qty & Unit Cost (CM) ikut dikirim:
+                // server membandingkannya dengan angka SJ - sama berarti belum
+                // diubah (nilai SJ yang dipakai), beda berarti memang diketik
+                // sendiri. Baris tambahan ditandai manual: seluruh angkanya
+                // dari sini karena tidak punya SJ di belakangnya.
                 ringkas: warnaUrut().map(function (w) {
                     var r = isiWarna(w);
+                    var c = cmWarna(w);
                     return {
-                        warna: w,
+                        warna: barisManual(w) ? '' : warnaDariKunci(w),
+                        harga: barisManual(w) ? kunciHarga(c.unit) : hargaDariKunci(w),
+                        manual: barisManual(w) ? 1 : 0,
                         color_code: r.color_code,
+                        color_name: r.color_name,
                         total_pieces: r.total_pieces,
-                        total_pieces_unit: r.total_pieces_unit === 'SET' ? 'SET' : uomWarna(w),
+                        total_pieces_unit: r.total_pieces_unit === 'SET' ? 'SET'
+                            : (barisManual(w) ? 'PCS' : uomWarna(w)),
+                        qty_invoiced: c.qty,
+                        unit_cost_cm: c.unit,
                         unit_cost_fob: r.unit_cost_fob,
                         disc: r.disc
                     };
@@ -3412,15 +3549,85 @@ $(function () {
         invBaris = @json($ubahBaris);
         // Baris SO yang tersimpan - itu yang menurunkan Invoice Summary.
         invSo = @json($ubahBarisSo);
-        @json($ubahRingkas).forEach(function (r) {
-            var isi = isiWarna(r.warna);
-            isi.color_code    = r.color_code;
-            isi.total_pieces  = r.total_pieces;
-            // Satuan selain SET dipastikan ulang dari SJ-nya waktu digambar.
-            isi.total_pieces_unit = r.total_pieces_unit === 'SET' ? 'SET' : uomWarna(r.warna);
-            isi.unit_cost_fob = r.unit_cost_fob;
-            isi.disc          = r.disc;
-        });
+        // Baris summary tersimpan dipasangkan lagi ke baris yang diturunkan dari
+        // SJ. Tiga lapis, karena bentuk barisnya bisa saja sudah berubah:
+        //   1. cocok persis  - warna + harganya sama;
+        //   2. cocok warnanya - invoice lama yang barisnya masih per warna dan
+        //      sekarang terpecah per harga: isiannya dipakai untuk semuanya,
+        //      tapi qty & unit cost-nya TIDAK (angka lamanya rata-rata);
+        //   3. sisanya jadi baris tambahan - baris yang diketik sendiri waktu
+        //      disimpan, atau yang SJ-nya sudah tidak ada.
+        (function (tersimpan) {
+            var kunciSj = warnaUrut();
+            var dipakai = {};   // kunci baris -> baris tersimpan
+            var warnaSaja = {}; // kunci baris yang cocoknya warna saja
+            var sisa = [];
+
+            tersimpan.forEach(function (r) {
+                var k = $.trim(String(r.warna == null ? '' : r.warna)) + PISAH + kunciHarga(r.unit_cost_cm);
+                if (kunciSj.indexOf(k) !== -1 && !dipakai[k]) { dipakai[k] = r; } else { sisa.push(r); }
+            });
+
+            var lagi = [];
+            sisa.forEach(function (r) {
+                var w = $.trim(String(r.warna == null ? '' : r.warna));
+                var kena = kunciSj.filter(function (k) {
+                    return warnaDariKunci(k) === w && !dipakai[k];
+                });
+                if (!kena.length) { lagi.push(r); return; }
+                kena.forEach(function (k) { dipakai[k] = r; warnaSaja[k] = true; });
+            });
+
+            // Baris yang warnanya sempat diganti namanya tidak cocok lewat dua
+            // cara di atas - dipasangkan menurut urutan ke baris yang tersisa.
+            var kosong = kunciSj.filter(function (k) { return !dipakai[k]; });
+            var belum = [];
+            lagi.forEach(function (r) {
+                var k = kosong.shift();
+                if (k === undefined) { belum.push(r); return; }
+                dipakai[k] = r;
+            });
+
+            Object.keys(dipakai).forEach(function (k) {
+                var r = dipakai[k];
+                var isi = isiWarna(k);
+                isi.color_code    = r.color_code;
+                if (r.color_name !== undefined && $.trim(String(r.color_name)) !== '') {
+                    isi.color_name = r.color_name;
+                }
+                isi.total_pieces  = r.total_pieces;
+                // Satuan selain SET dipastikan ulang dari SJ-nya waktu digambar.
+                isi.total_pieces_unit = r.total_pieces_unit === 'SET' ? 'SET' : uomWarna(k);
+                isi.unit_cost_fob = r.unit_cost_fob;
+                isi.disc          = r.disc;
+                if (warnaSaja[k]) { return; }
+                // Angka yang memang diketik sendiri waktu disimpan ikut kembali;
+                // yang masih sama dengan SJ dibiarkan kosong supaya tetap
+                // mengikuti SJ kalau barisnya ditambah/dibuang di sini.
+                var c = cmSj(k);
+                if (Math.abs(angkaIsi(r.qty_invoiced) - c.qty) > 0.00005) {
+                    isi.qty_invoiced = r.qty_invoiced;
+                }
+                if (Math.abs(angkaIsi(r.unit_cost_cm) - c.unit) > 0.00005) {
+                    isi.unit_cost_cm = r.unit_cost_cm;
+                }
+            });
+
+            belum.forEach(function (r) {
+                nomorTambahan++;
+                var k = '+' + nomorTambahan;
+                barisTambahan.push(k);
+                var isi = isiWarna(k);
+                isi.color_code    = r.color_code;
+                isi.color_name    = r.color_name !== undefined ? r.color_name : r.warna;
+                isi.total_pieces  = r.total_pieces;
+                isi.total_pieces_unit = r.total_pieces_unit === 'SET' ? 'SET' : 'PCS';
+                isi.qty_invoiced  = r.qty_invoiced;
+                isi.unit_cost_cm  = r.unit_cost_cm;
+                isi.unit_cost_fob = r.unit_cost_fob;
+                isi.disc          = r.disc;
+            });
+        })(@json($ubahRingkas));
 
         var POT_UBAH = @json($ubahPot);
         var vatUbah = parseFloat(POT_UBAH.vat_persen) || 0;

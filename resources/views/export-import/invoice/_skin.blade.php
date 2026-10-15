@@ -1284,6 +1284,16 @@
 }
 .nag-skin .btn-dn-kosongkan:hover:not(:disabled) { background: #fecaca; color: #7f1d1d; }
 
+/* Tambah satu baris Invoice Summary. Sengaja netral - bukan merah (di layar
+   ini merah berarti membuang) dan bukan biru tua seperti Add SJ / WS, yang
+   tetap jadi tombol utama kartunya. */
+.nag-skin .btn-dn-tambah {
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #1e3a5f;
+}
+.nag-skin .btn-dn-tambah:hover:not(:disabled) { background: #e2e8f0; color: #1e3a5f; }
+
 /* Tabel detail saat masih kosong */
 .nag-skin .dn-table tbody td.dn-kosong {
   text-align: center;
@@ -1560,16 +1570,32 @@
 }
 .nag-skin #inv-table-ringkas tbody td { vertical-align: middle; }
 .nag-skin #inv-table-ringkas .form-control { width: 100%; }
+/* Kolom 11 (aksi) sempit saja - isinya cuma tombol buang baris tambahan.
+   Ruangnya diambil sedikit-sedikit dari kolom lain supaya tabelnya tetap muat
+   tanpa geser ke samping. */
 .nag-skin #inv-table-ringkas th:nth-child(1)  { width: 3%; }
-.nag-skin #inv-table-ringkas th:nth-child(2)  { width: 9%; }
-.nag-skin #inv-table-ringkas th:nth-child(3)  { width: 13.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(4)  { width: 15%; }
-.nag-skin #inv-table-ringkas th:nth-child(5)  { width: 11.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(6)  { width: 9.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(7)  { width: 9.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(8)  { width: 6%; }
-.nag-skin #inv-table-ringkas th:nth-child(9)  { width: 11.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(10) { width: 11.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(2)  { width: 8.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(3)  { width: 13%; }
+.nag-skin #inv-table-ringkas th:nth-child(4)  { width: 14%; }
+.nag-skin #inv-table-ringkas th:nth-child(5)  { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(6)  { width: 9%; }
+.nag-skin #inv-table-ringkas th:nth-child(7)  { width: 9%; }
+.nag-skin #inv-table-ringkas th:nth-child(8)  { width: 5.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(9)  { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(10) { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(11) { width: 5%; }
+/* Tombol buang baris tambahan. */
+.nag-skin #inv-table-ringkas .dn-ringkas-buang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.nag-skin #inv-table-ringkas tbody td:nth-child(11) { text-align: center; }
 
 
 /* ---- Invoice Summary: semua sel kotak isian ----
@@ -1578,6 +1604,7 @@
    Tab - jadi Tab langsung lompat antar kotak yang memang perlu diketik. */
 .nag-skin #inv-table-ringkas thead th:nth-child(1) { text-align: center; }
 .nag-skin #inv-table-ringkas thead th:nth-child(n+4) { text-align: right; }
+.nag-skin #inv-table-ringkas thead th:nth-child(11) { text-align: center; }
 .nag-skin #inv-table-ringkas tbody td { padding: 5px 6px; }
 .nag-skin #inv-table-ringkas .form-control {
   height: 32px !important;

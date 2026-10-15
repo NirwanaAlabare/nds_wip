@@ -2654,44 +2654,52 @@ class InvoiceEximController extends Controller
         // Baris SO dulu: itu yang ditagih. Memilih SJ ikut mengisi Detail SO,
         // jadi kalau keduanya dijumlahkan warna itu terhitung dua kali -
         // aturannya sama persis dengan semuaBaris() di layar.
+        $warnaSo = array();   // warna yang sudah diwakili baris SO
         foreach ($ws as $r) {
-            $warna['w' . $this->kunciWarna($r)][] = $r;
+            $warnaSo[$this->kunciWarna($r)] = true;
+            $warna[$this->kunciRingkas($r)][] = $r;
         }
         foreach ($idBaris as $id) {
             $r = $perId[$id];
             $asli[] = $r;
-            $kunci = 'w' . $this->kunciWarna($r);
             // Warna yang tidak punya baris SO (SJ tanpa SO, mis. GK/GEN/WIP)
-            // tetap menurunkan baris Invoice Summary sendiri.
-            $adaSo = false;
-            foreach ((array) (isset($warna[$kunci]) ? $warna[$kunci] : array()) as $x) {
-                if (isset($x['asal']) && $x['asal'] === 'WS') { $adaSo = true; break; }
-            }
-            if (!$adaSo) { $warna[$kunci][] = $r; }
+            // tetap menurunkan baris Invoice Summary sendiri. Yang diperiksa
+            // WARNANYA, bukan warna+harga: satu warna cukup diwakili baris SO,
+            // berapa pun harganya, kalau tidak nilainya terhitung dua kali.
+            if (isset($warnaSo[$this->kunciWarna($r)])) { continue; }
+            $warna[$this->kunciRingkas($r)][] = $r;
         }
 
-        $isian = array();
+        // Isian dari layar. Baris tambahan (diketik sendiri, tidak punya SJ di
+        // belakangnya) dipisahkan - urusannya beda, lihat di bawah.
+        $isian    = array();
+        $tambahan = array();
         foreach ((array) $request->input('ringkas', array()) as $x) {
-            if (is_array($x) && isset($x['warna']) && is_scalar($x['warna'])) {
-                $isian['w' . trim((string) $x['warna'])] = $x;
+            if (!is_array($x)) { continue; }
+            if (!empty($x['manual'])) { $tambahan[] = $x; continue; }
+            if (isset($x['warna']) && is_scalar($x['warna'])) {
+                $isian[$this->kunciRingkasIsian($x)] = $x;
             }
         }
 
-        // ---- Invoice Summary: satu baris per warna ----
+        // ---- Invoice Summary: satu baris per warna + harga ----
         $summary   = array();
         $diskon    = array();   // id_baris => disc warnanya (ikut dicatat di baris SJ)
         $urutanSj  = array();   // id_baris => urutan baris summary
         $diskonWs  = array();   // id_so_det => disc warnanya (baris SO)
         $urutanWs  = array();   // id_so_det => urutan baris summary
-        $urutanWarna = array(); // kunci warna => urutan baris summary
-        $diskonWarna = array(); // kunci warna => disc baris summary
+        $urutanWarna = array(); // kunci warna+harga => urutan baris summary
+        $diskonWarna = array(); // kunci warna+harga => disc baris summary
+        $urutanSaja  = array(); // warna saja => urutan baris summary pertamanya
+        $diskonSaja  = array(); // warna saja => disc baris summary pertamanya
         $tanpaKode = array();
         $tanpaSet  = array();   // baris SET yang Total Pieces-nya belum diisi
+        $tangan    = false;     // ada baris yang angkanya diubah/ditambah tangan
         $total = $discount = $totalFob = $discFob = 0;
         $no = 0;
         foreach ($warna as $kunci => $milik) {
             $no++;
-            $w = substr($kunci, 1);
+            $w = $this->warnaDariKunci($kunci);
             if (!isset($isian[$kunci])) {
                 return $salah('Invoice Summary row for colour ' . $w . ' is missing. Please reload the page.', 422);
             }
@@ -2731,11 +2739,11 @@ class InvoiceEximController extends Controller
             }
             $fob = round($fob, 4);
 
-            $qty = 0;
-            $kotorCm = 0;
+            $qtySj = 0;
+            $kotorSj = 0;
             foreach ($milik as $r) {
-                $qty     += (float) $r['qty'];
-                $kotorCm += (float) $r['total_price'];
+                $qtySj   += (float) $r['qty'];
+                $kotorSj += (float) $r['total_price'];
                 if (isset($r['asal']) && $r['asal'] === 'WS') {
                     $diskonWs[(string) $r['id_so_det']] = $disc;
                     $urutanWs[(string) $r['id_so_det']] = $no;
@@ -2744,6 +2752,34 @@ class InvoiceEximController extends Controller
                     $urutanSj[(string) $r['id_baris']] = $no;
                 }
             }
+            $unitSj = $qtySj > 0 ? round($kotorSj / $qtySj, 4) : 0;
+
+            // Qty Invoiced & Unit Cost (CM) datang dari SJ-nya, tapi boleh
+            // diubah dari layar - untuk sebagian PO/style tim AR memang perlu
+            // menagih angka yang lain. Selama angkanya masih sama dengan SJ,
+            // nilai SJ yang dipakai supaya tidak ada selisih pembulatan;
+            // begitu diubah, nilainya qty x unit cost baris itu sendiri.
+            $qty  = $qtySj;
+            $unit = $unitSj;
+            if (array_key_exists('qty_invoiced', $x)) {
+                $a = $this->angkaIsian($x['qty_invoiced']);
+                if ($a === null) {
+                    return $salah('Invoice Summary row ' . $no . ' (' . $w . '): Qty Invoiced'
+                        . ' must be a number of 0 or more.', 422);
+                }
+                $qty = $a;
+            }
+            if (array_key_exists('unit_cost_cm', $x)) {
+                $a = $this->angkaIsian($x['unit_cost_cm']);
+                if ($a === null) {
+                    return $salah('Invoice Summary row ' . $no . ' (' . $w . '): Unit Cost (CM)'
+                        . ' must be a number of 0 or more.', 422);
+                }
+                $unit = round($a, 4);
+            }
+            $diubah  = abs($qty - $qtySj) > 0.00005 || abs($unit - $unitSj) > 0.00005;
+            $kotorCm = $diubah ? $qty * $unit : $kotorSj;
+            if ($diubah) { $tangan = true; }
 
             // Satuan asli: Total Pieces selalu sama dengan Qty Invoiced - angka
             // dari layar tidak dipercaya. SET: wajib diisi user.
@@ -2756,14 +2792,22 @@ class InvoiceEximController extends Controller
             $kotorFob = $pieces * $fob;
             $sisa = 1 - $disc / 100;
 
+            // Color Name boleh diketik - bawaannya warna dari SJ-nya.
+            $nama = isset($x['color_name']) && is_scalar($x['color_name'])
+                ? trim((string) $x['color_name']) : '';
+            if ($nama === '') { $nama = $w; }
+            if (mb_strlen($nama) > 255) {
+                return $salah('Invoice Summary row ' . $no . ': Color Name is too long (max 255 characters).', 422);
+            }
+
             $summary[] = array(
                 'urutan'        => $no,
                 'color_code'    => $kode,
-                'color_name'    => $w,
+                'color_name'    => $nama,
                 'total_pieces'  => $pieces,
                 'total_pieces_unit' => $satuan,
                 'qty_invoiced'  => $qty,
-                'unit_cost_cm'  => $qty > 0 ? round($kotorCm / $qty, 4) : 0,
+                'unit_cost_cm'  => $qty > 0 ? round($kotorCm / $qty, 4) : round($unit, 4),
                 'unit_cost_fob' => $fob,
                 'disc'          => $disc,
                 'total_cm'      => round($kotorCm * $sisa, 4),
@@ -2772,7 +2816,75 @@ class InvoiceEximController extends Controller
 
             $urutanWarna[$kunci] = $no;
             $diskonWarna[$kunci] = $disc;
+            if (!isset($urutanSaja[$w])) {
+                $urutanSaja[$w] = $no;
+                $diskonSaja[$w] = $disc;
+            }
 
+            $total    += $kotorCm;
+            $discount += $kotorCm * $disc / 100;
+            $totalFob += $kotorFob;
+            $discFob  += $kotorFob * $disc / 100;
+        }
+
+        // ---- baris tambahan: diketik sendiri, tidak punya SJ di belakangnya ----
+        // Dipakai kalau tim AR perlu memecah atau menambah baris tagihan yang
+        // tidak bisa diturunkan dari SJ. Angkanya seluruhnya dari layar.
+        foreach ($tambahan as $x) {
+            $no++;
+            $nama = isset($x['color_name']) && is_scalar($x['color_name'])
+                ? trim((string) $x['color_name']) : '';
+            $w = $nama !== '' ? $nama : '-';
+            if (mb_strlen($w) > 255) {
+                return $salah('Invoice Summary row ' . $no . ': Color Name is too long (max 255 characters).', 422);
+            }
+
+            $kode = isset($x['color_code']) && is_scalar($x['color_code']) ? trim((string) $x['color_code']) : '';
+            if ($kode === '') {
+                $tanpaKode[] = $no . ' (' . $w . ')';
+            } elseif (mb_strlen($kode) > 255) {
+                return $salah('Invoice Summary row ' . $no . ': Color Code is too long (max 255 characters).', 422);
+            }
+
+            $satuan = isset($x['total_pieces_unit']) && is_scalar($x['total_pieces_unit'])
+                ? strtoupper(trim((string) $x['total_pieces_unit'])) : 'PCS';
+            if (!preg_match('/^[A-Z][A-Z ]{0,19}$/', $satuan)) { $satuan = 'PCS'; }
+
+            $qty    = $this->angkaIsian(isset($x['qty_invoiced']) ? $x['qty_invoiced'] : '');
+            $unit   = $this->angkaIsian(isset($x['unit_cost_cm']) ? $x['unit_cost_cm'] : '');
+            $pieces = $this->angkaIsian(isset($x['total_pieces']) ? $x['total_pieces'] : '');
+            $fob    = $this->angkaIsian(isset($x['unit_cost_fob']) ? $x['unit_cost_fob'] : '');
+            $disc   = $this->angkaIsian(isset($x['disc']) ? $x['disc'] : '');
+            if ($qty === null || $unit === null || $pieces === null || $fob === null
+                || $disc === null || $disc > 100) {
+                return $salah('Invoice Summary row ' . $no . ' (' . $w . '): Qty Invoiced, Unit Cost,'
+                    . ' Total Pieces and Disc must be numbers of 0 or more, and Disc cannot be more than 100.', 422);
+            }
+            $unit = round($unit, 4);
+            $fob  = round($fob, 4);
+            if ($satuan !== 'SET') {
+                $pieces = $qty;
+            } elseif ($pieces <= 0) {
+                $tanpaSet[] = $no . ' (' . $w . ')';
+            }
+
+            $kotorCm  = $qty * $unit;
+            $kotorFob = $pieces * $fob;
+            $sisa     = 1 - $disc / 100;
+            $summary[] = array(
+                'urutan'        => $no,
+                'color_code'    => $kode,
+                'color_name'    => $w,
+                'total_pieces'  => $pieces,
+                'total_pieces_unit' => $satuan,
+                'qty_invoiced'  => $qty,
+                'unit_cost_cm'  => $unit,
+                'unit_cost_fob' => $fob,
+                'disc'          => $disc,
+                'total_cm'      => round($kotorCm * $sisa, 4),
+                'total_fob'     => round($kotorFob * $sisa, 4),
+            );
+            $tangan    = true;
             $total    += $kotorCm;
             $discount += $kotorCm * $disc / 100;
             $totalFob += $kotorFob;
@@ -2781,13 +2893,21 @@ class InvoiceEximController extends Controller
 
         // Baris SJ yang warnanya diwakili baris SO tidak ikut menurunkan baris
         // summary sendiri - tapi tetap harus tahu dia masuk baris summary yang
-        // mana, karena nomor itu ikut disimpan di tiap baris SJ.
+        // mana, karena nomor itu ikut disimpan di tiap baris SJ. Harganya bisa
+        // saja beda dengan baris SO-nya, jadi yang dicari baris summary pertama
+        // berwarna sama.
         foreach ($asli as $r) {
             $id = (string) $r['id_baris'];
             if (isset($urutanSj[$id])) { continue; }
-            $kunci = 'w' . $this->kunciWarna($r);
-            $urutanSj[$id] = isset($urutanWarna[$kunci]) ? $urutanWarna[$kunci] : null;
-            $diskon[$id]   = isset($diskonWarna[$kunci]) ? $diskonWarna[$kunci] : 0;
+            $kunci = $this->kunciRingkas($r);
+            $w     = $this->kunciWarna($r);
+            if (isset($urutanWarna[$kunci])) {
+                $urutanSj[$id] = $urutanWarna[$kunci];
+                $diskon[$id]   = $diskonWarna[$kunci];
+            } else {
+                $urutanSj[$id] = isset($urutanSaja[$w]) ? $urutanSaja[$w] : null;
+                $diskon[$id]   = isset($diskonSaja[$w]) ? $diskonSaja[$w] : 0;
+            }
         }
         if ($tanpaKode) {
             return $salah('Color Code is required on Invoice Summary row ' . implode(', ', $tanpaKode)
@@ -2819,6 +2939,10 @@ class InvoiceEximController extends Controller
             'header'     => $header,
             'kirim'      => $barisKirim,
             'summary'    => $summary,
+            // Ada baris yang angkanya diketik sendiri (diubah atau ditambah).
+            // Cetakan memakai penanda ini: nilai CM-nya tidak lagi boleh
+            // diambil dari jumlah baris SJ - lihat dataCetakExport().
+            'summary_tangan' => $tangan,
             'asli'       => $asli,
             'ws'         => $ws,
             'diskon_ws'  => $diskonWs,
@@ -2944,6 +3068,16 @@ class InvoiceEximController extends Controller
         }
         $db->table(self::TABEL_EXP_DET)->insert($ringkas);
 
+        // Penanda baris summary yang angkanya diketik sendiri. Cetakan biasanya
+        // mengambil nilai CM dari jumlah baris SJ-nya; begitu barisnya diubah
+        // atau ditambah tangan, kaitan itu tidak cocok lagi - lihat
+        // dataCetakExport(). Kolomnya baru ada setelah migrations/20261013,
+        // selama belum dijalankan penyimpanannya tetap jalan.
+        if ($this->kolomAda(self::TABEL_EXP_H, 'summary_ar')) {
+            $db->table(self::TABEL_EXP_H)->where('id_book_invoice', $idBook)
+                ->update(array('summary_ar' => empty($s['summary_tangan']) ? 0 : 1));
+        }
+
         // Baris SJ boleh tidak ada - invoice yang dibuat dari WS saja.
         $det = $this->barisDetail($idBook, $noInvoice, $s, $user, $now);
         foreach ($det as $i => $d) {
@@ -3011,7 +3145,8 @@ class InvoiceEximController extends Controller
 
         $ringkas = array();
         foreach ($db->select(
-            "SELECT color_name, color_code, total_pieces, total_pieces_unit, qty_invoiced, unit_cost_fob, disc
+            "SELECT color_name, color_code, total_pieces, total_pieces_unit, qty_invoiced,
+                    unit_cost_cm, unit_cost_fob, disc
                FROM " . self::TABEL_EXP_DET . " WHERE id_book_invoice = ? ORDER BY urutan, id",
             array($idBook)
         ) as $r) {
@@ -3024,10 +3159,17 @@ class InvoiceEximController extends Controller
                     && abs((float) $r->total_pieces - (float) $r->qty_invoiced) > 0.0001) ? 'SET' : 'PCS';
             }
             $ringkas[] = array(
+                // 'warna' = warna yang dipakai sebagai kunci baris; 'color_name'
+                // isi kotaknya, yang boleh diketik lain.
                 'warna'         => trim((string) $r->color_name),
+                'color_name'    => (string) $r->color_name,
                 'color_code'    => (string) $r->color_code,
                 'total_pieces'  => $this->angkaIsi($r->total_pieces),
                 'total_pieces_unit' => $satuan,
+                // Qty & unit cost CM ikut dibawa: layar memakainya untuk tahu
+                // baris mana yang angkanya dulu diketik sendiri.
+                'qty_invoiced'  => $this->angkaIsi($r->qty_invoiced),
+                'unit_cost_cm'  => $this->angkaIsi($r->unit_cost_cm),
                 'unit_cost_fob' => $this->angkaIsi($r->unit_cost_fob),
                 'disc'          => $this->angkaIsi($r->disc),
             );
@@ -3198,8 +3340,20 @@ class InvoiceEximController extends Controller
         // Nilai kotor CM per baris summary diambil langsung dari baris SJ-nya -
         // sama dengan cara Save menghitung, jadi tidak ada selisih pembulatan
         // dari unit cost rata-rata.
+        //
+        // KECUALI kalau baris summary-nya diketik sendiri (diubah qty/unit
+        // cost-nya, atau barisnya ditambah). Kaitan ke baris SJ memakai NOMOR
+        // URUT baris summary, dan begitu barisnya dirapikan tangan nomor itu
+        // tidak mewakili nilai yang ditagih lagi - jadi dipakai qty x unit cost
+        // baris summary-nya sendiri.
+        $tangan = false;
+        if ($this->kolomAda(self::TABEL_EXP_H, 'summary_ar')) {
+            $cek = $db->select("SELECT summary_ar FROM " . self::TABEL_EXP_H
+                . " WHERE id_book_invoice = ? LIMIT 1", array((int) $id));
+            $tangan = $cek && (int) $cek[0]->summary_ar === 1;
+        }
         $kotorCm = array();
-        foreach ($db->select(
+        foreach ($tangan ? array() : $db->select(
             "SELECT urutan_summary, SUM(total_price) AS kotor FROM " . self::TABEL_DET . "
               WHERE id_book_invoice = ? GROUP BY urutan_summary",
             array((int) $id)
@@ -5298,6 +5452,45 @@ class InvoiceEximController extends Controller
         }
         $nama = trim((string) (isset($r['product_item']) ? $r['product_item'] : ''));
         return $nama !== '' ? $nama : '-';
+    }
+
+    /**
+     * Harga satuan sebagai bagian kunci baris summary - selalu 4 angka di
+     * belakang koma, sama seperti unit cost yang tersimpan. Layar memakai
+     * rumus yang sama (kunciHarga di form.blade.php).
+     */
+    private function hargaKunci($nilai)
+    {
+        $n = is_scalar($nilai) ? (float) str_replace(',', '', (string) $nilai) : 0;
+        return number_format(round($n, 4), 4, '.', '');
+    }
+
+    /**
+     * Penentu baris Invoice Summary: warna + harga satuannya.
+     *
+     * Dulu warnanya saja. Tapi satu warna bisa keluar dengan dua harga - mis.
+     * ukuran besar lebih mahal - dan kalau digabung jadi satu baris, harganya
+     * jadi rata-rata dan tidak cocok dengan SJ-nya. Sekarang dua harga = dua
+     * baris.
+     */
+    private function kunciRingkas(array $r)
+    {
+        return 'w' . $this->kunciWarna($r) . "\x1f"
+            . $this->hargaKunci(isset($r['unit_price']) ? $r['unit_price'] : 0);
+    }
+
+    /** Kunci yang sama dari satu baris isian layar - warna & harga dikirim terpisah. */
+    private function kunciRingkasIsian(array $x)
+    {
+        return 'w' . trim((string) (isset($x['warna']) ? $x['warna'] : '')) . "\x1f"
+            . $this->hargaKunci(isset($x['harga']) ? $x['harga'] : 0);
+    }
+
+    /** Bagian warna dari kunci baris summary. */
+    private function warnaDariKunci($kunci)
+    {
+        $p = explode("\x1f", (string) $kunci, 2);
+        return substr($p[0], 1);
     }
 
     /** Awalan nomor internal SJ: FG, GK, GEN, WIP, GACC, SCR, SPCK, OFC. */
