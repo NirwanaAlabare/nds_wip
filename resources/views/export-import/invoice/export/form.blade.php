@@ -2333,12 +2333,23 @@ $(function () {
     var nomorTambahan = 0;
     function barisManual(k) { return String(k).charAt(0) === '+'; }
 
-    function warnaUrut() {
+    // Baris dari SJ yang dibuang sendiri - dipakai kalau beberapa baris mau
+    // disatukan jadi satu baris tagihan. Dicatat per kunci supaya tidak muncul
+    // lagi tiap tabelnya digambar ulang.
+    var barisBuang = {};
+
+    /** Kunci baris dari SJ, termasuk yang sudah dibuang sendiri. */
+    function kunciSjSemua() {
         var out = [];
         semuaBaris().forEach(function (r) {
             var w = kunciRingkas(r);
             if (out.indexOf(w) === -1) { out.push(w); }
         });
+        return out;
+    }
+
+    function warnaUrut() {
+        var out = kunciSjSemua().filter(function (w) { return !barisBuang[w]; });
         // Baris tambahan selalu di bawah - nomor urutnya pun begitu di server.
         return out.concat(barisTambahan);
     }
@@ -2528,11 +2539,12 @@ $(function () {
                 + '<td>' + isi('disc', 'dn-angka-input', 'number') + '</td>'
                 + '<td>' + kunci(angka(cm), 'dn-angka-input dn-hasil', 'cm') + '</td>'
                 + '<td>' + kunci(angka(fob), 'dn-angka-input dn-hasil', 'fob') + '</td>'
-                + '<td>' + (r.manual
-                    ? '<button type="button" class="btn btn-danger btn-sm dn-ringkas-buang"'
-                      + ' data-w="' + teksAman(w) + '" title="Remove this row">'
-                      + '<i class="fas fa-times"></i></button>'
-                    : '') + '</td>'
+                // Baris dari SJ pun boleh dibuang - dipakai kalau beberapa baris
+                // mau disatukan. Bedanya baris itu masih memegang nilai SJ, jadi
+                // ditanya dulu sebelum hilang.
+                + '<td><button type="button" class="btn btn-danger btn-sm dn-ringkas-buang"'
+                    + ' data-w="' + teksAman(w) + '" title="Remove this row">'
+                    + '<i class="fas fa-times"></i></button></td>'
                 + '</tr>';
         }).join(''));
 
@@ -2575,13 +2587,40 @@ $(function () {
         $('#inv-table-ringkas tbody tr').last().find('[data-kunci="color_code"]').trigger('focus');
     });
 
-    // Buang baris tambahan. Baris yang diturunkan dari SJ tidak punya tombol
-    // ini - membuangnya berarti nilai SJ-nya hilang dari tagihan.
-    $('#inv-table-ringkas').on('click', '.dn-ringkas-buang', function () {
-        var k = String($(this).data('w'));
-        barisTambahan = barisTambahan.filter(function (x) { return x !== k; });
+    // Buang satu baris summary.
+    //   baris tambahan   -> langsung hilang, tidak ada yang ikut hilang.
+    //   baris dari SJ    -> ditanya dulu: nilainya tidak lagi ditagih kecuali
+    //                      qty-nya dipindahkan ke baris lain.
+    function buangBaris(k) {
+        if (barisManual(k)) {
+            barisTambahan = barisTambahan.filter(function (x) { return x !== k; });
+        } else {
+            barisBuang[k] = true;
+        }
         delete ringkasIsi[k];
         gambarRingkas();
+    }
+
+    $('#inv-table-ringkas').on('click', '.dn-ringkas-buang', function () {
+        var k = String($(this).data('w'));
+        if (barisManual(k)) { buangBaris(k); return; }
+
+        var h = hitungWarna(k);
+        Swal.fire({
+            icon: 'warning',
+            title: 'Remove this summary row?',
+            html: '<b>' + teksAman(isiWarna(k).color_name || warnaDariKunci(k)) + '</b> '
+                + 'at <b>' + angka4(cmWarna(k).unit) + '</b> will no longer be billed '
+                + '(<b>' + angka(h.cm) + '</b>).'
+                + '<p class="dn-swal-catatan" style="margin-top:10px">Its SJ rows stay in '
+                + 'Detail SJ. Move the qty to another row if it should still be billed.</p>',
+            showCancelButton: true,
+            confirmButtonText: 'Remove',
+            cancelButtonText: 'Cancel',
+            customClass: { popup: 'dn-swal' }
+        }).then(function (pilih) {
+            if (pilih.isConfirmed) { buangBaris(k); }
+        });
     });
 
     // Ganti satuan Total Pieces. Satuan asli: angkanya ikut Qty Invoiced. SET:
@@ -3247,8 +3286,10 @@ $(function () {
             invSo = [];
             ringkasIsi = {};
             // Baris summary yang ditambah sendiri ikut dibuang - tanpa SJ
-            // barisnya tidak punya arti.
+            // barisnya tidak punya arti. Baris yang dibuang sendiri juga
+            // dilupakan: SJ-nya sudah tidak ada lagi.
             barisTambahan = [];
+            barisBuang = {};
 
             // Centang di modal Add SJ ikut dilepas. Tanpa ini, membuka modal lalu
             // langsung menekan Apply memasukkan lagi semua baris tadi - tanda
@@ -3510,6 +3551,12 @@ $(function () {
                         unit_cost_fob: r.unit_cost_fob,
                         disc: r.disc
                     };
+                }),
+                // Baris dari SJ yang sengaja dibuang. Dikirim terang-terangan
+                // supaya server bisa membedakannya dari baris yang HILANG
+                // karena layarnya tidak sinkron - yang itu tetap ditolak.
+                buang: Object.keys(barisBuang).map(function (k) {
+                    return { warna: warnaDariKunci(k), harga: hargaDariKunci(k) };
                 })
             }
         }).done(function (res) {
@@ -3587,6 +3634,12 @@ $(function () {
                 if (k === undefined) { belum.push(r); return; }
                 dipakai[k] = r;
             });
+
+            // Kunci dari SJ yang tidak kebagian baris tersimpan: dulu memang
+            // dibuang sendiri - mis. dua baris disatukan jadi satu baris
+            // tagihan. Dibiarkan tetap hilang supaya invoicenya terbuka
+            // persis seperti waktu disimpan.
+            kunciSj.forEach(function (k) { if (!dipakai[k]) { barisBuang[k] = true; } });
 
             Object.keys(dipakai).forEach(function (k) {
                 var r = dipakai[k];

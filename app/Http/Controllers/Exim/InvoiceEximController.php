@@ -2682,6 +2682,17 @@ class InvoiceEximController extends Controller
             }
         }
 
+        // Baris dari SJ yang sengaja dibuang di layar - mis. dua baris warna
+        // yang sama disatukan jadi satu baris tagihan. Dikirim terang-terangan,
+        // jadi bisa dibedakan dari baris yang hilang karena layarnya tidak
+        // sinkron; yang itu tetap ditolak di bawah.
+        $dibuang = array();
+        foreach ((array) $request->input('buang', array()) as $x) {
+            if (is_array($x) && isset($x['warna']) && is_scalar($x['warna'])) {
+                $dibuang[$this->kunciRingkasIsian($x)] = true;
+            }
+        }
+
         // ---- Invoice Summary: satu baris per warna + harga ----
         $summary   = array();
         $diskon    = array();   // id_baris => disc warnanya (ikut dicatat di baris SJ)
@@ -2698,8 +2709,15 @@ class InvoiceEximController extends Controller
         $total = $discount = $totalFob = $discFob = 0;
         $no = 0;
         foreach ($warna as $kunci => $milik) {
-            $no++;
             $w = $this->warnaDariKunci($kunci);
+            // Dibuang sendiri: tidak jadi baris summary & tidak menaikkan
+            // nomor urut. Baris SJ-nya tetap tersimpan di Detail SJ, dan di
+            // bawah dikaitkan ke baris summary sewarna kalau masih ada.
+            if (isset($dibuang[$kunci])) {
+                $tangan = true;
+                continue;
+            }
+            $no++;
             if (!isset($isian[$kunci])) {
                 return $salah('Invoice Summary row for colour ' . $w . ' is missing. Please reload the page.', 422);
             }
@@ -2896,6 +2914,13 @@ class InvoiceEximController extends Controller
         // mana, karena nomor itu ikut disimpan di tiap baris SJ. Harganya bisa
         // saja beda dengan baris SO-nya, jadi yang dicari baris summary pertama
         // berwarna sama.
+        foreach ($ws as $r) {
+            $id = (string) $r['id_so_det'];
+            if (isset($urutanWs[$id])) { continue; }
+            $w = $this->kunciWarna($r);
+            $urutanWs[$id] = isset($urutanSaja[$w]) ? $urutanSaja[$w] : null;
+            $diskonWs[$id] = isset($diskonSaja[$w]) ? $diskonSaja[$w] : 0;
+        }
         foreach ($asli as $r) {
             $id = (string) $r['id_baris'];
             if (isset($urutanSj[$id])) { continue; }
