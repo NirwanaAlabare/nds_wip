@@ -719,7 +719,7 @@ class RackStockerController extends Controller
                 WriterEntityFactory::createCell($row->no_cut, $rowStyle),
                 WriterEntityFactory::createCell($row->style, $rowStyle),
                 WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->part, $rowStyle),
+                WriterEntityFactory::createCell(preg_replace('/\s+/', ' ', (string) $row->part), $rowStyle),
                 WriterEntityFactory::createCell($row->size, $rowStyle),
 
                 WriterEntityFactory::createCell(
