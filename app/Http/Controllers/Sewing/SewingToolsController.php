@@ -4846,6 +4846,7 @@ class SewingToolsController extends Controller
             if ($kodeNumbering) {
                 $kodeNumberingOutput = RejectIn::selectRaw("
                         output_reject_in.id,
+                        output_reject_in.reject_id,
                         output_reject_in.kode_numbering,
                         DATE(output_reject_in.created_at) as tanggal,
                         output_reject_in.created_at time_in,
@@ -4897,7 +4898,117 @@ class SewingToolsController extends Controller
                 foreach ($kodeNumberingOutput as $output) {
                     $message = "";
 
-                    // Reject In
+                    // Restore reject when reworked
+                    if ($output->status == 'reworked') {
+                        // output_type 'packing' di-alias menjadi 'finishing' pada query di atas
+                        $isPacking = $output->output_type == 'finishing';
+
+                        $rft = null;
+                        $defect = null;
+                        $reject = null;
+
+                        if ($isPacking) {
+                            $rft = RftPacking::where("kode_numbering", $output->kode_numbering)->first();
+                            $defect = DefectPacking::where("kode_numbering", $output->kode_numbering)->first();
+                            $reject = RejectPacking::where("kode_numbering", $output->kode_numbering)->first();
+                        } else {
+                            $rft = Rft::where("kode_numbering", $output->kode_numbering)->first();
+                            $defect = Defect::where("kode_numbering", $output->kode_numbering)->first();
+                            $reject = Reject::where("kode_numbering", $output->kode_numbering)->first();
+                        }
+
+                        if ($rft || $defect || $reject) {
+                            // Jangan delete dan jangan update
+                            array_push($result, "Reject In ".$output->kode_numbering." -> SKIPPED (output sudah ada) <br>");
+                            continue;
+                        } else {
+                            // Output undo & Tentukan model dinamis berdasarkan departemen
+                            if ($isPacking) {
+                                $undoModel = UndoPacking::query();
+                                $tableName = "output_undo_packing";
+                                $defectModel = DefectPacking::class;
+                                $rejectModel = RejectPacking::class;
+                            } else {
+                                $undoModel = Undo::query();
+                                $tableName = "output_undo";
+                                $defectModel = Defect::class;
+                                $rejectModel = Reject::class;
+                            }
+
+                            $restoreData = $undoModel->selectRaw("{$tableName}.*, {$tableName}.id as undo_id, master_plan.cancel as plan_cancel")
+                                ->leftJoin("master_plan", "master_plan.id", "=", "{$tableName}.master_plan_id")
+                                ->where("{$tableName}.output_reject_id", $output->reject_id)
+                                ->first();
+
+                            // Jika data restore tidak ditemukan, lewati proses
+                            if (!$restoreData) {
+                                array_push($result, "Reject In ".$output->kode_numbering." -> SKIPPED (data undo tidak ditemukan) <br>");
+                                continue;
+                            }
+
+                            // Jika Master Plan Cancel, lewati proses
+                            if ($restoreData->plan_cancel == 'Y') {
+                                array_push($result, "Reject In ".$output->kode_numbering." -> SKIPPED (master plan cancel) <br>");
+                                continue;
+                            }
+
+                            // Handle Defect
+                            $currentDefect = null;
+                            if ($restoreData->output_defect_id) {
+                                // Cari defect menggunakan model departemen yang sesuai
+                                $currentDefect = $defectModel::where("id", $restoreData->output_defect_id)->first();
+
+                                if (!$currentDefect) {
+                                    // Buat Defect Baru
+                                    $currentDefect = $defectModel::create([
+                                        "master_plan_id" => $restoreData->master_plan_id,
+                                        "so_det_id"      => $restoreData->so_det_id,
+                                        "kode_numbering" => $restoreData->kode_numbering,
+                                        "no_cut_size"    => $restoreData->kode_numbering,
+                                        "defect_type_id" => $restoreData->defect_type_id,
+                                        "defect_area_id" => $restoreData->defect_area_id,
+                                        "defect_area_x"  => $restoreData->defect_area_x,
+                                        "defect_area_y"  => $restoreData->defect_area_y,
+                                        'status'         => 'NORMAL',
+                                        'defect_status'  => 'rejected',
+                                        "created_by"     => $restoreData->created_by,
+                                        "created_at"     => $restoreData->created_at,
+                                        "updated_at"     => $restoreData->updated_at,
+                                    ]);
+                                } else {
+                                    // Update Defect yang ada
+                                    $currentDefect->timestamps = false;
+                                    $currentDefect->defect_status = 'rejected';
+                                    $currentDefect->save();
+                                }
+                            }
+
+                            // Create REJECT menggunakan model departemen yang sesuai dan variabel $restoreData
+                            $rejectModel::create([
+                                "master_plan_id" => $restoreData->master_plan_id,
+                                "so_det_id"      => $restoreData->so_det_id,
+                                'defect_id'      => $currentDefect ? $currentDefect->id : null,
+                                "kode_numbering" => $restoreData->kode_numbering,
+                                "no_cut_size"    => $restoreData->kode_numbering,
+                                'status'         => "NORMAL",
+                                'reject_status'  => $currentDefect ? 'defect' : 'mati',
+                                "reject_type_id" => $restoreData->defect_type_id,
+                                "reject_area_id" => $restoreData->defect_area_id,
+                                "reject_area_x"  => $restoreData->defect_area_x,
+                                "reject_area_y"  => $restoreData->defect_area_y,
+                                "created_by"     => $restoreData->created_by,
+                                "created_at"     => $restoreData->created_at,
+                                "updated_at"     => $restoreData->updated_at,
+                            ]);
+
+                            // Hapus data undo yang sudah di-restore agar tidak di-restore dua kali
+                            $undoModel->getModel()->newQuery()->where("id", $restoreData->undo_id)->delete();
+
+                            $message .= "Reject ".$output->kode_numbering." -> RESTORED <br>";
+                        }
+                    }
+
+                    // Reject In Detail
                     $rejectInDetail = RejectInDetail::where("reject_in_id", $output->id)->get();
                     if ($rejectInDetail && $rejectInDetail->count() > 0) {
                         $rejectInDetailIds = $rejectInDetail->pluck("id")->toArray();
