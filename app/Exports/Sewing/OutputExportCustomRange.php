@@ -11,9 +11,14 @@ use App\Models\SignalBit\Reject;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
-class OutputExportCustomRange implements FromView, ShouldAutoSize
+class OutputExportCustomRange extends DefaultValueBinder implements FromView, ShouldAutoSize, WithCustomValueBinder
 {
     protected $dateFrom;
     protected $dateTo;
@@ -29,6 +34,29 @@ class OutputExportCustomRange implements FromView, ShouldAutoSize
         $this->search = $search;
         $this->group = $group;
         $this->range = $range;
+    }
+
+    // Kolom WS / Color / Size ditulis sebagai teks (dideteksi dari teks heading).
+    protected $textColumns = [];
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_string($value)) {
+            $heading = strtolower(trim($value));
+
+            if (in_array($heading, ['ws number'], true)) {
+                $this->textColumns[$cell->getColumn()] = true;
+            }
+        }
+
+        if ($value !== null && $value !== '' && isset($this->textColumns[$cell->getColumn()])) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            $cell->getStyle()->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function view(): View

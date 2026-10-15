@@ -107,7 +107,7 @@ class DefectSewingInReportController extends Controller
             public function __construct($data, $start, $end) { $this->data = $data; $this->start = $start; $this->end = $end; }
             public function collection() { return $this->data; }
             public function bindValue(Cell $cell, $value) {
-                if ($cell->getColumn() === 'E' && $cell->getRow() > 5) {
+                if (in_array($cell->getColumn(), ['B', 'D', 'E'], true) && $cell->getRow() > 5 && $value !== null) {
                     $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
                     return true;
                 }
@@ -121,7 +121,7 @@ class DefectSewingInReportController extends Controller
                 $sheet->mergeCells('A1:F1'); $sheet->mergeCells('A2:F2'); $sheet->mergeCells('A3:F3');
                 $sheet->getStyle('A1:A3')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
                 $sheet->getStyle('A5:F5')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
-                $sheet->getStyle('E6:E' . $sheet->getHighestRow())->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                foreach (['B', 'D', 'E'] as $col) { $sheet->getStyle($col . '6:' . $col . $sheet->getHighestRow())->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT); }
             }
         }, 'Report_Defect_IN_'.date('Ymd_His').'.xlsx');
     }

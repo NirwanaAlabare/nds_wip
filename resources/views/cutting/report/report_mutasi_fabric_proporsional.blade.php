@@ -80,6 +80,13 @@
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
+
+                    @role('superadmin')
+                        <a onclick="generate_saldo()" class="btn btn-outline-danger position-relative btn-sm">
+                            <i class="fas fa-sync-alt fa-sm"></i>
+                            Generate Saldo
+                        </a>
+                    @endrole
                 </div>
             </div>
 
@@ -335,6 +342,76 @@
             });
         }
 
+
+        function generate_saldo() {
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
+
+            if (!start_date || !end_date) {
+                Swal.fire({
+                    title: 'Tanggal Belum Diisi',
+                    text: 'Isi Start Date dan End Date terlebih dahulu.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Generate Saldo?',
+                html: 'Periode ' + start_date + ' s/d ' + end_date,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Generate',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Generating Saldo...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    type: "post",
+                    url: '{{ route('generate_saldo_mutasi_fabric_proporsional') }}',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        start_date: start_date,
+                        end_date: end_date
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            title: response.message,
+                            icon: 'success',
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+
+                        dataTableReload();
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            title: 'Gagal Generate Saldo',
+                            text: xhr.responseJSON?.message ?? 'Terjadi kesalahan. Silakan coba lagi.',
+                            icon: 'error',
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+
+                        console.error("Generate saldo failed:", xhr.responseText);
+                    }
+                });
+            });
+        }
 
         function export_excel() {
             let start_date = $('#start_date').val();

@@ -91,11 +91,11 @@ class CuttingSwitchingController extends Controller
                     LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
                     LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                     LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
-                    LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
+                    LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
                     LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
                     LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                     LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
-                    LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
+                    LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
                 where
                     form_cut_input_detail_output_logs.id is not null
                     ".$additionalQuery."
@@ -643,11 +643,11 @@ class CuttingSwitchingController extends Controller
                 LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
                 LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                 LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
-                LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = marker_detail_asal.so_det_id
+                LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
                 LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
                 LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                 LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
-                LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = marker_detail_tujuan.so_det_id
+                LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
             where
                 form_cut_input_detail_output_logs.id is not null
                 ".$additionalQuery."
@@ -720,14 +720,14 @@ class CuttingSwitchingController extends Controller
                 $row->styleno_asal ?? '',
                 $row->color_asal ?? '',
                 $row->size_asal ?? '',
-                $row->panel_asal ?? '',
+                preg_replace('/\s+/', ' ', (string) $row->panel_asal),
                 $row->no_form_tujuan ?? '',
                 $row->tanggal_form_tujuan ?? '',
                 $row->ws_tujuan ?? '',
                 $row->styleno_tujuan ?? '',
                 $row->color_tujuan ?? '',
                 $row->size_tujuan ?? '',
-                $row->panel_tujuan ?? '',
+                preg_replace('/\s+/', ' ', (string) $row->panel_tujuan),
                 (int) ($row->qty_transfer ?? 0),
                 $row->is_active ? 'Aktif' : 'Tidak Aktif',
                 $row->created_by ?? '',

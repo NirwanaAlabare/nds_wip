@@ -244,6 +244,33 @@ class WipAdjustmentController extends Controller
         }
 
         $data = [];
+        $closing = [];
+        $wsField = in_array('no_ws', $template['text']) ? 'no_ws' : 'ws';
+
+        // WS di file harus ada di master_sb_ws (dicek sekali untuk semua WS unik)
+        $wsList = [];
+
+        foreach (array_slice($rows, 1) as $row) {
+            $ws = trim((string) ($row[$index[$wsField]] ?? ''));
+
+            if ($ws !== '' && !str_contains($ws, ',')) {
+                $wsList[$ws] = true;
+            }
+        }
+
+        $validWs = [];
+
+        foreach (array_chunk(array_map('strval', array_keys($wsList)), 500) as $chunk) {
+            $found = DB::connection('mysql')
+                ->table('master_sb_ws')
+                ->whereIn('ws', $chunk)
+                ->distinct()
+                ->pluck('ws');
+
+            foreach ($found as $ws) {
+                $validWs[strtoupper($ws)] = true;
+            }
+        }
 
         foreach (array_slice($rows, 1) as $i => $row) {
             // Lewati baris kosong (hanya cek kolom template, kolom lain seperti note diabaikan)
@@ -263,6 +290,8 @@ class WipAdjustmentController extends Controller
 
             if (!$tglSaldo) {
                 $errors[] = 'Tanggal saldo tidak valid';
+            } elseif ($closing[$tglSaldo] ??= checkClosingDate($tglSaldo)) {
+                $errors[] = 'Periode ' . date('d-m-Y', strtotime($tglSaldo)) . ' sudah closing';
             }
 
             $item['tgl_saldo'] = $tglSaldo;
@@ -277,6 +306,13 @@ class WipAdjustmentController extends Controller
                 if ($item[$field] === '') {
                     $errors[] = strtoupper(str_replace('no_', '', $field)) . ' wajib diisi';
                 }
+            }
+
+            // WS gabungan (mengandung koma) tidak diterima
+            if (str_contains((string) $item[$wsField], ',')) {
+                $errors[] = 'WS tidak boleh mengandung koma';
+            } elseif ($item[$wsField] !== '' && !isset($validWs[strtoupper((string) $item[$wsField])])) {
+                $errors[] = 'WS ' . $item[$wsField] . ' tidak ditemukan di master WS';
             }
 
             foreach ($template['qty'] as $headerName => $field) {
@@ -338,7 +374,9 @@ class WipAdjustmentController extends Controller
     // Simpan Cutting Fabric: 1 baris Excel = 1 baris wip_adjustment_fabric
     private function simpanImportFabric($data)
     {
-        // id_roll F2 yang ada di mut_cut_fab_saldo_tmp => REKAP
+        // Pasangan id_roll F2 + ws yang ada di mut_cut_fab_saldo_tmp => REKAP
+        $rekapKey = fn ($idRoll, $ws) => strtoupper(trim((string) $idRoll)) . '|' . strtoupper(trim((string) $ws));
+
         $rollF2 = array_values(array_unique(array_filter(
             array_column($data, 'id_roll'),
             fn ($idRoll) => strtoupper(substr($idRoll, 0, 2)) === 'F2'
@@ -350,14 +388,15 @@ class WipAdjustmentController extends Controller
             $found = DB::connection('mysql')
                 ->table('mut_cut_fab_saldo_tmp')
                 ->whereIn('id_roll', $chunk)
+                ->select('id_roll', 'ws')
                 ->distinct()
-                ->pluck('id_roll')
-                ->all();
+                ->get();
 
-            $rollRekap = array_merge($rollRekap, $found);
+            foreach ($found as $row) {
+                $rollRekap[$rekapKey($row->id_roll, $row->ws)] = true;
+            }
         }
 
-        $rollRekap = array_flip($rollRekap);
         $username = Auth::user()->username;
         $now = now();
         $insert = [];
@@ -374,7 +413,7 @@ class WipAdjustmentController extends Controller
                 'id_item'             => $item['id_item'],
                 'satuan'              => $item['satuan'],
                 'qty'                 => $item['fabric'],
-                'type'                => isset($rollRekap[$item['id_roll']]) ? 'REKAP' : 'NON REKAP',
+                'type'                => isset($rollRekap[$rekapKey($item['id_roll'], $item['ws'])]) ? 'REKAP' : 'NON REKAP',
                 'status'              => 'Y',
                 'created_by_username' => $username,
                 'created_at'          => $now,

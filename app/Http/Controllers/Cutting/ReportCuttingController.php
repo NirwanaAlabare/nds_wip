@@ -135,8 +135,8 @@ class ReportCuttingController extends Controller
                 $row->style ?? '',
                 $row->color ?? '',
                 $row->size ?? '',
-                $row->panel ?? '',
-                $row->part ?? '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
+                preg_replace('/\s+/', ' ', (string) $row->part),
                 (float) ($row->qty ?? 0),
                 $row->status == 'Y' ? 'Active' : 'Cancel',
             ], ['border' => 'thin']);
@@ -1014,7 +1014,7 @@ class ReportCuttingController extends Controller
                 $row->worksheet ?: '',
                 $row->style ?: '',
                 $row->color ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 (float) $row->qty_awal,
                 (float) $row->qty_switching_out,
                 (float) $row->qty_switching_in,
@@ -4723,7 +4723,7 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment,
                     0 saldo,
                     wip_adjustment_fabric.satuan,
-                    (CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP' THEN ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) ELSE ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01',wip_adjustment_fabric.qty,0)), 2) END) qty_adjustment_before,
+                    (CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP' THEN ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) ELSE ROUND(SUM(IF((wip_adjustment_fabric.tgl_saldo < '2026-07-01' OR wip_adjustment_fabric.tgl_saldo > '2026-09-01') AND wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) END) qty_adjustment_before,
                     -- ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before_old,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                     COALESCE(
@@ -4921,6 +4921,23 @@ order by  ws asc, color asc
                 'containerFluid' => true
             ]
         );
+    }
+
+    public function generate_saldo_mutasi_fabric_proporsional(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        DB::statement('CALL sp_mut_cut_fab_saldo_adj_new(?, ?)', [$request->start_date, $request->end_date]);
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Generate saldo berhasil',
+        ]);
     }
 
     // public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
@@ -5416,7 +5433,7 @@ order by tanggal asc, no_form asc
             $rows = [
                 $row->tanggal_fix ?: '',
                 $row->no_form ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 $row->act_costing_ws ?: '',
                 $row->style ?: '',
                 $row->color ?: '',
@@ -5614,7 +5631,7 @@ order by tanggal asc, no_form asc
                 $row->ws ?: '',
                 $row->styleno ?: '',
                 $row->color ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 $row->barcode ?: '',
                 $row->id_item ?: '',
                 $row->itemdesc ?: '',
@@ -12186,7 +12203,7 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 (float) $row->saldo_awal,
                 (float) $row->qty_cut,
                 (float) $row->qty_replace,
@@ -13250,13 +13267,13 @@ order by tanggal asc, no_form asc
         foreach ($data as $row) {
 
             $rows = [
-                $row->ws ?: '',
-                $row->buyer ?: '',
-                $row->styleno ?: '',
-                $row->color ?: '',
-                $row->size ?: '',
-                $row->panel ?: '',
-                $row->nama_part ?: '',
+                $row->ws ?: '-',
+                $row->buyer ?: '-',
+                $row->styleno ?: '-',
+                $row->color ?: '-',
+                $row->size ?: '-',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '-',
+                preg_replace('/\s+/', ' ', (string) $row->nama_part) ?: '-',
                 (float) $row->saldo_awal_adjustment,
                 (float) $row->qty_cut,
                 (float) ($row->switching_out_cutt ?? 0),
@@ -14142,9 +14159,9 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '',
                 $row->panel_status ?: '',
-                $row->nama_part ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->nama_part) ?: '',
                 $row->part_status ?: '',
                 (float) $row->qty_dc,
             ];
@@ -14381,7 +14398,7 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '',
                 $row->panel_status ?: '',
                 (float) $row->qty_dc,
             ];

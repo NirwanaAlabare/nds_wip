@@ -7,6 +7,11 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use DB;
@@ -15,7 +20,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
+class OrderOutputExport extends DefaultValueBinder implements FromView, WithEvents, ShouldAutoSize, WithCustomValueBinder
 {
     protected $dateFrom;
     protected $dateTo;
@@ -35,6 +40,29 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
         $this->buyer = $buyer;
         $this->colAlphabet = '';
         $this->rowCount = 0;
+    }
+
+    // Kolom WS / Color / Size ditulis sebagai teks (dideteksi dari teks heading).
+    protected $textColumns = [];
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_string($value)) {
+            $heading = strtolower(trim($value));
+
+            if (in_array($heading, ['no. ws', 'color', 'size'], true)) {
+                $this->textColumns[$cell->getColumn()] = true;
+            }
+        }
+
+        if ($value !== null && $value !== '' && isset($this->textColumns[$cell->getColumn()])) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            $cell->getStyle()->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function view(): View

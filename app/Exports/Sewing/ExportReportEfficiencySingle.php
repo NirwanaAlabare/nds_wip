@@ -15,6 +15,8 @@
     use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
     use Maatwebsite\Excel\Events\AfterSheet;
     use Maatwebsite\Excel\Sheet;
+    use PhpOffice\PhpSpreadsheet\Cell\Cell;
+    use PhpOffice\PhpSpreadsheet\Cell\DataType;
     use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
     use PhpOffice\PhpSpreadsheet\Shared\Date;
     use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
@@ -27,7 +29,7 @@
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportEfficiencySingle implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents
+    class ExportReportEfficiencySingle extends DefaultValueBinder implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents, WithCustomValueBinder
     {
         use Exportable;
 
@@ -129,10 +131,22 @@
             return substr($this->tanggal,-2,2);
         }
 
+        // WS Number (B) as text, data rows start after heading row 5
+        public function bindValue(Cell $cell, $value)
+        {
+            if ($cell->getColumn() === 'B' && $cell->getRow() > 5 && $value !== null) {
+                $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                return true;
+            }
+
+            return parent::bindValue($cell, $value);
+        }
+
         public function columnFormats(): array
         {
             return [
                 'A2:A2' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+                'B6:B' . max(6, $this->rowCount ?? 6) => NumberFormat::FORMAT_TEXT,
             ];
         }
 
