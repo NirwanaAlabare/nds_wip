@@ -10,6 +10,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\Exim\DokumenPabeanController;
 use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\Exim\InvoiceEximController;
+use App\Http\Controllers\MasterData\MasterDataController;
+use App\Http\Controllers\MasterData\MasterItemController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -1888,6 +1890,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_mt_ac/summary', 'summary')->name('summary-form-maintenance-ac');
         Route::get('/dashboard_mt_ac/departments', 'getDepartments')->name('departments-form-maintenance-ac');
     });
+
+    // Master Data (customer & supplier dari mastersupplier SB)
+    Route::get('/dashboard-master-data', [MasterDataController::class, 'dashboard'])->middleware('role:master_data')->name('dashboard-master-data');
+
+    Route::controller(MasterDataController::class)->prefix("master-data")->middleware('role:master_data')->group(function () {
+        Route::get('/customer', 'customer')->name('master-data-customer');
+        Route::get('/supplier', 'supplier')->name('master-data-supplier');
+        Route::get('/{jenis}/data', 'data')->where('jenis', 'customer|supplier')->name('master-data-list');
+        Route::get('/{jenis}/excel', 'excel')->where('jenis', 'customer|supplier')->name('master-data-excel');
+        Route::get('/{jenis}/create', 'create')->where('jenis', 'customer|supplier')->name('master-data-create');
+        Route::post('/{jenis}/simpan', 'simpan')->where('jenis', 'customer|supplier')->name('master-data-simpan');
+        Route::get('/{jenis}/detail', 'detail')->where('jenis', 'customer|supplier')->name('master-data-detail');
+        Route::post('/{jenis}/status', 'status')->where('jenis', 'customer|supplier')->name('master-data-status');
+        Route::get('/{jenis}/histori', 'histori')->where('jenis', 'customer|supplier')->name('master-data-histori');
+        Route::get('/{jenis}/edit', 'edit')->where('jenis', 'customer|supplier')->name('master-data-edit');
+        Route::post('/{jenis}/perbarui', 'perbarui')->where('jenis', 'customer|supplier')->name('master-data-perbarui');
+    });
+    // Master Item General (masteritem mattype N)
+    Route::controller(MasterItemController::class)->prefix("master-data/item")->middleware('role:master_data')->group(function () {
+        Route::get('/', 'index')->name('master-data-item');
+        Route::get('/data', 'data')->name('master-data-item-list');
+        Route::get('/excel', 'excel')->name('master-data-item-excel');
+        Route::get('/create', 'create')->name('master-data-item-create');
+        Route::get('/edit', 'edit')->name('master-data-item-edit');
+        Route::post('/simpan', 'simpan')->name('master-data-item-simpan');
+        Route::post('/perbarui', 'perbarui')->name('master-data-item-perbarui');
+        Route::get('/detail', 'detail')->name('master-data-item-detail');
+        Route::post('/status', 'status')->name('master-data-item-status');
+        Route::get('/gambar', 'gambar')->name('master-data-item-gambar');
+    });
+
     // Export Import (EXIM)
 
     Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');

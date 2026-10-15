@@ -160,6 +160,10 @@
                     @include('export-import.exim-nav')
                 @endif
 
+                @if ($page == 'dashboard-master-data')
+                    @include('master-data.master-data-nav')
+                @endif
+
                 @if ($page == 'dashboard-whs-soljer')
                     @include('whs-soljer.soljer-nav')
                 @endif
