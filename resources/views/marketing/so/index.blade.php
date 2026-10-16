@@ -736,6 +736,11 @@
                                         <input type="number" id="add_qty" class="form-control" value="0" min="0">
                                     </div>
 
+                                    <div class="form-group mb-3">
+                                        <label>FOB</label>
+                                        <input type="number" id="add_fob" class="form-control" step="any" min="0">
+                                    </div>
+
                                     <button type="button" class="btn btn-primary w-100" onclick="addSoDetailRow()">
                                         <i class="fas fa-plus"></i> Tambah Data
                                     </button>
@@ -1162,6 +1167,7 @@
             let id_color = $('#add_id_color').val();
             let id_size = $('#add_id_size').val();
             let qty = $('#add_qty').val();
+            let fob = $('#add_fob').val();
 
             if (!id_color || id_color.length === 0 || !id_size || id_size.length === 0 || !qty || qty <= 0) {
                 Swal.fire('Peringatan!', 'Harap pilih minimal 1 Warna, 1 Size, dan isi Qty dengan benar.', 'warning');
@@ -1178,7 +1184,8 @@
                     id_so: current_so_id,
                     id_color: id_color,
                     id_size: id_size,
-                    qty: qty
+                    qty: qty,
+                    fob: fob
                 },
                 success: function(res) {
                     if (res.status == 200) {
@@ -1187,6 +1194,7 @@
                         $('#add_id_color').val('').trigger('change');
                         $('#add_id_size').val('').trigger('change');
                         $('#add_qty').val(0);
+                        $('#add_fob').val('');
 
                         showDetail(current_so_id);
 
