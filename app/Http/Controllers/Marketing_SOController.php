@@ -658,9 +658,14 @@ class Marketing_SOController extends Controller
 
         $raw_master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
         $master_sizes = [];
+        $master_sizes_loose = []; // key tanpa spasi -> [id, ...]  ("L+" & "L +" dianggap sama)
         foreach ($raw_master_sizes as $k => $v) {
             $master_sizes[strtoupper(trim($k))] = $v;
+            $master_sizes_loose[preg_replace('/\s+/u', '', strtoupper($k))][] = (string) $v;
         }
+
+        $bom_header_row   = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+        $bom_header_sizes = array_map('strval', (array) (json_decode($bom_header_row->sizes ?? '[]', true) ?: []));
 
         // Tarik Data BOM (Warna & Size yang terdaftar)
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
@@ -742,11 +747,16 @@ class Marketing_SOController extends Controller
 
                 // Validasi Size
                 $size_key = strtoupper($size_name);
-                if (!isset($master_sizes[$size_key])) {
+                $loose_ids = $master_sizes_loose[preg_replace('/\s+/u', '', $size_key)] ?? [];
+                if (!isset($master_sizes[$size_key]) && count($loose_ids) === 0) {
                     $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master.";
                     continue;
                 }
-                $size_id = $master_sizes[$size_key];
+                // Master size punya duplikat beda spasi; pakai yang terdaftar di header BOM kalau ada
+                $header_match = array_values(array_intersect($loose_ids, $bom_header_sizes));
+                $size_id = count($header_match) > 0
+                    ? $header_match[0]
+                    : ($master_sizes[$size_key] ?? $loose_ids[0]);
 
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
                     $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
@@ -2169,6 +2179,18 @@ class Marketing_SOController extends Controller
 
             $existing_row = DB::connection('mysql_sb')->table('so_det')->where('id_so', $id_so)->first();
 
+            // FOB: pakai input jika diisi, kalau kosong ikut FOB detail aktif yang sudah terisi
+            $fob = ($request->fob !== null && $request->fob !== '')
+                ? $request->fob
+                : DB::connection('mysql_sb')->table('so_det')
+                    ->where('id_so', $id_so)
+                    ->where('cancel', 'N')
+                    ->whereNotNull('fob')
+                    ->orderBy('id')
+                    ->value('fob');
+
+            $unit = 'PCS';
+
             foreach ($id_colors as $id_color) {
                 foreach ($id_sizes as $id_size) {
 
@@ -2196,8 +2218,10 @@ class Marketing_SOController extends Controller
                         'color'       => $color_name ?? '-',
                         'size'        => $size_name ?? '-',
                         'qty'         => $qty,
+                        'fob'         => $fob,
+                        'unit'        => $unit,
                         'cancel'      => 'N',
-                        'dest'        => $existing_row ? $existing_row->dest : '-',
+                        'dest'      => $existing_row ? $existing_row->dest : '-',
                         'product_set' => $existing_row ? $existing_row->product_set : '-',
                         'barcode'     => $existing_row ? $existing_row->barcode : '-',
                         'reff_no'     => $existing_row ? $existing_row->reff_no : null,
