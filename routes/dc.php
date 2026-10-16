@@ -302,6 +302,9 @@ Route::middleware('auth')->group(function () {
 
         // Route untuk kosongkan preview
         Route::post('/secondary-luar/empty-preview', 'emptyPreviewTerimaSecLuar')->name('terima.secondary.luar.empty-preview');
+
+        // Route untuk cancel data
+        Route::post('/secondary-luar/cancel', 'cancelTerimaSecLuar')->name('terima.secondary.luar.cancel');
     });
 
     // Stocker Process
