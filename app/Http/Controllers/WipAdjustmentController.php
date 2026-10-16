@@ -671,10 +671,10 @@ class WipAdjustmentController extends Controller
             [$type, $proses] = $this->typeProses($value);
 
             if ($proses === null) {
-                $pivot[] = "SUM(CASE WHEN a.type_report = ? THEN a.qty ELSE 0 END) AS $field";
+                $pivot[] = "CASE WHEN a.type_report = ? THEN a.qty ELSE 0 END AS $field";
                 $bindings[] = $type;
             } else {
-                $pivot[] = "SUM(CASE WHEN a.type_report = ? AND a.proses = ? THEN a.qty ELSE 0 END) AS $field";
+                $pivot[] = "CASE WHEN a.type_report = ? AND a.proses = ? THEN a.qty ELSE 0 END AS $field";
                 $bindings[] = $type;
                 $bindings[] = $proses;
             }
@@ -689,36 +689,37 @@ class WipAdjustmentController extends Controller
             array_values($this->templateFields[$typeReport]['text'])
         ));
         $bindings = array_merge(
-            [str_replace('_', ' ', $typeReport)],
             $bindings,
             [$dateFrom, $dateTo],
             $types
         );
 
+        // Kolom proses hanya ada di report yang memakainya (SEWING)
+        $typeColumn = $this->hasProses($typeMap) ? "CONCAT_WS(' - ', a.type_report, a.proses)" : 'a.type_report';
+
+        // 1 baris per id wip_adjustment, qty ditaruh di kolom sesuai type_report-nya
         return DB::connection($this->connection($typeReport))->select("
             SELECT
+                a.id,
                 a.tgl_saldo AS tgl_saldo_raw,
                 DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
-                ? AS type_report,
+                $typeColumn AS type_report,
                 $keyColumns,
                 " . implode(",\n                ", $pivot) . ",
-                MAX(a.created_at) AS created_at,
-                MAX(a.created_by_username) AS created_by_username,
+                a.created_at,
+                a.created_by_username,
                 a.status
             FROM
                 wip_adjustment a
             WHERE
                 a.tgl_saldo BETWEEN ? AND ?
                 AND a.type_report IN ($placeholders)
-            GROUP BY
-                a.tgl_saldo,
-                $keyColumns,
-                a.status
             ORDER BY
                 a.tgl_saldo DESC,
                 a.no_ws,
                 a.color,
-                a.size
+                a.size,
+                a.id
         ", $bindings);
     }
 
@@ -726,9 +727,9 @@ class WipAdjustmentController extends Controller
     public function cancel(Request $request)
     {
         $request->validate([
-            'type_report'      => 'required',
-            'rows'             => 'required|array|min:1',
-            'rows.*.tgl_saldo' => 'required|date',
+            'type_report' => 'required',
+            'ids'         => 'required|array|min:1',
+            'ids.*'       => 'integer',
         ]);
 
         $type = $request->type_report;
@@ -740,54 +741,40 @@ class WipAdjustmentController extends Controller
             ], 422);
         }
 
-        $rows = $request->rows;
+        $ids = array_values(array_unique($request->ids));
 
-        foreach ($rows as $row) {
-            if (checkClosingDate($row['tgl_saldo'])) {
-                return response()->json([
-                    'status'  => 422,
-                    'message' => 'Periode ' . date('d-m-Y', strtotime($row['tgl_saldo'])) . ' sudah closing, adjustment tidak bisa di-cancel'
-                ], 422);
-            }
+        // Query dasar: id yang masih aktif & sesuai jenis report
+        if ($type == 'CUTTING_FABRIC') {
+            $connection = 'mysql';
+            $query = fn () => DB::connection($connection)
+                ->table('wip_adjustment_fabric')
+                ->whereIn('id', $ids)
+                ->where('status', 'Y');
+        } else {
+            $connection = $this->connection($type);
+            $types = $this->typeReports($this->templateFields[$type]['type_map']);
+            $query = fn () => DB::connection($connection)
+                ->table('wip_adjustment')
+                ->whereIn('id', $ids)
+                ->whereIn('type_report', $types)
+                ->where('status', 'Y');
         }
 
-        $connection = $type == 'CUTTING_FABRIC' ? 'mysql' : $this->connection($type);
-        $username = Auth::user()->username;
-        $now = now();
+        // Cek closing dari tgl_saldo di database, bukan dari request
+        $minTglSaldo = $query()->min('tgl_saldo');
 
-        $updated = DB::connection($connection)->transaction(function () use ($connection, $type, $rows, $username, $now) {
-            $updated = 0;
+        if ($minTglSaldo && checkClosingDate($minTglSaldo)) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'Periode ' . date('d-m-Y', strtotime($minTglSaldo)) . ' sudah closing, adjustment tidak bisa di-cancel'
+            ], 422);
+        }
 
-            foreach ($rows as $row) {
-                if ($type == 'CUTTING_FABRIC') {
-                    $query = DB::connection($connection)
-                        ->table('wip_adjustment_fabric')
-                        ->where('id', $row['id'] ?? null)
-                        ->where('status', 'Y');
-                } else {
-                    $typeMap = $this->templateFields[$type]['type_map'];
-
-                    $query = DB::connection($connection)
-                        ->table('wip_adjustment')
-                        ->where('tgl_saldo', $row['tgl_saldo'])
-                        ->whereIn('type_report', $this->typeReports($typeMap))
-                        ->where('status', 'Y');
-
-                    // Kolom kunci bisa null atau '', samakan keduanya
-                    foreach ($this->templateFields[$type]['text'] as $column) {
-                        $query->whereRaw("IFNULL($column, '') = ?", [$row[$column] ?? '']);
-                    }
-                }
-
-                $updated += $query->update([
-                    'status'     => 'N',
-                    'updated_by' => $username,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            return $updated;
-        });
+        $updated = $query()->update([
+            'status'     => 'N',
+            'updated_by' => Auth::user()->username,
+            'updated_at' => now(),
+        ]);
 
         if ($updated === 0) {
             return response()->json([
@@ -798,7 +785,7 @@ class WipAdjustmentController extends Controller
 
         return response()->json([
             'status'  => 200,
-            'message' => count($rows) . ' data berhasil dicancel'
+            'message' => $updated . ' data berhasil dicancel'
         ]);
     }
 }

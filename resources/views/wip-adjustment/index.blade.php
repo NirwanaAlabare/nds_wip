@@ -440,6 +440,7 @@
                         return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'}>`;
                     }
                 },
+                { title: 'ID', data: 'id', className: 'text-center' },
                 { title: 'Tanggal Saldo', data: 'tgl_saldo' },
                 { title: 'Jenis Report', data: 'type_report' },
                 ...listColumns[type].map(([title, data, isNumber]) => ({
@@ -560,21 +561,6 @@
 
         buildListTable($('#type_report_filter').val());
 
-        // Data yang dikirim per baris gabungan (semua type_report di baris itu jadi status N)
-        function cancelPayload(row) {
-            return {
-                id: row.id,
-                tgl_saldo: row.tgl_saldo_raw,
-                no_ws: row.no_ws,
-                buyer: row.buyer,
-                style: row.style,
-                color: row.color,
-                size: row.size,
-                panel: row.panel,
-                part: row.part,
-            };
-        }
-
         function cancelAdjustment(rows, html) {
             Swal.fire({
                 title: 'Cancel Adjustment?',
@@ -595,7 +581,7 @@
                     },
                     data: {
                         type_report: currentListType,
-                        rows: rows.map(cancelPayload),
+                        ids: rows.map(row => row.id),
                     },
                     beforeSend: function () {
                         showLoading();
@@ -623,8 +609,8 @@
             const row = listTable.row($(this).closest('tr')).data();
 
             cancelAdjustment([row], currentListType === 'CUTTING_FABRIC'
-                ? `WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
-                : `WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>Tanggal saldo ${row.tgl_saldo}`);
+                ? `ID ${row.id} — WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
+                : `ID ${row.id} — WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>${row.type_report}, tanggal saldo ${row.tgl_saldo}`);
         });
 
         // Multi cancel: baris yang diceklis
