@@ -15,8 +15,13 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvents
+class ExportReportFinishingProses extends DefaultValueBinder implements FromView, ShouldAutoSize, WithEvents, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
     protected $start_date, $end_date, $proses, $rowCount;
@@ -376,6 +381,26 @@ class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvent
             'endDate' => $end_date,
             'proses' => $proses,
         ]);
+    }
+
+    // WS (D), Color (F) & Size (G) as text, data rows start after heading row 5
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), ['D', 'F', 'G'], true) && $cell->getRow() > 5 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_TEXT,
+            'F' => NumberFormat::FORMAT_TEXT,
+            'G' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function registerEvents(): array

@@ -364,10 +364,10 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-sb btn-block" onclick="fixRollQty()">Fix Roll Qty</button>
-                    <hr class="border-sb">
+                    {{-- <hr class="border-sb">
                     <h5 class="text-center">OR</h5>
                     <hr class="border-sb">
-                    <button type="button" class="btn btn-sb-secondary btn-block" onclick="fixRollQtyUpdate()">Fix All Roll Qty</button>
+                    <button type="button" class="btn btn-sb-secondary btn-block" onclick="fixRollQtyUpdate()">Fix All Roll Qty</button> --}}
                 </div>
             </div>
         </div>
@@ -1338,6 +1338,18 @@
                             confirmButtonText: 'Oke',
                         });
                     }
+
+                    document.getElementById("loading").classList.add("d-none");
+                },
+                error: function (jqXHR) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat memperbarui Roll.',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
 
                     document.getElementById("loading").classList.add("d-none");
                 }

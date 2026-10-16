@@ -88,7 +88,8 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
                 m.size,
                 a.created_at,
                 a.created_by,
-                act.close_order
+                act.close_order,
+                'PACKING LINE' source
             from packing_packing_in a
             left join packing_trf_garment b on a.id_trf_garment = b.id
             left join ppic_master_so p on a.id_ppic_master_so = p.id
@@ -112,7 +113,8 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
                 m.size,
                 a.created_at,
                 a.created_by,
-                act.close_order
+                act.close_order,
+                'TEMPORARY PACKING' source
             from packing_packing_in a
             inner join packing_trf_garment_out_temporary b on a.packing_trf_garment_out_temporary_id = b.id
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
@@ -135,7 +137,8 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
                 m.size,
                 a.created_at,
                 a.created_by,
-                act.close_order
+                act.close_order,
+                'GUDANG STOK' source
             from packing_packing_in a
             inner join fg_stok_bppb b on a.fg_stok_bppb_id = b.id
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
@@ -169,7 +172,7 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
     {
 
         $event->sheet->styleCells(
-            'A4:N' . $event->getConcernable()->rowCount,
+            'A4:P' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

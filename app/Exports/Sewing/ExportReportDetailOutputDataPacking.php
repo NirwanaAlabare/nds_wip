@@ -18,13 +18,17 @@
     use Maatwebsite\Excel\Sheet;
     use Illuminate\Contracts\Queue\ShouldQueue;
     use Illuminate\Contracts\View\View;
+    use PhpOffice\PhpSpreadsheet\Cell\Cell;
+    use PhpOffice\PhpSpreadsheet\Cell\DataType;
+    use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+    use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
     use DB;
 
     Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportDetailOutputDataPacking implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithEvents
+    class ExportReportDetailOutputDataPacking extends DefaultValueBinder implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithEvents, WithCustomValueBinder, WithColumnFormatting
     {
         use Exportable;
 
@@ -116,10 +120,23 @@
             }
         }
 
+        // No. WS (C), Color (F) & Size (G) as text, data rows start after heading rows 2-3
+        public function bindValue(Cell $cell, $value)
+        {
+            if (in_array($cell->getColumn(), ['C', 'F', 'G'], true) && $cell->getRow() > 3 && $value !== null) {
+                $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                return true;
+            }
+
+            return parent::bindValue($cell, $value);
+        }
+
         public function columnFormats(): array
         {
             return [
-                //
+                'C' => NumberFormat::FORMAT_TEXT,
+                'F' => NumberFormat::FORMAT_TEXT,
+                'G' => NumberFormat::FORMAT_TEXT,
             ];
         }
 

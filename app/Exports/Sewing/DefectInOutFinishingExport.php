@@ -7,6 +7,11 @@ use App\Models\SignalBit\DefectInOut;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Sheet;
@@ -16,7 +21,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
+class DefectInOutFinishingExport extends DefaultValueBinder implements FromView, WithEvents, ShouldAutoSize, WithCustomValueBinder
 {
     protected $dateFrom;
     protected $dateTo;
@@ -26,6 +31,33 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
         $this->rowCount = 0;
+    }
+
+    // Kolom WS / Color / Size ditulis sebagai teks (dideteksi dari teks heading).
+    protected $textColumns = [];
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_string($value)) {
+            $heading = strtolower(trim($value));
+
+            if ($heading === 'defect types') {
+                $this->textColumns = [];
+            }
+
+            if (in_array($heading, ['ws number'], true)) {
+                $this->textColumns[$cell->getColumn()] = true;
+            }
+        }
+
+        if ($value !== null && $value !== '' && isset($this->textColumns[$cell->getColumn()])) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            $cell->getStyle()->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function view(): View

@@ -957,6 +957,9 @@ class ReportEfficiencyNewController extends Controller
                 $rows,
                 [
                     'border' => 'thin',
+                ],
+                [
+                    'D' => ['format' => '@'],
                 ]
             );
         }

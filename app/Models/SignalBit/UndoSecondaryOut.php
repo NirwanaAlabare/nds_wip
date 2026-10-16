@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Models\SignalBit;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class UndoSecondaryOut extends Model
+{
+    use HasFactory;
+
+    protected $connection = 'mysql_sb';
+
+    protected $table = 'output_undo_secondary_out';
+
+    protected $fillable = [
+        'id',
+        'master_plan_id',
+        'so_det_id',
+        'po_id',
+        'secondary_id',
+        'output_id',
+        'output_rft_id',
+        'output_defect_id',
+        'output_reject_id',
+        'output_rework_id',
+        'kode_numbering',
+        'defect_type_id',
+        'defect_area_id',
+        'defect_area_x',
+        'defect_area_y',
+        'alokasi',
+        'keterangan',
+        'created_by',
+        'created_by_username',
+        'created_by_line',
+        'created_at',
+        'updated_at',
+        'undo_by',
+        'undo_by_nds',
+        'undo_at',
+    ];
+}

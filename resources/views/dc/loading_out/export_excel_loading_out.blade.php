@@ -35,8 +35,8 @@
                     <td>{{ $row->tgl_form_fix }}</td>
                     <td>{{ $row->pono }}</td>
                     <td>{{ $row->itemdesc }}</td>
-                    <td>{{ $row->panel }}</td>
-                    <td>{{ $row->nama_part }}</td>
+                    <td>{{ preg_replace('/\s+/', ' ', (string) $row->panel) }}</td>
+                    <td>{{ preg_replace('/\s+/', ' ', (string) $row->nama_part) }}</td>
                     <td>{{ $row->supplier }}</td>
                     <td>{{ $row->jns_dok }}</td>
                     <td>{{ $row->jns_pengeluaran }}</td>

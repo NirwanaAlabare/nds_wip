@@ -11,9 +11,13 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
+class ExportReportQcReject extends DefaultValueBinder implements FromView, ShouldAutoSize, WithEvents, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
     protected $tglAwal, $tglAkhir, $kategori, $buyer, $rowCount;
@@ -362,12 +366,25 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
         ]);
     }
 
-    // public function columnFormats(): array
-    // {
-    //     return [
-    //         'F' => NumberFormat::FORMAT_NUMBER_00,
-    //     ];
-    // }
+    // WS (B), Color (D) & Size (E) as text, data rows start after heading row 6
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), ['B', 'D', 'E'], true) && $cell->getRow() > 6 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'B' => NumberFormat::FORMAT_TEXT,
+            'D' => NumberFormat::FORMAT_TEXT,
+            'E' => NumberFormat::FORMAT_TEXT,
+        ];
+    }
 
     public function registerEvents(): array
     {

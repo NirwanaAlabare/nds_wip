@@ -13,8 +13,13 @@
     use Maatwebsite\Excel\Concerns\WithColumnFormatting;
     use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
     use Maatwebsite\Excel\Concerns\WithEvents;
+    use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
     use Maatwebsite\Excel\Events\AfterSheet;
     use Maatwebsite\Excel\Sheet;
+    use PhpOffice\PhpSpreadsheet\Cell\Cell;
+    use PhpOffice\PhpSpreadsheet\Cell\DataType;
+    use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+    use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
     use Illuminate\Contracts\Queue\ShouldQueue;
     use Illuminate\Contracts\View\View;
     use DB;
@@ -23,7 +28,7 @@
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportOutputData implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents
+    class ExportReportOutputData extends DefaultValueBinder implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents, WithCustomValueBinder
     {
         use Exportable;
 
@@ -132,10 +137,21 @@
             return substr($this->tanggalProduksi,-2,2);
         }
 
+        // WS Number (B) as text, data rows start after heading rows 3-4
+        public function bindValue(Cell $cell, $value)
+        {
+            if ($cell->getColumn() === 'B' && $cell->getRow() > 4 && $value !== null) {
+                $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                return true;
+            }
+
+            return parent::bindValue($cell, $value);
+        }
+
         public function columnFormats(): array
         {
             return [
-                //
+                'B' => NumberFormat::FORMAT_TEXT,
             ];
         }
 
