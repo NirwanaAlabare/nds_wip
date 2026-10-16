@@ -42,6 +42,7 @@
                     </div>
                 </div>
                 <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-danger mb-3" id="btn-mass-cancel" onclick="massCancelTerimaSecLuar()" disabled><i class="fa fa-times"></i> Cancel Terpilih (<span id="selected-count">0</span>)</button>
                     <button type="button" class="btn btn-sm btn-sb-secondary mb-3" data-bs-toggle="modal" data-bs-target="#importSecondaryLuarModal" onclick="resetImportPreview()"><i class="fa fa-file-upload"></i> Import</button>
                     <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
@@ -50,6 +51,7 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
+                            <th class="text-center"><input type="checkbox" class="form-check-input" id="check-all-cancel"></th>
                             <th class="text-center">Action</th>
                             <th class="text-center">Tanggal</th>
                             <th class="text-center">No. WS</th>
@@ -173,6 +175,7 @@
 
     <script>
         let datatableDcReport;
+        let selectedCancelIds = new Set();
 
         // 1. Fungsi Upload & Preview (Global Scope)
         function uploadAndPreviewFile(file) {
@@ -326,6 +329,7 @@
                 },
                 columns: [
                     { data: 'id' },
+                    { data: 'id' },
                     { data: 'tanggal' },
                     { data: 'no_ws' },
                     { data: 'buyer' },
@@ -343,7 +347,14 @@
                         targets: [0],
                         className: 'align-middle text-center',
                         render: (data, type, row) => {
-                            return `<button type="button" class="btn btn-sm btn-danger" onclick="cancelTerimaSecLuar(${data})"><i class="fa fa-times"></i> Cancel</button>`;
+                            return `<input type="checkbox" class="form-check-input check-cancel" value="${data}" ${selectedCancelIds.has(String(data)) ? 'checked' : ''}>`;
+                        }
+                    },
+                    {
+                        targets: [1],
+                        className: 'align-middle text-center',
+                        render: (data, type, row) => {
+                            return `<button type="button" class="btn btn-sm btn-danger" onclick="cancelTerimaSecLuar([${data}])"><i class="fa fa-times"></i> Cancel</button>`;
                         }
                     },
                     {
@@ -351,6 +362,41 @@
                         className: 'align-middle text-nowrap'
                     },
                 ],
+            });
+
+            // Reset pilihan setiap kali data di-reload
+            datatableDcReport.on('xhr', function () {
+                selectedCancelIds.clear();
+                updateSelectedCancel();
+            });
+
+            // Sinkronkan status check all saat pindah halaman / search
+            datatableDcReport.on('draw', function () {
+                updateSelectedCancel();
+            });
+
+            // Check per baris
+            $(document).on('change', '.check-cancel', function () {
+                if (this.checked) {
+                    selectedCancelIds.add(this.value);
+                } else {
+                    selectedCancelIds.delete(this.value);
+                }
+                updateSelectedCancel();
+            });
+
+            // Check all (semua data hasil filter/search, lintas halaman)
+            $(document).on('change', '#check-all-cancel', function () {
+                const checked = this.checked;
+                datatableDcReport.rows({ search: 'applied' }).data().each(function (row) {
+                    if (checked) {
+                        selectedCancelIds.add(String(row.id));
+                    } else {
+                        selectedCancelIds.delete(String(row.id));
+                    }
+                });
+                $('.check-cancel').prop('checked', checked);
+                updateSelectedCancel();
             });
 
             // Event Browse File
@@ -458,11 +504,27 @@
             });
         }
 
+        // Update tombol mass cancel & status check all
+        function updateSelectedCancel() {
+            $('#selected-count').text(selectedCancelIds.size);
+            $('#btn-mass-cancel').prop('disabled', selectedCancelIds.size === 0);
+
+            const filteredIds = datatableDcReport.rows({ search: 'applied' }).data().toArray().map(row => String(row.id));
+            const allChecked = filteredIds.length > 0 && filteredIds.every(id => selectedCancelIds.has(id));
+            $('#check-all-cancel').prop('checked', allChecked);
+        }
+
+        // Mass Cancel
+        function massCancelTerimaSecLuar() {
+            if (selectedCancelIds.size === 0) return;
+            cancelTerimaSecLuar(Array.from(selectedCancelIds));
+        }
+
         // Cancel Data
-        function cancelTerimaSecLuar(id) {
+        function cancelTerimaSecLuar(ids) {
             Swal.fire({
                 title: 'Cancel Data?',
-                text: 'Data terima secondary luar ini akan dicancel.',
+                text: ids.length + ' data terima secondary luar akan dicancel.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
@@ -481,7 +543,7 @@
                     $.ajax({
                         url: "{{ route('terima.secondary.luar.cancel') }}",
                         type: "POST",
-                        data: { _token: '{{ csrf_token() }}', id: id },
+                        data: { _token: '{{ csrf_token() }}', ids: ids },
                         success: function (res) {
                             Swal.fire({
                                 icon: 'success',

@@ -4237,13 +4237,14 @@ class DcReportController extends Controller
     public function cancelTerimaSecLuar(Request $request)
     {
         $request->validate([
-            'id' => 'required|integer',
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer',
         ]);
 
         $user = Auth::user();
 
         $cancelled = DB::table('inject_mutasi_dc')
-            ->where('id', $request->id)
+            ->whereIn('id', $request->ids)
             ->where('type_report', 'SECONDARY_LUAR')
             ->whereNull('cancelled_at')
             ->update([
@@ -4262,7 +4263,7 @@ class DcReportController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Data berhasil dicancel.'
+            'message' => $cancelled . ' data berhasil dicancel.'
         ]);
     }
 
