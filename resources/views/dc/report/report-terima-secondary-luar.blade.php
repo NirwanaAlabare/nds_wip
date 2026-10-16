@@ -50,6 +50,7 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
+                            <th class="text-center">Action</th>
                             <th class="text-center">Tanggal</th>
                             <th class="text-center">No. WS</th>
                             <th class="text-center">Buyer</th>
@@ -74,7 +75,7 @@
             <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
                 <form id="importSecondaryLuarForm" enctype="multipart/form-data" class="d-flex flex-column h-100 mb-0">
                     @csrf
-                    
+
                     <!-- Header (Navy / Dark Blue) -->
                     <div class="modal-header text-white py-3" style="background-color: #0d2342;">
                         <h5 class="modal-title fw-bold fs-5" id="importSecondaryLuarModalLabel">Import Terima Secondary Luar</h5>
@@ -100,9 +101,9 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                            <a href="{{ asset('example/contoh-import-terima-secondary-luar.xlsx') }}" 
-                                id="btn-download-template" 
-                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0" 
+                            <a href="{{ asset('example/contoh-import-terima-secondary-luar.xlsx') }}"
+                                id="btn-download-template"
+                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0"
                                 download="Contoh_Import_Secondary_Luar.xlsx">
                                     <i class="fa fa-file-excel me-1"></i> Contoh Excel
                             </a>
@@ -214,7 +215,7 @@
                     } else {
                         html = `<tr><td colspan="9" class="text-center text-muted py-4">Data kosong.</td></tr>`;
                     }
-                    
+
                     $('#import-secondary-luar-preview').html(html);
                     $('#import-secondary-luar-summary').html(res.summary || '');
                     $('#import-secondary-luar-error').addClass('d-none').html('');
@@ -292,14 +293,14 @@
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            
+
             const formatDate = (date) => {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             };
-            
+
             $('#tgl-awal').val(formatDate(firstDay));
             $('#tgl-akhir').val(formatDate(lastDay));
 
@@ -324,6 +325,7 @@
                     }
                 },
                 columns: [
+                    { data: 'id' },
                     { data: 'tanggal' },
                     { data: 'no_ws' },
                     { data: 'buyer' },
@@ -337,6 +339,13 @@
                     { data: 'created_at' },
                 ],
                 columnDefs: [
+                    {
+                        targets: [0],
+                        className: 'align-middle text-center',
+                        render: (data, type, row) => {
+                            return `<button type="button" class="btn btn-sm btn-danger" onclick="cancelTerimaSecLuar(${data})"><i class="fa fa-times"></i> Cancel</button>`;
+                        }
+                    },
                     {
                         targets: "_all",
                         className: 'align-middle text-nowrap'
@@ -446,6 +455,48 @@
 
             datatableDcReport.ajax.reload(function () {
                 Swal.close();
+            });
+        }
+
+        // Cancel Data
+        function cancelTerimaSecLuar(id) {
+            Swal.fire({
+                title: 'Cancel Data?',
+                text: 'Data terima secondary luar ini akan dicancel.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fa fa-times me-1"></i> Ya, Cancel!',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: "{{ route('terima.secondary.luar.cancel') }}",
+                        type: "POST",
+                        data: { _token: '{{ csrf_token() }}', id: id },
+                        success: function (res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message || 'Data berhasil dicancel.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            datatableDcReport.ajax.reload(null, false);
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                        }
+                    });
+                }
             });
         }
 
