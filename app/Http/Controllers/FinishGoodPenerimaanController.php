@@ -59,6 +59,17 @@ order by a.created_at desc
         );
     }
 
+    // Value cbopo = po + '_' + dest. No PO bisa mengandung '_' (mis. 8NAG262_0501_004/BLACK),
+    // jadi pecah di '_' terakhir saja
+    private function splitPoDest($value)
+    {
+        $pos = strrpos($value, '_');
+        if ($pos === false) {
+            return [$value, null];
+        }
+        return [substr($value, 0, $pos), substr($value, $pos + 1)];
+    }
+
     public function search_po(Request $request)
     {
         $term = $request->q ?? '';
@@ -178,10 +189,7 @@ order by a.created_at desc
     {
         $po_data_arr = $request->cbopo ? $request->cbopo : null;
         if ($po_data_arr) {
-            $cekArray = explode('_', $po_data_arr);
-            // Use null coalescing operator to safely assign values
-            $po = isset($cekArray[0]) ? $cekArray[0] : null;
-            $dest = isset($cekArray[1]) ? $cekArray[1] : null;
+            [$po, $dest] = $this->splitPoDest($po_data_arr);
         } else {
             // Handle the case where $po_data_arr is null
             $po = null; // or set a default value
@@ -255,10 +263,7 @@ having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_sca
         $po_data_arr = $request->cbopo ? $request->cbopo : null;
 
         if ($po_data_arr) {
-            $cekArray = explode('_', $po_data_arr);
-            // Use null coalescing operator to safely assign values
-            $po = isset($cekArray[0]) ? $cekArray[0] : null;
-            $dest = isset($cekArray[1]) ? $cekArray[1] : null;
+            [$po, $dest] = $this->splitPoDest($po_data_arr);
         } else {
             // Handle the case where $po_data_arr is null
             $po = null; // or set a default value
@@ -382,9 +387,7 @@ ORDER BY pl.no_carton
     // Dipanggil sebelum swal konfirmasi: bandingkan karton yang dicentang dengan data FG IN terbaru
     public function check_fg_in(Request $request)
     {
-        $poArray = explode('_', $request->cbopo ?? '');
-        $po = $poArray[0];
-        $dest = $poArray[1] ?? null;
+        [$po, $dest] = $this->splitPoDest($request->cbopo ?? '');
 
         [$rows, $skipped] = $this->resolveSelected($po, $dest, $this->selectedKeys($request));
 
@@ -393,9 +396,7 @@ ORDER BY pl.no_carton
 
     public function store(Request $request)
     {
-        $poArray = explode('_', $_POST['cbopo']);
-        $po = $poArray[0];
-        $dest = $poArray[1];
+        [$po, $dest] = $this->splitPoDest($_POST['cbopo']);
 
         // Kunci per PO: simpan bersamaan (user lain / klik ganda) harus antri,
         // jadi pengecekan FG IN di bawah selalu melihat data yang sudah tersimpan sebelumnya

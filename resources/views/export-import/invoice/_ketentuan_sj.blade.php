@@ -43,8 +43,9 @@
                 <div class="dn-ket-judul">Knitting &mdash; NAK</div>
                 <ul class="dn-ket">
                     <li>Belum pernah di-invoice.</li>
-                    <li>Tipe pengeluaran: <b>Penjualan</b>, <b>Sample</b>, atau
-                        <b>Pengiriman ke Subkontraktor</b>.</li>
+                    <li>Tipe pengeluaran: <b>Penjualan</b>, <b>Sample</b>,
+                        <b>Pengiriman ke Subkontraktor</b>, atau
+                        <b>Penggantian</b>.</li>
                 </ul>
                 <div class="dn-ket-judul dn-ket-judul-2">Keduanya</div>
                 <ul class="dn-ket">
