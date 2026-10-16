@@ -365,9 +365,13 @@ class WipAdjustmentController extends Controller
             ], 422);
         }
 
+        $tglSaldo = array_column($data, 'tgl_saldo');
+
         return response()->json([
-            'status'  => 200,
-            'message' => count($data) . ' baris berhasil diimport',
+            'status'    => 200,
+            'message'   => count($data) . ' baris berhasil diimport',
+            'date_from' => min($tglSaldo),
+            'date_to'   => max($tglSaldo),
         ]);
     }
 

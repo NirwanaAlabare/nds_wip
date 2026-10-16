@@ -201,7 +201,7 @@
                 </div>
 
                 <div>
-                    <button class="btn btn-primary btn-sm" onclick="listTableReload()">
+                    <button class="btn btn-primary btn-sm" id="btnSearch" onclick="listTableReload()">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
@@ -224,7 +224,7 @@
                         <i class="fa fa-file-excel"></i> Template Report
                     </button>
 
-                    <button type="button" class="btn btn-success btn-sm" onclick="OpenModal()">
+                    <button type="button" class="btn btn-success btn-sm" id="btnOpenImport" onclick="OpenModal()">
                         <i class="fa fa-upload"></i> Import Adjustment
                     </button>
                 </div>
@@ -297,7 +297,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="btnImportSubmit">
                             Import &amp; Validasi
                         </button>
                     </div>
@@ -849,6 +849,7 @@
                 processData: false,
                 contentType: false,
                 beforeSend: function () {
+                    setImportProcessing(true);
                     showLoading();
                     setImportStep(3);
                 },
@@ -856,6 +857,14 @@
                     if (res.status === 200) {
                         setImportStep(4);
                         $('#importExcel').modal('hide');
+
+                        // Filter tanggal mengikuti tanggal saldo dari file yang baru diimport
+                        if (res.date_from && res.date_to) {
+                            $('#tgl-awal').val(res.date_from);
+                            $('#tgl-akhir').val(res.date_to);
+                        }
+
+                        clearImportFile();
                         listTableReload();
 
                         iziToast.success({
@@ -889,8 +898,30 @@
                 },
                 complete: function () {
                     hideLoading();
+                    setImportProcessing(false);
                 }
             });
+        }
+
+        // Selama import berjalan, kunci semua tombol yang bisa mengirim request
+        function setImportProcessing(processing) {
+            if (processing) {
+                $('#btnImportSubmit, #btnSearch, #btnCancelSelected, #btnOpenImport, #list-table .btn-cancel-adjustment')
+                    .filter(':not(:disabled)')
+                    .addClass('import-locked')
+                    .prop('disabled', true);
+                $('#but_export').addClass('disabled import-locked');
+            } else {
+                $('#but_export.import-locked').removeClass('disabled');
+                $('.import-locked').removeClass('import-locked').not('a').prop('disabled', false);
+            }
+        }
+
+        // Kosongkan file yang sudah diimport
+        function clearImportFile() {
+            $('#importFile').val('');
+            $('#importFileName').text('Belum ada file dipilih');
+            setImportStep(1);
         }
     </script>
 @endsection
