@@ -70,16 +70,18 @@
                 </div>
 
                 <!-- Generate Button -->
-                <div class="col-md-4 d-flex gap-2 align-items-end">
-                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
-                        <i class="fas fa-search"></i>
-                        Submit
-                    </a>
+                <div class="col-md d-flex justify-content-between align-items-end">
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                            <i class="fas fa-search"></i>
+                            Submit
+                        </a>
 
-                    <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
-                        <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
-                    </a>
+                        <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
+                            <i class="fas fa-file-excel fa-sm"></i>
+                            Export Excel
+                        </a>
+                    </div>
 
                     @role('superadmin')
                         <a onclick="generate_saldo()" class="btn btn-outline-danger position-relative btn-sm">
