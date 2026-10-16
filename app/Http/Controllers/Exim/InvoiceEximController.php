@@ -3396,7 +3396,26 @@ class InvoiceEximController extends Controller
         ) as $r) {
             $r = (array) $r;
             $qty = (float) $r['qty_invoiced'];
-            $r['kotor_cm']  = isset($kotorCm[(int) $r['urutan']]) ? $kotorCm[(int) $r['urutan']] : $qty * (float) $r['unit_cost_cm'];
+            // Kalau kaitan ke baris SJ tidak ketemu - invoice lama yang
+            // baris SJ-nya belum membawa nomor urut summary, atau baris yang
+            // dirapikan tangan - dipakai total_cm yang TERSIMPAN, bukan
+            // dihitung ulang dari qty x unit cost. Unit cost yang tersimpan
+            // sudah dibulatkan 4 angka, jadi menghitung ulang meleset:
+            // 4.562 x 1,7201 = 7.847,0962 padahal nilainya 7.847,165 -
+            // selisih itu bikin Sub Total tidak sama dengan Net Invoice Total.
+            //
+            // total_cm tersimpan SESUDAH diskon, sedangkan nilai baris dipakai
+            // sebelum diskon (diskonnya baris rekap sendiri), jadi diskonnya
+            // dikembalikan dulu.
+            $sisaCm = 1 - ((float) $r['disc'] / 100);
+            $simpanCm = (float) $r['total_cm'];
+            if (isset($kotorCm[(int) $r['urutan']])) {
+                $r['kotor_cm'] = $kotorCm[(int) $r['urutan']];
+            } elseif ($simpanCm != 0.0 && $sisaCm > 0) {
+                $r['kotor_cm'] = $simpanCm / $sisaCm;
+            } else {
+                $r['kotor_cm'] = $qty * (float) $r['unit_cost_cm'];
+            }
             // FOB memakai Total Pieces (satuan custom). Baris lama yang belum
             // punya satuan tetap memakai Qty Invoiced - cetakannya tidak berubah.
             $satuan = strtoupper(trim((string) $r['total_pieces_unit']));
