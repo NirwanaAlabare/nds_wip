@@ -310,7 +310,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SELECT
                     so_det_id,
                     SUM(qty) AS pl_saldo_awal_masuk,
-                    0, 
+                    0,
                     SUM(
                         IF(
                             type = 'RFT'
@@ -534,7 +534,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bppbdate < '2026-09-01'
                 GROUP BY
                     id_so_det
-                
+
                 UNION ALL
 
                 SELECT
@@ -1380,7 +1380,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.tujuan_so_det_id
                 WHERE
                     date(packing_central_switching.created_at) <= '{$tgl_akhir}'
-                GROUP BY 
+                GROUP BY
                     master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
                 UNION ALL
                 SELECT
@@ -1440,7 +1440,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.asal_so_det_id
                 WHERE
                     date(packing_central_switching.created_at) <= '{$tgl_akhir}'
-                GROUP BY 
+                GROUP BY
                     master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
 
                 UNION ALL
@@ -1499,7 +1499,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_packing_in
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
                 WHERE
                     tgl_penerimaan <= '{$tgl_akhir}' and
                     sumber = 'FGS'
@@ -1562,7 +1562,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_trf_garment
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det
                 WHERE
                     tgl_trans <= '{$tgl_akhir}' and
                     tujuan = 'Temporary Packing'
@@ -1625,7 +1625,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_out_gudang_stok
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id
                 WHERE
                     created_at <= '{$tgl_akhir} 23:59:59' and
                     lokasi_asal = 'TEMPORARY PACKING'
@@ -1688,7 +1688,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_trf_garment_out_temporary
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment_out_temporary.id_so_det 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment_out_temporary.id_so_det
                 WHERE
                     tgl_trans <= '{$tgl_akhir}' and
                     po = 'TEMPORARY PACKING'
@@ -1751,7 +1751,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_packing_in
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
                 WHERE
                     tgl_penerimaan <= '{$tgl_akhir}' and
                     sumber = 'TEMPORARY PACKING'
@@ -1814,7 +1814,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment_packing_temporary
                 FROM
                     packing_out_gudang_stok
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id 
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_out_gudang_stok.so_det_id
                 WHERE
                     created_at <= '{$tgl_akhir} 23:59:59' and
                     lokasi_asal = 'PACKING CENTRAL'
@@ -2078,11 +2078,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         foreach ($data as $row) {
 
             $rows = [
-                $row->ws ?? '',
-                $row->buyer ?? '',
-                $row->style ?? '',
-                $row->color ?? '',
-                $row->size ?? '',
+                preg_replace('/\s+/', ' ', (string) ($row->ws ?? '')),
+                preg_replace('/\s+/', ' ', (string) ($row->buyer ?? '')),
+                preg_replace('/\s+/', ' ', (string) ($row->style ?? '')),
+                preg_replace('/\s+/', ' ', (string) ($row->color ?? '')),
+                preg_replace('/\s+/', ' ', (string) ($row->size ?? '')),
 
                 (float) ($row->tpl_saldo_awal ?? 0),
                 (float) ($row->tpl_in ?? 0),
@@ -2131,7 +2131,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $columns = [
             'A', 'B', 'C', 'D', 'E',
             'F', 'G', 'H', 'I', 'J',
-            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 
+            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
             'T', 'U', 'V', 'W', 'X', 'Y',
             'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ'
         ];
