@@ -15,6 +15,14 @@
             top: 15%;
         }
 
+        .cancel-checkbox {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
         .border-dashed {
             border-style: dashed !important;
         }
@@ -51,7 +59,7 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
-                            <th class="text-center"><input type="checkbox" class="form-check-input" id="check-all-cancel"></th>
+                            <th class="text-center"><input type="checkbox" class="cancel-checkbox" id="check-all-cancel"></th>
                             <th class="text-center">Action</th>
                             <th class="text-center">Tanggal</th>
                             <th class="text-center">No. WS</th>
@@ -345,14 +353,14 @@
                 columnDefs: [
                     {
                         targets: [0],
-                        className: 'align-middle text-center',
+                        className: 'align-middle text-center text-nowrap',
                         render: (data, type, row) => {
-                            return `<input type="checkbox" class="form-check-input check-cancel" value="${data}" ${selectedCancelIds.has(String(data)) ? 'checked' : ''}>`;
+                            return `<input type="checkbox" class="cancel-checkbox check-cancel" value="${data}" ${selectedCancelIds.has(String(data)) ? 'checked' : ''}>`;
                         }
                     },
                     {
                         targets: [1],
-                        className: 'align-middle text-center',
+                        className: 'align-middle text-center text-nowrap',
                         render: (data, type, row) => {
                             return `<button type="button" class="btn btn-sm btn-danger" onclick="cancelTerimaSecLuar([${data}])"><i class="fa fa-times"></i> Cancel</button>`;
                         }
